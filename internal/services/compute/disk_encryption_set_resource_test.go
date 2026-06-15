@@ -298,6 +298,7 @@ resource "azurerm_key_vault" "test" {
   name                        = "acctestkv-%s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
+  rbac_authorization_enabled  = false
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "standard"
   purge_protection_enabled    = %t
@@ -344,6 +345,7 @@ resource "azurerm_key_vault_key" "test" {
 
   depends_on = [azurerm_key_vault_access_policy.service-principal]
 }
+
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, purgeProtectionEnabled)
 }

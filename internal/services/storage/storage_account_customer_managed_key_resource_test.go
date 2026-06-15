@@ -469,6 +469,7 @@ resource "azurerm_key_vault" "remotetest" {
   name                       = "acctestkv%s"
   location                   = azurerm_resource_group.remotetest.location
   resource_group_name        = azurerm_resource_group.remotetest.name
+  rbac_authorization_enabled = false
   tenant_id                  = "%s"
   sku_name                   = "standard"
   purge_protection_enabled   = true
@@ -574,6 +575,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acctestkv%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   purge_protection_enabled   = true
@@ -652,6 +654,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acctestkv%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   purge_protection_enabled   = true
@@ -788,6 +791,7 @@ resource "azurerm_key_vault" "remotetest" {
   name                       = "acctestkv%[5]s"
   location                   = azurerm_resource_group.remotetest.location
   resource_group_name        = azurerm_resource_group.remotetest.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.remote.tenant_id
   sku_name                   = "standard"
   purge_protection_enabled   = true
@@ -870,6 +874,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acc%[3]d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7

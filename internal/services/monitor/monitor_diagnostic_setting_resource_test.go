@@ -416,11 +416,12 @@ resource "azurerm_eventhub_namespace_authorization_rule" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest%[3]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acctest%[3]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 }
 
 resource "azurerm_monitor_diagnostic_setting" "test" {
@@ -472,11 +473,12 @@ resource "azurerm_eventhub_namespace_authorization_rule" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest%[3]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acctest%[3]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 }
 
 resource "azurerm_monitor_diagnostic_setting" "test" {
@@ -530,11 +532,12 @@ resource "azurerm_eventhub_namespace_authorization_rule" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest%[3]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acctest%[3]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 }
 
 resource "azurerm_monitor_diagnostic_setting" "test" {
@@ -594,11 +597,12 @@ resource "azurerm_log_analytics_workspace" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest%[3]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acctest%[3]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 }
 
 resource "azurerm_monitor_diagnostic_setting" "test" {
@@ -714,11 +718,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest%[3]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acctest%[3]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 }
 
 resource "azurerm_elastic_cloud_elasticsearch" "test" {
@@ -764,11 +769,12 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest%[3]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acctest%[3]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 }
 
 resource "azurerm_monitor_diagnostic_setting" "test" {
@@ -998,11 +1004,12 @@ resource "azurerm_eventhub_namespace_authorization_rule" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest%[3]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acctest%[3]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 }
 
 resource "azurerm_monitor_diagnostic_setting" "test" {
@@ -1064,11 +1071,12 @@ resource "azurerm_eventhub_namespace_authorization_rule" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest%[3]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acctest%[3]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 }
 
 resource "azurerm_monitor_diagnostic_setting" "test" {
@@ -1136,11 +1144,12 @@ resource "azurerm_eventhub_namespace_authorization_rule" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest%[3]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acctest%[3]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 }
 
 resource "azurerm_monitor_diagnostic_setting" "test" {
@@ -1198,11 +1207,12 @@ resource "azurerm_eventhub_namespace_authorization_rule" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest%[3]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acctest%[3]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 }
 
 resource "azurerm_monitor_diagnostic_setting" "test" {
@@ -1264,11 +1274,12 @@ resource "azurerm_eventhub_namespace_authorization_rule" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest%[3]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acctest%[3]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 }
 
 resource "azurerm_monitor_diagnostic_setting" "test" {

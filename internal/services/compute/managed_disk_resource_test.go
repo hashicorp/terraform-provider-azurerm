@@ -1543,11 +1543,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestkv-%s"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
-  sku_name            = "standard"
+  name                       = "acctestkv-%s"
+  location                   = "${azurerm_resource_group.test.location}"
+  resource_group_name        = "${azurerm_resource_group.test.name}"
+  rbac_authorization_enabled = false
+  tenant_id                  = "${data.azurerm_client_config.current.tenant_id}"
+  sku_name                   = "standard"
 
   access_policy {
     tenant_id = "${data.azurerm_client_config.current.tenant_id}"
@@ -1632,11 +1633,12 @@ func (r ManagedDiskResource) encryptionUpdated(data acceptance.TestData) string 
 %[1]s
 
 resource "azurerm_key_vault" "test2" {
-  name                = "acctestkv2-%[2]s"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
-  sku_name            = "standard"
+  name                       = "acctestkv2-%[2]s"
+  location                   = "${azurerm_resource_group.test.location}"
+  resource_group_name        = "${azurerm_resource_group.test.name}"
+  rbac_authorization_enabled = false
+  tenant_id                  = "${data.azurerm_client_config.current.tenant_id}"
+  sku_name                   = "standard"
 
   access_policy {
     tenant_id = "${data.azurerm_client_config.current.tenant_id}"
@@ -1811,6 +1813,7 @@ resource "azurerm_key_vault" "test" {
   name                        = "acctestkv%s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
+  rbac_authorization_enabled  = false
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "standard"
   enabled_for_disk_encryption = true
@@ -2783,6 +2786,7 @@ resource "azurerm_key_vault" "test" {
   name                        = "acctestkv%[3]s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
+  rbac_authorization_enabled  = false
   sku_name                    = "premium"
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   enabled_for_disk_encryption = true
@@ -2865,6 +2869,7 @@ resource "azurerm_managed_disk" "test" {
     azurerm_key_vault_access_policy.disk-encryption,
   ]
 }
+
 
 `, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }

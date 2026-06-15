@@ -236,6 +236,7 @@ resource "azurerm_user_assigned_identity" "test" {
 resource "azurerm_key_vault" "test" {
   name                       = "acctestkv%[2]s"
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   location                   = azurerm_resource_group.test.location
   sku_name                   = "standard"
   tenant_id                  = data.azurerm_client_config.current.tenant_id

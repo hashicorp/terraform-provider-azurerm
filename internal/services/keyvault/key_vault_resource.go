@@ -144,7 +144,7 @@ func resourceKeyVault() *pluginsdk.Resource {
 			"rbac_authorization_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  false,
+				Default:  true,
 			},
 
 			"network_acls": {
