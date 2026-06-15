@@ -8,7 +8,7 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type OpenShiftClusterUpdate struct {
-	Identity   *identity.LegacySystemAndUserAssignedMap `json:"identity,omitempty"`
-	Properties *OpenShiftClusterProperties              `json:"properties,omitempty"`
-	Tags       *map[string]string                       `json:"tags,omitempty"`
+	Identity   *identity.UserAssignedMap   `json:"identity,omitempty"`
+	Properties *OpenShiftClusterProperties `json:"properties,omitempty"`
+	Tags       *map[string]string          `json:"tags,omitempty"`
 }

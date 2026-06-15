@@ -738,7 +738,7 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 
 			effectiveIsGeneralPurposeV2 := expandMsSqlManagedInstanceGeneralPurposeV2Enabled(state.GeneralPurposeV2Enabled, state.SkuName)
 
-			if metadata.ResourceData.HasChange("general_purpose_v2_enabled") || metadata.ResourceData.HasChange("sku_name") {
+			if metadata.ResourceData.HasChanges("general_purpose_v2_enabled", "sku_name") {
 				props.IsGeneralPurposeV2 = effectiveIsGeneralPurposeV2
 			}
 
