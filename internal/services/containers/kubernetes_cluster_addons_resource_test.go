@@ -315,21 +315,21 @@ func TestAccKubernetesCluster_addonProfileServiceMeshProfile_revisions(t *testin
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-27"]`),
+			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-28"]`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-27", "asm-1-28"]`),
+			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-28", "asm-1-29"]`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-27"]`),
+			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-28"]`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1529,7 +1529,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 2
-    vm_size        = "Standard_DS2_v2"
+    vm_size        = "Standard_D2s_v3"
     vnet_subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       max_surge = "10%%"
