@@ -549,15 +549,9 @@ func (r RedHatOpenShiftCluster) Create() sdk.ResourceFunc {
 				}
 			}
 
-			expandedIdentity, err := identity.ExpandUserAssignedMapFromModel(config.Identity)
-			if err != nil {
-				return fmt.Errorf("expanding `identity`: %+v", err)
-			}
-
 			parameters := openshiftclusters.OpenShiftCluster{
 				Name:     pointer.To(id.OpenShiftClusterName),
 				Location: location.Normalize(config.Location),
-				Identity: expandedIdentity,
 				Properties: &openshiftclusters.OpenShiftClusterProperties{
 					ClusterProfile:                  expandOpenshiftClusterProfile(config.ClusterProfile, id.SubscriptionId),
 					ServicePrincipalProfile:         expandOpenshiftServicePrincipalProfile(config.ServicePrincipal),
@@ -569,6 +563,14 @@ func (r RedHatOpenShiftCluster) Create() sdk.ResourceFunc {
 					PlatformWorkloadIdentityProfile: expandOpenshiftPlatformWorkloadIdentityProfile(config.PlatformWorkloadIdentityProfile),
 				},
 				Tags: pointer.To(config.Tags),
+			}
+
+			if len(config.Identity) > 0 {
+				expandedIdentity, err := identity.ExpandUserAssignedMapFromModel(config.Identity)
+				if err != nil {
+					return fmt.Errorf("expanding `identity`: %+v", err)
+				}
+				parameters.Identity = expandedIdentity
 			}
 
 			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, metadata.SetIDAndIdentityCallback(&id)); err != nil {
