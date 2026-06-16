@@ -827,8 +827,8 @@ resource "azurerm_static_web_app" "test" {
   public_network_access_enabled = false
 
   tags = {
-    env = "test"
-	env1 = "test1"
+    env  = "test"
+    env1 = "test1"
   }
 }
 
