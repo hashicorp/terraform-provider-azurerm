@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -172,7 +174,8 @@ resource "azurerm_synapse_integration_runtime_azure" "test" {
 }
 
 func (SynapseIntegrationRuntimeAzureResource) template(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -193,6 +196,56 @@ resource "azurerm_storage_account" "test" {
 resource "azurerm_storage_container" "test" {
   name                  = "content"
   storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_data_lake_gen2_filesystem" "test" {
+  name               = "acctest-%d"
+  storage_account_id = azurerm_storage_account.test.id
+}
+
+resource "azurerm_synapse_workspace" "test" {
+  name                                 = "acctestdf%d"
+  location                             = azurerm_resource_group.test.location
+  resource_group_name                  = azurerm_resource_group.test.name
+  storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
+  sql_administrator_login              = "sqladminuser"
+  sql_administrator_login_password     = "H@Sh1CoR3!"
+  managed_virtual_network_enabled      = true
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_synapse_firewall_rule" "test" {
+  name                 = "AllowAll"
+  synapse_workspace_id = azurerm_synapse_workspace.test.id
+  start_ip_address     = "0.0.0.0"
+  end_ip_address       = "255.255.255.255"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-synapse-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "content"
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 

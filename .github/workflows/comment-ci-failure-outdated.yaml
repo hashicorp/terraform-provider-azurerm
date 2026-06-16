@@ -3,21 +3,27 @@ name: Comment CI Failure Outdated
 on:
   # This file is reused, and called from other workflows
   workflow_call:
+    inputs:
+      check_name:
+        description: "The name of the check to strike through"
+        required: false
+        type: string
 
 permissions:
   pull-requests: write
+  issues: write
 
 jobs:
   comment-ci-failure-outdated:
     runs-on: ubuntu-latest
     steps:
       - name: Strike through fixed failure and clean up
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         with:
           result-encoding: string
           retries: 3
           script: |
-            const workflowName = '${{ github.workflow }}';
+            const workflowName = '${{ inputs.check_name || github.workflow }}';
             const sha = '${{ github.event.pull_request.head.sha }}';
             const shortSha = sha.substring(0, 7);
             const prNumber = ${{ github.event.number }};
@@ -161,6 +167,19 @@ jobs:
                   }
                 `, { id: comment.id });
                 console.log(`✅ Minimized resolved comment (id: ${comment.databaseId})`);
+
+                // Remove waiting-response label
+                try {
+                  console.log(`Removing 'waiting-response' label...`);
+                  await github.rest.issues.removeLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: prNumber,
+                    name: 'waiting-response',
+                  });
+                } catch (err) {
+                  console.log(`⚠️ Failed to remove label (might not exist): ${err.message}`);
+                }
               }
             }
 

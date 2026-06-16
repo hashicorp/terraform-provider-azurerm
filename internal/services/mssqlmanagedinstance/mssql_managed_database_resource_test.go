@@ -267,6 +267,7 @@ func (r MsSqlManagedDatabase) pointInTimeRestore(data acceptance.TestData) strin
 	return fmt.Sprintf(`
 %[1]s
 
+# Valid point in time range from 7 days early to now and not before source server creation time
 resource "time_static" "pitr" {
   depends_on = [azurerm_mssql_managed_database.test]
 }
