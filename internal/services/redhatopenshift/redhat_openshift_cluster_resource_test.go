@@ -356,7 +356,7 @@ resource "azurerm_redhat_openshift_cluster" "import" {
   location            = azurerm_redhat_openshift_cluster.test.location
 
   cluster_profile {
-    domain  = azurerm_redhat_openshift_cluster.test.cluster_profile.0.domain
+    domain = azurerm_redhat_openshift_cluster.test.cluster_profile.0.domain
   }
 
   network_profile {
