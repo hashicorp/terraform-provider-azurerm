@@ -152,8 +152,11 @@ func TestAccProvider_resourceProviders_legacy(t *testing.T) {
 	}
 }
 
-// TODO: Remove this test in v5.0
 func TestAccProvider_resourceProviders_deprecatedSkip(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping as `skip_provider_registrations` is no longer supported in 5.0")
+	}
+
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("TF_ACC not set")
 	}

@@ -274,6 +274,9 @@ func TestAccMonitorDiagnosticSetting_enabledLogsMix(t *testing.T) {
 }
 
 func TestAccMonitorDiagnosticSetting_enabledLogsDeprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("`retention_policy` removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
 	r := MonitorDiagnosticSettingResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{

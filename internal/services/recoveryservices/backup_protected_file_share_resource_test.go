@@ -226,10 +226,10 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_share" "test" {
-  name                 = "acctest-ss-%[1]d"
-  storage_account_name = "${azurerm_storage_account.test.name}"
-  quota                = 1
-  metadata             = {}
+  name               = "acctest-ss-%[1]d"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 1
+  metadata           = {}
 
   lifecycle {
     ignore_changes = [metadata] // Ignore changes Azure Backup makes to the metadata
@@ -360,10 +360,10 @@ resource "azurerm_storage_account" "test2" {
 }
 
 resource "azurerm_storage_share" "testshare1" {
-  name                 = "acctest-ss-%[1]d-1"
-  storage_account_name = "${azurerm_storage_account.test1.name}"
-  quota                = 1
-  metadata             = {}
+  name               = "acctest-ss-%[1]d-1"
+  storage_account_id = azurerm_storage_account.test1.id
+  quota              = 1
+  metadata           = {}
 
   lifecycle {
     ignore_changes = [metadata] // Ignore changes Azure Backup makes to the metadata
@@ -371,10 +371,10 @@ resource "azurerm_storage_share" "testshare1" {
 }
 
 resource "azurerm_storage_share" "testshare2" {
-  name                 = "acctest-ss-%[1]d-2"
-  storage_account_name = "${azurerm_storage_account.test1.name}"
-  quota                = 1
-  metadata             = {}
+  name               = "acctest-ss-%[1]d-2"
+  storage_account_id = azurerm_storage_account.test1.id
+  quota              = 1
+  metadata           = {}
 
   lifecycle {
     ignore_changes = [metadata] // Ignore changes Azure Backup makes to the metadata
@@ -382,10 +382,10 @@ resource "azurerm_storage_share" "testshare2" {
 }
 
 resource "azurerm_storage_share" "testshare3" {
-  name                 = "acctest-ss-%[1]d-1"
-  storage_account_name = "${azurerm_storage_account.test2.name}"
-  quota                = 1
-  metadata             = {}
+  name               = "acctest-ss-%[1]d-1"
+  storage_account_id = azurerm_storage_account.test2.id
+  quota              = 1
+  metadata           = {}
 
   lifecycle {
     ignore_changes = [metadata] // Ignore changes Azure Backup makes to the metadata
@@ -393,10 +393,10 @@ resource "azurerm_storage_share" "testshare3" {
 }
 
 resource "azurerm_storage_share" "testshare4" {
-  name                 = "acctest-ss-%[1]d-2"
-  storage_account_name = "${azurerm_storage_account.test2.name}"
-  quota                = 1
-  metadata             = {}
+  name               = "acctest-ss-%[1]d-2"
+  storage_account_id = azurerm_storage_account.test2.id
+  quota              = 1
+  metadata           = {}
 
   lifecycle {
     ignore_changes = [metadata] // Ignore changes Azure Backup makes to the metadata
@@ -408,8 +408,6 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
-
-  soft_delete_enabled = true
 }
 
 resource "azurerm_backup_policy_file_share" "test" {
@@ -454,10 +452,10 @@ resource "azurerm_backup_protected_file_share" "test" {
 }
 
 resource "azurerm_storage_share" "testshare" {
-  name                 = "acctest-ss-%[2]d"
-  storage_account_name = "${azurerm_storage_account.test2.name}"
-  quota                = 1
-  metadata             = {}
+  name               = "acctest-ss-%[2]d"
+  storage_account_id = azurerm_storage_account.test2.id
+  quota              = 1
+  metadata           = {}
 
   lifecycle {
     ignore_changes = [metadata] // Ignore changes Azure Backup makes to the metadata
