@@ -101,7 +101,7 @@ func resourceWindowsVirtualMachineScaleSet() *pluginsdk.Resource {
 				return nil
 			}),
 
-			pluginsdk.CustomizeDiffShim(virtualMachineScaleSetAutomaticZoneRebalancingCustomizeDiff(true)),
+			pluginsdk.CustomizeDiffShim(virtualMachineScaleSetAutomaticZoneRebalancingCustomizeDiff),
 		),
 	}
 }

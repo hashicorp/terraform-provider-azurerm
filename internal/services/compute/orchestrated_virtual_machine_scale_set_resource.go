@@ -490,7 +490,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				return nil
 			}),
 
-			pluginsdk.CustomizeDiffShim(virtualMachineScaleSetAutomaticZoneRebalancingCustomizeDiff(false)),
+			pluginsdk.CustomizeDiffShim(orchestratedVirtualMachineScaleSetAutomaticZoneRebalancingCustomizeDiff),
 		),
 	}
 

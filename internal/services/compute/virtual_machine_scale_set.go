@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math"
 
@@ -419,32 +420,34 @@ func FlattenVirtualMachineScaleSetResiliency(input *virtualmachinescalesets.Resi
 	return
 }
 
-func virtualMachineScaleSetAutomaticZoneRebalancingCustomizeDiff(supportsHealthProbe bool) pluginsdk.CustomizeDiffFunc {
-	return func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-		if !diff.Get("automatic_zone_rebalancing_enabled").(bool) {
-			return nil
-		}
-		// supportsHealthProbe is used because orchestrated vmss does not support `health_probe_id`
-		if supportsHealthProbe {
-			if v := diff.GetRawConfig().GetAttr("health_probe_id"); !v.IsNull() {
+func orchestratedVirtualMachineScaleSetAutomaticZoneRebalancingCustomizeDiff(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+	if !diff.Get("automatic_zone_rebalancing_enabled").(bool) {
+		return nil
+	}
+
+	if extensions, ok := diff.GetOk("extension"); ok {
+		for _, ext := range extensions.(*pluginsdk.Set).List() {
+			extType := ext.(map[string]interface{})["type"].(string)
+			if extType == "ApplicationHealthLinux" || extType == "ApplicationHealthWindows" {
 				return nil
 			}
 		}
-
-		if extensions, ok := diff.GetOk("extension"); ok {
-			for _, ext := range extensions.(*pluginsdk.Set).List() {
-				extType := ext.(map[string]interface{})["type"].(string)
-				if extType == "ApplicationHealthLinux" || extType == "ApplicationHealthWindows" {
-					return nil
-				}
-			}
-		}
-
-		if supportsHealthProbe {
-			return fmt.Errorf("`automatic_zone_rebalancing_enabled` can only be set to `true` when a `health_probe_id` or a health extension is configured")
-		}
-		return fmt.Errorf("`automatic_zone_rebalancing_enabled` can only be set to `true` when a health extension is configured")
 	}
+
+	return errors.New("`automatic_zone_rebalancing_enabled` can only be set to `true` when a health extension is configured")
+}
+
+func virtualMachineScaleSetAutomaticZoneRebalancingCustomizeDiff(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+	err := orchestratedVirtualMachineScaleSetAutomaticZoneRebalancingCustomizeDiff(ctx, diff, v)
+	if err == nil {
+		return nil
+	}
+
+	if healthProbeID := diff.GetRawConfig().GetAttr("health_probe_id"); !healthProbeID.IsNull() {
+		return nil
+	}
+
+	return errors.New("`automatic_zone_rebalancing_enabled` can only be set to `true` when a `health_probe_id` or a health extension is configured")
 }
 
 func VirtualMachineScaleSetNetworkInterfaceSchemaForDataSource() *pluginsdk.Schema {
