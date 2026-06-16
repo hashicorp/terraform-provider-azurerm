@@ -82,18 +82,8 @@ func (r RedHatOpenShiftClusterListResource) List(ctx context.Context, request li
 				return
 			}
 
-			state := RedHatOpenShiftClusterModel{
-				Name:          id.OpenShiftClusterName,
-				ResourceGroup: id.ResourceGroupName,
-			}
-
-			if err := clusterResource.flatten(&state, &cluster, config); err != nil {
+			if err := clusterResource.flatten(meta, *id, &cluster, config); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", clusterResource.ResourceType()), err)
-				return
-			}
-
-			if err := meta.Encode(&state); err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` result", clusterResource.ResourceType()), err)
 				return
 			}
 

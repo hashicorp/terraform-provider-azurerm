@@ -577,6 +577,11 @@ func (r RedHatOpenShiftCluster) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
+			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
+
 			return nil
 		},
 	}
@@ -655,58 +660,58 @@ func (r RedHatOpenShiftCluster) Read() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			state := RedHatOpenShiftClusterModel{
-				Name:          id.OpenShiftClusterName,
-				ResourceGroup: id.ResourceGroupName,
-			}
-
-			if model := resp.Model; model != nil {
-				if err := r.flatten(&state, model, config); err != nil {
-					return err
-				}
-			}
-
-			return metadata.Encode(&state)
+			return r.flatten(metadata, *id, resp.Model, config)
 		},
 	}
 }
 
-func (RedHatOpenShiftCluster) flatten(state *RedHatOpenShiftClusterModel, model *openshiftclusters.OpenShiftCluster, config RedHatOpenShiftClusterModel) error {
-	state.Location = location.Normalize(model.Location)
-	state.Tags = pointer.From(model.Tags)
-
-	flattenedIdentity, err := identity.FlattenUserAssignedMapToModel(model.Identity)
-	if err != nil {
-		return fmt.Errorf("flattening `identity`: %+v", err)
-	}
-	state.Identity = pointer.From(flattenedIdentity)
-
-	if props := model.Properties; props != nil {
-		clusterProfile, err := flattenOpenShiftClusterProfile(props.ClusterProfile, config)
-		if err != nil {
-			return fmt.Errorf("flatten cluster profile: %+v", err)
-		}
-		state.ClusterProfile = *clusterProfile
-
-		state.ServicePrincipal = flattenOpenShiftServicePrincipalProfile(props.ServicePrincipalProfile, config)
-		state.NetworkProfile = flattenOpenShiftNetworkProfile(props.NetworkProfile)
-		state.MainProfile = flattenOpenShiftMainProfile(props.MasterProfile)
-		state.ApiServerProfile = flattenOpenShiftAPIServerProfile(props.ApiserverProfile)
-		state.IngressProfile = flattenOpenShiftIngressProfiles(props.IngressProfiles)
-		state.PlatformWorkloadIdentityProfile = flattenOpenShiftPlatformWorkloadIdentityProfile(props.PlatformWorkloadIdentityProfile)
-
-		workerProfiles, err := flattenOpenShiftWorkerProfiles(props.WorkerProfiles)
-		if err != nil {
-			return fmt.Errorf("flattening worker profiles: %+v", err)
-		}
-		state.WorkerProfile = workerProfiles
-
-		if props.ConsoleProfile != nil {
-			state.ConsoleUrl = pointer.From(props.ConsoleProfile.Url)
-		}
+func (RedHatOpenShiftCluster) flatten(metadata sdk.ResourceMetaData, id openshiftclusters.OpenShiftClusterId, model *openshiftclusters.OpenShiftCluster, config RedHatOpenShiftClusterModel) error {
+	state := RedHatOpenShiftClusterModel{
+		Name:          id.OpenShiftClusterName,
+		ResourceGroup: id.ResourceGroupName,
 	}
 
-	return nil
+	if model != nil {
+		state.Location = location.Normalize(model.Location)
+		state.Tags = pointer.From(model.Tags)
+
+		flattenedIdentity, err := identity.FlattenUserAssignedMapToModel(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		state.Identity = pointer.From(flattenedIdentity)
+
+		if props := model.Properties; props != nil {
+			clusterProfile, err := flattenOpenShiftClusterProfile(props.ClusterProfile, config)
+			if err != nil {
+				return fmt.Errorf("flatten cluster profile: %+v", err)
+			}
+			state.ClusterProfile = *clusterProfile
+
+			state.ServicePrincipal = flattenOpenShiftServicePrincipalProfile(props.ServicePrincipalProfile, config)
+			state.NetworkProfile = flattenOpenShiftNetworkProfile(props.NetworkProfile)
+			state.MainProfile = flattenOpenShiftMainProfile(props.MasterProfile)
+			state.ApiServerProfile = flattenOpenShiftAPIServerProfile(props.ApiserverProfile)
+			state.IngressProfile = flattenOpenShiftIngressProfiles(props.IngressProfiles)
+			state.PlatformWorkloadIdentityProfile = flattenOpenShiftPlatformWorkloadIdentityProfile(props.PlatformWorkloadIdentityProfile)
+
+			workerProfiles, err := flattenOpenShiftWorkerProfiles(props.WorkerProfiles)
+			if err != nil {
+				return fmt.Errorf("flattening worker profiles: %+v", err)
+			}
+			state.WorkerProfile = workerProfiles
+
+			if props.ConsoleProfile != nil {
+				state.ConsoleUrl = pointer.From(props.ConsoleProfile.Url)
+			}
+		}
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }
 
 func (r RedHatOpenShiftCluster) Delete() sdk.ResourceFunc {
