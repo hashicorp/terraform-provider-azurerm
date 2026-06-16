@@ -497,6 +497,5 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 }
 
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

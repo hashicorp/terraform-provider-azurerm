@@ -251,6 +251,5 @@ resource "azurerm_key_vault_key" "test2" {
   ]
 }
 
-
 `, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
