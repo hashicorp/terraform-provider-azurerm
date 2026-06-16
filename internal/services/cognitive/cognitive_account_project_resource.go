@@ -3,6 +3,7 @@ package cognitive
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -297,7 +298,27 @@ func (r CognitiveAccountProjectResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			if err := client.ProjectsDeleteThenPoll(ctx, *id); err != nil {
+			// When connections attached to the project were deleted earlier in the
+			// same destroy run, Azure puts the project into a transitional
+			// provisioning state while it processes the cascading updates. Any
+			// mutation that arrives during that window — including the project
+			// DELETE itself — is rejected with a 412 IfMatchPreconditionFailed
+			// even though no caller actually contended on the ETag. The window
+			// is short (single-digit seconds, occasionally up to ~30s); the
+			// transient error converges once Azure is done. Retry on
+			// PreconditionFailed until the resource timeout is hit, treat every
+			// other failure shape as terminal.
+			// See https://github.com/hashicorp/terraform-provider-azurerm/issues/32614
+			err = pluginsdk.Retry(5*time.Minute, func() *pluginsdk.RetryError {
+				if err := client.ProjectsDeleteThenPoll(ctx, *id); err != nil {
+					if strings.Contains(err.Error(), "PreconditionFailed") || strings.Contains(err.Error(), "412 ") {
+						return pluginsdk.RetryableError(err)
+					}
+					return pluginsdk.NonRetryableError(err)
+				}
+				return nil
+			})
+			if err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 

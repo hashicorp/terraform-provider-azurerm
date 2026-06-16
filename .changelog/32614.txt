@@ -1,0 +1,3 @@
+```release-note:bug
+`azurerm_cognitive_account_project` - retry the project DELETE on transient `412 IfMatchPreconditionFailed` while Azure finishes processing in-flight connection deletions, instead of failing the whole destroy
+```
