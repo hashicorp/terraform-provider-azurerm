@@ -162,6 +162,7 @@ func TestAccStorageAccount_DNSEndpointTypeAzure(t *testing.T) {
 				check.That(data.ResourceName).Key("account_replication_type").HasValue("LRS"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("production"),
+				check.That(data.ResourceName).Key("primary_connection_string").MatchesRegex(regexp.MustCompile(`BlobEndpoint=https://[^;]+\.blob\.storage\.azure\.net/`)),
 			),
 		},
 		data.ImportStep(),

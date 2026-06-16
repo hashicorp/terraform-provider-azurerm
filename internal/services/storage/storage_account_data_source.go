@@ -657,10 +657,14 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 	var primaryEndpoints *storageaccounts.Endpoints
 	var secondaryEndpoints *storageaccounts.Endpoints
 	var routingPreference *storageaccounts.RoutingPreference
+	dnsEndpointType := storageaccounts.DnsEndpointTypeStandard
 	if model := resp.Model; model != nil && model.Properties != nil {
 		primaryEndpoints = model.Properties.PrimaryEndpoints
 		routingPreference = model.Properties.RoutingPreference
 		secondaryEndpoints = model.Properties.SecondaryEndpoints
+		if model.Properties.DnsEndpointType != nil {
+			dnsEndpointType = *model.Properties.DnsEndpointType
+		}
 	}
 	endpoints := flattenAccountEndpoints(primaryEndpoints, secondaryEndpoints, routingPreference)
 	endpoints.set(d)
@@ -669,7 +673,7 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 	if keys.Model != nil && keys.Model.Keys != nil {
 		storageAccountKeys = *keys.Model.Keys
 	}
-	keysAndConnectionStrings := flattenAccountAccessKeysAndConnectionStrings(id.StorageAccountName, *storageDomainSuffix, storageAccountKeys, endpoints)
+	keysAndConnectionStrings := flattenAccountAccessKeysAndConnectionStrings(id.StorageAccountName, *storageDomainSuffix, storageAccountKeys, endpoints, dnsEndpointType)
 	keysAndConnectionStrings.set(d)
 
 	return nil
