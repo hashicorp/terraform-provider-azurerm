@@ -266,7 +266,6 @@ func resourceAppServicePlanRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	// A 404 doesn't error from the app service plan sdk so we'll add this check here to catch resource not found responses
-	// TODO This block can be removed if https://github.com/Azure/azure-sdk-for-go/issues/5407 gets addressed.
 	if utils.ResponseWasNotFound(resp.Response) {
 		log.Printf("[DEBUG] App Service Plan %q was not found in Resource Group %q - removing from state!", id.ServerFarmName, id.ResourceGroup)
 		d.SetId("")
