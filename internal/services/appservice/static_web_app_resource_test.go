@@ -121,13 +121,6 @@ func TestAccAzureStaticWebApp_identity(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.withSystemAssignedUserAssignedIdentity(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
 			Config: r.withUserAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -138,24 +131,6 @@ func TestAccAzureStaticWebApp_identity(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccAzureStaticWebApp_withSystemAssignedUserAssignedIdentity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_static_web_app", "test")
-	r := StaticWebAppResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.withSystemAssignedUserAssignedIdentity(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
-				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned, UserAssigned"),
-				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -458,39 +433,6 @@ resource "azurerm_static_web_app" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r StaticWebAppResource) withSystemAssignedUserAssignedIdentity(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_user_assigned_identity" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-
-  name = "acctest-%[1]d"
-}
-
-resource "azurerm_static_web_app" "test" {
-  name                = "acctestSS-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku_size            = "Standard"
-  sku_tier            = "Standard"
-
-  identity {
-    type         = "SystemAssigned, UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.test.id]
-  }
-}
-`, data.RandomInteger, data.Locations.Primary) // TODO - Put back to primary when support ticket is resolved
-}
-
 func (r StaticWebAppResource) withUserAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -694,7 +636,7 @@ resource "azurerm_static_web_app" "test" {
   preview_environments_enabled       = false
 
   identity {
-    type         = "SystemAssigned, UserAssigned"
+    type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
