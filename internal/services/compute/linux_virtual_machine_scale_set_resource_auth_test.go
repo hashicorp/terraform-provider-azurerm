@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
@@ -128,10 +126,10 @@ func TestAccLinuxVirtualMachineScaleSet_authDisablePasswordAuthUpdate(t *testing
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// disable it
-			Config: r.authSSHKey(data),
+			Config: r.authSSHKeyAndPassword(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -140,11 +138,6 @@ func TestAccLinuxVirtualMachineScaleSet_authDisablePasswordAuthUpdate(t *testing
 		{
 			// enable it
 			Config: r.authPassword(data),
-			ConfigPlanChecks: resource.ConfigPlanChecks{
-				PreApply: []plancheck.PlanCheck{
-					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
-				},
-			},
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -152,12 +145,7 @@ func TestAccLinuxVirtualMachineScaleSet_authDisablePasswordAuthUpdate(t *testing
 		data.ImportStep("admin_password"),
 		{
 			// disable it
-			Config: r.authSSHKey(data),
-			ConfigPlanChecks: resource.ConfigPlanChecks{
-				PreApply: []plancheck.PlanCheck{
-					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
-				},
-			},
+			Config: r.authSSHKeyAndPassword(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -347,7 +335,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   sku                 = "Standard_F2"
   instances           = 1
   admin_username      = "adminuser"
-  admin_password      = "P@ssw0rd1234!"
+  admin_password      = "P@ssword1234!"
 
   admin_ssh_key {
     username   = "adminuser"
