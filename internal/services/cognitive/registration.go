@@ -60,6 +60,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 // Resources returns a list of Resources supported by this Service
 func (r Registration) Resources() []sdk.Resource {
 	resources := []sdk.Resource{
+		CognitiveAccountProjectConnectionEntraIDResource{},
 		CognitiveAccountProjectResource{},
 		CognitiveAccountRaiPolicyResource{},
 		CognitiveDeploymentResource{},
@@ -92,5 +93,6 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
 		CognitiveAccountListResource{},
+		CognitiveAccountProjectConnectionEntraIDListResource{},
 	}
 }
