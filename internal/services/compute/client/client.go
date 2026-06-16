@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-07-01/skus"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
@@ -35,7 +34,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachineextensions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachineimages"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/rollingupgradestatusinfos"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesetextensions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesetvms"
@@ -47,37 +45,36 @@ import (
 type Client struct {
 	// TODO: move the Compute client to using Meta Clients where possible
 	// TODO: @tombuildsstuff: investigate _if_ that's possible given Compute uses a myriad of API Versions
-	AvailabilitySetsClient                      *availabilitysets.AvailabilitySetsClient
-	CapacityReservationsClient                  *capacityreservations.CapacityReservationsClient
-	CapacityReservationGroupsClient             *capacityreservationgroups.CapacityReservationGroupsClient
-	DedicatedHostsClient                        *dedicatedhosts.DedicatedHostsClient
-	DedicatedHostGroupsClient                   *dedicatedhostgroups.DedicatedHostGroupsClient
-	DisksClient                                 *disks.DisksClient
-	DiskAccessClient                            *diskaccesses.DiskAccessesClient
-	DiskEncryptionSetsClient                    *diskencryptionsets.DiskEncryptionSetsClient
-	GalleriesClient                             *galleries.GalleriesClient
-	GalleryApplicationsClient                   *galleryapplications.GalleryApplicationsClient
-	GalleryApplicationVersionsClient            *galleryapplicationversions.GalleryApplicationVersionsClient
-	GalleryImagesClient                         *galleryimages.GalleryImagesClient
-	GalleryImageVersionsClient                  *galleryimageversions.GalleryImageVersionsClient
-	GallerySharingUpdateClient                  *gallerysharingupdate.GallerySharingUpdateClient
-	ImagesClient                                *images.ImagesClient
-	MarketplaceAgreementsClient                 *agreements.AgreementsClient
-	ProximityPlacementGroupsClient              *proximityplacementgroups.ProximityPlacementGroupsClient
-	RestorePointCollectionsClient               *restorepointcollections.RestorePointCollectionsClient
-	RestorePointsClient                         *restorepoints.RestorePointsClient
-	SkusClient                                  *skus.SkusClient
-	SSHPublicKeysClient                         *sshpublickeys.SshPublicKeysClient
-	SnapshotsClient                             *snapshots.SnapshotsClient
-	StandbyVirtualMachinePoolsClient            *standbyvirtualmachinepools.StandbyVirtualMachinePoolsClient
-	VirtualMachinesClient                       *virtualmachines.VirtualMachinesClient
-	VirtualMachineExtensionsClient              *virtualmachineextensions.VirtualMachineExtensionsClient
-	VirtualMachineRunCommandsClient             *virtualmachineruncommands.VirtualMachineRunCommandsClient
-	VirtualMachineScaleSetsClient               *virtualmachinescalesets.VirtualMachineScaleSetsClient
-	VirtualMachineScaleSetExtensionsClient      *virtualmachinescalesetextensions.VirtualMachineScaleSetExtensionsClient
-	VirtualMachineScaleSetRollingUpgradesClient *rollingupgradestatusinfos.RollingUpgradeStatusInfosClient
-	VirtualMachineScaleSetVMsClient             *virtualmachinescalesetvms.VirtualMachineScaleSetVMsClient
-	VirtualMachineImagesClient                  *virtualmachineimages.VirtualMachineImagesClient
+	AvailabilitySetsClient                 *availabilitysets.AvailabilitySetsClient
+	CapacityReservationsClient             *capacityreservations.CapacityReservationsClient
+	CapacityReservationGroupsClient        *capacityreservationgroups.CapacityReservationGroupsClient
+	DedicatedHostsClient                   *dedicatedhosts.DedicatedHostsClient
+	DedicatedHostGroupsClient              *dedicatedhostgroups.DedicatedHostGroupsClient
+	DisksClient                            *disks.DisksClient
+	DiskAccessClient                       *diskaccesses.DiskAccessesClient
+	DiskEncryptionSetsClient               *diskencryptionsets.DiskEncryptionSetsClient
+	GalleriesClient                        *galleries.GalleriesClient
+	GalleryApplicationsClient              *galleryapplications.GalleryApplicationsClient
+	GalleryApplicationVersionsClient       *galleryapplicationversions.GalleryApplicationVersionsClient
+	GalleryImagesClient                    *galleryimages.GalleryImagesClient
+	GalleryImageVersionsClient             *galleryimageversions.GalleryImageVersionsClient
+	GallerySharingUpdateClient             *gallerysharingupdate.GallerySharingUpdateClient
+	ImagesClient                           *images.ImagesClient
+	MarketplaceAgreementsClient            *agreements.AgreementsClient
+	ProximityPlacementGroupsClient         *proximityplacementgroups.ProximityPlacementGroupsClient
+	RestorePointCollectionsClient          *restorepointcollections.RestorePointCollectionsClient
+	RestorePointsClient                    *restorepoints.RestorePointsClient
+	SkusClient                             *skus.SkusClient
+	SSHPublicKeysClient                    *sshpublickeys.SshPublicKeysClient
+	SnapshotsClient                        *snapshots.SnapshotsClient
+	StandbyVirtualMachinePoolsClient       *standbyvirtualmachinepools.StandbyVirtualMachinePoolsClient
+	VirtualMachinesClient                  *virtualmachines.VirtualMachinesClient
+	VirtualMachineExtensionsClient         *virtualmachineextensions.VirtualMachineExtensionsClient
+	VirtualMachineRunCommandsClient        *virtualmachineruncommands.VirtualMachineRunCommandsClient
+	VirtualMachineScaleSetsClient          *virtualmachinescalesets.VirtualMachineScaleSetsClient
+	VirtualMachineScaleSetExtensionsClient *virtualmachinescalesetextensions.VirtualMachineScaleSetExtensionsClient
+	VirtualMachineScaleSetVMsClient        *virtualmachinescalesetvms.VirtualMachineScaleSetVMsClient
+	VirtualMachineImagesClient             *virtualmachineimages.VirtualMachineImagesClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -237,12 +234,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(virtualMachineRunCommandsClient.Client, o.Authorizers.ResourceManager)
 
-	virtualMachineScaleSetRollingUpgradesClient, err := rollingupgradestatusinfos.NewRollingUpgradeStatusInfosClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building VirtualMachineScaleSetRollingUpgrades client: %+v", err)
-	}
-	o.Configure(virtualMachineScaleSetRollingUpgradesClient.Client, o.Authorizers.ResourceManager)
-
 	virtualMachineScaleSetsClient, err := virtualmachinescalesets.NewVirtualMachineScaleSetsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building VirtualMachineScaleSets client: %+v", err)
@@ -268,65 +259,40 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	o.Configure(vmImageClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		AvailabilitySetsClient:                      availabilitySetsClient,
-		CapacityReservationsClient:                  capacityReservationsClient,
-		CapacityReservationGroupsClient:             capacityReservationGroupsClient,
-		DedicatedHostsClient:                        dedicatedHostsClient,
-		DedicatedHostGroupsClient:                   dedicatedHostGroupsClient,
-		DisksClient:                                 disksClient,
-		DiskAccessClient:                            diskAccessClient,
-		DiskEncryptionSetsClient:                    diskEncryptionSetsClient,
-		GalleriesClient:                             galleriesClient,
-		GalleryApplicationsClient:                   galleryApplicationsClient,
-		GalleryApplicationVersionsClient:            galleryApplicationVersionsClient,
-		GalleryImagesClient:                         galleryImagesClient,
-		GalleryImageVersionsClient:                  galleryImageVersionsClient,
-		GallerySharingUpdateClient:                  gallerySharingUpdateClient,
-		ImagesClient:                                imagesClient,
-		MarketplaceAgreementsClient:                 marketplaceAgreementsClient,
-		ProximityPlacementGroupsClient:              proximityPlacementGroupsClient,
-		RestorePointCollectionsClient:               restorePointCollectionsClient,
-		RestorePointsClient:                         restorePointsClient,
-		SkusClient:                                  skusClient,
-		SSHPublicKeysClient:                         sshPublicKeysClient,
-		SnapshotsClient:                             snapshotsClient,
-		StandbyVirtualMachinePoolsClient:            standbyVirtualMachinePoolsClient,
-		VirtualMachinesClient:                       virtualMachinesClient,
-		VirtualMachineExtensionsClient:              virtualMachineExtensionsClient,
-		VirtualMachineRunCommandsClient:             virtualMachineRunCommandsClient,
-		VirtualMachineScaleSetsClient:               virtualMachineScaleSetsClient,
-		VirtualMachineScaleSetExtensionsClient:      virtualMachineScaleSetExtensionsClient,
-		VirtualMachineScaleSetRollingUpgradesClient: virtualMachineScaleSetRollingUpgradesClient,
-		VirtualMachineScaleSetVMsClient:             virtualMachineScaleSetVMsClient,
-		VirtualMachineImagesClient:                  vmImageClient,
+		AvailabilitySetsClient:                 availabilitySetsClient,
+		CapacityReservationsClient:             capacityReservationsClient,
+		CapacityReservationGroupsClient:        capacityReservationGroupsClient,
+		DedicatedHostsClient:                   dedicatedHostsClient,
+		DedicatedHostGroupsClient:              dedicatedHostGroupsClient,
+		DisksClient:                            disksClient,
+		DiskAccessClient:                       diskAccessClient,
+		DiskEncryptionSetsClient:               diskEncryptionSetsClient,
+		GalleriesClient:                        galleriesClient,
+		GalleryApplicationsClient:              galleryApplicationsClient,
+		GalleryApplicationVersionsClient:       galleryApplicationVersionsClient,
+		GalleryImagesClient:                    galleryImagesClient,
+		GalleryImageVersionsClient:             galleryImageVersionsClient,
+		GallerySharingUpdateClient:             gallerySharingUpdateClient,
+		ImagesClient:                           imagesClient,
+		MarketplaceAgreementsClient:            marketplaceAgreementsClient,
+		ProximityPlacementGroupsClient:         proximityPlacementGroupsClient,
+		RestorePointCollectionsClient:          restorePointCollectionsClient,
+		RestorePointsClient:                    restorePointsClient,
+		SkusClient:                             skusClient,
+		SSHPublicKeysClient:                    sshPublicKeysClient,
+		SnapshotsClient:                        snapshotsClient,
+		StandbyVirtualMachinePoolsClient:       standbyVirtualMachinePoolsClient,
+		VirtualMachinesClient:                  virtualMachinesClient,
+		VirtualMachineExtensionsClient:         virtualMachineExtensionsClient,
+		VirtualMachineRunCommandsClient:        virtualMachineRunCommandsClient,
+		VirtualMachineScaleSetsClient:          virtualMachineScaleSetsClient,
+		VirtualMachineScaleSetExtensionsClient: virtualMachineScaleSetExtensionsClient,
+		VirtualMachineScaleSetVMsClient:        virtualMachineScaleSetVMsClient,
+		VirtualMachineImagesClient:             vmImageClient,
 	}, nil
 }
 
 func (c *Client) CancelRollingUpgradesBeforeDeletion(ctx context.Context, id virtualmachinescalesets.VirtualMachineScaleSetId) error {
-	// TODO replace with commonid once https://github.com/hashicorp/pandora/issues/4017 has been merged
-	rollingUpgradeId := rollingupgradestatusinfos.NewVirtualMachineScaleSetID(id.SubscriptionId, id.ResourceGroupName, id.VirtualMachineScaleSetName)
-
-	resp, err := c.VirtualMachineScaleSetRollingUpgradesClient.VirtualMachineScaleSetRollingUpgradesGetLatest(ctx, rollingUpgradeId)
-	if err != nil {
-		// No rolling upgrades are running so skipping attempt to cancel them before deletion
-		if response.WasNotFound(resp.HttpResponse) {
-			return nil
-		}
-		return fmt.Errorf("retrieving rolling updates for %s: %+v", id, err)
-	}
-
-	var upgradeStatus rollingupgradestatusinfos.RollingUpgradeStatusCode
-	if model := resp.Model; model != nil && model.Properties != nil {
-		if status := model.Properties.RunningStatus; status != nil {
-			upgradeStatus = pointer.From(status.Code)
-		}
-	}
-
-	// If lastest rolling upgrade is marked as completed, skip cancellation
-	if upgradeStatus == rollingupgradestatusinfos.RollingUpgradeStatusCodeCompleted {
-		return nil
-	}
-
 	future, err := c.VirtualMachineScaleSetsClient.VirtualMachineScaleSetRollingUpgradesCancel(ctx, id)
 	if err != nil {
 		// If there is no rolling upgrade the API will throw a 409/No rolling upgrade to cancel
