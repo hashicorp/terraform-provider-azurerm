@@ -39,11 +39,11 @@ func TestAccCognitiveAccountProjectConnectionEntraID_list(t *testing.T) {
 					querycheck.ExpectIdentity(
 						"azurerm_cognitive_account_project_connection_entra_id.list",
 						map[string]knownvalue.Check{
-							"name":                knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
-							"resource_group_name": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
-							"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary),
+							"name":                   knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
+							"resource_group_name":    knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
+							"subscription_id":        knownvalue.StringExact(data.Subscriptions.Primary),
 							"cognitive_account_name": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
-							"project_name":        knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
+							"project_name":           knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
 						},
 					),
 				},
