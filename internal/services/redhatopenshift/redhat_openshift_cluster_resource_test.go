@@ -7,16 +7,12 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strings"
 	"testing"
-	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redhatopenshift/2025-07-25/openshiftclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/testclient"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -205,10 +201,19 @@ func TestAccRedhatOpenshiftCluster_loadBalancerProfile(t *testing.T) {
 				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.effective_outbound_ips.#").Exists(),
 			),
 		},
+		data.ImportStep("service_principal.0.client_secret"),
 		{
 			Config: r.loadBalancerProfile(data, 5),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("service_principal.0.client_secret"),
+		{
+			Config: r.loadBalancerProfile(data, 2),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.load_balancer_profile.0.effective_outbound_ips.#").Exists(),
 			),
 		},
 		data.ImportStep("service_principal.0.client_secret"),
@@ -221,9 +226,7 @@ func TestAccRedhatOpenshiftCluster_platformWorkloadIdentity(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			// TODO: TEMP - remove once leftover clusters from prior failed runs are cleaned up.
-			PreConfig: func() { r.deleteLeftoverClusters(t, "acctestaro") },
-			Config:    r.platformWorkloadIdentity(data),
+			Config: r.platformWorkloadIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -244,41 +247,6 @@ func TestAccRedhatOpenshiftCluster_platformWorkloadIdentity(t *testing.T) {
 		},
 		data.ImportStep(),
 	})
-}
-
-// TODO: TEMP - remove. Deletes leftover ARO clusters whose name starts with namePrefix
-// so a previously failed run that left dangling resources does not block this test.
-func (RedhatOpenshiftClusterResource) deleteLeftoverClusters(t *testing.T, namePrefix string) {
-	client, err := testclient.Build()
-	if err != nil {
-		t.Fatalf("building client: %+v", err)
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Minute)
-	defer cancel()
-
-	subscriptionId := commonids.NewSubscriptionID(client.Account.SubscriptionId)
-
-	result, err := client.RedHatOpenShift.OpenShiftClustersClient.ListComplete(ctx, subscriptionId)
-	if err != nil {
-		t.Fatalf("listing Red Hat OpenShift Clusters: %+v", err)
-	}
-
-	for _, item := range result.Items {
-		if item.Name == nil || item.Id == nil || !strings.HasPrefix(*item.Name, namePrefix) {
-			continue
-		}
-
-		id, err := openshiftclusters.ParseOpenShiftClusterID(*item.Id)
-		if err != nil {
-			t.Fatalf("parsing %q: %+v", *item.Id, err)
-		}
-
-		t.Logf("deleting leftover Red Hat OpenShift Cluster %s", id)
-		if err := client.RedHatOpenShift.OpenShiftClustersClient.DeleteThenPoll(ctx, *id); err != nil {
-			t.Fatalf("deleting %s: %+v", id, err)
-		}
-	}
 }
 
 func (t RedhatOpenshiftClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -305,7 +273,8 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   cluster_profile {
-    domain = "aro-%[3]s.com"
+    domain  = "aro-%[3]s.com"
+    version = "4.19.20"
   }
 
   network_profile {
@@ -356,7 +325,8 @@ resource "azurerm_redhat_openshift_cluster" "import" {
   location            = azurerm_redhat_openshift_cluster.test.location
 
   cluster_profile {
-    domain = azurerm_redhat_openshift_cluster.test.cluster_profile.0.domain
+    domain  = azurerm_redhat_openshift_cluster.test.cluster_profile.0.domain
+    version = azurerm_redhat_openshift_cluster.test.cluster_profile.0.version
   }
 
   network_profile {
@@ -425,7 +395,8 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   cluster_profile {
-    domain = "aro-%[3]s.com"
+    domain  = "aro-%[3]s.com"
+    version = "4.19.20"
   }
 
   network_profile {
@@ -1466,7 +1437,7 @@ resource "azurerm_role_assignment" "ccm_worker_subnet" {
 resource "azurerm_role_assignment" "ingress_master_subnet" {
   scope                = azurerm_subnet.main_subnet.id
   role_definition_name = "Azure Red Hat OpenShift Cluster Ingress Operator"
-  principal_id         = azurerm_user_assigned_identity.ingress_update.principal_id
+  principal_id         = azurerm_user_assigned_identity.ingress.principal_id
 }
 
 resource "azurerm_role_assignment" "ingress_worker_subnet" {

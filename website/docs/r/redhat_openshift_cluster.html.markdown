@@ -169,13 +169,13 @@ A `cluster_profile` block supports the following:
 
 * `domain` - (Required) The custom domain for the cluster. For more info, see [Prepare a custom domain for your cluster](https://docs.microsoft.com/azure/openshift/tutorial-create-cluster#prepare-a-custom-domain-for-your-cluster-optional). Changing this forces a new resource to be created.
 
+* `version` - (Required) The version of the OpenShift cluster. Available versions can be found with the Azure CLI command `az aro get-versions --location <region>`. Changing this forces a new resource to be created.
+
 * `fips_enabled` - (Optional) Whether Federal Information Processing Standard (FIPS) validated cryptographic modules are used. Defaults to `false`. Changing this forces a new resource to be created.
 
 * `managed_resource_group_name` - (Optional) The name of a Resource Group which will be created to host VMs of Azure Red Hat OpenShift Cluster. The value cannot contain uppercase characters. Changing this forces a new resource to be created.
 
 * `pull_secret` - (Optional) The Red Hat pull secret for the cluster. For more info, see [Get a Red Hat pull secret](https://learn.microsoft.com/azure/openshift/tutorial-create-cluster#get-a-red-hat-pull-secret-optional). Changing this forces a new resource to be created.
-
-* `version` - (Optional) The version of the OpenShift cluster. When omitted, the Azure Red Hat OpenShift Resource Provider selects its current default supported version. Available versions can be found with the Azure CLI command `az aro get-versions --location <region>`. Changing this forces a new resource to be created.
 
 ---
 
@@ -195,7 +195,7 @@ A `ingress_profile` block supports the following:
 
 A `load_balancer_profile` block supports the following:
 
-* `managed_outbound_ip_count` - (Optional) The desired number of managed outbound public IP addresses created and assigned to the cluster's outbound load balancer. Possible values range between `1` and `20`. Defaults to `1`.
+* `managed_outbound_ip_count` - (Required) The desired number of managed outbound public IP addresses created and assigned to the cluster's outbound load balancer. Possible values range between `1` and `20`.
 
 ---
 
@@ -219,7 +219,7 @@ A `network_profile` block supports the following:
 
 * `service_cidr` - (Required) The network range used by the OpenShift service. Changing this forces a new resource to be created.
 
-* `load_balancer_profile` - (Optional) A `load_balancer_profile` block as defined below. Only applicable when `outbound_type` is set to `Loadbalancer`.
+* `load_balancer_profile` - (Optional) A `load_balancer_profile` block as defined above. Only applicable when `outbound_type` is set to `Loadbalancer`.
 
 * `outbound_type` - (Optional) The outbound (egress) routing method. Possible values are `Loadbalancer` and `UserDefinedRouting`. Defaults to `Loadbalancer`. Changing this forces a new resource to be created.
 
@@ -239,7 +239,7 @@ A `platform_workload_identity` block supports the following:
 
 A `platform_workload_identity_profile` block supports the following:
 
-* `platform_workload_identity` - (Required) One or more `platform_workload_identity` blocks as defined below.
+* `platform_workload_identity` - (Required) One or more `platform_workload_identity` blocks as defined above.
 
 * `upgradeable_to` - (Optional) The target OpenShift version (`x.y.z`) the platform workload identities should satisfy.
 
@@ -287,6 +287,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `ingress_profile` - An `ingress_profile` block as defined below.
 
+* `network_profile` - A `network_profile` block as defined below.
+
+* `platform_workload_identity_profile` - A `platform_workload_identity_profile` block as defined below.
+
 ---
 
 A `api_server_profile` block exports the following:
@@ -317,11 +321,23 @@ A `load_balancer_profile` block exports the following:
 
 ---
 
+A `network_profile` block exports the following:
+
+* `load_balancer_profile` - A `load_balancer_profile` block as defined above.
+
+---
+
 A `platform_workload_identity` block exports the following:
 
 * `client_id` - The client ID of the User Assigned Managed Identity assigned to the operator.
 
 * `object_id` - The object (principal) ID of the User Assigned Managed Identity assigned to the operator.
+
+---
+
+A `platform_workload_identity_profile` block exports the following:
+
+* `platform_workload_identity` - One or more `platform_workload_identity` blocks as defined above.
 
 ## Timeouts
 

@@ -44,24 +44,25 @@ func (r RedHatOpenShiftClusterListResource) List(ctx context.Context, request li
 		subscriptionID = data.SubscriptionId.ValueString()
 	}
 
+	clusterResource := RedHatOpenShiftCluster{}
+
 	switch {
 	case !data.ResourceGroupName.IsNull():
 		resp, err := client.ListByResourceGroupComplete(ctx, commonids.NewResourceGroupID(subscriptionID, data.ResourceGroupName.ValueString()))
 		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", RedHatOpenShiftCluster{}.ResourceType()), err)
+			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", clusterResource.ResourceType()), err)
 			return
 		}
 		results = resp.Items
 	default:
 		resp, err := client.ListComplete(ctx, commonids.NewSubscriptionID(subscriptionID))
 		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", RedHatOpenShiftCluster{}.ResourceType()), err)
+			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", clusterResource.ResourceType()), err)
 			return
 		}
 		results = resp.Items
 	}
 
-	clusterResource := RedHatOpenShiftCluster{}
 	stream.Results = func(push func(list.ListResult) bool) {
 		for _, cluster := range results {
 			result := request.NewListResult(ctx)
