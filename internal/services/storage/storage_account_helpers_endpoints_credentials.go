@@ -277,11 +277,7 @@ func flattenAccountAccessKeysAndConnectionStrings(accountName, domainSuffix stri
 	return output
 }
 
-// connectionString builds the storage account connection string. For accounts using an
-// Azure DNS Zone endpoint (`dns_endpoint_type = "AzureDnsZone"`) the service hostnames are
-// zone-scoped (e.g. `account.z1.blob.storage.azure.net`) rather than derived from the global
-// endpoint suffix, so the connection string must reference the explicit service endpoints
-// returned by the API instead of an `EndpointSuffix`.
+// connectionString builds the storage account connection string.
 func connectionString(accountName, accessKey, domainSuffix string, dnsEndpointType storageaccounts.DnsEndpointType, blobEndpoint, queueEndpoint, tableEndpoint, fileEndpoint string) string {
 	if dnsEndpointType != storageaccounts.DnsEndpointTypeAzureDnsZone {
 		return fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", accountName, accessKey, domainSuffix)
