@@ -2208,7 +2208,7 @@ func DefaultAuthV2SettingsProperties() *webapps.SiteAuthSettingsV2Properties {
 		},
 		GlobalValidation: &webapps.GlobalValidation{
 			RequireAuthentication:       pointer.To(false),
-			UnauthenticatedClientAction: pointer.To(webapps.UnauthenticatedClientActionV2(webapps.UnauthenticatedClientActionV2RedirectToLoginPage)),
+			UnauthenticatedClientAction: pointer.To(webapps.UnauthenticatedClientActionV2RedirectToLoginPage),
 			ExcludedPaths:               pointer.To([]string{}),
 			RedirectToProvider:          pointer.To(""),
 		},
@@ -2226,7 +2226,7 @@ func DefaultAuthV2SettingsProperties() *webapps.SiteAuthSettingsV2Properties {
 				NonceExpirationInterval: pointer.To("00:05:00"),
 			},
 			CookieExpiration: &webapps.CookieExpiration{
-				Convention:       pointer.To(webapps.CookieExpirationConvention(webapps.CookieExpirationConventionFixedTime)),
+				Convention:       pointer.To(webapps.CookieExpirationConventionFixedTime),
 				TimeToExpiration: pointer.To("08:00:00"),
 			},
 			AllowedExternalRedirectURLs: pointer.To([]string{}),
@@ -2237,7 +2237,7 @@ func DefaultAuthV2SettingsProperties() *webapps.SiteAuthSettingsV2Properties {
 				ApiPrefix: pointer.To("/.auth"),
 			},
 			ForwardProxy: &webapps.ForwardProxy{
-				Convention: pointer.To(webapps.ForwardProxyConvention(webapps.ForwardProxyConventionNoProxy)),
+				Convention: pointer.To(webapps.ForwardProxyConventionNoProxy),
 			},
 		},
 		IdentityProviders: &webapps.IdentityProviders{
