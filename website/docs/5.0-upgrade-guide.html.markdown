@@ -401,6 +401,10 @@ Please follow the format in the example below for listing breaking changes in re
 * The deprecated `tls.minimum_tls_version` property has been removed in favour of the `tls.minimum_version` property.
 * The `tls.minimum_version` property no longer accepts `TLS10` as a value.
 
+### `azurerm_communication_service`
+
+* The `data_location` property is now Required and no longer defaults to `United States`.
+
 ### `azurerm_container_app`
 
 * The deprecated `template.container.liveness_probe.termination_grace_period_seconds` property has been removed.
@@ -427,6 +431,10 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_container_app_environment`
 
 * The `logs_destination` property is no longer Computed and now must be set to `log-analytics` to be able to specify a value for `log_analytics_workspace_id`. It will now default to empty, meaning Streaming Only in the Azure Portal.
+
+### `azurerm_dashboard_grafana`
+
+* The deprecated `Essential` value for the `sku` property has been removed.
 
 ### `azurerm_datadog_monitor_sso_configuration`
 
@@ -688,6 +696,14 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_servicebus_namespace`
 
 * The property `minimum_tls_version` no longer accepts `1.0` or `1.1` as a value.
+
+### `azurerm_spring_cloud_connection`
+
+* The `client_type` property no longer accepts `none` as a value. Omitting the property sets `none` in the request.
+
+### `azurerm_static_web_app`
+
+* The `identity.type` property no longer accepts `SystemAssigned, UserAssigned` as a value.
 
 ### `azurerm_storage_account`
 

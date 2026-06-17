@@ -188,16 +188,15 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "acctestsc%s"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "blob"
 }
 
 resource "azurerm_storage_blob" "test" {
-  name                   = "log4net.dll"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-  source                 = "testdata/log4net.dll"
+  name                 = "log4net.dll"
+  storage_container_id = azurerm_storage_container.test.id
+  type                 = "Block"
+  source               = "testdata/log4net.dll"
 }
 
 resource "azurerm_logic_app_integration_account_assembly" "test" {
