@@ -578,6 +578,7 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
+	dnsEndpointType := storageaccounts.DnsEndpointTypeStandard
 	if model := resp.Model; model != nil {
 		d.Set("location", location.Normalize(model.Location))
 		d.Set("account_kind", string(pointer.From(model.Kind)))
@@ -642,7 +643,6 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			d.Set("min_tls_version", minTlsVersion)
 
 			// DNSEndpointType is null when unconfigured - therefore default this to Standard
-			dnsEndpointType := storageaccounts.DnsEndpointTypeStandard
 			if props.DnsEndpointType != nil {
 				dnsEndpointType = *props.DnsEndpointType
 			}
@@ -657,14 +657,10 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 	var primaryEndpoints *storageaccounts.Endpoints
 	var secondaryEndpoints *storageaccounts.Endpoints
 	var routingPreference *storageaccounts.RoutingPreference
-	dnsEndpointType := storageaccounts.DnsEndpointTypeStandard
 	if model := resp.Model; model != nil && model.Properties != nil {
 		primaryEndpoints = model.Properties.PrimaryEndpoints
 		routingPreference = model.Properties.RoutingPreference
 		secondaryEndpoints = model.Properties.SecondaryEndpoints
-		if model.Properties.DnsEndpointType != nil {
-			dnsEndpointType = *model.Properties.DnsEndpointType
-		}
 	}
 	endpoints := flattenAccountEndpoints(primaryEndpoints, secondaryEndpoints, routingPreference)
 	endpoints.set(d)

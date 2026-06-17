@@ -2223,7 +2223,6 @@ func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 		}
 		d.Set("default_to_oauth_authentication", defaultToOAuthAuthentication)
 
-		dnsEndpointType = storageaccounts.DnsEndpointTypeStandard
 		if props.DnsEndpointType != nil {
 			dnsEndpointType = *props.DnsEndpointType
 		}
