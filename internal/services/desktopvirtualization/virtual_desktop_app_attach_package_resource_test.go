@@ -176,7 +176,7 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/24"]
 }
 
-resource "azurerm_subnet" "test0" {
+resource "azurerm_subnet" "test" {
   name                 = "acctest-snet-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
@@ -191,7 +191,7 @@ resource "azurerm_network_interface" "test" {
   ip_configuration {
     name                          = "acctest-ipconfig-%[1]d"
     private_ip_address_allocation = "Dynamic"
-    subnet_id                     = azurerm_subnet.test0.id
+    subnet_id                     = azurerm_subnet.test.id
   }
 }
 
@@ -294,12 +294,6 @@ resource "azurerm_virtual_machine_extension" "test2" {
     azurerm_nat_gateway.test
   ]
 }
-`, data.RandomInteger, data.Locations.Secondary, data.RandomString, fileShareConfig, time.Now().UTC().AddDate(0, 0, 1).Format(time.RFC3339))
-}
-
-func (r VirtualDesktopAppAttachPackageResource) basic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
 
 resource "time_sleep" "test" {
   depends_on = [
@@ -312,9 +306,15 @@ resource "time_sleep" "test" {
 
   create_duration = "2m"
 }
+`, data.RandomInteger, data.Locations.Secondary, data.RandomString, fileShareConfig, time.Now().UTC().AddDate(0, 0, 1).Format(time.RFC3339))
+}
+
+func (r VirtualDesktopAppAttachPackageResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
 
 resource "azurerm_virtual_desktop_app_attach_package" "test" {
-  name                = "acctest-msix-%[2]d"
+  name                = "acctest-aap-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   display_name        = "XmlNotepad"
@@ -351,20 +351,8 @@ func (r VirtualDesktopAppAttachPackageResource) complete(data acceptance.TestDat
 	return fmt.Sprintf(`
 %[1]s
 
-resource "time_sleep" "test" {
-  depends_on = [
-    azurerm_virtual_machine_extension.test0,
-    azurerm_virtual_machine_extension.test1,
-    azurerm_virtual_machine_extension.test2,
-    azurerm_role_assignment.avd_storage,
-    azurerm_role_assignment.avd_arm_provider_storage
-  ]
-
-  create_duration = "2m"
-}
-
 resource "azurerm_virtual_desktop_app_attach_package" "test" {
-  name                = "acctest-msix-%[2]d"
+  name                = "acctest-aap-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   display_name        = "XmlNotepadComplete"

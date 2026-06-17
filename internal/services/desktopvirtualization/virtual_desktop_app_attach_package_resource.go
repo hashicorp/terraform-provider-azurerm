@@ -6,7 +6,6 @@ package desktopvirtualization
 import (
 	"context"
 	"fmt"
-	"net/url"
 	"strings"
 	"time"
 
@@ -111,10 +110,6 @@ func (r VirtualDesktopAppAttachPackageResource) Arguments() map[string]*pluginsd
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.StorageShareDataPlaneID,
-			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
-				return old == getImagePath(new)
-			},
-			DiffSuppressOnRefresh: true,
 		},
 
 		"health_check_status_on_failure": {
@@ -411,7 +406,13 @@ func (r VirtualDesktopAppAttachPackageResource) flatten(metadata sdk.ResourceMet
 		if image := props.Image; image != nil {
 			state.DisplayName = pointer.From(image.DisplayName)
 			state.MsixPackageName = pointer.From(image.PackageFullName)
-			state.StorageShareFileId = pointer.From(image.ImagePath)
+
+			if image.ImagePath != nil {
+				// Convert from UNC format (`ImagePath`) to URL format (`StorageShareFileId`)
+				storageShareFileId := strings.ReplaceAll(pointer.From(image.ImagePath), "\\", "/")
+				storageShareFileId = fmt.Sprintf("https:%s", storageShareFileId)
+				state.StorageShareFileId = storageShareFileId
+			}
 
 			if image.IsRegularRegistration != nil {
 				state.RegisterAtLogOnEnabled = pointer.From(image.IsRegularRegistration)
@@ -452,10 +453,14 @@ func (r VirtualDesktopAppAttachPackageResource) flatten(metadata sdk.ResourceMet
 }
 
 func (r VirtualDesktopAppAttachPackageResource) expandVirtualDesktopAppAttachPackageImage(model VirtualDesktopAppAttachPackageModel, msixImageProperties *msiximage.ExpandMsixImageProperties) *appattachpackage.AppAttachPackageInfoProperties {
+	// Convert from URL format (`StorageShareFileId`) to UNC format (`ImagePath`)
+	imagePath := strings.ReplaceAll(model.StorageShareFileId, "/", "\\")
+	imagePath = strings.TrimPrefix(imagePath, "https:")
+
 	return &appattachpackage.AppAttachPackageInfoProperties{
 		DisplayName:           pointer.To(model.DisplayName),
 		PackageFullName:       pointer.To(model.MsixPackageName),
-		ImagePath:             pointer.To(getImagePath(model.StorageShareFileId)),
+		ImagePath:             pointer.To(imagePath),
 		IsRegularRegistration: pointer.To(model.RegisterAtLogOnEnabled),
 		IsActive:              pointer.To(model.StateEnabled),
 		LastUpdated:           msixImageProperties.LastUpdated,
@@ -507,16 +512,6 @@ func (r VirtualDesktopAppAttachPackageResource) flattenVirtualDesktopAppAttachPa
 	}
 
 	return outputs
-}
-
-// Convert from URL format (`StorageShareFileId`) to UNC format (`ImagePath`)
-func getImagePath(storageShareFileId string) string {
-	// Error is detected earlier by `ValidateFunc`
-	storageShareFileUrl, _ := url.Parse(storageShareFileId)
-	imagePath := fmt.Sprintf("\\\\%s%s", storageShareFileUrl.Host, storageShareFileUrl.Path)
-	imagePath = strings.ReplaceAll(imagePath, "/", "\\")
-
-	return imagePath
 }
 
 func getMsixImageProperties(ctx context.Context, metadata sdk.ResourceMetaData, hostPoolIds []string, storageShareFileId string, msixPackageName string) (*msiximage.ExpandMsixImageProperties, error) {

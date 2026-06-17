@@ -56,22 +56,10 @@ func (r VirtualDesktopAppAttachPackageResource) basicList(data acceptance.TestDa
 	return fmt.Sprintf(`
 %[1]s
 
-resource "time_sleep" "test" {
-  depends_on = [
-    azurerm_virtual_machine_extension.test0,
-    azurerm_virtual_machine_extension.test1,
-    azurerm_virtual_machine_extension.test2,
-    azurerm_role_assignment.avd_storage,
-    azurerm_role_assignment.avd_arm_provider_storage
-  ]
-
-  create_duration = "2m"
-}
-
 resource "azurerm_virtual_desktop_app_attach_package" "test" {
   count = 3
 
-  name                = "acctest-msix-${count.index}-%[2]d"
+  name                = "acctest-aap-${count.index}-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   display_name        = "XmlNotepad${count.index}"
