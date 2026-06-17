@@ -993,7 +993,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, r.templateWithLocation(data, "eastus2"), data.RandomInteger)
+`, r.templateWithLocation(data), data.RandomInteger)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) disksDataDiskStorageAccountTypeUltraSSDLRSWithIOPS(data acceptance.TestData) string {
@@ -1047,7 +1047,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, r.templateWithLocation(data, "eastus2"), data.RandomInteger)
+`, r.templateWithLocation(data), data.RandomInteger)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) disksDataDiskStorageAccountTypeUltraSSDLRSWithMBPS(data acceptance.TestData) string {
@@ -1157,7 +1157,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, r.templateWithLocation(data, "eastus2"), data.RandomInteger)
+`, r.templateWithLocation(data), data.RandomInteger)
 	}
 
 	return fmt.Sprintf(`
@@ -1211,7 +1211,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, r.templateWithLocation(data, "eastus2"), data.RandomInteger)
+`, r.templateWithLocation(data), data.RandomInteger)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) disksDataDiskUltraSSDDeprecatedProperties(data acceptance.TestData, iops int, mbps int) string {
@@ -1266,7 +1266,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, r.templateWithLocation(data, "eastus2"), data.RandomInteger, iops, mbps)
+`, r.templateWithLocation(data), data.RandomInteger, iops, mbps)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) disksDataDiskUltraSSDRenamedProperties(data acceptance.TestData, iops int, mbps int) string {
@@ -1321,7 +1321,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, r.templateWithLocation(data, "eastus2"), data.RandomInteger, iops, mbps)
+`, r.templateWithLocation(data), data.RandomInteger, iops, mbps)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) disksDataDiskWriteAcceleratorEnabled(data acceptance.TestData) string {
