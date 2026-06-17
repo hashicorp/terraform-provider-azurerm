@@ -54,7 +54,6 @@ type BatchRuleSetProperties struct {
 	ProfileName       *string                `json:"profileName,omitempty"`
 	ProvisioningState *string                `json:"provisioningState,omitempty"`
 	Rules             *[]BatchRuleProperties `json:"rules,omitempty"`
-	ForceSendRules    bool                   `json:"-"`
 }
 
 var _ json.Marshaler = &BatchRuleSetProperties{}
@@ -73,7 +72,7 @@ func (b BatchRuleSetProperties) MarshalJSON() ([]byte, error) {
 	if b.ProvisioningState != nil {
 		objectMap["provisioningState"] = b.ProvisioningState
 	}
-	if b.ForceSendRules || b.Rules != nil {
+	if b.Rules != nil {
 		objectMap["rules"] = b.Rules
 	}
 
