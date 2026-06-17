@@ -17,6 +17,7 @@ jobs:
     if: github.event.issue.pull_request && startsWith(github.event.comment.body, '/test')
     outputs:
       is-team-member: ${{ steps.check-membership.outputs.is-member }}
+      is-allowed-user: ${{ steps.check-allowed-user.outputs.is-allowed-user }}
     env:
       AUTHORIZED_TEAM: terraform-azure
     steps:
@@ -56,10 +57,37 @@ jobs:
               throw error;
             }
 
+      - name: Check allowed users list
+        id: check-allowed-user
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        env:
+          TCTEST_ALLOWED_USERS: ${{ secrets.TCTEST_ALLOWED_USERS }}
+        with:
+          script: |
+            const allowedUsersText = process.env.TCTEST_ALLOWED_USERS || '';
+            const username = context.actor;
+
+            // Split by newlines and trim whitespace, filter out empty lines
+            const allowedUsers = allowedUsersText
+              .split('\n')
+              .map(line => line.trim())
+              .filter(line => line.length > 0);
+
+            const isAllowedUser = allowedUsers.includes(username);
+            core.setOutput('is-allowed-user', isAllowedUser);
+
+            if (isAllowedUser) {
+              core.info(`User ${username} is in the allowed users list`);
+            } else {
+              core.warning(`User ${username} is not in the allowed users list`);
+            }
+
+            return isAllowedUser;
+
   run-tests:
     runs-on: ubuntu-latest
     needs: check-team-membership
-    if: needs.check-team-membership.outputs.is-team-member == 'true'
+    if: needs.check-team-membership.outputs.is-team-member == 'true' || needs.check-team-membership.outputs.is-allowed-user == 'true'
     env:
       TCTEST_SERVER: ${{ secrets.TCTEST_SERVER }}
       TCTEST_FILEREGEX: 'internal/services/[a-z]*/[_a-zA-Z]*(resource|data_source)'
@@ -187,7 +215,7 @@ jobs:
   unauthorized-comment:
     runs-on: ubuntu-latest
     needs: check-team-membership
-    if: needs.check-team-membership.outputs.is-team-member == 'false'
+    if: needs.check-team-membership.outputs.is-team-member == 'false' && needs.check-team-membership.outputs.is-allowed-user == 'false'
     steps:
       - name: Comment unauthorized
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
