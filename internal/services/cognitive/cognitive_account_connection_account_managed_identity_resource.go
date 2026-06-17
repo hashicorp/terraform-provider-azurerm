@@ -202,6 +202,9 @@ func (r CognitiveAccountConnectionAccountManagedIdentityResource) Read() sdk.Res
 							}
 						}
 					}
+				} else {
+					// if metadata is empty in config (e.g., terraform import), read all metadata fields from API
+					state.Metadata = pointer.From(base.Metadata)
 				}
 			}
 
