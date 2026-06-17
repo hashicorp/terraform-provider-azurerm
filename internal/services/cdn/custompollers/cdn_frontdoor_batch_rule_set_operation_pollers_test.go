@@ -11,6 +11,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/azuresdkhacks"
 )
 
+const batchRuleSetTestRuleName = "rule-a"
+
 func TestBatchRuleSetOriginGroupOverridesMatchDesired(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -20,26 +22,26 @@ func TestBatchRuleSetOriginGroupOverridesMatchDesired(t *testing.T) {
 	}{
 		{
 			name:     "origin group override removed not yet reflected",
-			actual:   batchRuleSetResourceForTest(batchRuleSetRuleForTest("rule-a", "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg/providers/Microsoft.Cdn/profiles/profile/originGroups/group-a")),
-			desired:  batchRuleSetResourceForTest(batchRuleSetRuleForTest("rule-a", "")),
+			actual:   batchRuleSetResourceForTest(batchRuleSetRuleForTest("/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg/providers/Microsoft.Cdn/profiles/profile/originGroups/group-a")),
+			desired:  batchRuleSetResourceForTest(batchRuleSetRuleForTest("")),
 			expected: false,
 		},
 		{
 			name:     "origin group override removed reflected in readback",
-			actual:   batchRuleSetResourceForTest(batchRuleSetRuleForTest("rule-a", "")),
-			desired:  batchRuleSetResourceForTest(batchRuleSetRuleForTest("rule-a", "")),
+			actual:   batchRuleSetResourceForTest(batchRuleSetRuleForTest("")),
+			desired:  batchRuleSetResourceForTest(batchRuleSetRuleForTest("")),
 			expected: true,
 		},
 		{
 			name:     "origin group override add reflected in readback",
-			actual:   batchRuleSetResourceForTest(batchRuleSetRuleForTest("rule-a", "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg/providers/Microsoft.Cdn/profiles/profile/originGroups/group-a")),
-			desired:  batchRuleSetResourceForTest(batchRuleSetRuleForTest("rule-a", "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg/providers/Microsoft.Cdn/profiles/profile/originGroups/group-a")),
+			actual:   batchRuleSetResourceForTest(batchRuleSetRuleForTest("/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg/providers/Microsoft.Cdn/profiles/profile/originGroups/group-a")),
+			desired:  batchRuleSetResourceForTest(batchRuleSetRuleForTest("/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg/providers/Microsoft.Cdn/profiles/profile/originGroups/group-a")),
 			expected: true,
 		},
 		{
 			name:     "origin group override points at wrong target",
-			actual:   batchRuleSetResourceForTest(batchRuleSetRuleForTest("rule-a", "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg/providers/Microsoft.Cdn/profiles/profile/originGroups/group-b")),
-			desired:  batchRuleSetResourceForTest(batchRuleSetRuleForTest("rule-a", "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg/providers/Microsoft.Cdn/profiles/profile/originGroups/group-a")),
+			actual:   batchRuleSetResourceForTest(batchRuleSetRuleForTest("/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg/providers/Microsoft.Cdn/profiles/profile/originGroups/group-b")),
+			desired:  batchRuleSetResourceForTest(batchRuleSetRuleForTest("/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg/providers/Microsoft.Cdn/profiles/profile/originGroups/group-a")),
 			expected: false,
 		},
 	}
@@ -67,32 +69,32 @@ func TestBatchRuleSetStatusesSettled(t *testing.T) {
 	}{
 		{
 			name:     "missing top level statuses does not block settled rule",
-			input:    batchRuleSetResourceForTest(batchRuleSetRuleForTest("rule-a", "")),
+			input:    batchRuleSetResourceForTest(batchRuleSetRuleForTest("")),
 			expected: false,
 		},
 		{
 			name:     "top level in progress blocks",
-			input:    batchRuleSetResourceWithStatusesForTest(pointer.To("Creating"), pointer.To("Deploying"), batchRuleSetRuleForTest("rule-a", "")),
+			input:    batchRuleSetResourceWithStatusesForTest(pointer.To("Creating"), pointer.To("Deploying"), batchRuleSetRuleForTest("")),
 			expected: false,
 		},
 		{
 			name:     "top level deployment status not started does not block once provisioning succeeds",
-			input:    batchRuleSetResourceWithStatusesForTest(pointer.To(string(batchRules.AfdProvisioningStateSucceeded)), pointer.To("NotStarted"), batchRuleSetRuleForTest("rule-a", "")),
+			input:    batchRuleSetResourceWithStatusesForTest(pointer.To(string(batchRules.AfdProvisioningStateSucceeded)), pointer.To("NotStarted"), batchRuleSetRuleForTest("")),
 			expected: true,
 		},
 		{
 			name:        "top level failed errors",
-			input:       batchRuleSetResourceWithStatusesForTest(pointer.To(string(batchRules.AfdProvisioningStateFailed)), pointer.To(string(batchRules.DeploymentStatusFailed)), batchRuleSetRuleForTest("rule-a", "")),
+			input:       batchRuleSetResourceWithStatusesForTest(pointer.To(string(batchRules.AfdProvisioningStateFailed)), pointer.To(string(batchRules.DeploymentStatusFailed)), batchRuleSetRuleForTest("")),
 			expectError: true,
 		},
 		{
 			name:     "rule in progress blocks",
-			input:    batchRuleSetResourceForTest(batchRuleSetRuleWithStatusesForTest("rule-a", "", pointer.To(batchRules.AfdProvisioningStateUpdating), pointer.To(batchRules.DeploymentStatusInProgress))),
+			input:    batchRuleSetResourceForTest(batchRuleSetRuleWithStatusesForTest("", pointer.To(batchRules.AfdProvisioningStateUpdating), pointer.To(batchRules.DeploymentStatusInProgress))),
 			expected: false,
 		},
 		{
 			name:        "rule failed errors",
-			input:       batchRuleSetResourceWithStatusesForTest(pointer.To(string(batchRules.AfdProvisioningStateSucceeded)), nil, batchRuleSetRuleWithStatusesForTest("rule-a", "", pointer.To(batchRules.AfdProvisioningStateFailed), pointer.To(batchRules.DeploymentStatusFailed))),
+			input:       batchRuleSetResourceWithStatusesForTest(pointer.To(string(batchRules.AfdProvisioningStateSucceeded)), nil, batchRuleSetRuleWithStatusesForTest("", pointer.To(batchRules.AfdProvisioningStateFailed), pointer.To(batchRules.DeploymentStatusFailed))),
 			expectError: true,
 		},
 	}
@@ -136,11 +138,11 @@ func batchRuleSetResourceWithStatusesForTest(provisioningState *string, deployme
 	}
 }
 
-func batchRuleSetRuleForTest(name string, originGroupID string) azuresdkhacks.BatchRuleProperties {
-	return batchRuleSetRuleWithStatusesForTest(name, originGroupID, nil, nil)
+func batchRuleSetRuleForTest(originGroupID string) azuresdkhacks.BatchRuleProperties {
+	return batchRuleSetRuleWithStatusesForTest(originGroupID, nil, nil)
 }
 
-func batchRuleSetRuleWithStatusesForTest(name string, originGroupID string, provisioningState *batchRules.AfdProvisioningState, deploymentStatus *batchRules.DeploymentStatus) azuresdkhacks.BatchRuleProperties {
+func batchRuleSetRuleWithStatusesForTest(originGroupID string, provisioningState *batchRules.AfdProvisioningState, deploymentStatus *batchRules.DeploymentStatus) azuresdkhacks.BatchRuleProperties {
 	actions := []batchRules.DeliveryRuleAction{
 		batchRules.DeliveryRuleRouteConfigurationOverrideAction{
 			Name: batchRules.DeliveryRuleActionNameRouteConfigurationOverride,
@@ -152,8 +154,8 @@ func batchRuleSetRuleWithStatusesForTest(name string, originGroupID string, prov
 	}
 
 	return azuresdkhacks.BatchRuleProperties{
-		Name:              pointer.To(name),
-		RuleName:          pointer.To(name),
+		Name:              pointer.To(batchRuleSetTestRuleName),
+		RuleName:          pointer.To(batchRuleSetTestRuleName),
 		Actions:           &actions,
 		ProvisioningState: provisioningState,
 		DeploymentStatus:  deploymentStatus,
