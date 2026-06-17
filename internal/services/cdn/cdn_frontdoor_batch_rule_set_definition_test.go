@@ -6,6 +6,7 @@ package cdn
 import (
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rules"
 )
 
@@ -19,5 +20,26 @@ func TestFlattenRouteConfigurationOverrideAction_CacheConfiguration_Disabled(t *
 
 	if output.CacheBehavior != string(rules.RuleIsCompressionEnabledDisabled) {
 		t.Fatalf("expected cache_behavior %q but got %q", rules.RuleIsCompressionEnabledDisabled, output.CacheBehavior)
+	}
+}
+
+func TestFlattenRouteConfigurationOverrideAction_OriginGroupOverride_WithoutOriginGroup(t *testing.T) {
+	input := rules.RouteConfigurationOverrideActionParameters{
+		OriginGroupOverride: &rules.OriginGroupOverride{
+			ForwardingProtocol: pointer.To(rules.ForwardingProtocolHTTPSOnly),
+		},
+	}
+
+	output, err := flattenRouteConfigurationOverrideAction(input)
+	if err != nil {
+		t.Fatalf("expected no error but got %q", err)
+	}
+
+	if output.CdnFrontDoorOriginGroupID != "" {
+		t.Fatalf("expected empty cdn_frontdoor_origin_group_id but got %q", output.CdnFrontDoorOriginGroupID)
+	}
+
+	if output.ForwardingProtocol != string(rules.ForwardingProtocolHTTPSOnly) {
+		t.Fatalf("expected forwarding_protocol %q but got %q", rules.ForwardingProtocolHTTPSOnly, output.ForwardingProtocol)
 	}
 }

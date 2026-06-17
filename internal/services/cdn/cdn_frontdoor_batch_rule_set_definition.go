@@ -723,12 +723,14 @@ func expandRouteConfigurationOverrideAction(input CdnFrontDoorBatchRuleRouteConf
 func flattenRouteConfigurationOverrideAction(input rules.RouteConfigurationOverrideActionParameters) (CdnFrontDoorBatchRuleRouteConfigurationOverrideActionModel, error) {
 	output := CdnFrontDoorBatchRuleRouteConfigurationOverrideActionModel{}
 	if input.OriginGroupOverride != nil {
-		originGroup, err := parse.FrontDoorOriginGroupIDInsensitively(pointer.From(input.OriginGroupOverride.OriginGroup.Id))
-		if err != nil {
-			return CdnFrontDoorBatchRuleRouteConfigurationOverrideActionModel{}, err
+		if input.OriginGroupOverride.OriginGroup != nil && input.OriginGroupOverride.OriginGroup.Id != nil {
+			originGroup, err := parse.FrontDoorOriginGroupIDInsensitively(pointer.From(input.OriginGroupOverride.OriginGroup.Id))
+			if err != nil {
+				return CdnFrontDoorBatchRuleRouteConfigurationOverrideActionModel{}, err
+			}
+			output.CdnFrontDoorOriginGroupID = originGroup.ID()
 		}
-		output.CdnFrontDoorOriginGroupID = originGroup.ID()
-		output.ForwardingProtocol = string(pointer.From(input.OriginGroupOverride.ForwardingProtocol))
+		output.ForwardingProtocol = pointer.FromEnum(input.OriginGroupOverride.ForwardingProtocol)
 	}
 	if input.CacheConfiguration != nil {
 		output.QueryStringParameters = splitCSV(pointer.From(input.CacheConfiguration.QueryParameters))
