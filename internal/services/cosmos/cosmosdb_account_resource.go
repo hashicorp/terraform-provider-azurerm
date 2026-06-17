@@ -1827,8 +1827,9 @@ func resourceAzureRMCosmosDBAccountGeoLocationHash(v interface{}) int {
 	if m, ok := v.(map[string]interface{}); ok {
 		location := location.Normalize(m["location"].(string))
 		priority := int32(m["failover_priority"].(int))
+		zone_redundant := m["zone_redundant"].(bool)
 
-		buf.WriteString(fmt.Sprintf("%s-%d", location, priority))
+		buf.WriteString(fmt.Sprintf("%s-%d-%t", location, priority, zone_redundant))
 	}
 
 	return pluginsdk.HashString(buf.String())
