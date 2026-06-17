@@ -511,7 +511,7 @@ resource "azurerm_role_assignment" "test" {
   name                 = "%s"
   scope                = data.azurerm_subscription.current.id
   role_definition_name = "Reader"
-  principal_id         = azuread_service_principal.test.id
+  principal_id         = azuread_service_principal.test.object_id
 }
 `, rInt, roleAssignmentID)
 }
@@ -539,7 +539,7 @@ resource "azurerm_role_assignment" "test" {
   name                             = "%s"
   scope                            = data.azurerm_subscription.current.id
   role_definition_name             = "Reader"
-  principal_id                     = azuread_service_principal.test.id
+  principal_id                     = azuread_service_principal.test.object_id
   skip_service_principal_aad_check = true
 }
 `, rInt, roleAssignmentID)

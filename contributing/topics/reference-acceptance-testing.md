@@ -187,36 +187,35 @@ A Data Source generally has one or two Required properties and a number of Compu
 
 Since the Data Source primarily exposes Computed-only fields which aren't specified in the Terraform Configuration, we typically assert that these computed fields have a/an expected value - which differs from the Acceptance Tests for the Resource where we'll use an Import step to confirm that the Terraform Configuration matches the imported state.
 
+When one config helper is only being threaded into `fmt.Sprintf` once, pass it directly as the argument instead of assigning a temporary variable first.
+
 ```go
-func TestAccExampleDataSource_complete(t *testing.T) {
+func TestAccExampleDataSource_basic(t *testing.T) {
         data := acceptance.BuildTestData(t, "data.azurerm_example_resource", "test")
         r := ExampleDataSource{}
 
-        data.ResourceTest(t, r, []acceptance.TestStep{
+        data.DataSourceTest(t, []acceptance.TestStep{
                 {
-                        Config: r.complete(data),
+                        Config: r.basic(data),
                         Check: acceptance.ComposeTestCheckFunc(
                             check.That(data.ResourceName).Key("example_property").HasValue("bar"),
                             check.That(data.ResourceName).Key("example_optional_bool").HasValue("false"),
                             check.That(data.ResourceName).Key("example_optional_string").HasValue("foo"),
                         ),
                 },
-                data.ImportStep(),
         })
 }
 
-func (ExampleDataSource) complete(data acceptance.TestData) string {
-	template := ExampleResource{}.basic(data)
+func (ExampleDataSource) basic(data acceptance.TestData) string {
     return fmt.Sprintf(`
 %[1]s
 
 data "azurerm_example_resource" "test" {
   name = azurerm_example_resource.test.name
 }
-`, template)
+`, ExampleResource{}.complete(data))
 }
 ```
-
 
 ---
 
@@ -325,8 +324,7 @@ func TestAccExampleResource_basic(t *testing.T) {
 }
 
 func (r ExampleResource) requiresImport(data acceptance.TestData) string {
-	template := r.basic(data)
-    return fmt.Sprintf(`
+        return fmt.Sprintf(`
 %[1]s
 
 resource "azurerm_example_resource" "import" {
@@ -334,7 +332,7 @@ resource "azurerm_example_resource" "import" {
   location         = azurerm_example_resource.example.location
   example_property = azurerm_example_resource.example.example_property
 }
-`, template)
+`, r.basic(data))
 }
 ```
 

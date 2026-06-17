@@ -57,9 +57,20 @@ func (c ArcSettingsClient) InitializeDisableProcess(ctx context.Context, id ArcS
 
 // InitializeDisableProcessThenPoll performs InitializeDisableProcess then polls until it's completed
 func (c ArcSettingsClient) InitializeDisableProcessThenPoll(ctx context.Context, id ArcSettingId) error {
+	return c.InitializeDisableProcessCallbackThenPoll(ctx, id, nil)
+}
+
+// InitializeDisableProcessCallbackThenPoll performs InitializeDisableProcess, runs the optional callback function, then polls until it's completed
+func (c ArcSettingsClient) InitializeDisableProcessCallbackThenPoll(ctx context.Context, id ArcSettingId, callback func() error) error {
 	result, err := c.InitializeDisableProcess(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing InitializeDisableProcess: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

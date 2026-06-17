@@ -14,10 +14,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/blobcontainers"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -224,7 +226,9 @@ func resourceStorageContainerCreate(d *pluginsdk.ResourceData, meta interface{})
 				return fmt.Errorf("checking for existing %s: %v", id, err)
 			}
 			if exists != nil && *exists {
-				return tf.ImportAsExistsError("azurerm_storage_container", id.ID())
+				if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+					return tf.ImportAsExistsError("azurerm_storage_container", id.ID())
+				}
 			}
 
 			input := containers.CreateInput{
@@ -257,14 +261,16 @@ func resourceStorageContainerCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	id := commonids.NewStorageContainerID(subscriptionId, accountId.ResourceGroupName, accountId.StorageAccountName, containerName)
 
-	existing, err := containerClient.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing %q: %v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := containerClient.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %q: %v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_storage_container", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_storage_container", id.ID())
+		}
 	}
 
 	payload := blobcontainers.BlobContainer{
@@ -283,8 +289,16 @@ func resourceStorageContainerCreate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	if _, err = containerClient.Create(ctx, id, payload); err != nil {
+	resp, err := containerClient.Create(ctx, id, payload)
+	if err != nil {
 		return fmt.Errorf("creating %s: %v", id, err)
+	}
+
+	pollerType := custompollers.NewStorageContainerCreatePoller(containerClient, id, resp.HttpResponse)
+	poller := pollers.NewPoller(pollerType, 5*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+
+	if err = poller.PollUntilDone(ctx); err != nil {
+		return fmt.Errorf("waiting for creation of %s: %v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -383,10 +397,12 @@ func resourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) e
 			return err
 		}
 
-		account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
+		var account *client.AccountDetails
+		account, err = storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
 		if err != nil {
 			return fmt.Errorf("retrieving Account %q for Container %q: %v", id.AccountId.AccountName, id.ContainerName, err)
 		}
+
 		if account == nil {
 			log.Printf("[DEBUG] Unable to locate Account %q for Storage Container %q - assuming removed & removing from state", id.AccountId.AccountName, id.ContainerName)
 			d.SetId("")

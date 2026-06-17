@@ -62,9 +62,20 @@ func (c ConnectorsClient) TestExistingConnection(ctx context.Context, id Connect
 
 // TestExistingConnectionThenPoll performs TestExistingConnection then polls until it's completed
 func (c ConnectorsClient) TestExistingConnectionThenPoll(ctx context.Context, id ConnectorId, input TestExistingConnectionRequest) error {
+	return c.TestExistingConnectionCallbackThenPoll(ctx, id, input, nil)
+}
+
+// TestExistingConnectionCallbackThenPoll performs TestExistingConnection, runs the optional callback function, then polls until it's completed
+func (c ConnectorsClient) TestExistingConnectionCallbackThenPoll(ctx context.Context, id ConnectorId, input TestExistingConnectionRequest, callback func() error) error {
 	result, err := c.TestExistingConnection(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing TestExistingConnection: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

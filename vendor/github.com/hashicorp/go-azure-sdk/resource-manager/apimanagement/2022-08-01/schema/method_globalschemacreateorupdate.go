@@ -92,9 +92,20 @@ func (c SchemaClient) GlobalSchemaCreateOrUpdate(ctx context.Context, id SchemaI
 
 // GlobalSchemaCreateOrUpdateThenPoll performs GlobalSchemaCreateOrUpdate then polls until it's completed
 func (c SchemaClient) GlobalSchemaCreateOrUpdateThenPoll(ctx context.Context, id SchemaId, input GlobalSchemaContract, options GlobalSchemaCreateOrUpdateOperationOptions) error {
+	return c.GlobalSchemaCreateOrUpdateCallbackThenPoll(ctx, id, input, options, nil)
+}
+
+// GlobalSchemaCreateOrUpdateCallbackThenPoll performs GlobalSchemaCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c SchemaClient) GlobalSchemaCreateOrUpdateCallbackThenPoll(ctx context.Context, id SchemaId, input GlobalSchemaContract, options GlobalSchemaCreateOrUpdateOperationOptions, callback func() error) error {
 	result, err := c.GlobalSchemaCreateOrUpdate(ctx, id, input, options)
 	if err != nil {
 		return fmt.Errorf("performing GlobalSchemaCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

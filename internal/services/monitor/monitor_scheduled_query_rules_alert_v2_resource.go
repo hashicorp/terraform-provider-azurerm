@@ -425,13 +425,16 @@ func (r ScheduledQueryRulesAlertV2Resource) Create() sdk.ResourceFunc {
 			client := metadata.Client.Monitor.ScheduledQueryRulesV2Client
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := scheduledqueryrules.NewScheduledQueryRuleID(subscriptionId, model.ResourceGroupName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			kind := scheduledqueryrules.KindLogAlert
