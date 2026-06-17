@@ -21,6 +21,8 @@ class ClientConfiguration(var clientId: String,
                           val betaVersionEnvVar : String,
                           val labelSuccess : String,
                           val labelFailure : String,
+                          val labelNewFailure : String,
+                          val applyTestingLabelsEnabled : Boolean,
                           )
 
 class LocationConfiguration(var primary : String, var secondary : String, var tertiary : String, var rotate : Boolean)
@@ -59,4 +61,6 @@ fun ParametrizedWithType.ConfigureAzureSpecificTestParameters(environment: Strin
     hiddenVariable("env.TRACKING_ID",  "0", "Tracking id for the comments posted by the build")
     hiddenVariable("env.LABEL_SUCCESS",  config.labelSuccess, "Label applied when teamcity build passed")
     hiddenVariable("env.LABEL_FAILURE",  config.labelFailure, "Label applied when teamcity build failed")
+    hiddenVariable("env.LABEL_NEW_FAILURE",  config.labelNewFailure, "Label applied when teamcity build has new failures")
+    hiddenVariable("env.APPLY_TESTING_LABELS_ENABLED",  config.applyTestingLabelsEnabled.toString(), "Whether to apply testing labels to PRs")
 }

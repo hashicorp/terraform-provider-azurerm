@@ -1,0 +1,67 @@
+---
+name: Remove TeamCity Label on Commit
+
+on:
+  pull_request:
+    types: [synchronize]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  remove-label:
+    runs-on: ubuntu-latest
+    env:
+      LABEL_TO_REMOVE: teamcity-passed
+    steps:
+      - name: Check if label exists on PR
+        id: check-label
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const labelToRemove = process.env.LABEL_TO_REMOVE;
+
+            const { data: labels } = await github.rest.issues.listLabelsOnIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number
+            });
+
+            const hasLabel = labels.some(label => label.name === labelToRemove);
+            core.setOutput('has-label', hasLabel);
+
+            if (hasLabel) {
+              core.info(`Label "${labelToRemove}" found on PR #${context.payload.pull_request.number}`);
+            } else {
+              core.info(`Label "${labelToRemove}" not found on PR #${context.payload.pull_request.number}`);
+            }
+
+            return hasLabel;
+
+      - name: Remove label from PR
+        if: steps.check-label.outputs.has-label == 'true'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const labelToRemove = process.env.LABEL_TO_REMOVE;
+
+            try {
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                name: labelToRemove
+              });
+
+              core.info(`Successfully removed label "${labelToRemove}" from PR #${context.payload.pull_request.number}`);
+
+            } catch (error) {
+              if (error.status === 404) {
+                core.warning(`Label "${labelToRemove}" was not found on PR #${context.payload.pull_request.number}`);
+              } else {
+                throw error;
+              }
+            }

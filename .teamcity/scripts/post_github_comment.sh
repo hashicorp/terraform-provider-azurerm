@@ -10,7 +10,8 @@ BETA_VERSION_ENV_VAR="%env.BETA_VERSION_ENV_VAR%"
 TEAMCITY_BUILD_BRANCH="%teamcity.build.branch%"
 LABEL_SUCCESS="%env.LABEL_SUCCESS%"
 LABEL_FAILURE="%env.LABEL_FAILURE%"
-
+LABEL_NEW_FAILURE="%env.LABEL_NEW_FAILURE%"
+APPLY_TESTING_LABELS_ENABLED="%env.APPLY_TESTING_LABELS_ENABLED%"
 
 if [ "$POST_GITHUB_COMMENT" != "true" ]; then
   echo "GitHub commenting disabled — skipping."
@@ -64,10 +65,16 @@ set_testing_label() {
   local label="$1"
   if [ "$label" = "$LABEL_SUCCESS" ]; then
     remove_label "$LABEL_FAILURE"
+    remove_label "$LABEL_NEW_FAILURE"
     apply_label "$LABEL_SUCCESS"
   elif [ "$label" = "$LABEL_FAILURE" ]; then
     remove_label "$LABEL_SUCCESS"
+    remove_label "$LABEL_NEW_FAILURE"
     apply_label "$LABEL_FAILURE"
+  elif [ "$label" = "$LABEL_NEW_FAILURE" ]; then
+    remove_label "$LABEL_SUCCESS"
+    remove_label "$LABEL_FAILURE"
+    apply_label "$LABEL_NEW_FAILURE"
   fi
 }
 
@@ -269,25 +276,24 @@ curl -s -X POST \
   "https://api.github.com/repos/$GITHUB_REPO/issues/${PR_NUMBER}/comments" \
   -d "{\"body\": $(jq -Rs . <<< "$COMMENT")}"
 
-echo "Applying labels..."
+if APPLY_TESTING_LABELS_ENABLED; then
+  echo "Applying labels..."
 
-# If no failures, apply teamcity-passed label
-if [ "$FAIL_COUNT" -eq 0 ]; then
-  echo "No test failures detected"
-  set_testing_label "$LABEL_SUCCESS"
-  exit 0
+  # If no failures, apply teamcity-passed label
+  if [ "$FAIL_COUNT" -eq 0 ]; then
+    echo "No test failures detected"
+    set_testing_label "$LABEL_SUCCESS"
+    exit 0
+  fi
+
+  # If there are failures, determine label based on earlier analysis
+  if [ -z "$NEW_FAILURES" ]; then
+    echo "All failed tests also exist in main branch"
+    set_testing_label "$LABEL_FAILURE"
+  else
+    echo "Found new test failures not present in main branch"
+    set_testing_label "$LABEL_NEW_FAILURE"
+  fi
+
+  echo "Label application complete"
 fi
-
-# If there are failures, determine label based on earlier analysis
-if [ -z "$MAIN_TEST_RESULTS" ]; then
-  echo "Could not fetch main branch results - applying '$LABEL_FAILURE' label as precaution..."
-  set_testing_label "$LABEL_FAILURE"
-elif [ -z "$NEW_FAILURES" ]; then
-  echo "All failed tests also exist in main branch"
-  set_testing_label "$LABEL_SUCCESS"
-else
-  echo "Found new test failures not present in main branch"
-  set_testing_label "$LABEL_FAILURE"
-fi
-
-echo "Label application complete"
