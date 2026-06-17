@@ -5,6 +5,7 @@ package network
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -18,14 +19,17 @@ import (
 )
 
 type ManagerConnectivityConfigurationModel struct {
-	Name                         string                                          `tfschema:"name"`
-	NetworkManagerId             string                                          `tfschema:"network_manager_id"`
-	AppliesToGroups              []ConnectivityGroupItemModel                    `tfschema:"applies_to_group"`
-	ConnectivityTopology         connectivityconfigurations.ConnectivityTopology `tfschema:"connectivity_topology"`
-	DeleteExistingPeeringEnabled bool                                            `tfschema:"delete_existing_peering_enabled"`
-	Description                  string                                          `tfschema:"description"`
-	Hub                          []HubModel                                      `tfschema:"hub"`
-	GlobalMeshEnabled            bool                                            `tfschema:"global_mesh_enabled"`
+	Name                                string                                          `tfschema:"name"`
+	NetworkManagerId                    string                                          `tfschema:"network_manager_id"`
+	AppliesToGroups                     []ConnectivityGroupItemModel                    `tfschema:"applies_to_group"`
+	ConnectedGroupAddressOverlapEnabled bool                                            `tfschema:"connected_group_address_overlap_enabled"`
+	ConnectedGroupPrivateEndpointsScale string                                          `tfschema:"connected_group_private_endpoints_scale"`
+	ConnectivityTopology                connectivityconfigurations.ConnectivityTopology `tfschema:"connectivity_topology"`
+	DeleteExistingPeeringEnabled        bool                                            `tfschema:"delete_existing_peering_enabled"`
+	Description                         string                                          `tfschema:"description"`
+	GlobalMeshEnabled                   bool                                            `tfschema:"global_mesh_enabled"`
+	Hub                                 []HubModel                                      `tfschema:"hub"`
+	PeeringEnforcementEnabled           bool                                            `tfschema:"peering_enforcement_enabled"`
 }
 
 type ConnectivityGroupItemModel struct {
@@ -42,7 +46,10 @@ type HubModel struct {
 
 type ManagerConnectivityConfigurationResource struct{}
 
-var _ sdk.ResourceWithUpdate = ManagerConnectivityConfigurationResource{}
+var (
+	_ sdk.ResourceWithUpdate        = ManagerConnectivityConfigurationResource{}
+	_ sdk.ResourceWithCustomizeDiff = ManagerConnectivityConfigurationResource{}
+)
 
 func (r ManagerConnectivityConfigurationResource) ResourceType() string {
 	return "azurerm_network_manager_connectivity_configuration"
@@ -54,6 +61,35 @@ func (r ManagerConnectivityConfigurationResource) ModelObject() interface{} {
 
 func (r ManagerConnectivityConfigurationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return connectivityconfigurations.ValidateConnectivityConfigurationID
+}
+
+func (r ManagerConnectivityConfigurationResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			rd := metadata.ResourceDiff
+
+			if rd.HasChange("connected_group_address_overlap_enabled") {
+				oldVal, newVal := rd.GetChange("connected_group_address_overlap_enabled")
+
+				if oldVal.(bool) && !newVal.(bool) {
+					if err := rd.ForceNew("connected_group_address_overlap_enabled"); err != nil {
+						return err
+					}
+				}
+			}
+
+			topology := rd.Get("connectivity_topology").(string)
+			peeringEnforcementEnabled := rd.Get("peering_enforcement_enabled").(bool)
+
+			if topology == string(connectivityconfigurations.ConnectivityTopologyMesh) &&
+				peeringEnforcementEnabled {
+				return errors.New("`peering_enforcement_enabled` can only be set to `true` when `connectivity_topology` is `HubAndSpoke`")
+			}
+
+			return nil
+		},
+	}
 }
 
 func (r ManagerConnectivityConfigurationResource) Arguments() map[string]*pluginsdk.Schema {
@@ -114,6 +150,19 @@ func (r ManagerConnectivityConfigurationResource) Arguments() map[string]*plugin
 			}, false),
 		},
 
+		"connected_group_address_overlap_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"connected_group_private_endpoints_scale": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(connectivityconfigurations.ConnectedGroupPrivateEndpointsScaleStandard),
+			ValidateFunc: validation.StringInSlice(connectivityconfigurations.PossibleValuesForConnectedGroupPrivateEndpointsScale(), false),
+		},
+
 		"delete_existing_peering_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
@@ -149,6 +198,12 @@ func (r ManagerConnectivityConfigurationResource) Arguments() map[string]*plugin
 		"global_mesh_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
+		},
+
+		"peering_enforcement_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
 		},
 	}
 }
@@ -192,6 +247,11 @@ func (r ManagerConnectivityConfigurationResource) Create() sdk.ResourceFunc {
 					DeleteExistingPeering: expandDeleteExistingPeering(model.DeleteExistingPeeringEnabled),
 					IsGlobal:              expandConnectivityConfIsGlobal(model.GlobalMeshEnabled),
 					Hubs:                  expandHubModel(model.Hub),
+					ConnectivityCapabilities: &connectivityconfigurations.ConnectivityConfigurationPropertiesConnectivityCapabilities{
+						ConnectedGroupAddressOverlap:        expandConnectedGroupAddressOverlap(model.ConnectedGroupAddressOverlapEnabled),
+						ConnectedGroupPrivateEndpointsScale: connectivityconfigurations.ConnectedGroupPrivateEndpointsScale(model.ConnectedGroupPrivateEndpointsScale),
+						PeeringEnforcement:                  expandPeeringEnforcement(model.PeeringEnforcementEnabled),
+					},
 				},
 			}
 
@@ -241,6 +301,27 @@ func (r ManagerConnectivityConfigurationResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("applies_to_group") {
 				properties.AppliesToGroups = expandConnectivityGroupItemModel(model.AppliesToGroups)
+			}
+
+			if metadata.ResourceData.HasChange("connected_group_address_overlap_enabled") {
+				if properties.ConnectivityCapabilities == nil {
+					properties.ConnectivityCapabilities = &connectivityconfigurations.ConnectivityConfigurationPropertiesConnectivityCapabilities{}
+				}
+				properties.ConnectivityCapabilities.ConnectedGroupAddressOverlap = expandConnectedGroupAddressOverlap(model.ConnectedGroupAddressOverlapEnabled)
+			}
+
+			if metadata.ResourceData.HasChange("connected_group_private_endpoints_scale") {
+				if properties.ConnectivityCapabilities == nil {
+					properties.ConnectivityCapabilities = &connectivityconfigurations.ConnectivityConfigurationPropertiesConnectivityCapabilities{}
+				}
+				properties.ConnectivityCapabilities.ConnectedGroupPrivateEndpointsScale = connectivityconfigurations.ConnectedGroupPrivateEndpointsScale(model.ConnectedGroupPrivateEndpointsScale)
+			}
+
+			if metadata.ResourceData.HasChange("peering_enforcement_enabled") {
+				if properties.ConnectivityCapabilities == nil {
+					properties.ConnectivityCapabilities = &connectivityconfigurations.ConnectivityConfigurationPropertiesConnectivityCapabilities{}
+				}
+				properties.ConnectivityCapabilities.PeeringEnforcement = expandPeeringEnforcement(model.PeeringEnforcementEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("connectivity_topology") {
@@ -301,13 +382,22 @@ func (r ManagerConnectivityConfigurationResource) Read() sdk.ResourceFunc {
 			properties := existing.Model.Properties
 
 			state := ManagerConnectivityConfigurationModel{
-				Name:                         id.ConnectivityConfigurationName,
-				NetworkManagerId:             connectivityconfigurations.NewNetworkManagerID(id.SubscriptionId, id.ResourceGroupName, id.NetworkManagerName).ID(),
-				AppliesToGroups:              flattenConnectivityGroupItemModel(properties.AppliesToGroups),
-				ConnectivityTopology:         properties.ConnectivityTopology,
-				DeleteExistingPeeringEnabled: flattenDeleteExistingPeering(properties.DeleteExistingPeering),
-				GlobalMeshEnabled:            flattenConnectivityConfIsGlobal(properties.IsGlobal),
-				Hub:                          flattenHubModel(properties.Hubs),
+				Name:                                id.ConnectivityConfigurationName,
+				NetworkManagerId:                    connectivityconfigurations.NewNetworkManagerID(id.SubscriptionId, id.ResourceGroupName, id.NetworkManagerName).ID(),
+				AppliesToGroups:                     flattenConnectivityGroupItemModel(properties.AppliesToGroups),
+				ConnectivityTopology:                properties.ConnectivityTopology,
+				DeleteExistingPeeringEnabled:        flattenDeleteExistingPeering(properties.DeleteExistingPeering),
+				GlobalMeshEnabled:                   flattenConnectivityConfIsGlobal(properties.IsGlobal),
+				Hub:                                 flattenHubModel(properties.Hubs),
+				ConnectedGroupAddressOverlapEnabled: true,
+				ConnectedGroupPrivateEndpointsScale: string(connectivityconfigurations.ConnectedGroupPrivateEndpointsScaleStandard),
+				PeeringEnforcementEnabled:           false,
+			}
+
+			if properties.ConnectivityCapabilities != nil {
+				state.ConnectedGroupAddressOverlapEnabled = flattenConnectedGroupAddressOverlap(properties.ConnectivityCapabilities.ConnectedGroupAddressOverlap)
+				state.ConnectedGroupPrivateEndpointsScale = string(properties.ConnectivityCapabilities.ConnectedGroupPrivateEndpointsScale)
+				state.PeeringEnforcementEnabled = flattenPeeringEnforcement(properties.ConnectivityCapabilities.PeeringEnforcement)
 			}
 
 			if properties.Description != nil {
@@ -350,12 +440,28 @@ func expandDeleteExistingPeering(input bool) *connectivityconfigurations.DeleteE
 	return &output
 }
 
+func expandConnectedGroupAddressOverlap(input bool) connectivityconfigurations.ConnectedGroupAddressOverlap {
+	if input {
+		return connectivityconfigurations.ConnectedGroupAddressOverlapAllowed
+	}
+
+	return connectivityconfigurations.ConnectedGroupAddressOverlapDisallowed
+}
+
 func expandConnectivityConfIsGlobal(input bool) *connectivityconfigurations.IsGlobal {
 	output := connectivityconfigurations.IsGlobalFalse
 	if input {
 		output = connectivityconfigurations.IsGlobalTrue
 	}
 	return &output
+}
+
+func expandPeeringEnforcement(input bool) connectivityconfigurations.PeeringEnforcement {
+	if input {
+		return connectivityconfigurations.PeeringEnforcementEnforced
+	}
+
+	return connectivityconfigurations.PeeringEnforcementUnenforced
 }
 
 func expandConnectivityGroupItemModel(inputList []ConnectivityGroupItemModel) []connectivityconfigurations.ConnectivityGroupItem {
@@ -405,11 +511,19 @@ func flattenDeleteExistingPeering(input *connectivityconfigurations.DeleteExisti
 	return *input == connectivityconfigurations.DeleteExistingPeeringTrue
 }
 
+func flattenConnectedGroupAddressOverlap(input connectivityconfigurations.ConnectedGroupAddressOverlap) bool {
+	return input != connectivityconfigurations.ConnectedGroupAddressOverlapDisallowed
+}
+
 func flattenConnectivityConfIsGlobal(input *connectivityconfigurations.IsGlobal) bool {
 	if input == nil {
 		return false
 	}
 	return *input == connectivityconfigurations.IsGlobalTrue
+}
+
+func flattenPeeringEnforcement(input connectivityconfigurations.PeeringEnforcement) bool {
+	return input == connectivityconfigurations.PeeringEnforcementEnforced
 }
 
 func flattenConnectivityGroupItemModel(inputList []connectivityconfigurations.ConnectivityGroupItem) []ConnectivityGroupItemModel {

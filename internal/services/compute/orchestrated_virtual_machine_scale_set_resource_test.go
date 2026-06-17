@@ -1787,7 +1787,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-%[3]s
+		%[3]s
 
 resource "azurerm_storage_account" "test" {
   name                     = "accsa%[1]d"
@@ -1883,8 +1883,7 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 
   tags = {
-    environment                     = "staging"
-    allow_nested_items_to_be_public = true
+    environment = "staging"
   }
 }
 

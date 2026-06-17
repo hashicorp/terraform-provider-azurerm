@@ -224,8 +224,7 @@ resource "azurerm_public_ip" "test" {
   name                = "acctestpip%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Static"
-  sku                 = "Standard"
+  allocation_method   = "Dynamic"
   domain_name_label   = "acctestpip%d"
 }
 
@@ -305,12 +304,11 @@ resource "azurerm_image" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   os_disk {
-    os_type      = "Linux"
-    os_state     = "Generalized"
-    blob_uri     = azurerm_virtual_machine.testsource.storage_os_disk[0].vhd_uri
-    size_gb      = 30
-    caching      = "None"
-    storage_type = "Standard_LRS"
+    os_type  = "Linux"
+    os_state = "Generalized"
+    blob_uri = azurerm_virtual_machine.testsource.storage_os_disk[0].vhd_uri
+    size_gb  = 30
+    caching  = "None"
   }
 
   tags = {
@@ -327,7 +325,7 @@ data "azurerm_image" "test" {
 output "location" {
   value = data.azurerm_image.test.location
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (ImageDataSource) localFilter_setup(data acceptance.TestData) string {
@@ -360,8 +358,7 @@ resource "azurerm_public_ip" "test" {
   name                = "acctestpip%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Static"
-  sku                 = "Standard"
+  allocation_method   = "Dynamic"
   domain_name_label   = "acctestpip%d"
 }
 
@@ -441,12 +438,11 @@ resource "azurerm_image" "abc" {
   resource_group_name = azurerm_resource_group.test.name
 
   os_disk {
-    os_type      = "Linux"
-    os_state     = "Generalized"
-    blob_uri     = azurerm_virtual_machine.testsource.storage_os_disk[0].vhd_uri
-    size_gb      = 30
-    caching      = "None"
-    storage_type = "Standard_LRS"
+    os_type  = "Linux"
+    os_state = "Generalized"
+    blob_uri = azurerm_virtual_machine.testsource.storage_os_disk[0].vhd_uri
+    size_gb  = 30
+    caching  = "None"
   }
 
   tags = {
@@ -461,12 +457,11 @@ resource "azurerm_image" "def" {
   resource_group_name = azurerm_resource_group.test.name
 
   os_disk {
-    os_type      = "Linux"
-    os_state     = "Generalized"
-    blob_uri     = azurerm_virtual_machine.testsource.storage_os_disk[0].vhd_uri
-    size_gb      = 30
-    caching      = "None"
-    storage_type = "Standard_LRS"
+    os_type  = "Linux"
+    os_state = "Generalized"
+    blob_uri = azurerm_virtual_machine.testsource.storage_os_disk[0].vhd_uri
+    size_gb  = 30
+    caching  = "None"
   }
 
   tags = {
@@ -474,7 +469,7 @@ resource "azurerm_image" "def" {
     cost-center = "Ops"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+		`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 	}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -504,8 +499,7 @@ resource "azurerm_public_ip" "test" {
   name                = "acctestpip%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Static"
-  sku                 = "Standard"
+  allocation_method   = "Dynamic"
   domain_name_label   = "acctestpip%d"
 }
 
@@ -585,12 +579,11 @@ resource "azurerm_image" "abc" {
   resource_group_name = azurerm_resource_group.test.name
 
   os_disk {
-    os_type      = "Linux"
-    os_state     = "Generalized"
-    blob_uri     = azurerm_virtual_machine.testsource.storage_os_disk[0].vhd_uri
-    size_gb      = 30
-    caching      = "None"
-    storage_type = "Standard_LRS"
+    os_type  = "Linux"
+    os_state = "Generalized"
+    blob_uri = azurerm_virtual_machine.testsource.storage_os_disk[0].vhd_uri
+    size_gb  = 30
+    caching  = "None"
   }
 
   tags = {
@@ -605,12 +598,11 @@ resource "azurerm_image" "def" {
   resource_group_name = azurerm_resource_group.test.name
 
   os_disk {
-    os_type      = "Linux"
-    os_state     = "Generalized"
-    blob_uri     = azurerm_virtual_machine.testsource.storage_os_disk[0].vhd_uri
-    size_gb      = 30
-    caching      = "None"
-    storage_type = "Standard_LRS"
+    os_type  = "Linux"
+    os_state = "Generalized"
+    blob_uri = azurerm_virtual_machine.testsource.storage_os_disk[0].vhd_uri
+    size_gb  = 30
+    caching  = "None"
   }
 
   tags = {
@@ -618,7 +610,7 @@ resource "azurerm_image" "def" {
     cost-center = "Ops"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r ImageDataSource) localFilter(data acceptance.TestData) string {
