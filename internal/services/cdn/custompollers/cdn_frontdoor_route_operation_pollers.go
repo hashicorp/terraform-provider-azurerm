@@ -23,10 +23,10 @@ var (
 )
 
 // NOTE: Front Door can continue backend synchronization after the ARM write call
-// returns. These pollers use the service-visible `provisioningState` and
-// `deploymentStatus` fields as the best available readiness signal before issuing
-// the next route mutation, because the service does not currently expose a more
-// deterministic ARM/LRO contract for this sync window.
+// returns. For route operations, `provisioningState` is the authoritative
+// readiness signal. `deploymentStatus` is still useful for surfacing terminal
+// failures, but it can legitimately remain `NotStarted` after the service has
+// already applied the update.
 const frontDoorRoutePollInterval = 30 * time.Second
 
 type frontDoorRouteCreatePoller struct {
@@ -246,15 +246,12 @@ func frontDoorRouteSettled(ctx context.Context, client *cdn.RoutesClient, id par
 	}
 
 	props := resp.RouteProperties
-	if props == nil {
-		return false, nil
+	settled, err := frontDoorRouteStatusesSettled(props)
+	if err != nil {
+		return false, fmt.Errorf("waiting for %s: %+v", id, err)
 	}
 
-	if props.ProvisioningState == cdn.AfdProvisioningStateFailed || props.DeploymentStatus == cdn.DeploymentStatusFailed {
-		return false, fmt.Errorf("waiting for %s: route entered failed state with `deploymentStatus` `%s` and `provisioningState` `%s`", id, props.DeploymentStatus, props.ProvisioningState)
-	}
-
-	return props.ProvisioningState == cdn.AfdProvisioningStateSucceeded && props.DeploymentStatus == cdn.DeploymentStatusSucceeded, nil
+	return settled, nil
 }
 
 func frontDoorRouteSettledForCreate(ctx context.Context, client *cdn.RoutesClient, id parse.FrontDoorRouteId) (bool, error) {
@@ -268,12 +265,21 @@ func frontDoorRouteSettledForCreate(ctx context.Context, client *cdn.RoutesClien
 	}
 
 	props := resp.RouteProperties
+	settled, err := frontDoorRouteStatusesSettled(props)
+	if err != nil {
+		return false, fmt.Errorf("waiting for %s: %+v", id, err)
+	}
+
+	return settled, nil
+}
+
+func frontDoorRouteStatusesSettled(props *cdn.RouteProperties) (bool, error) {
 	if props == nil {
 		return false, nil
 	}
 
 	if props.ProvisioningState == cdn.AfdProvisioningStateFailed || props.DeploymentStatus == cdn.DeploymentStatusFailed {
-		return false, fmt.Errorf("waiting for %s: route entered failed state with `deploymentStatus` `%s` and `provisioningState` `%s`", id, props.DeploymentStatus, props.ProvisioningState)
+		return false, fmt.Errorf("route entered failed state with `deploymentStatus` `%s` and `provisioningState` `%s`", props.DeploymentStatus, props.ProvisioningState)
 	}
 
 	return props.ProvisioningState == cdn.AfdProvisioningStateSucceeded, nil
