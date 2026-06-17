@@ -670,7 +670,6 @@ func OrchestratedVirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 							"placement": {
 								Type:     pluginsdk.TypeString,
 								Optional: true,
-								ForceNew: true,
 								Default:  string(virtualmachinescalesets.DiffDiskPlacementCacheDisk),
 								ValidateFunc: validation.StringInSlice([]string{
 									string(virtualmachinescalesets.DiffDiskPlacementCacheDisk),
@@ -1428,6 +1427,13 @@ func ExpandOrchestratedVirtualMachineScaleSetOSDiskUpdate(input []interface{}) *
 
 	if osDiskSize := raw["disk_size_gb"].(int); osDiskSize > 0 {
 		disk.DiskSizeGB = pointer.To(int64(osDiskSize))
+	}
+
+	if rawDiffDiskSettings := raw["diff_disk_settings"].([]interface{}); len(rawDiffDiskSettings) > 0 && rawDiffDiskSettings[0] != nil {
+		diffDiskSettings := rawDiffDiskSettings[0].(map[string]interface{})
+		disk.DiffDiskSettings = &virtualmachinescalesets.DiffDiskSettings{
+			Placement: pointer.ToEnum[virtualmachinescalesets.DiffDiskPlacement](diffDiskSettings["placement"].(string)),
+		}
 	}
 
 	return &disk

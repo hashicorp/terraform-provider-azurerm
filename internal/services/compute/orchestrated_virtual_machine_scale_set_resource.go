@@ -397,6 +397,12 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 					}
 				}
 
+				if diff.HasChange("os_disk.0.diff_disk_settings.0.placement") {
+					if !diff.HasChange("sku_name") {
+						return fmt.Errorf("changing `os_disk.0.diff_disk_settings.0.placement` requires `sku_name` to be updated as well")
+					}
+				}
+
 				return nil
 			}),
 		),

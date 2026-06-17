@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
@@ -17,21 +15,16 @@ func TestAccOrchestratedVirtualMachineScaleSet_disksOSDiskCaching(t *testing.T) 
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
-	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.disksOSDiskEphemeral(data, "CacheDisk"),
+			Config: r.disksOSDiskEphemeral(data, "CacheDisk", "Standard_F4s_v2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
 		{
-			Config: r.disksOSDiskEphemeral(data, "ResourceDisk"),
-			ConfigPlanChecks: resource.ConfigPlanChecks{
-				PreApply: []plancheck.PlanCheck{
-					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
-				},
-			},
+			Config: r.disksOSDiskEphemeral(data, "ResourceDisk", "Standard_F8s_v2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -115,7 +108,7 @@ func TestAccOrchestratedVirtualMachineScaleSet_disksOSDiskStorageAccountTypeStan
 	})
 }
 
-func (r OrchestratedVirtualMachineScaleSetResource) disksOSDiskEphemeral(data acceptance.TestData, placement string) string {
+func (r OrchestratedVirtualMachineScaleSetResource) disksOSDiskEphemeral(data acceptance.TestData, placement string, skuName string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -133,7 +126,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  sku_name  = "Standard_F4s_v2"
+  sku_name  = "%[5]s"
   instances = 1
 
   platform_fault_domain_count = 2
@@ -182,7 +175,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, r.natgateway_template(data), data.Locations.Primary, data.RandomInteger, placement)
+`, r.natgateway_template(data), data.Locations.Primary, data.RandomInteger, placement, skuName)
 }
 
 func (r OrchestratedVirtualMachineScaleSetResource) disksOSDiskStorageAccountType(data acceptance.TestData, storageAccountType string) string {
