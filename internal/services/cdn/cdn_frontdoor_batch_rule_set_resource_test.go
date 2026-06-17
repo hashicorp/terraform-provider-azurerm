@@ -27,7 +27,7 @@ func TestAccCdnFrontDoorBatchRuleSet_basic(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basicAttachedRoute(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -42,7 +42,7 @@ func TestAccCdnFrontDoorBatchRuleSet_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basicAttachedRoute(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -72,7 +72,7 @@ func TestAccCdnFrontDoorBatchRuleSet_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basicAttachedRoute(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -85,37 +85,233 @@ func TestAccCdnFrontDoorBatchRuleSet_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.basicAttachedRoute(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccCdnFrontDoorBatchRuleSet_disableCache(t *testing.T) {
+func TestAccCdnFrontDoorBatchRuleSet_disableCache_attachedRoute(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule_set", "test")
+	r := CdnFrontdoorBatchRuleSetResource{}
+	expectedOriginGroupID := fmt.Sprintf("/subscriptions/%s/resourceGroups/acctestRG-cdn-afdx-%d/providers/Microsoft.Cdn/profiles/accTestProfile-%d/originGroups/accTestOriginGroup-%d", data.Subscriptions.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicAttachedRoute(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("rules.0.actions.0.route_configuration_override_action.0.cdn_frontdoor_origin_group_id").HasValue(expectedOriginGroupID),
+				check.That(data.ResourceName).Key("rules.0.actions.0.route_configuration_override_action.0.forwarding_protocol").HasValue("HttpsOnly"),
+				check.That(data.ResourceName).Key("rules.0.actions.0.route_configuration_override_action.0.cache_behavior").HasValue("OverrideIfOriginMissing"),
+				check.That(data.ResourceName).Key("rules.0.actions.0.route_configuration_override_action.0.query_string_caching_behavior").HasValue("IncludeSpecifiedQueryStrings"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.disableCacheAttachedRoute(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("rules.0.actions.0.route_configuration_override_action.0.cdn_frontdoor_origin_group_id").HasValue(expectedOriginGroupID),
+				check.That(data.ResourceName).Key("rules.0.actions.0.route_configuration_override_action.0.forwarding_protocol").HasValue("HttpsOnly"),
+				check.That(data.ResourceName).Key("rules.0.actions.0.route_configuration_override_action.0.cache_behavior").HasValue("Disabled"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicAttachedRoute(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("rules.0.actions.0.route_configuration_override_action.0.cdn_frontdoor_origin_group_id").HasValue(expectedOriginGroupID),
+				check.That(data.ResourceName).Key("rules.0.actions.0.route_configuration_override_action.0.forwarding_protocol").HasValue("HttpsOnly"),
+				check.That(data.ResourceName).Key("rules.0.actions.0.route_configuration_override_action.0.cache_behavior").HasValue("OverrideIfOriginMissing"),
+				check.That(data.ResourceName).Key("rules.0.actions.0.route_configuration_override_action.0.query_string_caching_behavior").HasValue("IncludeSpecifiedQueryStrings"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorBatchRuleSet_disableCache_unattachedRoute(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule_set", "test")
+	r := CdnFrontdoorBatchRuleSetResource{}
+	expectedOriginGroupID := fmt.Sprintf("/subscriptions/%s/resourceGroups/acctestRG-cdn-afdx-%d/providers/Microsoft.Cdn/profiles/accTestProfile-%d/originGroups/accTestOriginGroup-%d", data.Subscriptions.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.disableCacheUnattachedRoute(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("rules.0.actions.0.route_configuration_override_action.0.cdn_frontdoor_origin_group_id").HasValue(expectedOriginGroupID),
+				check.That(data.ResourceName).Key("rules.0.actions.0.route_configuration_override_action.0.forwarding_protocol").HasValue("HttpsOnly"),
+				check.That(data.ResourceName).Key("rules.0.actions.0.route_configuration_override_action.0.cache_behavior").HasValue("Disabled"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorBatchRuleSet_cacheDurationZero_attachedRoute(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule_set", "test")
 	r := CdnFrontdoorBatchRuleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.cacheDurationZeroAttachedRoute(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("rules.0.actions.0.route_configuration_override_action.0.cache_behavior").HasValue("OverrideIfOriginMissing"),
-				check.That(data.ResourceName).Key("rules.0.actions.0.route_configuration_override_action.0.query_string_caching_behavior").HasValue("IncludeSpecifiedQueryStrings"),
+				check.That(data.ResourceName).Key("rules.0.actions.0.route_configuration_override_action.0.cache_duration").HasValue("00:00:00"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorBatchRuleSet_cacheDurationZero_unattachedRoute(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule_set", "test")
+	r := CdnFrontdoorBatchRuleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.cacheDurationZeroUnattachedRoute(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("rules.0.actions.0.route_configuration_override_action.0.cache_duration").HasValue("00:00:00"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorBatchRuleSet_originGroupIdOptional_attachedRoute(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule_set", "test")
+	r := CdnFrontdoorBatchRuleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.originGroupIdOptionalAttachedRoute(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorBatchRuleSet_originGroupIdOptional_unattachedRoute(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule_set", "test")
+	r := CdnFrontdoorBatchRuleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.originGroupIdOptionalUnattachedRoute(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorBatchRuleSet_originGroupIdOptionalUpdate_attachedRoute(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule_set", "test")
+	r := CdnFrontdoorBatchRuleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.originGroupIdOptionalAttachedRoute(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicAttachedRoute(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.originGroupIdOptionalAttachedRoute(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorBatchRuleSet_originGroupIdOptionalUpdate_unattachedRoute(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule_set", "test")
+	r := CdnFrontdoorBatchRuleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.originGroupIdOptionalUnattachedRoute(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicUnattachedRoute(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicUnattachedRouteWithoutOriginGroupOverride(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
-			Config: r.disableCache(data),
+			Config: r.originGroupIdOptionalUnattachedRoute(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("rules.0.actions.0.route_configuration_override_action.0.cache_behavior").HasValue("Disabled"),
 			),
 		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorBatchRuleSet_honorOrigin_attachedRoute(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule_set", "test")
+	r := CdnFrontdoorBatchRuleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.honorOriginAttachedRoute(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("rules.0.actions.0.route_configuration_override_action.0.cache_behavior").HasValue("OverrideIfOriginMissing"),
-				check.That(data.ResourceName).Key("rules.0.actions.0.route_configuration_override_action.0.query_string_caching_behavior").HasValue("IncludeSpecifiedQueryStrings"),
+				check.That(data.ResourceName).Key("rules.0.actions.0.route_configuration_override_action.0.cache_behavior").HasValue("HonorOrigin"),
+				check.That(data.ResourceName).Key("rules.0.actions.0.route_configuration_override_action.0.query_string_caching_behavior").HasValue("IgnoreQueryString"),
 			),
 		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorBatchRuleSet_honorOrigin_unattachedRoute(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule_set", "test")
+	r := CdnFrontdoorBatchRuleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.honorOriginUnattachedRoute(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("rules.0.actions.0.route_configuration_override_action.0.cache_behavior").HasValue("HonorOrigin"),
+				check.That(data.ResourceName).Key("rules.0.actions.0.route_configuration_override_action.0.query_string_caching_behavior").HasValue("IgnoreQueryString"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -311,7 +507,13 @@ func (r CdnFrontdoorBatchRuleSetResource) Exists(ctx context.Context, clients *c
 	return pointer.To(true), nil
 }
 
-func (r CdnFrontdoorBatchRuleSetResource) template(data acceptance.TestData) string {
+func (r CdnFrontdoorBatchRuleSetResource) templateAttachedRoute(data acceptance.TestData) string {
+	return fmt.Sprintf(`%s
+
+%s`, r.templateUnattachedRoute(data), r.routeTemplate(data))
+}
+
+func (r CdnFrontdoorBatchRuleSetResource) templateUnattachedRoute(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cdn-afdx-%[1]d"
@@ -348,6 +550,26 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
   priority                       = 1
   weight                         = 1
 }
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r CdnFrontdoorBatchRuleSetResource) templateWithoutOrigin(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cdn-afdx-%[1]d"
+  location = "%s"
+}
+
+resource "azurerm_cdn_frontdoor_profile" "test" {
+  name                = "accTestProfile-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Standard_AzureFrontDoor"
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r CdnFrontdoorBatchRuleSetResource) routeTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
 
 resource "azurerm_cdn_frontdoor_endpoint" "test" {
   name                     = "accTestEndpoint-%[1]d"
@@ -363,10 +585,54 @@ resource "azurerm_cdn_frontdoor_route" "test" {
   patterns_to_match             = ["/*"]
   supported_protocols           = ["Http", "Https"]
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger)
 }
 
 func (r CdnFrontdoorBatchRuleSetResource) basic(data acceptance.TestData) string {
+	return r.basicAttachedRoute(data)
+}
+
+func (r CdnFrontdoorBatchRuleSetResource) basicAttachedRoute(data acceptance.TestData) string {
+	return r.basicWithTemplate(data, r.templateAttachedRoute(data))
+}
+
+func (r CdnFrontdoorBatchRuleSetResource) basicUnattachedRoute(data acceptance.TestData) string {
+	return r.basicWithTemplate(data, r.templateUnattachedRoute(data))
+}
+
+func (r CdnFrontdoorBatchRuleSetResource) basicUnattachedRouteWithoutOriginGroupOverride(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  name                     = "accTestBatchRuleSet%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  rules {
+    name  = "accTestBatchRule%[2]d"
+    order = 0
+
+    actions {
+      route_configuration_override_action {
+        query_string_caching_behavior = "IncludeSpecifiedQueryStrings"
+        query_string_parameters       = ["foo", "clientIp={client_ip}"]
+        compression_enabled           = true
+        cache_behavior                = "OverrideIfOriginMissing"
+        cache_duration                = "365.23:59:59"
+      }
+    }
+  }
+}
+`, r.templateUnattachedRoute(data), data.RandomInteger)
+}
+
+func (r CdnFrontdoorBatchRuleSetResource) basicWithTemplate(data acceptance.TestData, template string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -397,10 +663,18 @@ resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger)
+`, template, data.RandomInteger)
 }
 
-func (r CdnFrontdoorBatchRuleSetResource) disableCache(data acceptance.TestData) string {
+func (r CdnFrontdoorBatchRuleSetResource) disableCacheAttachedRoute(data acceptance.TestData) string {
+	return r.disableCacheWithTemplate(data, r.templateAttachedRoute(data))
+}
+
+func (r CdnFrontdoorBatchRuleSetResource) disableCacheUnattachedRoute(data acceptance.TestData) string {
+	return r.disableCacheWithTemplate(data, r.templateUnattachedRoute(data))
+}
+
+func (r CdnFrontdoorBatchRuleSetResource) disableCacheWithTemplate(data acceptance.TestData, template string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -427,7 +701,243 @@ resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger)
+`, template, data.RandomInteger)
+}
+
+func (r CdnFrontdoorBatchRuleSetResource) cacheDurationZeroAttachedRoute(data acceptance.TestData) string {
+	return r.cacheDurationZeroWithTemplate(data, r.templateAttachedRoute(data))
+}
+
+func (r CdnFrontdoorBatchRuleSetResource) cacheDurationZeroUnattachedRoute(data acceptance.TestData) string {
+	return r.cacheDurationZeroWithoutOrigin(data)
+}
+
+func (r CdnFrontdoorBatchRuleSetResource) cacheDurationZeroWithoutOrigin(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
+  name                     = "accTestBatchRuleSet%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  rules {
+    name  = "accTestBatchRule%[2]d"
+    order = 0
+
+    actions {
+      route_configuration_override_action {
+        query_string_caching_behavior = "IncludeSpecifiedQueryStrings"
+        query_string_parameters       = ["foo", "clientIp={client_ip}"]
+        compression_enabled           = true
+        cache_behavior                = "OverrideIfOriginMissing"
+        cache_duration                = "00:00:00"
+      }
+    }
+  }
+}
+`, r.templateWithoutOrigin(data), data.RandomInteger)
+}
+
+func (r CdnFrontdoorBatchRuleSetResource) cacheDurationZeroWithTemplate(data acceptance.TestData, template string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  name                     = "accTestBatchRuleSet%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  rules {
+    name  = "accTestBatchRule%[2]d"
+    order = 0
+
+    actions {
+      route_configuration_override_action {
+        cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+        forwarding_protocol           = "HttpsOnly"
+        query_string_caching_behavior = "IncludeSpecifiedQueryStrings"
+        query_string_parameters       = ["foo", "clientIp={client_ip}"]
+        compression_enabled           = true
+        cache_behavior                = "OverrideIfOriginMissing"
+        cache_duration                = "00:00:00"
+      }
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r CdnFrontdoorBatchRuleSetResource) originGroupIdOptionalAttachedRoute(data acceptance.TestData) string {
+	return r.originGroupIdOptionalWithTemplate(data, r.templateAttachedRoute(data))
+}
+
+func (r CdnFrontdoorBatchRuleSetResource) originGroupIdOptionalUnattachedRoute(data acceptance.TestData) string {
+	return r.originGroupIdOptionalWithoutOrigin(data)
+}
+
+func (r CdnFrontdoorBatchRuleSetResource) originGroupIdOptionalWithoutOrigin(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
+  name                     = "accTestBatchRuleSet%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  rules {
+    name  = "accTestBatchRule%[2]d"
+    order = 0
+
+    actions {
+      route_configuration_override_action {
+        query_string_caching_behavior = "IncludeSpecifiedQueryStrings"
+        query_string_parameters       = ["foo", "clientIp={client_ip}"]
+        compression_enabled           = true
+        cache_behavior                = "OverrideIfOriginMissing"
+        cache_duration                = "365.23:59:59"
+      }
+    }
+  }
+}
+`, r.templateWithoutOrigin(data), data.RandomInteger)
+}
+
+func (r CdnFrontdoorBatchRuleSetResource) originGroupIdOptionalWithTemplate(data acceptance.TestData, template string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  name                     = "accTestBatchRuleSet%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  rules {
+    name  = "accTestBatchRule%[2]d"
+    order = 0
+
+    actions {
+      route_configuration_override_action {
+        query_string_caching_behavior = "IncludeSpecifiedQueryStrings"
+        query_string_parameters       = ["foo", "clientIp={client_ip}"]
+        compression_enabled           = true
+        cache_behavior                = "OverrideIfOriginMissing"
+        cache_duration                = "365.23:59:59"
+      }
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r CdnFrontdoorBatchRuleSetResource) honorOriginAttachedRoute(data acceptance.TestData) string {
+	return r.honorOriginWithTemplate(data, r.templateAttachedRoute(data))
+}
+
+func (r CdnFrontdoorBatchRuleSetResource) honorOriginUnattachedRoute(data acceptance.TestData) string {
+	return r.honorOriginWithoutOrigin(data)
+}
+
+func (r CdnFrontdoorBatchRuleSetResource) honorOriginWithoutOrigin(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
+  name                     = "accTestBatchRuleSet%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  rules {
+    name  = "accTestBatchRule%[2]d"
+    order = 0
+
+    actions {
+      route_configuration_override_action {
+        cache_behavior                = "HonorOrigin"
+        compression_enabled           = true
+        query_string_caching_behavior = "IgnoreQueryString"
+      }
+    }
+
+    conditions {
+      url_path_condition {
+        match_values     = ["data/"]
+        negate_condition = false
+        operator         = "BeginsWith"
+      }
+
+      url_path_condition {
+        match_values     = [".html", ".htm"]
+        negate_condition = false
+        operator         = "EndsWith"
+      }
+    }
+  }
+}
+`, r.templateWithoutOrigin(data), data.RandomInteger)
+}
+
+func (r CdnFrontdoorBatchRuleSetResource) honorOriginWithTemplate(data acceptance.TestData, template string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  name                     = "accTestBatchRuleSet%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  rules {
+    name  = "accTestBatchRule%[2]d"
+    order = 0
+
+    actions {
+      route_configuration_override_action {
+        cache_behavior                = "HonorOrigin"
+        compression_enabled           = true
+        query_string_caching_behavior = "IgnoreQueryString"
+      }
+    }
+
+    conditions {
+      url_path_condition {
+        match_values     = ["data/"]
+        negate_condition = false
+        operator         = "BeginsWith"
+      }
+
+      url_path_condition {
+        match_values     = [".html", ".htm"]
+        negate_condition = false
+        operator         = "EndsWith"
+      }
+    }
+  }
+}
+`, template, data.RandomInteger)
 }
 
 func (r CdnFrontdoorBatchRuleSetResource) requiresImport(data acceptance.TestData) string {
@@ -457,7 +967,7 @@ resource "azurerm_cdn_frontdoor_batch_rule_set" "import" {
     }
   }
 }
-`, r.basic(data), data.RandomInteger)
+`, r.basicAttachedRoute(data), data.RandomInteger)
 }
 
 func (r CdnFrontdoorBatchRuleSetResource) complete(data acceptance.TestData) string {
@@ -532,7 +1042,7 @@ resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger)
+`, r.templateAttachedRoute(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (r CdnFrontdoorBatchRuleSetResource) update(data acceptance.TestData) string {
@@ -588,7 +1098,7 @@ resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.templateAttachedRoute(data), data.RandomInteger)
 }
 
 func (r CdnFrontdoorBatchRuleSetResource) insertAndReorder(data acceptance.TestData) string {
@@ -650,7 +1160,7 @@ resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.templateAttachedRoute(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r CdnFrontdoorBatchRuleSetResource) deleteAndReorder(data acceptance.TestData) string {
@@ -698,7 +1208,7 @@ resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger)
+`, r.templateAttachedRoute(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (r CdnFrontdoorBatchRuleSetResource) invalidRouteConfigurationOverrideMissingQueryStringCachingBehavior(data acceptance.TestData) string {
@@ -729,7 +1239,7 @@ resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.templateAttachedRoute(data), data.RandomInteger)
 }
 
 func (r CdnFrontdoorBatchRuleSetResource) urlFilenameConditionOperator(data acceptance.TestData, operator string) string {
@@ -766,7 +1276,7 @@ resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger, operator)
+`, r.templateAttachedRoute(data), data.RandomInteger, operator)
 }
 
 func (r CdnFrontdoorBatchRuleSetResource) requestSchemeConditionMissingMatchValues(data acceptance.TestData) string {
@@ -803,7 +1313,7 @@ resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.templateAttachedRoute(data), data.RandomInteger)
 }
 
 func (r CdnFrontdoorBatchRuleSetResource) isDeviceConditionMissingMatchValues(data acceptance.TestData) string {
@@ -840,7 +1350,7 @@ resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.templateAttachedRoute(data), data.RandomInteger)
 }
 
 func (r CdnFrontdoorBatchRuleSetResource) remoteAddressGeoMatchInvalid(data acceptance.TestData) string {
@@ -877,7 +1387,7 @@ resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.templateAttachedRoute(data), data.RandomInteger)
 }
 
 func (r CdnFrontdoorBatchRuleSetResource) socketAddressConditionInvalidCIDR(data acceptance.TestData) string {
@@ -914,7 +1424,7 @@ resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.templateAttachedRoute(data), data.RandomInteger)
 }
 
 func (r CdnFrontdoorBatchRuleSetResource) duplicateRuleName(data acceptance.TestData) string {
@@ -957,7 +1467,7 @@ resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger)
+`, r.templateAttachedRoute(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (r CdnFrontdoorBatchRuleSetResource) duplicateRuleOrder(data acceptance.TestData) string {
@@ -1000,7 +1510,7 @@ resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger)
+`, r.templateAttachedRoute(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (r CdnFrontdoorBatchRuleSetResource) unsortedRules(data acceptance.TestData) string {
@@ -1043,7 +1553,7 @@ resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger)
+`, r.templateAttachedRoute(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (r CdnFrontdoorBatchRuleSetResource) gapInRuleOrder(data acceptance.TestData, orders [2]int) string {
@@ -1086,7 +1596,7 @@ resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger, orders[0], orders[1])
+`, r.templateAttachedRoute(data), data.RandomInteger, data.RandomInteger, orders[0], orders[1])
 }
 
 func (r CdnFrontdoorBatchRuleSetResource) diffQuotaExceeded(data acceptance.TestData, ruleCount int) string {
@@ -1122,5 +1632,5 @@ resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 %[3]s
 }
-`, r.template(data), data.RandomInteger, rulesBuilder.String())
+`, r.templateAttachedRoute(data), data.RandomInteger, rulesBuilder.String())
 }

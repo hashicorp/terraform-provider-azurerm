@@ -245,6 +245,8 @@ A `route_configuration_override_action` block supports the following:
 
 * `cdn_frontdoor_origin_group_id` - (Optional) The Front Door Origin Group resource ID that the request should be routed to. This overrides the configuration specified in the Front Door Endpoint route.
 
+~> **Note:** If you remove `cdn_frontdoor_origin_group_id` from a rule that currently points at the only enabled origin in an Origin Group, apply the Batch Rule Set update first and then remove or disable the last origin in a separate apply. The service rejects deleting or disabling the last origin while the Origin Group is still associated with a route or a rule.
+
 * `compression_enabled` - (Optional) Whether dynamic compression is enabled. Possible values are `true` and `false`.
 
 -> **Note:** Content is not compressed when the requested content is smaller than `1 byte` or larger than `1 MB`.

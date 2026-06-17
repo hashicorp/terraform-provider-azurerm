@@ -6,15 +6,14 @@ package custompollers
 import (
 	"context"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var (
@@ -84,15 +83,12 @@ func (p *frontDoorRouteCreatePoller) Poll(ctx context.Context) (*pollers.PollRes
 			return nil, err
 		}
 		if !ready {
-			log.Printf("[DEBUG] Front Door Route %s waiting for parent endpoint readiness before create", p.id)
 			return frontDoorRouteInProgress(), nil
 		}
 
-		log.Printf("[DEBUG] Front Door Route %s issuing create after parent endpoint reported ready", p.id)
 		future, err := p.routeClient.Create(ctx, p.id.ResourceGroup, p.id.ProfileName, p.id.AfdEndpointName, p.id.RouteName, p.input)
 		if err != nil {
 			if frontDoorRouteOperationInProgress(err) {
-				log.Printf("[DEBUG] Front Door Route %s create returned in-progress conflict; continuing to wait", p.id)
 				return frontDoorRouteInProgress(), nil
 			}
 
@@ -101,7 +97,6 @@ func (p *frontDoorRouteCreatePoller) Poll(ctx context.Context) (*pollers.PollRes
 
 		if err := future.WaitForCompletionRef(ctx, p.routeClient.Client); err != nil {
 			if frontDoorRouteOperationInProgress(err) {
-				log.Printf("[DEBUG] Front Door Route %s create LRO reported in-progress conflict; continuing to wait", p.id)
 				return frontDoorRouteInProgress(), nil
 			}
 
@@ -109,13 +104,11 @@ func (p *frontDoorRouteCreatePoller) Poll(ctx context.Context) (*pollers.PollRes
 		}
 
 		p.operationIssued = true
-		log.Printf("[DEBUG] Front Door Route %s create request completed; waiting for route readiness signal", p.id)
 	}
 
 	ready, err := frontDoorRouteSettledForCreate(ctx, p.routeClient, p.id)
 	if err != nil {
 		if routeNotFound(err) {
-			log.Printf("[DEBUG] Front Door Route %s not yet readable after create; continuing to wait", p.id)
 			return frontDoorRouteInProgress(), nil
 		}
 
@@ -135,15 +128,12 @@ func (p *frontDoorRouteUpdatePoller) Poll(ctx context.Context) (*pollers.PollRes
 			return nil, err
 		}
 		if !ready {
-			log.Printf("[DEBUG] Front Door Route %s waiting for route readiness before update", p.id)
 			return frontDoorRouteInProgress(), nil
 		}
 
-		log.Printf("[DEBUG] Front Door Route %s issuing update after route reported ready", p.id)
 		future, err := p.workaroundsClient.Update(ctx, p.id.ResourceGroup, p.id.ProfileName, p.id.AfdEndpointName, p.id.RouteName, p.input)
 		if err != nil {
 			if frontDoorRouteOperationInProgress(err) {
-				log.Printf("[DEBUG] Front Door Route %s update returned in-progress conflict; continuing to wait", p.id)
 				return frontDoorRouteInProgress(), nil
 			}
 
@@ -152,7 +142,6 @@ func (p *frontDoorRouteUpdatePoller) Poll(ctx context.Context) (*pollers.PollRes
 
 		if err := future.WaitForCompletionRef(ctx, p.client.Client); err != nil {
 			if frontDoorRouteOperationInProgress(err) {
-				log.Printf("[DEBUG] Front Door Route %s update LRO reported in-progress conflict; continuing to wait", p.id)
 				return frontDoorRouteInProgress(), nil
 			}
 
@@ -160,7 +149,6 @@ func (p *frontDoorRouteUpdatePoller) Poll(ctx context.Context) (*pollers.PollRes
 		}
 
 		p.operationIssued = true
-		log.Printf("[DEBUG] Front Door Route %s update request completed; waiting for route readiness signal", p.id)
 	}
 
 	ready, err := frontDoorRouteSettled(ctx, p.client, p.id)
@@ -168,7 +156,6 @@ func (p *frontDoorRouteUpdatePoller) Poll(ctx context.Context) (*pollers.PollRes
 		return nil, err
 	}
 	if !ready {
-		log.Printf("[DEBUG] Front Door Route %s not yet ready after update; continuing to wait", p.id)
 		return frontDoorRouteInProgress(), nil
 	}
 
@@ -180,26 +167,21 @@ func (p *frontDoorRouteDeletePoller) Poll(ctx context.Context) (*pollers.PollRes
 		ready, err := frontDoorRouteSettledForCreate(ctx, p.client, p.id)
 		if err != nil {
 			if routeNotFound(err) {
-				log.Printf("[DEBUG] Front Door Route %s already absent before delete", p.id)
 				return frontDoorRouteSucceeded(), nil
 			}
 
 			return nil, err
 		}
 		if !ready {
-			log.Printf("[DEBUG] Front Door Route %s waiting for route readiness before delete", p.id)
 			return frontDoorRouteInProgress(), nil
 		}
 
-		log.Printf("[DEBUG] Front Door Route %s issuing delete after route reported ready", p.id)
 		future, err := p.client.Delete(ctx, p.id.ResourceGroup, p.id.ProfileName, p.id.AfdEndpointName, p.id.RouteName)
 		if err != nil {
 			if frontDoorRouteOperationInProgress(err) {
-				log.Printf("[DEBUG] Front Door Route %s delete returned in-progress conflict; continuing to wait", p.id)
 				return frontDoorRouteInProgress(), nil
 			}
 			if routeNotFound(err) {
-				log.Printf("[DEBUG] Front Door Route %s disappeared during delete request", p.id)
 				return frontDoorRouteSucceeded(), nil
 			}
 
@@ -208,7 +190,6 @@ func (p *frontDoorRouteDeletePoller) Poll(ctx context.Context) (*pollers.PollRes
 
 		if err := future.WaitForCompletionRef(ctx, p.client.Client); err != nil {
 			if frontDoorRouteOperationInProgress(err) {
-				log.Printf("[DEBUG] Front Door Route %s delete LRO reported in-progress conflict; continuing to wait", p.id)
 				return frontDoorRouteInProgress(), nil
 			}
 
@@ -216,13 +197,11 @@ func (p *frontDoorRouteDeletePoller) Poll(ctx context.Context) (*pollers.PollRes
 		}
 
 		p.operationIssued = true
-		log.Printf("[DEBUG] Front Door Route %s delete request completed; waiting for route disappearance", p.id)
 	}
 
 	resp, err := p.client.Get(ctx, p.id.ResourceGroup, p.id.ProfileName, p.id.AfdEndpointName, p.id.RouteName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Front Door Route %s no longer returned by GET after delete", p.id)
+		if response.WasNotFound(resp.Response.Response) {
 			return frontDoorRouteSucceeded(), nil
 		}
 
@@ -246,11 +225,8 @@ func afdEndpointSettledForRouteOperation(ctx context.Context, client *cdn.AFDEnd
 
 	props := resp.AFDEndpointProperties
 	if props == nil {
-		log.Printf("[DEBUG] Front Door Endpoint %q for route %s returned nil properties while waiting for readiness", id.AfdEndpointName, id)
 		return false, nil
 	}
-
-	log.Printf("[DEBUG] Front Door Endpoint %q for route %s readiness check: deploymentStatus=%q provisioningState=%q", id.AfdEndpointName, id, props.DeploymentStatus, props.ProvisioningState)
 
 	if props.ProvisioningState == cdn.AfdProvisioningStateFailed || props.DeploymentStatus == cdn.DeploymentStatusFailed {
 		return false, fmt.Errorf("waiting for Front Door Endpoint %q before route operation on %s: endpoint entered failed state with `deploymentStatus` `%s` and `provisioningState` `%s`", id.AfdEndpointName, id, props.DeploymentStatus, props.ProvisioningState)
@@ -262,8 +238,7 @@ func afdEndpointSettledForRouteOperation(ctx context.Context, client *cdn.AFDEnd
 func frontDoorRouteSettled(ctx context.Context, client *cdn.RoutesClient, id parse.FrontDoorRouteId) (bool, error) {
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Front Door Route %s readiness check: route not found", id)
+		if response.WasNotFound(resp.Response.Response) {
 			return false, fmt.Errorf("route %s was not found", id)
 		}
 
@@ -272,11 +247,8 @@ func frontDoorRouteSettled(ctx context.Context, client *cdn.RoutesClient, id par
 
 	props := resp.RouteProperties
 	if props == nil {
-		log.Printf("[DEBUG] Front Door Route %s readiness check: route returned nil properties", id)
 		return false, nil
 	}
-
-	log.Printf("[DEBUG] Front Door Route %s readiness check: deploymentStatus=%q provisioningState=%q", id, props.DeploymentStatus, props.ProvisioningState)
 
 	if props.ProvisioningState == cdn.AfdProvisioningStateFailed || props.DeploymentStatus == cdn.DeploymentStatusFailed {
 		return false, fmt.Errorf("waiting for %s: route entered failed state with `deploymentStatus` `%s` and `provisioningState` `%s`", id, props.DeploymentStatus, props.ProvisioningState)
@@ -288,8 +260,7 @@ func frontDoorRouteSettled(ctx context.Context, client *cdn.RoutesClient, id par
 func frontDoorRouteSettledForCreate(ctx context.Context, client *cdn.RoutesClient, id parse.FrontDoorRouteId) (bool, error) {
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Front Door Route %s readiness check: route not found", id)
+		if response.WasNotFound(resp.Response.Response) {
 			return false, fmt.Errorf("route %s was not found", id)
 		}
 
@@ -298,11 +269,8 @@ func frontDoorRouteSettledForCreate(ctx context.Context, client *cdn.RoutesClien
 
 	props := resp.RouteProperties
 	if props == nil {
-		log.Printf("[DEBUG] Front Door Route %s readiness check: route returned nil properties", id)
 		return false, nil
 	}
-
-	log.Printf("[DEBUG] Front Door Route %s readiness check: deploymentStatus=%q provisioningState=%q", id, props.DeploymentStatus, props.ProvisioningState)
 
 	if props.ProvisioningState == cdn.AfdProvisioningStateFailed || props.DeploymentStatus == cdn.DeploymentStatusFailed {
 		return false, fmt.Errorf("waiting for %s: route entered failed state with `deploymentStatus` `%s` and `provisioningState` `%s`", id, props.DeploymentStatus, props.ProvisioningState)

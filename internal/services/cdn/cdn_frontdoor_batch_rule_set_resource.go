@@ -18,7 +18,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles"
 	legacyrulesets "github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rulesets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rules"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -389,7 +391,9 @@ func (r CdnFrontDoorBatchRuleSetResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			if err := batchModeRuleSetClient.CreateThenPoll(ctx, ruleSetClientId, payload); err != nil {
+			pollerType := custompollers.NewFrontDoorBatchRuleSetUpdatePoller(batchModeRuleSetClient, ruleSetClientId, payload)
+			poller := pollers.NewPoller(pollerType, 30*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 

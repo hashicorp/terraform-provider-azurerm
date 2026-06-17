@@ -23,9 +23,10 @@ const batchRuleSetsDefaultApiVersion = "2025-12-01"
 
 // NOTE: This BatchRuleSetsClient workaround exists because the generated SDK payload
 // uses `omitempty` semantics, but the batch ruleset service requires clear/remove
-// semantics on PUT when caching is disabled. In particular, disabling caching in
-// `route_configuration_override_action` must clear any existing
-// `cacheConfiguration` value. The generated SDK would omit that field from the
+// semantics on PUT when fields are removed from `route_configuration_override_action`.
+// In particular, disabling caching must clear any existing `cacheConfiguration`
+// value, and removing the origin override must clear any existing
+// `originGroupOverride` value. The generated SDK would omit those fields from the
 // payload instead of expressing the null/clear operation the service expects.
 type BatchRuleSetsClient struct {
 	Client *resourcemanager.Client
@@ -144,6 +145,16 @@ func marshalBatchRuleActions(input []batchRules.DeliveryRuleAction) ([]interface
 			routeAction, ok := action.(batchRules.DeliveryRuleRouteConfigurationOverrideAction)
 			if !ok {
 				return nil, fmt.Errorf("expected DeliveryRuleRouteConfigurationOverrideAction at index %d but got %T", index, action)
+			}
+
+			if routeAction.Parameters.OriginGroupOverride == nil {
+				params, ok := decoded["parameters"].(map[string]interface{})
+				if !ok {
+					return nil, fmt.Errorf("expected object `parameters` for RouteConfigurationOverride action at index %d", index)
+				}
+
+				params["originGroupOverride"] = nil
+				decoded["parameters"] = params
 			}
 
 			if routeAction.Parameters.CacheConfiguration == nil {
