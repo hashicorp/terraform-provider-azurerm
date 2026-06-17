@@ -10,6 +10,7 @@ BETA_VERSION_ENV_VAR="%env.BETA_VERSION_ENV_VAR%"
 TEAMCITY_BUILD_BRANCH="%teamcity.build.branch%"
 LABEL_SUCCESS="%env.LABEL_SUCCESS%"
 LABEL_FAILURE="%env.LABEL_FAILURE%"
+LABEL_OUTDATED="%env.LABEL_OUTDATED%"
 LABEL_NEW_FAILURE="%env.LABEL_NEW_FAILURE%"
 APPLY_TESTING_LABELS_ENABLED="%env.APPLY_TESTING_LABELS_ENABLED%"
 
@@ -64,14 +65,17 @@ remove_label() {
 set_testing_label() {
   local label="$1"
   if [ "$label" = "$LABEL_SUCCESS" ]; then
+    remove_label "$LABEL_OUTDATED"
     remove_label "$LABEL_FAILURE"
     remove_label "$LABEL_NEW_FAILURE"
     apply_label "$LABEL_SUCCESS"
   elif [ "$label" = "$LABEL_FAILURE" ]; then
+    remove_label "$LABEL_OUTDATED"
     remove_label "$LABEL_SUCCESS"
     remove_label "$LABEL_NEW_FAILURE"
     apply_label "$LABEL_FAILURE"
   elif [ "$label" = "$LABEL_NEW_FAILURE" ]; then
+    remove_label "$LABEL_OUTDATED"
     remove_label "$LABEL_SUCCESS"
     remove_label "$LABEL_FAILURE"
     apply_label "$LABEL_NEW_FAILURE"

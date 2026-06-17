@@ -1,0 +1,82 @@
+---
+name: Remove TeamCity Label on Commit
+
+on:
+  pull_request:
+    types: [synchronize]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  apply-outdated-label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for TeamCity labels and apply outdated label
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const teamcityLabels = ['teamcity-passed', 'teamcity-failed', 'teamcity-new-failure'];
+            const outdatedLabel = 'teamcity-outdated';
+
+            const { data: labels } = await github.rest.issues.listLabelsOnIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number
+            });
+
+            const labelNames = labels.map(label => label.name);
+            const hasTeamCityLabel = teamcityLabels.some(label => labelNames.includes(label));
+            const hasOutdatedLabel = labelNames.includes(outdatedLabel);
+
+            if (hasTeamCityLabel) {
+              const foundLabels = teamcityLabels.filter(label => labelNames.includes(label));
+              core.info(`Found TeamCity labels: ${foundLabels.join(', ')}`);
+
+              if (!hasOutdatedLabel) {
+                core.info(`Applying "${outdatedLabel}" label to PR #${context.payload.pull_request.number}`);
+
+                try {
+                  await github.rest.issues.addLabels({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: context.payload.pull_request.number,
+                    labels: [outdatedLabel]
+                  });
+
+                  core.info(`Successfully applied "${outdatedLabel}" label`);
+                } catch (error) {
+                  core.error(`Failed to apply "${outdatedLabel}" label: ${error.message}`);
+                  throw error;
+                }
+              } else {
+                core.info(`Label "${outdatedLabel}" already exists on PR #${context.payload.pull_request.number}`);
+              }
+
+              // Remove teamcity-passed label if it exists
+              if (labelNames.includes('teamcity-passed')) {
+                core.info(`Removing "teamcity-passed" label from PR #${context.payload.pull_request.number}`);
+
+                try {
+                  await github.rest.issues.removeLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: context.payload.pull_request.number,
+                    name: 'teamcity-passed'
+                  });
+
+                  core.info(`Successfully removed "teamcity-passed" label`);
+                } catch (error) {
+                  if (error.status === 404) {
+                    core.warning(`Label "teamcity-passed" was not found on PR #${context.payload.pull_request.number}`);
+                  } else {
+                    core.error(`Failed to remove "teamcity-passed" label: ${error.message}`);
+                    throw error;
+                  }
+                }
+              }
+            } else {
+              core.info(`No TeamCity labels found on PR #${context.payload.pull_request.number}`);
+            }

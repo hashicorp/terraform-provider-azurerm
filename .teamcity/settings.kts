@@ -24,6 +24,7 @@ var teamcityToken = DslContext.getParameter("teamcityToken", "")
 var betaVersionEnvVar = DslContext.getParameter("betaVersionEnvVar", "env.ARM_FIVEPOINTZERO_BETA")
 var labelSuccess = DslContext.getParameter("labelSuccess", "teamcity-passed")
 var labelFailure = DslContext.getParameter("labelFailure", "teamcity-failed")
+var labelOutdated = DslContext.getParameter("labelOutdated", "teamcity-outdated")
 var labelNewFailure = DslContext.getParameter("labelNewFailure", "teamcity-new-failure")
 var applyTestingLabelsEnabled = DslContext.getParameter("applyTestingLabelsEnabled", "true").equals("true", ignoreCase = true)
 
@@ -50,6 +51,7 @@ var clientConfig = ClientConfiguration(
     betaVersionEnvVar,
     labelSuccess,
     labelFailure,
+    labelOutdated,
     labelNewFailure,
     applyTestingLabelsEnabled
 )

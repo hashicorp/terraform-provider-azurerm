@@ -30,6 +30,7 @@ fun TestConfiguration() : ClientConfiguration {
         "env.ARM_FIVEPOINTZERO_BETA",
         "teamcity-passed",
         "teamcity-failed",
+        "teamcity-outdated",
         "teamcity-new-failure",
         false
     )
