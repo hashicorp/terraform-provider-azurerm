@@ -12,14 +12,19 @@ permissions:
 jobs:
   apply-outdated-label:
     runs-on: ubuntu-latest
+    env:
+      TEAMCITY_LABELS: teamcity-passed,teamcity-failed,teamcity-new-failure
+      OUTDATED_LABEL: teamcity-outdated
+      PASSED_LABEL: teamcity-passed
     steps:
       - name: Check for TeamCity labels and apply outdated label
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const teamcityLabels = ['teamcity-passed', 'teamcity-failed', 'teamcity-new-failure'];
-            const outdatedLabel = 'teamcity-outdated';
+            const teamcityLabels = process.env.TEAMCITY_LABELS.split(',');
+            const outdatedLabel = process.env.OUTDATED_LABEL;
+            const passedLabel = process.env.PASSED_LABEL;
 
             const { data: labels } = await github.rest.issues.listLabelsOnIssue({
               owner: context.repo.owner,
@@ -30,6 +35,7 @@ jobs:
             const labelNames = labels.map(label => label.name);
             const hasTeamCityLabel = teamcityLabels.some(label => labelNames.includes(label));
             const hasOutdatedLabel = labelNames.includes(outdatedLabel);
+            const hasPassedLabel = labelNames.includes(passedLabel);
 
             if (hasTeamCityLabel) {
               const foundLabels = teamcityLabels.filter(label => labelNames.includes(label));
@@ -55,24 +61,24 @@ jobs:
                 core.info(`Label "${outdatedLabel}" already exists on PR #${context.payload.pull_request.number}`);
               }
 
-              // Remove teamcity-passed label if it exists
-              if (labelNames.includes('teamcity-passed')) {
-                core.info(`Removing "teamcity-passed" label from PR #${context.payload.pull_request.number}`);
+              // Remove passed label if it exists
+              if (hasPassedLabel) {
+                core.info(`Removing "${passedLabel}" label from PR #${context.payload.pull_request.number}`);
 
                 try {
                   await github.rest.issues.removeLabel({
                     owner: context.repo.owner,
                     repo: context.repo.repo,
                     issue_number: context.payload.pull_request.number,
-                    name: 'teamcity-passed'
+                    name: passedLabel
                   });
 
-                  core.info(`Successfully removed "teamcity-passed" label`);
+                  core.info(`Successfully removed "${passedLabel}" label`);
                 } catch (error) {
                   if (error.status === 404) {
-                    core.warning(`Label "teamcity-passed" was not found on PR #${context.payload.pull_request.number}`);
+                    core.warning(`Label "${passedLabel}" was not found on PR #${context.payload.pull_request.number}`);
                   } else {
-                    core.error(`Failed to remove "teamcity-passed" label: ${error.message}`);
+                    core.error(`Failed to remove "${passedLabel}" label: ${error.message}`);
                     throw error;
                   }
                 }
