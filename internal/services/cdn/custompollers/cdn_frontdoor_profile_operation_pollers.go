@@ -31,7 +31,7 @@ func NewFrontDoorProfileCreatePoller(client *profiles.ProfilesClient, id profile
 	}
 }
 
-func (p frontDoorProfileCreatePoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
+func (p *frontDoorProfileCreatePoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
 	if !p.operationIssued {
 		err := p.client.CreateThenPoll(ctx, p.id, p.payload)
 		if err != nil {
