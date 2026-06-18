@@ -59,9 +59,20 @@ func (c JobExecutionsClient) CreateOrUpdate(ctx context.Context, id ExecutionId)
 
 // CreateOrUpdateThenPoll performs CreateOrUpdate then polls until it's completed
 func (c JobExecutionsClient) CreateOrUpdateThenPoll(ctx context.Context, id ExecutionId) error {
+	return c.CreateOrUpdateCallbackThenPoll(ctx, id, nil)
+}
+
+// CreateOrUpdateCallbackThenPoll performs CreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c JobExecutionsClient) CreateOrUpdateCallbackThenPoll(ctx context.Context, id ExecutionId, callback func() error) error {
 	result, err := c.CreateOrUpdate(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

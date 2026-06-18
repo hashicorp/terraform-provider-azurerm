@@ -27,7 +27,7 @@ import (
 
 func resourceStaticSite() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		DeprecationMessage: "This resource has been deprecated in favour of `azurerm_static_web_app` and will be removed in a future release.",
+		DeprecationMessage: "This resource has been deprecated in favour of `azurerm_static_web_app` and will be removed in v5.0 of the AzureRM provider.",
 		Create:             resourceStaticSiteCreateOrUpdate,
 		Read:               resourceStaticSiteRead,
 		Update:             resourceStaticSiteCreateOrUpdate,
@@ -103,25 +103,25 @@ func resourceStaticSite() *pluginsdk.Resource {
 }
 
 func resourceStaticSiteCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.StaticSitesClient
+	client := meta.(*clients.Client).Web.StaticSitesClientV1
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Static Site creation.")
-
 	id := parse.NewStaticSiteID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.GetStaticSite(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("failed checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.GetStaticSite(ctx, id.ResourceGroup, id.Name)
+			if err != nil {
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("failed checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_static_site", id.ID())
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return tf.ImportAsExistsError("azurerm_static_site", id.ID())
+			}
 		}
 	}
 
@@ -154,11 +154,14 @@ func resourceStaticSiteCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{
 	if err != nil {
 		return fmt.Errorf("failed creating %s: %+v", id, err)
 	}
+
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
+
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation of %q: %+v", id, err)
 	}
-
-	d.SetId(id.ID())
 
 	if d.HasChange("app_settings") {
 		settings := web.StringDictionary{
@@ -174,7 +177,7 @@ func resourceStaticSiteCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{
 }
 
 func resourceStaticSiteRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.StaticSitesClient
+	client := meta.(*clients.Client).Web.StaticSitesClientV1
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -249,7 +252,7 @@ func resourceStaticSiteRead(d *pluginsdk.ResourceData, meta interface{}) error {
 }
 
 func resourceStaticSiteDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.StaticSitesClient
+	client := meta.(*clients.Client).Web.StaticSitesClientV1
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -257,8 +260,6 @@ func resourceStaticSiteDelete(d *pluginsdk.ResourceData, meta interface{}) error
 	if err != nil {
 		return err
 	}
-
-	log.Printf("[DEBUG] Deleting Static Site %q (resource group %q)", id.Name, id.ResourceGroup)
 
 	future, err := client.DeleteStaticSite(ctx, id.ResourceGroup, id.Name)
 	if err != nil {

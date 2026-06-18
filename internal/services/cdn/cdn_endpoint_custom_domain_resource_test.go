@@ -45,7 +45,7 @@ func TestAccCdnEndpointCustomDomain_basic(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
 
-	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"))
+	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP"), os.Getenv("ARM_TEST_DNS_ZONE"))
 	r.preCheck(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -66,7 +66,7 @@ func TestAccCdnEndpointCustomDomain_requiresImport(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
 
-	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"))
+	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP"), os.Getenv("ARM_TEST_DNS_ZONE"))
 	r.preCheck(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -87,7 +87,7 @@ func TestAccCdnEndpointCustomDomain_httpsCdn(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
 
-	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"))
+	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP"), os.Getenv("ARM_TEST_DNS_ZONE"))
 	r.preCheck(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -108,7 +108,7 @@ func TestAccCdnEndpointCustomDomain_httpsUserManagedCertificate(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
 
-	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"))
+	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP"), os.Getenv("ARM_TEST_DNS_ZONE"))
 	r.CertificateP12 = os.Getenv("ARM_TEST_DNS_CERTIFICATE")
 	r.SubDomainName = os.Getenv("ARM_TEST_DNS_SUBDOMAIN_NAME")
 	r.preCheckUserManagedCertificate(t)
@@ -134,7 +134,7 @@ func TestAccCdnEndpointCustomDomain_httpsUserManagedSecret(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
 
-	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"))
+	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP"), os.Getenv("ARM_TEST_DNS_ZONE"))
 	r.CertificateP12 = os.Getenv("ARM_TEST_DNS_CERTIFICATE")
 	r.SubDomainName = os.Getenv("ARM_TEST_DNS_SUBDOMAIN_NAME")
 	r.preCheckUserManagedCertificate(t)
@@ -157,7 +157,7 @@ func TestAccCdnEndpointCustomDomain_httpsUpdate(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
 
-	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"))
+	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP"), os.Getenv("ARM_TEST_DNS_ZONE"))
 	r.CertificateP12 = os.Getenv("ARM_TEST_DNS_CERTIFICATE")
 	r.SubDomainName = os.Getenv("ARM_TEST_DNS_SUBDOMAIN_NAME")
 	r.preCheckUserManagedCertificate(t)
@@ -196,10 +196,10 @@ func TestAccCdnEndpointCustomDomain_httpsUpdate(t *testing.T) {
 
 func (r CdnEndpointCustomDomainResource) preCheck(t *testing.T) {
 	if r.DNSZoneRG == "" {
-		t.Skipf("`ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME` must be set for acceptance tests!")
+		t.Skipf("`ARM_TEST_DATA_RESOURCE_GROUP` must be set for acceptance tests!")
 	}
 	if r.DNSZoneName == "" {
-		t.Skipf("`ARM_TEST_DNS_ZONE_NAME` must be set for acceptance tests!")
+		t.Skipf("`ARM_TEST_DNS_ZONE` must be set for acceptance tests!")
 	}
 }
 

@@ -61,9 +61,20 @@ func (c EndpointsClient) PurgeContent(ctx context.Context, id EndpointId, input 
 
 // PurgeContentThenPoll performs PurgeContent then polls until it's completed
 func (c EndpointsClient) PurgeContentThenPoll(ctx context.Context, id EndpointId, input PurgeParameters) error {
+	return c.PurgeContentCallbackThenPoll(ctx, id, input, nil)
+}
+
+// PurgeContentCallbackThenPoll performs PurgeContent, runs the optional callback function, then polls until it's completed
+func (c EndpointsClient) PurgeContentCallbackThenPoll(ctx context.Context, id EndpointId, input PurgeParameters, callback func() error) error {
 	result, err := c.PurgeContent(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing PurgeContent: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

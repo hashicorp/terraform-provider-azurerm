@@ -152,7 +152,7 @@ func (r AzureBotServiceResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"microsoft_app_type": {
 			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Required: true,
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(botservice.MsaAppTypeMultiTenant),
@@ -207,6 +207,19 @@ func (r AzureBotServiceResource) Arguments() map[string]*pluginsdk.Schema {
 
 	if !features.FivePointOh() {
 		output["cmk_key_vault_key_url"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
+
+		output["microsoft_app_type"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// Note: O+C because Azure sets a value for this if omitted
+			Computed: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(botservice.MsaAppTypeMultiTenant),
+				string(botservice.MsaAppTypeSingleTenant),
+				string(botservice.MsaAppTypeUserAssignedMSI),
+			}, false),
+		}
 	}
 
 	return output
@@ -230,14 +243,16 @@ func (r AzureBotServiceResource) Create() sdk.ResourceFunc {
 
 			id := parse.NewBotServiceID(subscriptionId, config.ResourceGroupName, config.Name)
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
-			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+				if err != nil {
+					if !utils.ResponseWasNotFound(existing.Response) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				}
 			}
 
 			displayName := config.DisplayName

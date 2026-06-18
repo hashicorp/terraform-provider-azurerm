@@ -209,7 +209,7 @@ func dataSourceStorageAccountSasRead(d *pluginsdk.ResourceData, _ interface{}) e
 
 	permissions := ""
 	if len(permissionsIface) > 0 && permissionsIface[0] != nil {
-		permissions = BuildContainerPermissionsString(permissionsIface[0].(map[string]interface{}))
+		permissions = BuildPermissionsString(permissionsIface[0].(map[string]interface{}))
 	}
 
 	// Parse the connection string

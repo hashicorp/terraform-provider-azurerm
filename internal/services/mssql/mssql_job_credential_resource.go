@@ -5,7 +5,6 @@ package mssql
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -87,21 +86,21 @@ func resourceMsSqlJobCredentialCreate(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Job Credential creation.")
-
 	jaId, err := jobcredentials.ParseJobAgentID(d.Get("job_agent_id").(string))
 	if err != nil {
 		return err
 	}
 	jobCredentialId := jobcredentials.NewCredentialID(jaId.SubscriptionId, jaId.ResourceGroupName, jaId.ServerName, jaId.JobAgentName, d.Get("name").(string))
 
-	existing, err := client.Get(ctx, jobCredentialId)
-	if err != nil && !response.WasNotFound(existing.HttpResponse) {
-		return fmt.Errorf("checking for presence of existing %s: %+v", jobCredentialId, err)
-	}
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, jobCredentialId)
+		if err != nil && !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %+v", jobCredentialId, err)
+		}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_mssql_job_credential", jobCredentialId.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_mssql_job_credential", jobCredentialId.ID())
+		}
 	}
 
 	woPassword, err := pluginsdk.GetWriteOnly(d, "password_wo", cty.String)
@@ -135,8 +134,6 @@ func resourceMsSqlJobCredentialUpdate(d *pluginsdk.ResourceData, meta interface{
 	client := meta.(*clients.Client).MSSQL.JobCredentialsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Job Credential update.")
 
 	jaId, err := jobcredentials.ParseJobAgentID(d.Get("job_agent_id").(string))
 	if err != nil {

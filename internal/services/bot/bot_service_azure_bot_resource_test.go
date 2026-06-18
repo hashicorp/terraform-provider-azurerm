@@ -244,12 +244,13 @@ func (BotServiceAzureBotResource) requiresImport(data acceptance.TestData) strin
 %s
 
 resource "azurerm_bot_service_azure_bot" "import" {
-  name                = azurerm_bot_service_azure_bot.test.name
-  resource_group_name = azurerm_bot_service_azure_bot.test.resource_group_name
-  location            = azurerm_bot_service_azure_bot.test.location
-  sku                 = azurerm_bot_service_azure_bot.test.sku
-  microsoft_app_id    = azurerm_bot_service_azure_bot.test.microsoft_app_id
-  microsoft_app_type  = azurerm_bot_service_azure_bot.test.microsoft_app_type
+  name                    = azurerm_bot_service_azure_bot.test.name
+  resource_group_name     = azurerm_bot_service_azure_bot.test.resource_group_name
+  location                = azurerm_bot_service_azure_bot.test.location
+  sku                     = azurerm_bot_service_azure_bot.test.sku
+  microsoft_app_id        = azurerm_bot_service_azure_bot.test.microsoft_app_id
+  microsoft_app_type      = azurerm_bot_service_azure_bot.test.microsoft_app_type
+  microsoft_app_tenant_id = azurerm_bot_service_azure_bot.test.microsoft_app_tenant_id
 }
 `, template)
 }

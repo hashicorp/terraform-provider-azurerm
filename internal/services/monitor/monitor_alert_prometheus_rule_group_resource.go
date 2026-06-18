@@ -270,13 +270,16 @@ func (r AlertPrometheusRuleGroupResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.Monitor.AlertPrometheusRuleGroupClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := prometheusrulegroups.NewPrometheusRuleGroupID(subscriptionId, model.ResourceGroupName, model.Name)
-			existing, err := client.PrometheusRuleGroupsGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.PrometheusRuleGroupsGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			properties := prometheusrulegroups.PrometheusRuleGroupResource{

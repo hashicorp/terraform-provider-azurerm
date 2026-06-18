@@ -67,7 +67,6 @@ func resourceVirtualDesktopScalingPlanHostPoolAssociationCreate(d *pluginsdk.Res
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Virtual Desktop Scaling Plan <-> Host Pool Association creation.")
 	scalingPlanId, err := scalingplan.ParseScalingPlanID(d.Get("scaling_plan_id").(string))
 	if err != nil {
 		return err
@@ -104,7 +103,9 @@ func resourceVirtualDesktopScalingPlanHostPoolAssociationCreate(d *pluginsdk.Res
 
 	hostPoolStr := hostPoolId.ID()
 	if scalingPlanHostPoolAssociationExists(model.Properties, hostPoolStr) {
-		return tf.ImportAsExistsError("azurerm_virtual_desktop_scaling_plan_host_pool_association", associationId)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			return tf.ImportAsExistsError("azurerm_virtual_desktop_scaling_plan_host_pool_association", associationId)
+		}
 	}
 	hostPoolAssociations = append(hostPoolAssociations, scalingplan.ScalingHostPoolReference{
 		HostPoolArmPath:    &hostPoolStr,

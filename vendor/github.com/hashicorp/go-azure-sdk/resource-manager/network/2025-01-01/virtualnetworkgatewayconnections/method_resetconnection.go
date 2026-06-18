@@ -56,9 +56,20 @@ func (c VirtualNetworkGatewayConnectionsClient) ResetConnection(ctx context.Cont
 
 // ResetConnectionThenPoll performs ResetConnection then polls until it's completed
 func (c VirtualNetworkGatewayConnectionsClient) ResetConnectionThenPoll(ctx context.Context, id ConnectionId) error {
+	return c.ResetConnectionCallbackThenPoll(ctx, id, nil)
+}
+
+// ResetConnectionCallbackThenPoll performs ResetConnection, runs the optional callback function, then polls until it's completed
+func (c VirtualNetworkGatewayConnectionsClient) ResetConnectionCallbackThenPoll(ctx context.Context, id ConnectionId, callback func() error) error {
 	result, err := c.ResetConnection(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ResetConnection: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

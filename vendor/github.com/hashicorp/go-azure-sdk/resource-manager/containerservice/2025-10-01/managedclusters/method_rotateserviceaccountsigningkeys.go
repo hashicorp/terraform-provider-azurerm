@@ -58,9 +58,20 @@ func (c ManagedClustersClient) RotateServiceAccountSigningKeys(ctx context.Conte
 
 // RotateServiceAccountSigningKeysThenPoll performs RotateServiceAccountSigningKeys then polls until it's completed
 func (c ManagedClustersClient) RotateServiceAccountSigningKeysThenPoll(ctx context.Context, id commonids.KubernetesClusterId) error {
+	return c.RotateServiceAccountSigningKeysCallbackThenPoll(ctx, id, nil)
+}
+
+// RotateServiceAccountSigningKeysCallbackThenPoll performs RotateServiceAccountSigningKeys, runs the optional callback function, then polls until it's completed
+func (c ManagedClustersClient) RotateServiceAccountSigningKeysCallbackThenPoll(ctx context.Context, id commonids.KubernetesClusterId, callback func() error) error {
 	result, err := c.RotateServiceAccountSigningKeys(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing RotateServiceAccountSigningKeys: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

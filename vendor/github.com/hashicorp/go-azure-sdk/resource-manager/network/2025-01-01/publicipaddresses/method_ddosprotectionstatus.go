@@ -59,9 +59,20 @@ func (c PublicIPAddressesClient) DdosProtectionStatus(ctx context.Context, id co
 
 // DdosProtectionStatusThenPoll performs DdosProtectionStatus then polls until it's completed
 func (c PublicIPAddressesClient) DdosProtectionStatusThenPoll(ctx context.Context, id commonids.PublicIPAddressId) error {
+	return c.DdosProtectionStatusCallbackThenPoll(ctx, id, nil)
+}
+
+// DdosProtectionStatusCallbackThenPoll performs DdosProtectionStatus, runs the optional callback function, then polls until it's completed
+func (c PublicIPAddressesClient) DdosProtectionStatusCallbackThenPoll(ctx context.Context, id commonids.PublicIPAddressId, callback func() error) error {
 	result, err := c.DdosProtectionStatus(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing DdosProtectionStatus: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

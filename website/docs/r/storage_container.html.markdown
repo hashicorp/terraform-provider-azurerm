@@ -73,6 +73,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `resource_manager_id` - The Resource Manager ID of this Storage Container.
 
+* `url` - The data plane URL of the Storage Container in the format of `<storage blob endpoint>/<container name>`. E.g. `https://example.blob.core.windows.net/mycontainer`.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
@@ -94,4 +96,4 @@ terraform import azurerm_storage_container.container1 /subscriptions/00000000-00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Storage` - 2025-06-01
+* `Microsoft.Storage` - 2025-08-01

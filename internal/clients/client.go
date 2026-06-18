@@ -147,7 +147,6 @@ import (
 	trafficManager "github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/client"
 	videoindexer "github.com/hashicorp/terraform-provider-azurerm/internal/services/videoindexer/client"
 	vmware "github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/client"
-	voiceServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/voiceservices/client"
 	web "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/client"
 	workloads "github.com/hashicorp/terraform-provider-azurerm/internal/services/workloads/client"
 )
@@ -285,7 +284,6 @@ type Client struct {
 	TrafficManager                    *trafficManager.Client
 	VideoIndexer                      *videoindexer.Client
 	Vmware                            *vmware.Client
-	VoiceServices                     *voiceServices.Client
 	Web                               *web.Client
 	Workloads                         *workloads_v2024_09_01.Client
 }
@@ -662,7 +660,10 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 		return fmt.Errorf("building clients for Subscription: %+v", err)
 	}
 
-	client.Synapse = synapse.NewClient(o)
+	if client.Synapse, err = synapse.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Synapse: %w", err)
+	}
+
 	if client.SystemCenterVirtualMachineManager, err = systemCenterVirtualMachineManager.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for System Center Virtual Machine Manager: %+v", err)
 	}
@@ -677,10 +678,10 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Vmware, err = vmware.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for VMWare: %+v", err)
 	}
-	if client.VoiceServices, err = voiceServices.NewClient(o); err != nil {
-		return fmt.Errorf("building clients for Voice Services: %+v", err)
+
+	if client.Web, err = web.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Web: %+v", err)
 	}
-	client.Web = web.NewClient(o)
 
 	if client.Workloads, err = workloads.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Workloads: %+v", err)

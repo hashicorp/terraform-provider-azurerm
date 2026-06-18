@@ -57,9 +57,20 @@ func (c ServiceResourceClient) ServicesStop(ctx context.Context, id ServiceId) (
 
 // ServicesStopThenPoll performs ServicesStop then polls until it's completed
 func (c ServiceResourceClient) ServicesStopThenPoll(ctx context.Context, id ServiceId) error {
+	return c.ServicesStopCallbackThenPoll(ctx, id, nil)
+}
+
+// ServicesStopCallbackThenPoll performs ServicesStop, runs the optional callback function, then polls until it's completed
+func (c ServiceResourceClient) ServicesStopCallbackThenPoll(ctx context.Context, id ServiceId, callback func() error) error {
 	result, err := c.ServicesStop(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ServicesStop: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

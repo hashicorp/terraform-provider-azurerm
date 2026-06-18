@@ -6,7 +6,7 @@ package client
 import (
 	"fmt"
 
-	storage "github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-06-01"
+	storage "github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/cloudendpointresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/registeredserverresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/serverendpointresource"
@@ -30,6 +30,8 @@ type Client struct {
 	SyncRegisteredServerClient *registeredserverresource.RegisteredServerResourceClient
 	SyncServerEndpointsClient  *serverendpointresource.ServerEndpointResourceClient
 	SyncServiceClient          *storagesyncservicesresource.StorageSyncServicesResourceClient
+
+	StorageUseAzureAD bool
 
 	authConfigForAzureAD *auth.Credentials
 }
@@ -95,6 +97,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	if o.StorageUseAzureAD {
 		client.authConfigForAzureAD = o.AuthConfig
+		client.StorageUseAzureAD = true
 	}
 
 	return &client, nil
