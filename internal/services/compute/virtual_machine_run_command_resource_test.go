@@ -57,7 +57,6 @@ func TestAccVirtualMachineRunCommand_recreate(t *testing.T) {
 		{
 			Config:      r.basicWithScriptError(data),
 			ExpectError: regexp.MustCompile("failed to execute command"),
-			Destroy:     false, // do not destroy the resource group to be used for resource creation in next step
 		},
 		{
 			Config: r.basic(data),
@@ -197,7 +196,9 @@ func (r VirtualMachineRunCommandTestResource) Exists(ctx context.Context, client
 func (r VirtualMachineRunCommandTestResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    skip_import_check_on_create_and_allow_overwriting_existing_resources = true
+  }
 }
 
 %s
