@@ -1,5 +1,5 @@
 ---
-name: Run TeamCity Tests on Comment
+name: TeamCity Run Tests on Comment
 
 on:
   issue_comment:

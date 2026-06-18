@@ -1,5 +1,5 @@
 ---
-name: Remove TeamCity Label on Commit
+name: TeamCity Remove Label on Commit
 
 on:
   pull_request:
