@@ -420,7 +420,7 @@ func resourceSiteRecoveryReplicatedVMCustomizeDiff(_ context.Context, d *plugins
 
 	oldRaw, newRaw := d.GetChange("managed_disk")
 	oldDisks, ok := oldRaw.(*pluginsdk.Set)
-	if !ok || oldDisks.Len() == 0 {
+	if !ok {
 		return nil
 	}
 
@@ -705,7 +705,10 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 		},
 	}
 
-	diskTypeTargets := siteRecoveryReplicatedVMManagedDiskTypeUpdateTargets(managedDisks)
+	var diskTypeTargets []custompollers.SiteRecoveryReplicatedVMDiskTypeUpdate
+	if d.HasChange("managed_disk") {
+		diskTypeTargets = siteRecoveryReplicatedVMManagedDiskTypeUpdateTargets(managedDisks)
+	}
 
 	err = client.UpdateThenPoll(ctx, id, parameters)
 	if err != nil {
