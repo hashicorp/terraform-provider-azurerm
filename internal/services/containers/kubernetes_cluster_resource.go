@@ -3012,10 +3012,12 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 					privateDnsZoneId = "None"
 				default:
 					privateDnsZoneId = pointer.From(accessProfile.PrivateDNSZone)
-					if parsed, err := privatezones.ParsePrivateDnsZoneIDInsensitively(privateDnsZoneId); err == nil {
-						privateDnsZoneId = parsed.ID()
-					} else {
-						return err
+					if privateDnsZoneId != "" {
+						if parsed, err := privatezones.ParsePrivateDnsZoneIDInsensitively(privateDnsZoneId); err == nil {
+							privateDnsZoneId = parsed.ID()
+						} else {
+							return err
+						}
 					}
 				}
 			}
