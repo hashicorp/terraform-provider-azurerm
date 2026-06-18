@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/autonomousdatabases"
@@ -515,7 +516,13 @@ func (d AutonomousDatabaseCrossRegionDisasterRecoveryDataSource) Read() sdk.Reso
 				state.TimeReclamationOfFreeAutonomousDatabaseInUtc = pointer.From(adbsProps.TimeReclamationOfFreeAutonomousDatabase)
 				state.UsedDataStorageSizeInGb = pointer.From(adbsProps.UsedDataStorageSizeInGbs)
 				state.UsedDataStorageSizeInTb = pointer.From(adbsProps.UsedDataStorageSizeInTbs)
-				state.VnetId = pointer.From(adbsProps.VnetId)
+				if vnetIdRaw := pointer.From(adbsProps.VnetId); vnetIdRaw != "" {
+					vnetId, err := commonids.ParseVirtualNetworkIDInsensitively(vnetIdRaw)
+					if err != nil {
+						return fmt.Errorf("parsing `virtual_network_id`: %+v", err)
+					}
+					state.VnetId = vnetId.ID()
+				}
 			}
 
 			metadata.SetID(id)

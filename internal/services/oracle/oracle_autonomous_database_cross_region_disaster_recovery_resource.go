@@ -298,7 +298,7 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Read() sdk.Resource
 				state.Location = location.Normalize(model.Location)
 				state.NationalCharacterSet = pointer.From(props.NcharacterSet)
 				state.SubnetId = pointer.From(props.SubnetId)
-				state.Tags = pointer.From(result.Model.Tags)
+				state.Tags = pointer.From(model.Tags)
 			}
 			return metadata.Encode(&state)
 		},

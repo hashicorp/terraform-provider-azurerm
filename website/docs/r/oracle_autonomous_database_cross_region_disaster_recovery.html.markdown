@@ -70,12 +70,12 @@ resource "azurerm_oracle_autonomous_database" "example_primary" {
 }
 
 resource "azurerm_oracle_autonomous_database_cross_region_disaster_recovery" "example" {
-  name                                = "exampledr"
-  resource_group_name                 = azurerm_resource_group.example.name
-  location                            = "westus"
-  display_name                        = "exampledr"
-  source_autonomous_database_id       = azurerm_oracle_autonomous_database.example_primary.id
-  subnet_id                           = azurerm_subnet.example_dr_subnet.id
+  name                          = "exampledr"
+  resource_group_name           = azurerm_resource_group.example.name
+  location                      = "westus"
+  display_name                  = "exampledr"
+  source_autonomous_database_id = azurerm_oracle_autonomous_database.example_primary.id
+  subnet_id                     = azurerm_subnet.example_dr_subnet.id
 
 }
 ```
@@ -96,7 +96,7 @@ The following arguments are supported:
 
 * `subnet_id` - (Required) The ID of the subnet in the target region. Changing this forces a new resource to be created.
 
-* `replicate_automatic_backups_enabled` - (Optional) If true, 7 days of backups are replicated across regions. Changing this forces a new resource to be created.
+* `replicate_automatic_backups_enabled` - (Optional) If true, 7 days of backups are replicated across regions. Default value `false`. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags assigned to the resource. Changing this forces a new resource to be created.
 
