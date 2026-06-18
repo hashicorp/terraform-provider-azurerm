@@ -156,6 +156,8 @@ The following arguments are supported:
 
 ~> **Note:** To configure a `fixed-size` gateway, set `minimum_scale_unit` and `maximum_scale_unit` to the same value. To enable `autoscaling`, set `minimum_scale_unit` to `2` or higher and `maximum_scale_unit` up to `40`. When `maximum_scale_unit` is set to `1`, `minimum_scale_unit` must also be set to `1`.
 
+~> **Note:** Changing the `sku` between an availability-zone SKU (`ErGwScale`, `ErGw1AZ`, `ErGw2AZ`, `ErGw3AZ`) and a non-availability-zone SKU (`Standard`, `HighPerformance`, `UltraPerformance`) forces a new resource to be created.
+
 * `policy_group` - (Optional) One or more `policy_group` blocks as defined below.
 
 * `remote_vnet_traffic_enabled` - (Optional) Is remote vnet traffic that is used to configure this gateway to accept traffic from other Azure Virtual Networks enabled? Defaults to `false`.

@@ -733,7 +733,33 @@ func resourceVirtualNetworkGatewayCustomizeDiff(ctx context.Context, d *pluginsd
 		}
 	}
 
+	// The Azure API can't convert an ExpressRoute gateway between the
+	// availability-zone SKUs (ErGw1AZ/ErGw2AZ/ErGw3AZ/ErGwScale) and the
+	// non-availability-zone SKUs (Standard/HighPerformance/UltraPerformance) in
+	// place; the gateway must be deleted and recreated. An in-place change fails
+	// with `ExpressRouteVirtualNetworkGatewayAutoscaleBoundsNotValid`.
+	if d.Id() != "" && gatewayType == string(virtualnetworkgateways.VirtualNetworkGatewayTypeExpressRoute) && d.HasChange("sku") {
+		oldSku, newSku := d.GetChange("sku")
+		if expressRouteGatewaySkuIsAvailabilityZone(oldSku.(string)) != expressRouteGatewaySkuIsAvailabilityZone(newSku.(string)) {
+			if err := d.ForceNew("sku"); err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
+}
+
+func expressRouteGatewaySkuIsAvailabilityZone(sku string) bool {
+	switch virtualnetworkgateways.VirtualNetworkGatewaySkuName(sku) {
+	case virtualnetworkgateways.VirtualNetworkGatewaySkuNameErGwOneAZ,
+		virtualnetworkgateways.VirtualNetworkGatewaySkuNameErGwTwoAZ,
+		virtualnetworkgateways.VirtualNetworkGatewaySkuNameErGwThreeAZ,
+		virtualnetworkgateways.VirtualNetworkGatewaySkuNameErGwScale:
+		return true
+	default:
+		return false
+	}
 }
 
 func resourceVirtualNetworkGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -974,12 +1000,11 @@ func resourceVirtualNetworkGatewayUpdate(d *pluginsdk.ResourceData, meta interfa
 		payload.Properties.AllowVirtualWanTraffic = pointer.To(d.Get("virtual_wan_traffic_enabled").(bool))
 	}
 
-	if d.HasChanges("minimum_scale_unit", "maximum_scale_unit") || d.HasChange("sku") {
-		payload.Properties.AutoScaleConfiguration = &virtualnetworkgateways.VirtualNetworkGatewayAutoScaleConfiguration{}
-		rawConfig := d.GetRawConfig().AsValueMap()
-		if !rawConfig["minimum_scale_unit"].IsNull() {
-			payload.Properties.AutoScaleConfiguration = expandVirtualNetworkGatewayAutoScaleConfiguration(d)
-		}
+	// SKU changes that cross the availability-zone boundary are ForceNew (see
+	// resourceVirtualNetworkGatewayCustomizeDiff), so here we only need to push
+	// autoscale changes while the gateway stays on the ErGwScale SKU.
+	if d.HasChanges("minimum_scale_unit", "maximum_scale_unit") {
+		payload.Properties.AutoScaleConfiguration = expandVirtualNetworkGatewayAutoScaleConfiguration(d)
 	}
 
 	if d.HasChange("tags") {
