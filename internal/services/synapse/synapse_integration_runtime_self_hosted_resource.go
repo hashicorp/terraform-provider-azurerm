@@ -8,8 +8,9 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/integrationruntime"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/migration"
@@ -18,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSynapseIntegrationRuntimeSelfHosted() *pluginsdk.Resource {
@@ -92,40 +92,35 @@ func resourceSynapseIntegrationRuntimeSelfHostedCreateUpdate(d *pluginsdk.Resour
 		return err
 	}
 
-	id := parse.NewIntegrationRuntimeID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, d.Get("name").(string))
+	id := integrationruntime.NewIntegrationRuntimeID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, d.Get("name").(string))
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-			existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, "")
+			existing, err := client.Get(ctx, id, integrationruntime.DefaultGetOperationOptions())
 			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
 			}
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return tf.ImportAsExistsError("azurerm_synapse_integration_runtime_self_hosted", id.ID())
 			}
 		}
 	}
 
-	integrationRuntime := synapse.IntegrationRuntimeResource{
-		Name: pointer.To(id.Name),
-		Properties: synapse.SelfHostedIntegrationRuntime{
+	integrationRuntime := integrationruntime.IntegrationRuntimeResource{
+		Name: pointer.To(id.IntegrationRuntimeName),
+		Properties: integrationruntime.SelfHostedIntegrationRuntime{
 			Description: pointer.To(d.Get("description").(string)),
-			Type:        synapse.TypeBasicIntegrationRuntimeTypeSelfHosted,
+			Type:        integrationruntime.IntegrationRuntimeTypeSelfHosted,
 		},
 	}
 
-	future, err := client.Create(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, integrationRuntime, "")
-	if err != nil {
+	if err := client.CreateThenPoll(ctx, id, integrationRuntime, integrationruntime.DefaultCreateOperationOptions()); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if d.IsNewResource() {
 		d.SetId(id.ID())
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on creation for %s: %+v", id, err)
 	}
 
 	return resourceSynapseIntegrationRuntimeSelfHostedRead(d, meta)
@@ -137,14 +132,14 @@ func resourceSynapseIntegrationRuntimeSelfHostedRead(d *pluginsdk.ResourceData, 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.IntegrationRuntimeID(d.Id())
+	id, err := integrationruntime.ParseIntegrationRuntimeID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, "")
+	resp, err := client.Get(ctx, *id, integrationruntime.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
@@ -152,20 +147,21 @@ func resourceSynapseIntegrationRuntimeSelfHostedRead(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("synapse_workspace_id", parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID())
+	d.Set("name", id.IntegrationRuntimeName)
+	d.Set("synapse_workspace_id", parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName).ID())
 
-	selfHostedIntegrationRuntime, convertSuccess := resp.Properties.AsSelfHostedIntegrationRuntime()
+	if model := resp.Model; model != nil {
+		selfHostedIntegrationRuntime, ok := model.Properties.(integrationruntime.SelfHostedIntegrationRuntime)
+		if !ok {
+			return fmt.Errorf("converting integration runtime to Self-Hosted integration runtime (%q)", id)
+		}
 
-	if !convertSuccess {
-		return fmt.Errorf("converting integration runtime to Self-Hosted integration runtime (%q)", id)
+		d.Set("description", selfHostedIntegrationRuntime.Description)
 	}
 
-	d.Set("description", selfHostedIntegrationRuntime.Description)
-
-	respKey, err := authKeysClient.List(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+	respKey, err := authKeysClient.AuthKeysList(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(respKey.Response) {
+		if response.WasNotFound(respKey.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
@@ -173,8 +169,10 @@ func resourceSynapseIntegrationRuntimeSelfHostedRead(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("retrieving auth keys (%q): %+v", id, err)
 	}
 
-	d.Set("authorization_key_primary", respKey.AuthKey1)
-	d.Set("authorization_key_secondary", respKey.AuthKey2)
+	if model := respKey.Model; model != nil {
+		d.Set("authorization_key_primary", model.AuthKey1)
+		d.Set("authorization_key_secondary", model.AuthKey2)
+	}
 
 	return nil
 }
@@ -184,18 +182,13 @@ func resourceSynapseIntegrationRuntimeSelfHostedDelete(d *pluginsdk.ResourceData
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.IntegrationRuntimeID(d.Id())
+	id, err := integrationruntime.ParseIntegrationRuntimeID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
-	if err != nil {
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for %s to be deleted: %+v", id, err)
 	}
 
 	return nil

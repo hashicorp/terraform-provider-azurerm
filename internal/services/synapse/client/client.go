@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/data-plane/synapse/2021-06-01-preview/linkedservices"
 	"github.com/hashicorp/go-azure-sdk/data-plane/synapse/2021-06-01-preview/managedprivateendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/bigdatapools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/integrationruntime"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/ipfirewallrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/keys"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/privatelinkhubs"
@@ -29,8 +30,8 @@ type Client struct {
 
 	// TODO: Migrate to go-azure-sdk
 	FirewallRulesClient                               *ipfirewallrules.IPFirewallRulesClient
-	IntegrationRuntimeAuthKeysClient                  *synapse.IntegrationRuntimeAuthKeysClient
-	IntegrationRuntimesClient                         *synapse.IntegrationRuntimesClient
+	IntegrationRuntimeAuthKeysClient                  *integrationruntime.IntegrationRuntimeClient
+	IntegrationRuntimesClient                         *integrationruntime.IntegrationRuntimeClient
 	KeysClient                                        *keys.KeysClient
 	PrivateLinkHubsClient                             *privatelinkhubs.PrivateLinkHubsClient
 	SparkPoolClient                                   *bigdatapools.BigDataPoolsClient
@@ -99,11 +100,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(firewallRuleClient.Client, o.Authorizers.ResourceManager)
 
-	integrationRuntimeAuthKeysClient := synapse.NewIntegrationRuntimeAuthKeysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&integrationRuntimeAuthKeysClient.Client, o.ResourceManagerAuthorizer)
-
-	integrationRuntimesClient := synapse.NewIntegrationRuntimesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&integrationRuntimesClient.Client, o.ResourceManagerAuthorizer)
+	integrationRuntimeClient, err := integrationruntime.NewIntegrationRuntimeClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Integration Runtime Client: %+v", err)
+	}
+	o.Configure(integrationRuntimeClient.Client, o.Authorizers.ResourceManager)
 
 	keysClient, err := keys.NewKeysClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -184,8 +185,8 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 		// TODO: Migrate to go-azure-sdk
 		FirewallRulesClient:                               firewallRuleClient,
-		IntegrationRuntimeAuthKeysClient:                  &integrationRuntimeAuthKeysClient,
-		IntegrationRuntimesClient:                         &integrationRuntimesClient,
+		IntegrationRuntimeAuthKeysClient:                  integrationRuntimeClient,
+		IntegrationRuntimesClient:                         integrationRuntimeClient,
 		KeysClient:                                        keysClient,
 		PrivateLinkHubsClient:                             privateLinkHubsClient,
 		SparkPoolClient:                                   sparkPoolClient,

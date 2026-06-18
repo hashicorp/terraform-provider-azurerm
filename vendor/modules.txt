@@ -1243,6 +1243,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-pr
 github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/streamingjobs
 github.com/hashicorp/go-azure-sdk/resource-manager/subscription/2021-10-01/subscriptions
 github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/bigdatapools
+github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/integrationruntime
 github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/ipfirewallrules
 github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/keys
 github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/privatelinkhubs

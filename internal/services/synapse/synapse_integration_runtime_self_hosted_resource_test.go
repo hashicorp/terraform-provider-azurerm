@@ -8,13 +8,14 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/integrationruntime"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -51,15 +52,18 @@ func TestAccSynapseIntegrationRuntimeSelfHosted_requiresImport(t *testing.T) {
 }
 
 func (r SynapseIntegrationRuntimeSelfHostedResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.IntegrationRuntimeID(state.ID)
+	id, err := integrationruntime.ParseIntegrationRuntimeID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := clients.Synapse.IntegrationRuntimesClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, "")
+	resp, err := clients.Synapse.IntegrationRuntimesClient.Get(ctx, *id, integrationruntime.DefaultGetOperationOptions())
 	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return pointer.To(false), nil
+		}
 		return nil, fmt.Errorf("reading %s: %+v", id, err)
 	}
-	return pointer.To(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r SynapseIntegrationRuntimeSelfHostedResource) template(data acceptance.TestData) string {

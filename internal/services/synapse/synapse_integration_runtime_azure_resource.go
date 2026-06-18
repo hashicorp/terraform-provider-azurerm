@@ -8,9 +8,10 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/integrationruntime"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/migration"
@@ -19,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSynapseIntegrationRuntimeAzure() *pluginsdk.Resource {
@@ -79,11 +79,11 @@ func resourceSynapseIntegrationRuntimeAzure() *pluginsdk.Resource {
 			"compute_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(synapse.DataFlowComputeTypeGeneral),
+				Default:  string(integrationruntime.DataFlowComputeTypeGeneral),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(synapse.DataFlowComputeTypeGeneral),
-					string(synapse.DataFlowComputeTypeComputeOptimized),
-					string(synapse.DataFlowComputeTypeMemoryOptimized),
+					string(integrationruntime.DataFlowComputeTypeGeneral),
+					string(integrationruntime.DataFlowComputeTypeComputeOptimized),
+					string(integrationruntime.DataFlowComputeTypeMemoryOptimized),
 				}, false),
 			},
 
@@ -121,51 +121,46 @@ func resourceSynapseIntegrationRuntimeAzureCreateUpdate(d *pluginsdk.ResourceDat
 		return err
 	}
 
-	id := parse.NewIntegrationRuntimeID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, d.Get("name").(string))
+	id := integrationruntime.NewIntegrationRuntimeID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-			existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, "")
+			existing, err := client.Get(ctx, id, integrationruntime.DefaultGetOperationOptions())
 			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
 			}
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return tf.ImportAsExistsError("azurerm_synapse_integration_runtime_azure", id.ID())
 			}
 		}
 	}
 
-	integrationRuntime := synapse.IntegrationRuntimeResource{
-		Name: pointer.To(id.Name),
-		Properties: synapse.ManagedIntegrationRuntime{
+	integrationRuntime := integrationruntime.IntegrationRuntimeResource{
+		Name: pointer.To(id.IntegrationRuntimeName),
+		Properties: integrationruntime.ManagedIntegrationRuntime{
 			Description: pointer.To(d.Get("description").(string)),
-			Type:        synapse.TypeBasicIntegrationRuntimeTypeManaged,
-			ManagedIntegrationRuntimeTypeProperties: &synapse.ManagedIntegrationRuntimeTypeProperties{
-				ComputeProperties: &synapse.IntegrationRuntimeComputeProperties{
+			Type:        integrationruntime.IntegrationRuntimeTypeManaged,
+			TypeProperties: integrationruntime.ManagedIntegrationRuntimeTypeProperties{
+				ComputeProperties: &integrationruntime.IntegrationRuntimeComputeProperties{
 					Location: pointer.To(location.Normalize(d.Get("location").(string))),
-					DataFlowProperties: &synapse.IntegrationRuntimeDataFlowProperties{
-						ComputeType: synapse.DataFlowComputeType(d.Get("compute_type").(string)),
-						CoreCount:   pointer.To(int32(d.Get("core_count").(int))),
-						TimeToLive:  pointer.To(int32(d.Get("time_to_live_min").(int))),
+					DataFlowProperties: &integrationruntime.IntegrationRuntimeDataFlowProperties{
+						ComputeType: pointer.To(integrationruntime.DataFlowComputeType(d.Get("compute_type").(string))),
+						CoreCount:   pointer.To(int64(d.Get("core_count").(int))),
+						TimeToLive:  pointer.To(int64(d.Get("time_to_live_min").(int))),
 					},
 				},
 			},
 		},
 	}
 
-	future, err := client.Create(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, integrationRuntime, "")
-	if err != nil {
+	if err := client.CreateThenPoll(ctx, id, integrationRuntime, integrationruntime.DefaultCreateOperationOptions()); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if d.IsNewResource() {
 		d.SetId(id.ID())
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on creation for %s: %+v", id, err)
 	}
 
 	return resourceSynapseIntegrationRuntimeAzureRead(d, meta)
@@ -176,14 +171,14 @@ func resourceSynapseIntegrationRuntimeAzureRead(d *pluginsdk.ResourceData, meta 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.IntegrationRuntimeID(d.Id())
+	id, err := integrationruntime.ParseIntegrationRuntimeID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, "")
+	resp, err := client.Get(ctx, *id, integrationruntime.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
@@ -191,21 +186,27 @@ func resourceSynapseIntegrationRuntimeAzureRead(d *pluginsdk.ResourceData, meta 
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("synapse_workspace_id", parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID())
+	d.Set("name", id.IntegrationRuntimeName)
+	d.Set("synapse_workspace_id", parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName).ID())
 
-	managedIntegrationRuntime, convertSuccess := resp.Properties.AsManagedIntegrationRuntime()
-	if !convertSuccess {
-		return fmt.Errorf("converting managed integration runtime to Azure integration runtime (%q)", id)
-	}
+	if model := resp.Model; model != nil {
+		managedIntegrationRuntime, ok := model.Properties.(integrationruntime.ManagedIntegrationRuntime)
+		if !ok {
+			return fmt.Errorf("converting managed integration runtime to Azure integration runtime (%q)", id)
+		}
 
-	d.Set("description", managedIntegrationRuntime.Description)
-	if computeProps := managedIntegrationRuntime.ComputeProperties; computeProps != nil {
-		d.Set("location", computeProps.Location)
-		if dataFlowProps := computeProps.DataFlowProperties; dataFlowProps != nil {
-			d.Set("compute_type", dataFlowProps.ComputeType)
-			d.Set("core_count", dataFlowProps.CoreCount)
-			d.Set("time_to_live_min", dataFlowProps.TimeToLive)
+		d.Set("description", managedIntegrationRuntime.Description)
+		if computeProps := managedIntegrationRuntime.TypeProperties.ComputeProperties; computeProps != nil {
+			d.Set("location", location.NormalizeNilable(computeProps.Location))
+			if dataFlowProps := computeProps.DataFlowProperties; dataFlowProps != nil {
+				computeType := ""
+				if dataFlowProps.ComputeType != nil {
+					computeType = string(*dataFlowProps.ComputeType)
+				}
+				d.Set("compute_type", computeType)
+				d.Set("core_count", pointer.From(dataFlowProps.CoreCount))
+				d.Set("time_to_live_min", pointer.From(dataFlowProps.TimeToLive))
+			}
 		}
 	}
 
@@ -217,18 +218,13 @@ func resourceSynapseIntegrationRuntimeAzureDelete(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.IntegrationRuntimeID(d.Id())
+	id, err := integrationruntime.ParseIntegrationRuntimeID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
-	if err != nil {
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for %s to be deleted: %+v", id, err)
 	}
 
 	return nil
