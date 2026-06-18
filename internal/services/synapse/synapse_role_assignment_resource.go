@@ -10,8 +10,10 @@ import (
 	"strings"
 	"time"
 
-	frsUUID "github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/data-plane/synapse/2020-08-01-preview/roleassignments"
+	"github.com/hashicorp/go-azure-sdk/data-plane/synapse/2020-08-01-preview/synapseroledefinitions"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -21,8 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	accesscontrol "github.com/jackofallops/kermit/sdk/synapse/2020-08-01-preview/synapse"
 )
 
 func resourceSynapseRoleAssignment() *pluginsdk.Resource {
@@ -129,6 +129,8 @@ func resourceSynapseRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interfa
 		return err
 	}
 
+	endpoint := fmt.Sprintf("https://%s.%s", workspaceName, *synapseDomainSuffix)
+
 	client, err := synapseClient.RoleAssignmentsClient(workspaceName, *synapseDomainSuffix)
 	if err != nil {
 		return err
@@ -146,55 +148,54 @@ func resourceSynapseRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interfa
 
 	// check exist
 	principalId := d.Get("principal_id").(string)
-	listResp, err := client.ListRoleAssignments(ctx, roleId.String(), principalId, scope, "")
+	listResp, err := client.ListRoleAssignments(ctx, roleassignments.ListRoleAssignmentsOperationOptions{
+		RoleId:      pointer.To(roleId),
+		PrincipalId: pointer.To(principalId),
+		Scope:       pointer.To(scope),
+	})
 	if err != nil {
-		if !utils.ResponseWasNotFound(listResp.Response) {
+		if !response.WasNotFound(listResp.HttpResponse) {
 			return fmt.Errorf("checking for presence of existing Synapse Role Assignment (workspace %q): %+v", workspaceName, err)
 		}
 	}
 	// TODO: unpick this/refactor to use ID Formatters
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-		if listResp.Value != nil && len(*listResp.Value) != 0 {
-			existing := (*listResp.Value)[0]
-			if !utils.ResponseWasNotFound(existing.Response) {
-				resourceId := parse.NewRoleAssignmentId(synapseScope, *existing.ID).ID()
+		if listResp.Model != nil && listResp.Model.Value != nil && len(*listResp.Model.Value) != 0 {
+			existing := (*listResp.Model.Value)[0]
+			if existing.Id != nil && *existing.Id != "" {
+				resourceId := parse.NewRoleAssignmentId(synapseScope, *existing.Id).ID()
 				return tf.ImportAsExistsError("azurerm_synapse_role_assignment", resourceId)
 			}
 		}
 	}
 
-	uuid, err := uuid.GenerateUUID()
+	assignmentUuid, err := uuid.GenerateUUID()
 	if err != nil {
 		return fmt.Errorf("generating UUID for Synapse Role Assignment: %+v", err)
 	}
 
-	principalID, err := frsUUID.FromString(principalId)
-	if err != nil {
-		return err
-	}
-
 	// create
-	roleAssignment := accesscontrol.RoleAssignmentRequest{
-		RoleID:      roleId,
-		PrincipalID: &principalID,
-		Scope:       pointer.To(scope),
+	roleAssignment := roleassignments.RoleAssignmentRequest{
+		RoleId:      roleId,
+		PrincipalId: principalId,
+		Scope:       scope,
 	}
 
 	if v, ok := d.GetOk("principal_type"); ok {
-		principalType := v.(string)
-		roleAssignment.PrincipalType = &principalType
+		roleAssignment.PrincipalType = pointer.To(v.(string))
 	}
 
-	resp, err := client.CreateRoleAssignment(ctx, roleAssignment, uuid)
+	assignmentId := roleassignments.NewRoleAssignmentIdID(endpoint, assignmentUuid)
+	resp, err := client.CreateRoleAssignment(ctx, assignmentId, roleAssignment)
 	if err != nil {
 		return fmt.Errorf("creating Synapse RoleAssignment %q: %+v", roleName, err)
 	}
 
-	if resp.ID == nil || *resp.ID == "" {
+	if resp.Model == nil || resp.Model.Id == nil || *resp.Model.Id == "" {
 		return fmt.Errorf("empty or nil ID returned for Synapse RoleAssignment %q", roleName)
 	}
 
-	resourceId := parse.NewRoleAssignmentId(synapseScope, *resp.ID).ID()
+	resourceId := parse.NewRoleAssignmentId(synapseScope, *resp.Model.Id).ID()
 	d.SetId(resourceId)
 	return resourceSynapseRoleAssignmentRead(d, meta)
 }
@@ -220,6 +221,8 @@ func resourceSynapseRoleAssignmentRead(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
+	endpoint := fmt.Sprintf("https://%s.%s", workspaceName, *synapseDomainSuffix)
+
 	client, err := synapseClient.RoleAssignmentsClient(workspaceName, *synapseDomainSuffix)
 	if err != nil {
 		return err
@@ -229,27 +232,15 @@ func resourceSynapseRoleAssignmentRead(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	resp, err := client.GetRoleAssignmentByID(ctx, id.DataPlaneAssignmentId)
+	resp, err := client.GetRoleAssignmentById(ctx, roleassignments.NewRoleAssignmentIdID(endpoint, id.DataPlaneAssignmentId))
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] synapse role assignment %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("retrieving Synapse RoleAssignment (Resource Group %q): %+v", workspaceName, err)
 	}
-
-	principalID := ""
-	if resp.PrincipalID != nil {
-		principalID = resp.PrincipalID.String()
-	}
-	d.Set("principal_id", principalID)
-
-	principalType := ""
-	if resp.PrincipalType != nil {
-		principalType = *resp.PrincipalType
-	}
-	d.Set("principal_type", principalType)
 
 	synapseWorkspaceId := ""
 	synapseSparkPoolId := ""
@@ -262,12 +253,20 @@ func resourceSynapseRoleAssignmentRead(d *pluginsdk.ResourceData, meta interface
 	d.Set("synapse_workspace_id", synapseWorkspaceId)
 	d.Set("synapse_spark_pool_id", synapseSparkPoolId)
 
-	if resp.RoleDefinitionID != nil {
-		role, err := roleDefinitionsClient.GetRoleDefinitionByID(ctx, resp.RoleDefinitionID.String())
-		if err != nil {
-			return fmt.Errorf("retrieving role definition by ID %q: %+v", resp.RoleDefinitionID.String(), err)
+	if model := resp.Model; model != nil {
+		d.Set("principal_id", pointer.From(model.PrincipalId))
+		d.Set("principal_type", pointer.From(model.PrincipalType))
+
+		if model.RoleDefinitionId != nil {
+			roleDefinitionId := *model.RoleDefinitionId
+			role, err := roleDefinitionsClient.RoleDefinitionsGetRoleDefinitionById(ctx, synapseroledefinitions.NewRoleDefinitionID(endpoint, roleDefinitionId))
+			if err != nil {
+				return fmt.Errorf("retrieving role definition by ID %q: %+v", roleDefinitionId, err)
+			}
+			if role.Model != nil {
+				d.Set("role_name", pointer.From(role.Model.Name))
+			}
 		}
-		d.Set("role_name", role.Name)
 	}
 	return nil
 }
@@ -292,34 +291,40 @@ func resourceSynapseRoleAssignmentDelete(d *pluginsdk.ResourceData, meta interfa
 		return err
 	}
 
+	endpoint := fmt.Sprintf("https://%s.%s", workspaceName, *synapseDomainSuffix)
+
 	client, err := synapseClient.RoleAssignmentsClient(workspaceName, *synapseDomainSuffix)
 	if err != nil {
 		return err
 	}
-	if _, err := client.DeleteRoleAssignmentByID(ctx, id.DataPlaneAssignmentId, scope); err != nil {
+	if _, err := client.DeleteRoleAssignmentById(ctx, roleassignments.NewRoleAssignmentIdID(endpoint, id.DataPlaneAssignmentId), roleassignments.DeleteRoleAssignmentByIdOperationOptions{
+		Scope: pointer.To(scope),
+	}); err != nil {
 		return fmt.Errorf("deleting Synapse RoleAssignment %q (workspace %q): %+v", id, workspaceName, err)
 	}
 
 	return nil
 }
 
-func getRoleIdByName(ctx context.Context, client *accesscontrol.RoleDefinitionsClient, scope, roleName string) (*frsUUID.UUID, error) {
-	resp, err := client.ListRoleDefinitions(ctx, nil, scope)
+func getRoleIdByName(ctx context.Context, client *synapseroledefinitions.SynapseRoleDefinitionsClient, scope, roleName string) (string, error) {
+	resp, err := client.RoleDefinitionsListRoleDefinitions(ctx, synapseroledefinitions.RoleDefinitionsListRoleDefinitionsOperationOptions{
+		Scope: pointer.To(scope),
+	})
 	if err != nil {
-		return nil, fmt.Errorf("listing synapse role definitions %+v", err)
+		return "", fmt.Errorf("listing synapse role definitions %+v", err)
 	}
 
 	var availableRoleName []string
-	if resp.Value != nil {
-		for _, role := range *resp.Value {
+	if resp.Model != nil {
+		for _, role := range *resp.Model {
 			if role.Name != nil {
-				if *role.Name == roleName && role.ID != nil {
-					return role.ID, nil
+				if *role.Name == roleName && role.Id != nil {
+					return *role.Id, nil
 				}
 				availableRoleName = append(availableRoleName, *role.Name)
 			}
 		}
 	}
 
-	return nil, fmt.Errorf("role name %q invalid for scope %q. Available role names are %q", roleName, scope, strings.Join(availableRoleName, ","))
+	return "", fmt.Errorf("role name %q invalid for scope %q. Available role names are %q", roleName, scope, strings.Join(availableRoleName, ","))
 }

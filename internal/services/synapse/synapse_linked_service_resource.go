@@ -8,10 +8,11 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/data-plane/synapse/2021-06-01-preview/linkedservices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/migration"
@@ -21,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	artifacts "github.com/jackofallops/kermit/sdk/synapse/2021-06-01-preview/synapse"
 )
 
 func resourceSynapseLinkedService() *pluginsdk.Resource {
@@ -66,108 +66,111 @@ func resourceSynapseLinkedService() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
+				// NOTE: the go-azure-sdk `linkedservices` package does not expose an enum for the
+				// linked service discriminator `type`, so this list is maintained locally. The values
+				// are the exact discriminator strings previously sourced from the Synapse SDK.
 				ValidateFunc: validation.StringInSlice([]string{
-					string(artifacts.TypeBasicLinkedServiceTypeAmazonMWS),
-					string(artifacts.TypeBasicLinkedServiceTypeAmazonRdsForOracle),
-					string(artifacts.TypeBasicLinkedServiceTypeAmazonRdsForSQLServer),
-					string(artifacts.TypeBasicLinkedServiceTypeAmazonRedshift),
-					string(artifacts.TypeBasicLinkedServiceTypeAmazonS3),
-					string(artifacts.TypeBasicLinkedServiceTypeAzureBatch),
-					string(artifacts.TypeBasicLinkedServiceTypeAzureBlobFS),
-					string(artifacts.TypeBasicLinkedServiceTypeAzureBlobStorage),
-					string(artifacts.TypeBasicLinkedServiceTypeAzureDataExplorer),
-					string(artifacts.TypeBasicLinkedServiceTypeAzureDataLakeAnalytics),
-					string(artifacts.TypeBasicLinkedServiceTypeAzureDataLakeStore),
-					string(artifacts.TypeBasicLinkedServiceTypeAzureDatabricks),
-					string(artifacts.TypeBasicLinkedServiceTypeAzureDatabricksDeltaLake),
-					string(artifacts.TypeBasicLinkedServiceTypeAzureFileStorage),
-					string(artifacts.TypeBasicLinkedServiceTypeAzureFunction),
-					string(artifacts.TypeBasicLinkedServiceTypeAzureKeyVault),
-					string(artifacts.TypeBasicLinkedServiceTypeAzureML),
-					string(artifacts.TypeBasicLinkedServiceTypeAzureMLService),
-					string(artifacts.TypeBasicLinkedServiceTypeAzureMariaDB),
-					string(artifacts.TypeBasicLinkedServiceTypeAzureMySQL),
-					string(artifacts.TypeBasicLinkedServiceTypeAzurePostgreSQL),
-					string(artifacts.TypeBasicLinkedServiceTypeAzureSQLDW),
-					string(artifacts.TypeBasicLinkedServiceTypeAzureSQLDatabase),
-					string(artifacts.TypeBasicLinkedServiceTypeAzureSQLMI),
-					string(artifacts.TypeBasicLinkedServiceTypeAzureSearch),
-					string(artifacts.TypeBasicLinkedServiceTypeAzureStorage),
-					string(artifacts.TypeBasicLinkedServiceTypeAzureTableStorage),
-					string(artifacts.TypeBasicLinkedServiceTypeCassandra),
-					string(artifacts.TypeBasicLinkedServiceTypeCommonDataServiceForApps),
-					string(artifacts.TypeBasicLinkedServiceTypeConcur),
-					string(artifacts.TypeBasicLinkedServiceTypeCosmosDb),
-					string(artifacts.TypeBasicLinkedServiceTypeCosmosDbMongoDbAPI),
-					string(artifacts.TypeBasicLinkedServiceTypeCouchbase),
-					string(artifacts.TypeBasicLinkedServiceTypeCustomDataSource),
-					string(artifacts.TypeBasicLinkedServiceTypeDb2),
-					string(artifacts.TypeBasicLinkedServiceTypeDrill),
-					string(artifacts.TypeBasicLinkedServiceTypeDynamics),
-					string(artifacts.TypeBasicLinkedServiceTypeDynamicsAX),
-					string(artifacts.TypeBasicLinkedServiceTypeDynamicsCrm),
-					string(artifacts.TypeBasicLinkedServiceTypeEloqua),
-					string(artifacts.TypeBasicLinkedServiceTypeFileServer),
-					string(artifacts.TypeBasicLinkedServiceTypeFtpServer),
-					string(artifacts.TypeBasicLinkedServiceTypeGoogleAdWords),
-					string(artifacts.TypeBasicLinkedServiceTypeGoogleBigQuery),
-					string(artifacts.TypeBasicLinkedServiceTypeGoogleCloudStorage),
-					string(artifacts.TypeBasicLinkedServiceTypeGreenplum),
-					string(artifacts.TypeBasicLinkedServiceTypeHBase),
-					string(artifacts.TypeBasicLinkedServiceTypeHDInsight),
-					string(artifacts.TypeBasicLinkedServiceTypeHDInsightOnDemand),
-					string(artifacts.TypeBasicLinkedServiceTypeHTTPServer),
-					string(artifacts.TypeBasicLinkedServiceTypeHdfs),
-					string(artifacts.TypeBasicLinkedServiceTypeHive),
-					string(artifacts.TypeBasicLinkedServiceTypeHubspot),
-					string(artifacts.TypeBasicLinkedServiceTypeImpala),
-					string(artifacts.TypeBasicLinkedServiceTypeInformix),
-					string(artifacts.TypeBasicLinkedServiceTypeJira),
-					string(artifacts.TypeBasicLinkedServiceTypeLinkedService),
-					string(artifacts.TypeBasicLinkedServiceTypeMagento),
-					string(artifacts.TypeBasicLinkedServiceTypeMariaDB),
-					string(artifacts.TypeBasicLinkedServiceTypeMarketo),
-					string(artifacts.TypeBasicLinkedServiceTypeMicrosoftAccess),
-					string(artifacts.TypeBasicLinkedServiceTypeMongoDb),
-					string(artifacts.TypeBasicLinkedServiceTypeMongoDbAtlas),
-					string(artifacts.TypeBasicLinkedServiceTypeMongoDbV2),
-					string(artifacts.TypeBasicLinkedServiceTypeMySQL),
-					string(artifacts.TypeBasicLinkedServiceTypeNetezza),
-					string(artifacts.TypeBasicLinkedServiceTypeOData),
-					string(artifacts.TypeBasicLinkedServiceTypeOdbc),
-					string(artifacts.TypeBasicLinkedServiceTypeOffice365),
-					string(artifacts.TypeBasicLinkedServiceTypeOracle),
-					string(artifacts.TypeBasicLinkedServiceTypeOracleServiceCloud),
-					string(artifacts.TypeBasicLinkedServiceTypePaypal),
-					string(artifacts.TypeBasicLinkedServiceTypePhoenix),
-					string(artifacts.TypeBasicLinkedServiceTypePostgreSQL),
-					string(artifacts.TypeBasicLinkedServiceTypePresto),
-					string(artifacts.TypeBasicLinkedServiceTypeQuickBooks),
-					string(artifacts.TypeBasicLinkedServiceTypeResponsys),
-					string(artifacts.TypeBasicLinkedServiceTypeRestService),
-					string(artifacts.TypeBasicLinkedServiceTypeSQLServer),
-					string(artifacts.TypeBasicLinkedServiceTypeSalesforce),
-					string(artifacts.TypeBasicLinkedServiceTypeSalesforceMarketingCloud),
-					string(artifacts.TypeBasicLinkedServiceTypeSalesforceServiceCloud),
-					string(artifacts.TypeBasicLinkedServiceTypeSapBW),
-					string(artifacts.TypeBasicLinkedServiceTypeSapCloudForCustomer),
-					string(artifacts.TypeBasicLinkedServiceTypeSapEcc),
-					string(artifacts.TypeBasicLinkedServiceTypeSapHana),
-					string(artifacts.TypeBasicLinkedServiceTypeSapOpenHub),
-					string(artifacts.TypeBasicLinkedServiceTypeSapTable),
-					string(artifacts.TypeBasicLinkedServiceTypeServiceNow),
-					string(artifacts.TypeBasicLinkedServiceTypeSftp),
-					string(artifacts.TypeBasicLinkedServiceTypeSharePointOnlineList),
-					string(artifacts.TypeBasicLinkedServiceTypeShopify),
-					string(artifacts.TypeBasicLinkedServiceTypeSnowflake),
-					string(artifacts.TypeBasicLinkedServiceTypeSpark),
-					string(artifacts.TypeBasicLinkedServiceTypeSquare),
-					string(artifacts.TypeBasicLinkedServiceTypeSybase),
-					string(artifacts.TypeBasicLinkedServiceTypeTeradata),
-					string(artifacts.TypeBasicLinkedServiceTypeVertica),
-					string(artifacts.TypeBasicLinkedServiceTypeWeb),
-					string(artifacts.TypeBasicLinkedServiceTypeXero),
-					string(artifacts.TypeBasicLinkedServiceTypeZoho),
+					"AmazonMWS",
+					"AmazonRdsForOracle",
+					"AmazonRdsForSqlServer",
+					"AmazonRedshift",
+					"AmazonS3",
+					"AzureBatch",
+					"AzureBlobFS",
+					"AzureBlobStorage",
+					"AzureDataExplorer",
+					"AzureDataLakeAnalytics",
+					"AzureDataLakeStore",
+					"AzureDatabricks",
+					"AzureDatabricksDeltaLake",
+					"AzureFileStorage",
+					"AzureFunction",
+					"AzureKeyVault",
+					"AzureML",
+					"AzureMLService",
+					"AzureMariaDB",
+					"AzureMySql",
+					"AzurePostgreSql",
+					"AzureSqlDW",
+					"AzureSqlDatabase",
+					"AzureSqlMI",
+					"AzureSearch",
+					"AzureStorage",
+					"AzureTableStorage",
+					"Cassandra",
+					"CommonDataServiceForApps",
+					"Concur",
+					"CosmosDb",
+					"CosmosDbMongoDbApi",
+					"Couchbase",
+					"CustomDataSource",
+					"Db2",
+					"Drill",
+					"Dynamics",
+					"DynamicsAX",
+					"DynamicsCrm",
+					"Eloqua",
+					"FileServer",
+					"FtpServer",
+					"GoogleAdWords",
+					"GoogleBigQuery",
+					"GoogleCloudStorage",
+					"Greenplum",
+					"HBase",
+					"HDInsight",
+					"HDInsightOnDemand",
+					"HttpServer",
+					"Hdfs",
+					"Hive",
+					"Hubspot",
+					"Impala",
+					"Informix",
+					"Jira",
+					"LinkedService",
+					"Magento",
+					"MariaDB",
+					"Marketo",
+					"MicrosoftAccess",
+					"MongoDb",
+					"MongoDbAtlas",
+					"MongoDbV2",
+					"MySql",
+					"Netezza",
+					"OData",
+					"Odbc",
+					"Office365",
+					"Oracle",
+					"OracleServiceCloud",
+					"Paypal",
+					"Phoenix",
+					"PostgreSql",
+					"Presto",
+					"QuickBooks",
+					"Responsys",
+					"RestService",
+					"SqlServer",
+					"Salesforce",
+					"SalesforceMarketingCloud",
+					"SalesforceServiceCloud",
+					"SapBW",
+					"SapCloudForCustomer",
+					"SapEcc",
+					"SapHana",
+					"SapOpenHub",
+					"SapTable",
+					"ServiceNow",
+					"Sftp",
+					"SharePointOnlineList",
+					"Shopify",
+					"Snowflake",
+					"Spark",
+					"Square",
+					"Sybase",
+					"Teradata",
+					"Vertica",
+					"Web",
+					"Xero",
+					"Zoho",
 				}, false),
 			},
 
@@ -254,16 +257,19 @@ func resourceSynapseLinkedServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 		return err
 	}
 
+	endpoint := fmt.Sprintf("https://%s.%s", workspaceId.Name, *synapseDomainSuffix)
+
 	id := parse.NewLinkedServiceID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, d.Get("name").(string))
+	linkedServiceId := linkedservices.NewLinkedServiceID(endpoint, id.Name)
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-			existing, err := client.GetLinkedService(ctx, id.Name, "")
+			existing, err := client.LinkedServiceGetLinkedService(ctx, linkedServiceId, linkedservices.DefaultLinkedServiceGetLinkedServiceOperationOptions())
 			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
 			}
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return tf.ImportAsExistsError("azurerm_synapse_linked_service", id.ID())
 			}
 		}
@@ -296,31 +302,18 @@ func resourceSynapseLinkedServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 		props[k] = v
 	}
 
-	jsonData, err := json.Marshal(map[string]interface{}{
-		"properties": props,
-	})
-	if err != nil {
-		return err
+	// The linked service resource is an opaque-JSON contract: route the assembled `props` map through
+	// `RawLinkedServiceImpl`, whose `MarshalJSON` re-emits `Values` verbatim, so unmodeled/arbitrary
+	// `typeProperties` and sibling fields are sent exactly as supplied (see audit-synapse §4).
+	input := linkedservices.LinkedServiceResource{
+		Properties: linkedservices.RawLinkedServiceImpl{
+			Type:   d.Get("type").(string),
+			Values: props,
+		},
 	}
 
-	linkedService := &artifacts.LinkedServiceResource{}
-	if err := linkedService.UnmarshalJSON(jsonData); err != nil {
-		return err
-	}
-
-	future, err := client.CreateOrUpdateLinkedService(ctx, id.Name, *linkedService, "")
-	if err != nil {
+	if err := client.LinkedServiceCreateOrUpdateLinkedServiceThenPoll(ctx, linkedServiceId, input, linkedservices.DefaultLinkedServiceCreateOrUpdateLinkedServiceOperationOptions()); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on creation for %s: %+v", id, err)
-	}
-
-	// Sometimes this resource fails to create but Azure is returning a 200. We'll check if the last response failed or not before moving on
-	// todo remove this once https://github.com/hashicorp/go-azure-sdk/pull/122 is merged
-	if err = checkLinkedServiceResponse(future.Response()); err != nil {
-		return err
 	}
 
 	if d.IsNewResource() {
@@ -350,9 +343,11 @@ func resourceSynapseLinkedServiceRead(d *pluginsdk.ResourceData, meta interface{
 		return err
 	}
 
-	resp, err := client.GetLinkedService(ctx, id.Name, "")
+	endpoint := fmt.Sprintf("https://%s.%s", id.WorkspaceName, *synapseDomainSuffix)
+
+	resp, err := client.LinkedServiceGetLinkedService(ctx, linkedservices.NewLinkedServiceID(endpoint, id.Name), linkedservices.DefaultLinkedServiceGetLinkedServiceOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
@@ -363,14 +358,27 @@ func resourceSynapseLinkedServiceRead(d *pluginsdk.ResourceData, meta interface{
 	d.Set("name", id.Name)
 	d.Set("synapse_workspace_id", parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID())
 
-	byteArr, err := json.Marshal(resp.Properties)
-	if err != nil {
-		return err
-	}
+	// Parse the raw response body rather than the typed `resp.Model.Properties`: for known discriminator
+	// types the typed model has no catch-all and would drop unmodeled `additional_properties` siblings.
+	// The base client buffers and resets the body, so it is re-readable here (see audit-synapse §4.4).
+	m := make(map[string]*json.RawMessage)
+	if resp.HttpResponse != nil && resp.HttpResponse.Body != nil {
+		rawBody, err := io.ReadAll(resp.HttpResponse.Body)
+		if err != nil {
+			return fmt.Errorf("reading response body for %s: %+v", id, err)
+		}
 
-	var m map[string]*json.RawMessage
-	if err = json.Unmarshal(byteArr, &m); err != nil {
-		return err
+		var envelope struct {
+			Properties *json.RawMessage `json:"properties"`
+		}
+		if err := json.Unmarshal(rawBody, &envelope); err != nil {
+			return fmt.Errorf("unmarshaling response for %s: %+v", id, err)
+		}
+		if envelope.Properties != nil {
+			if err := json.Unmarshal(*envelope.Properties, &m); err != nil {
+				return fmt.Errorf("unmarshaling properties for %s: %+v", id, err)
+			}
+		}
 	}
 
 	description := ""
@@ -400,7 +408,7 @@ func resourceSynapseLinkedServiceRead(d *pluginsdk.ResourceData, meta interface{
 	}
 	d.Set("annotations", annotations)
 
-	parameters := make(map[string]*artifacts.ParameterSpecification)
+	parameters := make(map[string]*linkedservices.ParameterSpecification)
 	if v, ok := m["parameters"]; ok && v != nil {
 		if err := json.Unmarshal(*v, &parameters); err != nil {
 			return err
@@ -411,9 +419,9 @@ func resourceSynapseLinkedServiceRead(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 
-	var integrationRuntime *artifacts.IntegrationRuntimeReference
+	var integrationRuntime *linkedservices.IntegrationRuntimeReference
 	if v, ok := m["connectVia"]; ok && v != nil {
-		integrationRuntime = &artifacts.IntegrationRuntimeReference{}
+		integrationRuntime = &linkedservices.IntegrationRuntimeReference{}
 		if err := json.Unmarshal(*v, &integrationRuntime); err != nil {
 			return err
 		}
@@ -459,51 +467,48 @@ func resourceSynapseLinkedServiceDelete(d *pluginsdk.ResourceData, meta interfac
 		return err
 	}
 
-	future, err := client.DeleteLinkedService(ctx, id.Name)
-	if err != nil {
-		return fmt.Errorf("deleting %s: %+v", id, err)
-	}
+	endpoint := fmt.Sprintf("https://%s.%s", id.WorkspaceName, *synapseDomainSuffix)
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for %s to be deleted: %+v", id, err)
+	if err := client.LinkedServiceDeleteLinkedServiceThenPoll(ctx, linkedservices.NewLinkedServiceID(endpoint, id.Name)); err != nil {
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil
 }
 
-func expandSynapseParameters(input map[string]interface{}) map[string]*artifacts.ParameterSpecification {
-	output := make(map[string]*artifacts.ParameterSpecification)
+func expandSynapseParameters(input map[string]interface{}) map[string]*linkedservices.ParameterSpecification {
+	output := make(map[string]*linkedservices.ParameterSpecification)
 
 	for k, v := range input {
-		output[k] = &artifacts.ParameterSpecification{
-			Type:         artifacts.ParameterTypeString,
-			DefaultValue: v.(string),
+		output[k] = &linkedservices.ParameterSpecification{
+			Type:         linkedservices.ParameterTypeString,
+			DefaultValue: pointer.To[interface{}](v.(string)),
 		}
 	}
 
 	return output
 }
 
-func expandSynapseLinkedServiceIntegrationRuntimeV2(input []interface{}) *artifacts.IntegrationRuntimeReference {
+func expandSynapseLinkedServiceIntegrationRuntimeV2(input []interface{}) *linkedservices.IntegrationRuntimeReference {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
 	v := input[0].(map[string]interface{})
-	return &artifacts.IntegrationRuntimeReference{
-		ReferenceName: pointer.To(v["name"].(string)),
-		Type:          pointer.To("IntegrationRuntimeReference"),
-		Parameters:    v["parameters"].(map[string]interface{}),
+	return &linkedservices.IntegrationRuntimeReference{
+		ReferenceName: v["name"].(string),
+		Type:          linkedservices.IntegrationRuntimeReferenceTypeIntegrationRuntimeReference,
+		Parameters:    pointer.To(v["parameters"].(map[string]interface{})),
 	}
 }
 
-func flattenSynapseParameters(input map[string]*artifacts.ParameterSpecification) map[string]interface{} {
+func flattenSynapseParameters(input map[string]*linkedservices.ParameterSpecification) map[string]interface{} {
 	output := make(map[string]interface{})
 
 	for k, v := range input {
-		if v != nil {
+		if v != nil && v.DefaultValue != nil {
 			// we only support string parameters at this time
-			val, ok := v.DefaultValue.(string)
+			val, ok := (*v.DefaultValue).(string)
 			if !ok {
 				log.Printf("[DEBUG] Skipping parameter %q since it's not a string", k)
 			}
@@ -515,58 +520,19 @@ func flattenSynapseParameters(input map[string]*artifacts.ParameterSpecification
 	return output
 }
 
-func flattenSynapseLinkedServiceIntegrationRuntimeV2(input *artifacts.IntegrationRuntimeReference) []interface{} {
+func flattenSynapseLinkedServiceIntegrationRuntimeV2(input *linkedservices.IntegrationRuntimeReference) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
 
-	name := ""
-	if input.ReferenceName != nil {
-		name = *input.ReferenceName
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"name":       name,
-			"parameters": input.Parameters,
+			"name":       input.ReferenceName,
+			"parameters": pointer.From(input.Parameters),
 		},
 	}
 }
 
 func suppressJsonOrderingDifference(_, old, new string, _ *pluginsdk.ResourceData) bool {
 	return utils.NormalizeJson(old) == utils.NormalizeJson(new)
-}
-
-func checkLinkedServiceResponse(response *http.Response) error {
-	respBody, err := io.ReadAll(response.Body)
-	if err != nil {
-		return fmt.Errorf("reading status response body: %+v", err)
-	}
-	defer response.Body.Close()
-
-	body := make(map[string]interface{})
-	err = json.Unmarshal(respBody, &body)
-	if err != nil {
-		return fmt.Errorf("could not parse status response: %+v", err)
-	}
-
-	if statusRaw, ok := body["status"]; ok && statusRaw != nil {
-		if status, ok := statusRaw.(string); ok {
-			if status == "Failed" {
-				if errorRaw, ok := body["error"]; ok && errorRaw != nil {
-					if responseError, ok := errorRaw.(map[string]interface{}); ok {
-						if messageRaw, ok := responseError["message"]; ok && messageRaw != nil {
-							if message, ok := messageRaw.(string); ok {
-								return fmt.Errorf("creating/updating Linked Service: %s", message)
-							}
-						}
-					}
-				}
-				// we are specifically checking for `error` in the payload but if the status is Failed, we should return what we know
-				return fmt.Errorf("creating/updating Linked Service: %+v", body)
-			}
-		}
-	}
-
-	return nil
 }

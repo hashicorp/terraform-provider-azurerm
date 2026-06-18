@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/data-plane/synapse/2021-06-01-preview/linkedservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -122,6 +123,35 @@ func TestAccSynapseLinkedService_search(t *testing.T) {
 	})
 }
 
+// TestAccSynapseLinkedService_opaqueJsonFidelity exercises the opaque-JSON contract that the
+// go-azure-sdk `RawLinkedServiceImpl.MarshalJSON` fix underpins: a `type_properties_json` carrying
+// an extra property plus top-level `additional_properties` siblings must round-trip without loss.
+// The acceptance framework's built-in post-apply idempotency check asserts a clean second plan.
+func TestAccSynapseLinkedService_opaqueJsonFidelity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_synapse_linked_service", "test")
+	r := LinkedServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.opaqueJsonFidelity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("additional_properties.foo").HasValue("test1"),
+				check.That(data.ResourceName).Key("additional_properties.bar").HasValue("test2"),
+			),
+		},
+		data.ImportStep("type_properties_json"),
+		{
+			// re-apply the same config to prove the round-trip is byte-stable (no perpetual diff).
+			Config: r.opaqueJsonFidelity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("type_properties_json"),
+	})
+}
+
 func (t LinkedServiceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LinkedServiceID(state.ID)
 	if err != nil {
@@ -138,12 +168,13 @@ func (t LinkedServiceResource) Exists(ctx context.Context, clients *clients.Clie
 		return nil, err
 	}
 
-	resp, err := client.GetLinkedService(ctx, id.Name, "")
+	endpoint := fmt.Sprintf("https://%s.%s", id.WorkspaceName, *suffix)
+	resp, err := client.LinkedServiceGetLinkedService(ctx, linkedservices.NewLinkedServiceID(endpoint, id.Name), linkedservices.DefaultLinkedServiceGetLinkedServiceOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", id, err)
 	}
 
-	return pointer.To(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r LinkedServiceResource) basic(data acceptance.TestData) string {
@@ -270,6 +301,39 @@ JSON
   ]
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r LinkedServiceResource) opaqueJsonFidelity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_synapse_linked_service" "test" {
+  name                 = "acctestls%d"
+  synapse_workspace_id = azurerm_synapse_workspace.test.id
+  type                 = "AzureBlobStorage"
+  description          = "opaque json fidelity"
+  type_properties_json = <<JSON
+{
+  "connectionString": "${azurerm_storage_account.test.primary_connection_string}",
+  "accountKind": "StorageV2"
+}
+JSON
+
+  additional_properties = {
+    foo = "test1"
+    bar = "test2"
+  }
+
+  annotations = [
+    "test1",
+    "test2"
+  ]
+
+  depends_on = [
+    azurerm_synapse_firewall_rule.test,
+  ]
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (LinkedServiceResource) template(data acceptance.TestData) string {

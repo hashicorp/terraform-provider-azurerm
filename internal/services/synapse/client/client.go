@@ -8,12 +8,13 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
-	"github.com/Azure/go-autorest/autorest"
+	"github.com/hashicorp/go-azure-sdk/data-plane/synapse/2020-08-01-preview/roleassignments"
+	"github.com/hashicorp/go-azure-sdk/data-plane/synapse/2020-08-01-preview/synapseroledefinitions"
+	"github.com/hashicorp/go-azure-sdk/data-plane/synapse/2021-06-01-preview/linkedservices"
 	"github.com/hashicorp/go-azure-sdk/data-plane/synapse/2021-06-01-preview/managedprivateendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/ipfirewallrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	accesscontrol "github.com/jackofallops/kermit/sdk/synapse/2020-08-01-preview/synapse"
-	artifacts "github.com/jackofallops/kermit/sdk/synapse/2021-06-01-preview/synapse"
 )
 
 type Client struct {
@@ -24,7 +25,7 @@ type Client struct {
 	ManagedPrivateEndpointsClient *managedprivateendpoints.ManagedPrivateEndpointsClient
 
 	// TODO: Migrate to go-azure-sdk
-	FirewallRulesClient                               *synapse.IPFirewallRulesClient
+	FirewallRulesClient                               *ipfirewallrules.IPFirewallRulesClient
 	IntegrationRuntimeAuthKeysClient                  *synapse.IntegrationRuntimeAuthKeysClient
 	IntegrationRuntimesClient                         *synapse.IntegrationRuntimesClient
 	KeysClient                                        *synapse.KeysClient
@@ -48,7 +49,11 @@ type Client struct {
 	WorkspaceSQLAadAdminsClient                       *synapse.WorkspaceSQLAadAdminsClient
 	WorkspaceVulnerabilityAssessmentsClient           *synapse.WorkspaceManagedSQLServerVulnerabilityAssessmentsClient
 
-	synapseAuthorizer autorest.Authorizer
+	// Data Plane (go-azure-sdk) — configured base clients, cloned per workspace endpoint
+	roleAssignmentsClient        *roleassignments.RoleAssignmentsClient
+	synapseRoleDefinitionsClient *synapseroledefinitions.SynapseRoleDefinitionsClient
+	linkedServiceClient          *linkedservices.LinkedServicesClient
+	synapseEnabled               bool
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -66,9 +71,30 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(managedPrivateEndpointsClient.Client, o.Authorizers.Synapse)
 
+	roleAssignmentsClient, err := roleassignments.NewRoleAssignmentsClientUnconfigured()
+	if err != nil {
+		return nil, fmt.Errorf("building Role Assignments Client: %+v", err)
+	}
+	o.Configure(roleAssignmentsClient.Client, o.Authorizers.Synapse)
+
+	synapseRoleDefinitionsClient, err := synapseroledefinitions.NewSynapseRoleDefinitionsClientUnconfigured()
+	if err != nil {
+		return nil, fmt.Errorf("building Role Definitions Client: %+v", err)
+	}
+	o.Configure(synapseRoleDefinitionsClient.Client, o.Authorizers.Synapse)
+
+	linkedServiceClient, err := linkedservices.NewLinkedServicesClientUnconfigured()
+	if err != nil {
+		return nil, fmt.Errorf("building Linked Service Client: %+v", err)
+	}
+	o.Configure(linkedServiceClient.Client, o.Authorizers.Synapse)
+
 	// TODO: migrate to go-azure-sdk
-	firewallRuleClient := synapse.NewIPFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&firewallRuleClient.Client, o.ResourceManagerAuthorizer)
+	firewallRuleClient, err := ipfirewallrules.NewIPFirewallRulesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Firewall Rules Client: %+v", err)
+	}
+	o.Configure(firewallRuleClient.Client, o.Authorizers.ResourceManager)
 
 	integrationRuntimeAuthKeysClient := synapse.NewIntegrationRuntimeAuthKeysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&integrationRuntimeAuthKeysClient.Client, o.ResourceManagerAuthorizer)
@@ -145,7 +171,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		ManagedPrivateEndpointsClient: managedPrivateEndpointsClient,
 
 		// TODO: Migrate to go-azure-sdk
-		FirewallRulesClient:                               &firewallRuleClient,
+		FirewallRulesClient:                               firewallRuleClient,
 		IntegrationRuntimeAuthKeysClient:                  &integrationRuntimeAuthKeysClient,
 		IntegrationRuntimesClient:                         &integrationRuntimesClient,
 		KeysClient:                                        &keysClient,
@@ -169,38 +195,33 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		WorkspaceSQLAadAdminsClient:                       &workspaceSQLAadAdminsClient,
 		WorkspaceVulnerabilityAssessmentsClient:           &workspaceVulnerabilityAssessmentsClient,
 
-		synapseAuthorizer: o.SynapseAuthorizer,
+		// Data Plane (go-azure-sdk)
+		roleAssignmentsClient:        roleAssignmentsClient,
+		synapseRoleDefinitionsClient: synapseRoleDefinitionsClient,
+		linkedServiceClient:          linkedServiceClient,
+		synapseEnabled:               o.Authorizers.Synapse != nil,
 	}, nil
 }
 
-func (client Client) RoleDefinitionsClient(workspaceName, synapseEndpointSuffix string) (*accesscontrol.RoleDefinitionsClient, error) {
-	if client.synapseAuthorizer == nil {
+func (client Client) RoleDefinitionsClient(workspaceName, synapseEndpointSuffix string) (*synapseroledefinitions.SynapseRoleDefinitionsClient, error) {
+	if !client.synapseEnabled {
 		return nil, errors.New("'Synapse' is not supported in this Azure Environment")
 	}
-	endpoint := buildEndpoint(workspaceName, synapseEndpointSuffix)
-	roleDefinitionsClient := accesscontrol.NewRoleDefinitionsClient(endpoint)
-	roleDefinitionsClient.Authorizer = client.synapseAuthorizer
-	return &roleDefinitionsClient, nil
+	return client.synapseRoleDefinitionsClient.Clone(buildEndpoint(workspaceName, synapseEndpointSuffix)), nil
 }
 
-func (client Client) RoleAssignmentsClient(workspaceName, synapseEndpointSuffix string) (*accesscontrol.RoleAssignmentsClient, error) {
-	if client.synapseAuthorizer == nil {
+func (client Client) RoleAssignmentsClient(workspaceName, synapseEndpointSuffix string) (*roleassignments.RoleAssignmentsClient, error) {
+	if !client.synapseEnabled {
 		return nil, errors.New("'Synapse' is not supported in this Azure Environment")
 	}
-	endpoint := buildEndpoint(workspaceName, synapseEndpointSuffix)
-	roleAssignmentsClient := accesscontrol.NewRoleAssignmentsClient(endpoint)
-	roleAssignmentsClient.Authorizer = client.synapseAuthorizer
-	return &roleAssignmentsClient, nil
+	return client.roleAssignmentsClient.Clone(buildEndpoint(workspaceName, synapseEndpointSuffix)), nil
 }
 
-func (client Client) LinkedServiceClient(workspaceName, synapseEndpointSuffix string) (*artifacts.LinkedServiceClient, error) {
-	if client.synapseAuthorizer == nil {
+func (client Client) LinkedServiceClient(workspaceName, synapseEndpointSuffix string) (*linkedservices.LinkedServicesClient, error) {
+	if !client.synapseEnabled {
 		return nil, errors.New("'Synapse' is not supported in this Azure Environment")
 	}
-	endpoint := buildEndpoint(workspaceName, synapseEndpointSuffix)
-	linkedServiceClient := artifacts.NewLinkedServiceClient(endpoint)
-	linkedServiceClient.Authorizer = client.synapseAuthorizer
-	return &linkedServiceClient, nil
+	return client.linkedServiceClient.Clone(buildEndpoint(workspaceName, synapseEndpointSuffix)), nil
 }
 
 func buildEndpoint(workspaceName string, synapseEndpointSuffix string) string {
