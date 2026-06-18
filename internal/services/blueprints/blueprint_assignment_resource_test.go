@@ -76,6 +76,7 @@ func TestAccBlueprintAssignment_requiresImport(t *testing.T) {
 
 // Scenario: BP with RG's, locking and parameters/policies stored at Subscription, applied to subscription
 func TestAccBlueprintAssignment_subscriptionComplete(t *testing.T) {
+	t.Skip("Skip due to Azure changes now failing this test, and entire service will be deprecated soon.")
 	data := acceptance.BuildTestData(t, "azurerm_blueprint_assignment", "test")
 	r := BlueprintAssignmentResource{}
 
