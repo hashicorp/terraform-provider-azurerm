@@ -3896,6 +3896,18 @@ resource "azurerm_storage_container" "test" {
   container_access_type = "private"
 }
 
+resource "azurerm_storage_container" "test1" {
+  name                  = "acctestblobforfc1"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_container" "backend" {
+  name                  = "acctestblobforbackend"
+  storage_account_name  = azurerm_storage_account.backend.name
+  container_access_type = "private"
+}
+
 data "azurerm_storage_account_sas" "test" {
   connection_string = azurerm_storage_account.test.primary_connection_string
   https_only        = true
