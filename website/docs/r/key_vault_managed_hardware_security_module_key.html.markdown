@@ -26,14 +26,12 @@ resource "azurerm_key_vault_managed_hardware_security_module" "example" {
   admin_object_ids         = [data.azurerm_client_config.current.object_id]
   purge_protection_enabled = false
 
-  active_config {
-    security_domain_certificate = [
-      azurerm_key_vault_certificate.cert[0].id,
-      azurerm_key_vault_certificate.cert[1].id,
-      azurerm_key_vault_certificate.cert[2].id,
-    ]
-    security_domain_quorum = 2
-  }
+  security_domain_key_vault_certificate_ids = [
+    azurerm_key_vault_certificate.cers["1"].id,
+    azurerm_key_vault_certificate.cers["2"].id,
+    azurerm_key_vault_certificate.cers["3"].id,
+  ]
+  security_domain_quorum = 2
 }
 
 // this gives your service principal the HSM Crypto User role which lets you create and destroy hsm keys
