@@ -221,7 +221,9 @@ func resourceIotHubEndpointServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData
 		if existingEndpointName := existingEndpoint.Name; existingEndpointName != nil {
 			if strings.EqualFold(*existingEndpointName, id.EndpointName) {
 				if d.IsNewResource() {
-					return tf.ImportAsExistsError("azurerm_iothub_endpoint_servicebus_queue", id.ID())
+					if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+						return tf.ImportAsExistsError("azurerm_iothub_endpoint_servicebus_queue", id.ID())
+					}
 				}
 				endpoints = append(endpoints, queueEndpoint)
 				alreadyExists = true
@@ -243,11 +245,11 @@ func resourceIotHubEndpointServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for the completion of the creating/updating of %s: %+v", id, err)
 	}
-
-	d.SetId(id.ID())
 
 	return resourceIotHubEndpointServiceBusQueueRead(d, meta)
 }

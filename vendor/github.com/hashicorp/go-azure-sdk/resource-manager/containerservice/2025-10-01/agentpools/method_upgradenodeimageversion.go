@@ -58,9 +58,20 @@ func (c AgentPoolsClient) UpgradeNodeImageVersion(ctx context.Context, id AgentP
 
 // UpgradeNodeImageVersionThenPoll performs UpgradeNodeImageVersion then polls until it's completed
 func (c AgentPoolsClient) UpgradeNodeImageVersionThenPoll(ctx context.Context, id AgentPoolId) error {
+	return c.UpgradeNodeImageVersionCallbackThenPoll(ctx, id, nil)
+}
+
+// UpgradeNodeImageVersionCallbackThenPoll performs UpgradeNodeImageVersion, runs the optional callback function, then polls until it's completed
+func (c AgentPoolsClient) UpgradeNodeImageVersionCallbackThenPoll(ctx context.Context, id AgentPoolId, callback func() error) error {
 	result, err := c.UpgradeNodeImageVersion(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing UpgradeNodeImageVersion: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

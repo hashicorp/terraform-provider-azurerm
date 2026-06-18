@@ -111,14 +111,17 @@ func subscriptionTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, met
 
 	id := parse.NewSubscriptionTemplateDeploymentID(subscriptionId, d.Get("name").(string))
 
-	existing, err := client.GetAtSubscriptionScope(ctx, id.DeploymentName)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Subscription Template Deployment %q: %+v", id.DeploymentName, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.GetAtSubscriptionScope(ctx, id.DeploymentName)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for presence of existing Subscription Template Deployment %q: %+v", id.DeploymentName, err)
+			}
 		}
-	}
-	if existing.Properties != nil {
-		return tf.ImportAsExistsError("azurerm_subscription_template_deployment", id.ID())
+
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_subscription_template_deployment", id.ID())
+		}
 	}
 
 	deployment := resources.Deployment{
@@ -164,12 +167,13 @@ func subscriptionTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("creating Subscription Template Deployment %q: %+v", id.DeploymentName, err)
 	}
 
+	d.SetId(id.ID())
+
 	log.Printf("[DEBUG] Waiting for deployment of Subscription Template Deployment %q..", id.DeploymentName)
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation of Subscription Template Deployment %q: %+v", id.DeploymentName, err)
 	}
 
-	d.SetId(id.ID())
 	return subscriptionTemplateDeploymentResourceRead(d, meta)
 }
 

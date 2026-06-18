@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -225,13 +226,15 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	id := services.NewSearchServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id, services.GetOperationOptions{})
-	if err != nil && !response.WasNotFound(existing.HttpResponse) {
-		return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-	}
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id, services.GetOperationOptions{})
+		if err != nil && !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_search_service", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_search_service", id.ID())
+		}
 	}
 
 	publicNetworkAccess := services.PublicNetworkAccessEnabled
@@ -349,11 +352,10 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		payload.Identity = expandedIdentity
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, id, payload, services.CreateOrUpdateOperationOptions{})
+	err = client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, services.CreateOrUpdateOperationOptions{}, sdk.SetIDCallback(meta, &id, d))
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-
 	d.SetId(id.ID())
 
 	return resourceSearchServiceRead(d, meta)

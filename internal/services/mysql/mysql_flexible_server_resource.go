@@ -445,14 +445,16 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 
 	id := servers.NewFlexibleServerID(subscriptionId, resourceGroup, name)
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	{
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_mysql_flexible_server", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_mysql_flexible_server", id.ID())
+		}
 	}
 
 	woPassword, err := pluginsdk.GetWriteOnly(d, "administrator_password_wo", cty.String)
@@ -555,8 +557,13 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 	}
 	parameters.Identity = identity
 
-	if err := client.CreateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, id, parameters, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
 	}
 
 	// Add the state wait function until issue https://github.com/Azure/azure-rest-api-specs/issues/21178 is fixed.
@@ -586,11 +593,6 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 		if err := client.UpdateThenPoll(ctx, id, mwParams); err != nil {
 			return fmt.Errorf("updating Maintenance Window for %s: %+v", id, err)
 		}
-	}
-
-	d.SetId(id.ID())
-	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
-		return err
 	}
 
 	return resourceMysqlFlexibleServerRead(d, meta)

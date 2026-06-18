@@ -756,14 +756,16 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interfac
 
 	id := apimanagementservice.NewServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of an existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of an existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_api_management", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_api_management", id.ID())
+		}
 	}
 
 	location := location.Normalize(d.Get("location").(string))
@@ -917,7 +919,7 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interfac
 		properties.Zones = &zones
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, properties); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, properties, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 

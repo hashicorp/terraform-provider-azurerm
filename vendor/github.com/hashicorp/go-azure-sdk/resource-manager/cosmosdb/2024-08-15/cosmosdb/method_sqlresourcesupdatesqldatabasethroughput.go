@@ -62,9 +62,20 @@ func (c CosmosDBClient) SqlResourcesUpdateSqlDatabaseThroughput(ctx context.Cont
 
 // SqlResourcesUpdateSqlDatabaseThroughputThenPoll performs SqlResourcesUpdateSqlDatabaseThroughput then polls until it's completed
 func (c CosmosDBClient) SqlResourcesUpdateSqlDatabaseThroughputThenPoll(ctx context.Context, id SqlDatabaseId, input ThroughputSettingsUpdateParameters) error {
+	return c.SqlResourcesUpdateSqlDatabaseThroughputCallbackThenPoll(ctx, id, input, nil)
+}
+
+// SqlResourcesUpdateSqlDatabaseThroughputCallbackThenPoll performs SqlResourcesUpdateSqlDatabaseThroughput, runs the optional callback function, then polls until it's completed
+func (c CosmosDBClient) SqlResourcesUpdateSqlDatabaseThroughputCallbackThenPoll(ctx context.Context, id SqlDatabaseId, input ThroughputSettingsUpdateParameters, callback func() error) error {
 	result, err := c.SqlResourcesUpdateSqlDatabaseThroughput(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing SqlResourcesUpdateSqlDatabaseThroughput: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

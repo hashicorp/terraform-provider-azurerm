@@ -58,9 +58,20 @@ func (c NamespacesClient) ValidateCustomDomainOwnership(ctx context.Context, id 
 
 // ValidateCustomDomainOwnershipThenPoll performs ValidateCustomDomainOwnership then polls until it's completed
 func (c NamespacesClient) ValidateCustomDomainOwnershipThenPoll(ctx context.Context, id NamespaceId) error {
+	return c.ValidateCustomDomainOwnershipCallbackThenPoll(ctx, id, nil)
+}
+
+// ValidateCustomDomainOwnershipCallbackThenPoll performs ValidateCustomDomainOwnership, runs the optional callback function, then polls until it's completed
+func (c NamespacesClient) ValidateCustomDomainOwnershipCallbackThenPoll(ctx context.Context, id NamespaceId, callback func() error) error {
 	result, err := c.ValidateCustomDomainOwnership(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ValidateCustomDomainOwnership: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

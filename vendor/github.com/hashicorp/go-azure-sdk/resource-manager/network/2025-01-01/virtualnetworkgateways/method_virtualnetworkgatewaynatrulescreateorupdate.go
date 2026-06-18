@@ -62,9 +62,20 @@ func (c VirtualNetworkGatewaysClient) VirtualNetworkGatewayNatRulesCreateOrUpdat
 
 // VirtualNetworkGatewayNatRulesCreateOrUpdateThenPoll performs VirtualNetworkGatewayNatRulesCreateOrUpdate then polls until it's completed
 func (c VirtualNetworkGatewaysClient) VirtualNetworkGatewayNatRulesCreateOrUpdateThenPoll(ctx context.Context, id VirtualNetworkGatewayNatRuleId, input VirtualNetworkGatewayNatRule) error {
+	return c.VirtualNetworkGatewayNatRulesCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// VirtualNetworkGatewayNatRulesCreateOrUpdateCallbackThenPoll performs VirtualNetworkGatewayNatRulesCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c VirtualNetworkGatewaysClient) VirtualNetworkGatewayNatRulesCreateOrUpdateCallbackThenPoll(ctx context.Context, id VirtualNetworkGatewayNatRuleId, input VirtualNetworkGatewayNatRule, callback func() error) error {
 	result, err := c.VirtualNetworkGatewayNatRulesCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing VirtualNetworkGatewayNatRulesCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

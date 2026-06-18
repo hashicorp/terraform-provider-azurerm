@@ -285,15 +285,18 @@ func (r DataProtectionBackupPolicyKubernatesClusterResource) Create() sdk.Resour
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := basebackuppolicyresources.NewBackupPolicyID(subscriptionId, model.ResourceGroupName, model.VaultName, model.Name)
-			existing, err := client.BackupPoliciesGet(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for existing %s: %+v", id, err)
-				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.BackupPoliciesGet(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for existing %s: %+v", id, err)
+					}
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			taggingCriteria, err := expandBackupPolicyKubernetesClusterTaggingCriteriaArray(model.RetentionRule)
@@ -316,7 +319,7 @@ func (r DataProtectionBackupPolicyKubernatesClusterResource) Create() sdk.Resour
 			}
 
 			if _, err := client.BackupPoliciesCreateOrUpdate(ctx, id, parameters); err != nil {
-				return fmt.Errorf("creating/updating DataProtection BackupPolicy (%q): %+v", id, err)
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
