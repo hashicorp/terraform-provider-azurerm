@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/data-plane/synapse/2020-08-01-preview/synapseroledefinitions"
 	"github.com/hashicorp/go-azure-sdk/data-plane/synapse/2021-06-01-preview/linkedservices"
 	"github.com/hashicorp/go-azure-sdk/data-plane/synapse/2021-06-01-preview/managedprivateendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/bigdatapools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/ipfirewallrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/keys"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/privatelinkhubs"
@@ -32,7 +33,7 @@ type Client struct {
 	IntegrationRuntimesClient                         *synapse.IntegrationRuntimesClient
 	KeysClient                                        *keys.KeysClient
 	PrivateLinkHubsClient                             *privatelinkhubs.PrivateLinkHubsClient
-	SparkPoolClient                                   *synapse.BigDataPoolsClient
+	SparkPoolClient                                   *bigdatapools.BigDataPoolsClient
 	SqlPoolClient                                     *synapse.SQLPoolsClient
 	SqlPoolExtendedBlobAuditingPoliciesClient         *synapse.ExtendedSQLPoolBlobAuditingPoliciesClient
 	SqlPoolGeoBackupPoliciesClient                    *synapse.SQLPoolGeoBackupPoliciesClient
@@ -117,8 +118,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	o.Configure(privateLinkHubsClient.Client, o.Authorizers.ResourceManager)
 
 	// the service team hopes to rename it to sparkPool, so rename the sdk here
-	sparkPoolClient := synapse.NewBigDataPoolsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&sparkPoolClient.Client, o.ResourceManagerAuthorizer)
+	sparkPoolClient, err := bigdatapools.NewBigDataPoolsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Spark Pool Client: %+v", err)
+	}
+	o.Configure(sparkPoolClient.Client, o.Authorizers.ResourceManager)
 
 	sqlPoolClient := synapse.NewSQLPoolsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&sqlPoolClient.Client, o.ResourceManagerAuthorizer)
@@ -184,7 +188,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		IntegrationRuntimesClient:                         &integrationRuntimesClient,
 		KeysClient:                                        keysClient,
 		PrivateLinkHubsClient:                             privateLinkHubsClient,
-		SparkPoolClient:                                   &sparkPoolClient,
+		SparkPoolClient:                                   sparkPoolClient,
 		SqlPoolClient:                                     &sqlPoolClient,
 		SqlPoolExtendedBlobAuditingPoliciesClient:         &sqlPoolExtendedBlobAuditingPoliciesClient,
 		SqlPoolGeoBackupPoliciesClient:                    &sqlPoolGeoBackupPoliciesClient,
