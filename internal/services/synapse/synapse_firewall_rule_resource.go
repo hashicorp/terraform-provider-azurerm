@@ -8,8 +8,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/ipfirewallrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
@@ -17,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSynapseFirewallRule() *pluginsdk.Resource {
@@ -79,39 +79,34 @@ func resourceSynapseFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	id := parse.NewFirewallRuleID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, d.Get("name").(string))
+	id := ipfirewallrules.NewFirewallRuleID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, d.Get("name").(string))
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-			existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+			existing, err := client.Get(ctx, id)
 			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
 			}
 
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return tf.ImportAsExistsError("azurerm_synapse_firewall_rule", id.ID())
 			}
 		}
 	}
 
-	parameters := synapse.IPFirewallRuleInfo{
-		IPFirewallRuleProperties: &synapse.IPFirewallRuleProperties{
+	parameters := ipfirewallrules.IPFirewallRuleInfo{
+		Properties: &ipfirewallrules.IPFirewallRuleProperties{
 			StartIPAddress: pointer.To(d.Get("start_ip_address").(string)),
 			EndIPAddress:   pointer.To(d.Get("end_ip_address").(string)),
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, parameters)
-	if err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on creation/update of %s: %+v", id, err)
-	}
 
 	deadline, ok := ctx.Deadline()
 	if !ok {
@@ -122,14 +117,18 @@ func resourceSynapseFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 	// Firewall has a cache and will refresh every 1 minute, so if requests sent before firewall refreshes, it will meet ClientIpAddressNotAuthorized.
 	// Issue: https://github.com/Azure/azure-rest-api-specs/issues/21516
 	stateChangeConf := &pluginsdk.StateChangeConf{
-		Pending: []string{string(synapse.ProvisioningStateProvisioning)},
-		Target:  []string{string(synapse.ProvisioningStateSucceeded)},
+		Pending: []string{string(ipfirewallrules.ProvisioningStateProvisioning)},
+		Target:  []string{string(ipfirewallrules.ProvisioningStateSucceeded)},
 		Refresh: func() (result interface{}, state string, err error) {
-			resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+			resp, err := client.Get(ctx, id)
 			if err != nil {
 				return nil, "Error", err
 			}
-			return resp, string(resp.ProvisioningState), err
+			provisioningState := ""
+			if model := resp.Model; model != nil && model.Properties != nil && model.Properties.ProvisioningState != nil {
+				provisioningState = string(*model.Properties.ProvisioningState)
+			}
+			return resp, provisioningState, nil
 		},
 		MinTimeout:                30 * time.Second,
 		ContinuousTargetOccurence: 3,
@@ -148,29 +147,31 @@ func resourceSynapseFirewallRuleRead(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FirewallRuleID(d.Id())
+	id, err := ipfirewallrules.ParseFirewallRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] Error reading Synapse Firewall Rule %q - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("reading Synapse Firewall Rule %q (Workspace %q / Resource Group %q): %+v", id.Name, id.WorkspaceName, id.ResourceGroup, err)
+		return fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	workspaceId := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID()
-	d.Set("name", id.Name)
+	workspaceId := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName).ID()
+	d.Set("name", id.FirewallRuleName)
 	d.Set("synapse_workspace_id", workspaceId)
 
-	if props := resp.IPFirewallRuleProperties; props != nil {
-		d.Set("start_ip_address", props.StartIPAddress)
-		d.Set("end_ip_address", props.EndIPAddress)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("start_ip_address", props.StartIPAddress)
+			d.Set("end_ip_address", props.EndIPAddress)
+		}
 	}
 
 	return nil
@@ -181,18 +182,13 @@ func resourceSynapseFirewallRuleDelete(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FirewallRuleID(d.Id())
+	id, err := ipfirewallrules.ParseFirewallRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
-	if err != nil {
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil
