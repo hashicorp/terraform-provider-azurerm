@@ -122,15 +122,18 @@ func resourceStorageTableEntityCreate(d *pluginsdk.ResourceData, meta interface{
 		RowKey:        rowKey,
 		MetaDataLevel: entities.NoMetaData,
 	}
-	existing, err := client.Get(ctx, storageTableId.TableName, getEntityInput)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %v", id, err)
-		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) && !response.WasForbidden(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_storage_table_entity", id.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, storageTableId.TableName, getEntityInput)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %v", id, err)
+			}
+		}
+
+		if !response.WasNotFound(existing.HttpResponse) && !response.WasForbidden(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_storage_table_entity", id.ID())
+		}
 	}
 
 	input := entities.InsertOrMergeEntityInput{

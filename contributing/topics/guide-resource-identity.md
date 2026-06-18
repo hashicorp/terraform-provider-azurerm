@@ -55,7 +55,8 @@ To add Resource Identity to a typed resource, we will need to implement the `sdk
 
                 ...
                 
-                if err := client.CreateOrUpdateThenPoll; err != nil {
+                // If the resource uses a `CallbackThenPoll` method, ensure the callback function is updated to `SetIDAndIdentityCallBack`.
+                if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, param, metadata.SetIDAndIdentityCallback(&id)); err != nil {
                     return fmt.Errorf("creating %s: %+v", &id, err)
                 }
                 
@@ -174,8 +175,9 @@ To add Resource Identity to an untyped resource, follow the steps below.
             id := examplepackage.NewExampleResourceID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
 
             ...
-            
-            if err := client.CreateOrUpdateThenPoll; err != nil {
+
+            // If the resource uses a `CallbackThenPoll` method, ensure the callback function is updated to `SetIDAndIdentityCallBack`.
+            if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, param, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
                return fmt.Errorf("creating %s: %+v", &id, err)
             }
             

@@ -261,6 +261,16 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 					listvalidator.SizeBetween(1, 1),
 				},
 				NestedObject: schema.NestedBlockObject{
+					Attributes: map[string]schema.Attribute{
+						"persist_id_on_create_before_polling_for_completion": schema.BoolAttribute{
+							Optional:    true,
+							Description: "Whether to set the resource ID into state before polling asynchronous operations for completion. Defaults to `false`.",
+						},
+						"skip_import_check_on_create_and_allow_overwriting_existing_resources": schema.BoolAttribute{
+							Optional:    true,
+							Description: "Whether to skip the import check and allow the provider to overwrite existing remote resources if present. Defaults to `false`.",
+						},
+					},
 					Blocks: map[string]schema.Block{
 						"api_management": schema.ListNestedBlock{
 							NestedObject: schema.NestedBlockObject{

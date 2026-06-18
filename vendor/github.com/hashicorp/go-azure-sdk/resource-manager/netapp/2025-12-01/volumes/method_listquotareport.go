@@ -62,9 +62,20 @@ func (c VolumesClient) ListQuotaReport(ctx context.Context, id VolumeId, input Q
 
 // ListQuotaReportThenPoll performs ListQuotaReport then polls until it's completed
 func (c VolumesClient) ListQuotaReportThenPoll(ctx context.Context, id VolumeId, input QuotaReportFilterRequest) error {
+	return c.ListQuotaReportCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ListQuotaReportCallbackThenPoll performs ListQuotaReport, runs the optional callback function, then polls until it's completed
+func (c VolumesClient) ListQuotaReportCallbackThenPoll(ctx context.Context, id VolumeId, input QuotaReportFilterRequest, callback func() error) error {
 	result, err := c.ListQuotaReport(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ListQuotaReport: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

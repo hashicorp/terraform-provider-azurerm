@@ -259,13 +259,15 @@ func (r CommunicationsGatewayResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := communicationsgateways.NewCommunicationsGatewayID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			properties := &communicationsgateways.CommunicationsGateway{
@@ -286,7 +288,7 @@ func (r CommunicationsGatewayResource) Create() sdk.ResourceFunc {
 			var apiBridgeValue interface{}
 			if model.ApiBridge != "" {
 				log.Printf("[DEBUG] unmarshalling json for ApiBridge")
-				if err = json.Unmarshal([]byte(model.ApiBridge), &apiBridgeValue); err != nil {
+				if err := json.Unmarshal([]byte(model.ApiBridge), &apiBridgeValue); err != nil {
 					return fmt.Errorf("unmarshalling value for ApiBridge: %+v", err)
 				}
 			}
@@ -300,7 +302,7 @@ func (r CommunicationsGatewayResource) Create() sdk.ResourceFunc {
 
 			properties.Properties.TeamsVoicemailPilotNumber = &model.MicrosoftTeamsVoicemailPilotNumber
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, *properties, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

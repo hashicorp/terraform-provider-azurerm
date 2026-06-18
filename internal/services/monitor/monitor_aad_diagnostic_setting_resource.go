@@ -136,15 +136,18 @@ func resourceMonitorAADDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta i
 	defer cancel()
 
 	id := diagnosticsettings.NewDiagnosticSettingID(d.Get("name").(string))
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_monitor_aad_diagnostic_setting", id.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
+		}
+
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_monitor_aad_diagnostic_setting", id.ID())
+		}
 	}
 
 	// If there is no `enabled` log entry, the PUT will succeed while the next GET will return a 404.
@@ -187,14 +190,14 @@ func resourceMonitorAADDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	// custom poller is required until https://github.com/Azure/azure-rest-api-specs/issues/38858 is resolved
 	pollerType := NewAadDiagnosticSettingCreatePoller(client, id)
 	poller := pollers.NewPoller(pollerType, 15*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 	if err := poller.PollUntilDone(ctx); err != nil {
 		return err
 	}
-
-	d.SetId(id.ID())
 
 	return resourceMonitorAADDiagnosticSettingRead(d, meta)
 }

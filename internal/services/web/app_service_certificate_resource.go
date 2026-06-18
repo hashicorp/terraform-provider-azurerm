@@ -151,12 +151,14 @@ func resourceAppServiceCertificateCreate(d *pluginsdk.ResourceData, meta interfa
 
 	id := certificates.NewCertificateID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if !response.WasNotFound(existing.HttpResponse) {
-		if err != nil {
-			return fmt.Errorf("checking for presence of existing %s: %w", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if !response.WasNotFound(existing.HttpResponse) {
+			if err != nil {
+				return fmt.Errorf("checking for presence of existing %s: %w", id, err)
+			}
+			return tf.ImportAsExistsError("azurerm_app_service_certificate", id.ID())
 		}
-		return tf.ImportAsExistsError("azurerm_app_service_certificate", id.ID())
 	}
 
 	certificate := certificates.Certificate{

@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2020-05-01/frontdoors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/validate"
@@ -268,28 +269,28 @@ func resourceFrontDoorRulesEngineCreateUpdate(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	frontDoorName := d.Get("frontdoor_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	rulesEngineName := d.Get("name").(string)
-
 	rules := d.Get("rule").([]interface{})
 
-	id := frontdoors.NewRulesEngineID(subscriptionId, resourceGroup, frontDoorName, rulesEngineName)
-
-	frontdoorRulesEngineProperties := frontdoors.RulesEngineProperties{
-		Rules: expandFrontDoorRulesEngineRules(rules),
-	}
+	id := frontdoors.NewRulesEngineID(subscriptionId, d.Get("resource_group_name").(string), d.Get("frontdoor_name").(string), d.Get("name").(string))
 
 	frontdoorRulesEngine := frontdoors.RulesEngine{
-		Name:       pointer.To(rulesEngineName),
-		Properties: &frontdoorRulesEngineProperties,
+		Name: pointer.To(id.RulesEngineName),
+		Properties: &frontdoors.RulesEngineProperties{
+			Rules: expandFrontDoorRulesEngineRules(rules),
+		},
 	}
 
-	if err := client.RulesEnginesCreateOrUpdateThenPoll(ctx, id, frontdoorRulesEngine); err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.RulesEnginesCreateOrUpdateCallbackThenPoll(ctx, id, frontdoorRulesEngine, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.RulesEnginesCreateOrUpdateThenPoll(ctx, id, frontdoorRulesEngine); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
-	d.SetId(id.ID())
 	return resourceFrontDoorRulesEngineRead(d, meta)
 }
 

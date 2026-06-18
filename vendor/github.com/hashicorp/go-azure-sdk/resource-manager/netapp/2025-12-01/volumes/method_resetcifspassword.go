@@ -56,9 +56,20 @@ func (c VolumesClient) ResetCifsPassword(ctx context.Context, id VolumeId) (resu
 
 // ResetCifsPasswordThenPoll performs ResetCifsPassword then polls until it's completed
 func (c VolumesClient) ResetCifsPasswordThenPoll(ctx context.Context, id VolumeId) error {
+	return c.ResetCifsPasswordCallbackThenPoll(ctx, id, nil)
+}
+
+// ResetCifsPasswordCallbackThenPoll performs ResetCifsPassword, runs the optional callback function, then polls until it's completed
+func (c VolumesClient) ResetCifsPasswordCallbackThenPoll(ctx context.Context, id VolumeId, callback func() error) error {
 	result, err := c.ResetCifsPassword(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ResetCifsPassword: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

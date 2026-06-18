@@ -131,23 +131,25 @@ func resourceStorageObjectReplicationCreate(d *pluginsdk.ResourceData, meta inte
 	srcId := objectreplicationpolicyoperationgroup.NewObjectReplicationPolicyID(srcAccount.SubscriptionId, srcAccount.ResourceGroupName, srcAccount.StorageAccountName, "default")
 	dstId := objectreplicationpolicyoperationgroup.NewObjectReplicationPolicyID(dstAccount.SubscriptionId, dstAccount.ResourceGroupName, dstAccount.StorageAccountName, "default")
 
-	resp, err := client.ObjectReplicationPoliciesList(ctx, *dstAccount)
-	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("checking for present of existing Storage Object Replication for destination %q): %+v", dstAccount, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		resp, err := client.ObjectReplicationPoliciesList(ctx, *dstAccount)
+		if err != nil {
+			if response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("checking for present of existing Storage Object Replication for destination %q): %+v", dstAccount, err)
+			}
 		}
-	}
-	if resp.Model != nil {
-		for _, existing := range *resp.Model {
-			if existing.Name != nil && *existing.Name != "" {
-				if prop := existing.Properties; prop != nil && (
-				// Storage allows either a storage account name (only when allowCrossTenantReplication of the SA is false) or a full resource id (both cases).
-				// We should check for both cases.
-				(prop.SourceAccount == srcAccount.StorageAccountName && prop.DestinationAccount == dstAccount.StorageAccountName) ||
-					(strings.EqualFold(prop.SourceAccount, srcAccount.ID()) && strings.EqualFold(prop.DestinationAccount, dstAccount.ID()))) {
-					srcId.ObjectReplicationPolicyId = *existing.Name
-					dstId.ObjectReplicationPolicyId = *existing.Name
-					return tf.ImportAsExistsError("azurerm_storage_object_replication", parse.NewObjectReplicationID(srcId, dstId).ID())
+		if resp.Model != nil {
+			for _, existing := range *resp.Model {
+				if existing.Name != nil && *existing.Name != "" {
+					if prop := existing.Properties; prop != nil && (
+					// Storage allows either a storage account name (only when allowCrossTenantReplication of the SA is false) or a full resource id (both cases).
+					// We should check for both cases.
+					(prop.SourceAccount == srcAccount.StorageAccountName && prop.DestinationAccount == dstAccount.StorageAccountName) ||
+						(strings.EqualFold(prop.SourceAccount, srcAccount.ID()) && strings.EqualFold(prop.DestinationAccount, dstAccount.ID()))) {
+						srcId.ObjectReplicationPolicyId = *existing.Name
+						dstId.ObjectReplicationPolicyId = *existing.Name
+						return tf.ImportAsExistsError("azurerm_storage_object_replication", parse.NewObjectReplicationID(srcId, dstId).ID())
+					}
 				}
 			}
 		}

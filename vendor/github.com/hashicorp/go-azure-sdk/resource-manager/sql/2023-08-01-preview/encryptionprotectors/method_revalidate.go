@@ -58,9 +58,20 @@ func (c EncryptionProtectorsClient) Revalidate(ctx context.Context, id commonids
 
 // RevalidateThenPoll performs Revalidate then polls until it's completed
 func (c EncryptionProtectorsClient) RevalidateThenPoll(ctx context.Context, id commonids.SqlServerId) error {
+	return c.RevalidateCallbackThenPoll(ctx, id, nil)
+}
+
+// RevalidateCallbackThenPoll performs Revalidate, runs the optional callback function, then polls until it's completed
+func (c EncryptionProtectorsClient) RevalidateCallbackThenPoll(ctx context.Context, id commonids.SqlServerId, callback func() error) error {
 	result, err := c.Revalidate(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Revalidate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -2863,9 +2863,9 @@ resource "azurerm_container_registry" "test" {
 }
 
 resource "azurerm_storage_share" "test" {
-  name                 = "testshare%[3]s"
-  storage_account_name = azurerm_storage_account.test.name
-  quota                = 1
+  name               = "testshare%[3]s"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 1
 }
 
 resource "azurerm_container_app_environment_storage" "test" {

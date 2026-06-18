@@ -44,6 +44,9 @@ type ProviderModel struct {
 }
 
 type Features struct {
+	PersistIDOnCreateBeforePollingForCompletion                 types.Bool `tfsdk:"persist_id_on_create_before_polling_for_completion"`
+	SkipImportCheckOnCreateAndAllowOverwritingExistingResources types.Bool `tfsdk:"skip_import_check_on_create_and_allow_overwriting_existing_resources"`
+
 	APIManagement            types.List `tfsdk:"api_management"`
 	AppConfiguration         types.List `tfsdk:"app_configuration"`
 	ApplicationInsights      types.List `tfsdk:"application_insights"`
@@ -68,6 +71,9 @@ type Features struct {
 // FeaturesAttributes and the other block attribute vars are required for unit testing on the Load func
 // New features blocks and attributes must be added here and to unit tests.
 var FeaturesAttributes = map[string]attr.Type{
+	"persist_id_on_create_before_polling_for_completion":                   types.BoolType,
+	"skip_import_check_on_create_and_allow_overwriting_existing_resources": types.BoolType,
+
 	"api_management":             types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(APIManagementAttributes)),
 	"app_configuration":          types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(AppConfigurationAttributes)),
 	"application_insights":       types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(ApplicationInsightsAttributes)),

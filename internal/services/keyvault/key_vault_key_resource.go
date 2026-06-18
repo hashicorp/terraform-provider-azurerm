@@ -296,15 +296,17 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	keyId := keys.NewKeyID(*keyVaultBaseUri, name)
 	keyVersionId := keys.NewKeyversionID(keyId.BaseURI, keyId.KeyName, "")
 
-	existing, err := client.GetKey(ctx, keyVersionId)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing Key %q (Key Vault %q): %s", name, *keyVaultBaseUri, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.GetKey(ctx, keyVersionId)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing Key %q (Key Vault %q): %s", name, *keyVaultBaseUri, err)
+			}
 		}
-	}
 
-	if model := existing.Model; model != nil && model.Key != nil && pointer.From(model.Key.Kid) != "" {
-		return tf.ImportAsExistsError("azurerm_key_vault_key", *model.Key.Kid)
+		if model := existing.Model; model != nil && model.Key != nil && pointer.From(model.Key.Kid) != "" {
+			return tf.ImportAsExistsError("azurerm_key_vault_key", *model.Key.Kid)
+		}
 	}
 
 	keyType := d.Get("key_type").(string)

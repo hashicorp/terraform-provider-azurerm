@@ -174,6 +174,8 @@ func (r resource) Read() sdk.ResourceFunc {
 }
 ```
 
+> **Note:** The above guidance applies to any user-specifiable properties. For properties that are computed only, the `Read` function should return the value that is retrieved from Azure, including `None`, rather than converting it to an empty value.
+
 ## SKU fields
 
 Because the Azure API implementation for SKU fields tends to vary we can't easily standardise on a single approach, however, we should try to stick to one of the following two implementations:

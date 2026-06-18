@@ -60,9 +60,20 @@ func (c NetAppAccountsClient) AccountsTransitionToCmk(ctx context.Context, id Ne
 
 // AccountsTransitionToCmkThenPoll performs AccountsTransitionToCmk then polls until it's completed
 func (c NetAppAccountsClient) AccountsTransitionToCmkThenPoll(ctx context.Context, id NetAppAccountId, input EncryptionTransitionRequest) error {
+	return c.AccountsTransitionToCmkCallbackThenPoll(ctx, id, input, nil)
+}
+
+// AccountsTransitionToCmkCallbackThenPoll performs AccountsTransitionToCmk, runs the optional callback function, then polls until it's completed
+func (c NetAppAccountsClient) AccountsTransitionToCmkCallbackThenPoll(ctx context.Context, id NetAppAccountId, input EncryptionTransitionRequest, callback func() error) error {
 	result, err := c.AccountsTransitionToCmk(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing AccountsTransitionToCmk: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -62,9 +62,20 @@ func (c DeploymentsClient) Validate(ctx context.Context, id ResourceGroupProvide
 
 // ValidateThenPoll performs Validate then polls until it's completed
 func (c DeploymentsClient) ValidateThenPoll(ctx context.Context, id ResourceGroupProviderDeploymentId, input Deployment) error {
+	return c.ValidateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ValidateCallbackThenPoll performs Validate, runs the optional callback function, then polls until it's completed
+func (c DeploymentsClient) ValidateCallbackThenPoll(ctx context.Context, id ResourceGroupProviderDeploymentId, input Deployment, callback func() error) error {
 	result, err := c.Validate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Validate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

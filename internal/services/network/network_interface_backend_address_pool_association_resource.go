@@ -114,11 +114,15 @@ func resourceNetworkInterfaceBackendAddressPoolAssociationCreate(d *pluginsdk.Re
 	pools := make([]networkinterfaces.BackendAddressPool, 0)
 
 	// first double-check it doesn't exist
+	exists := false
 	if ipConfigProps.LoadBalancerBackendAddressPools != nil {
 		for _, existingPool := range *ipConfigProps.LoadBalancerBackendAddressPools {
 			if poolId := existingPool.Id; poolId != nil {
 				if *poolId == backendAddressPoolId.ID() {
-					return tf.ImportAsExistsError("azurerm_network_interface_backend_address_pool_association", id.ID())
+					exists = true
+					if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+						return tf.ImportAsExistsError("azurerm_network_interface_backend_address_pool_association", id.ID())
+					}
 				}
 
 				pools = append(pools, existingPool)
@@ -129,7 +133,9 @@ func resourceNetworkInterfaceBackendAddressPoolAssociationCreate(d *pluginsdk.Re
 	pool := networkinterfaces.BackendAddressPool{
 		Id: pointer.To(backendAddressPoolId.ID()),
 	}
-	pools = append(pools, pool)
+	if !exists {
+		pools = append(pools, pool)
+	}
 	ipConfigProps.LoadBalancerBackendAddressPools = &pools
 
 	props.IPConfigurations = updateNetworkInterfaceIPConfiguration(*config, props.IPConfigurations)
