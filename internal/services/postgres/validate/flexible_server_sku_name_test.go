@@ -30,6 +30,16 @@ func TestFlexibleServerSkuName(t *testing.T) {
 			valid: true,
 		},
 		{
+			name:  "GP_Standard_D4ds_v5",
+			input: "GP_Standard_D4ds_v5",
+			valid: true,
+		},
+		{
+			name:  "GP_Standard_D4ds_v6",
+			input: "GP_Standard_D4ds_v6",
+			valid: true,
+		},
+		{
 			name:  "Standard",
 			input: "Standard",
 			valid: false,
