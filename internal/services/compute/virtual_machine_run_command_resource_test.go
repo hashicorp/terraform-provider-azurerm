@@ -642,7 +642,7 @@ resource "azurerm_linux_virtual_machine" "test" {
   name                            = "acctestVM-${var.random_integer}"
   resource_group_name             = azurerm_resource_group.test.name
   location                        = azurerm_resource_group.test.location
-  size                            = "Standard_B2s"
+  size                            = "Standard_D2as_v5"
   admin_username                  = "adminuser"
   admin_password                  = "Pa-${var.random_string}"
   disable_password_authentication = false
