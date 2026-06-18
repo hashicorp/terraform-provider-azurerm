@@ -8,19 +8,17 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/privatelinkhubs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSynapsePrivateLinkHub() *pluginsdk.Resource {
@@ -65,26 +63,26 @@ func resourceSynapsePrivateLinkHubCreate(d *pluginsdk.ResourceData, meta interfa
 	defer cancel()
 
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	id := parse.NewPrivateLinkHubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := privatelinkhubs.NewPrivateLinkHubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of %s: %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_synapse_private_link_hub", id.ID())
 		}
 	}
 
-	privateLinkHubInfo := synapse.PrivateLinkHub{
-		Location: pointer.To(location.Normalize(d.Get("location").(string))),
+	privateLinkHubInfo := privatelinkhubs.PrivateLinkHub{
+		Location: location.Normalize(d.Get("location").(string)),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, privateLinkHubInfo, id.ResourceGroup, id.Name); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, privateLinkHubInfo); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -98,14 +96,14 @@ func resourceSynapsePrivateLinkHubRead(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.PrivateLinkHubID(d.Id())
+	id, err := privatelinkhubs.ParsePrivateLinkHubID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] synapse %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -113,11 +111,17 @@ func resourceSynapsePrivateLinkHubRead(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("name", id.PrivateLinkHubName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func resourceSynapsePrivateLinkHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -125,17 +129,17 @@ func resourceSynapsePrivateLinkHubUpdate(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.PrivateLinkHubID(d.Id())
+	id, err := privatelinkhubs.ParsePrivateLinkHubID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	if d.HasChange("tags") {
-		privateLinkHubPatchInfo := synapse.PrivateLinkHubPatchInfo{
+		privateLinkHubPatchInfo := privatelinkhubs.PrivateLinkHubPatchInfo{
 			Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 		}
 
-		if _, err := client.Update(ctx, privateLinkHubPatchInfo, id.ResourceGroup, id.Name); err != nil {
+		if _, err := client.Update(ctx, *id, privateLinkHubPatchInfo); err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
 		}
 	}
@@ -148,21 +152,13 @@ func resourceSynapsePrivateLinkHubDelete(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.PrivateLinkHubID(d.Id())
+	id, err := privatelinkhubs.ParsePrivateLinkHubID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
-	}
-
-	// sometimes the waitForCompletion rest api will return 404
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
-		}
 	}
 
 	return nil

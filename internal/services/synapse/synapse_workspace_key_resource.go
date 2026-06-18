@@ -10,9 +10,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/keys"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -20,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSynapseWorkspaceKey() *pluginsdk.Resource {
@@ -93,39 +93,43 @@ func resourceSynapseWorkspaceKeysCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	log.Printf("[INFO] Is active CMK: %t", isActiveCMK)
 
-	keyProperties := synapse.KeyProperties{
-		IsActiveCMK: &isActiveCMK,
-		KeyVaultURL: pointer.To(key.(string)),
-	}
-
-	synapseKey := synapse.Key{
-		KeyProperties: &keyProperties,
-	}
-
 	actualKeyName := ""
 	if keyName != "" {
 		actualKeyName = keyName
 	}
 
+	id := keys.NewKeyID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, actualKeyName)
+
+	synapseKey := keys.Key{
+		Properties: &keys.KeyProperties{
+			IsActiveCMK: pointer.To(isActiveCMK),
+			KeyVaultURL: pointer.To(key.(string)),
+		},
+	}
+
 	locks.ByName(workspaceId.Name, "azurerm_synapse_workspace")
 	defer locks.UnlockByName(workspaceId.Name, "azurerm_synapse_workspace")
-	keyresult, err := client.CreateOrUpdate(ctx, workspaceId.ResourceGroup, workspaceId.Name, actualKeyName, synapseKey)
+	keyresult, err := client.CreateOrUpdate(ctx, id, synapseKey)
 	if err != nil {
 		return fmt.Errorf("creating Synapse Workspace Key %q (Workspace %q): %+v", workspaceId.Name, workspaceId.Name, err)
 	}
 
-	if keyresult.ID == nil || *keyresult.ID == "" {
+	if keyresult.Model == nil || keyresult.Model.Id == nil || *keyresult.Model.Id == "" {
 		return fmt.Errorf("empty or nil ID returned for Synapse Key 'cmk'")
 	}
 
 	if d.IsNewResource() {
-		id := parse.NewWorkspaceKeysID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, actualKeyName)
 		d.SetId(id.ID())
 	}
 
+	resultIsActiveCMK := false
+	if keyresult.Model.Properties != nil && keyresult.Model.Properties.IsActiveCMK != nil {
+		resultIsActiveCMK = *keyresult.Model.Properties.IsActiveCMK
+	}
+
 	// If the state of the key in the response (from Azure) is not equal to the desired target state (from plan/config), we'll wait until that change is complete
-	if isActiveCMK != *keyresult.IsActiveCMK {
-		updateWait := synapseKeysWaitForStateChange(ctx, meta, d.Timeout(pluginsdk.TimeoutUpdate), workspaceId.ResourceGroup, workspaceId.Name, actualKeyName, strconv.FormatBool(*keyresult.IsActiveCMK), strconv.FormatBool(isActiveCMK))
+	if isActiveCMK != resultIsActiveCMK {
+		updateWait := synapseKeysWaitForStateChange(ctx, meta, d.Timeout(pluginsdk.TimeoutUpdate), id, strconv.FormatBool(resultIsActiveCMK), strconv.FormatBool(isActiveCMK))
 
 		if _, err := updateWait.WaitForStateContext(ctx); err != nil {
 			return fmt.Errorf("waiting for Synapse Keys to finish updating '%q' (Workspace Group %q): %v", actualKeyName, workspaceId.Name, err)
@@ -141,27 +145,31 @@ func resourceSynapseWorkspaceKeyRead(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.WorkspaceKeysID(d.Id())
+	id, err := keys.ParseKeyID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.KeyName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("retrieving Synapse Workspace Key %q (Workspace %q): %+v", id.KeyName, id.WorkspaceName, err)
 	}
 
-	workspaceID := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
+	workspaceID := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
 
 	// Set the properties
 	d.Set("synapse_workspace_id", workspaceID.ID())
-	d.Set("active", resp.IsActiveCMK)
 	d.Set("customer_managed_key_name", id.KeyName)
-	d.Set("customer_managed_key_versionless_id", resp.KeyVaultURL)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("active", props.IsActiveCMK)
+			d.Set("customer_managed_key_versionless_id", props.KeyVaultURL)
+		}
+	}
 
 	return nil
 }
@@ -171,20 +179,24 @@ func resourceSynapseWorkspaceKeysDelete(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.WorkspaceKeysID(d.Id())
+	id, err := keys.ParseKeyID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	// Fetch the key and check if it's an active key
-	keyresult, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.KeyName)
+	keyresult, err := client.Get(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("unable to fetch key %s in workspace %s: %v", id.KeyName, id.WorkspaceName, err)
 	}
 
 	// Azure only lets you delete keys that are not active
-	if !*keyresult.IsActiveCMK {
-		if _, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.KeyName); err != nil {
+	isActiveCMK := false
+	if keyresult.Model != nil && keyresult.Model.Properties != nil && keyresult.Model.Properties.IsActiveCMK != nil {
+		isActiveCMK = *keyresult.Model.Properties.IsActiveCMK
+	}
+	if !isActiveCMK {
+		if _, err := client.Delete(ctx, *id); err != nil {
 			return fmt.Errorf("unable to delete key %s in workspace %s: %v", id.KeyName, id.WorkspaceName, err)
 		}
 	}
@@ -192,29 +204,29 @@ func resourceSynapseWorkspaceKeysDelete(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func synapseKeysWaitForStateChange(ctx context.Context, meta interface{}, timeout time.Duration, resourceGroup string, workspaceName string, keyName string, pendingState string, targetState string) *pluginsdk.StateChangeConf {
+func synapseKeysWaitForStateChange(ctx context.Context, meta interface{}, timeout time.Duration, id keys.KeyId, pendingState string, targetState string) *pluginsdk.StateChangeConf {
 	return &pluginsdk.StateChangeConf{
 		Pending:    []string{pendingState},
 		Target:     []string{targetState},
 		MinTimeout: 1 * time.Minute,
 		Timeout:    timeout,
-		Refresh:    synapseKeysRefresh(ctx, meta, resourceGroup, workspaceName, keyName),
+		Refresh:    synapseKeysRefresh(ctx, meta, id),
 	}
 }
 
-func synapseKeysRefresh(ctx context.Context, meta interface{}, resourceGroup string, workspaceName string, keyName string) pluginsdk.StateRefreshFunc {
+func synapseKeysRefresh(ctx context.Context, meta interface{}, id keys.KeyId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		client := meta.(*clients.Client).Synapse.KeysClient
 
-		log.Printf("[INFO] checking on state of encryption key '%q' (Workspace %q)", workspaceName, keyName)
+		log.Printf("[INFO] checking on state of encryption key '%q' (Workspace %q)", id.WorkspaceName, id.KeyName)
 
-		resp, err := client.Get(ctx, resourceGroup, workspaceName, keyName)
+		resp, err := client.Get(ctx, id)
 		if err != nil {
-			return nil, "nil", fmt.Errorf("polling for the status of encryption key '%q' (Workspace %q): %v", keyName, workspaceName, err)
+			return nil, "nil", fmt.Errorf("polling for the status of encryption key '%q' (Workspace %q): %v", id.KeyName, id.WorkspaceName, err)
 		}
 
-		if resp.KeyProperties != nil && resp.IsActiveCMK != nil {
-			return resp, strconv.FormatBool(*resp.IsActiveCMK), nil
+		if model := resp.Model; model != nil && model.Properties != nil && model.Properties.IsActiveCMK != nil {
+			return resp, strconv.FormatBool(*model.Properties.IsActiveCMK), nil
 		}
 
 		// I am not returning an error here as this might have just been a bad get

@@ -9,12 +9,13 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/keys"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SynapseWorkspaceKeysResource struct{}
@@ -62,9 +63,9 @@ func (r SynapseWorkspaceKeysResource) Exists(ctx context.Context, client *client
 		return nil, err
 	}
 
-	resp, err := client.Synapse.KeysClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.KeyName)
+	resp, err := client.Synapse.KeysClient.Get(ctx, keys.NewKeyID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName, id.KeyName))
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Synapse Workspace Key %q (Workspace %q): %+v", id.KeyName, id.WorkspaceName, err)

@@ -13,6 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/data-plane/synapse/2021-06-01-preview/linkedservices"
 	"github.com/hashicorp/go-azure-sdk/data-plane/synapse/2021-06-01-preview/managedprivateendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/ipfirewallrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/keys"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/privatelinkhubs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
@@ -28,8 +30,8 @@ type Client struct {
 	FirewallRulesClient                               *ipfirewallrules.IPFirewallRulesClient
 	IntegrationRuntimeAuthKeysClient                  *synapse.IntegrationRuntimeAuthKeysClient
 	IntegrationRuntimesClient                         *synapse.IntegrationRuntimesClient
-	KeysClient                                        *synapse.KeysClient
-	PrivateLinkHubsClient                             *synapse.PrivateLinkHubsClient
+	KeysClient                                        *keys.KeysClient
+	PrivateLinkHubsClient                             *privatelinkhubs.PrivateLinkHubsClient
 	SparkPoolClient                                   *synapse.BigDataPoolsClient
 	SqlPoolClient                                     *synapse.SQLPoolsClient
 	SqlPoolExtendedBlobAuditingPoliciesClient         *synapse.ExtendedSQLPoolBlobAuditingPoliciesClient
@@ -102,11 +104,17 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	integrationRuntimesClient := synapse.NewIntegrationRuntimesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&integrationRuntimesClient.Client, o.ResourceManagerAuthorizer)
 
-	keysClient := synapse.NewKeysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&keysClient.Client, o.ResourceManagerAuthorizer)
+	keysClient, err := keys.NewKeysClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Keys Client: %+v", err)
+	}
+	o.Configure(keysClient.Client, o.Authorizers.ResourceManager)
 
-	privateLinkHubsClient := synapse.NewPrivateLinkHubsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&privateLinkHubsClient.Client, o.ResourceManagerAuthorizer)
+	privateLinkHubsClient, err := privatelinkhubs.NewPrivateLinkHubsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Private Link Hubs Client: %+v", err)
+	}
+	o.Configure(privateLinkHubsClient.Client, o.Authorizers.ResourceManager)
 
 	// the service team hopes to rename it to sparkPool, so rename the sdk here
 	sparkPoolClient := synapse.NewBigDataPoolsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
@@ -174,8 +182,8 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		FirewallRulesClient:                               firewallRuleClient,
 		IntegrationRuntimeAuthKeysClient:                  &integrationRuntimeAuthKeysClient,
 		IntegrationRuntimesClient:                         &integrationRuntimesClient,
-		KeysClient:                                        &keysClient,
-		PrivateLinkHubsClient:                             &privateLinkHubsClient,
+		KeysClient:                                        keysClient,
+		PrivateLinkHubsClient:                             privateLinkHubsClient,
 		SparkPoolClient:                                   &sparkPoolClient,
 		SqlPoolClient:                                     &sqlPoolClient,
 		SqlPoolExtendedBlobAuditingPoliciesClient:         &sqlPoolExtendedBlobAuditingPoliciesClient,
