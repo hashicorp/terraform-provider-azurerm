@@ -43,6 +43,7 @@ func TestAccAzureRMLoadBalancerProbe_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("no_healthy_backends_behavior").HasValue("AllProbedUp"),
 			),
 		},
 		data.ImportStep(),
@@ -264,12 +265,13 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_probe" "test" {
-  loadbalancer_id     = azurerm_lb.test.id
-  name                = "probe-%[1]d"
-  port                = 22
-  interval_in_seconds = 5
-  number_of_probes    = 2
-  probe_threshold     = 2
+  loadbalancer_id              = azurerm_lb.test.id
+  name                         = "probe-%[1]d"
+  port                         = 22
+  interval_in_seconds          = 5
+  number_of_probes             = 2
+  probe_threshold              = 2
+  no_healthy_backends_behavior = "AllProbedUp"
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
