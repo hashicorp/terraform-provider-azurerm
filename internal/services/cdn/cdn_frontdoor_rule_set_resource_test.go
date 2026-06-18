@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rulesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -95,8 +96,9 @@ func (r CdnFrontDoorRuleSetResource) Exists(ctx context.Context, clients *client
 	if err != nil {
 		return nil, err
 	}
+	batchModeID := rules.NewRuleSetID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName, id.RuleSetName)
 
-	if _, err = client.Get(ctx, *id); err != nil {
+	if _, err = client.Get(ctx, batchModeID); err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 

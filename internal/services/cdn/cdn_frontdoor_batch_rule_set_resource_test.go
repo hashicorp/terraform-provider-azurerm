@@ -11,7 +11,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	legacyrulesets "github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rulesets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -494,9 +493,8 @@ func (r CdnFrontdoorBatchRuleSetResource) Exists(ctx context.Context, clients *c
 		return nil, err
 	}
 
-	ruleSetResourceId := legacyrulesets.NewRuleSetID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName, id.RuleSetName)
 	batchModeRuleSetClient := clients.Cdn.FrontDoorRuleSetsClient_v2025_12_01
-	resp, err := batchModeRuleSetClient.Get(ctx, ruleSetResourceId)
+	resp, err := batchModeRuleSetClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}

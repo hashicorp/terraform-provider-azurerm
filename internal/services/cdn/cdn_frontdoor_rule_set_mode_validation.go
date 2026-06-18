@@ -13,7 +13,10 @@ import (
 )
 
 func ensureNonBatchRuleSetMode(ctx context.Context, client *clients.Client, id rulesets.RuleSetId) error {
-	resp, err := client.Cdn.FrontDoorRuleSetsClient_v2025_12_01.Get(ctx, id)
+	// Legacy individually managed rule resources validate the parent ruleset via
+	// the 2025 client because only that API surface exposes `batchMode`.
+	batchModeID := batchModeClientRuleSetID(id)
+	resp, err := client.Cdn.FrontDoorRuleSetsClient_v2025_12_01.Get(ctx, batchModeID)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}

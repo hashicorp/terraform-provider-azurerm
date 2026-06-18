@@ -95,8 +95,12 @@ func resourceCdnFrontDoorRuleSetRead(d *pluginsdk.ResourceData, meta interface{}
 	if err != nil {
 		return err
 	}
+	// The legacy rulesets client is still the CRUD surface for this resource, but
+	// only the 2025 ruleset client exposes `batchMode`, so reads inspect that flag
+	// through the newer client before continuing with the legacy resource flow.
+	batchModeID := batchModeClientRuleSetID(*id)
 
-	resp, err := batchModeRuleSetClient.Get(ctx, *id)
+	resp, err := batchModeRuleSetClient.Get(ctx, batchModeID)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found, removing from state", id)
@@ -125,8 +129,13 @@ func resourceCdnFrontDoorRuleSetDelete(d *pluginsdk.ResourceData, meta interface
 	if err != nil {
 		return err
 	}
+	// The legacy rulesets client performs the delete, but we must first inspect
+	// `batchMode` through the 2025 ruleset client because the older surface does
+	// not expose that field and this legacy resource must not operate on batch
+	// rulesets.
+	batchModeID := batchModeClientRuleSetID(*id)
 
-	resp, err := batchModeRuleSetClient.Get(ctx, *id)
+	resp, err := batchModeRuleSetClient.Get(ctx, batchModeID)
 	if err != nil {
 		if !response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("retrieving %s: %+v", id, err)

@@ -98,8 +98,7 @@ func (CdnFrontDoorBatchRuleSetListResource) List(ctx context.Context, request li
 				return
 			}
 
-			ruleSetResourceId := legacyrulesets.NewRuleSetID(ruleSetID.SubscriptionId, ruleSetID.ResourceGroupName, ruleSetID.ProfileName, ruleSetID.RuleSetName)
-			detailedResp, err := batchModeRuleSetClient.Get(iteratorCtx, ruleSetResourceId)
+			detailedResp, err := batchModeRuleSetClient.Get(iteratorCtx, *ruleSetID)
 			if err != nil {
 				result := request.NewListResult(iteratorCtx)
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("retrieving `%s`", batchRuleSetResource.ResourceType()), err)

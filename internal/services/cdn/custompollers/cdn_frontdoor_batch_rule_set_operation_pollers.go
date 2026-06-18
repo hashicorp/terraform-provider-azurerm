@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	legacyrulesets "github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rulesets"
 	batchRules "github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rules"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/azuresdkhacks"
@@ -23,12 +22,12 @@ const frontDoorBatchRuleSetPollInterval = 30 * time.Second
 
 type frontDoorBatchRuleSetUpdatePoller struct {
 	client          *azuresdkhacks.BatchRuleSetsClient
-	id              legacyrulesets.RuleSetId
+	id              batchRules.RuleSetId
 	input           azuresdkhacks.BatchRuleSetResource
 	operationIssued bool
 }
 
-func NewFrontDoorBatchRuleSetUpdatePoller(client *azuresdkhacks.BatchRuleSetsClient, id legacyrulesets.RuleSetId, input azuresdkhacks.BatchRuleSetResource) pollers.PollerType {
+func NewFrontDoorBatchRuleSetUpdatePoller(client *azuresdkhacks.BatchRuleSetsClient, id batchRules.RuleSetId, input azuresdkhacks.BatchRuleSetResource) pollers.PollerType {
 	return &frontDoorBatchRuleSetUpdatePoller{
 		client: client,
 		id:     id,
@@ -61,7 +60,7 @@ func (p *frontDoorBatchRuleSetUpdatePoller) Poll(ctx context.Context) (*pollers.
 	return frontDoorBatchRuleSetSucceeded(), nil
 }
 
-func frontDoorBatchRuleSetSettledForUpdate(ctx context.Context, client *azuresdkhacks.BatchRuleSetsClient, id legacyrulesets.RuleSetId, desired azuresdkhacks.BatchRuleSetResource) (bool, error) {
+func frontDoorBatchRuleSetSettledForUpdate(ctx context.Context, client *azuresdkhacks.BatchRuleSetsClient, id batchRules.RuleSetId, desired azuresdkhacks.BatchRuleSetResource) (bool, error) {
 	resp, err := client.Get(ctx, id)
 	if err != nil {
 		return false, fmt.Errorf("retrieving %s while waiting for batch rule set state to settle after update: %+v", id.ID(), err)

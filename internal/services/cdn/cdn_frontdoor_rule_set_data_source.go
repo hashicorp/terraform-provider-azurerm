@@ -61,8 +61,11 @@ func dataSourceCdnFrontDoorRuleSetRead(d *pluginsdk.ResourceData, meta interface
 	defer cancel()
 
 	id := rulesets.NewRuleSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("profile_name").(string), d.Get("name").(string))
+	// This legacy data source reads through the 2025 ruleset client because that
+	// surface exposes `batchMode`, which the older rulesets client does not.
+	batchModeID := batchModeClientRuleSetID(id)
 
-	resp, err := client.Get(ctx, id)
+	resp, err := client.Get(ctx, batchModeID)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)

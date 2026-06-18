@@ -10,7 +10,6 @@ import (
 	"net/http"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/systemdata"
-	rulesets "github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rulesets"
 	batchRules "github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rules"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
@@ -259,7 +258,7 @@ type BatchRuleSetsCreateOperationResponse struct {
 	Model        *BatchRuleSetResource
 }
 
-func (c BatchRuleSetsClient) Create(ctx context.Context, id rulesets.RuleSetId, input BatchRuleSetResource) (result BatchRuleSetsCreateOperationResponse, err error) {
+func (c BatchRuleSetsClient) Create(ctx context.Context, id batchRules.RuleSetId, input BatchRuleSetResource) (result BatchRuleSetsCreateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType:         "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{http.StatusAccepted, http.StatusCreated, http.StatusOK},
@@ -300,7 +299,7 @@ func (c BatchRuleSetsClient) Create(ctx context.Context, id rulesets.RuleSetId, 
 	return
 }
 
-func (c BatchRuleSetsClient) CreateThenPoll(ctx context.Context, id rulesets.RuleSetId, input BatchRuleSetResource) error {
+func (c BatchRuleSetsClient) CreateThenPoll(ctx context.Context, id batchRules.RuleSetId, input BatchRuleSetResource) error {
 	result, err := c.Create(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Create: %+v", err)
@@ -319,7 +318,7 @@ type BatchRuleSetsGetOperationResponse struct {
 	Model        *BatchRuleSetResource
 }
 
-func (c BatchRuleSetsClient) Get(ctx context.Context, id rulesets.RuleSetId) (result BatchRuleSetsGetOperationResponse, err error) {
+func (c BatchRuleSetsClient) Get(ctx context.Context, id batchRules.RuleSetId) (result BatchRuleSetsGetOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType:         "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{http.StatusOK},
@@ -357,7 +356,7 @@ type BatchRuleSetsDeleteOperationResponse struct {
 	OData        *odata.OData
 }
 
-func (c BatchRuleSetsClient) Delete(ctx context.Context, id rulesets.RuleSetId) (result BatchRuleSetsDeleteOperationResponse, err error) {
+func (c BatchRuleSetsClient) Delete(ctx context.Context, id batchRules.RuleSetId) (result BatchRuleSetsDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType:         "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{http.StatusAccepted, http.StatusNoContent, http.StatusOK},
@@ -388,7 +387,7 @@ func (c BatchRuleSetsClient) Delete(ctx context.Context, id rulesets.RuleSetId) 
 	return
 }
 
-func (c BatchRuleSetsClient) DeleteThenPoll(ctx context.Context, id rulesets.RuleSetId) error {
+func (c BatchRuleSetsClient) DeleteThenPoll(ctx context.Context, id batchRules.RuleSetId) error {
 	result, err := c.Delete(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Delete: %+v", err)
