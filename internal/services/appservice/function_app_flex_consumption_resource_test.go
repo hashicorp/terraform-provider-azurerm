@@ -3843,7 +3843,7 @@ func (FunctionAppFlexConsumptionResource) template(data acceptance.TestData) str
 	if !features.FivePointOh() {
 		return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-LFA-%d"
+  name     = "acctestRG-LFA-%[1]d"
   location = "eastus2"
 }
 
@@ -3875,7 +3875,7 @@ resource "azurerm_monitor_smart_detector_alert_rule" "test" {
 }
 
 resource "azurerm_storage_account" "backend" {
-  name                     = "acctestsa%[2]s"
+  name                     = "acctestdesa%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -3883,7 +3883,7 @@ resource "azurerm_storage_account" "backend" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[3]s"
+  name                     = "acctestdeploy%[4]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -3937,12 +3937,12 @@ resource "azurerm_service_plan" "test" {
   os_type             = "Linux"
   sku_name            = "FC1"
 }
-		`, data.RandomInteger, "eastus2", data.RandomString, data.RandomInteger) // location needs to be hardcoded for the moment because flex isn't available in all regions yet and appservice already has location overrides in TC
+		`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString) // location needs to be hardcoded for the moment because flex isn't available in all regions yet and appservice already has location overrides in TC
 	}
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-LFA-%[1]d"
-  location = "%s"
+  location = "%[2]s"
 }
 
 resource "azurerm_application_insights" "test" {
@@ -3972,8 +3972,16 @@ resource "azurerm_monitor_smart_detector_alert_rule" "test" {
   }
 }
 
-resource "azurerm_storage_account" "test" {
+resource "azurerm_storage_account" "backend" {
   name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[4]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -4027,7 +4035,7 @@ resource "azurerm_service_plan" "test" {
   os_type             = "Linux"
   sku_name            = "FC1"
 }
-	`, data.RandomInteger, "eastus2", data.RandomString, data.RandomInteger) // location needs to be hardcoded for the moment because flex isn't available in all regions yet and appservice already has location overrides in TC
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString) // location needs to be hardcoded for the moment because flex isn't available in all regions yet and appservice already has location overrides in TC
 }
 
 func (FunctionAppFlexConsumptionResource) templateEnabledAiDetector(data acceptance.TestData) string {
