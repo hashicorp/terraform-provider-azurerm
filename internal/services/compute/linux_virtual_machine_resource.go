@@ -1009,6 +1009,11 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 			}
 			d.Set("platform_fault_domain", platformFaultDomain)
 
+			patchMode := string(virtualmachines.LinuxVMGuestPatchModeImageDefault)
+			assessmentMode := string(virtualmachines.LinuxPatchAssessmentModeImageDefault)
+			bypassPlatformSafetyChecksOnUserScheduleEnabled := false
+			rebootSetting := ""
+
 			if profile := props.OsProfile; profile != nil {
 				d.Set("admin_username", profile.AdminUsername)
 				d.Set("allow_extension_operations", profile.AllowExtensionOperations)
@@ -1026,33 +1031,31 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 					if err := d.Set("admin_ssh_key", pluginsdk.NewSet(SSHKeySchemaHash, *flattenedSSHKeys)); err != nil {
 						return fmt.Errorf("setting `admin_ssh_key`: %+v", err)
 					}
-					patchMode := string(virtualmachines.LinuxVMGuestPatchModeImageDefault)
-					if patchSettings := config.PatchSettings; patchSettings != nil && patchSettings.PatchMode != nil {
-						patchMode = string(*patchSettings.PatchMode)
-					}
-					d.Set("patch_mode", patchMode)
 
-					assessmentMode := string(virtualmachines.LinuxPatchAssessmentModeImageDefault)
-					if patchSettings := config.PatchSettings; patchSettings != nil && patchSettings.AssessmentMode != nil {
-						assessmentMode = string(*patchSettings.AssessmentMode)
+					if patchSettings := config.PatchSettings; patchSettings != nil {
+						if patchSettings.PatchMode != nil {
+							patchMode = string(*patchSettings.PatchMode)
+						}
+						if patchSettings.AssessmentMode != nil {
+							assessmentMode = string(*patchSettings.AssessmentMode)
+						}
+						if patchSettings.AutomaticByPlatformSettings != nil {
+							bypassPlatformSafetyChecksOnUserScheduleEnabled = pointer.From(patchSettings.AutomaticByPlatformSettings.BypassPlatformSafetyChecksOnUserSchedule)
+							rebootSetting = string(pointer.From(patchSettings.AutomaticByPlatformSettings.RebootSetting))
+						}
 					}
-					d.Set("patch_assessment_mode", assessmentMode)
-
-					bypassPlatformSafetyChecksOnUserScheduleEnabled := false
-					rebootSetting := ""
-					if patchSettings := config.PatchSettings; patchSettings != nil && patchSettings.AutomaticByPlatformSettings != nil {
-						bypassPlatformSafetyChecksOnUserScheduleEnabled = pointer.From(patchSettings.AutomaticByPlatformSettings.BypassPlatformSafetyChecksOnUserSchedule)
-
-						rebootSetting = string(pointer.From(patchSettings.AutomaticByPlatformSettings.RebootSetting))
-					}
-					d.Set("bypass_platform_safety_checks_on_user_schedule_enabled", bypassPlatformSafetyChecksOnUserScheduleEnabled)
-					d.Set("reboot_setting", rebootSetting)
 				}
 
 				if err := d.Set("secret", flattenLinuxSecrets(profile.Secrets)); err != nil {
 					return fmt.Errorf("setting `secret`: %+v", err)
 				}
 			}
+
+			d.Set("patch_mode", patchMode)
+			d.Set("patch_assessment_mode", assessmentMode)
+			d.Set("bypass_platform_safety_checks_on_user_schedule_enabled", bypassPlatformSafetyChecksOnUserScheduleEnabled)
+			d.Set("reboot_setting", rebootSetting)
+
 			// Resources created with azurerm_virtual_machine have priority set to ""
 			// We need to treat "" as equal to "Regular" to allow migration azurerm_virtual_machine -> azurerm_linux_virtual_machine
 			priority := string(virtualmachines.VirtualMachinePriorityTypesRegular)

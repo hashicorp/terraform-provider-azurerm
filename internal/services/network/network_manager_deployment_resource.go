@@ -13,9 +13,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkmanagers"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -138,8 +140,17 @@ func (r ManagerDeploymentResource) Create() sdk.ResourceFunc {
 				CommitType:       networkmanagers.ConfigurationType(state.ScopeAccess),
 			}
 
-			// TODO: implement callback, requires migrating to an ID implementing `resourceids.ResourceId`
-			if err := client.NetworkManagerCommitsPostThenPoll(ctx, *networkManagerId, input); err != nil {
+			// The API has an issue where it may return an async operation URL that is invalid, breaking the default LRO poller
+			if _, err := client.NetworkManagerCommitsPost(ctx, *networkManagerId, input); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			if metadata.Client.Features.PersistIDOnCreateBeforePollingForCompletion {
+				metadata.SetID(id)
+			}
+
+			poller := pollers.NewPoller(custompollers.NewNetworkManagerDeploymentPoller(client, *id), time.Second*10, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

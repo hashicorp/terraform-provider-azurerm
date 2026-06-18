@@ -12,7 +12,7 @@ Manages a Microsoft SQL Azure Managed Instance.
 
 ~> **Note:** All arguments including the administrator login and password will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
-~> **Note:** SQL Managed Instance needs permission to read Azure Active Directory when configuring the AAD administrator. [Read more about provisioning AAD administrators](https://learn.microsoft.com/en-us/azure/azure-sql/database/authentication-aad-configure?view=azuresql#provision-azure-ad-admin-sql-managed-instance).
+~> **Note:** SQL Managed Instance needs permission to read Azure Active Directory when configuring the AAD administrator. [Read more about provisioning AAD administrators](https://learn.microsoft.com/azure/azure-sql/database/authentication-aad-configure?view=azuresql#provision-azure-ad-admin-sql-managed-instance).
 
 ## Example Usage
 
@@ -271,7 +271,13 @@ The following arguments are supported:
 
 * `storage_account_type` - (Optional) Specifies the storage account type used to store backups for this database. Possible values are `GRS`, `GZRS`, `LRS`, and `ZRS`. Defaults to `GRS`.
 
+* `storage_iops` - (Optional) The storage IOPS for the SQL Managed Instance. Possible values are between `300` and `80000`. This can only be specified when `general_purpose_v2_enabled` is `true`.
+
+-> **Note:** The effective maximum value for `storage_iops` depends on the selected `sku_name` and `vcores`. Refer to [Azure SQL Managed Instance resource limits](https://learn.microsoft.com/en-us/azure/azure-sql/managed-instance/resource-limits) for detailed information.
+
 * `zone_redundant_enabled` - (Optional) Specifies whether the SQL Managed Instance is zone redundant. Defaults to `false`.
+
+~> **Note:** `zone_redundant_enabled` cannot be specified when `general_purpose_v2_enabled` is `true` because zone redundancy is not available for the [Next-gen General Purpose service tier]([https://learn.microsoft.com/azure/azure-sql/managed-instance/high-availability-sla-local-zone-redun.](https://learn.microsoft.com/azure/azure-sql/managed-instance/high-availability-sla-local-zone-redundancy#next-gen-general-purpose-service-tier).)
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

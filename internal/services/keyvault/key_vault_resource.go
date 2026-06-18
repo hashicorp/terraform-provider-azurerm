@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-02-01/vaults"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -36,6 +37,8 @@ import (
 	dataplane "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name key_vault -service-package-name keyvault -properties "name,resource_group_name"
+
 var keyVaultResourceName = "azurerm_key_vault"
 
 func resourceKeyVault() *pluginsdk.Resource {
@@ -45,10 +48,11 @@ func resourceKeyVault() *pluginsdk.Resource {
 		Update: resourceKeyVaultUpdate,
 		Delete: resourceKeyVaultDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := commonids.ParseKeyVaultID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.KeyVaultId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.KeyVaultId{}),
+		},
 
 		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
@@ -326,6 +330,7 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	enabledForDeployment := d.Get("enabled_for_deployment").(bool)
 	enabledForDiskEncryption := d.Get("enabled_for_disk_encryption").(bool)
 	enabledForTemplateDeployment := d.Get("enabled_for_template_deployment").(bool)
+	enabledRbacAuthorization := d.Get("rbac_authorization_enabled").(bool)
 	t := d.Get("tags").(map[string]interface{})
 
 	policies := d.Get("access_policy").([]interface{})
@@ -348,6 +353,7 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 			EnabledForDeployment:         &enabledForDeployment,
 			EnabledForDiskEncryption:     &enabledForDiskEncryption,
 			EnabledForTemplateDeployment: &enabledForTemplateDeployment,
+			EnableRbacAuthorization:      pointer.To(enabledRbacAuthorization),
 			NetworkAcls:                  networkAcls,
 
 			// @tombuildsstuff: as of 2020-12-15 this is now defaulted on, and appears to be so in all regions
@@ -356,10 +362,6 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 			EnableSoftDelete: pointer.To(true),
 		},
 		Tags: tags.Expand(t),
-	}
-
-	if v, ok := d.GetOk("rbac_authorization_enabled"); ok {
-		parameters.Properties.EnableRbacAuthorization = pointer.To(v.(bool))
 	}
 
 	if !features.FivePointOh() {
@@ -402,11 +404,14 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	locks.MultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
 	defer locks.UnlockMultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
 
-	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	read, err := client.Get(ctx, id)
 	if err != nil {
@@ -715,13 +720,17 @@ func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		meta.(*clients.Client).KeyVault.AddToCache(*id, vaultUri)
 	}
 
+	return resourceKeyVaultFlatten(ctx, managementClient, d, id, resp.Model, true)
+}
+
+func resourceKeyVaultFlatten(ctx context.Context, managementClient *dataplane.BaseClient, d *pluginsdk.ResourceData, id *commonids.KeyVaultId, model *vaults.Vault, includeResource bool) error {
 	d.Set("name", id.VaultName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("vault_uri", vaultUri)
 
 	publicNetworkAccessEnabled := true
 
-	if model := resp.Model; model != nil {
+	if model != nil {
+		d.Set("vault_uri", pointer.From(model.Properties.VaultUri))
 		d.Set("location", location.NormalizeNilable(model.Location))
 		d.Set("tenant_id", model.Properties.TenantId)
 		d.Set("enabled_for_deployment", model.Properties.EnabledForDeployment)
@@ -770,33 +779,37 @@ func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return fmt.Errorf("setting `tags`: %+v", err)
 		}
+	} else {
+		d.Set("vault_uri", "")
 	}
 
-	// If publicNetworkAccessEnabled is true, the data plane call should succeed.
-	// (if the caller has the 'ManageContacts' certificate permissions)
-	//
-	// If an error is returned from the data plane call we need to return that error.
-	//
-	// If publicNetworkAccessEnabled is false, the data plane call should fail unless
-	// there is a private endpoint connected to the key vault.
-	// (and the caller has the 'ManageContacts' certificate permissions)
-	//
-	// We don't know if the private endpoint has been created yet, so we need
-	// to ignore the error if the data plane call fails.
-	contacts, err := managementClient.GetCertificateContacts(ctx, vaultUri)
-	if err != nil {
-		if publicNetworkAccessEnabled && (!utils.ResponseWasForbidden(contacts.Response) && !utils.ResponseWasNotFound(contacts.Response)) {
-			return fmt.Errorf("retrieving `contact` for KeyVault: %+v", err)
+	if includeResource {
+		// If publicNetworkAccessEnabled is true, the data plane call should succeed.
+		// (if the caller has the 'ManageContacts' certificate permissions)
+		//
+		// If an error is returned from the data plane call we need to return that error.
+		//
+		// If publicNetworkAccessEnabled is false, the data plane call should fail unless
+		// there is a private endpoint connected to the key vault.
+		// (and the caller has the 'ManageContacts' certificate permissions)
+		//
+		// We don't know if the private endpoint has been created yet, so we need
+		// to ignore the error if the data plane call fails.
+		contacts, err := managementClient.GetCertificateContacts(ctx, d.Get("vault_uri").(string))
+		if err != nil {
+			if publicNetworkAccessEnabled && (!utils.ResponseWasForbidden(contacts.Response) && !utils.ResponseWasNotFound(contacts.Response)) {
+				return fmt.Errorf("retrieving `contact` for KeyVault: %+v", err)
+			}
+		}
+
+		if !features.FivePointOh() {
+			if err := d.Set("contact", flattenKeyVaultCertificateContactList(&contacts)); err != nil {
+				return fmt.Errorf("setting `contact` for KeyVault: %+v", err)
+			}
 		}
 	}
 
-	if !features.FivePointOh() {
-		if err := d.Set("contact", flattenKeyVaultCertificateContactList(&contacts)); err != nil {
-			return fmt.Errorf("setting `contact` for KeyVault: %+v", err)
-		}
-	}
-
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceKeyVaultDelete(d *pluginsdk.ResourceData, meta interface{}) error {

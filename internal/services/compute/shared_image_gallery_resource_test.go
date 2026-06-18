@@ -128,6 +128,8 @@ func TestAccSharedImageGallery_groupsGallery(t *testing.T) {
 }
 
 func TestAccSharedImageGallery_privateGallery(t *testing.T) {
+	// BadRequest: Subscription '*******' is not registered with the feature Microsoft.Compute/SIGSharing. Please register the subscription before retrying the call.
+	t.Skip("Skipping due to API issues with private galleries - preview is not enabled for this subscription and MSFT are not onboarding anyone at the moment")
 	data := acceptance.BuildTestData(t, "azurerm_shared_image_gallery", "test")
 	r := SharedImageGalleryResource{}
 
