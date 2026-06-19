@@ -752,7 +752,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image  = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -792,7 +792,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image  = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -843,7 +843,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image  = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu    = "0.5"
     memory = "0.5"
     liveness_probe {
@@ -886,7 +886,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image  = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu    = "0.5"
     memory = "0.5"
   }
@@ -922,7 +922,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image  = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu    = "0.5"
     memory = "0.5"
   }
@@ -967,7 +967,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image  = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1037,7 +1037,7 @@ resource "azurerm_container_group" "test" {
   os_type             = "Linux"
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image  = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1087,7 +1087,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image  = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1130,7 +1130,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image  = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1171,7 +1171,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image  = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1211,7 +1211,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image  = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1241,7 +1241,7 @@ resource "azurerm_container_group" "import" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image  = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1277,7 +1277,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image  = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1300,7 +1300,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "sidecar"
-    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image  = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu    = "0.5"
     memory = "0.5"
   }
@@ -1332,7 +1332,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image  = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1355,7 +1355,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "sidecar"
-    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image  = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu    = "0.5"
     memory = "0.5"
   }
@@ -1393,7 +1393,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image  = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1435,7 +1435,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image  = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu    = "0.5"
     memory = "0.5"
 
@@ -1451,7 +1451,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "sidecar"
-    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image  = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu    = "0.5"
     memory = "0.5"
   }
@@ -1506,7 +1506,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image  = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1574,7 +1574,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image  = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1628,7 +1628,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image  = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1877,7 +1877,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hf"
-    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image  = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu    = "1"
     memory = "1.5"
 
@@ -2015,7 +2015,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hf"
-    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image  = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu    = "1"
     memory = "1.5"
 
@@ -2118,7 +2118,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "aci-tutorial-app"
-    image  = "mcr.microsoft.com/azuredocs/aci-helloworld"
+    image  = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu    = "1"
     memory = "1.5"
 
@@ -2195,7 +2195,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "aci-tutorial-app"
-    image  = "mcr.microsoft.com/azuredocs/aci-helloworld"
+    image  = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu    = "1"
     memory = "1.5"
 
@@ -2266,7 +2266,7 @@ resource "azurerm_container_group" "test" {
 
   init_container {
     name     = "init"
-    image    = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image    = "mcr.microsoft.com/mcr/hello-world:latest"
     commands = ["touch", "/sharedempty/file.txt"]
 
     volume {
@@ -2279,7 +2279,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "reader"
-    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image  = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu    = "1"
     memory = "1.5"
 
@@ -2317,7 +2317,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name     = "writer"
-    image    = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image    = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu      = "1"
     memory   = "1.5"
     commands = ["touch", "/sharedempty/file.txt"]
@@ -2332,7 +2332,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "reader"
-    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image  = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu    = "1"
     memory = "1.5"
 
@@ -2370,7 +2370,7 @@ resource "azurerm_container_group" "test" {
 
   init_container {
     name     = "init"
-    image    = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image    = "mcr.microsoft.com/mcr/hello-world:latest"
     commands = ["echo", "hello from init"]
     secure_environment_variables = {
       PASSWORD = "something_very_secure_for_init"
@@ -2379,7 +2379,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image  = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu    = "1"
     memory = "1.5"
 
@@ -2412,7 +2412,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image  = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -2477,7 +2477,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hello-world"
-    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image  = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu    = "0.5"
     memory = "1.5"
 
@@ -2586,7 +2586,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image  = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -2687,7 +2687,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image  = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -2727,7 +2727,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image  = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -2762,7 +2762,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image  = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -2806,7 +2806,7 @@ resource "azurerm_container_group" "test" {
   os_type             = "Linux"
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image  = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu    = "1"
     memory = "1"
     ports {
@@ -2855,7 +2855,7 @@ resource "azurerm_container_group" "test" {
   os_type             = "Linux"
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image  = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu    = "1"
     memory = "1"
     ports {
@@ -2907,7 +2907,7 @@ resource "azurerm_container_group" "test" {
   os_type             = "Linux"
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image  = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu    = "1"
     memory = "1"
     ports {
@@ -2959,7 +2959,7 @@ resource "azurerm_container_group" "test" {
   os_type             = "Linux"
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image  = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu    = "1"
     memory = "1"
     ports {
@@ -3011,7 +3011,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image  = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -3072,7 +3072,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    image  = "mcr.microsoft.com/mcr/hello-world:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
