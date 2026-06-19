@@ -4,10 +4,10 @@
 package recoveryservices
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"log"
+	"sort"
 	"strings"
 	"time"
 
@@ -34,6 +34,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/custompollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
@@ -54,6 +55,11 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ReplicationProtectedItemID(id)
 			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.SiteRecoveryReplicatedVMV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -198,11 +204,10 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 			},
 
 			"managed_disk": {
-				Type:       pluginsdk.TypeSet,
+				Type:       pluginsdk.TypeList,
 				Optional:   true,
 				Computed:   true,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
-				Set:        resourceSiteRecoveryReplicatedVMDiskHash,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"disk_id": {
@@ -418,22 +423,22 @@ func resourceSiteRecoveryReplicatedVMCustomizeDiff(_ context.Context, d *plugins
 		return nil
 	}
 
-	if !d.NewValueKnown("managed_disk") || d.Id() == "" {
-		return d.SetNewComputed("managed_disk")
-	}
-
 	oldRaw, newRaw := d.GetChange("managed_disk")
-	oldDisks, ok := oldRaw.(*pluginsdk.Set)
+	oldDisks, ok := oldRaw.([]interface{})
 	if !ok {
 		return nil
 	}
 
-	newDisks, ok := newRaw.(*pluginsdk.Set)
+	newDisks, ok := newRaw.([]interface{})
 	if !ok {
 		return nil
 	}
 
-	if siteRecoveryReplicatedVMManagedDiskChangeRequiresNew(oldDisks.List(), newDisks.List()) {
+	// Changing a disk's identity (the disk itself, its staging account, target resource group or disk
+	// encryption set) requires the protected item to be recreated, whereas `target_disk_type` and
+	// `target_replica_disk_type` are migrated in place. Disks are matched by `disk_id` so that merely
+	// re-ordering the configured disks does not force a new resource.
+	if siteRecoveryReplicatedVMManagedDiskChangeRequiresNew(oldDisks, newDisks) {
 		return d.ForceNew("managed_disk")
 	}
 
@@ -523,7 +528,7 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 		}
 	}
 
-	managedDisksGet := d.Get("managed_disk").(*pluginsdk.Set).List()
+	managedDisksGet := d.Get("managed_disk").([]interface{})
 	managedDisks := make([]replicationprotecteditems.A2AVMManagedDiskInputDetails, 0, len(managedDisksGet))
 	for _, raw := range managedDisksGet {
 		diskInput := raw.(map[string]interface{})
@@ -653,7 +658,7 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 		})
 	}
 
-	managedDisksGet := d.Get("managed_disk").(*pluginsdk.Set).List()
+	managedDisksGet := d.Get("managed_disk").([]interface{})
 	managedDisks := make([]replicationprotecteditems.A2AVMManagedDiskUpdateDetails, 0, len(managedDisksGet))
 	for _, raw := range managedDisksGet {
 		diskInput := raw.(map[string]interface{})
@@ -999,7 +1004,9 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 
 					disksOutput = append(disksOutput, diskOutput)
 				}
-				d.Set("managed_disk", pluginsdk.NewSet(resourceSiteRecoveryReplicatedVMDiskHash, disksOutput))
+				// The service does not guarantee the order of the returned disks, so re-order them to match
+				// the configured / prior-state order to avoid a spurious diff for this `TypeList`.
+				d.Set("managed_disk", siteRecoveryReplicatedVMOrderManagedDisks(d.Get("managed_disk").([]interface{}), disksOutput))
 			}
 
 			if a2aDetails.VMNics != nil {
@@ -1073,66 +1080,43 @@ func resourceSiteRecoveryReplicatedItemDelete(d *pluginsdk.ResourceData, meta in
 	return nil
 }
 
-func resourceSiteRecoveryReplicatedVMDiskHash(v interface{}) int {
-	var buf bytes.Buffer
-
-	if m, ok := v.(map[string]interface{}); ok {
-		for _, field := range []string{"disk_id", "staging_storage_account_id", "target_resource_group_id"} {
-			if fieldValue, ok := m[field].(string); ok {
-				buf.WriteString(strings.ToLower(fieldValue))
-			}
-			buf.WriteString("|")
+func siteRecoveryReplicatedVMOrderManagedDisks(configured []interface{}, apiDisks []interface{}) []interface{} {
+	remaining := make(map[string]interface{}, len(apiDisks))
+	for _, raw := range apiDisks {
+		disk, ok := raw.(map[string]interface{})
+		if !ok {
+			continue
 		}
+		remaining[strings.ToLower(siteRecoveryReplicatedVMManagedDiskValue(disk, "disk_id"))] = raw
+	}
 
-		for _, field := range []string{"target_disk_type", "target_replica_disk_type"} {
-			if fieldValue, ok := m[field].(string); ok {
-				buf.WriteString(fieldValue)
-			}
-			buf.WriteString("|")
+	ordered := make([]interface{}, 0, len(apiDisks))
+
+	// Emit the disks in the order they appear in the configuration / prior state.
+	for _, raw := range configured {
+		disk, ok := raw.(map[string]interface{})
+		if !ok {
+			continue
 		}
-
-		if fieldValue, ok := m["target_disk_encryption_set_id"].(string); ok {
-			buf.WriteString(strings.ToLower(fieldValue))
+		diskId := strings.ToLower(siteRecoveryReplicatedVMManagedDiskValue(disk, "disk_id"))
+		if apiDisk, ok := remaining[diskId]; ok {
+			ordered = append(ordered, apiDisk)
+			delete(remaining, diskId)
 		}
-		buf.WriteString("|")
-		siteRecoveryReplicatedVMAppendTargetDiskEncryptionHash(&buf, m["target_disk_encryption"])
 	}
 
-	return pluginsdk.HashString(buf.String())
-}
-
-func siteRecoveryReplicatedVMAppendTargetDiskEncryptionHash(buf *bytes.Buffer, input interface{}) {
-	encryptionList, ok := input.([]interface{})
-	if !ok || len(encryptionList) == 0 {
-		return
+	// Append any disks that are not present in the configuration (e.g. on import) in a deterministic
+	// order so the result is stable.
+	leftoverIds := make([]string, 0, len(remaining))
+	for diskId := range remaining {
+		leftoverIds = append(leftoverIds, diskId)
+	}
+	sort.Strings(leftoverIds)
+	for _, diskId := range leftoverIds {
+		ordered = append(ordered, remaining[diskId])
 	}
 
-	encryption, ok := encryptionList[0].(map[string]interface{})
-	if !ok {
-		return
-	}
-
-	siteRecoveryReplicatedVMAppendDiskEncryptionKeyHash(buf, encryption, "disk_encryption_key", "secret_url", "vault_id")
-	siteRecoveryReplicatedVMAppendDiskEncryptionKeyHash(buf, encryption, "key_encryption_key", "key_url", "vault_id")
-}
-
-func siteRecoveryReplicatedVMAppendDiskEncryptionKeyHash(buf *bytes.Buffer, encryption map[string]interface{}, blockName, firstField, secondField string) {
-	keyList, ok := encryption[blockName].([]interface{})
-	if !ok || len(keyList) == 0 {
-		return
-	}
-
-	key, ok := keyList[0].(map[string]interface{})
-	if !ok {
-		return
-	}
-
-	for _, field := range []string{firstField, secondField} {
-		if fieldValue, ok := key[field].(string); ok {
-			buf.WriteString(strings.ToLower(fieldValue))
-		}
-		buf.WriteString("|")
-	}
+	return ordered
 }
 
 func waitForReplicationToBeHealthy(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) (*replicationprotecteditems.ReplicationProtectedItem, error) {
