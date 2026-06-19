@@ -20,6 +20,11 @@ import (
 
 var _ pollers.PollerType = &SiteRecoveryReplicatedVMDiskTypePoller{}
 
+// siteRecoveryReplicatedVMDiskTypeRequiredSuccessfulReads is intentionally high. The Site
+// Recovery service is eventually consistent and can briefly report the requested disk type
+// before the value flips back while replication catches up, so we require this many
+// consecutive matching reads before treating the update as complete. Testing showed that a
+// lower threshold (e.g. 5) still produced false positives.
 const siteRecoveryReplicatedVMDiskTypeRequiredSuccessfulReads = 10
 
 type SiteRecoveryReplicatedVMDiskTypeUpdate struct {

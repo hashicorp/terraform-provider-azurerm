@@ -1125,7 +1125,7 @@ func siteRecoveryReplicatedVMAppendDiskEncryptionKeyHash(buf *bytes.Buffer, encr
 
 	for _, field := range []string{firstField, secondField} {
 		if fieldValue, ok := key[field].(string); ok {
-			buf.WriteString(fieldValue)
+			buf.WriteString(strings.ToLower(fieldValue))
 		}
 		buf.WriteString("|")
 	}
