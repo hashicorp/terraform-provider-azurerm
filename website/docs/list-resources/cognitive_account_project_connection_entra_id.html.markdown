@@ -3,16 +3,16 @@ subcategory: "Cognitive Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cognitive_account_project_connection_entra_id"
 description: |-
-  Lists Cognitive Account Project Connection (Entra ID) resources.
+  Lists Cognitive Account Project Connection resources.
 ---
 
 # List resource: azurerm_cognitive_account_project_connection_entra_id
 
-Lists Cognitive Account Project Connection resources that use Entra ID (formerly Azure Active Directory) authentication.
+Lists Cognitive Account Project Connection resources, with optional filtering by authentication type.
 
 ## Example Usage
 
-### List all Entra ID connections for a specific project
+### List all connections for a specific project
 
 ```hcl
 list "azurerm_cognitive_account_project_connection_entra_id" "example" {
@@ -25,7 +25,35 @@ list "azurerm_cognitive_account_project_connection_entra_id" "example" {
 }
 ```
 
-### List all Entra ID connections for all projects in an account
+### List connections filtered by authentication type
+
+```hcl
+list "azurerm_cognitive_account_project_connection_entra_id" "example" {
+  provider = azurerm
+  config {
+    cognitive_account_name = "example-aiservices"
+    project_name           = "example-project"
+    resource_group_name    = "example-rg"
+    auth_types             = ["AAD"]
+  }
+}
+```
+
+### List connections filtered by multiple authentication types
+
+```hcl
+list "azurerm_cognitive_account_project_connection_entra_id" "example" {
+  provider = azurerm
+  config {
+    cognitive_account_name = "example-aiservices"
+    project_name           = "example-project"
+    resource_group_name    = "example-rg"
+    auth_types             = ["AAD", "ApiKey", "ManagedIdentity"]
+  }
+}
+```
+
+### List all connections for all projects in an account
 
 ```hcl
 list "azurerm_cognitive_account_project_connection_entra_id" "example" {
@@ -40,6 +68,8 @@ list "azurerm_cognitive_account_project_connection_entra_id" "example" {
 ## Argument Reference
 
 This list resource supports the following arguments:
+
+* `auth_types` - (Optional) A list of authentication types to filter by. When specified, only connections matching one of the given authentication types are returned. Possible values include `AAD`, `AccessKey`, `AccountKey`, `AccountManagedIdentity`, `AgentUserImpersonation`, `AgenticIdentityToken`, `AgenticUser`, `ApiKey`, `CustomKeys`, `DelegatedSAS`, `ManagedIdentity`, `None`, `OAuth2`, `PAT`, `ProjectManagedIdentity`, `SAS`, `ServicePrincipal`, `UserEntraToken`, and `UsernamePassword`.
 
 * `cognitive_account_name` - (Required) The name of the Cognitive Services Account.
 
@@ -58,6 +88,8 @@ Each returned item includes the following attributes:
 * `name` - The name of the connection.
 
 * `cognitive_account_project_id` - The ID of the Cognitive Services Account Project.
+
+* `auth_type` - The authentication type of the connection (e.g., `AAD`, `ApiKey`, `ManagedIdentity`).
 
 * `category` - The category of the connection.
 

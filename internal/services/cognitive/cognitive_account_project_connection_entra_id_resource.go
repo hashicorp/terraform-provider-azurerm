@@ -48,6 +48,7 @@ func (r CognitiveAccountProjectConnectionEntraIDResource) IDValidationFunc() plu
 type CognitiveAccountProjectConnectionEntraIDModel struct {
 	Name                      string            `tfschema:"name"`
 	CognitiveAccountProjectId string            `tfschema:"cognitive_account_project_id"`
+	AuthType                  string            `tfschema:"auth_type"`
 	Category                  string            `tfschema:"category"`
 	Target                    string            `tfschema:"target"`
 	Metadata                  map[string]string `tfschema:"metadata"`
@@ -101,7 +102,12 @@ func (r CognitiveAccountProjectConnectionEntraIDResource) Arguments() map[string
 }
 
 func (r CognitiveAccountProjectConnectionEntraIDResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{}
+	return map[string]*pluginsdk.Schema{
+		"auth_type": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+	}
 }
 
 func (r CognitiveAccountProjectConnectionEntraIDResource) Create() sdk.ResourceFunc {
@@ -194,6 +200,7 @@ func (r CognitiveAccountProjectConnectionEntraIDResource) Read() sdk.ResourceFun
 
 			if model := resp.Model; model != nil && model.Properties != nil {
 				base := model.Properties.ConnectionPropertiesV2()
+				state.AuthType = string(base.AuthType)
 				state.Category = pointer.FromEnum(base.Category)
 				state.Target = pointer.From(base.Target)
 
