@@ -1,12 +1,12 @@
 ---
 subcategory: "Cognitive Services"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_cognitive_account_project_connection_entra_id"
+page_title: "Azure Resource Manager: azurerm_cognitive_account_project_connection"
 description: |-
   Lists Cognitive Account Project Connection resources.
 ---
 
-# List resource: azurerm_cognitive_account_project_connection_entra_id
+# List resource: azurerm_cognitive_account_project_connection
 
 Lists Cognitive Account Project Connection resources, with optional filtering by authentication type.
 
@@ -15,7 +15,7 @@ Lists Cognitive Account Project Connection resources, with optional filtering by
 ### List all connections for a specific project
 
 ```hcl
-list "azurerm_cognitive_account_project_connection_entra_id" "example" {
+list "azurerm_cognitive_account_project_connection" "example" {
   provider = azurerm
   config {
     cognitive_account_name = "example-aiservices"
@@ -28,7 +28,7 @@ list "azurerm_cognitive_account_project_connection_entra_id" "example" {
 ### List connections filtered by authentication type
 
 ```hcl
-list "azurerm_cognitive_account_project_connection_entra_id" "example" {
+list "azurerm_cognitive_account_project_connection" "example" {
   provider = azurerm
   config {
     cognitive_account_name = "example-aiservices"
@@ -42,7 +42,7 @@ list "azurerm_cognitive_account_project_connection_entra_id" "example" {
 ### List connections filtered by multiple authentication types
 
 ```hcl
-list "azurerm_cognitive_account_project_connection_entra_id" "example" {
+list "azurerm_cognitive_account_project_connection" "example" {
   provider = azurerm
   config {
     cognitive_account_name = "example-aiservices"
@@ -56,7 +56,7 @@ list "azurerm_cognitive_account_project_connection_entra_id" "example" {
 ### List all connections for all projects in an account
 
 ```hcl
-list "azurerm_cognitive_account_project_connection_entra_id" "example" {
+list "azurerm_cognitive_account_project_connection" "example" {
   provider = azurerm
   config {
     cognitive_account_name = "example-aiservices"

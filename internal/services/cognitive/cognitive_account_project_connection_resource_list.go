@@ -30,11 +30,11 @@ type CognitiveAccountProjectConnectionListResource struct{}
 var _ sdk.FrameworkListWrappedResource = new(CognitiveAccountProjectConnectionListResource)
 
 func (CognitiveAccountProjectConnectionListResource) ResourceFunc() *pluginsdk.Resource {
-	return sdk.WrappedResource(CognitiveAccountProjectConnectionEntraIDResource{})
+	return sdk.WrappedResource(CognitiveAccountProjectConnectionResource{})
 }
 
 func (CognitiveAccountProjectConnectionListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
-	response.TypeName = CognitiveAccountProjectConnectionEntraIDResource{}.ResourceType()
+	response.TypeName = CognitiveAccountProjectConnectionResource{}.ResourceType()
 }
 
 func (CognitiveAccountProjectConnectionListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
@@ -124,7 +124,7 @@ func (CognitiveAccountProjectConnectionListResource) List(ctx context.Context, r
 
 	projects, err := cognitiveAccountProjectConnectionListProjects(ctx, metadata, data)
 	if err != nil {
-		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", CognitiveAccountProjectConnectionEntraIDResource{}.ResourceType()), err)
+		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", CognitiveAccountProjectConnectionResource{}.ResourceType()), err)
 		return
 	}
 
@@ -171,7 +171,7 @@ func (CognitiveAccountProjectConnectionListResource) List(ctx context.Context, r
 				result := request.NewListResult(listCtx)
 				result.DisplayName = fmt.Sprintf("%s (%s)", pointer.From(connection.Name), string(base.AuthType))
 
-				rd := sdk.WrappedResource(CognitiveAccountProjectConnectionEntraIDResource{}).Data(&terraform.InstanceState{})
+				rd := sdk.WrappedResource(CognitiveAccountProjectConnectionResource{}).Data(&terraform.InstanceState{})
 				rd.SetId(connectionId.ID())
 				if err := pluginsdk.SetResourceIdentityData(rd, connectionId); err != nil {
 					sdk.SetErrorDiagnosticAndPushListResult(result, push, "setting Cognitive Account Project Connection identity", err)

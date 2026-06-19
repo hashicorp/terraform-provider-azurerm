@@ -19,7 +19,7 @@ import (
 )
 
 func TestAccCognitiveAccountProjectConnection_list(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_project_connection_entra_id", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_project_connection", "test")
 	r := CognitiveAccountProjectConnectionEntraIdResource{}
 
 	resource.Test(t, resource.TestCase{
@@ -35,9 +35,9 @@ func TestAccCognitiveAccountProjectConnection_list(t *testing.T) {
 				Query:  true,
 				Config: r.listQueryNoFilter(data),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLengthAtLeast("azurerm_cognitive_account_project_connection_entra_id.list", 2),
+					querycheck.ExpectLengthAtLeast("azurerm_cognitive_account_project_connection.list", 2),
 					querycheck.ExpectIdentity(
-						"azurerm_cognitive_account_project_connection_entra_id.list",
+						"azurerm_cognitive_account_project_connection.list",
 						map[string]knownvalue.Check{
 							"name":                knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
 							"resource_group_name": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
@@ -53,7 +53,7 @@ func TestAccCognitiveAccountProjectConnection_list(t *testing.T) {
 }
 
 func TestAccCognitiveAccountProjectConnection_listWithAuthTypeFilter(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_project_connection_entra_id", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_project_connection", "test")
 	r := CognitiveAccountProjectConnectionEntraIdResource{}
 
 	resource.Test(t, resource.TestCase{
@@ -69,7 +69,7 @@ func TestAccCognitiveAccountProjectConnection_listWithAuthTypeFilter(t *testing.
 				Query:  true,
 				Config: r.listQueryWithAuthTypeFilter(data),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLengthAtLeast("azurerm_cognitive_account_project_connection_entra_id.list", 2),
+					querycheck.ExpectLengthAtLeast("azurerm_cognitive_account_project_connection.list", 2),
 				},
 			},
 		},
@@ -77,7 +77,7 @@ func TestAccCognitiveAccountProjectConnection_listWithAuthTypeFilter(t *testing.
 }
 
 func TestAccCognitiveAccountProjectConnection_listWithMultipleAuthTypeFilters(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_project_connection_entra_id", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_project_connection", "test")
 	r := CognitiveAccountProjectConnectionEntraIdResource{}
 
 	resource.Test(t, resource.TestCase{
@@ -93,7 +93,7 @@ func TestAccCognitiveAccountProjectConnection_listWithMultipleAuthTypeFilters(t 
 				Query:  true,
 				Config: r.listQueryWithMultipleAuthTypeFilters(data),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLengthAtLeast("azurerm_cognitive_account_project_connection_entra_id.list", 2),
+					querycheck.ExpectLengthAtLeast("azurerm_cognitive_account_project_connection.list", 2),
 				},
 			},
 		},
@@ -101,7 +101,7 @@ func TestAccCognitiveAccountProjectConnection_listWithMultipleAuthTypeFilters(t 
 }
 
 func TestAccCognitiveAccountProjectConnection_listSubscriptionScope(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_project_connection_entra_id", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_project_connection", "test")
 	r := CognitiveAccountProjectConnectionEntraIdResource{}
 
 	resource.Test(t, resource.TestCase{
@@ -117,7 +117,7 @@ func TestAccCognitiveAccountProjectConnection_listSubscriptionScope(t *testing.T
 				Query:  true,
 				Config: r.listQuerySubscriptionScope(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLengthAtLeast("azurerm_cognitive_account_project_connection_entra_id.list", 2),
+					querycheck.ExpectLengthAtLeast("azurerm_cognitive_account_project_connection.list", 2),
 				},
 			},
 		},
@@ -126,7 +126,7 @@ func TestAccCognitiveAccountProjectConnection_listSubscriptionScope(t *testing.T
 
 func (r CognitiveAccountProjectConnectionEntraIdResource) listQueryNoFilter(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-list "azurerm_cognitive_account_project_connection_entra_id" "list" {
+list "azurerm_cognitive_account_project_connection" "list" {
   provider = azurerm
   config {
     cognitive_account_name = azurerm_cognitive_account.test.name
@@ -140,7 +140,7 @@ list "azurerm_cognitive_account_project_connection_entra_id" "list" {
 
 func (r CognitiveAccountProjectConnectionEntraIdResource) listQueryWithAuthTypeFilter(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-list "azurerm_cognitive_account_project_connection_entra_id" "list" {
+list "azurerm_cognitive_account_project_connection" "list" {
   provider = azurerm
   config {
     cognitive_account_name = azurerm_cognitive_account.test.name
@@ -155,7 +155,7 @@ list "azurerm_cognitive_account_project_connection_entra_id" "list" {
 
 func (r CognitiveAccountProjectConnectionEntraIdResource) listQueryWithMultipleAuthTypeFilters(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-list "azurerm_cognitive_account_project_connection_entra_id" "list" {
+list "azurerm_cognitive_account_project_connection" "list" {
   provider = azurerm
   config {
     cognitive_account_name = azurerm_cognitive_account.test.name
@@ -170,7 +170,7 @@ list "azurerm_cognitive_account_project_connection_entra_id" "list" {
 
 func (r CognitiveAccountProjectConnectionEntraIdResource) listQuerySubscriptionScope() string {
 	return `
-list "azurerm_cognitive_account_project_connection_entra_id" "list" {
+list "azurerm_cognitive_account_project_connection" "list" {
   provider = azurerm
   config {}
 }
