@@ -367,6 +367,12 @@ Please follow the format in the example below for listing breaking changes in re
 * The deprecated `ssl_profile.verify_client_cert_issuer_dn` property has been removed in favour of the `ssl_profile.verify_client_certificate_issuer_dn` property.
 * The deprecated `enable_http2` property has been removed in favour of the `http2_enabled` property.
 
+### `azurerm_application_insights`
+
+* The deprecated `local_authentication_disabled` property has been removed in favour of the `local_authentication_enabled` property.
+* The deprecated `disable_ip_masking` property has been removed in favour of the `ip_masking_enabled` property.
+* The deprecated `daily_data_cap_notifications_disabled` property has been removed in favour of the `daily_data_cap_notifications_enabled` property.
+
 ### `azurerm_automation_account`
 
 * The `encryption.key_source` property has been removed.
@@ -401,6 +407,10 @@ Please follow the format in the example below for listing breaking changes in re
 * The deprecated `tls.minimum_tls_version` property has been removed in favour of the `tls.minimum_version` property.
 * The `tls.minimum_version` property no longer accepts `TLS10` as a value.
 
+### `azurerm_communication_service`
+
+* The `data_location` property is now Required and no longer defaults to `United States`.
+
 ### `azurerm_container_app`
 
 * The deprecated `template.container.liveness_probe.termination_grace_period_seconds` property has been removed.
@@ -417,6 +427,7 @@ Please follow the format in the example below for listing breaking changes in re
 
 ### `azurerm_cosmosdb_account`
 
+* The deprecated `local_authentication_disabled` property has been removed in favour of the `local_authentication_enabled` property.
 * The deprecated `managed_hsm_key_id` property has been removed in favour of the `key_vault_key_id` property.
 * The `minimal_tls_version` property no longer accepts `Tls` or `Tls11` as a value.
 
@@ -684,6 +695,14 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_servicebus_namespace`
 
 * The property `minimum_tls_version` no longer accepts `1.0` or `1.1` as a value.
+
+### `azurerm_spring_cloud_connection`
+
+* The `client_type` property no longer accepts `none` as a value. Omitting the property sets `none` in the request.
+
+### `azurerm_static_web_app`
+
+* The `identity.type` property no longer accepts `SystemAssigned, UserAssigned` as a value.
 
 ### `azurerm_storage_account`
 

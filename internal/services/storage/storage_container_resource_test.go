@@ -33,6 +33,7 @@ func TestAccStorageContainer_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("url").HasValue(fmt.Sprintf("https://acctestacc%s.blob.core.windows.net/vhds", data.RandomString)),
 			),
 		},
 		data.ImportStep(),
