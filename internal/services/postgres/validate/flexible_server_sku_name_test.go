@@ -125,6 +125,11 @@ func TestFlexibleServerSkuName(t *testing.T) {
 			valid: true,
 		},
 		{
+			name:  "MO_Standard_E96ds_v6",
+			input: "MO_Standard_E96ds_v6",
+			valid: true,
+		},
+		{
 			name:  "GP_Standard_DC2ads_v5",
 			input: "GP_Standard_DC2ads_v5",
 			valid: true,
