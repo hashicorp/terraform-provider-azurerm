@@ -2,6 +2,8 @@
 
 ENHANCEMENTS:
 
+* `azurerm_data_protection_backup_instance_data_lake_storage` - increase the limit of items for `storage_container_names` from 100 to 1000 [GH-32643]
+
 FEATURES:
 
 BUG FIXES:
