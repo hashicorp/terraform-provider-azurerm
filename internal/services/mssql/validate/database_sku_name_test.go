@@ -193,3 +193,73 @@ func TestDatabaseSkuName(t *testing.T) {
 		})
 	}
 }
+
+func TestDatabaseSkuNameWithoutFree(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		valid bool
+	}{
+		{
+			name:  "Free",
+			input: "Free",
+			valid: false,
+		},
+		{
+			name:  "Free lower case",
+			input: "free",
+			valid: false,
+		},
+		{
+			name:  "Valid Serverless GP",
+			input: "GP_S_Gen5_2",
+			valid: true,
+		},
+		{
+			name:  "Valid Basic",
+			input: "Basic",
+			valid: true,
+		},
+		{
+			name:  "Valid ElasticPool",
+			input: "ElasticPool",
+			valid: true,
+		},
+		{
+			name:  "empty",
+			input: "",
+			valid: false,
+		},
+		{
+			name:  "Wrong Family",
+			input: "BC_Inv_2",
+			valid: false,
+		},
+	}
+	validationFunction := DatabaseSkuNameWithoutFree()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := validationFunction(tt.input, "")
+			valid := err == nil
+			if valid != tt.valid {
+				t.Errorf("Expected valid status %t but got %t for input %s", tt.valid, valid, tt.input)
+			}
+		})
+	}
+}
+
+func TestDatabaseSkuName_FreeAliasBoundary(t *testing.T) {
+	// The legacy `Free` alias must stay valid for the pre-5.0 validator but be rejected by the
+	// 5.0-mode validator, which replaces it with the `free_limit_enabled`/`free_limit_exhaustion_behavior` properties.
+	withFree := DatabaseSkuName()
+	withoutFree := DatabaseSkuNameWithoutFree()
+
+	for _, input := range []string{"Free", "free"} {
+		if _, err := withFree(input, ""); err != nil {
+			t.Errorf("expected DatabaseSkuName to accept %q, got error: %+v", input, err)
+		}
+		if _, err := withoutFree(input, ""); err == nil {
+			t.Errorf("expected DatabaseSkuNameWithoutFree to reject %q, but it was accepted", input)
+		}
+	}
+}

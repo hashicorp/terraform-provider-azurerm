@@ -181,6 +181,30 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 
 				return nil
 			},
+			func(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+				// free_limit_exhaustion_behavior is O+C, so the Azure-assigned default is retained when the
+				// field is removed from config. On update, re-assert the AutoPause default so that clearing the
+				// field resets the database to the default behavior instead of silently keeping the previous value.
+				if d.Id() == "" {
+					return nil
+				}
+
+				rawConfig := d.GetRawConfig().AsValueMap()
+
+				enabledVal, hasEnabled := rawConfig["free_limit_enabled"]
+				enabledSet := hasEnabled && enabledVal.IsKnown() && !enabledVal.IsNull() && enabledVal.True()
+
+				behaviorVal, hasBehavior := rawConfig["free_limit_exhaustion_behavior"]
+				behaviorSet := hasBehavior && behaviorVal.IsKnown() && !behaviorVal.IsNull()
+
+				if enabledSet && !behaviorSet {
+					if err := d.SetNew("free_limit_exhaustion_behavior", string(databases.FreeLimitExhaustionBehaviorAutoPause)); err != nil {
+						return fmt.Errorf("setting default `free_limit_exhaustion_behavior`: %+v", err)
+					}
+				}
+
+				return nil
+			},
 		),
 	}
 }
@@ -981,10 +1005,8 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("free_limit_exhaustion_behavior") {
-		if v, ok := d.GetOk("free_limit_exhaustion_behavior"); ok {
-			props.FreeLimitExhaustionBehavior = pointer.ToEnum[databases.FreeLimitExhaustionBehavior](v.(string))
-			propertiesUpdateRequired = true
-		}
+		props.FreeLimitExhaustionBehavior = pointer.ToEnum[databases.FreeLimitExhaustionBehavior](d.Get("free_limit_exhaustion_behavior").(string))
+		propertiesUpdateRequired = true
 	}
 
 	if d.HasChange("tags") {

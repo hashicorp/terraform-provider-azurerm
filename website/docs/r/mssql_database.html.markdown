@@ -242,13 +242,13 @@ The following arguments are supported:
 
 -> **Note:** When enabled, the database receives a monthly free allocation of vCore-seconds and storage. Once the allocation is exhausted, the behavior is controlled by `free_limit_exhaustion_behavior`.
 
-* `free_limit_exhaustion_behavior` - (Optional) Specifies the behavior of the database when the monthly free offer allocation is exhausted. Possible values are `AutoPause` and `BillOverUsage`.
+* `free_limit_exhaustion_behavior` - (Optional) Specifies the behavior of the database when the monthly free offer allocation is exhausted. Possible values are `AutoPause` and `BillOverUsage`. Defaults to `AutoPause` when `free_limit_enabled` is set to `true`.
 
 ~> **Note:** `free_limit_exhaustion_behavior` can only be configured when `free_limit_enabled` is set to `true`.
 
 * `storage_account_type` - (Optional) Specifies the storage account type used to store backups for this database. Possible values are `Geo`, `GeoZone`, `Local` and `Zone`. Defaults to `Geo`.
 
-~> **Note:** `storage_account_type` must be `Local` when `free_limit_enabled` is `true`.
+~> **Note:** When `free_limit_enabled` is `true`, `storage_account_type` must be `Local` if `free_limit_exhaustion_behavior` is `AutoPause` or omitted.
 
 * `threat_detection_policy` - (Optional) Threat detection policy configuration. The `threat_detection_policy` block supports fields documented below.
 
