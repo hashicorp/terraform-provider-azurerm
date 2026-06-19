@@ -25,6 +25,12 @@ func TestAccRedhatOpenshiftCluster_list_basic(t *testing.T) {
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"azuread": {
+				VersionConstraint: "=3.4.0",
+				Source:            "registry.terraform.io/hashicorp/azuread",
+			},
+		},
 		Steps: []resource.TestStep{
 			{
 				Config: r.basic(data),

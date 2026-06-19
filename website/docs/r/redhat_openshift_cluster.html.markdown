@@ -241,7 +241,7 @@ A `platform_workload_identity_profile` block supports the following:
 
 * `platform_workload_identity` - (Required) One or more `platform_workload_identity` blocks as defined above.
 
-* `upgradeable_to` - (Optional) The target OpenShift version (`x.y.z`) the platform workload identities should satisfy.
+* `upgradeable_to` - (Optional) The target OpenShift version (`x.y.z`) the platform workload identities should satisfy. Once set, this value cannot be cleared.
 
 ---
 

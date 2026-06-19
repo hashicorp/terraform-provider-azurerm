@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name redhat_openshift_cluster -service-package-name redhatopenshift -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name redhat_openshift_cluster -service-package-name redhatopenshift -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-expect-non-empty
 
 package redhatopenshift
 
@@ -427,6 +427,7 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 							string(identity.TypeUserAssigned),
 						}, false),
 					},
+					// lintignore:S018
 					"identity_ids": {
 						Type:     pluginsdk.TypeSet,
 						Required: true,
@@ -479,6 +480,11 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validate.ClusterVersion,
+						DiffSuppressFunc: func(_, old, new string, _ *pluginsdk.ResourceData) bool {
+							// The backend does not support clearing upgradeable_to via PATCH;
+							// suppress the diff so removing it from config is a no-op.
+							return old != "" && new == ""
+						},
 					},
 				},
 			},
@@ -616,62 +622,42 @@ func (r RedHatOpenShiftCluster) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			existing, err := client.Get(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", id, err)
-			}
-			if existing.Model == nil {
-				return fmt.Errorf("retrieving %s: `model` was nil", id)
-			}
-			if existing.Model.Properties == nil {
-				return fmt.Errorf("retrieving %s: `properties` was nil", id)
-			}
-
-			parameter := *existing.Model
-
-			// These properties are read-only and populated by Azure; including them in the update request body is rejected.
-			parameter.SystemData = nil
-			parameter.Properties.ProvisioningState = nil
-			parameter.Properties.ConsoleProfile = nil
-			parameter.Properties.WorkerProfilesStatus = nil
-			if parameter.Properties.ClusterProfile != nil {
-				parameter.Properties.ClusterProfile.OidcIssuer = nil
-			}
-			if parameter.Properties.ApiserverProfile != nil {
-				parameter.Properties.ApiserverProfile.Url = nil
-				parameter.Properties.ApiserverProfile.IP = nil
-			}
-			if parameter.Properties.IngressProfiles != nil {
-				for i := range *parameter.Properties.IngressProfiles {
-					(*parameter.Properties.IngressProfiles)[i].IP = nil
-				}
-			}
-			if parameter.Properties.NetworkProfile != nil && parameter.Properties.NetworkProfile.LoadBalancerProfile != nil {
-				parameter.Properties.NetworkProfile.LoadBalancerProfile.EffectiveOutboundIPs = nil
-			}
+			var update openshiftclusters.OpenShiftClusterUpdate
 
 			if metadata.ResourceData.HasChange("identity") {
 				expandedIdentity, err := identity.ExpandUserAssignedMapFromModel(state.Identity)
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
-				parameter.Identity = expandedIdentity
+				update.Identity = expandedIdentity
 			}
 
 			if metadata.ResourceData.HasChange("service_principal") {
-				parameter.Properties.ServicePrincipalProfile = expandOpenshiftServicePrincipalProfile(state.ServicePrincipal)
+				if update.Properties == nil {
+					update.Properties = &openshiftclusters.OpenShiftClusterProperties{}
+				}
+				update.Properties.ServicePrincipalProfile = expandOpenshiftServicePrincipalProfile(state.ServicePrincipal)
 			}
 
 			if metadata.ResourceData.HasChange("platform_workload_identity_profile") {
-				parameter.Properties.PlatformWorkloadIdentityProfile = expandOpenshiftPlatformWorkloadIdentityProfile(state.PlatformWorkloadIdentityProfile)
+				if update.Properties == nil {
+					update.Properties = &openshiftclusters.OpenShiftClusterProperties{}
+				}
+				update.Properties.PlatformWorkloadIdentityProfile = expandOpenshiftPlatformWorkloadIdentityProfile(state.PlatformWorkloadIdentityProfile)
+			}
+
+			if metadata.ResourceData.HasChange("network_profile") {
+				if update.Properties == nil {
+					update.Properties = &openshiftclusters.OpenShiftClusterProperties{}
+				}
+				update.Properties.NetworkProfile = expandOpenshiftNetworkProfile(state.NetworkProfile)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
-				parameter.Tags = pointer.To(state.Tags)
+				update.Tags = pointer.To(state.Tags)
 			}
 
-			// Platform workload identity updates require PUT so a workload identity can be updated in place.
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, parameter); err != nil {
+			if err := client.UpdateThenPoll(ctx, *id, update); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
