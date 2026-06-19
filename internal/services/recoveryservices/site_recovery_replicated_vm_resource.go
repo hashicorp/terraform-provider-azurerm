@@ -214,18 +214,24 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+							// The service returns IDs with inconsistent casing.
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"staging_storage_account_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: commonids.ValidateStorageAccountID,
+							// The service returns IDs with inconsistent casing.
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"target_resource_group_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: commonids.ValidateResourceGroupID,
+							// The service returns IDs with inconsistent casing.
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"target_disk_type": {
@@ -244,6 +250,8 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: commonids.ValidateDiskEncryptionSetID,
+							// The service returns IDs with inconsistent casing.
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"target_disk_encryption": {
