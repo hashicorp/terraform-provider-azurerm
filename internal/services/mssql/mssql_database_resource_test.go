@@ -95,7 +95,7 @@ func TestAccMsSqlDatabase_freeExhaustionBehavior(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.freeExhaustionBehavior(data, "BillOverUsage"),
+			Config: r.freeTierWithExhaustionBehavior(data, "BillOverUsage"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("free_limit_exhaustion_behavior").HasValue("BillOverUsage"),
@@ -112,7 +112,7 @@ func TestAccMsSqlDatabase_freeExhaustionBehavior(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.freeExhaustionBehavior(data, "BillOverUsage"),
+			Config: r.freeTierWithExhaustionBehavior(data, "BillOverUsage"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("free_limit_exhaustion_behavior").HasValue("BillOverUsage"),
@@ -120,7 +120,7 @@ func TestAccMsSqlDatabase_freeExhaustionBehavior(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.freeExhaustionBehavior(data, "AutoPause"),
+			Config: r.freeTierWithExhaustionBehavior(data, "AutoPause"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("free_limit_exhaustion_behavior").HasValue("AutoPause"),
