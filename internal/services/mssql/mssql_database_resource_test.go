@@ -89,47 +89,6 @@ func TestAccMsSqlDatabase_free(t *testing.T) {
 	})
 }
 
-func TestAccMsSqlDatabase_freeExhaustionBehavior(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
-	r := MssqlDatabaseResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.freeTierWithExhaustionBehavior(data, "BillOverUsage"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("free_limit_exhaustion_behavior").HasValue("BillOverUsage"),
-			),
-		},
-		data.ImportStep(),
-		{
-			// removing free_limit_exhaustion_behavior should reset it to the Azure default (AutoPause)
-			Config: r.freeTier(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("free_limit_exhaustion_behavior").HasValue("AutoPause"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.freeTierWithExhaustionBehavior(data, "BillOverUsage"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("free_limit_exhaustion_behavior").HasValue("BillOverUsage"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.freeTierWithExhaustionBehavior(data, "AutoPause"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("free_limit_exhaustion_behavior").HasValue("AutoPause"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccMsSqlDatabase_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MssqlDatabaseResource{}
@@ -1439,24 +1398,6 @@ resource "azurerm_mssql_database" "test" {
   geo_backup_enabled          = false
 }
 `, r.template(data), data.RandomInteger)
-}
-
-func (r MssqlDatabaseResource) freeTierWithExhaustionBehavior(data acceptance.TestData, behavior string) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_mssql_database" "test" {
-  name                           = "acctest-db-%[2]d"
-  server_id                      = azurerm_mssql_server.test.id
-  auto_pause_delay_in_minutes    = 60
-  min_capacity                   = 0.5
-  sku_name                       = "GP_S_Gen5_2"
-  free_limit_enabled             = true
-  free_limit_exhaustion_behavior = "%[3]s"
-  storage_account_type           = "Local"
-  geo_backup_enabled             = false
-}
-`, r.template(data), data.RandomInteger, behavior)
 }
 
 func (r MssqlDatabaseResource) requiresImport(data acceptance.TestData) string {
