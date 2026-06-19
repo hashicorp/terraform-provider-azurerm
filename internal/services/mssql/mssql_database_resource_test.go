@@ -1446,15 +1446,15 @@ func (r MssqlDatabaseResource) freeTierWithExhaustionBehavior(data acceptance.Te
 %[1]s
 
 resource "azurerm_mssql_database" "test" {
-	name                           = "acctest-db-%[2]d"
-	server_id                      = azurerm_mssql_server.test.id
-	auto_pause_delay_in_minutes    = 60
-	min_capacity                   = 0.5
-	sku_name                       = "GP_S_Gen5_2"
-	free_limit_enabled             = true
-	free_limit_exhaustion_behavior = "%[3]s"
-	storage_account_type           = "Local"
-	geo_backup_enabled             = false
+  name                           = "acctest-db-%[2]d"
+  server_id                      = azurerm_mssql_server.test.id
+  auto_pause_delay_in_minutes    = 60
+  min_capacity                   = 0.5
+  sku_name                       = "GP_S_Gen5_2"
+  free_limit_enabled             = true
+  free_limit_exhaustion_behavior = "%[3]s"
+  storage_account_type           = "Local"
+  geo_backup_enabled             = false
 }
 `, r.template(data), data.RandomInteger, behavior)
 }
