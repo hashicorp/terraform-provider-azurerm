@@ -418,6 +418,10 @@ func resourceSiteRecoveryReplicatedVMCustomizeDiff(_ context.Context, d *plugins
 		return nil
 	}
 
+	if !d.NewValueKnown("managed_disk") || d.Id() == "" {
+		return d.SetNewComputed("managed_disk")
+	}
+
 	oldRaw, newRaw := d.GetChange("managed_disk")
 	oldDisks, ok := oldRaw.(*pluginsdk.Set)
 	if !ok {
