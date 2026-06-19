@@ -220,12 +220,8 @@ func resourceDataFactoryTriggerBlobEventCreateUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	if v, ok := d.GetOk("activated"); ok && v.(bool) {
-		future, err := client.Start(ctx, id.ResourceGroup, id.FactoryName, id.Name)
-		if err != nil {
+		if err = startDataFactoryTrigger(ctx, *client, id); err != nil {
 			return fmt.Errorf("starting %s: %+v", id, err)
-		}
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting on start %s: %+v", id, err)
 		}
 	}
 
