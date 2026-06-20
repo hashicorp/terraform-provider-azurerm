@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/queueservice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/storagequeues"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -38,14 +38,14 @@ func resourceStorageQueue() *pluginsdk.Resource {
 		Importer: helpers.ImporterValidatingStorageResourceId(func(id, storageDomainSuffix string) error {
 			if !features.FivePointOh() {
 				if strings.HasPrefix(id, "/subscriptions/") {
-					_, err := queueservice.ParseQueueID(id)
+					_, err := storagequeues.ParseQueueID(id)
 					return err
 				}
 				_, err := queues.ParseQueueID(id, storageDomainSuffix)
 				return err
 			}
 
-			_, err := queueservice.ParseQueueID(id)
+			_, err := storagequeues.ParseQueueID(id)
 			return err
 		}),
 
@@ -137,7 +137,7 @@ func resourceStorageQueue() *pluginsdk.Resource {
 
 func resourceStorageQueueCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	queueClient := meta.(*clients.Client).Storage.ResourceManager.QueueService
+	queueClient := meta.(*clients.Client).Storage.ResourceManager.StorageQueues
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -182,7 +182,9 @@ func resourceStorageQueueCreate(d *pluginsdk.ResourceData, meta interface{}) err
 				return fmt.Errorf("checking for existing %s: %v", id, err)
 			}
 			if exists != nil && *exists {
-				return tf.ImportAsExistsError("azurerm_storage_queue", id)
+				if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+					return tf.ImportAsExistsError("azurerm_storage_queue", id)
+				}
 			}
 
 			if err = queuesDataPlaneClient.Create(ctx, queueName, metaData); err != nil {
@@ -200,20 +202,22 @@ func resourceStorageQueueCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		return err
 	}
 
-	id := queueservice.NewQueueID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.StorageAccountName, queueName)
+	id := storagequeues.NewQueueID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.StorageAccountName, queueName)
 
-	existing, err := queueClient.QueueGet(ctx, id)
-	if err != nil {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := queueClient.QueueGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %q: %v", id, err)
+			}
+		}
 		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing %q: %v", id, err)
+			return tf.ImportAsExistsError("azurerm_storage_queue", id.ID())
 		}
 	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_storage_queue", id.ID())
-	}
 
-	payload := queueservice.StorageQueue{
-		Properties: &queueservice.QueueProperties{
+	payload := storagequeues.StorageQueue{
+		Properties: &storagequeues.QueueProperties{
 			Metadata: &metaData,
 		},
 	}
@@ -228,7 +232,7 @@ func resourceStorageQueueCreate(d *pluginsdk.ResourceData, meta interface{}) err
 }
 
 func resourceStorageQueueUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	queueClient := meta.(*clients.Client).Storage.ResourceManager.QueueService
+	queueClient := meta.(*clients.Client).Storage.ResourceManager.StorageQueues
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -264,7 +268,7 @@ func resourceStorageQueueUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		return resourceStorageQueueRead(d, meta)
 	}
 
-	id, err := queueservice.ParseQueueID(d.Id())
+	id, err := storagequeues.ParseQueueID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -278,7 +282,7 @@ func resourceStorageQueueUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("unexpected null model after retrieving %v", id)
 	}
 
-	payload := queueservice.StorageQueue{
+	payload := storagequeues.StorageQueue{
 		Properties: existing.Model.Properties,
 	}
 
@@ -295,7 +299,7 @@ func resourceStorageQueueUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 }
 
 func resourceStorageQueueRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	queueClient := meta.(*clients.Client).Storage.ResourceManager.QueueService
+	queueClient := meta.(*clients.Client).Storage.ResourceManager.StorageQueues
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -310,9 +314,20 @@ func resourceStorageQueueRead(d *pluginsdk.ResourceData, meta interface{}) error
 					return err
 				}
 
-				account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
-				if err != nil {
-					return fmt.Errorf("retrieving Account %q for Queue %q: %v", id.AccountId.AccountName, id.QueueName, err)
+				var account *client.AccountDetails
+				if meta.(*clients.Client).Storage.StorageUseAzureAD {
+					// Note: The Resource Group Name is intentionally left empty here because it is not known
+					// in this 4.x legacy fallback path. This is safe because when Azure AD authentication is used,
+					// the downstream Data Plane client builder entirely bypasses fetching Storage Account access keys
+					// via the Management Plane (which is the only operation that requires the Resource Group Name).
+					account = &client.AccountDetails{
+						StorageAccountId: commonids.NewStorageAccountID(subscriptionId, "", id.AccountId.AccountName),
+					}
+				} else {
+					account, err = storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
+					if err != nil {
+						return fmt.Errorf("retrieving Account %q for Queue %q: %v", id.AccountId.AccountName, id.QueueName, err)
+					}
 				}
 				if account == nil {
 					log.Printf("[WARN] Unable to determine Resource Group for Storage Queue %q (Account %s) - assuming removed & removing from state", id.QueueName, id.AccountId.AccountName)
@@ -354,14 +369,14 @@ func resourceStorageQueueRead(d *pluginsdk.ResourceData, meta interface{}) error
 					return err
 				}
 
-				id := queueservice.NewQueueID(subscriptionId, accountId.ResourceGroupName, accountId.StorageAccountName, d.Get("name").(string))
+				id := storagequeues.NewQueueID(subscriptionId, accountId.ResourceGroupName, accountId.StorageAccountName, d.Get("name").(string))
 				d.SetId(id.ID())
 				// Continue the code flow outside this block
 			}
 		}
 	}
 
-	id, err := queueservice.ParseQueueID(d.Id())
+	id, err := storagequeues.ParseQueueID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -414,7 +429,7 @@ func resourceStorageQueueRead(d *pluginsdk.ResourceData, meta interface{}) error
 }
 
 func resourceStorageQueueDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	queueClient := meta.(*clients.Client).Storage.ResourceManager.QueueService
+	queueClient := meta.(*clients.Client).Storage.ResourceManager.StorageQueues
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -426,9 +441,20 @@ func resourceStorageQueueDelete(d *pluginsdk.ResourceData, meta interface{}) err
 			return err
 		}
 
-		account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
-		if err != nil {
-			return fmt.Errorf("retrieving Account %q for Queue %q: %s", id.AccountId.AccountName, id.QueueName, err)
+		var account *client.AccountDetails
+		if meta.(*clients.Client).Storage.StorageUseAzureAD {
+			// Note: The Resource Group Name is intentionally left empty here because it is not known
+			// in this 4.x legacy fallback path. This is safe because when Azure AD authentication is used,
+			// the downstream Data Plane client builder entirely bypasses fetching Storage Account access keys
+			// via the Management Plane (which is the only operation that requires the Resource Group Name).
+			account = &client.AccountDetails{
+				StorageAccountId: commonids.NewStorageAccountID(subscriptionId, "", id.AccountId.AccountName),
+			}
+		} else {
+			account, err = storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
+			if err != nil {
+				return fmt.Errorf("retrieving Account %q for Queue %q: %s", id.AccountId.AccountName, id.QueueName, err)
+			}
 		}
 		if account == nil {
 			log.Printf("[WARN] Unable to determine Resource Group for Storage Queue %q (Account %s) - assuming removed & removing from state", id.QueueName, id.AccountId.AccountName)
@@ -447,7 +473,7 @@ func resourceStorageQueueDelete(d *pluginsdk.ResourceData, meta interface{}) err
 		return nil
 	}
 
-	id, err := queueservice.ParseQueueID(d.Id())
+	id, err := storagequeues.ParseQueueID(d.Id())
 	if err != nil {
 		return err
 	}

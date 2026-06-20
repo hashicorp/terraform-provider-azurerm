@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -130,7 +130,7 @@ func (e *KeyVaultSecretEphemeralResource) Open(ctx context.Context, req ephemera
 
 	data.Value = types.StringValue(pointer.From(response.Value))
 
-	id, err := parse.ParseNestedItemID(*response.ID)
+	id, err := keyvault.ParseNestedItemID(pointer.From(response.ID), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret)
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(resp, "", err)
 		return

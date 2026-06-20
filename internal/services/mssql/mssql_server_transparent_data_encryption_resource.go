@@ -190,11 +190,10 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceDat
 		payload.Properties.ServerKeyType = encryptionprotectors.ServerKeyTypeAzureKeyVault
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, *serverId, payload)
-	if err != nil {
+	// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
+	if err := client.CreateOrUpdateThenPoll(ctx, *serverId, payload); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
-
 	d.SetId(id.ID())
 
 	return resourceMsSqlTransparentDataEncryptionRead(d, meta)

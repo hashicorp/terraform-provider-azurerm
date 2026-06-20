@@ -121,8 +121,6 @@ func resourceMsSqlServerSecurityAlertPolicyCreate(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for mssql server security alert policy creation")
-
 	payload := serversecurityalertpolicies.ServerSecurityAlertPolicy{}
 	resourceGroupName := d.Get("resource_group_name").(string)
 	serverName := d.Get("server_name").(string)
@@ -182,8 +180,8 @@ func resourceMsSqlServerSecurityAlertPolicyCreate(d *pluginsdk.ResourceData, met
 	payload.Properties = props
 	serverId := commonids.NewSqlServerID(subscriptionId, resourceGroupName, serverName)
 
-	err := client.CreateOrUpdateThenPoll(ctx, serverId, payload)
-	if err != nil {
+	// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
+	if err := client.CreateOrUpdateThenPoll(ctx, serverId, payload); err != nil {
 		return fmt.Errorf("creating mssql server security alert policy: %+v", err)
 	}
 
@@ -212,8 +210,6 @@ func resourceMsSqlServerSecurityAlertPolicyRead(d *pluginsdk.ResourceData, meta 
 	client := meta.(*clients.Client).MSSQL.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] reading mssql server security alert policy")
 
 	id, err := parse.ServerSecurityAlertPolicyID(d.Id())
 	if err != nil {
@@ -300,8 +296,6 @@ func resourceMsSqlServerSecurityAlertPolicyUpdate(d *pluginsdk.ResourceData, met
 	client := meta.(*clients.Client).MSSQL.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for mssql server security alert policy update")
 
 	id, err := parse.ServerSecurityAlertPolicyID(d.Id())
 	if err != nil {
@@ -399,8 +393,6 @@ func resourceMsSqlServerSecurityAlertPolicyDelete(d *pluginsdk.ResourceData, met
 	client := meta.(*clients.Client).MSSQL.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] deleting mssql server security alert policy")
 
 	id, err := parse.ServerSecurityAlertPolicyID(d.Id())
 	if err != nil {

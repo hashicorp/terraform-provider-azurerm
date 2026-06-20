@@ -6,7 +6,6 @@ package analysisservices
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -20,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/analysisservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -151,19 +151,19 @@ func resourceAnalysisServicesServerCreate(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure ARM Analysis Services Server creation.")
-
 	id := servers.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	server, err := client.GetDetails(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(server.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		server, err := client.GetDetails(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(server.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(server.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_analysis_services_server", id.ID())
+		if !response.WasNotFound(server.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_analysis_services_server", id.ID())
+		}
 	}
 
 	analysisServicesServer := servers.AnalysisServicesServer{
@@ -186,7 +186,7 @@ func resourceAnalysisServicesServerCreate(d *pluginsdk.ResourceData, meta interf
 		analysisServicesServer.Properties.BackupBlobContainerUri = pointer.To(containerUri.(string))
 	}
 
-	if err := client.CreateThenPoll(ctx, id, analysisServicesServer); err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, id, analysisServicesServer, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -262,8 +262,6 @@ func resourceAnalysisServicesServerUpdate(d *pluginsdk.ResourceData, meta interf
 	client := meta.(*clients.Client).AnalysisServices.Servers
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Azure ARM Analysis Services Server update.")
 
 	id, err := servers.ParseServerID(d.Id())
 	if err != nil {

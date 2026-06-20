@@ -84,7 +84,7 @@ func TestAccKubernetesCluster_advancedNetworkingNetworkPluginError(t *testing.T)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.advancedNetworkingBlock(data, "kubenet", "cilium"),
-			ExpectError: regexp.MustCompile("when `network_profile.0.advanced_networking` is set, `network_profile.0.network_plugin` must be set to `azure`"),
+			ExpectError: regexp.MustCompile("when `network_profile.0.advanced_networking` has `security_enabled` set to `true`, `network_profile.0.network_plugin` must be set to `azure`"),
 		},
 	})
 }
@@ -96,7 +96,7 @@ func TestAccKubernetesCluster_advancedNetworkingNetworkDataplane(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.advancedNetworkingBlock(data, "azure", "azure"),
-			ExpectError: regexp.MustCompile("when `network_profile.0.advanced_networking` is set, `network_profile.0.network_data_plane` must be set to `cilium`"),
+			ExpectError: regexp.MustCompile("when `network_profile.0.advanced_networking` has `security_enabled` set to `true`, `network_profile.0.network_data_plane` must be set to `cilium`"),
 		},
 	})
 }
@@ -1164,6 +1164,138 @@ func TestAccKubernetesCluster_apiServerVnetIntegrationManagedVnet(t *testing.T) 
 	})
 }
 
+func TestAccKubernetesCluster_advancedNetworkingObservabilityOnlyAzureNetworkPlugin(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.advancedNetworkingObservabilityOnlyBlock(data, "azure", "azure"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_advancedNetworkingObservabilityOnlyKubenetNetworkPlugin(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.advancedNetworkingObservabilityOnlyBlock(data, "kubenet", "azure"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_upgradeAzureCNIToOverlay(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.upgradeAzureCNIToOverlayBase(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.upgradeAzureCNIToOverlayComplete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_upgradeAzureCNIToOverlayWithCilium(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.upgradeAzureCNIToOverlayBase(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.upgradeAzureCNIToOverlayComplete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.upgradeAzureCNIToOverlayWithCilium(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_upgradeKubenetToAzureCNIOverlay(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.upgradeKubenetBase(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.upgradeKubenetToAzureCNIOverlay(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_upgradeKubenetToAzureCNIOverlayWithCilium(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.upgradeKubenetBase(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.upgradeKubenetToAzureCNIOverlay(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.upgradeKubenetToAzureCNIOverlayWithCilium(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (KubernetesClusterResource) advancedNetworkingConfig(data acceptance.TestData, networkPlugin string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1480,7 +1612,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     mode                             = "Istio"
     internal_ingress_gateway_enabled = %[3]t
     external_ingress_gateway_enabled = %[4]t
-    revisions                        = ["asm-1-26"]
+    revisions                        = ["asm-1-28"]
   }
 
 }
@@ -4685,4 +4817,342 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, data.Locations.Primary, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) advancedNetworkingObservabilityOnlyBlock(data acceptance.TestData, networkPlugin, networkDataPlane string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[2]d"
+  address_space       = ["10.0.0.0/8"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.1.0.0/16"]
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+
+  default_node_pool {
+    name           = "default"
+    node_count     = 2
+    vm_size        = "Standard_a2_v2"
+    vnet_subnet_id = azurerm_subnet.test.id
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    network_plugin     = "%[3]s"
+    network_data_plane = "%[4]s"
+
+    advanced_networking {
+      observability_enabled = true
+      security_enabled      = false
+    }
+  }
+}
+`, data.Locations.Primary, data.RandomInteger, networkPlugin, networkDataPlane)
+}
+
+func (KubernetesClusterResource) upgradeAzureCNIToOverlayBase(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestRG-vnet-%[2]d"
+  address_space       = ["10.0.0.0/8"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestRG-subnet-%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.10.0.0/16"]
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+
+  default_node_pool {
+    name           = "default"
+    node_count     = 1
+    vm_size        = "Standard_DS2_v2"
+    vnet_subnet_id = azurerm_subnet.test.id
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    network_plugin = "azure"
+  }
+}
+`, data.Locations.Primary, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) upgradeAzureCNIToOverlayComplete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestRG-vnet-%[2]d"
+  address_space       = ["10.0.0.0/8"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestRG-subnet-%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.10.0.0/16"]
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+
+  default_node_pool {
+    name           = "default"
+    node_count     = 1
+    vm_size        = "Standard_DS2_v2"
+    vnet_subnet_id = azurerm_subnet.test.id
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    pod_cidr            = "192.168.0.0/16"
+    network_plugin      = "azure"
+    network_plugin_mode = "overlay"
+  }
+}
+`, data.Locations.Primary, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) upgradeAzureCNIToOverlayWithCilium(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestRG-vnet-%[2]d"
+  address_space       = ["10.0.0.0/8"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestRG-subnet-%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.10.0.0/16"]
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+
+  default_node_pool {
+    name           = "default"
+    node_count     = 1
+    vm_size        = "Standard_DS2_v2"
+    vnet_subnet_id = azurerm_subnet.test.id
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    pod_cidr            = "192.168.0.0/16"
+    network_plugin      = "azure"
+    network_plugin_mode = "overlay"
+    network_policy      = "cilium"
+    network_data_plane  = "cilium"
+  }
+}
+`, data.Locations.Primary, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) upgradeKubenetBase(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    network_plugin = "kubenet"
+    pod_cidr       = "172.16.0.0/16"
+  }
+}
+`, "westcentralus", data.RandomInteger)
+}
+
+func (KubernetesClusterResource) upgradeKubenetToAzureCNIOverlay(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    pod_cidr            = "172.16.0.0/16"
+    network_plugin      = "azure"
+    network_plugin_mode = "overlay"
+  }
+}
+`, "westcentralus", data.RandomInteger)
+}
+
+func (KubernetesClusterResource) upgradeKubenetToAzureCNIOverlayWithCilium(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    pod_cidr            = "172.16.0.0/16"
+    network_plugin      = "azure"
+    network_plugin_mode = "overlay"
+    network_policy      = "cilium"
+    network_data_plane  = "cilium"
+  }
+}
+`, "westcentralus", data.RandomInteger)
 }

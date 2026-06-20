@@ -10,15 +10,17 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/keys"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 type KeyVaultKeyResource struct{}
@@ -438,19 +440,86 @@ func TestAccKeyVaultKey_RotationPolicyUnauthorized(t *testing.T) {
 	})
 }
 
+func TestAccKeyVaultKey_releasePolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+	r := KeyVaultKeyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.releasePolicy(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("key_size"),
+		{
+			Config: r.releasePolicyUpdated(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("key_size"),
+	})
+}
+
+func TestAccKeyVaultKey_releasePolicyCustomizeDiff(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+	r := KeyVaultKeyResource{}
+
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
+		{
+			Config:      r.releasePolicyInvalid(data),
+			PlanOnly:    true,
+			ExpectError: regexp.MustCompile("when `release_policy` is set, `key_type` must be `RSA-HSM` or `EC-HSM`"),
+		},
+		{
+			Config: r.releasePolicyUpdated(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("key_size"),
+		{
+			Config: r.releasePolicyUpdated(data, false),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
+		},
+		data.ImportStep("key_size"),
+		{
+			Config: r.releasePolicyUpdated(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("key_size"),
+		{
+			Config: r.releasePolicy(data, true),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
+		},
+		data.ImportStep("key_size"),
+	})
+}
+
 func (r KeyVaultKeyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	client := clients.KeyVault
 	subscriptionId := clients.Account.SubscriptionId
 
-	id, err := parse.ParseNestedItemID(state.ID)
+	id, err := keyvault.ParseNestedItemID(state.ID, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 	if err != nil {
 		return nil, err
 	}
 
 	subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
-	keyVaultIdRaw, err := client.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, id.KeyVaultBaseUrl)
+	keyVaultIdRaw, err := client.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, id.KeyVaultBaseURL)
 	if err != nil || keyVaultIdRaw == nil {
-		return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
+		return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseURL, err)
 	}
 	keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
 	if err != nil {
@@ -459,15 +528,20 @@ func (r KeyVaultKeyResource) Exists(ctx context.Context, clients *clients.Client
 
 	ok, err := client.Exists(ctx, *keyVaultId)
 	if err != nil || !ok {
-		return nil, fmt.Errorf("checking if key vault %q for Certificate %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+		return nil, fmt.Errorf("checking if key vault %q for Certificate %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseURL, err)
 	}
 
-	resp, err := client.ManagementClient.GetKey(ctx, id.KeyVaultBaseUrl, id.Name, "")
+	keysClient := client.DataPlaneKeyVaultClient.Keys.Clone(id.KeyVaultBaseURL)
+	keyVersionId := keys.NewKeyversionID(id.KeyVaultBaseURL, id.Name, "")
+	resp, err := keysClient.GetKey(ctx, keyVersionId)
 	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return pointer.To(false), nil
+		}
 		return nil, fmt.Errorf("retrieving Key Vault Key %q: %+v", state.ID, err)
 	}
 
-	return pointer.To(resp.Key != nil), nil
+	return pointer.To(resp.Model != nil && resp.Model.Key != nil), nil
 }
 
 func (KeyVaultKeyResource) destroyParentKeyVault(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
@@ -485,6 +559,12 @@ func (KeyVaultKeyResource) destroyParentKeyVault(ctx context.Context, client *cl
 
 func (KeyVaultKeyResource) updateExpiryDate(expiryDate string) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+		if _, ok := ctx.Deadline(); !ok {
+			// set timeout if not already set because the new client requires deadline on the ctx
+			ctx2, cancel := context.WithTimeout(ctx, time.Minute*5)
+			defer cancel()
+			ctx = ctx2
+		}
 		name := state.Attributes["name"]
 		keyVaultId, err := commonids.ParseKeyVaultID(state.Attributes["key_vault_id"])
 		if err != nil {
@@ -500,13 +580,14 @@ func (KeyVaultKeyResource) updateExpiryDate(expiryDate string) acceptance.Client
 		if err != nil {
 			return err
 		}
-		expirationUnixTime := date.UnixTime(expirationDate)
-		update := keyvault.KeyUpdateParameters{
-			KeyAttributes: &keyvault.KeyAttributes{
-				Expires: &expirationUnixTime,
+		keysClient := clients.KeyVault.DataPlaneKeyVaultClient.Keys.Clone(*vaultBaseUrl)
+		keyVersionId := keys.NewKeyversionID(*vaultBaseUrl, name, "")
+		update := keys.KeyUpdateParameters{
+			Attributes: &keys.KeyAttributes{
+				Exp: pointer.To(expirationDate.Unix()),
 			},
 		}
-		if _, err = clients.KeyVault.ManagementClient.UpdateKey(ctx, *vaultBaseUrl, name, "", update); err != nil {
+		if _, err = keysClient.UpdateKey(ctx, keyVersionId, update); err != nil {
 			return fmt.Errorf("updating secret: %+v", err)
 		}
 
@@ -526,8 +607,10 @@ func (KeyVaultKeyResource) Destroy(ctx context.Context, client *clients.Client, 
 		return nil, fmt.Errorf("looking up Secret %q vault url from id %q: %+v", name, keyVaultId, err)
 	}
 
-	if _, err := client.KeyVault.ManagementClient.DeleteKey(ctx, *vaultBaseUrl, name); err != nil {
-		return nil, fmt.Errorf("deleting keyVaultManagementClient: %+v", err)
+	keysClient := client.KeyVault.DataPlaneKeyVaultClient.Keys.Clone(*vaultBaseUrl)
+	keyId := keys.NewKeyID(*vaultBaseUrl, name)
+	if _, err := keysClient.DeleteKey(ctx, keyId); err != nil {
+		return nil, fmt.Errorf("deleting key vault key: %+v", err)
 	}
 
 	return pointer.To(true), nil
@@ -1189,4 +1272,141 @@ resource "azurerm_key_vault_key" "test" {
   }
 }
 `, r.template(data, "standard"), data.RandomString)
+}
+
+func (r KeyVaultKeyResource) releasePolicy(data acceptance.TestData, immutable bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "key-%[2]d"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "EC-HSM"
+  key_size     = 2048
+
+  key_opts = [
+    "sign",
+    "verify",
+  ]
+
+  release_policy {
+    immutable = %t
+    json      = <<-EOT
+      {
+        "anyOf": [
+          {
+            "authority": "https://sharedcac.cac.attest.azure.net",
+            "allOf": [
+              {
+                "claim": "x-ms-compliance-status",
+                "equals": "azure-compliant-cvm"
+              }
+            ]
+          }
+        ],
+        "version": "0.2"
+      }
+EOT
+  }
+}
+`, r.templatePremium(data), data.RandomInteger, immutable)
+}
+
+func (r KeyVaultKeyResource) releasePolicyUpdated(data acceptance.TestData, immutable bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "key-%[2]d"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "EC-HSM"
+  key_size     = 2048
+
+  key_opts = [
+    "sign",
+    "verify",
+  ]
+
+  release_policy {
+    immutable = %t
+    json      = <<-EOT
+      {
+        "anyOf": [
+          {
+            "authority": "https://sharedcac.cac.attest.azure.net",
+            "allOf": [
+              {
+                "claim": "x-ms-compliance-status",
+                "equals": "azure-compliant-cvm"
+              },
+              {
+                "anyOf": [
+                  {
+                    "claim": "x-ms-attestation-type",
+                    "equals": "tdxvm"
+                  },
+                  {
+                    "claim": "x-ms-attestation-type",
+                    "equals": "sevsnpvm"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "version": "1.0.0"
+      }
+EOT
+  }
+}
+`, r.templatePremium(data), data.RandomInteger, immutable)
+}
+
+func (r KeyVaultKeyResource) releasePolicyInvalid(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "key-%[2]d"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "EC"
+  key_size     = 2048
+
+  key_opts = [
+    "sign",
+    "verify",
+  ]
+
+  release_policy {
+    json = <<-EOT
+      {
+        "anyOf": [
+          {
+            "authority": "https://sharedcac.cac.attest.azure.net",
+            "allOf": [
+              {
+                "claim": "x-ms-compliance-status",
+                "equals": "azure-compliant-cvm"
+              }
+            ]
+          }
+        ],
+        "version": "0.2"
+      }
+EOT
+  }
+}
+`, r.templatePremium(data), data.RandomInteger)
 }

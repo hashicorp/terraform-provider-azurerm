@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -22,6 +23,9 @@ import (
 type AppServiceSlotResource struct{}
 
 func TestAccAppServiceSlot_basic(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -37,6 +41,9 @@ func TestAccAppServiceSlot_basic(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_requiresImport(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -52,6 +59,9 @@ func TestAccAppServiceSlot_requiresImport(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_32Bit(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -68,6 +78,9 @@ func TestAccAppServiceSlot_32Bit(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_alwaysOn(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -84,6 +97,9 @@ func TestAccAppServiceSlot_alwaysOn(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_appCommandLine(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -100,6 +116,9 @@ func TestAccAppServiceSlot_appCommandLine(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_appSettings(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -116,6 +135,9 @@ func TestAccAppServiceSlot_appSettings(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_clientAffinityEnabled(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -131,6 +153,9 @@ func TestAccAppServiceSlot_clientAffinityEnabled(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_clientAffinityEnabledUpdate(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -153,6 +178,9 @@ func TestAccAppServiceSlot_clientAffinityEnabledUpdate(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_connectionStrings(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -175,6 +203,9 @@ func TestAccAppServiceSlot_connectionStrings(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_storageAccounts(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -198,6 +229,9 @@ func TestAccAppServiceSlot_storageAccounts(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_ipRestrictionHeaders(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -213,6 +247,9 @@ func TestAccAppServiceSlot_ipRestrictionHeaders(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_corsSettings(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -228,6 +265,9 @@ func TestAccAppServiceSlot_corsSettings(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_authSettingsAdditionalLoginParams(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	tenantID := os.Getenv("ARM_TENANT_ID")
 	r := AppServiceSlotResource{}
@@ -250,6 +290,9 @@ func TestAccAppServiceSlot_authSettingsAdditionalLoginParams(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_authSettingsAdditionalAllowedExternalRedirectUrls(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	tenantID := os.Getenv("ARM_TENANT_ID")
 	r := AppServiceSlotResource{}
@@ -273,6 +316,9 @@ func TestAccAppServiceSlot_authSettingsAdditionalAllowedExternalRedirectUrls(t *
 }
 
 func TestAccAppServiceSlot_authSettingsRuntimeVersion(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	tenantID := os.Getenv("ARM_TENANT_ID")
 	r := AppServiceSlotResource{}
@@ -295,6 +341,9 @@ func TestAccAppServiceSlot_authSettingsRuntimeVersion(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_authSettingsTokenRefreshExtensionHours(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	tenantID := os.Getenv("ARM_TENANT_ID")
 	r := AppServiceSlotResource{}
@@ -317,6 +366,9 @@ func TestAccAppServiceSlot_authSettingsTokenRefreshExtensionHours(t *testing.T) 
 }
 
 func TestAccAppServiceSlot_authSettingsUnauthenticatedClientAction(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	tenantID := os.Getenv("ARM_TENANT_ID")
 	r := AppServiceSlotResource{}
@@ -339,6 +391,9 @@ func TestAccAppServiceSlot_authSettingsUnauthenticatedClientAction(t *testing.T)
 }
 
 func TestAccAppServiceSlot_authSettingsTokenStoreEnabled(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	tenantID := os.Getenv("ARM_TENANT_ID")
 	r := AppServiceSlotResource{}
@@ -361,6 +416,9 @@ func TestAccAppServiceSlot_authSettingsTokenStoreEnabled(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_aadAuthSettings(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	tenantID := os.Getenv("ARM_TENANT_ID")
 	r := AppServiceSlotResource{}
@@ -382,6 +440,9 @@ func TestAccAppServiceSlot_aadAuthSettings(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_facebookAuthSettings(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -401,6 +462,9 @@ func TestAccAppServiceSlot_facebookAuthSettings(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_googleAuthSettings(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -419,6 +483,9 @@ func TestAccAppServiceSlot_googleAuthSettings(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_microsoftAuthSettings(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -438,6 +505,9 @@ func TestAccAppServiceSlot_microsoftAuthSettings(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_twitterAuthSettings(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -456,6 +526,9 @@ func TestAccAppServiceSlot_twitterAuthSettings(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_multiAuthSettings(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	tenantID := os.Getenv("ARM_TENANT_ID")
 	r := AppServiceSlotResource{}
@@ -492,6 +565,9 @@ func TestAccAppServiceSlot_multiAuthSettings(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_defaultDocuments(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -509,6 +585,9 @@ func TestAccAppServiceSlot_defaultDocuments(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_enabled(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -524,6 +603,9 @@ func TestAccAppServiceSlot_enabled(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_enabledUpdate(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -546,6 +628,9 @@ func TestAccAppServiceSlot_enabledUpdate(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_httpsOnly(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -561,6 +646,9 @@ func TestAccAppServiceSlot_httpsOnly(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_httpsOnlyUpdate(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -583,6 +671,9 @@ func TestAccAppServiceSlot_httpsOnlyUpdate(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_http2Enabled(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -598,6 +689,9 @@ func TestAccAppServiceSlot_http2Enabled(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_oneIpRestriction(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -613,6 +707,9 @@ func TestAccAppServiceSlot_oneIpRestriction(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_oneVNetSubnetIpRestriction(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -628,6 +725,9 @@ func TestAccAppServiceSlot_oneVNetSubnetIpRestriction(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_zeroedIpRestriction(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -660,6 +760,9 @@ func TestAccAppServiceSlot_zeroedIpRestriction(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_manyIpRestrictions(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -675,6 +778,9 @@ func TestAccAppServiceSlot_manyIpRestrictions(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_scmUseMainIPRestriction(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -690,6 +796,9 @@ func TestAccAppServiceSlot_scmUseMainIPRestriction(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_scmOneIPRestriction(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -705,6 +814,9 @@ func TestAccAppServiceSlot_scmOneIPRestriction(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_localMySql(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -720,6 +832,9 @@ func TestAccAppServiceSlot_localMySql(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_managedPipelineMode(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -735,6 +850,9 @@ func TestAccAppServiceSlot_managedPipelineMode(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_tagsUpdate(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -760,6 +878,9 @@ func TestAccAppServiceSlot_tagsUpdate(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_remoteDebugging(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -776,6 +897,9 @@ func TestAccAppServiceSlot_remoteDebugging(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_windowsDotNet2(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -791,6 +915,9 @@ func TestAccAppServiceSlot_windowsDotNet2(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_updateManageServiceIdentity(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -814,6 +941,9 @@ func TestAccAppServiceSlot_updateManageServiceIdentity(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_windowsDotNet4(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -829,6 +959,9 @@ func TestAccAppServiceSlot_windowsDotNet4(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_windowsDotNet5(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -844,6 +977,9 @@ func TestAccAppServiceSlot_windowsDotNet5(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_windowsDotNet6(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -859,6 +995,9 @@ func TestAccAppServiceSlot_windowsDotNet6(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_keyVaultUserAssignedIdentity(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -873,6 +1012,9 @@ func TestAccAppServiceSlot_keyVaultUserAssignedIdentity(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_userAssignedIdentity(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -891,6 +1033,9 @@ func TestAccAppServiceSlot_userAssignedIdentity(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_windowsDotNetUpdate(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -927,6 +1072,9 @@ func TestAccAppServiceSlot_windowsDotNetUpdate(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_windowsJava7Jetty(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -944,6 +1092,9 @@ func TestAccAppServiceSlot_windowsJava7Jetty(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_windowsJava8Jetty(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -961,6 +1112,9 @@ func TestAccAppServiceSlot_windowsJava8Jetty(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_windowsJava11Jetty(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -978,6 +1132,9 @@ func TestAccAppServiceSlot_windowsJava11Jetty(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_windowsJava7Tomcat(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -995,6 +1152,9 @@ func TestAccAppServiceSlot_windowsJava7Tomcat(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_windowsJava8Tomcat(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -1012,6 +1172,9 @@ func TestAccAppServiceSlot_windowsJava8Tomcat(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_windowsJava11Tomcat(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -1029,6 +1192,9 @@ func TestAccAppServiceSlot_windowsJava11Tomcat(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_windowsPHP7(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -1044,6 +1210,9 @@ func TestAccAppServiceSlot_windowsPHP7(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_windowsPython(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -1059,6 +1228,9 @@ func TestAccAppServiceSlot_windowsPython(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_webSockets(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -1074,6 +1246,9 @@ func TestAccAppServiceSlot_webSockets(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_enableManageServiceIdentity(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -1091,6 +1266,9 @@ func TestAccAppServiceSlot_enableManageServiceIdentity(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_minTls(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -1114,6 +1292,9 @@ func TestAccAppServiceSlot_minTls(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_applicationBlobStorageLogs(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -1133,6 +1314,9 @@ func TestAccAppServiceSlot_applicationBlobStorageLogs(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_emptyApplicationLogs(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -1150,6 +1334,9 @@ func TestAccAppServiceSlot_emptyApplicationLogs(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_httpFileSystemLogs(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -1167,6 +1354,9 @@ func TestAccAppServiceSlot_httpFileSystemLogs(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_httpBlobStorageLogs(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -1184,6 +1374,9 @@ func TestAccAppServiceSlot_httpBlobStorageLogs(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_detailedErrorMessagesLogs(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -1205,6 +1398,9 @@ func TestAccAppServiceSlot_detailedErrorMessagesLogs(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_failedRequestTracingLogs(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -1227,6 +1423,9 @@ func TestAccAppServiceSlot_failedRequestTracingLogs(t *testing.T) {
 }
 
 func TestAccAppServiceSlot_autoSwap(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
@@ -1248,7 +1447,7 @@ func (r AppServiceSlotResource) Exists(ctx context.Context, clients *clients.Cli
 		return nil, err
 	}
 
-	resp, err := clients.Web.AppServicesClient.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+	resp, err := clients.Web.AppServicesClientV1.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return pointer.To(false), nil

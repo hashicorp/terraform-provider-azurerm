@@ -108,6 +108,7 @@ func baseEnvironmentWithName(name string) Environment {
 		PowerBiService:          applicationIdOnly("PowerBiService", powerBiServiceAppId),
 		Purview:                 applicationIdOnly("Purview", purviewAppId),
 		RightsManagement:        applicationIdOnly("RightsManagementServices", rightsManagementServiceAppId),
+		Search:                  applicationIdOnly("Search", searchAppId),
 		SecurityInsights:        applicationIdOnly("AzureSecurityInsights", securityInsightsAppId),
 		ServiceBus:              applicationIdOnly("AzureServiceBus", serviceBusAppId),
 		ServiceDeploy:           applicationIdOnly("AzureServiceDeploy", serviceDeployAppId),

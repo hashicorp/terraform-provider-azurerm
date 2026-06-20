@@ -23,6 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -321,13 +322,12 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure ARM Managed Disk creation.")
-
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	id := commonids.NewManagedDiskID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -579,17 +579,8 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
-	err := client.CreateOrUpdateThenPoll(ctx, id, createDisk)
-	if err != nil {
-		return fmt.Errorf("creating/updating Managed Disk %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	read, err := client.Get(ctx, id)
-	if err != nil {
-		return fmt.Errorf("retrieving Managed Disk %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if read.Model == nil {
-		return fmt.Errorf("reading Managed Disk %s (Resource Group %q): ID was nil", name, resourceGroup)
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, createDisk, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
+		return fmt.Errorf("creating Managed Disk %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(id.ID())
@@ -606,8 +597,6 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	skusClient := meta.(*clients.Client).Compute.SkusClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Azure ARM Managed Disk update.")
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -769,10 +758,11 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if diskAccessID := d.Get("disk_access_id").(string); d.HasChange("disk_access_id") {
+		networkAccessPolicy := disks.NetworkAccessPolicy(d.Get("network_access_policy").(string))
 		switch {
-		case *diskUpdate.Properties.NetworkAccessPolicy == disks.NetworkAccessPolicyAllowPrivate:
+		case networkAccessPolicy == disks.NetworkAccessPolicyAllowPrivate:
 			diskUpdate.Properties.DiskAccessId = pointer.To(diskAccessID)
-		case diskAccessID != "" && *diskUpdate.Properties.NetworkAccessPolicy != disks.NetworkAccessPolicyAllowPrivate:
+		case diskAccessID != "" && networkAccessPolicy != disks.NetworkAccessPolicyAllowPrivate:
 			return fmt.Errorf("[ERROR] disk_access_id is only available when network_access_policy is set to AllowPrivate")
 		default:
 			diskUpdate.Properties.DiskAccessId = nil

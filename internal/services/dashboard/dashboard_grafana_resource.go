@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2025-08-01/managedgrafanas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -35,6 +36,7 @@ type DashboardGrafanaModel struct {
 	Location                          string                                            `tfschema:"location"`
 	PublicNetworkAccessEnabled        bool                                              `tfschema:"public_network_access_enabled"`
 	Sku                               string                                            `tfschema:"sku"`
+	SkuSize                           string                                            `tfschema:"sku_size"`
 	Tags                              map[string]string                                 `tfschema:"tags"`
 	ZoneRedundancyEnabled             bool                                              `tfschema:"zone_redundancy_enabled"`
 	Endpoint                          string                                            `tfschema:"endpoint"`
@@ -210,8 +212,15 @@ func (r DashboardGrafanaResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:  "Standard",
 			ValidateFunc: validation.StringInSlice([]string{
 				"Standard",
-				"Essential",
 			}, false),
+		},
+
+		"sku_size": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      managedgrafanas.SizeXOne,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(managedgrafanas.PossibleValuesForSize(), false),
 		},
 
 		"tags": commonschema.Tags(),
@@ -222,6 +231,27 @@ func (r DashboardGrafanaResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Default:  false,
 		},
+	}
+
+	if !features.FivePointOh() {
+		arguments["sku"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			Default:  "Standard",
+			ValidateFunc: validation.All(
+				validation.StringInSlice([]string{
+					"Standard",
+					"Essential",
+				}, false),
+				func(v interface{}, k string) (warnings []string, errors []error) {
+					if val, ok := v.(string); ok && val == "Essential" {
+						warnings = append(warnings, "the `Essential` value for `sku` is deprecated and will be removed in v5.0 of the AzureRM provider")
+					}
+					return
+				},
+			),
+		}
 	}
 
 	return arguments
@@ -261,13 +291,16 @@ func (r DashboardGrafanaResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.Dashboard.GrafanaResourceClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := managedgrafanas.NewGrafanaID(subscriptionId, model.ResourceGroupName, model.Name)
-			existing, err := client.GrafanaGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GrafanaGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			identityValue := expandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
@@ -311,7 +344,11 @@ func (r DashboardGrafanaResource) Create() sdk.ResourceFunc {
 				Tags: &model.Tags,
 			}
 
-			if err := client.GrafanaCreateThenPoll(ctx, id, *properties); err != nil {
+			if model.SkuSize != "" {
+				properties.Sku.Size = pointer.To(managedgrafanas.Size(model.SkuSize))
+			}
+
+			if err := client.GrafanaCreateCallbackThenPoll(ctx, id, *properties, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -507,6 +544,9 @@ func (r DashboardGrafanaResource) Read() sdk.ResourceFunc {
 
 			if model.Sku != nil {
 				state.Sku = model.Sku.Name
+				if model.Sku.Size != nil {
+					state.SkuSize = pointer.FromEnum(model.Sku.Size)
+				}
 			}
 
 			if model.Tags != nil {
@@ -562,7 +602,8 @@ func expandSMTPConfigurationModel(input []SMTPConfigurationModel) *managedgrafan
 	return pointer.To(
 		managedgrafanas.GrafanaConfigurations{
 			Smtp: pointer.To(smtp),
-		})
+		},
+	)
 }
 
 func expandGrafanaIntegrationsModel(inputList []AzureMonitorWorkspaceIntegrationModel) *managedgrafanas.GrafanaIntegrations {

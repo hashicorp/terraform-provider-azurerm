@@ -73,15 +73,17 @@ func resourceSecurityCenterWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta
 
 	id := parse.NewWorkspaceID(subscriptionId, securityCenterWorkspaceName)
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.WorkspaceSettingName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id.WorkspaceSettingName)
+			if err != nil {
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_security_center_workspace", id.ID())
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return tf.ImportAsExistsError("azurerm_security_center_workspace", id.ID())
+			}
 		}
 	}
 

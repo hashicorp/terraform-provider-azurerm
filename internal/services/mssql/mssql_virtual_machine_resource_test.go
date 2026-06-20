@@ -447,8 +447,7 @@ resource "azurerm_public_ip" "vm" {
   name                = "acctest-PIP-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
 }
 
 resource "azurerm_network_security_group" "test" {
@@ -866,7 +865,7 @@ resource "azuread_service_principal" "test" {
 }
 
 resource "azuread_application_password" "test" {
-  application_id = azuread_application.test.object_id
+  application_id = azuread_application.test.id
 }
 
 resource "azurerm_mssql_virtual_machine" "test" {
@@ -946,7 +945,7 @@ resource "azuread_service_principal" "test" {
 }
 
 resource "azuread_application_password" "test" {
-  application_object_id = azuread_application.test.object_id
+  application_id = azuread_application.test.id
 }
 
 resource "azurerm_mssql_virtual_machine" "test" {

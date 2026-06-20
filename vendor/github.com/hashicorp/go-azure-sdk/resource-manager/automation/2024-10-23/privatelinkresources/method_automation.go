@@ -15,7 +15,24 @@ import (
 type AutomationOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *PrivateLinkResourceListResult
+	Model        *[]PrivateLinkResource
+}
+
+type AutomationCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []PrivateLinkResource
+}
+
+type AutomationCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *AutomationCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // Automation ...
@@ -26,6 +43,7 @@ func (c PrivateLinkResourcesClient) Automation(ctx context.Context, id Automatio
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &AutomationCustomPager{},
 		Path:       fmt.Sprintf("%s/privateLinkResources", id.ID()),
 	}
 
@@ -35,7 +53,7 @@ func (c PrivateLinkResourcesClient) Automation(ctx context.Context, id Automatio
 	}
 
 	var resp *client.Response
-	resp, err = req.Execute(ctx)
+	resp, err = req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData
 		result.HttpResponse = resp.Response
@@ -44,11 +62,44 @@ func (c PrivateLinkResourcesClient) Automation(ctx context.Context, id Automatio
 		return
 	}
 
-	var model PrivateLinkResourceListResult
-	result.Model = &model
-	if err = resp.Unmarshal(result.Model); err != nil {
+	var values struct {
+		Values *[]PrivateLinkResource `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
+	result.Model = values.Values
+
+	return
+}
+
+// AutomationComplete retrieves all the results into a single object
+func (c PrivateLinkResourcesClient) AutomationComplete(ctx context.Context, id AutomationAccountId) (AutomationCompleteResult, error) {
+	return c.AutomationCompleteMatchingPredicate(ctx, id, PrivateLinkResourceOperationPredicate{})
+}
+
+// AutomationCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c PrivateLinkResourcesClient) AutomationCompleteMatchingPredicate(ctx context.Context, id AutomationAccountId, predicate PrivateLinkResourceOperationPredicate) (result AutomationCompleteResult, err error) {
+	items := make([]PrivateLinkResource, 0)
+
+	resp, err := c.Automation(ctx, id)
+	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	result = AutomationCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
 	return
 }

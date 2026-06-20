@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -80,10 +81,10 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 				}, false),
 			},
 
-			// NOTE: O+C A Log Analytics Workspace will be attached to the Application Insight by default, which should be computed=true
 			"workspace_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// NOTE: O+C A Log Analytics Workspace will be attached to the Application Insight by default, which should be computed=true
 				Computed:     true,
 				ValidateFunc: workspaces.ValidateWorkspaceID,
 			},
@@ -112,10 +113,10 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 				ValidateFunc: validation.FloatBetween(0, 100),
 			},
 
-			"disable_ip_masking": {
+			"ip_masking_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  false,
+				Default:  true,
 			},
 
 			"tags": commonschema.Tags(),
@@ -127,9 +128,10 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 				ValidateFunc: validation.FloatAtLeast(0),
 			},
 
-			"daily_data_cap_notifications_disabled": {
+			"daily_data_cap_notifications_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				Default:  true,
 			},
 
 			"app_id": {
@@ -149,10 +151,10 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 
-			"local_authentication_disabled": {
+			"local_authentication_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  false,
+				Default:  true,
 			},
 
 			"internet_ingestion_enabled": {
@@ -174,6 +176,53 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 		},
 	}
 
+	if !features.FivePointOh() {
+		resource.Schema["local_authentication_disabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			Deprecated:    "`local_authentication_disabled` has been deprecated in favour of `local_authentication_enabled` and will be removed in v5.0 of the AzureRM Provider",
+			ConflictsWith: []string{"local_authentication_enabled"},
+		}
+
+		resource.Schema["local_authentication_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"local_authentication_disabled"},
+		}
+
+		resource.Schema["disable_ip_masking"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			Deprecated:    "`disable_ip_masking` has been deprecated in favour of `ip_masking_enabled` and will be removed in v5.0 of the AzureRM Provider",
+			ConflictsWith: []string{"ip_masking_enabled"},
+		}
+
+		resource.Schema["ip_masking_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"disable_ip_masking"},
+		}
+
+		resource.Schema["daily_data_cap_notifications_disabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			Deprecated:    "`daily_data_cap_notifications_disabled` has been deprecated in favour of `daily_data_cap_notifications_enabled` and will be removed in v5.0 of the AzureRM Provider",
+			ConflictsWith: []string{"daily_data_cap_notifications_enabled"},
+		}
+
+		resource.Schema["daily_data_cap_notifications_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"daily_data_cap_notifications_disabled"},
+		}
+	}
+
 	return resource
 }
 
@@ -187,13 +236,14 @@ func resourceApplicationInsightsCreate(d *pluginsdk.ResourceData, meta interface
 
 	id := components.NewComponentID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.ComponentsGet(ctx, id)
-
-	if !response.WasNotFound(existing.HttpResponse) {
-		if err != nil {
-			return fmt.Errorf("checking for presence of existing %s: %v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.ComponentsGet(ctx, id)
+		if !response.WasNotFound(existing.HttpResponse) {
+			if err != nil {
+				return fmt.Errorf("checking for presence of existing %s: %v", id, err)
+			}
+			return tf.ImportAsExistsError("azurerm_application_insights", id.ID())
 		}
-		return tf.ImportAsExistsError("azurerm_application_insights", id.ID())
 	}
 
 	internetIngestionEnabled := components.PublicNetworkAccessTypeDisabled
@@ -210,11 +260,29 @@ func resourceApplicationInsightsCreate(d *pluginsdk.ResourceData, meta interface
 		ApplicationId:                   pointer.To(id.ComponentName),
 		ApplicationType:                 components.ApplicationType(d.Get("application_type").(string)),
 		SamplingPercentage:              pointer.To(d.Get("sampling_percentage").(float64)),
-		DisableIPMasking:                pointer.To(d.Get("disable_ip_masking").(bool)),
-		DisableLocalAuth:                pointer.To(d.Get("local_authentication_disabled").(bool)),
+		DisableIPMasking:                pointer.To(!d.Get("ip_masking_enabled").(bool)),
+		DisableLocalAuth:                pointer.To(!d.Get("local_authentication_enabled").(bool)),
 		PublicNetworkAccessForIngestion: pointer.To(internetIngestionEnabled),
 		PublicNetworkAccessForQuery:     pointer.To(internetQueryEnabled),
 		ForceCustomerStorageForProfiler: pointer.To(d.Get("force_customer_storage_for_profiler").(bool)),
+	}
+
+	if !features.FivePointOh() {
+		applicationInsightsComponentProperties.DisableIPMasking = pointer.To(false)
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "ip_masking_enabled") {
+			applicationInsightsComponentProperties.DisableIPMasking = pointer.To(!d.Get("ip_masking_enabled").(bool))
+		}
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "disable_ip_masking") {
+			applicationInsightsComponentProperties.DisableIPMasking = pointer.To(d.Get("disable_ip_masking").(bool))
+		}
+
+		applicationInsightsComponentProperties.DisableLocalAuth = pointer.To(false)
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "local_authentication_enabled") {
+			applicationInsightsComponentProperties.DisableLocalAuth = pointer.To(!d.Get("local_authentication_enabled").(bool))
+		}
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "local_authentication_disabled") {
+			applicationInsightsComponentProperties.DisableLocalAuth = pointer.To(d.Get("local_authentication_disabled").(bool))
+		}
 	}
 
 	if workspaceRaw, ok := d.GetOk("workspace_id"); ok {
@@ -239,6 +307,11 @@ func resourceApplicationInsightsCreate(d *pluginsdk.ResourceData, meta interface
 
 	if _, err := client.ComponentsCreateOrUpdate(ctx, id, insightProperties); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
 	}
 
 	read, err := client.ComponentsGet(ctx, id)
@@ -279,8 +352,15 @@ func resourceApplicationInsightsCreate(d *pluginsdk.ResourceData, meta interface
 		applicationInsightsComponentBillingFeatures.DataVolumeCap.Cap = pointer.To(v.(float64))
 	}
 
-	if v, ok := d.GetOk("daily_data_cap_notifications_disabled"); ok {
-		applicationInsightsComponentBillingFeatures.DataVolumeCap.StopSendNotificationWhenHitCap = pointer.To(v.(bool))
+	applicationInsightsComponentBillingFeatures.DataVolumeCap.StopSendNotificationWhenHitCap = pointer.To(!d.Get("daily_data_cap_notifications_enabled").(bool))
+	if !features.FivePointOh() {
+		applicationInsightsComponentBillingFeatures.DataVolumeCap.StopSendNotificationWhenHitCap = pointer.To(false)
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "daily_data_cap_notifications_enabled") {
+			applicationInsightsComponentBillingFeatures.DataVolumeCap.StopSendNotificationWhenHitCap = pointer.To(!d.Get("daily_data_cap_notifications_enabled").(bool))
+		}
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "daily_data_cap_notifications_disabled") {
+			applicationInsightsComponentBillingFeatures.DataVolumeCap.StopSendNotificationWhenHitCap = pointer.To(d.Get("daily_data_cap_notifications_disabled").(bool))
+		}
 	}
 
 	if _, err = billingClient.ComponentCurrentBillingFeaturesUpdate(ctx, *billingId, applicationInsightsComponentBillingFeatures); err != nil {
@@ -322,11 +402,6 @@ func resourceApplicationInsightsCreate(d *pluginsdk.ResourceData, meta interface
 		if err != nil {
 			return err
 		}
-	}
-
-	d.SetId(id.ID())
-	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
-		return err
 	}
 
 	return resourceApplicationInsightsRead(d, meta)
@@ -384,9 +459,15 @@ func resourceApplicationInsightsRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("app_id", props.AppId)
 			d.Set("instrumentation_key", props.InstrumentationKey)
 			d.Set("sampling_percentage", props.SamplingPercentage)
-			d.Set("disable_ip_masking", props.DisableIPMasking)
+			d.Set("ip_masking_enabled", !pointer.From(props.DisableIPMasking))
+			if !features.FivePointOh() {
+				d.Set("disable_ip_masking", pointer.From(props.DisableIPMasking))
+			}
 			d.Set("connection_string", props.ConnectionString)
-			d.Set("local_authentication_disabled", props.DisableLocalAuth)
+			d.Set("local_authentication_enabled", !pointer.From(props.DisableLocalAuth))
+			if !features.FivePointOh() {
+				d.Set("local_authentication_disabled", pointer.From(props.DisableLocalAuth))
+			}
 			d.Set("internet_ingestion_enabled", pointer.From(props.PublicNetworkAccessForIngestion) == components.PublicNetworkAccessTypeEnabled)
 			d.Set("internet_query_enabled", pointer.From(props.PublicNetworkAccessForQuery) == components.PublicNetworkAccessTypeEnabled)
 			d.Set("force_customer_storage_for_profiler", props.ForceCustomerStorageForProfiler)
@@ -406,7 +487,10 @@ func resourceApplicationInsightsRead(d *pluginsdk.ResourceData, meta interface{}
 	if model := billingResp.Model; model != nil {
 		if props := model.DataVolumeCap; props != nil {
 			d.Set("daily_data_cap_in_gb", props.Cap)
-			d.Set("daily_data_cap_notifications_disabled", props.StopSendNotificationWhenHitCap)
+			d.Set("daily_data_cap_notifications_enabled", !pointer.From(props.StopSendNotificationWhenHitCap))
+			if !features.FivePointOh() {
+				d.Set("daily_data_cap_notifications_disabled", pointer.From(props.StopSendNotificationWhenHitCap))
+			}
 		}
 	}
 
@@ -446,12 +530,24 @@ func resourceApplicationInsightsUpdate(d *pluginsdk.ResourceData, meta interface
 		component.Properties.SamplingPercentage = pointer.To(d.Get("sampling_percentage").(float64))
 	}
 
-	if d.HasChange("disable_ip_masking") {
-		component.Properties.DisableIPMasking = pointer.To(d.Get("disable_ip_masking").(bool))
+	if d.HasChange("ip_masking_enabled") {
+		component.Properties.DisableIPMasking = pointer.To(!d.Get("ip_masking_enabled").(bool))
 	}
 
-	if d.HasChange("local_authentication_disabled") {
-		component.Properties.DisableLocalAuth = pointer.To(d.Get("local_authentication_disabled").(bool))
+	if !features.FivePointOh() {
+		if d.HasChange("disable_ip_masking") {
+			component.Properties.DisableIPMasking = pointer.To(d.Get("disable_ip_masking").(bool))
+		}
+	}
+
+	if d.HasChange("local_authentication_enabled") {
+		component.Properties.DisableLocalAuth = pointer.To(!d.Get("local_authentication_enabled").(bool))
+	}
+
+	if !features.FivePointOh() {
+		if d.HasChange("local_authentication_disabled") {
+			component.Properties.DisableLocalAuth = pointer.To(d.Get("local_authentication_disabled").(bool))
+		}
 	}
 
 	if d.HasChange("internet_ingestion_enabled") {
@@ -523,11 +619,17 @@ func resourceApplicationInsightsUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("daily_data_cap_in_gb") {
-		billingProps.DataVolumeCap.Cap = pointer.To(d.Get(("daily_data_cap_in_gb")).(float64))
+		billingProps.DataVolumeCap.Cap = pointer.To(d.Get("daily_data_cap_in_gb").(float64))
 	}
 
-	if d.HasChange("daily_data_cap_notifications_disabled") {
-		billingProps.DataVolumeCap.StopSendNotificationWhenHitCap = pointer.To(d.Get("daily_data_cap_notifications_disabled").(bool))
+	if d.HasChange("daily_data_cap_notifications_enabled") {
+		billingProps.DataVolumeCap.StopSendNotificationWhenHitCap = pointer.To(!d.Get("daily_data_cap_notifications_enabled").(bool))
+	}
+
+	if !features.FivePointOh() {
+		if d.HasChange("daily_data_cap_notifications_disabled") {
+			billingProps.DataVolumeCap.StopSendNotificationWhenHitCap = pointer.To(d.Get("daily_data_cap_notifications_disabled").(bool))
+		}
 	}
 
 	if _, err = billingClient.ComponentCurrentBillingFeaturesUpdate(ctx, *billingId, *billingProps); err != nil {

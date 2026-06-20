@@ -12,16 +12,32 @@ import (
 type ProvisioningState string
 
 const (
+	ProvisioningStateAccepted  ProvisioningState = "Accepted"
+	ProvisioningStateCanceled  ProvisioningState = "Canceled"
+	ProvisioningStateCreated   ProvisioningState = "Created"
+	ProvisioningStateCreating  ProvisioningState = "Creating"
 	ProvisioningStateDeleted   ProvisioningState = "Deleted"
+	ProvisioningStateDeleting  ProvisioningState = "Deleting"
 	ProvisioningStateFailed    ProvisioningState = "Failed"
+	ProvisioningStateReady     ProvisioningState = "Ready"
+	ProvisioningStateRunning   ProvisioningState = "Running"
 	ProvisioningStateSucceeded ProvisioningState = "Succeeded"
+	ProvisioningStateUpdating  ProvisioningState = "Updating"
 )
 
 func PossibleValuesForProvisioningState() []string {
 	return []string{
+		string(ProvisioningStateAccepted),
+		string(ProvisioningStateCanceled),
+		string(ProvisioningStateCreated),
+		string(ProvisioningStateCreating),
 		string(ProvisioningStateDeleted),
+		string(ProvisioningStateDeleting),
 		string(ProvisioningStateFailed),
+		string(ProvisioningStateReady),
+		string(ProvisioningStateRunning),
 		string(ProvisioningStateSucceeded),
+		string(ProvisioningStateUpdating),
 	}
 }
 
@@ -40,9 +56,17 @@ func (s *ProvisioningState) UnmarshalJSON(bytes []byte) error {
 
 func parseProvisioningState(input string) (*ProvisioningState, error) {
 	vals := map[string]ProvisioningState{
+		"accepted":  ProvisioningStateAccepted,
+		"canceled":  ProvisioningStateCanceled,
+		"created":   ProvisioningStateCreated,
+		"creating":  ProvisioningStateCreating,
 		"deleted":   ProvisioningStateDeleted,
+		"deleting":  ProvisioningStateDeleting,
 		"failed":    ProvisioningStateFailed,
+		"ready":     ProvisioningStateReady,
+		"running":   ProvisioningStateRunning,
 		"succeeded": ProvisioningStateSucceeded,
+		"updating":  ProvisioningStateUpdating,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil

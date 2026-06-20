@@ -91,9 +91,20 @@ func (c PolicyFragmentClient) WorkspacePolicyFragmentCreateOrUpdate(ctx context.
 
 // WorkspacePolicyFragmentCreateOrUpdateThenPoll performs WorkspacePolicyFragmentCreateOrUpdate then polls until it's completed
 func (c PolicyFragmentClient) WorkspacePolicyFragmentCreateOrUpdateThenPoll(ctx context.Context, id WorkspacePolicyFragmentId, input PolicyFragmentContract, options WorkspacePolicyFragmentCreateOrUpdateOperationOptions) error {
+	return c.WorkspacePolicyFragmentCreateOrUpdateCallbackThenPoll(ctx, id, input, options, nil)
+}
+
+// WorkspacePolicyFragmentCreateOrUpdateCallbackThenPoll performs WorkspacePolicyFragmentCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c PolicyFragmentClient) WorkspacePolicyFragmentCreateOrUpdateCallbackThenPoll(ctx context.Context, id WorkspacePolicyFragmentId, input PolicyFragmentContract, options WorkspacePolicyFragmentCreateOrUpdateOperationOptions, callback func() error) error {
 	result, err := c.WorkspacePolicyFragmentCreateOrUpdate(ctx, id, input, options)
 	if err != nil {
 		return fmt.Errorf("performing WorkspacePolicyFragmentCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -108,15 +108,18 @@ func resourceArmStackHCIClusterCreate(d *pluginsdk.ResourceData, meta interface{
 	defer cancel()
 
 	id := clusters.NewClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_stack_hci_cluster", id.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+		}
+
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_stack_hci_cluster", id.ID())
+		}
 	}
 
 	cluster := clusters.Cluster{
@@ -141,6 +144,8 @@ func resourceArmStackHCIClusterCreate(d *pluginsdk.ResourceData, meta interface{
 	if _, err := client.Create(ctx, id, cluster); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
+
+	d.SetId(id.ID())
 
 	if v, ok := d.GetOk("automanage_configuration_id"); ok {
 		configurationProfilesClient := meta.(*clients.Client).Automanage.ConfigurationProfilesClient
@@ -173,8 +178,6 @@ func resourceArmStackHCIClusterCreate(d *pluginsdk.ResourceData, meta interface{
 			}
 		}
 	}
-
-	d.SetId(id.ID())
 
 	return resourceArmStackHCIClusterRead(d, meta)
 }

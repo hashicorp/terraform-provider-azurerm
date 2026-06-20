@@ -9,10 +9,11 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/cognitiveservicesaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -73,14 +74,16 @@ func resourceCognitiveAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.Resourc
 	locks.ByName(id.AccountName, "azurerm_cognitive_account")
 	defer locks.UnlockByName(id.AccountName, "azurerm_cognitive_account")
 
-	resp, err := client.AccountsGet(ctx, *id)
-	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", id, err)
-	}
-
 	if d.IsNewResource() {
-		if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.Encryption != nil && resp.Model.Properties.Encryption.KeySource != nil && *resp.Model.Properties.Encryption.KeySource != cognitiveservicesaccounts.KeySourceMicrosoftPointCognitiveServices {
-			return tf.ImportAsExistsError("azurerm_cognitive_account_customer_managed_key", id.ID())
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			resp, err := client.AccountsGet(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", id, err)
+			}
+
+			if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.Encryption != nil && resp.Model.Properties.Encryption.KeySource != nil && *resp.Model.Properties.Encryption.KeySource != cognitiveservicesaccounts.KeySourceMicrosoftPointCognitiveServices {
+				return tf.ImportAsExistsError("azurerm_cognitive_account_customer_managed_key", id.ID())
+			}
 		}
 	}
 
@@ -108,23 +111,10 @@ func resourceCognitiveAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.Resourc
 		props.Properties.Encryption.KeyVaultProperties.IdentityClientId = pointer.To(identityClientId)
 	}
 
-	// todo check if poll works in all the resources
-	if _, err = client.AccountsUpdate(ctx, *id, props); err != nil {
+	if err := client.AccountsUpdateCallbackThenPoll(ctx, *id, props, sdk.SetIDCallback(meta, id, d)); err != nil {
 		return fmt.Errorf("adding Customer Managed Key for %s: %+v", id, err)
 	}
 
-	timeout, _ := ctx.Deadline()
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{"Accepted"},
-		Target:     []string{"Succeeded"},
-		Refresh:    cognitiveAccountStateRefreshFunc(ctx, client, *id),
-		MinTimeout: 15 * time.Second,
-		Timeout:    time.Until(timeout),
-	}
-
-	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for update of %s: %+v", id, err)
-	}
 	d.SetId(id.ID())
 
 	return resourceCognitiveAccountCustomerManagedKeyRead(d, meta)
@@ -198,21 +188,8 @@ func resourceCognitiveAccountCustomerManagedKeyDelete(d *pluginsdk.ResourceData,
 		},
 	}
 
-	if _, err = client.AccountsUpdate(ctx, *id, props); err != nil {
+	if err := client.AccountsUpdateThenPoll(ctx, *id, props); err != nil {
 		return fmt.Errorf("removing Customer Managed Key for %s: %+v", *id, err)
-	}
-
-	timeout, _ := ctx.Deadline()
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{"Accepted"},
-		Target:     []string{"Succeeded"},
-		Refresh:    cognitiveAccountStateRefreshFunc(ctx, client, *id),
-		MinTimeout: 15 * time.Second,
-		Timeout:    time.Until(timeout),
-	}
-
-	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for removal of Customer Managed Key for %s: %+v", *id, err)
 	}
 
 	return nil
