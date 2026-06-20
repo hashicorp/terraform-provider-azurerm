@@ -54,13 +54,13 @@ func TestAccVirtualMachineRunCommand_recreate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_run_command", "test")
 	r := VirtualMachineRunCommandTestResource{}
 
-	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.basicWithScriptError(data),
 			ExpectError: regexp.MustCompile("failed to execute command"),
 		},
 		{
-			Config: r.basic(data),
+			Config: r.basicWithSkipImportCheck(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -197,9 +197,7 @@ func (r VirtualMachineRunCommandTestResource) Exists(ctx context.Context, client
 func (r VirtualMachineRunCommandTestResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {
-    skip_import_check_on_create_and_allow_overwriting_existing_resources = true
-  }
+  features {}
 }
 
 %s
@@ -228,6 +226,27 @@ resource "azurerm_virtual_machine_run_command" "import" {
   }
 }
 `, r.basic(data))
+}
+
+func (r VirtualMachineRunCommandTestResource) basicWithSkipImportCheck(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    skip_import_check_on_create_and_allow_overwriting_existing_resources = true
+  }
+}
+
+%s
+
+resource "azurerm_virtual_machine_run_command" "test" {
+  name               = "acctestvmrc-${var.random_string}"
+  location           = azurerm_resource_group.test.location
+  virtual_machine_id = azurerm_linux_virtual_machine.test.id
+  source {
+    script = "echo 'hello world'"
+  }
+}
+`, r.template(data))
 }
 
 func (r VirtualMachineRunCommandTestResource) basicWithParameters(data acceptance.TestData) string {
@@ -929,7 +948,7 @@ resource "azurerm_linux_virtual_machine" "test" {
   name                            = "acctestVM-${var.random_integer}"
   resource_group_name             = azurerm_resource_group.test.name
   location                        = azurerm_resource_group.test.location
-  size                            = "Standard_D2as_v5"
+  size                            = "Standard_B2s"
   admin_username                  = "adminuser"
   admin_password                  = "Pa-${var.random_string}"
   disable_password_authentication = false
