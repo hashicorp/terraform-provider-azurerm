@@ -85,6 +85,11 @@ func TestFlexibleServerSkuName(t *testing.T) {
 			valid: true,
 		},
 		{
+			name:  "MO_Standard_E64ads_v4",
+			input: "MO_Standard_E64ads_v4",
+			valid: true,
+		},
+		{
 			name:  "B_Standard_B20ms",
 			input: "B_Standard_B20ms",
 			valid: true,
@@ -147,6 +152,36 @@ func TestFlexibleServerSkuName(t *testing.T) {
 		{
 			name:  "MO_Standard_EC96as_v5",
 			input: "MO_Standard_EC96as_v5",
+			valid: true,
+		},
+		{
+			name:  "GP_Standard_D2ds_v6",
+			input: "GP_Standard_D2ds_v6",
+			valid: true,
+		},
+		{
+			name:  "GP_Standard_D128ads_v6",
+			input: "GP_Standard_D128ads_v6",
+			valid: false,
+		},
+		{
+			name:  "GP_Standard_D2ads_v6",
+			input: "GP_Standard_D2ads_v6",
+			valid: true,
+		},
+		{
+			name:  "MO_Standard_E2ds_v6",
+			input: "MO_Standard_E2ds_v6",
+			valid: true,
+		},
+		{
+			name:  "MO_Standard_E128ads_v6",
+			input: "MO_Standard_E128ads_v6",
+			valid: false,
+		},
+		{
+			name:  "MO_Standard_E2ads_v6",
+			input: "MO_Standard_E2ads_v6",
 			valid: true,
 		},
 	}
