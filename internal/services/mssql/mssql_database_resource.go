@@ -1792,7 +1792,9 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"free_limit_exhaustion_behavior": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			// NOTE: O+C - API returns a default exhaustion behavior when free limit is enabled and this is omitted
+			// O+C: the API assigns `AutoPause` when this is omitted. `BillOverUsage` -> `AutoPause` is a
+			// one-way transition the service rejects, so the value is intentionally retained rather than
+			// reset to the default when removed from config.
 			Computed:     true,
 			ValidateFunc: validation.StringInSlice(databases.PossibleValuesForFreeLimitExhaustionBehavior(), false),
 		},

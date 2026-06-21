@@ -246,6 +246,8 @@ The following arguments are supported:
 
 ~> **Note:** `free_limit_exhaustion_behavior` can only be configured when `free_limit_enabled` is set to `true`.
 
+~> **Note:** Once set to `BillOverUsage`, the Azure SQL free offer does not allow reverting to `AutoPause`. See the [Azure SQL free offer limitations](https://learn.microsoft.com/azure/azure-sql/database/free-offer?view=azuresql#offer-limitations) for more information.
+
 * `storage_account_type` - (Optional) Specifies the storage account type used to store backups for this database. Possible values are `Geo`, `GeoZone`, `Local` and `Zone`. Defaults to `Geo`.
 
 ~> **Note:** When `free_limit_enabled` is `true`, `storage_account_type` must be `Local` if `free_limit_exhaustion_behavior` is `AutoPause` or omitted.
