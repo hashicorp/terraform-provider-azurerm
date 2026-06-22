@@ -208,9 +208,9 @@ An `identity` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 1 hour) Used when creating the Chaos Studio Experiment.
+* `create` - (Defaults to 30 minutes) Used when creating the Chaos Studio Experiment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Chaos Studio Experiment.
-* `update` - (Defaults to 1 hour) Used when updating the Chaos Studio Experiment.
+* `update` - (Defaults to 30 minutes) Used when updating the Chaos Studio Experiment.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Chaos Studio Experiment.
 
 ## Import
