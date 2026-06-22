@@ -189,7 +189,7 @@ func (r ChaosStudioExperimentResource) Attributes() map[string]*pluginsdk.Schema
 
 func (r ChaosStudioExperimentResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ChaosStudio.V20231101.Experiments
 
@@ -324,7 +324,7 @@ func (r ChaosStudioExperimentResource) Delete() sdk.ResourceFunc {
 
 func (r ChaosStudioExperimentResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ChaosStudio.V20231101.Experiments
 
