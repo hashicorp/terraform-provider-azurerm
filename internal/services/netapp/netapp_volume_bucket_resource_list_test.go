@@ -18,7 +18,7 @@ import (
 
 func TestAccNetAppVolumeBucket_list(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume_bucket", "test")
-	r := NetAppVolumeBucketResource{}
+	r := NetAppVolumeBucketWithServerResource{}
 	bucketName := fmt.Sprintf("acctest-bucket-%d", data.RandomInteger)
 	resourceGroupName := fmt.Sprintf("acctestRG-netapp-%d", data.RandomInteger)
 	accountName := fmt.Sprintf("acctest-NetAppAccount-%d", data.RandomInteger)
@@ -57,7 +57,7 @@ func TestAccNetAppVolumeBucket_list(t *testing.T) {
 	})
 }
 
-func (NetAppVolumeBucketResource) listQuery() string {
+func (NetAppVolumeBucketWithServerResource) listQuery() string {
 	return `
 list "azurerm_netapp_volume_bucket" "list" {
   provider = azurerm

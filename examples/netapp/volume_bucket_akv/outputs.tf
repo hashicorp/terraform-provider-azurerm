@@ -34,7 +34,7 @@ output "bucket_secret_key" {
 # server certificate FQDN (or your DNS record) to point S3 clients at the
 # bucket.
 output "bucket_server_ip_address" {
-  value = azurerm_netapp_volume_bucket.example.server_ip_address
+  value = azurerm_netapp_volume_bucket_with_server.example.server_ip_address
 }
 
 # Read the sensitive values from the CLI with:

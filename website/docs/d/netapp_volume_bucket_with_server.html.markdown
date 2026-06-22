@@ -1,14 +1,14 @@
 ---
 subcategory: "NetApp"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_netapp_volume_bucket"
+page_title: "Azure Resource Manager: azurerm_netapp_volume_bucket_with_server"
 description: |-
-  Gets information about an existing NetApp Files Volume Bucket (Object REST API).
+  Gets information about an existing NetApp Files Volume Bucket including its server configuration (Object REST API).
 ---
 
-# Data Source: azurerm_netapp_volume_bucket
+# Data Source: azurerm_netapp_volume_bucket_with_server
 
-Use this data source to access information about an existing NetApp Files Volume Bucket.
+Use this data source to access information about an existing NetApp Files Volume Bucket, including its bucket server configuration.
 
 ## Example Usage
 
@@ -17,17 +17,17 @@ provider "azurerm" {
   features {}
 }
 
-data "azurerm_netapp_volume_bucket" "example" {
+data "azurerm_netapp_volume_bucket_with_server" "example" {
   name             = "example-bucket"
   netapp_volume_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-resources/providers/Microsoft.NetApp/netAppAccounts/example-anfaccount/capacityPools/example-anfpool/volumes/example-anfvolume"
 }
 
 output "bucket_status" {
-  value = data.azurerm_netapp_volume_bucket.example.status
+  value = data.azurerm_netapp_volume_bucket_with_server.example.status
 }
 
 output "bucket_server_ip_address" {
-  value = data.azurerm_netapp_volume_bucket.example.server_ip_address
+  value = data.azurerm_netapp_volume_bucket_with_server.example.server_ip_address
 }
 ```
 
@@ -53,6 +53,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `file_system_cifs_user` - A `file_system_cifs_user` block as defined below (only set when the bucket is configured for CIFS).
 
+* `server` - A `server` block as defined below.
+
 * `key_vault` - A `key_vault` block as defined below (populated only when the bucket is configured against Azure Key Vault).
 
 * `status` - The credentials status of the bucket. Possible values are `NoCredentialsSet`, `CredentialsExpired` and `Active`.
@@ -76,6 +78,14 @@ A `file_system_nfs_user` block exports the following:
 A `file_system_cifs_user` block exports the following:
 
 * `username` - The CIFS username used by the bucket.
+
+---
+
+A `server` block exports the following:
+
+* `fqdn` - The DNS name that resolves to the bucket endpoint IP address.
+
+* `on_certificate_conflict_action` - The action that runs when a certificate rotation conflicts with an existing certificate.
 
 ---
 

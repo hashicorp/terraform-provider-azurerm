@@ -40,13 +40,13 @@ func (a NetAppVolumeBucketCredentialsAction) basic(data acceptance.TestData) str
 
 action "azurerm_netapp_volume_bucket_credentials" "test" {
   config {
-    bucket_id            = azurerm_netapp_volume_bucket.test.id
+    bucket_id            = azurerm_netapp_volume_bucket_with_server.test.id
     key_pair_expiry_days = 30
   }
 }
 
 resource "terraform_data" "trigger" {
-  input = azurerm_netapp_volume_bucket.test.id
+  input = azurerm_netapp_volume_bucket_with_server.test.id
   lifecycle {
     action_trigger {
       events  = [after_create]
@@ -54,5 +54,5 @@ resource "terraform_data" "trigger" {
     }
   }
 }
-`, NetAppVolumeBucketResource{}.withKeyVault(data))
+`, NetAppVolumeBucketWithServerResource{}.withKeyVault(data))
 }

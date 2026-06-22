@@ -62,6 +62,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 		NetAppBackupPolicyDataSource{},
 		NetAppVolumeGroupOracleDataSource{},
 		NetAppVolumeBucketDataSource{},
+		NetAppVolumeBucketWithServerDataSource{},
 	}
 }
 
@@ -75,6 +76,7 @@ func (r Registration) Resources() []sdk.Resource {
 		NetAppBackupPolicyResource{},
 		NetAppVolumeGroupOracleResource{},
 		NetAppVolumeBucketResource{},
+		NetAppVolumeBucketWithServerResource{},
 	}
 }
 

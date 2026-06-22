@@ -225,7 +225,7 @@ resource "azurerm_key_vault_certificate" "bucket" {
   ]
 }
 
-resource "azurerm_netapp_volume_bucket" "example" {
+resource "azurerm_netapp_volume_bucket_with_server" "example" {
   name      = "${var.prefix}-bucket-kv"
   volume_id = azurerm_netapp_volume.example.id
 
@@ -263,13 +263,13 @@ resource "azurerm_netapp_volume_bucket" "example" {
 # `input`) and re-apply.
 action "azurerm_netapp_volume_bucket_credentials" "example" {
   config {
-    bucket_id            = azurerm_netapp_volume_bucket.example.id
+    bucket_id            = azurerm_netapp_volume_bucket_with_server.example.id
     key_pair_expiry_days = 30
   }
 }
 
 resource "terraform_data" "bucket_credentials" {
-  input = azurerm_netapp_volume_bucket.example.id
+  input = azurerm_netapp_volume_bucket_with_server.example.id
 
   lifecycle {
     action_trigger {

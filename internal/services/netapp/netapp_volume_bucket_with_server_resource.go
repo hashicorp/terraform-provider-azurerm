@@ -17,47 +17,83 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type NetAppVolumeBucketResource struct{}
+type NetAppVolumeBucketWithServerResource struct{}
 
 var (
-	_ sdk.Resource             = NetAppVolumeBucketResource{}
-	_ sdk.ResourceWithIdentity = NetAppVolumeBucketResource{}
+	_ sdk.Resource             = NetAppVolumeBucketWithServerResource{}
+	_ sdk.ResourceWithIdentity = NetAppVolumeBucketWithServerResource{}
 )
 
-func (r NetAppVolumeBucketResource) Identity() resourceids.ResourceId {
+func (r NetAppVolumeBucketWithServerResource) Identity() resourceids.ResourceId {
 	return &buckets.BucketId{}
 }
 
-func (r NetAppVolumeBucketResource) ModelObject() interface{} {
-	return &netAppModels.NetAppVolumeBucketModel{}
+func (r NetAppVolumeBucketWithServerResource) ModelObject() interface{} {
+	return &netAppModels.NetAppVolumeBucketWithServerModel{}
 }
 
-func (r NetAppVolumeBucketResource) ResourceType() string {
-	return "azurerm_netapp_volume_bucket"
+func (r NetAppVolumeBucketWithServerResource) ResourceType() string {
+	return "azurerm_netapp_volume_bucket_with_server"
 }
 
-func (r NetAppVolumeBucketResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r NetAppVolumeBucketWithServerResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return buckets.ValidateBucketID
 }
 
-func (r NetAppVolumeBucketResource) Arguments() map[string]*pluginsdk.Schema {
-	return netAppBucketResourceCommonArguments()
+func (r NetAppVolumeBucketWithServerResource) Arguments() map[string]*pluginsdk.Schema {
+	arguments := netAppBucketResourceCommonArguments()
+
+	// When the certificate is sourced from Key Vault the inline `server.0.certificate_pem`
+	// must not be supplied, so wire up the mutual exclusivity that only applies when the
+	// `server` block exists.
+	arguments["key_vault"].ConflictsWith = []string{"server.0.certificate_pem"}
+
+	arguments["server"] = &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Required: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"fqdn": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+				"certificate_pem": {
+					Type:          pluginsdk.TypeString,
+					Optional:      true,
+					Sensitive:     true,
+					ValidateFunc:  validation.StringIsBase64,
+					ConflictsWith: []string{"key_vault"},
+				},
+				"on_certificate_conflict_action": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(buckets.OnCertificateConflictActionFail),
+					ValidateFunc: validation.StringInSlice(buckets.PossibleValuesForOnCertificateConflictAction(), false),
+				},
+			},
+		},
+	}
+
+	return arguments
 }
 
-func (r NetAppVolumeBucketResource) Attributes() map[string]*pluginsdk.Schema {
+func (r NetAppVolumeBucketWithServerResource) Attributes() map[string]*pluginsdk.Schema {
 	return netAppBucketResourceCommonAttributes()
 }
 
-func (r NetAppVolumeBucketResource) Create() sdk.ResourceFunc {
+func (r NetAppVolumeBucketWithServerResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.NetApp.BucketsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var model netAppModels.NetAppVolumeBucketModel
+			var model netAppModels.NetAppVolumeBucketWithServerModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -89,6 +125,7 @@ func (r NetAppVolumeBucketResource) Create() sdk.ResourceFunc {
 						CifsUser: expandNetAppBucketCifsUser(model.FileSystemCifsUser),
 					},
 					AkvDetails: expandNetAppBucketAkvDetails(model.KeyVault),
+					Server:     expandNetAppBucketServer(model.Server),
 				},
 			}
 
@@ -102,7 +139,7 @@ func (r NetAppVolumeBucketResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r NetAppVolumeBucketResource) Read() sdk.ResourceFunc {
+func (r NetAppVolumeBucketWithServerResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -126,10 +163,10 @@ func (r NetAppVolumeBucketResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r NetAppVolumeBucketResource) flatten(metadata sdk.ResourceMetaData, id *buckets.BucketId, bucket *buckets.Bucket) error {
+func (r NetAppVolumeBucketWithServerResource) flatten(metadata sdk.ResourceMetaData, id *buckets.BucketId, bucket *buckets.Bucket) error {
 	volumeID := volumes.NewVolumeID(id.SubscriptionId, id.ResourceGroupName, id.NetAppAccountName, id.CapacityPoolName, id.VolumeName)
 
-	model := netAppModels.NetAppVolumeBucketModel{
+	model := netAppModels.NetAppVolumeBucketWithServerModel{
 		Name:     id.BucketName,
 		VolumeID: volumeID.ID(),
 	}
@@ -146,12 +183,21 @@ func (r NetAppVolumeBucketResource) flatten(metadata sdk.ResourceMetaData, id *b
 			model.FileSystemCifsUser = flattenNetAppBucketCifsUser(props.FileSystemUser.CifsUser)
 		}
 		model.KeyVault = flattenNetAppBucketAkvDetails(props.AkvDetails)
+		model.Server = flattenNetAppBucketServer(props.Server)
 
 		if props.Server != nil {
 			model.ServerIPAddress = pointer.From(props.Server.IPAddress)
 			model.ServerCertificateCommonName = pointer.From(props.Server.CertificateCommonName)
 			model.ServerCertificateExpiryDate = pointer.From(props.Server.CertificateExpiryDate)
 		}
+	}
+
+	// certificate_pem is never returned by the API; preserve from config/state.
+	if v, ok := metadata.ResourceData.GetOk("server.0.certificate_pem"); ok {
+		if len(model.Server) == 0 {
+			model.Server = []netAppModels.NetAppVolumeBucketServer{{}}
+		}
+		model.Server[0].CertificatePem = v.(string)
 	}
 
 	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
@@ -161,7 +207,7 @@ func (r NetAppVolumeBucketResource) flatten(metadata sdk.ResourceMetaData, id *b
 	return metadata.Encode(&model)
 }
 
-func (r NetAppVolumeBucketResource) Update() sdk.ResourceFunc {
+func (r NetAppVolumeBucketWithServerResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -172,7 +218,7 @@ func (r NetAppVolumeBucketResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var state netAppModels.NetAppVolumeBucketModel
+			var state netAppModels.NetAppVolumeBucketWithServerModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -194,6 +240,10 @@ func (r NetAppVolumeBucketResource) Update() sdk.ResourceFunc {
 				patchProps.AkvDetails = expandNetAppBucketAkvDetails(state.KeyVault)
 			}
 
+			if metadata.ResourceData.HasChange("server") {
+				patchProps.Server = expandNetAppBucketServerPatch(state.Server, metadata.ResourceData)
+			}
+
 			payload := buckets.BucketPatch{
 				Properties: patchProps,
 			}
@@ -207,7 +257,7 @@ func (r NetAppVolumeBucketResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r NetAppVolumeBucketResource) Delete() sdk.ResourceFunc {
+func (r NetAppVolumeBucketWithServerResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {

@@ -3,22 +3,24 @@ subcategory: "NetApp"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_netapp_volume_bucket"
 description: |-
-  Manages a NetApp Files Volume Bucket (Object REST API).
+  Manages a subsequent NetApp Files Volume Bucket (Object REST API).
 ---
 
 # azurerm_netapp_volume_bucket
 
 Manages a NetApp Files Volume Bucket. Buckets expose the contents of an Azure NetApp Files volume (or a sub-path within it) as an S3-compatible object endpoint via the Azure NetApp Files Object REST API.
 
+Use this resource to create **subsequent** buckets on a volume. This resource does not manage the bucket server (FQDN and certificate); it reuses the server configuration established by the first bucket on the volume.
+
+~> **Note:** The **first** bucket on a volume must be created with the [`azurerm_netapp_volume_bucket_with_server`](netapp_volume_bucket_with_server.html.markdown) resource, which sets up the shared bucket server (FQDN and certificate). Every additional bucket on the same volume is then created with this server-less resource. Declaring a `server` block on more than one bucket would overwrite the shared server configuration, which is why this resource intentionally does not expose one.
+
 ~> **Note:** The Object REST API feature is in preview and must be registered on the subscription via `Microsoft.NetApp / ANFEnableObjectRESTAPI` before buckets can be created. See [Configure access to the Azure NetApp Files Object REST API](https://learn.microsoft.com/en-us/azure/azure-netapp-files/object-rest-api-access-configure) for the registration command and Key Vault prerequisites.
 
 ~> **Note:** Buckets are supported on cool-access and large NetApp volumes. Buckets are not supported on cache volumes. Deleting the parent volume cascade-deletes its buckets.
 
-~> **Note:** The first bucket created on a set of volumes that share the same backing IP must supply both `server.fqdn` and either `server.certificate_pem` or a `key_vault` block. Subsequent buckets on the same backing IP can omit them.
+## Example Usage
 
-## Example Usage (inline certificate)
-
-This example generates a self-signed server certificate via the [`hashicorp/tls`](https://registry.terraform.io/providers/hashicorp/tls/latest/docs) provider and passes it directly to the bucket through `server.certificate_pem`. Bucket credentials are minted separately by the [`azurerm_netapp_volume_bucket_credentials`](../actions/netapp_volume_bucket_credentials.html.markdown) action and require the bucket to be configured with a `key_vault` block (see the Key Vault example below).
+This example creates the first bucket on the volume with `azurerm_netapp_volume_bucket_with_server` (which establishes the server) and then adds a second, server-less bucket with `azurerm_netapp_volume_bucket`.
 
 ```hcl
 provider "azurerm" {
@@ -103,8 +105,9 @@ resource "tls_self_signed_cert" "bucket" {
   ]
 }
 
-resource "azurerm_netapp_volume_bucket" "example" {
-  name      = "example-bucket"
+# First bucket - establishes the shared bucket server.
+resource "azurerm_netapp_volume_bucket_with_server" "first" {
+  name      = "example-bucket-first"
   volume_id = azurerm_netapp_volume.example.id
 
   file_system_nfs_user {
@@ -117,190 +120,18 @@ resource "azurerm_netapp_volume_bucket" "example" {
     certificate_pem = base64encode("${tls_self_signed_cert.bucket.cert_pem}${tls_private_key.bucket.private_key_pem}")
   }
 }
-```
 
-## Example Usage (Azure Key Vault)
-
-This example sources the bucket server certificate from Azure Key Vault and persists the generated credentials to a second Azure Key Vault. The NetApp account uses a system-assigned managed identity to access both vaults.
-
-```hcl
-provider "azurerm" {
-  features {
-    key_vault {
-      purge_soft_delete_on_destroy    = true
-      recover_soft_deleted_key_vaults = true
-    }
-  }
-}
-
-data "azurerm_client_config" "current" {}
-
-resource "azurerm_resource_group" "example" {
-  name     = "example-resources"
-  location = "West Europe"
-}
-
-resource "azurerm_virtual_network" "example" {
-  name                = "example-vnet"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  address_space       = ["10.0.0.0/16"]
-}
-
-resource "azurerm_subnet" "example" {
-  name                 = "example-delegated"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.0.2.0/24"]
-
-  delegation {
-    name = "netapp"
-
-    service_delegation {
-      name    = "Microsoft.Netapp/volumes"
-      actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
-    }
-  }
-}
-
-resource "azurerm_netapp_account" "example" {
-  name                = "example-anfaccount"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-
-resource "azurerm_netapp_pool" "example" {
-  name                = "example-anfpool"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  account_name        = azurerm_netapp_account.example.name
-  service_level       = "Standard"
-  size_in_tb          = 4
-}
-
-resource "azurerm_netapp_volume" "example" {
-  name                = "example-anfvolume"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  account_name        = azurerm_netapp_account.example.name
-  pool_name           = azurerm_netapp_pool.example.name
-  volume_path         = "example-vol"
-  service_level       = "Standard"
-  subnet_id           = azurerm_subnet.example.id
-  storage_quota_in_gb = 100
-  protocols           = ["NFSv3"]
-}
-
-resource "azurerm_key_vault" "certificate" {
-  name                       = "example-cert-kv"
-  location                   = azurerm_resource_group.example.location
-  resource_group_name        = azurerm_resource_group.example.name
-  tenant_id                  = data.azurerm_client_config.current.tenant_id
-  sku_name                   = "standard"
-  soft_delete_retention_days = 7
-}
-
-resource "azurerm_key_vault" "credentials" {
-  name                       = "example-creds-kv"
-  location                   = azurerm_resource_group.example.location
-  resource_group_name        = azurerm_resource_group.example.name
-  tenant_id                  = data.azurerm_client_config.current.tenant_id
-  sku_name                   = "standard"
-  soft_delete_retention_days = 7
-}
-
-resource "azurerm_key_vault_access_policy" "deployer_certificate" {
-  key_vault_id = azurerm_key_vault.certificate.id
-  tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = data.azurerm_client_config.current.object_id
-
-  certificate_permissions = ["Get", "List", "Create", "Import", "Update", "Delete", "Purge", "Recover"]
-  secret_permissions      = ["Get", "List", "Set", "Delete", "Purge", "Recover"]
-}
-
-resource "azurerm_key_vault_access_policy" "anf_certificate" {
-  key_vault_id = azurerm_key_vault.certificate.id
-  tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = azurerm_netapp_account.example.identity[0].principal_id
-
-  certificate_permissions = ["Get", "List", "Update", "Create", "Import", "ManageContacts", "GetIssuers", "ListIssuers", "SetIssuers", "DeleteIssuers"]
-  secret_permissions      = ["Get", "List", "Set", "Delete"]
-}
-
-resource "azurerm_key_vault_access_policy" "anf_credentials" {
-  key_vault_id = azurerm_key_vault.credentials.id
-  tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = azurerm_netapp_account.example.identity[0].principal_id
-
-  secret_permissions = ["Get", "List", "Set", "Delete"]
-}
-
-resource "azurerm_key_vault_certificate" "bucket" {
-  name         = "example-bucket-cert"
-  key_vault_id = azurerm_key_vault.certificate.id
-
-  certificate_policy {
-    issuer_parameters {
-      name = "Self"
-    }
-
-    key_properties {
-      exportable = true
-      key_size   = 2048
-      key_type   = "RSA"
-      reuse_key  = false
-    }
-
-    secret_properties {
-      content_type = "application/x-pkcs12"
-    }
-
-    x509_certificate_properties {
-      key_usage          = ["digitalSignature", "keyEncipherment"]
-      extended_key_usage = ["1.3.6.1.5.5.7.3.1"]
-      subject            = "CN=example-bucket.example.internal"
-
-      subject_alternative_names {
-        dns_names = ["example-bucket.example.internal"]
-      }
-
-      validity_in_months = 12
-    }
-  }
-
-  depends_on = [
-    azurerm_key_vault_access_policy.deployer_certificate,
-  ]
-}
-
+# Subsequent bucket - reuses the server configured by the first bucket.
 resource "azurerm_netapp_volume_bucket" "example" {
-  name      = "example-bucket"
+  name      = "example-bucket-second"
   volume_id = azurerm_netapp_volume.example.id
 
   file_system_nfs_user {
-    group_id = 1000
-    user_id  = 1000
+    group_id = 2000
+    user_id  = 2000
   }
 
-  server {
-    fqdn = "example-bucket.example.internal"
-  }
-
-  key_vault {
-    certificate_key_vault_uri = azurerm_key_vault.certificate.vault_uri
-    certificate_name          = azurerm_key_vault_certificate.bucket.name
-    credentials_key_vault_uri = azurerm_key_vault.credentials.vault_uri
-    credentials_secret_name   = "example-bucket-creds"
-  }
-
-  depends_on = [
-    azurerm_key_vault_access_policy.anf_certificate,
-    azurerm_key_vault_access_policy.anf_credentials,
-  ]
+  depends_on = [azurerm_netapp_volume_bucket_with_server.first]
 }
 ```
 
@@ -322,9 +153,7 @@ The following arguments are supported:
 
 * `permissions` - (Optional) The bucket permission level. Possible values are `ReadOnly` and `ReadWrite`. Defaults to `ReadOnly`.
 
-* `server` - (Optional) A `server` block as defined below. Used to provide the bucket server FQDN and a directly uploaded PEM certificate. Mutually exclusive with `key_vault` for the certificate source.
-
-* `key_vault` - (Optional) A `key_vault` block as defined below. Used to source the server certificate and to store generated credentials in Azure Key Vault. Mutually exclusive with `server.0.certificate_pem`.
+* `key_vault` - (Optional) A `key_vault` block as defined below. Used to store the generated bucket credentials in Azure Key Vault.
 
 ---
 
@@ -339,16 +168,6 @@ A `file_system_nfs_user` block supports the following:
 A `file_system_cifs_user` block supports the following:
 
 * `username` - (Required) The CIFS username used by the bucket when accessing volume data over SMB.
-
----
-
-A `server` block supports the following:
-
-* `fqdn` - (Optional) The DNS name that resolves to the bucket endpoint IP address.
-
-* `certificate_pem` - (Optional, Sensitive) Base64-encoded PEM blob containing the server certificate concatenated with the private key. Used when the certificate is supplied directly instead of via Key Vault. Mutually exclusive with `key_vault`.
-
-* `on_certificate_conflict_action` - (Optional) Behaviour when an existing certificate already matches during a certificate rotation. Possible values are `Update` and `Fail`. Defaults to `Fail`. Only used during update.
 
 ---
 

@@ -17,37 +17,61 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type NetAppVolumeBucketDataSource struct{}
+type NetAppVolumeBucketWithServerDataSource struct{}
 
-var _ sdk.DataSource = NetAppVolumeBucketDataSource{}
+var _ sdk.DataSource = NetAppVolumeBucketWithServerDataSource{}
 
-func (r NetAppVolumeBucketDataSource) ResourceType() string {
-	return "azurerm_netapp_volume_bucket"
+func (r NetAppVolumeBucketWithServerDataSource) ResourceType() string {
+	return "azurerm_netapp_volume_bucket_with_server"
 }
 
-func (r NetAppVolumeBucketDataSource) ModelObject() interface{} {
-	return &netAppModels.NetAppVolumeBucketDataSourceModel{}
+func (r NetAppVolumeBucketWithServerDataSource) ModelObject() interface{} {
+	return &netAppModels.NetAppVolumeBucketWithServerDataSourceModel{}
 }
 
-func (r NetAppVolumeBucketDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r NetAppVolumeBucketWithServerDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return buckets.ValidateBucketID
 }
 
-func (r NetAppVolumeBucketDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (r NetAppVolumeBucketWithServerDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return netAppBucketDataSourceArguments()
 }
 
-func (r NetAppVolumeBucketDataSource) Attributes() map[string]*pluginsdk.Schema {
-	return netAppBucketDataSourceCommonAttributes()
+func (r NetAppVolumeBucketWithServerDataSource) Attributes() map[string]*pluginsdk.Schema {
+	attributes := netAppBucketDataSourceCommonAttributes()
+
+	attributes["server"] = &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"fqdn": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+				"certificate_pem": {
+					Type:      pluginsdk.TypeString,
+					Computed:  true,
+					Sensitive: true,
+				},
+				"on_certificate_conflict_action": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+			},
+		},
+	}
+
+	return attributes
 }
 
-func (r NetAppVolumeBucketDataSource) Read() sdk.ResourceFunc {
+func (r NetAppVolumeBucketWithServerDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.NetApp.BucketsClient
 
-			var state netAppModels.NetAppVolumeBucketDataSourceModel
+			var state netAppModels.NetAppVolumeBucketWithServerDataSourceModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -80,6 +104,7 @@ func (r NetAppVolumeBucketDataSource) Read() sdk.ResourceFunc {
 					state.FileSystemCifsUser = flattenNetAppBucketCifsUser(props.FileSystemUser.CifsUser)
 				}
 				state.KeyVault = flattenNetAppBucketAkvDetails(props.AkvDetails)
+				state.Server = flattenNetAppBucketServer(props.Server)
 
 				if props.Server != nil {
 					state.ServerIPAddress = pointer.From(props.Server.IPAddress)
