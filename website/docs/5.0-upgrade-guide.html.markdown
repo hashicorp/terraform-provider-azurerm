@@ -120,8 +120,8 @@ surfaced before `terraform apply` is run.
 provider "azurerm" {
   features {
     enhanced_validation {
-      preflight_enabled = false # Opt-in: validate supported resource payloads via Azure Preflight API
-      location_fallback = "eastus2"
+      preflight_enabled           = false # Opt-in: validate supported resource payloads via Azure Preflight API
+      preflight_location_fallback = "eastus2"
     }
   }
 }

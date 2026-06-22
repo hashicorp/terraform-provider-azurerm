@@ -40,7 +40,7 @@ type ProviderModel struct {
 	ResourceProviderRegistrations  types.String `tfsdk:"resource_provider_registrations"`
 	ResourceProvidersToRegister    types.List   `tfsdk:"resource_providers_to_register"`
 
-	EnhancedValidation types.List `tfsdk:"enhanced_validation"`
+	EnhancedValidation types.List `tfsdk:"enhanced_validation"` // TODO - Remove in 5.0
 
 	SkipProviderRegistration types.Bool `tfsdk:"skip_provider_registration"` // TODO - Remove in 5.0
 }
@@ -299,12 +299,12 @@ type EnhancedValidationModel struct {
 	Locations         types.Bool   `tfsdk:"locations"`
 	ResourceProviders types.Bool   `tfsdk:"resource_providers"`
 	PreflightEnabled  types.Bool   `tfsdk:"preflight_enabled"`
-	LocationFallback  types.String `tfsdk:"location_fallback"`
+	LocationFallback  types.String `tfsdk:"preflight_location_fallback"`
 }
 
 var EnhancedValidationModelAttributes = map[string]attr.Type{
-	"locations":          types.BoolType,
-	"resource_providers": types.BoolType,
-	"preflight_enabled":  types.BoolType,
-	"location_fallback":  types.StringType,
+	"locations":                   types.BoolType,
+	"resource_providers":          types.BoolType,
+	"preflight_enabled":           types.BoolType,
+	"preflight_location_fallback": types.StringType,
 }

@@ -339,7 +339,7 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 										Optional:    true,
 										Description: "Should the AzureRM Provider call the Azure Preflight Validation API at plan time to check the request payload for each Preflight-supported resource is valid. Note: requires valid credentials and external Azure API access at plan-time.",
 									},
-									"location_fallback": schema.StringAttribute{
+									"preflight_location_fallback": schema.StringAttribute{
 										Optional:    true,
 										Description: "The Azure location to use as a fallback when Preflight Validation is enabled and a resource does not specify a location. This is typically used for resources that derive their location from a dependency that has not yet been created.",
 									},

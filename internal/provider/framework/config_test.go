@@ -347,10 +347,10 @@ func defaultFeaturesList() types.List {
 	databricksWorkspaceList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(DatabricksWorkspaceAttributes), []attr.Value{databricksWorkspace})
 
 	enhancedValidation, _ := basetypes.NewObjectValueFrom(context.Background(), EnhancedValidationModelAttributes, map[string]attr.Value{
-		"locations":          basetypes.NewBoolNull(),
-		"resource_providers": basetypes.NewBoolNull(),
-		"preflight_enabled":  basetypes.NewBoolNull(),
-		"location_fallback":  basetypes.NewStringNull(),
+		"locations":                   basetypes.NewBoolNull(),
+		"resource_providers":          basetypes.NewBoolNull(),
+		"preflight_enabled":           basetypes.NewBoolNull(),
+		"preflight_location_fallback": basetypes.NewStringNull(),
 	})
 	enhancedValidationList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(EnhancedValidationModelAttributes), []attr.Value{enhancedValidation})
 

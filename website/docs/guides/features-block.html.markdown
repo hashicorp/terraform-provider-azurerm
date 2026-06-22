@@ -53,10 +53,10 @@ provider "azurerm" {
     }
 
     enhanced_validation {
-      locations          = true
-      resource_providers = true
-      preflight_enabled  = false
-      location_fallback  = "westeurope"
+      locations                   = true
+      resource_providers          = true
+      preflight_enabled           = false
+      preflight_location_fallback = "westeurope"
     }
 
     key_vault {
@@ -223,7 +223,7 @@ The `enhanced_validation` block supports the following:
 
 ~> **Note:** Preflight Validation is a "Best Effort" feature and is not guaranteed to be 100% accurate. Terraform will attempt to validate the request payload against the Azure API based on known values for the resource from the configuration. References to resources or values that is not known at plan time are sent as empty or null values.
 
-* `location_fallback` - (Optional) The Azure location to use as a fallback when Preflight Validation is enabled and a resource does not specify a location. This is typically used for resources that derive their location from a dependency that has not yet been created. This can also be sourced from the `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATION_FALLBACK` Environment Variable.
+* `preflight_location_fallback` - (Optional) The Azure location to use as a fallback when Preflight Validation is enabled and a resource does not specify a location. This is typically used for resources that derive their location from a dependency that has not yet been created. This can also be sourced from the `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATION_FALLBACK` Environment Variable.
 
 * `resource_providers` - (Optional) Should the AzureRM Provider validate Resource Provider arguments against the list of supported Resource Providers? When enabled, invalid resource providers are caught at `terraform plan` time; when disabled, they are caught at `terraform apply` time when Azure rejects the request. This can also be sourced from the `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS` Environment Variable. Defaults to `true` in version 4.x and `false` in version 5.0+.
 
