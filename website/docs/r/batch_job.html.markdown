@@ -93,3 +93,9 @@ Batch Jobs can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_batch_job.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Batch/batchAccounts/account1/pools/pool1/jobs/job1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Batch` - 2024-07-01
