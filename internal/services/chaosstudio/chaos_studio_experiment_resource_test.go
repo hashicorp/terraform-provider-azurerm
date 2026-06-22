@@ -267,11 +267,6 @@ resource "azurerm_chaos_studio_experiment" "test" {
       }
     }
   }
-
-  timeouts {
-    create = "1h"
-    update = "1h"
-  }
 }
 `, r.templateVM(data))
 }
@@ -382,11 +377,6 @@ resource "azurerm_chaos_studio_experiment" "test" {
         action_type = "discrete"
       }
     }
-  }
-
-  timeouts {
-    create = "1h"
-    update = "1h"
   }
 }
 `, r.templateVM(data), r.templateAKS())
