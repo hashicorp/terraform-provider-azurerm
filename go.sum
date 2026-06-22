@@ -54,6 +54,8 @@ github.com/btubbs/datetime v0.1.1 h1:KuV+F9tyq/hEnezmKZNGk8dzqMVsId6EpFVrQCfA3To
 github.com/btubbs/datetime v0.1.1/go.mod h1:n2BZ/2ltnRzNiz27aE3wUb2onNttQdC+WFxAoks5jJM=
 github.com/bufbuild/protocompile v0.14.1 h1:iA73zAf/fyljNjQKwYzUHD6AD4R8KMasmwa/FBatYVw=
 github.com/bufbuild/protocompile v0.14.1/go.mod h1:ppVdAIhbr2H8asPk6k4pY7t9zB1OU5DoEw9xY/FUi1c=
+github.com/cdobbyn/go-azure-helpers v0.80.1-0.20260707155757-74243bc250fe h1:5XMgbm9m5YOdW3APGufMfeNLxLJN1u2VhWJSdqukiSI=
+github.com/cdobbyn/go-azure-helpers v0.80.1-0.20260707155757-74243bc250fe/go.mod h1:rcFXtMufiI7KFl37o7OZXK1nivEkZf2fjvy03hGJAeU=
 github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=
 github.com/cespare/xxhash/v2 v2.3.0/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
 github.com/cloudflare/circl v1.6.3 h1:9GPOhQGF9MCYUeXyMYlqTR6a5gTrgR/fBLXvUgtVcg8=
@@ -112,8 +114,6 @@ github.com/gopherjs/gopherjs v0.0.0-20181017120253-0766667cb4d1/go.mod h1:wJfORR
 github.com/hashicorp/errwrap v1.0.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brvKWEqk/Jc4=
 github.com/hashicorp/errwrap v1.1.0 h1:OxrOeh75EUXMY8TBjag2fzXGZ40LB6IKw45YeGUDY2I=
 github.com/hashicorp/errwrap v1.1.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brvKWEqk/Jc4=
-github.com/hashicorp/go-azure-helpers v0.81.1 h1:hjBc+Nx+urH0U3JXskyr562UUGsRltxb9SQ2fADCtMw=
-github.com/hashicorp/go-azure-helpers v0.81.1/go.mod h1:rcFXtMufiI7KFl37o7OZXK1nivEkZf2fjvy03hGJAeU=
 github.com/hashicorp/go-azure-sdk/data-plane v0.20260709.1191450 h1:hyRqsQHd7/nKzPvm1Wq2QX5i9PWzX7UKcs8k69ByAXI=
 github.com/hashicorp/go-azure-sdk/data-plane v0.20260709.1191450/go.mod h1:sJ3vFcW3TRq2D65Live6T80TZNs6m0hVfMSfmpg/0po=
 github.com/hashicorp/go-azure-sdk/resource-manager v0.20260709.1191450 h1:V7Vf6nWIZOJn/oVoewv8/ocCaxpoQMuOxaaDXR9Xvus=
