@@ -38,6 +38,7 @@ type ProviderModel struct {
 	StorageUseAzureAD              types.Bool   `tfsdk:"storage_use_azuread"`
 	EnhancedValidation             types.List   `tfsdk:"enhanced_validation"`
 	Features                       types.List   `tfsdk:"features"`
+	IgnoreTags                     types.List   `tfsdk:"ignore_tags"`
 	ResourceProviderRegistrations  types.String `tfsdk:"resource_provider_registrations"`
 	ResourceProvidersToRegister    types.List   `tfsdk:"resource_providers_to_register"`
 

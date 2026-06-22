@@ -209,17 +209,48 @@ For some advanced scenarios, such as where more granular permissions are necessa
 
 ~> **Note:** The Files Storage API does not support authenticating via AzureAD and will continue to use a SharedKey when AAD authentication is enabled.
 
+* `ignore_tags` - (Optional) An `ignore_tags` block as defined below which globally ignores changes to the specified tag keys and key prefixes across all resources and data sources managed by the provider. See [Ignoring Tag Changes](#ignoring-tag-changes) below for more information.
+
 The `enhanced_validation` block supports the following:
 
 * `locations` - (Optional) Should the AzureRM Provider validate location arguments against the list of supported Azure Locations? This calls out to the Azure MetaData Service to cache the list of supported Azure Locations for the specified Environment. When enabled, invalid locations are caught at `terraform plan` time; when disabled, these errors are caught at `terraform apply` time when Azure rejects the request. This can also be sourced from the `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` Environment Variable, or from the legacy `ARM_PROVIDER_ENHANCED_VALIDATION`. Defaults to `true` in version 4.x and `false` in version 5.0.
 
 * `resource_providers` - (Optional) Should the AzureRM Provider validate Resource Provider arguments against the list of supported Resource Providers? This caches the list of registered Resource Providers for the subscription. When enabled, invalid resource providers are caught at `terraform plan` time; when disabled, these errors are caught at `terraform apply` time when Azure rejects the request. This can also be sourced from the `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS` Environment Variable, or from the legacy `ARM_PROVIDER_ENHANCED_VALIDATION`. Defaults to `true` in version 4.x and `false` in version 5.0.
 
+The `ignore_tags` block supports the following:
+
+* `keys` - (Optional) A set of tag keys, matched exactly (case-sensitive), to ignore across all resources and data sources.
+
+* `key_prefixes` - (Optional) A set of tag key prefixes, matched case-sensitively (using a "starts with" comparison), to ignore across all resources and data sources.
+
+~> **Note:** At least one of `keys` or `key_prefixes` must be specified within an `ignore_tags` block.
+
 It's also possible to use multiple Provider blocks within a single Terraform configuration, for example, to work with resources across multiple Subscriptions - more information can be found [in the documentation for Providers](https://www.terraform.io/docs/configuration/providers.html#multiple-provider-instances).
 
 ## Features
 
 The `features` block allows configuring the behaviour of the Azure Provider, more information can be found on [the dedicated page for the `features` block](guides/features-block.html).
+
+## Ignoring Tag Changes
+
+Some Azure resources have tags applied to them out-of-band by external systems such as Azure Policy, governance tooling, or automation. Without intervention these tags appear as a persistent difference on every `terraform plan`. The `ignore_tags` block lets you globally ignore changes to specific tag keys across **all** resources and data sources managed by the provider, so they no longer produce a perpetual diff:
+
+```hcl
+provider "azurerm" {
+  features {}
+
+  ignore_tags {
+    keys         = ["createdBy"]
+    key_prefixes = ["azure-policy-", "internal:"]
+  }
+}
+```
+
+With the configuration above, a tag named `createdBy`, or any tag whose key begins with `azure-policy-` or `internal:`, is ignored: the provider neither writes it from configuration nor reports it as drift when it is present on the remote resource. Both `keys` (exact match) and `key_prefixes` (prefix match) are evaluated case-sensitively.
+
+~> **Note:** You should not also list an ignored tag key in a resource's own `tags` configuration. A key matched by `ignore_tags` is excluded from the set of tags the provider manages, so specifying it in both places results in a persistent diff.
+
+~> **Note:** When a tag whose key is ignored exists only on the remote resource (i.e. it is not in configuration), an unrelated change to the resource that replaces its full tag set may still remove that tag, because the AzureRM Provider does not compute a per-resource tag diff. The `ignore_tags` block reliably prevents the common case of a perpetual plan diff caused by externally-managed tags.
 
 ## Resource Provider Registrations
 
