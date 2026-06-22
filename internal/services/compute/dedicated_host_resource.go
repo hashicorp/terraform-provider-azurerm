@@ -243,7 +243,7 @@ func resourceDedicatedHostRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			d.Set("auto_replace_on_failure", props.AutoReplaceOnFailure)
 
 			if !features.FivePointOh() {
-				d.Set("license_type", props.LicenseType)
+				d.Set("license_type", pointer.FromEnum(props.LicenseType))
 			} else {
 				licenseType := pointer.FromEnum(props.LicenseType)
 				if licenseType == string(dedicatedhosts.DedicatedHostLicenseTypesNone) {
