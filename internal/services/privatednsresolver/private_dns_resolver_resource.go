@@ -82,13 +82,16 @@ func (r PrivateDNSResolverDnsResolverResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.PrivateDnsResolver.DnsResolversClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := dnsresolvers.NewDnsResolverID(subscriptionId, model.ResourceGroupName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			properties := &dnsresolvers.DnsResolver{
@@ -101,11 +104,11 @@ func (r PrivateDNSResolverDnsResolverResource) Create() sdk.ResourceFunc {
 				Tags: &model.Tags,
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties, dnsresolvers.CreateOrUpdateOperationOptions{}); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, *properties, dnsresolvers.CreateOrUpdateOperationOptions{}, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}

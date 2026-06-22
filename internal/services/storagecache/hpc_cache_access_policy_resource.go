@@ -163,9 +163,10 @@ func resourceHPCCacheAccessPolicyCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if d.IsNewResource() {
-		p := CacheGetAccessPolicyByName(*policies, id.Name)
-		if p != nil {
-			return tf.ImportAsExistsError("azurerm_hpc_cache_access_policy", id.ID())
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if CacheGetAccessPolicyByName(*policies, id.Name) != nil {
+				return tf.ImportAsExistsError("azurerm_hpc_cache_access_policy", id.ID())
+			}
 		}
 	}
 
@@ -179,11 +180,15 @@ func resourceHPCCacheAccessPolicyCreateUpdate(d *pluginsdk.ResourceData, meta in
 		return err
 	}
 
+	// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
 	if err = client.CreateOrUpdateThenPoll(ctx, *cacheId, *existCache.Model); err != nil {
 		return fmt.Errorf("updating the HPC Cache for creating/updating Access Policy %q: %v", id, err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
+
 	return resourceHPCCacheAccessPolicyRead(d, meta)
 }
 

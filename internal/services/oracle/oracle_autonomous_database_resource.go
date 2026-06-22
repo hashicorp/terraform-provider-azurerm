@@ -257,13 +257,16 @@ func (r AutonomousDatabaseRegularResource) Create() sdk.ResourceFunc {
 				model.ResourceGroupName,
 				model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
-			}
+
 			properties := &autonomousdatabases.AutonomousDatabaseProperties{
 				AdminPassword:                  pointer.To(model.AdminPassword),
 				BackupRetentionPeriodInDays:    pointer.To(model.BackupRetentionPeriodInDays),
@@ -302,9 +305,10 @@ func (r AutonomousDatabaseRegularResource) Create() sdk.ResourceFunc {
 				Properties: properties,
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, param, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
+			metadata.SetID(id)
 
 			if len(model.LongTermBackUpSchedule) > 0 {
 				backupUpdate := autonomousdatabases.AutonomousDatabaseUpdate{
@@ -316,8 +320,6 @@ func (r AutonomousDatabaseRegularResource) Create() sdk.ResourceFunc {
 					return fmt.Errorf("configuring backup schedule for %s: %+v", id, err)
 				}
 			}
-
-			metadata.SetID(id)
 			return nil
 		},
 	}

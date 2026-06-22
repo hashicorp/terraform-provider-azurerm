@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
@@ -232,15 +233,17 @@ func resourceCdnFrontDoorCustomDomainCreate(d *pluginsdk.ResourceData, meta inte
 
 	id := afdcustomdomains.NewCustomDomainID(subscriptionId, profileId.ResourceGroupName, profileId.ProfileName, d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_cdn_frontdoor_custom_domain", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_cdn_frontdoor_custom_domain", id.ID())
+		}
 	}
 
 	dnsZone := d.Get("dns_zone_id").(string)
@@ -263,20 +266,8 @@ func resourceCdnFrontDoorCustomDomainCreate(d *pluginsdk.ResourceData, meta inte
 
 	props.Properties.TlsSettings = tlsSettings
 
-	// NOTE: Azure Front Door custom domains that use Managed Certificates require a DNS TXT record
-	// ("_dnsauth.<subdomain>") for domain ownership validation.
-	//
-	// The service team confirmed the `validation_token` is available once the Create LRO completes,
-	// so we can use the normal poller here.
-	// For more information, see: https://learn.microsoft.com/azure/frontdoor/domain#domain-validation.
-	createResp, err := client.Create(ctx, id, props)
-	if err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, id, props, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-	if createResp.Poller != (pollers.Poller{}) {
-		if err := createResp.Poller.PollUntilDone(ctx); err != nil {
-			return fmt.Errorf("waiting for creation of %s: %+v", id, err)
-		}
 	}
 
 	d.SetId(id.ID())

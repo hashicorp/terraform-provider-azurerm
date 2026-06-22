@@ -98,13 +98,16 @@ func (r ManagerManagementGroupConnectionResource) Create() sdk.ResourceFunc {
 			}
 
 			id := networkmanagerconnections.NewProviders2NetworkManagerConnectionID(managementGroupId.Name, model.Name)
-			existing, err := client.ManagementGroupNetworkManagerConnectionsGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.ManagementGroupNetworkManagerConnectionsGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			managerConnection := networkmanagerconnections.NetworkManagerConnection{

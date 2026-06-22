@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2020-04-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/validate"
@@ -458,14 +459,16 @@ func resourceFrontDoorFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta
 	id := webapplicationfirewallpolicies.NewFrontDoorWebApplicationFirewallPolicyID(subscriptionId, resourceGroup, name)
 
 	if d.IsNewResource() {
-		existing, err := client.PoliciesGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing Front Door Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.PoliciesGet(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing Front Door Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+				}
 			}
-		}
-		if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
-			return tf.ImportAsExistsError("azurerm_frontdoor_firewall_policy", id.ID())
+			if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
+				return tf.ImportAsExistsError("azurerm_frontdoor_firewall_policy", id.ID())
+			}
 		}
 	}
 
@@ -507,11 +510,17 @@ func resourceFrontDoorFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta
 		frontdoorWebApplicationFirewallPolicy.Properties.PolicySettings.CustomBlockResponseStatusCode = pointer.To(int64(customBlockResponseStatusCode))
 	}
 
-	if err := client.PoliciesCreateOrUpdateThenPoll(ctx, id, frontdoorWebApplicationFirewallPolicy); err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.PoliciesCreateOrUpdateCallbackThenPoll(ctx, id, frontdoorWebApplicationFirewallPolicy, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.PoliciesCreateOrUpdateThenPoll(ctx, id, frontdoorWebApplicationFirewallPolicy); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
-	d.SetId(id.ID())
 	return resourceFrontDoorFirewallPolicyRead(d, meta)
 }
 

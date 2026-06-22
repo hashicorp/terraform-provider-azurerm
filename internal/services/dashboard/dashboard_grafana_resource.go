@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2025-08-01/managedgrafanas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -211,7 +212,6 @@ func (r DashboardGrafanaResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:  "Standard",
 			ValidateFunc: validation.StringInSlice([]string{
 				"Standard",
-				"Essential",
 			}, false),
 		},
 
@@ -231,6 +231,27 @@ func (r DashboardGrafanaResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Default:  false,
 		},
+	}
+
+	if !features.FivePointOh() {
+		arguments["sku"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			Default:  "Standard",
+			ValidateFunc: validation.All(
+				validation.StringInSlice([]string{
+					"Standard",
+					"Essential",
+				}, false),
+				func(v interface{}, k string) (warnings []string, errors []error) {
+					if val, ok := v.(string); ok && val == "Essential" {
+						warnings = append(warnings, "the `Essential` value for `sku` is deprecated and will be removed in v5.0 of the AzureRM provider")
+					}
+					return
+				},
+			),
+		}
 	}
 
 	return arguments
@@ -270,13 +291,16 @@ func (r DashboardGrafanaResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.Dashboard.GrafanaResourceClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := managedgrafanas.NewGrafanaID(subscriptionId, model.ResourceGroupName, model.Name)
-			existing, err := client.GrafanaGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GrafanaGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			identityValue := expandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
@@ -324,7 +348,7 @@ func (r DashboardGrafanaResource) Create() sdk.ResourceFunc {
 				properties.Sku.Size = pointer.To(managedgrafanas.Size(model.SkuSize))
 			}
 
-			if err := client.GrafanaCreateThenPoll(ctx, id, *properties); err != nil {
+			if err := client.GrafanaCreateCallbackThenPoll(ctx, id, *properties, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

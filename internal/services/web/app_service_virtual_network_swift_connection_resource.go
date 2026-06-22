@@ -75,13 +75,15 @@ func resourceAppServiceVirtualNetworkSwiftConnectionCreate(d *pluginsdk.Resource
 		return err
 	}
 
-	existing, err := client.GetSwiftVirtualNetworkConnection(ctx, *appID)
-	if err != nil {
-		return fmt.Errorf("checking for presence of Swift Network Connection for %s: %w", appID, err)
-	}
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.GetSwiftVirtualNetworkConnection(ctx, *appID)
+		if err != nil {
+			return fmt.Errorf("checking for presence of Swift Network Connection for %s: %w", appID, err)
+		}
 
-	if existing.Model != nil && existing.Model.Properties != nil && pointer.From(existing.Model.Properties.SubnetResourceId) != "" {
-		return tf.ImportAsExistsError("azurerm_app_service_virtual_network_swift_connection", pointer.From(existing.Model.Properties.SubnetResourceId))
+		if existing.Model != nil && existing.Model.Properties != nil && pointer.From(existing.Model.Properties.SubnetResourceId) != "" {
+			return tf.ImportAsExistsError("azurerm_app_service_virtual_network_swift_connection", pointer.From(existing.Model.Properties.SubnetResourceId))
+		}
 	}
 
 	locks.ByName(subnetID.VirtualNetworkName, network.VirtualNetworkResourceName)
@@ -120,6 +122,7 @@ func resourceAppServiceVirtualNetworkSwiftConnectionCreate(d *pluginsdk.Resource
 		return err
 	}
 
+	// TODO: migrate to a typed resource ID
 	d.SetId(swiftVirtualNetworkId.ID())
 
 	return resourceAppServiceVirtualNetworkSwiftConnectionRead(d, meta)

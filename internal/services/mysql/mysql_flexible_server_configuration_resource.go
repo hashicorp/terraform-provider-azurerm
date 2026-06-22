@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -84,8 +85,10 @@ func resourceMySQLFlexibleServerConfigurationCreate(d *pluginsdk.ResourceData, m
 	locks.ByName(id.FlexibleServerName, mysqlFlexibleServerResourceName)
 	defer locks.UnlockByName(id.FlexibleServerName, mysqlFlexibleServerResourceName)
 
+	updateCallback := sdk.SetIDAndIdentityCallback(meta, &id, d)
+
 	if strings.EqualFold(id.ConfigurationName, "gtid_mode") {
-		if err := mysqlFlexibleServerConfigurationUpdateGITDMode(ctx, client, id, d.Get("value").(string)); err != nil {
+		if err := mysqlFlexibleServerConfigurationUpdateGITDMode(ctx, client, id, d.Get("value").(string), updateCallback); err != nil {
 			return fmt.Errorf("creating GTID mode: %v", err)
 		}
 	} else {
@@ -95,7 +98,7 @@ func resourceMySQLFlexibleServerConfigurationCreate(d *pluginsdk.ResourceData, m
 			},
 		}
 
-		if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
+		if err := client.UpdateCallbackThenPoll(ctx, id, payload, updateCallback); err != nil {
 			return fmt.Errorf("creating %s: %v", id, err)
 		}
 	}
@@ -122,7 +125,7 @@ func resourceMySQLFlexibleServerConfigurationUpdate(d *pluginsdk.ResourceData, m
 	defer locks.UnlockByName(id.FlexibleServerName, mysqlFlexibleServerResourceName)
 
 	if strings.EqualFold(id.ConfigurationName, "gtid_mode") {
-		if err := mysqlFlexibleServerConfigurationUpdateGITDMode(ctx, client, *id, d.Get("value").(string)); err != nil {
+		if err := mysqlFlexibleServerConfigurationUpdateGITDMode(ctx, client, *id, d.Get("value").(string), nil); err != nil {
 			return fmt.Errorf("updating GTID mode: %v", err)
 		}
 	} else {
@@ -215,7 +218,11 @@ func resourceMySQLFlexibleServerConfigurationDelete(d *pluginsdk.ResourceData, m
 
 // GTID can only be updated in a specific order: OFF -> OFF_PERMISSIVE -> ON_PERMISSIVE -> ON.
 // This function ensures that the GTID mode is updated in the correct order by checking the current value and updating it step by step until it reaches the desired value.
-func mysqlFlexibleServerConfigurationUpdateGITDMode(ctx context.Context, client *configurations.ConfigurationsClient, id configurations.ConfigurationId, value string) error {
+func mysqlFlexibleServerConfigurationUpdateGITDMode(ctx context.Context,
+	client *configurations.ConfigurationsClient,
+	id configurations.ConfigurationId,
+	value string,
+	updateCallback func() error) error {
 	gtidSeq := []string{"OFF", "OFF_PERMISSIVE", "ON_PERMISSIVE", "ON"}
 	currentValue := "OFF"
 	resp, _ := client.Get(ctx, id)
@@ -223,7 +230,7 @@ func mysqlFlexibleServerConfigurationUpdateGITDMode(ctx context.Context, client 
 		currentValue = pointer.From(resp.Model.Properties.Value)
 	}
 
-	curIdx, toIdx := 0, 0
+	curIdx, toIdx := 0, -1
 	for idx, v := range gtidSeq {
 		if v == currentValue {
 			curIdx = idx
@@ -246,7 +253,7 @@ func mysqlFlexibleServerConfigurationUpdateGITDMode(ctx context.Context, client 
 		}
 
 		log.Printf("[DEBUG] updating `gtid_mode` of %s to %s", id, v)
-		if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
+		if err := client.UpdateCallbackThenPoll(ctx, id, payload, updateCallback); err != nil {
 			return fmt.Errorf("updating `gtid_mode` of %s: %v", id, err)
 		}
 	}

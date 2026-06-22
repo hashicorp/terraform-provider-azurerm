@@ -56,9 +56,20 @@ func (c VolumesClient) FinalizeExternalReplication(ctx context.Context, id Volum
 
 // FinalizeExternalReplicationThenPoll performs FinalizeExternalReplication then polls until it's completed
 func (c VolumesClient) FinalizeExternalReplicationThenPoll(ctx context.Context, id VolumeId) error {
+	return c.FinalizeExternalReplicationCallbackThenPoll(ctx, id, nil)
+}
+
+// FinalizeExternalReplicationCallbackThenPoll performs FinalizeExternalReplication, runs the optional callback function, then polls until it's completed
+func (c VolumesClient) FinalizeExternalReplicationCallbackThenPoll(ctx context.Context, id VolumeId, callback func() error) error {
 	result, err := c.FinalizeExternalReplication(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing FinalizeExternalReplication: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

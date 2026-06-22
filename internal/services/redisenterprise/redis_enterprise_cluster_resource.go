@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -112,7 +113,7 @@ func resourceRedisEnterpriseClusterCreate(d *pluginsdk.ResourceData, meta interf
 	defer cancel()
 
 	id := redisenterprise.NewRedisEnterpriseID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -156,10 +157,12 @@ func resourceRedisEnterpriseClusterCreate(d *pluginsdk.ResourceData, meta interf
 		}
 	}
 
-	if err := client.CreateThenPoll(ctx, id, parameters); err != nil {
-		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
+	if err := client.CreateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
+	d.SetId(id.ID())
 
+	// TODO: is this still required now that this is using polling methods from `go-azure-sdk`?
 	log.Printf("[DEBUG] Waiting for %s to become available..", id)
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{"Creating", "Updating", "Enabling", "Deleting", "Disabling"},
@@ -172,7 +175,6 @@ func resourceRedisEnterpriseClusterCreate(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("waiting for %s to become available: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
 	return resourceRedisEnterpriseClusterRead(d, meta)
 }
 

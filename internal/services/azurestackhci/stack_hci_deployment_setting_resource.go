@@ -723,12 +723,14 @@ func (r StackHCIDeploymentSettingResource) Create() sdk.ResourceFunc {
 			}
 			id := deploymentsettings.NewDeploymentSettingID(stackHCIClusterId.SubscriptionId, stackHCIClusterId.ResourceGroupName, stackHCIClusterId.ClusterName, "default")
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			payload := deploymentsettings.DeploymentSetting{
@@ -749,7 +751,7 @@ func (r StackHCIDeploymentSettingResource) Create() sdk.ResourceFunc {
 
 			// do deployment
 			payload.Properties.DeploymentMode = deploymentsettings.DeploymentModeDeploy
-			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("deploying %s: %+v", id, err)
 			}
 

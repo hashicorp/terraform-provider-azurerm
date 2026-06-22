@@ -57,9 +57,20 @@ func (c AppPlatformClient) ServicesFlushVnetDnsSetting(ctx context.Context, id c
 
 // ServicesFlushVnetDnsSettingThenPoll performs ServicesFlushVnetDnsSetting then polls until it's completed
 func (c AppPlatformClient) ServicesFlushVnetDnsSettingThenPoll(ctx context.Context, id commonids.SpringCloudServiceId) error {
+	return c.ServicesFlushVnetDnsSettingCallbackThenPoll(ctx, id, nil)
+}
+
+// ServicesFlushVnetDnsSettingCallbackThenPoll performs ServicesFlushVnetDnsSetting, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) ServicesFlushVnetDnsSettingCallbackThenPoll(ctx context.Context, id commonids.SpringCloudServiceId, callback func() error) error {
 	result, err := c.ServicesFlushVnetDnsSetting(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ServicesFlushVnetDnsSetting: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

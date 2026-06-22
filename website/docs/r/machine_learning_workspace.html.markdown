@@ -386,6 +386,8 @@ The following arguments are supported:
 
 * `v1_legacy_mode_enabled` - (Optional) Enable V1 API features, enabling `v1_legacy_mode` may prevent you from using features provided by the v2 API. Defaults to `false`.
 
+* `storage_account_access_type` - (Optional) The access type for the system storage account. Possible values are `AccessKey` and `Identity`. Defaults to `AccessKey`.
+
 * `sku_name` - (Optional) SKU/edition of the Machine Learning Workspace, possible values are `Free`, `Basic`, `Standard` and `Premium`. Defaults to `Basic`.
 
 * `serverless_compute` - (Optional) A `serverless_compute` block as defined below.
