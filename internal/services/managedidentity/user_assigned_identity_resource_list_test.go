@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
@@ -32,8 +33,9 @@ func TestAccUserAssignedIdentity_list(t *testing.T) {
 				Config: r.basicList(data),
 			},
 			{
-				Query:  true,
-				Config: r.subscriptionListQuery(),
+				PreConfig: func() { time.Sleep(2 * time.Minute) },
+				Query:     true,
+				Config:    r.subscriptionListQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
 					querycheck.ExpectLengthAtLeast("azurerm_user_assigned_identity.list", 3),
 					querycheck.ExpectIdentity("azurerm_user_assigned_identity.list", map[string]knownvalue.Check{
