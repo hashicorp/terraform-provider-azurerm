@@ -22,6 +22,12 @@ func TestAccNetAppVolumeBucketCredentialsAction_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"tls": {
+				VersionConstraint: "=4.1.0",
+				Source:            "registry.terraform.io/hashicorp/tls",
+			},
+		},
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
