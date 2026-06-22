@@ -15,7 +15,12 @@ import (
 type ListByAutomationAccountOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *StatisticsListResult
+	Model        *[]Statistics
+}
+
+type ListByAutomationAccountCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []Statistics
 }
 
 type ListByAutomationAccountOperationOptions struct {
@@ -46,6 +51,18 @@ func (o ListByAutomationAccountOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListByAutomationAccountCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByAutomationAccountCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByAutomationAccount ...
 func (c StatisticsClient) ListByAutomationAccount(ctx context.Context, id AutomationAccountId, options ListByAutomationAccountOperationOptions) (result ListByAutomationAccountOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -55,6 +72,7 @@ func (c StatisticsClient) ListByAutomationAccount(ctx context.Context, id Automa
 		},
 		HttpMethod:    http.MethodGet,
 		OptionsObject: options,
+		Pager:         &ListByAutomationAccountCustomPager{},
 		Path:          fmt.Sprintf("%s/statistics", id.ID()),
 	}
 
@@ -64,7 +82,7 @@ func (c StatisticsClient) ListByAutomationAccount(ctx context.Context, id Automa
 	}
 
 	var resp *client.Response
-	resp, err = req.Execute(ctx)
+	resp, err = req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData
 		result.HttpResponse = resp.Response
@@ -73,11 +91,44 @@ func (c StatisticsClient) ListByAutomationAccount(ctx context.Context, id Automa
 		return
 	}
 
-	var model StatisticsListResult
-	result.Model = &model
-	if err = resp.Unmarshal(result.Model); err != nil {
+	var values struct {
+		Values *[]Statistics `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
+	result.Model = values.Values
+
+	return
+}
+
+// ListByAutomationAccountComplete retrieves all the results into a single object
+func (c StatisticsClient) ListByAutomationAccountComplete(ctx context.Context, id AutomationAccountId, options ListByAutomationAccountOperationOptions) (ListByAutomationAccountCompleteResult, error) {
+	return c.ListByAutomationAccountCompleteMatchingPredicate(ctx, id, options, StatisticsOperationPredicate{})
+}
+
+// ListByAutomationAccountCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c StatisticsClient) ListByAutomationAccountCompleteMatchingPredicate(ctx context.Context, id AutomationAccountId, options ListByAutomationAccountOperationOptions, predicate StatisticsOperationPredicate) (result ListByAutomationAccountCompleteResult, err error) {
+	items := make([]Statistics, 0)
+
+	resp, err := c.ListByAutomationAccount(ctx, id, options)
+	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	result = ListByAutomationAccountCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
 	return
 }

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor_test
@@ -786,7 +786,7 @@ resource "azurerm_monitor_action_group" "test" {
 
   azure_function_receiver {
     name                     = "funcaction"
-    function_app_resource_id = azurerm_function_app.test.id
+    function_app_resource_id = azurerm_linux_function_app.test.id
     function_name            = "myfunc"
     http_trigger_url         = "https://example.com/trigger"
     use_common_alert_schema  = true
@@ -801,24 +801,23 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 }
 
-resource "azurerm_app_service_plan" "test" {
+resource "azurerm_service_plan" "test" {
   name                = "acctestSP-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
+  os_type             = "Linux"
+  sku_name            = "S1"
 }
 
-resource "azurerm_function_app" "test" {
+resource "azurerm_linux_function_app" "test" {
   name                       = "acctestFA-%d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  service_plan_id            = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {}
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
@@ -868,11 +867,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acceptanceTestEventHub"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  partition_count     = 1
-  message_retention   = 1
+  name              = "acceptanceTestEventHub"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 1
+  message_retention = 1
 }
 
 resource "azurerm_monitor_action_group" "test" {
@@ -883,7 +881,7 @@ resource "azurerm_monitor_action_group" "test" {
   event_hub_receiver {
     name                    = "eventhub-test-action"
     event_hub_name          = azurerm_eventhub.test.name
-    event_hub_namespace     = azurerm_eventhub.test.namespace_name
+    event_hub_namespace     = azurerm_eventhub_namespace.test.name
     use_common_alert_schema = false
   }
 }
@@ -988,7 +986,7 @@ resource "azurerm_monitor_action_group" "test" {
 
   azure_function_receiver {
     name                     = "funcaction"
-    function_app_resource_id = "${azurerm_function_app.test.id}"
+    function_app_resource_id = azurerm_linux_function_app.test.id
     function_name            = "myfunc"
     http_trigger_url         = "https://example.com/trigger"
     use_common_alert_schema  = false
@@ -1003,7 +1001,7 @@ resource "azurerm_monitor_action_group" "test" {
   event_hub_receiver {
     name                    = "eventhub-test-action"
     event_hub_name          = azurerm_eventhub.test.name
-    event_hub_namespace     = azurerm_eventhub.test.namespace_name
+    event_hub_namespace     = azurerm_eventhub_namespace.test.name
     use_common_alert_schema = false
   }
 }
@@ -1061,24 +1059,23 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 }
 
-resource "azurerm_app_service_plan" "test" {
+resource "azurerm_service_plan" "test" {
   name                = "acctestSP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  os_type             = "Linux"
+  sku_name            = "S1"
 }
 
-resource "azurerm_function_app" "test" {
+resource "azurerm_linux_function_app" "test" {
   name                       = "acctestFA-%d"
-  location                   = "${azurerm_resource_group.test.location}"
-  resource_group_name        = "${azurerm_resource_group.test.name}"
-  app_service_plan_id        = "${azurerm_app_service_plan.test.id}"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  service_plan_id            = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {}
 }
 
 resource "azurerm_eventhub_namespace" "test" {
@@ -1090,11 +1087,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acceptanceTestEventHub"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  partition_count     = 1
-  message_retention   = 1
+  name              = "acceptanceTestEventHub"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 1
+  message_retention = 1
 }
 
 

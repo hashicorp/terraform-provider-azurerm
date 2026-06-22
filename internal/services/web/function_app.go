@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package web
@@ -371,7 +371,7 @@ func getFunctionAppServiceTier(ctx context.Context, appServicePlanId string, met
 
 	log.Printf("[DEBUG] Retrieving App Service Plan %q (Resource Group %q)", id.ServerFarmName, id.ResourceGroup)
 
-	appServicePlansClient := meta.(*clients.Client).Web.AppServicePlansClient
+	appServicePlansClient := meta.(*clients.Client).Web.AppServicePlansClientV1
 	appServicePlan, err := appServicePlansClient.Get(ctx, id.ResourceGroup, id.ServerFarmName)
 	if err != nil {
 		return "", fmt.Errorf("[ERROR] Could not retrieve App Service Plan ID %q: %+v", appServicePlanId, err)

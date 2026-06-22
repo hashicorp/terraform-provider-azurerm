@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices_test
@@ -116,8 +116,6 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = azurerm_resource_group.test1.location
   resource_group_name = azurerm_resource_group.test1.name
   sku                 = "Standard"
-
-  soft_delete_enabled = false
 }
 
 resource "azurerm_site_recovery_fabric" "test1" {

@@ -51,6 +51,8 @@ The following arguments are supported:
 
 * `app_settings` - (Optional) A key-value pair of App Settings.
 
+~> **Note:** If using the `api_key` to deploy a Static Web App from a CI/CD pipeline or other source, `repository_branch` and `repository_url` will get updated in Azure, but it is not possible to set `repository_token` in that case. Use a `lifecycle` block to `ignore_changes` for `repository_branch` and`repository_url` if that is your deployment scenario.
+
 * `repository_branch` - (Optional) Repository branch to use for the Static Web App. `repository_url` and `repository_token` must also be set.
 
 * `repository_url` - (Optional) Repository URL to use for the Static Web App. `repository_branch` and `repository_token` must also be set.
@@ -63,7 +65,7 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - (Required) The Type of Managed Identity assigned to this Static Web App resource. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
+* `type` - (Required) The Type of Managed Identity assigned to this Static Web App resource. Possible values are `SystemAssigned` and `UserAssigned`.
 
 * `identity_ids` - (Optional) A list of Managed Identity IDs which should be assigned to this Static Web App resource.
 

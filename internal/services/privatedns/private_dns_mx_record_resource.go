@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package privatedns
@@ -114,15 +114,17 @@ func resourcePrivateDnsMxRecordCreateUpdate(d *pluginsdk.ResourceData, meta inte
 
 	id := privatedns.NewRecordTypeID(subscriptionId, d.Get("resource_group_name").(string), d.Get("zone_name").(string), privatedns.RecordTypeMX, d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.RecordSetsGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.RecordSetsGet(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_private_dns_mx_record", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_private_dns_mx_record", id.ID())
+			}
 		}
 	}
 
@@ -143,7 +145,10 @@ func resourcePrivateDnsMxRecordCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
+
 	return resourcePrivateDnsMxRecordRead(d, meta)
 }
 
@@ -180,7 +185,9 @@ func resourcePrivateDnsMxRecordRead(d *pluginsdk.ResourceData, meta interface{})
 				return err
 			}
 
-			return tags.FlattenAndSet(d, props.Metadata)
+			if err := tags.FlattenAndSet(d, props.Metadata); err != nil {
+				return err
+			}
 		}
 	}
 

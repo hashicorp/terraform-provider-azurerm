@@ -12,7 +12,7 @@ Manages a Microsoft SQL Azure Managed Instance.
 
 ~> **Note:** All arguments including the administrator login and password will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
-~> **Note:** SQL Managed Instance needs permission to read Azure Active Directory when configuring the AAD administrator. [Read more about provisioning AAD administrators](https://learn.microsoft.com/en-us/azure/azure-sql/database/authentication-aad-configure?view=azuresql#provision-azure-ad-admin-sql-managed-instance).
+~> **Note:** SQL Managed Instance needs permission to read Azure Active Directory when configuring the AAD administrator. [Read more about provisioning AAD administrators](https://learn.microsoft.com/azure/azure-sql/database/authentication-aad-configure?view=azuresql#provision-azure-ad-admin-sql-managed-instance).
 
 ## Example Usage
 
@@ -221,6 +221,8 @@ The following arguments are supported:
 
 * `storage_size_in_gb` - (Required) Maximum storage space for the SQL Managed instance. This should be a multiple of 32 (GB).
 
+-> **Note:** The maximum storage size varies depending on the service tier and hardware generation. For General Purpose Next-gen instances, the maximum is 32,768 GB (32 TB), while Business Critical instances support up to 16,384 GB (16 TB). Refer to [Azure SQL Managed Instance resource limits](https://learn.microsoft.com/en-us/azure/azure-sql/managed-instance/resource-limits) for detailed information.
+
 * `subnet_id` - (Required) The subnet resource id that the SQL Managed Instance will be associated with.
 
 * `vcores` - (Required) Number of cores that should be assigned to the SQL Managed Instance. Values can be `8`, `16`, or `24` for Gen4 SKUs, or `4`, `6`, `8`, `10`, `12`, `16`, `20`, `24`, `32`, `40`, `48`, `56`, `64`, `80`, `96` or `128` for Gen5 SKUs.
@@ -247,7 +249,11 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `maintenance_configuration_name` - (Optional) The name of the Public Maintenance Configuration window to apply to the SQL Managed Instance. Possible values are `SQL_Default` or an Azure Location in the format `SQL_{Location}_MI_{Size}`(for example `SQL_EastUS_MI_1`). Defaults to `SQL_Default`.
+* `general_purpose_v2_enabled` - (Optional) Specifies whether the SQL Managed Instance should use the Next-gen General Purpose service tier. Defaults to `false`.
+
+~> **Note:** The `general_purpose_v2_enabled` property can only be set to `true` when using a General Purpose (`GP_*`) SKU.
+
+* `maintenance_configuration_name` - (Optional) The name of the Public Maintenance Configuration window to apply to the SQL Managed Instance. Valid values include `SQL_Default` or an Azure Location in the format `SQL_{Location}_MI_{Size}`(for example `SQL_EastUS_MI_1`). Defaults to `SQL_Default`.
 
 * `minimum_tls_version` - (Optional) The Minimum TLS Version. Default value is `1.2` Valid values include `1.0`, `1.1`, `1.2`.
 
@@ -261,7 +267,13 @@ The following arguments are supported:
 
 * `storage_account_type` - (Optional) Specifies the storage account type used to store backups for this database. Possible values are `GRS`, `GZRS`, `LRS`, and `ZRS`. Defaults to `GRS`.
 
+* `storage_iops` - (Optional) The storage IOPS for the SQL Managed Instance. Possible values are between `300` and `80000`. This can only be specified when `general_purpose_v2_enabled` is `true`.
+
+-> **Note:** The effective maximum value for `storage_iops` depends on the selected `sku_name` and `vcores`. Refer to [Azure SQL Managed Instance resource limits](https://learn.microsoft.com/en-us/azure/azure-sql/managed-instance/resource-limits) for detailed information.
+
 * `zone_redundant_enabled` - (Optional) Specifies whether the SQL Managed Instance is zone redundant. Defaults to `false`.
+
+~> **Note:** `zone_redundant_enabled` cannot be specified when `general_purpose_v2_enabled` is `true` because zone redundancy is not available for the [Next-gen General Purpose service tier]([https://learn.microsoft.com/azure/azure-sql/managed-instance/high-availability-sla-local-zone-redun.](https://learn.microsoft.com/azure/azure-sql/managed-instance/high-availability-sla-local-zone-redundancy#next-gen-general-purpose-service-tier).)
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

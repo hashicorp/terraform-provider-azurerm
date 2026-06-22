@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package keyvault
@@ -116,7 +116,9 @@ func resourceKeyVaultAccessPolicyCreate(d *pluginsdk.ResourceData, meta interfac
 				}
 				applicationIdMatches := appId == applicationId
 				if tenantIdMatches && objectIdMatches && applicationIdMatches {
-					return tf.ImportAsExistsError("azurerm_key_vault_access_policy", id.ID())
+					if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+						return tf.ImportAsExistsError("azurerm_key_vault_access_policy", id.ID())
+					}
 				}
 			}
 		}

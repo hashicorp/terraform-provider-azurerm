@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute_test
@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 func TestAccWindowsVirtualMachineScaleSet_extensionDoNotRunOnOverProvisionedMachines(t *testing.T) {
@@ -181,6 +182,7 @@ func TestAccWindowsVirtualMachineScaleSet_extensionsAutomaticUpgradeWithHealthEx
 			"admin_password",
 			"extension.0.protected_settings",
 			"enable_automatic_updates",
+			"automatic_updates_enabled",
 		),
 	})
 }
@@ -288,6 +290,7 @@ func TestAccWindowsVirtualMachineScaleSet_extensionsAutomaticUpgradeWithServiceF
 			"admin_password",
 			"extension.0.protected_settings",
 			"enable_automatic_updates",
+			"automatic_updates_enabled",
 		),
 	})
 }
@@ -296,22 +299,41 @@ func TestAccWindowsVirtualMachineScaleSet_extensionAutomaticUpgradeUpdate(t *tes
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.extensionsWithHealthExtension(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password", "extension.0.protected_settings", "enable_automatic_updates"),
-		{
-			Config: r.extensionsAutomaticUpgradeWithHealthExtension(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password", "extension.0.protected_settings", "enable_automatic_updates"),
-	})
+	if !features.FivePointOh() {
+		data.ResourceTest(t, r, []acceptance.TestStep{
+			{
+				Config: r.extensionsWithHealthExtension(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep("admin_password", "extension.0.protected_settings", "enable_automatic_updates", "enable_automatic_updates"),
+			{
+				Config: r.extensionsAutomaticUpgradeWithHealthExtension(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep("admin_password", "extension.0.protected_settings", "enable_automatic_updates", "enable_automatic_updates"),
+		})
+	} else {
+		data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
+			{
+				Config: r.extensionsWithHealthExtension(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep("admin_password", "extension.0.protected_settings", "automatic_updates_enabled", "enable_automatic_updates"),
+			{
+				Config: r.extensionsAutomaticUpgradeWithHealthExtension(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep("admin_password", "extension.0.protected_settings", "automatic_updates_enabled", "enable_automatic_updates"),
+		})
+	}
 }
 
 func TestAccWindowsVirtualMachineScaleSet_extensionAutomaticUpgradeEnabled(t *testing.T) {

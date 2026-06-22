@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package bot
@@ -83,7 +83,8 @@ func resourceBotChannelSMSCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	defer cancel()
 
 	id := parse.NewBotChannelID(subscriptionId, d.Get("resource_group_name").(string), d.Get("bot_name").(string), string(botservice.ChannelNameSmsChannel))
-	if d.IsNewResource() {
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, id.ChannelName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {

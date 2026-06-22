@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cmd
@@ -90,13 +90,11 @@ func Make() *cobra.Command {
 
 				if r.Document.HasChange {
 					if err := r.Document.Write(fs); err != nil {
-						if err != nil {
-							log.WithFields(log.Fields{
-								"resource": r.Name,
-								"path":     r.Document.Path,
-								"error":    err,
-							}).Error("writing changes to the documentation file")
-						}
+						log.WithFields(log.Fields{
+							"resource": r.Name,
+							"path":     r.Document.Path,
+							"error":    err,
+						}).Error("writing changes to the documentation file")
 					}
 				}
 			}

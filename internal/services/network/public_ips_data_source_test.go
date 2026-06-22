@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -55,24 +55,21 @@ func TestAccDataSourcePublicIPs_assigned(t *testing.T) {
 	})
 }
 
-func TestAccDataSourcePublicIPs_allocationType(t *testing.T) {
+func TestAccDataSourcePublicIPs_staticAllocationType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_public_ips", "test")
 	r := PublicIPsResource{}
 
 	staticDataSourceName := "data.azurerm_public_ips.static"
-	dynamicDataSourceName := "data.azurerm_public_ips.dynamic"
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.allocationType(data),
+			Config: r.staticAllocationType(data),
 		},
 		{
-			Config: r.allocationTypeDataSources(data),
+			Config: r.staticAllocationTypeDataSources(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				acceptance.TestCheckResourceAttr(staticDataSourceName, "public_ips.#", "3"),
 				acceptance.TestCheckResourceAttr(staticDataSourceName, "public_ips.0.name", fmt.Sprintf("acctestpips%s-0", data.RandomString)),
-				acceptance.TestCheckResourceAttr(dynamicDataSourceName, "public_ips.#", "4"),
-				acceptance.TestCheckResourceAttr(dynamicDataSourceName, "public_ips.0.name", fmt.Sprintf("acctestpipd%s-0", data.RandomString)),
 			),
 		},
 	})
@@ -164,7 +161,7 @@ resource "azurerm_public_ip" "test" {
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   allocation_method       = "Static"
-  sku                     = "Basic"
+  sku                     = "Standard"
   idle_timeout_in_minutes = 30
 
   tags = {
@@ -178,7 +175,7 @@ resource "azurerm_public_ip" "test2" {
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   allocation_method       = "Static"
-  sku                     = "Basic"
+  sku                     = "Standard"
   idle_timeout_in_minutes = 30
 
   tags = {
@@ -199,7 +196,7 @@ data "azurerm_public_ips" "test" {
 `, r.prefix(data))
 }
 
-func (PublicIPsResource) allocationType(data acceptance.TestData) string {
+func (PublicIPsResource) staticAllocationType(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -210,48 +207,29 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_public_ip" "dynamic" {
-  count                   = 4
-  name                    = "acctestpipd%s-${count.index}"
-  location                = azurerm_resource_group.test.location
-  resource_group_name     = azurerm_resource_group.test.name
-  allocation_method       = "Dynamic"
-  sku                     = "Basic"
-  idle_timeout_in_minutes = 30
-
-  tags = {
-    environment = "test"
-  }
-}
-
 resource "azurerm_public_ip" "static" {
   count                   = 3
   name                    = "acctestpips%s-${count.index}"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   allocation_method       = "Static"
-  sku                     = "Basic"
+  sku                     = "Standard"
   idle_timeout_in_minutes = 30
 
   tags = {
     environment = "test"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r PublicIPsResource) allocationTypeDataSources(data acceptance.TestData) string {
+func (r PublicIPsResource) staticAllocationTypeDataSources(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-
-data "azurerm_public_ips" "dynamic" {
-  resource_group_name = azurerm_resource_group.test.name
-  allocation_type     = "Dynamic"
-}
 
 data "azurerm_public_ips" "static" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_type     = "Static"
 }
-`, r.allocationType(data))
+`, r.staticAllocationType(data))
 }

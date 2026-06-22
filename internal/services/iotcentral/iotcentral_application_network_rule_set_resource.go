@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package iotcentral
@@ -127,7 +127,9 @@ func (r IotCentralApplicationNetworkRuleSetResource) Create() sdk.ResourceFunc {
 			if property := model.Properties; property != nil {
 				if property.NetworkRuleSets != nil {
 					if !isNetworkRuleSetNullified(*property.NetworkRuleSets) {
-						return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+						if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+							return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+						}
 					}
 				}
 			}

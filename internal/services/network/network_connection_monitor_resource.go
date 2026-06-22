@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"time"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -450,15 +452,17 @@ func resourceNetworkConnectionMonitorCreate(d *pluginsdk.ResourceData, meta inte
 
 	connectionMonitorId := connectionmonitors.NewConnectionMonitorID(subscriptionId, watcherId.ResourceGroupName, watcherId.NetworkWatcherName, d.Get("name").(string))
 
-	existing, err := client.Get(ctx, connectionMonitorId)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %s", connectionMonitorId, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, connectionMonitorId)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", connectionMonitorId, err)
+			}
 		}
-	}
 
-	if existing.Model != nil {
-		return tf.ImportAsExistsError("azurerm_network_connection_monitor", connectionMonitorId.ID())
+		if existing.Model != nil {
+			return tf.ImportAsExistsError("azurerm_network_connection_monitor", connectionMonitorId.ID())
+		}
 	}
 
 	properties := connectionmonitors.ConnectionMonitor{
@@ -477,7 +481,7 @@ func resourceNetworkConnectionMonitorCreate(d *pluginsdk.ResourceData, meta inte
 		properties.Properties.Notes = pointer.To(notes.(string))
 	}
 
-	if err = client.CreateOrUpdateThenPoll(ctx, connectionMonitorId, properties, connectionmonitors.DefaultCreateOrUpdateOperationOptions()); err != nil {
+	if err = client.CreateOrUpdateCallbackThenPoll(ctx, connectionMonitorId, properties, connectionmonitors.DefaultCreateOrUpdateOperationOptions(), sdk.SetIDCallback(meta, &connectionMonitorId, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", connectionMonitorId, err)
 	}
 
@@ -605,7 +609,9 @@ func resourceNetworkConnectionMonitorRead(d *pluginsdk.ResourceData, meta interf
 			}
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil

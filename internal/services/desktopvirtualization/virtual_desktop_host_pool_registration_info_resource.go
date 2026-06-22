@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package desktopvirtualization
@@ -112,7 +112,9 @@ func resourceVirtualDesktopHostPoolRegistrationInfoCreateUpdate(d *pluginsdk.Res
 		return fmt.Errorf("updating registration token for %s: %+v", hostPoolId, err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
 
 	return resourceVirtualDesktopHostPoolRegistrationInfoRead(d, meta)
 }

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containerapps_test
@@ -26,6 +26,21 @@ func TestAccContainerAppEnvironmentCertificate_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("certificate_blob_base64", "certificate_password"),
+	})
+}
+
+func TestAccContainerAppEnvironmentCertificate_basicEmptyPassword(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_environment_certificate", "test")
+	r := ContainerAppEnvironmentCertificateResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicEmptyPassword(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -119,6 +134,23 @@ resource "azurerm_container_app_environment_certificate" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
+func (r ContainerAppEnvironmentCertificateResource) basicEmptyPassword(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_container_app_environment_certificate" "test" {
+  name                         = "acctest-cacert%[2]d"
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  certificate_blob_base64      = filebase64("testdata/testacc_nopassword.pfx")
+  certificate_password         = ""
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (r ContainerAppEnvironmentCertificateResource) basicAddTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -160,6 +192,7 @@ resource "azurerm_container_app_environment" "test" {
   resource_group_name        = azurerm_resource_group.test.name
   location                   = azurerm_resource_group.test.location
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  logs_destination           = "log-analytics"
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -196,6 +229,7 @@ resource "azurerm_container_app_environment" "test" {
   resource_group_name        = azurerm_resource_group.test.name
   location                   = azurerm_resource_group.test.location
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  logs_destination           = "log-analytics"
 
   identity {
     type         = "SystemAssigned, UserAssigned"
@@ -210,7 +244,7 @@ resource "azurerm_key_vault" "test" {
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
-  enable_rbac_authorization  = true
+  rbac_authorization_enabled = true
 }
 
 resource "azurerm_role_assignment" "user_keyvault_admin" {

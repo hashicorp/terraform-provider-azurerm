@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssqlmanagedinstance
@@ -115,8 +115,6 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyCreate(d *pluginsdk.Resource
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for managed instance security alert policy creation.")
 
 	alertPolicy := expandManagedServerSecurityAlertPolicy(d)
 
@@ -243,8 +241,6 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyRead(d *pluginsdk.ResourceDa
 	client := meta.(*clients.Client).MSSQLManagedInstance.ManagedInstanceServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] reading managed instance security alert policy")
 
 	id, err := parse.ManagedInstancesSecurityAlertPolicyID(d.Id())
 	if err != nil {

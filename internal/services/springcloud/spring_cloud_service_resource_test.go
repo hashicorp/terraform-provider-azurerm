@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud_test
@@ -69,7 +69,8 @@ func TestAccSpringCloudService_update(t *testing.T) {
 		data.ImportStep(
 			"config_server_git_setting.0.ssh_auth.0.private_key",
 			"config_server_git_setting.0.ssh_auth.0.host_key",
-			"config_server_git_setting.0.ssh_auth.0.host_key_algorithm"),
+			"config_server_git_setting.0.ssh_auth.0.host_key_algorithm",
+		),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(

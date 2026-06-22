@@ -29,6 +29,63 @@ Here are some general guidelines you can turn to when naming properties:
 * Time properties that are not in the format of RFC3339 or are specified as UTC in the documentation should have that appended e.g.
  > `timestamp_in_utc`
 
+* Properties that represent percentage values should be appended with `_percentage` e.g.
+> `sampling_percentage`
+
+## Singular and Plural Block Property Naming Conventions
+
+* Blocks in resources should generally use singular names, since each block represents a single configured object, e.g.
+
+```go
+"rule": {
+	Type:     pluginsdk.TypeList,
+	Optional: true,
+	Elem: &pluginsdk.Resource{
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Type:     pluginsdk.TypeString,
+				Required: true,
+                ValidateFunc: validation.StringIsNotEmpty,
+			},
+		},
+	},
+},
+```
+
+* Lists of primitive values should generally use plural names, since the property represents multiple values, e.g.
+
+```go
+"allowed_ip_ranges": {
+	Type:     pluginsdk.TypeList,
+	Optional: true,
+	Elem: &pluginsdk.Schema{
+		Type: pluginsdk.TypeString,
+	},
+},
+```
+
+* Computed-only attributes, including those in data sources, should generally use plural names when they return multiple values, since users are not defining the individual blocks in configuration, e.g.
+
+```go
+"rules": {
+	Type:     pluginsdk.TypeList,
+	Computed: true,
+	Elem: &pluginsdk.Resource{
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+		},
+	},
+},
+```
+
+## Resource ID Reference
+
+Properties that are a reference to another resource's ID should be in the format of `{resource_name}_id` where `{resource_name}` is the full name minus the provider prefix (`azurerm_`). e.g.
+> A property that expects a reference to the `azurerm_api_management` ID becomes `api_management_id`
+
 ## Boolean Property Naming Conventions
 
 * As a general rule, booleans should be appended with `_enabled` e.g.

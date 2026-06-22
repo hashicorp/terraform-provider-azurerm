@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers_test
@@ -87,7 +87,7 @@ resource "azurerm_container_registry_cache_rule" "test" {
   name                  = "testacc-cr-cache-rule-%d"
   container_registry_id = azurerm_container_registry.test.id
   target_repo           = "target"
-  source_repo           = "docker.io/hello-world"
+  source_repo           = "mcr.microsoft.com/psresource/az"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

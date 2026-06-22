@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package provider
@@ -556,11 +556,12 @@ func TestResourcesDoNotContainLocalAuthenticationDisabled(t *testing.T) {
 	}
 	sort.Strings(resourceNames)
 
-	// TODO: 4.0 - work through this list
-	resourcesWhichNeedToBeAddressed := map[string]struct{}{
-		"azurerm_application_insights":    {},
-		"azurerm_cosmosdb_account":        {},
-		"azurerm_log_analytics_workspace": {},
+	resourcesWhichNeedToBeAddressed := make(map[string]struct{})
+	if !features.FivePointOh() {
+		// These have been addressed but while in 4.x we need to ignore them so the test can pass.
+		resourcesWhichNeedToBeAddressed["azurerm_application_insights"] = struct{}{}
+		resourcesWhichNeedToBeAddressed["azurerm_cosmosdb_account"] = struct{}{}
+		resourcesWhichNeedToBeAddressed["azurerm_log_analytics_workspace"] = struct{}{}
 	}
 
 	for _, resourceName := range resourceNames {

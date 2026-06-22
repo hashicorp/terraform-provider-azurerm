@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package firewall
@@ -210,16 +210,23 @@ func resourceFirewallNetworkRuleCollectionCreateUpdate(d *pluginsdk.ResourceData
 
 		ruleCollections[index] = newRuleCollection
 	} else {
+		exists := false
 		if d.IsNewResource() && index != -1 {
-			return tf.ImportAsExistsError("azurerm_firewall_network_rule_collection", id)
+			exists = true
+			if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				return tf.ImportAsExistsError("azurerm_firewall_network_rule_collection", id)
+			}
 		}
 
 		// first double check it doesn't already exist
-		ruleCollections = append(ruleCollections, newRuleCollection)
+		if !exists {
+			ruleCollections = append(ruleCollections, newRuleCollection)
+		}
 	}
 
 	firewall.Model.Properties.NetworkRuleCollections = &ruleCollections
 
+	// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
 	if err := client.CreateOrUpdateThenPoll(ctx, firewallId, *firewall.Model); err != nil {
 		return fmt.Errorf("creating/updating Network Rule Collection %q in Firewall %q (Resource Group %q): %+v", name, firewallName, resourceGroup, err)
 	}

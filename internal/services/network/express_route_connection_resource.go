@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -70,10 +71,10 @@ func resourceExpressRouteConnection() *pluginsdk.Resource {
 				ValidateFunc: validation.IsUUID,
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_internet_security": {
+			"internet_security_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				Default:  false,
 			},
 
 			"express_route_gateway_bypass_enabled": {
@@ -158,7 +159,22 @@ func resourceExpressRouteConnection() *pluginsdk.Resource {
 		resource.Schema["private_link_fast_path_enabled"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeBool,
 			Optional:   true,
-			Deprecated: "'private_link_fast_path_enabled' has been deprecated as it is no longer supported by the resource and will be removed in v5.0 of the AzureRM Provider",
+			Deprecated: "`private_link_fast_path_enabled` has been deprecated as it is no longer supported by the resource and will be removed in v5.0 of the AzureRM Provider",
+		}
+
+		resource.Schema["internet_security_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"enable_internet_security"},
+		}
+
+		resource.Schema["enable_internet_security"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"internet_security_enabled"},
+			Deprecated:    "the `enable_internet_security` property has been deprecated in favour of the `internet_security_enabled` property and will be removed in v5.0 of the AzureRM Provider",
 		}
 	}
 
@@ -177,15 +193,22 @@ func resourceExpressRouteConnectionCreate(d *pluginsdk.ResourceData, meta interf
 
 	id := expressrouteconnections.NewExpressRouteConnectionID(expressRouteGatewayId.SubscriptionId, expressRouteGatewayId.ResourceGroupName, expressRouteGatewayId.ExpressRouteGatewayName, d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
+		}
+
 		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
+			return tf.ImportAsExistsError("azurerm_express_route_connection", id.ID())
 		}
 	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_express_route_connection", id.ID())
+	enableInternetSecurity := d.Get("internet_security_enabled").(bool)
+	if !features.FivePointOh() && !d.GetRawConfig().AsValueMap()["enable_internet_security"].IsNull() {
+		enableInternetSecurity = d.Get("enable_internet_security").(bool)
 	}
 
 	parameters := expressrouteconnections.ExpressRouteConnection{
@@ -194,7 +217,7 @@ func resourceExpressRouteConnectionCreate(d *pluginsdk.ResourceData, meta interf
 			ExpressRouteCircuitPeering: expressrouteconnections.ExpressRouteCircuitPeeringId{
 				Id: pointer.To(d.Get("express_route_circuit_peering_id").(string)),
 			},
-			EnableInternetSecurity:    pointer.To(d.Get("enable_internet_security").(bool)),
+			EnableInternetSecurity:    pointer.To(enableInternetSecurity),
 			RoutingConfiguration:      expandExpressRouteConnectionRouting(d.Get("routing").([]interface{})),
 			RoutingWeight:             pointer.To(int64(d.Get("routing_weight").(int))),
 			ExpressRouteGatewayBypass: pointer.To(d.Get("express_route_gateway_bypass_enabled").(bool)),
@@ -205,7 +228,7 @@ func resourceExpressRouteConnectionCreate(d *pluginsdk.ResourceData, meta interf
 		parameters.Properties.AuthorizationKey = pointer.To(v.(string))
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -240,7 +263,11 @@ func resourceExpressRouteConnectionRead(d *pluginsdk.ResourceData, meta interfac
 		if props := model.Properties; props != nil {
 			d.Set("routing_weight", props.RoutingWeight)
 			d.Set("authorization_key", props.AuthorizationKey)
-			d.Set("enable_internet_security", props.EnableInternetSecurity)
+
+			d.Set("internet_security_enabled", props.EnableInternetSecurity)
+			if !features.FivePointOh() {
+				d.Set("enable_internet_security", props.EnableInternetSecurity)
+			}
 
 			if props.ExpressRouteGatewayBypass != nil {
 				d.Set("express_route_gateway_bypass_enabled", props.ExpressRouteGatewayBypass)
@@ -279,24 +306,51 @@ func resourceExpressRouteConnectionUpdate(d *pluginsdk.ResourceData, meta interf
 		return err
 	}
 
-	parameters := expressrouteconnections.ExpressRouteConnection{
-		Name: id.ExpressRouteConnectionName,
-		Properties: &expressrouteconnections.ExpressRouteConnectionProperties{
-			ExpressRouteCircuitPeering: expressrouteconnections.ExpressRouteCircuitPeeringId{
-				Id: pointer.To(d.Get("express_route_circuit_peering_id").(string)),
-			},
-			EnableInternetSecurity:    pointer.To(d.Get("enable_internet_security").(bool)),
-			RoutingConfiguration:      expandExpressRouteConnectionRouting(d.Get("routing").([]interface{})),
-			RoutingWeight:             pointer.To(int64(d.Get("routing_weight").(int))),
-			ExpressRouteGatewayBypass: pointer.To(d.Get("express_route_gateway_bypass_enabled").(bool)),
-		},
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if v, ok := d.GetOk("authorization_key"); ok {
-		parameters.Properties.AuthorizationKey = pointer.To(v.(string))
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, *id, parameters); err != nil {
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
+	props := existing.Model.Properties
+
+	if d.HasChange("authorization_key") {
+		props.AuthorizationKey = nil
+		if authKey := d.Get("authorization_key").(string); authKey != "" {
+			props.AuthorizationKey = pointer.To(authKey)
+		}
+	}
+
+	if !features.FivePointOh() && d.HasChanges("enable_internet_security", "internet_security_enabled") {
+		if d.HasChange("enable_internet_security") && !d.GetRawConfig().AsValueMap()["enable_internet_security"].IsNull() {
+			props.EnableInternetSecurity = pointer.To(d.Get("enable_internet_security").(bool))
+		}
+		if d.HasChange("internet_security_enabled") && !d.GetRawConfig().AsValueMap()["internet_security_enabled"].IsNull() {
+			props.EnableInternetSecurity = pointer.To(d.Get("internet_security_enabled").(bool))
+		}
+	} else if d.HasChange("internet_security_enabled") {
+		props.EnableInternetSecurity = pointer.To(d.Get("internet_security_enabled").(bool))
+	}
+
+	if d.HasChange("express_route_gateway_bypass_enabled") {
+		props.ExpressRouteGatewayBypass = pointer.To(d.Get("express_route_gateway_bypass_enabled").(bool))
+	}
+
+	if d.HasChange("routing") {
+		props.RoutingConfiguration = expandExpressRouteConnectionRouting(d.Get("routing").([]interface{}))
+	}
+
+	if d.HasChange("routing_weight") {
+		props.RoutingWeight = pointer.To(int64(d.Get("routing_weight").(int)))
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package acceptance
@@ -88,11 +88,11 @@ func GetAuthConfig(t *testing.T) *auth.Credentials {
 }
 
 func RequiresImportError(resourceName string) *regexp.Regexp {
-	message := "to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for %q for more information"
+	message := `to\s+be\s+managed\s+via\s+Terraform\s+this\s+resource\s+needs\s+to\s+be\s+imported\s+into\s+the\s+State\.\s+Please\s+see\s+the\s+resource\s+documentation\s+for\s+%q\s+for\s+more\s+information`
 	return regexp.MustCompile(fmt.Sprintf(message, resourceName))
 }
 
 func RequiresImportAssociationError(resourceName string) *regexp.Regexp {
-	message := "to be managed via Terraform this association needs to be imported into the State. Please see the resource documentation for %q for more information"
+	message := `to\s+be\s+managed\s+via\s+Terraform\s+this\s+association\s+needs\s+to\s+be\s+imported\s+into\s+the\s+State\.\s+Please\s+see\s+the\s+resource\s+documentation\s+for\s+%q\s+for\s+more\s+information`
 	return regexp.MustCompile(fmt.Sprintf(message, resourceName))
 }

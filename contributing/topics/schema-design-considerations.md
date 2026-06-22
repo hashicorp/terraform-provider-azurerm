@@ -4,6 +4,48 @@ Whilst it is acceptable in certain cases to map the schema of a new resource or 
 
 Below are a list of common patterns found in the Azure API and how these typically get mapped within Terraform.
 
+## Prefer Azure Portal terminology when it differs significantly from the REST API
+
+Users should be able to intuitively correlate Terraform configuration with the portal experience.
+
+For example, the `taggingCriteria` property from the [Backup Policy REST API](https://learn.microsoft.com/rest/api/dataprotection/backup-policies/create-or-update?view=rest-dataprotection-2026-03-01&tabs=HTTP#taggingcriteria) is called `Retention` / `Backup schedule` in the portal.
+
+In some cases where the portal experience is not yet available, or is not the primary experience, align with Azure CLI instead.
+
+## Group semantically related arguments
+
+Terraform arguments are mostly ordered alphabetically (see the [ordering guide](guide-new-resource.md)). For resources with a large list of arguments, this can scatter related settings. If the portal or CLI groups settings into tabs or section headings, consider introducing a block in Terraform to reduce the cognitive load for users.
+
+## Eliminate ambiguity in collection-typed arguments
+
+Some Azure APIs use arrays or list collections instead of statically typed properties, which can introduce ambiguity in Terraform configuration. For example, two `retention_policy` blocks with `orchestration_state = "Completed"` can be supplied below, even though only one makes semantic sense:
+
+```terraform
+retention_policy {
+  retention_period_in_days = 7
+  orchestration_state      = "InProgress"
+}
+
+retention_policy {
+  retention_period_in_days = 30
+  orchestration_state      = "Completed"
+}
+
+retention_policy {
+  retention_period_in_days = 5
+  orchestration_state      = "Completed" // Which one of the "Completed" wins?
+}
+```
+
+Instead, the schema for such an API should be designed to eliminate the ambiguity:
+
+```terraform
+retention_policy {
+  completed_retention_period_in_days = 30
+  in_progress_retention_period_in_days = 7
+}
+```
+
 ## Features that are toggled by the property `Enabled`
 
 It is commonplace for features to be toggled on and off by an `Enabled` property within an object in the SDK used to interact with the Azure API. See the examples below.
@@ -174,6 +216,8 @@ func (r resource) Read() sdk.ResourceFunc {
 }
 ```
 
+> **Note:** The above guidance applies to any user-specifiable properties. For properties that are computed only, the `Read` function should return the value that is retrieved from Azure, including `None`, rather than converting it to an empty value.
+
 ## SKU fields
 
 Because the Azure API implementation for SKU fields tends to vary we can't easily standardise on a single approach, however, we should try to stick to one of the following two implementations:
@@ -257,3 +301,138 @@ Would be better exposed as the following resources:
 - `azurerm_data_factory_linked_service_azure_function`
 - `azurerm_data_factory_linked_service_azure_search`
 
+## Preview Fields
+
+Fields that are in preview should not be supported until they reach General Availability (GA) status, as they may change or be removed before becoming stable.
+
+## Flattening nested properties
+
+When designing schemas, consider flattening properties with `MaxItems: 1` that contain only a single nested property unless the service team has confirmed additional nested properties are imminent. In those cases, add an inline comment explaining why the block is left unflattened so reviewers understand the rationale.
+
+:white_check_mark: **DO**
+```go
+"credential_certificate": {
+    Type:     pluginsdk.TypeList,
+    Optional: true,
+    Elem:     &pluginsdk.Schema{
+        Type:         pluginsdk.TypeString,
+        ValidateFunc: validation.StringIsNotEmpty,
+    },
+}
+```
+
+## Array fields with MinItems and MaxItems
+
+If a field is an array, proper `MinItems` and `MaxItems` should be set based on the API constraints to provide clear validation feedback to users.
+
+```go
+"email_addresses": {
+	Type:     pluginsdk.TypeList,
+	Required: true,
+	MinItems: 1,
+	MaxItems: 20,
+	Elem: &pluginsdk.Schema{
+		Type:         pluginsdk.TypeString,
+		ValidateFunc: validation.StringIsNotEmpty,
+	},
+},
+```
+
+## Required fields in Azure Portal vs API documentation
+
+Fields marked as required in the Azure Portal (indicated by `*`) should be defined as `Required` in Terraform, unless the API accepts the request without them and still functions.
+
+## Validation for TypeList fields with no Required fields
+
+When a `pluginsdk.TypeList` block has no required nested fields, conditional validation such as `AtLeastOneOf` or `ExactlyOneOf` must be set on the optional fields to ensure the block is not empty and has at least one property configured.
+
+```go
+"setting": {
+    Type:     pluginsdk.TypeList,
+    Optional: true,
+    MaxItems: 1,
+    Elem: &pluginsdk.Resource{
+        Schema: map[string]*pluginsdk.Schema{
+            "linux": {
+                Type:         pluginsdk.TypeList,
+                Optional:     true,
+                Elem:         osSchema(),
+                AtLeastOneOf: []string{"setting.0.linux", "setting.0.windows"},
+            },
+            "windows": {
+                Type:         pluginsdk.TypeList,
+                Optional:     true,
+                Elem:         osSchema(),
+                AtLeastOneOf: []string{"setting.0.linux", "setting.0.windows"},
+            },
+        },
+    },
+}
+```
+
+## Validation
+
+String arguments must be validated. Use `StringNotEmpty` at a minimum but ideally validation should be more strict. Validate `name` fields for length and allowed characters. Use `commonids` or SDK-specific functions for Resource IDs. Ensure common formats like dates, IPs, ports, emails, and URIs are validated.
+
+Numeric arguments should specify a valid range.
+
+```go
+"name": {
+	Type:     pluginsdk.TypeString,
+	Required: true,
+	ForceNew: true,
+	ValidateFunc: validation.StringMatch(
+		regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9.\-_]{0,79}$`),
+		"`name` must be between 1 and 80 characters. It must start with an alphanumeric character and can contain alphanumeric characters, dots (.), hyphens (-), and underscores (_).",
+	),
+},
+
+"subnet_id": {
+	Type:         pluginsdk.TypeString,
+	Required:     true,
+	ValidateFunc: commonids.ValidateSubnetID,
+},
+
+"description": {
+	Type:         pluginsdk.TypeString,
+	Optional:     true,
+	ValidateFunc: validation.StringIsNotEmpty,
+},
+
+"extensions_time_budget": {
+	Type:         pluginsdk.TypeString,
+	Optional:     true,
+	Default:      "PT1H30M",
+	ValidateFunc: validate.ISO8601DurationBetween("PT15M", "PT2H"),
+},
+
+"filter_value_percentage": {
+	Type:         pluginsdk.TypeFloat,
+	Optional:     true,
+	ValidateFunc: validation.FloatBetween(0, 100),
+},
+
+"ip_address": {
+	Type:         pluginsdk.TypeString,
+	Optional:     true,
+	ValidateFunc: azValidate.IPv4Address,
+},
+
+"output_blob_uri": {
+	Type:         pluginsdk.TypeString,
+	Optional:     true,
+	ValidateFunc: validation.IsURLWithHTTPS,
+},
+
+"sim_policy_id": {
+	Type:         pluginsdk.TypeString,
+	Optional:     true,
+	ValidateFunc: simpolicy.ValidateSimPolicyID,
+},
+
+"storage_size_in_gb": {
+	Type:         pluginsdk.TypeInt,
+	Optional:     true,
+	ValidateFunc: validation.IntBetween(32, 16384),
+},
+```

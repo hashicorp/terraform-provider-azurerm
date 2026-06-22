@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatedns"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -29,7 +28,6 @@ func (r PrivateDnsZoneListResource) Metadata(_ context.Context, _ resource.Metad
 
 func (r PrivateDnsZoneListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.PrivateDns.PrivateZonesClient
-	recordSetsClient := metadata.Client.PrivateDns.RecordSetsClient
 
 	var data sdk.DefaultListModel
 	diags := request.Config.Get(ctx, &data)
@@ -64,51 +62,36 @@ func (r PrivateDnsZoneListResource) List(ctx context.Context, request list.ListR
 		results = resp.Items
 	}
 
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		sdk.SetResponseErrorDiagnostic(stream, "internal-error", "context had no deadline")
+	}
+
 	stream.Results = func(push func(list.ListResult) bool) {
+		ctx, cancel := context.WithDeadline(context.Background(), deadline)
+		defer cancel()
+
 		for _, privateZone := range results {
 			result := request.NewListResult(ctx)
 			result.DisplayName = pointer.From(privateZone.Name)
 
 			id, err := privatezones.ParsePrivateDnsZoneID(pointer.From(privateZone.Id))
 			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "parsing Private DNS Zone ID", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Private DNS Zone ID", err)
 				return
 			}
 
 			rd := resourcePrivateDnsZone().Data(&terraform.InstanceState{})
 			rd.SetId(id.ID())
 
-			recordId := privatedns.NewRecordTypeID(id.SubscriptionId, id.ResourceGroupName, id.PrivateDnsZoneName, privatedns.RecordTypeSOA, "@")
-			recordSetResp, err := recordSetsClient.RecordSetsGet(ctx, recordId)
-			if err != nil {
-				sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("retrieving %s", recordId), err)
+			if err := resourcePrivateDnsZoneFlatten(ctx, rd, metadata.Client, id, &privateZone, request.IncludeResource); err != nil {
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", privateDnsZoneResourceName), err)
 				return
 			}
 
-			if err := resourcePrivateDnsZoneFlatten(rd, id, &privateZone, recordSetResp.Model); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, fmt.Sprintf("encoding `%s` resource data", privateDnsZoneResourceName), err)
-				return
-			}
-
-			tfTypeIdentity, err := rd.TfTypeIdentityState()
-			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "converting Identity State", err)
-				return
-			}
-
-			if err := result.Identity.Set(ctx, *tfTypeIdentity); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "setting Identity Data", err)
-				return
-			}
-
-			tfTypeResourceState, err := rd.TfTypeResourceState()
-			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "converting Resource State", err)
-				return
-			}
-
-			if err := result.Resource.Set(ctx, *tfTypeResourceState); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "setting Resource Data", err)
+			sdk.EncodeListResult(ctx, rd, &result)
+			if result.Diagnostics.HasError() {
+				push(result)
 				return
 			}
 

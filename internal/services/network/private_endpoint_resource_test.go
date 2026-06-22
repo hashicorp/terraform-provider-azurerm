@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -6,6 +6,7 @@ package network_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -112,6 +113,22 @@ func TestAccPrivateEndpoint_requestMessage(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccPrivateEndpoint_invalidRequestMessage(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
+	r := PrivateEndpointResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.invalidAtuoWithRequestMessage(data),
+			ExpectError: regexp.MustCompile(`the "request_message" attribute cannot be set if the "is_manual_connection" attribute is "false"`),
+		},
+		{
+			Config:      r.invalidManualWithoutRequestMessage(data),
+			ExpectError: regexp.MustCompile(`the "request_message" attribute must not be empty`),
+		},
 	})
 }
 
@@ -565,6 +582,45 @@ resource "azurerm_private_endpoint" "test" {
 `, r.template(data, r.serviceManualApprove(data)), data.RandomInteger, msg)
 }
 
+func (r PrivateEndpointResource) invalidAtuoWithRequestMessage(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_private_endpoint" "test" {
+  name                = "acctest-privatelink-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  subnet_id           = azurerm_subnet.endpoint.id
+
+  private_service_connection {
+    name                           = azurerm_private_link_service.test.name
+    is_manual_connection           = false
+    request_message                = "foo"
+    private_connection_resource_id = azurerm_private_link_service.test.id
+  }
+}
+`, r.template(data, r.serviceAutoApprove(data)), data.RandomInteger)
+}
+
+func (r PrivateEndpointResource) invalidManualWithoutRequestMessage(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_private_endpoint" "test" {
+  name                = "acctest-privatelink-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  subnet_id           = azurerm_subnet.endpoint.id
+
+  private_service_connection {
+    name                           = azurerm_private_link_service.test.name
+    is_manual_connection           = true
+    private_connection_resource_id = azurerm_private_link_service.test.id
+  }
+}
+`, r.template(data, r.serviceAutoApprove(data)), data.RandomInteger)
+}
+
 func (PrivateEndpointResource) privateDnsZoneGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -674,22 +730,15 @@ resource "azurerm_subnet" "endpoint" {
   private_endpoint_network_policies = "Disabled"
 }
 
-resource "azurerm_postgresql_server" "test" {
-  name                = "acctest-pe-server-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku_name = "GP_Gen5_4"
-
-  storage_mb                   = 5120
-  backup_retention_days        = 7
-  geo_redundant_backup_enabled = false
-  auto_grow_enabled            = true
-
-  administrator_login          = "psqladmin"
-  administrator_login_password = "H@Sh1CoR3!"
-  version                      = "9.5"
-  ssl_enforcement_enabled      = true
+resource "azurerm_postgresql_flexible_server" "test" {
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  version                = "12"
+  sku_name               = "GP_Standard_D2s_v3"
+  zone                   = "2"
 }
 
 resource "azurerm_private_dns_zone" "finance" {
@@ -705,7 +754,7 @@ resource "azurerm_private_endpoint" "test" {
 
   private_service_connection {
     name                           = "acctest-privatelink-psc-%d"
-    private_connection_resource_id = azurerm_postgresql_server.test.id
+    private_connection_resource_id = azurerm_postgresql_flexible_server.test.id
     subresource_names              = ["postgresqlServer"]
     is_manual_connection           = false
   }
@@ -749,22 +798,15 @@ resource "azurerm_subnet" "endpoint" {
   private_endpoint_network_policies = "Disabled"
 }
 
-resource "azurerm_postgresql_server" "test" {
-  name                = "acctest-pe-server-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku_name = "GP_Gen5_4"
-
-  storage_mb                   = 5120
-  backup_retention_days        = 7
-  geo_redundant_backup_enabled = false
-  auto_grow_enabled            = true
-
-  administrator_login          = "psqladmin"
-  administrator_login_password = "H@Sh1CoR3!"
-  version                      = "9.5"
-  ssl_enforcement_enabled      = true
+resource "azurerm_postgresql_flexible_server" "test" {
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  version                = "12"
+  sku_name               = "GP_Standard_D2s_v3"
+  zone                   = "2"
 }
 
 resource "azurerm_private_dns_zone" "finance" {
@@ -790,7 +832,7 @@ resource "azurerm_private_endpoint" "test" {
 
   private_service_connection {
     name                           = "acctest-privatelink-psc-%d"
-    private_connection_resource_id = azurerm_postgresql_server.test.id
+    private_connection_resource_id = azurerm_postgresql_flexible_server.test.id
     subresource_names              = ["postgresqlServer"]
     is_manual_connection           = false
   }
@@ -834,22 +876,15 @@ resource "azurerm_subnet" "endpoint" {
   private_endpoint_network_policies = "Disabled"
 }
 
-resource "azurerm_postgresql_server" "test" {
-  name                = "acctest-pe-server-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku_name = "GP_Gen5_4"
-
-  storage_mb                   = 5120
-  backup_retention_days        = 7
-  geo_redundant_backup_enabled = false
-  auto_grow_enabled            = true
-
-  administrator_login          = "psqladmin"
-  administrator_login_password = "H@Sh1CoR3!"
-  version                      = "9.5"
-  ssl_enforcement_enabled      = true
+resource "azurerm_postgresql_flexible_server" "test" {
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  version                = "12"
+  sku_name               = "GP_Standard_D2s_v3"
+  zone                   = "2"
 }
 
 resource "azurerm_resource_group" "test2" {
@@ -875,7 +910,7 @@ resource "azurerm_private_endpoint" "test" {
 
   private_service_connection {
     name                           = "acctest-privatelink-psc-%d"
-    private_connection_resource_id = azurerm_postgresql_server.test.id
+    private_connection_resource_id = azurerm_postgresql_flexible_server.test.id
     subresource_names              = ["postgresqlServer"]
     is_manual_connection           = false
   }
@@ -943,22 +978,15 @@ resource "azurerm_subnet" "endpoint" {
   private_endpoint_network_policies = "Disabled"
 }
 
-resource "azurerm_postgresql_server" "test" {
-  name                = "acctest-pe-server-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku_name = "GP_Gen5_4"
-
-  storage_mb                   = 5120
-  backup_retention_days        = 7
-  geo_redundant_backup_enabled = false
-  auto_grow_enabled            = true
-
-  administrator_login          = "psqladmin"
-  administrator_login_password = "H@Sh1CoR3!"
-  version                      = "9.5"
-  ssl_enforcement_enabled      = true
+resource "azurerm_postgresql_flexible_server" "test" {
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  version                = "12"
+  sku_name               = "GP_Standard_D2s_v3"
+  zone                   = "2"
 }
 
 resource "azurerm_private_dns_zone" "finance" {
@@ -979,7 +1007,7 @@ resource "azurerm_private_endpoint" "test" {
 
   private_service_connection {
     name                           = "acctest-privatelink-psc-%d"
-    private_connection_resource_id = azurerm_postgresql_server.test.id
+    private_connection_resource_id = azurerm_postgresql_flexible_server.test.id
     subresource_names              = ["postgresqlServer"]
     is_manual_connection           = false
   }
@@ -1061,8 +1089,6 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
-
-  soft_delete_enabled = false
 
   identity {
     type = "SystemAssigned"

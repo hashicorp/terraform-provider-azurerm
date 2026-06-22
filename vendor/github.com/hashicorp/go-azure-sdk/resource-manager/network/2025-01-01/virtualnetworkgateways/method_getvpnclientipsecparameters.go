@@ -57,9 +57,20 @@ func (c VirtualNetworkGatewaysClient) GetVpnclientIPsecParameters(ctx context.Co
 
 // GetVpnclientIPsecParametersThenPoll performs GetVpnclientIPsecParameters then polls until it's completed
 func (c VirtualNetworkGatewaysClient) GetVpnclientIPsecParametersThenPoll(ctx context.Context, id VirtualNetworkGatewayId) error {
+	return c.GetVpnclientIPsecParametersCallbackThenPoll(ctx, id, nil)
+}
+
+// GetVpnclientIPsecParametersCallbackThenPoll performs GetVpnclientIPsecParameters, runs the optional callback function, then polls until it's completed
+func (c VirtualNetworkGatewaysClient) GetVpnclientIPsecParametersCallbackThenPoll(ctx context.Context, id VirtualNetworkGatewayId, callback func() error) error {
 	result, err := c.GetVpnclientIPsecParameters(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing GetVpnclientIPsecParameters: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

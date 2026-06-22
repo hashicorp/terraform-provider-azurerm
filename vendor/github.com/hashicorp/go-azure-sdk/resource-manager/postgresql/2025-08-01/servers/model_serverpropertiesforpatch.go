@@ -7,6 +7,7 @@ type ServerPropertiesForPatch struct {
 	AdministratorLogin         *string                    `json:"administratorLogin,omitempty"`
 	AdministratorLoginPassword *string                    `json:"administratorLoginPassword,omitempty"`
 	AuthConfig                 *AuthConfigForPatch        `json:"authConfig,omitempty"`
+	AvailabilityZone           *string                    `json:"availabilityZone,omitempty"`
 	Backup                     *BackupForPatch            `json:"backup,omitempty"`
 	Cluster                    *Cluster                   `json:"cluster,omitempty"`
 	CreateMode                 *CreateModeForPatch        `json:"createMode,omitempty"`

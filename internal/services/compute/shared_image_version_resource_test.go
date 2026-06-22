@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute_test
@@ -376,7 +376,6 @@ resource "azurerm_shared_image_version" "test" {
 }
 
 func (r SharedImageVersionResource) imageVersionBlobURI(data acceptance.TestData) string {
-	template := r.setup(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -415,7 +414,7 @@ resource "azurerm_shared_image_version" "test" {
     regional_replica_count = 1
   }
 }
-`, template, data.RandomInteger)
+`, r.setup(data), data.RandomInteger)
 }
 
 func (r SharedImageVersionResource) provisionSpecialized(data acceptance.TestData) string {

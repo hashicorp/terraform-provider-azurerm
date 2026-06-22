@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package synapse
@@ -153,11 +153,13 @@ func resourceSynapseRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 	// TODO: unpick this/refactor to use ID Formatters
-	if listResp.Value != nil && len(*listResp.Value) != 0 {
-		existing := (*listResp.Value)[0]
-		if !utils.ResponseWasNotFound(existing.Response) {
-			resourceId := parse.NewRoleAssignmentId(synapseScope, *existing.ID).ID()
-			return tf.ImportAsExistsError("azurerm_synapse_role_assignment", resourceId)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		if listResp.Value != nil && len(*listResp.Value) != 0 {
+			existing := (*listResp.Value)[0]
+			if !utils.ResponseWasNotFound(existing.Response) {
+				resourceId := parse.NewRoleAssignmentId(synapseScope, *existing.ID).ID()
+				return tf.ImportAsExistsError("azurerm_synapse_role_assignment", resourceId)
+			}
 		}
 	}
 

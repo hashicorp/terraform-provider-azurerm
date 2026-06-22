@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package postgres_test
@@ -372,7 +372,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
   storage_mb             = 32768
-  version                = "12"
+  version                = "16"
   sku_name               = "GP_Standard_D2s_v3"
   zone                   = "2"
 }

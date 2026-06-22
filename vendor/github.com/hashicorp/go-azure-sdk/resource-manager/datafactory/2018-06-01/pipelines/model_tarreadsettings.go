@@ -11,7 +11,7 @@ import (
 var _ CompressionReadSettings = TarReadSettings{}
 
 type TarReadSettings struct {
-	PreserveCompressionFileNameAsFolder *bool `json:"preserveCompressionFileNameAsFolder,omitempty"`
+	PreserveCompressionFileNameAsFolder *interface{} `json:"preserveCompressionFileNameAsFolder,omitempty"`
 
 	// Fields inherited from CompressionReadSettings
 

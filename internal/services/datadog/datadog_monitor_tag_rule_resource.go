@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datadog
@@ -144,14 +144,17 @@ func resourceDatadogTagRulesCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	id := rules.NewTagRuleID(monitorId.SubscriptionId, monitorId.ResourceGroupName, monitorId.MonitorName, d.Get("name").(string))
-	existing, err := client.TagRulesGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for an existing %s: %+v", id, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.TagRulesGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for an existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) && !isDefaultSettings(existing.Model) {
-		return tf.ImportAsExistsError("azurerm_datadog_monitor_tag_rule", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) && !isDefaultSettings(existing.Model) {
+			return tf.ImportAsExistsError("azurerm_datadog_monitor_tag_rule", id.ID())
+		}
 	}
 
 	payload := rules.MonitoringTagRules{

@@ -52,7 +52,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "example" {
   name                 = "example-vmss"
   resource_group_name  = azurerm_resource_group.example.name
   location             = azurerm_resource_group.example.location
-  sku                  = "Standard_F2"
+  sku                  = "Standard_D4_v5"
   instances            = 1
   admin_password       = "P@55w0rd1234!"
   admin_username       = "adminuser"
@@ -99,7 +99,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "example" {
 
 -> **Note:** If you're using AutoScaling, you may wish to use [Terraform's `ignore_changes` functionality](https://developer.hashicorp.com/terraform/language/block/resource#ignore_changes) to ignore changes to this field.
 
-* `sku` - (Required) The Virtual Machine SKU for the Scale Set, such as `Standard_F2`.
+* `sku` - (Required) The Virtual Machine SKU for the Scale Set, such as `Standard_D4_v5`.
 
 * `network_interface` - (Required) One or more `network_interface` blocks as defined below.
 
@@ -161,7 +161,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "example" {
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `license_type` - (Optional) Specifies the type of on-premise license (also known as [Azure Hybrid Use Benefit](https://docs.microsoft.com/azure/virtual-machines/virtual-machines-windows-hybrid-use-benefit-licensing)) which should be used for this Virtual Machine Scale Set. Possible values are `None`, `Windows_Client` and `Windows_Server`.
+* `license_type` - (Optional) Specifies the type of on-premise license (also known as [Azure Hybrid Use Benefit](https://docs.microsoft.com/en-gb/windows-server/get-started/azure-hybrid-benefit)) which should be used for this Virtual Machine Scale Set. Possible values are `None`, `Windows_Client` and `Windows_Server`.
 
 * `max_bid_price` - (Optional) The maximum price you're willing to pay for each Virtual Machine in this Scale Set, in US Dollars; which must be greater than the current spot price. If this bid price falls below the current spot price the Virtual Machines in the Scale Set will be evicted using the `eviction_policy`. Defaults to `-1`, which means that each Virtual Machine in the Scale Set should not be evicted for price reasons.
 

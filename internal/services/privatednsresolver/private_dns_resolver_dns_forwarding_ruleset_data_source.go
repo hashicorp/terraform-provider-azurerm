@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package privatednsresolver
@@ -80,7 +80,8 @@ func (r PrivateDNSResolverDnsForwardingRulesetDataSource) Read() sdk.ResourceFun
 			}
 
 			id := dnsforwardingrulesets.NewDnsForwardingRulesetID(
-				metadata.Client.Account.SubscriptionId, state.ResourceGroupName, state.Name)
+				metadata.Client.Account.SubscriptionId, state.ResourceGroupName, state.Name,
+			)
 			resp, err := client.Get(ctx, id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", id, err)

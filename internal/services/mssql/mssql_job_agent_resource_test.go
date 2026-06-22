@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssql_test
@@ -18,11 +18,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type MsSqlJobAgentResource struct{}
+type MssqlJobAgentResource struct{}
 
 func TestAccMsSqlJobAgent_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job_agent", "test")
-	r := MsSqlJobAgentResource{}
+	r := MssqlJobAgentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -37,7 +37,7 @@ func TestAccMsSqlJobAgent_basic(t *testing.T) {
 
 func TestAccMsSqlJobAgent_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job_agent", "test")
-	r := MsSqlJobAgentResource{}
+	r := MssqlJobAgentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -52,7 +52,7 @@ func TestAccMsSqlJobAgent_requiresImport(t *testing.T) {
 
 func TestAccMsSqlJobAgent_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job_agent", "test")
-	r := MsSqlJobAgentResource{}
+	r := MssqlJobAgentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -78,7 +78,7 @@ func TestAccMsSqlJobAgent_complete(t *testing.T) {
 	})
 }
 
-func (MsSqlJobAgentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (MssqlJobAgentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := jobagents.ParseJobAgentID(state.ID)
 	if err != nil {
 		return nil, err
@@ -95,7 +95,7 @@ func (MsSqlJobAgentResource) Exists(ctx context.Context, client *clients.Client,
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r MsSqlJobAgentResource) basic(data acceptance.TestData) string {
+func (r MssqlJobAgentResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -107,7 +107,7 @@ resource "azurerm_mssql_job_agent" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MsSqlJobAgentResource) requiresImport(data acceptance.TestData) string {
+func (r MssqlJobAgentResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -119,7 +119,7 @@ resource "azurerm_mssql_job_agent" "import" {
 `, r.basic(data))
 }
 
-func (r MsSqlJobAgentResource) complete(data acceptance.TestData, sku string) string {
+func (r MssqlJobAgentResource) complete(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -148,7 +148,7 @@ resource "azurerm_mssql_job_agent" "test" {
 `, r.template(data), data.RandomInteger, sku)
 }
 
-func (MsSqlJobAgentResource) template(data acceptance.TestData) string {
+func (MssqlJobAgentResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

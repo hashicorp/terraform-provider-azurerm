@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -6,7 +6,7 @@ package network
 import (
 	"context"
 	"fmt"
-	"log"
+	"math/big"
 	"regexp"
 	"strings"
 	"time"
@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -72,6 +73,7 @@ var subnetDelegationServiceNames = []string{
 	"Microsoft.LabServices/labplans",
 	"Microsoft.Logic/integrationServiceEnvironments",
 	"Microsoft.MachineLearningServices/workspaces",
+	"Microsoft.MessagingConnectors/connectors",
 	"Microsoft.Netapp/volumes",
 	"Microsoft.Network/applicationGateways",
 	"Microsoft.Network/dnsResolvers",
@@ -101,6 +103,7 @@ var subnetDelegationServiceNames = []string{
 	"Oracle.Database/networkAttachments",
 	"PaloAltoNetworks.Cloudngfw/firewalls",
 	"Qumulo.Storage/fileSystems",
+	"PureStorage.Block/storagePools",
 }
 
 func resourceSubnet() *pluginsdk.Resource {
@@ -300,20 +303,20 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure ARM Subnet creation.")
-
 	id := commonids.NewSubnetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("virtual_network_name").(string), d.Get("name").(string))
-	existing, err := client.Get(ctx, id, subnets.DefaultGetOperationOptions())
-	if err != nil {
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id, subnets.DefaultGetOperationOptions())
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+		}
+
 		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			return tf.ImportAsExistsError("azurerm_subnet", id.ID())
 		}
 	}
-
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_subnet", id.ID())
-	}
-
 	locks.ByName(id.VirtualNetworkName, VirtualNetworkResourceName)
 	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
 
@@ -364,8 +367,12 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		Properties: &properties,
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, subnet); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, subnet, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
 	}
 
 	timeout, _ := ctx.Deadline()
@@ -377,7 +384,7 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		MinTimeout: 1 * time.Minute,
 		Timeout:    time.Until(timeout),
 	}
-	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for provisioning state of %s: %+v", id, err)
 	}
 
@@ -389,13 +396,8 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		MinTimeout: 1 * time.Minute,
 		Timeout:    time.Until(timeout),
 	}
-	if _, err = vnetStateConf.WaitForStateContext(ctx); err != nil {
+	if _, err := vnetStateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for provisioning state of virtual network for %s: %+v", id, err)
-	}
-
-	d.SetId(id.ID())
-	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
-		return err
 	}
 
 	return resourceSubnetRead(d, meta)
@@ -462,8 +464,12 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 				for _, existingAllocation := range *props.IPamPoolPrefixAllocations {
 					for _, expandedAllocation := range *expandedIPAddressPool {
 						if existingAllocation.Pool != nil && expandedAllocation.Pool != nil && strings.EqualFold(pointer.From(existingAllocation.Pool.Id), pointer.From(expandedAllocation.Pool.Id)) &&
-							existingAllocation.NumberOfIPAddresses != nil && expandedAllocation.NumberOfIPAddresses != nil && *existingAllocation.NumberOfIPAddresses > *expandedAllocation.NumberOfIPAddresses {
-							return fmt.Errorf("`number_of_ip_addresses` cannot be decreased from %v to %v on pool: %v", *existingAllocation.NumberOfIPAddresses, *expandedAllocation.NumberOfIPAddresses, *expandedAllocation.Pool.Id)
+							existingAllocation.NumberOfIPAddresses != nil && expandedAllocation.NumberOfIPAddresses != nil {
+							existingNum, _ := new(big.Int).SetString(*existingAllocation.NumberOfIPAddresses, 10)
+							newNum, _ := new(big.Int).SetString(*expandedAllocation.NumberOfIPAddresses, 10)
+							if existingNum != nil && newNum != nil && existingNum.Cmp(newNum) == 1 {
+								return fmt.Errorf("`number_of_ip_addresses` cannot be decreased from %v to %v on pool: %v", *existingAllocation.NumberOfIPAddresses, *expandedAllocation.NumberOfIPAddresses, *expandedAllocation.Pool.Id)
+							}
 						}
 					}
 				}
@@ -569,12 +575,20 @@ func resourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	if err := resourceSubnetFlatten(d, *id, resp.Model); err != nil {
+		return fmt.Errorf("encoding %s: %+v", id, err)
+	}
+
+	return nil
+}
+
+func resourceSubnetFlatten(d *pluginsdk.ResourceData, id commonids.SubnetId, subnet *subnets.Subnet) error {
 	d.Set("name", id.SubnetName)
 	d.Set("virtual_network_name", id.VirtualNetworkName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
-		if props := model.Properties; props != nil {
+	if subnet != nil {
+		if props := subnet.Properties; props != nil {
 			if props.AddressPrefixes == nil {
 				if props.AddressPrefix != nil && len(*props.AddressPrefix) > 0 {
 					d.Set("address_prefixes", []string{*props.AddressPrefix})
@@ -616,11 +630,7 @@ func resourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 	}
 
-	if err := pluginsdk.SetResourceIdentityData(d, id); err != nil {
-		return err
-	}
-
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, &id)
 }
 
 func resourceSubnetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
