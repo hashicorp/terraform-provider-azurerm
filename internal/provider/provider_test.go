@@ -385,10 +385,10 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 						map[string]any{
 							"enhanced_validation": []any{
 								map[string]any{
-									"locations":          false,
-									"resource_providers": false,
-									"preflight_enabled":  false,
-									"location_fallback":  "",
+									"locations":                   false,
+									"resource_providers":          false,
+									"preflight_enabled":           false,
+									"preflight_location_fallback": "",
 								},
 							},
 						},
@@ -408,10 +408,10 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 						map[string]any{
 							"enhanced_validation": []any{
 								map[string]any{
-									"locations":          true,
-									"resource_providers": true,
-									"preflight_enabled":  true,
-									"location_fallback":  "",
+									"locations":                   true,
+									"resource_providers":          true,
+									"preflight_enabled":           true,
+									"preflight_location_fallback": "",
 								},
 							},
 						},
@@ -539,10 +539,10 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 						map[string]any{
 							"enhanced_validation": []any{
 								map[string]any{
-									"locations":          false,
-									"resource_providers": false,
-									"preflight_enabled":  false,
-									"location_fallback":  "",
+									"locations":                   false,
+									"resource_providers":          false,
+									"preflight_enabled":           false,
+									"preflight_location_fallback": "",
 								},
 							},
 						},
@@ -562,10 +562,10 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 						map[string]any{
 							"enhanced_validation": []any{
 								map[string]any{
-									"locations":          true,
-									"resource_providers": true,
-									"preflight_enabled":  true,
-									"location_fallback":  "",
+									"locations":                   true,
+									"resource_providers":          true,
+									"preflight_enabled":           true,
+									"preflight_location_fallback": "",
 								},
 							},
 						},
@@ -586,10 +586,10 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 						map[string]any{
 							"enhanced_validation": []any{
 								map[string]any{
-									"locations":          false,
-									"resource_providers": false,
-									"preflight_enabled":  false,
-									"location_fallback":  "",
+									"locations":                   false,
+									"resource_providers":          false,
+									"preflight_enabled":           false,
+									"preflight_location_fallback": "",
 								},
 							},
 						},
@@ -610,10 +610,10 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 						map[string]any{
 							"enhanced_validation": []any{
 								map[string]any{
-									"locations":          true,
-									"resource_providers": true,
-									"preflight_enabled":  true,
-									"location_fallback":  "",
+									"locations":                   true,
+									"resource_providers":          true,
+									"preflight_enabled":           true,
+									"preflight_location_fallback": "",
 								},
 							},
 						},

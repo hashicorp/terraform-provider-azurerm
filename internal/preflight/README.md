@@ -74,7 +74,6 @@ Expand functions used with preflight must be named for their resource type to av
 conflicts in packages that contain multiple resources:
 
 - `expandCreateForMyResource`
-- `expandUpdateForMyResource`
 
 The `ForPreflight` suffix is not used — the resource name provides the necessary disambiguation.
 
@@ -85,11 +84,12 @@ The `ForPreflight` suffix is not used — the resource name provides the necessa
 `ResourceDiff` always contains the **complete planned state**, not just changed values. When
 `metadata.DecodeDiff(&model)` is called, the SDK resolves each field through a priority chain of
 `state → config → diff → newDiff`. Unchanged fields on an update are satisfied from the prior
-`state` layer and are never empty.
+`state` layer and are never empty. However, any unknown values are unavailble in `diff` or `newDiff`. In 
+the case of unknown values, a value of "" may be sent to the API, which may be rejected by the validation
+creating a false negative failure. This is unfortunately a limitation of Terraform's plan-time data availability. 
 
-This means `expandCreateForMyResource(model)` has all the data it needs during an update, in the
-same way it does during a create. **Pattern 3 exists for structural differences in the request
-body, not because data is missing.**
+This means `expandCreateForMyResource(model)` has all the data available during an update, in the
+same way it does during a create. 
 
 ---
 
@@ -189,49 +189,6 @@ if metadata.Client.Features.EnhancedValidation.PreflightEnabled {
 > ForceNew replacement results in a destroy + create, so `expandCreateForMyResource` is always
 > the correct payload — the old resource is being destroyed and a new one is being created in
 > its place.
-
----
-
-### Pattern 3 — Different expand functions for create vs. update
-
-**Use when:** The create and update PUT bodies are **structurally different** — for example,
-a field that is required at create time is rejected if re-sent on update (common for immutable
-`kind` or `sku.tier` fields on some ARM resource types).
-
-This is **not** about data availability — `ResourceDiff` always contains the full planned state.
-See [Data completeness in CustomizeDiff](#data-completeness-in-customizediff) above.
-
-```go
-if metadata.Client.Features.EnhancedValidation.PreflightEnabled {
-    if len(metadata.ResourceDiff.GetChangedKeysPrefix("")) > 0 || metadata.ResourceDiff.Id() == "" {
-        var req any
-        var err error
-
-        if metadata.ResourceDiff.Id() == "" {
-            req, err = expandCreateForMyResource(model)
-        } else {
-            req, err = expandUpdateForMyResource(model)
-        }
-        if err != nil {
-            return err
-        }
-
-        resId := mypackage.NewMyResourceID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
-        preflightValidate, err := preflight.NewValidationRequest(pointer.To(model.Location), pointer.To(resId), "2025-01-01", req)
-        if err != nil {
-            return fmt.Errorf("constructing preflight validation request: %w", err)
-        }
-
-        if err = preflightValidate.ValidateResource(ctx, metadata); err != nil {
-            return err
-        }
-    }
-}
-```
-
-> If the resource's existing `expandUpdate` returns a PATCH body, do **not** pass it to
-> preflight. Instead, create a dedicated `expandUpdateForMyResource` that constructs the
-> complete PUT body from the model. The preflight API does not support partial payloads.
 
 ---
 

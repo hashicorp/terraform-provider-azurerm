@@ -409,7 +409,7 @@ func azureProvider(supportLegacyTestSuite bool, testName string) *schema.Provide
 						Type:        schema.TypeBool,
 						Optional:    true,
 						DefaultFunc: schema.EnvDefaultFunc("ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS", providerfeatures.EnhancedValidationResourceProvidersEnabled()),
-						Description: "Should the AzureRM Provider validate Resource Provider arguments against the list of supported Resource Providers?",
+						Description: "Should the AzureRM Provider validate Resource Provider arguments against the list of supported Resource Providers? When enabled, invalid resource providers are caught at plan time; when disabled, they are caught at apply time.",
 					},
 				},
 			},

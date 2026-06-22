@@ -53,10 +53,10 @@ func TestProvider_LegacyEnhancedValidation(t *testing.T) {
 					map[string]any{
 						"enhanced_validation": []any{
 							map[string]any{
-								"locations":          false,
-								"resource_providers": false,
-								"preflight_enabled":  false,
-								"location_fallback":  "",
+								"locations":                   false,
+								"resource_providers":          false,
+								"preflight_enabled":           false,
+								"preflight_location_fallback": "",
 							},
 						},
 					},
@@ -83,10 +83,10 @@ func TestProvider_LegacyEnhancedValidation(t *testing.T) {
 					map[string]any{
 						"enhanced_validation": []any{
 							map[string]any{
-								"locations":          false,
-								"resource_providers": false,
-								"preflight_enabled":  false,
-								"location_fallback":  "",
+								"locations":                   false,
+								"resource_providers":          false,
+								"preflight_enabled":           false,
+								"preflight_location_fallback": "",
 							},
 						},
 					},
