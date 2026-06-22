@@ -14,7 +14,7 @@ import (
 )
 
 // startDataFactoryTrigger retries Start because CreateOrUpdate can return success while
-// the underlaying Event Grid subscription is still provisioning, causing Start to fail.
+// the underlying Event Grid subscription is still provisioning, causing Start to fail.
 func startDataFactoryTrigger(ctx context.Context, client datafactory.TriggersClient, id parse.TriggerId) error {
 	for retries := 0; retries < 5; retries++ {
 		future, err := client.Start(ctx, id.ResourceGroup, id.FactoryName, id.Name)
@@ -27,7 +27,11 @@ func startDataFactoryTrigger(ctx context.Context, client datafactory.TriggersCli
 		}
 
 		if retries < 4 {
-			time.Sleep(5 * time.Second)
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-time.After(5 * time.Second):
+			}
 		}
 	}
 
