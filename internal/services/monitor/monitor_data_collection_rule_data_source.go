@@ -549,21 +549,14 @@ func (d DataCollectionRuleDataSource) Attributes() map[string]*pluginsdk.Schema 
 			Computed: true,
 		},
 
-		"endpoints": {
-			Type:     pluginsdk.TypeList,
+		"logs_ingestion_endpoint": {
+			Type:     pluginsdk.TypeString,
 			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"logs_ingestion": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-					"metrics_ingestion": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
-			},
+		},
+
+		"metrics_ingestion_endpoint": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 
 		"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
@@ -637,7 +630,7 @@ func (d DataCollectionRuleDataSource) Read() sdk.ResourceFunc {
 			var dataFlows []DataFlow
 			var dataSources []DataSource
 			var destinations []Destination
-			var endpoints []Endpoints
+			var logsIngestionEndpoint, metricsIngestionEndpoint string
 			var streamDeclaration []StreamDeclaration
 
 			if model := resp.Model; model != nil {
@@ -660,7 +653,7 @@ func (d DataCollectionRuleDataSource) Read() sdk.ResourceFunc {
 					dataFlows = flattenDataCollectionRuleDataFlows(prop.DataFlows)
 					dataSources = flattenDataCollectionRuleDataSources(prop.DataSources)
 					destinations = flattenDataCollectionRuleDestinations(prop.Destinations)
-					endpoints = flattenDataCollectionRuleEndpoints(prop.Endpoints)
+					logsIngestionEndpoint, metricsIngestionEndpoint = flattenDataCollectionRuleEndpoints(prop.Endpoints)
 					immutableId = flattenStringPtr(prop.ImmutableId)
 					streamDeclaration = flattenDataCollectionRuleStreamDeclarations(prop.StreamDeclarations)
 				}
@@ -676,10 +669,11 @@ func (d DataCollectionRuleDataSource) Read() sdk.ResourceFunc {
 				DataSources:              dataSources,
 				Description:              description,
 				Destinations:             destinations,
-				Endpoints:                endpoints,
 				ImmutableId:              immutableId,
 				Kind:                     kind,
 				Location:                 loc,
+				LogsIngestionEndpoint:    logsIngestionEndpoint,
+				MetricsIngestionEndpoint: metricsIngestionEndpoint,
 				StreamDeclaration:        streamDeclaration,
 				Tags:                     tag,
 			})

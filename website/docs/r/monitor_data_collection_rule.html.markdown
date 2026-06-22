@@ -213,7 +213,7 @@ resource "azurerm_monitor_data_collection_rule" "example" {
 
 ```hcl
 resource "azurerm_log_analytics_workspace" "example" {
-  name                = "acctest-law-%[2]d"
+  name                = "example-law"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   sku                 = "PerGB2018"
@@ -234,7 +234,7 @@ resource "azurerm_log_analytics_workspace_table_custom_log" "example" {
 }
 
 resource "azurerm_monitor_data_collection_rule" "example" {
-  name                = "acctestmdcr-%[2]d"
+  name                = "example-mdcr"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   kind                = "Direct"
@@ -245,8 +245,8 @@ resource "azurerm_monitor_data_collection_rule" "example" {
     }
   }
   data_flow {
-    streams      = ["Custom-MyCustomStream_CL"]
-    destinations = ["example-destination-log"]
+    streams       = ["Custom-MyCustomStream_CL"]
+    destinations  = ["example-destination-log"]
     output_stream = "Custom-MyCustomStream_CL"
   }
   stream_declaration {
@@ -290,7 +290,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `kind` - (Optional) The kind of the Data Collection Rule. Possible values are `Linux`, `Windows`, `AgentDirectToStore`, `WorkspaceTransforms` and `Direct`. A rule of kind `Linux` does not allow for `windows_event_log` data sources, a rule of kind `Windows` does not allow for `syslog` data sources. If kind is not specified, all kinds of data sources are allowed. And a rule of kind `Direct` must use a `data_collection_endpoint_id` if you're sending data to a Log Analytics workspace configured for private link.
+* `kind` - (Optional) The kind of the Data Collection Rule. Possible values are `Linux`, `Windows`, `AgentDirectToStore`, `WorkspaceTransforms`, and `Direct`. A rule of kind `Linux` does not allow for `windows_event_log` data sources, and a rule of kind `Windows` does not allow for `syslog` data sources. If kind is not specified, all kinds of data sources are allowed. A rule of kind `Direct` must use a `data_collection_endpoint_id` if you're sending data to a Log Analytics workspace configured for private link.
 
 ~> **Note:** Once `kind` has been set, changing it forces a new Data Collection Rule to be created.
 
@@ -596,17 +596,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Data Collection Rule.
 
-* `endpoints` - An `endpoints` block as defined below.
+* `logs_ingestion_endpoint` - The endpoint used for ingesting logs.
+
+* `metrics_ingestion_endpoint` - The endpoint used for ingesting metrics.
 
 * `immutable_id` - The immutable ID of the Data Collection Rule.
-
----
-
-An `endpoints` block exports the following:
-
-* `logs_ingestion` - The endpoint used for ingesting logs.
-
-* `metrics_ingestion` - The endpoint used for ingesting metrics.
 
 ---
 

@@ -110,11 +110,11 @@ resource "azurerm_virtual_network" "test3" {
 func (r VirtualNetworkResource) basicList_query(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 list "azurerm_virtual_network" "test" {
-    provider = azurerm
+  provider = azurerm
 
-	config {
-		resource_group_name = "acctestRG-%d"
-	}
+  config {
+    resource_group_name = "acctestRG-%d"
+  }
 }
 `, data.RandomInteger)
 }

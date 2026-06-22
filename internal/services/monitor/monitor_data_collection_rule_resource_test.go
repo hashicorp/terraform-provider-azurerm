@@ -89,8 +89,9 @@ func TestAccMonitorDataCollectionRule_kindDirect(t *testing.T) {
 			Config: r.kindDirect(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("endpoints.#").HasValue("1"),
-				check.That(data.ResourceName).Key("endpoints.0.logs_ingestion").IsNotEmpty(),
+				check.That(data.ResourceName).Key("kind").HasValue("Direct"),
+				check.That(data.ResourceName).Key("logs_ingestion_endpoint").IsNotEmpty(),
+				check.That(data.ResourceName).Key("metrics_ingestion_endpoint").IsNotEmpty(),
 			),
 		},
 		data.ImportStep(),
@@ -369,8 +370,8 @@ resource "azurerm_monitor_data_collection_rule" "test" {
     }
   }
   data_flow {
-    streams      = ["Custom-MyCustomStream_CL"]
-    destinations = ["test-destination-log"]
+    streams       = ["Custom-MyCustomStream_CL"]
+    destinations  = ["test-destination-log"]
     output_stream = "Custom-MyCustomStream_CL"
   }
   stream_declaration {
