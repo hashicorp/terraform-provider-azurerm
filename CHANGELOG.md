@@ -1,3 +1,27 @@
+## 4.78.0 (June 18, 2026)
+
+FEATURES:
+
+* **New List Resource:** `azurerm_signalr_service_custom_domain` ([#32124](https://github.com/hashicorp/terraform-provider-azurerm/issues/32124))
+* **New List Resource:** `azurerm_storage_sync_server_endpoint` ([#31988](https://github.com/hashicorp/terraform-provider-azurerm/issues/31988))
+
+ENHANCEMENTS:
+
+* dependencies: `go-azure-sdk` - update to `v0.20260616.1142719` ([#32631](https://github.com/hashicorp/terraform-provider-azurerm/issues/32631))
+* Data Source: `azurerm_network_manager_connectivity_configuration` - export the `connected_group_address_overlap`, `connected_group_private_endpoints_scale`, and `peering_enforcement` properties ([#31562](https://github.com/hashicorp/terraform-provider-azurerm/issues/31562))
+* Data Source: `azurerm_storage_container` - export the `url` property ([#29036](https://github.com/hashicorp/terraform-provider-azurerm/issues/29036))
+* `azurerm_kubernetes_cluster` - add support `KataVmIsolation` for `workload_runtime` ([#32579](https://github.com/hashicorp/terraform-provider-azurerm/issues/32579))
+* `azurerm_kubernetes_cluster_node_pool` - add support `KataVmIsolation` for `workload_runtime` ([#32579](https://github.com/hashicorp/terraform-provider-azurerm/issues/32579))
+* `azurerm_mssql_managed_instance` - add support for the `storage_iops` property ([#32250](https://github.com/hashicorp/terraform-provider-azurerm/issues/32250))
+* `azurerm_network_manager_connectivity_configuration` - add support for the `connected_group_address_overlap`, `connected_group_private_endpoints_scale`, and `peering_enforcement` properties ([#31562](https://github.com/hashicorp/terraform-provider-azurerm/issues/31562))  
+* `azurerm_storage_container` - export the `url` property ([#29036](https://github.com/hashicorp/terraform-provider-azurerm/issues/29036))
+
+BUG FIXES:
+
+* `azurerm_cosmosdb_account` - fix an issue that prevented diffs on `geo_location.zone_redundant` from showing ([#32620](https://github.com/hashicorp/terraform-provider-azurerm/issues/32620)) 
+* `azurerm_express_route_connection` - fix an issue that caused unintentional changes to `internet_security_enabled` on updates ([#32498](https://github.com/hashicorp/terraform-provider-azurerm/issues/32498))
+* `azurerm_static_web_app` - fix an issue that caused updates to fail once a private endpoint was attached ([#32631](https://github.com/hashicorp/terraform-provider-azurerm/issues/32631))
+
 ## 4.77.0 (June 11, 2026)
 
 FEATURES:

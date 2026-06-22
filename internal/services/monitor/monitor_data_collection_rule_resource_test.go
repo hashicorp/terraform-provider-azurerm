@@ -208,11 +208,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "accevent%[2]d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  partition_count     = 2
-  message_retention   = 1
+  name              = "accevent%[2]d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 1
 }
 
 resource "azurerm_storage_account" "test" {
@@ -229,13 +228,13 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "acccontainer%[2]d"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
 resource "azurerm_storage_table" "test" {
-  name                 = "acctable%[2]d"
-  storage_account_name = azurerm_storage_account.test.name
+  name               = "acctable%[2]d"
+  storage_account_id = azurerm_storage_account.test.id
 }
 
 resource "azurerm_monitor_data_collection_rule" "test" {
@@ -298,11 +297,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "accevent%[2]d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  partition_count     = 2
-  message_retention   = 1
+  name              = "accevent%[2]d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 1
 }
 
 resource "azurerm_storage_account" "test" {
@@ -599,11 +597,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "accevent%[2]d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  partition_count     = 2
-  message_retention   = 1
+  name              = "accevent%[2]d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 1
 }
 
 resource "azurerm_storage_account" "test" {
@@ -620,7 +617,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "acccontainer%[2]d"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -884,11 +881,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "accevent%[2]d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  partition_count     = 2
-  message_retention   = 1
+  name              = "accevent%[2]d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 1
 }
 
 resource "azurerm_storage_account" "test" {

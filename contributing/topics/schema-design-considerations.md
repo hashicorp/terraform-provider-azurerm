@@ -4,6 +4,48 @@ Whilst it is acceptable in certain cases to map the schema of a new resource or 
 
 Below are a list of common patterns found in the Azure API and how these typically get mapped within Terraform.
 
+## Prefer Azure Portal terminology when it differs significantly from the REST API
+
+Users should be able to intuitively correlate Terraform configuration with the portal experience.
+
+For example, the `taggingCriteria` property from the [Backup Policy REST API](https://learn.microsoft.com/rest/api/dataprotection/backup-policies/create-or-update?view=rest-dataprotection-2026-03-01&tabs=HTTP#taggingcriteria) is called `Retention` / `Backup schedule` in the portal.
+
+In some cases where the portal experience is not yet available, or is not the primary experience, align with Azure CLI instead.
+
+## Group semantically related arguments
+
+Terraform arguments are mostly ordered alphabetically (see the [ordering guide](guide-new-resource.md)). For resources with a large list of arguments, this can scatter related settings. If the portal or CLI groups settings into tabs or section headings, consider introducing a block in Terraform to reduce the cognitive load for users.
+
+## Eliminate ambiguity in collection-typed arguments
+
+Some Azure APIs use arrays or list collections instead of statically typed properties, which can introduce ambiguity in Terraform configuration. For example, two `retention_policy` blocks with `orchestration_state = "Completed"` can be supplied below, even though only one makes semantic sense:
+
+```terraform
+retention_policy {
+  retention_period_in_days = 7
+  orchestration_state      = "InProgress"
+}
+
+retention_policy {
+  retention_period_in_days = 30
+  orchestration_state      = "Completed"
+}
+
+retention_policy {
+  retention_period_in_days = 5
+  orchestration_state      = "Completed" // Which one of the "Completed" wins?
+}
+```
+
+Instead, the schema for such an API should be designed to eliminate the ambiguity:
+
+```terraform
+retention_policy {
+  completed_retention_period_in_days = 30
+  in_progress_retention_period_in_days = 7
+}
+```
+
 ## Features that are toggled by the property `Enabled`
 
 It is commonplace for features to be toggled on and off by an `Enabled` property within an object in the SDK used to interact with the Azure API. See the examples below.
