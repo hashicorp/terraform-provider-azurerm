@@ -222,7 +222,8 @@ func mysqlFlexibleServerConfigurationUpdateGITDMode(ctx context.Context,
 	client *configurations.ConfigurationsClient,
 	id configurations.ConfigurationId,
 	value string,
-	updateCallback func() error) error {
+	updateCallback func() error,
+) error {
 	gtidSeq := []string{"OFF", "OFF_PERMISSIVE", "ON_PERMISSIVE", "ON"}
 	currentValue := "OFF"
 	resp, _ := client.Get(ctx, id)
