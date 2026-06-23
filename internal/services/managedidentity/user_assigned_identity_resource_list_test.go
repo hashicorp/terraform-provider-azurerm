@@ -19,7 +19,7 @@ import (
 
 func TestAccUserAssignedIdentity_list(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_user_assigned_identity", "test")
-	r := UserAssignedIdentityTestResource{}
+	r := UserAssignedIdentityResource{}
 	resourceName := fmt.Sprintf("acctestuai-0-%d", data.RandomInteger)
 	resourceGroupName := fmt.Sprintf("acctestrg-%d", data.RandomInteger)
 
@@ -62,7 +62,7 @@ func TestAccUserAssignedIdentity_list(t *testing.T) {
 	})
 }
 
-func (UserAssignedIdentityTestResource) basicList(data acceptance.TestData) string {
+func (UserAssignedIdentityResource) basicList(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -83,7 +83,7 @@ resource "azurerm_user_assigned_identity" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (UserAssignedIdentityTestResource) subscriptionListQuery() string {
+func (UserAssignedIdentityResource) subscriptionListQuery() string {
 	return `
 list "azurerm_user_assigned_identity" "list" {
   provider = azurerm
@@ -91,7 +91,7 @@ list "azurerm_user_assigned_identity" "list" {
 `
 }
 
-func (UserAssignedIdentityTestResource) resourceGroupListQuery(data acceptance.TestData) string {
+func (UserAssignedIdentityResource) resourceGroupListQuery(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 list "azurerm_user_assigned_identity" "list" {
   provider = azurerm
