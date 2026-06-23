@@ -998,12 +998,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                      = substr("acctest%[1]d", 0, 24)
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  tenant_id                 = data.azurerm_client_config.current.tenant_id
+  name                       = substr("acctest%[1]d", 0, 24)
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
   rbac_authorization_enabled = true
-  sku_name                  = "standard"
+  sku_name                   = "standard"
 }
 
 resource "azurerm_role_assignment" "test_admin" {
