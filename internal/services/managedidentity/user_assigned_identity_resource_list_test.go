@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
@@ -33,17 +32,13 @@ func TestAccUserAssignedIdentity_list(t *testing.T) {
 				Config: r.basicList(data),
 			},
 			{
-				// Wait for the subscription-level User Assigned Identity listing API to become eventually consistent after resource creation.
-				PreConfig: func() { time.Sleep(2 * time.Minute) },
-				Query:     true,
-				Config:    r.subscriptionListQuery(),
+				// ExpectIdentity is intentionally omitted here: the subscription-wide list API has eventual consistency on large subscriptions
+				// (e.g. TeamCity), where newly-created resources may not appear for several minutes. Identity is validated in the
+				// resource-group-scoped step below, which is fully deterministic.
+				Query:  true,
+				Config: r.subscriptionListQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
 					querycheck.ExpectLengthAtLeast("azurerm_user_assigned_identity.list", 3),
-					querycheck.ExpectIdentity("azurerm_user_assigned_identity.list", map[string]knownvalue.Check{
-						"name":                knownvalue.StringExact(resourceName),
-						"resource_group_name": knownvalue.StringExact(resourceGroupName),
-						"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary),
-					}),
 				},
 			},
 			{
