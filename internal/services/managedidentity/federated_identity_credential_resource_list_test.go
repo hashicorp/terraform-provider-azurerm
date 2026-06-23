@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
-func TestAccFederatedIdentityCredential_list(t *testing.T) {
+func testAccFederatedIdentityCredential_list(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_federated_identity_credential", "test")
 	r := FederatedIdentityCredentialResource{}
 	resourceName := fmt.Sprintf("acctest-0-%d", data.RandomInteger)
@@ -27,7 +27,7 @@ func TestAccFederatedIdentityCredential_list(t *testing.T) {
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
-		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInitWithTestName(context.Background(), t.Name(), "azurerm"),
 		Steps: []resource.TestStep{
 			{
 				Config: r.basicList(data),
@@ -70,7 +70,6 @@ resource "azurerm_federated_identity_credential" "test" {
   count = 3
 
   name                      = "acctest-${count.index}-%[1]d"
-  resource_group_name       = azurerm_resource_group.test.name
   user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   audience                  = ["api://AzureADTokenExchange"]
   issuer                    = "https://token.actions.githubusercontent.com"

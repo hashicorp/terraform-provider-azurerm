@@ -25,6 +25,7 @@ func TestAccFederatedIdentityCredentialSequential(t *testing.T) {
 		"federatedIdentityCredential": {
 			"basic":            testAccFederatedIdentityCredential_basic,
 			"deprecated":       testAccFederatedIdentityCredential_deprecated,
+			"list":             testAccFederatedIdentityCredential_list,
 			"requiresImport":   testAccFederatedIdentityCredential_requiresImport,
 			"resourceIdentity": testAccFederatedIdentityCredential_resourceIdentity,
 		},
