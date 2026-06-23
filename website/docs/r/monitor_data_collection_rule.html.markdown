@@ -595,11 +595,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Data Collection Rule.
 
+* `immutable_id` - The immutable ID of the Data Collection Rule.
+
 * `logs_ingestion_endpoint` - The endpoint used for ingesting logs.
 
 * `metrics_ingestion_endpoint` - The endpoint used for ingesting metrics.
-
-* `immutable_id` - The immutable ID of the Data Collection Rule.
 
 ---
 

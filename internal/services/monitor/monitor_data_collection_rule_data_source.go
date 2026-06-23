@@ -88,153 +88,6 @@ func (d DataCollectionRuleDataSource) Attributes() map[string]*pluginsdk.Schema 
 			},
 		},
 
-		"destinations": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*schema.Schema{
-					"event_hub": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*schema.Schema{
-								"event_hub_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-								"name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-							},
-						},
-					},
-					"event_hub_direct": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*schema.Schema{
-								"event_hub_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-								"name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-							},
-						},
-					},
-					"azure_monitor_metrics": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*schema.Schema{
-								"name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-							},
-						},
-					},
-					"log_analytics": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*schema.Schema{
-								"name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-								"workspace_resource_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-							},
-						},
-					},
-					"monitor_account": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*schema.Schema{
-								"name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-								"monitor_account_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-							},
-						},
-					},
-					"storage_blob": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*schema.Schema{
-								"name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-								"container_name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-								"storage_account_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-							},
-						},
-					},
-					"storage_blob_direct": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*schema.Schema{
-								"name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-								"container_name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-								"storage_account_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-							},
-						},
-					},
-					"storage_table_direct": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*schema.Schema{
-								"name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-								"table_name": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-								"storage_account_id": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-
 		"data_sources": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -549,14 +402,151 @@ func (d DataCollectionRuleDataSource) Attributes() map[string]*pluginsdk.Schema 
 			Computed: true,
 		},
 
-		"logs_ingestion_endpoint": {
-			Type:     pluginsdk.TypeString,
+		"destinations": {
+			Type:     pluginsdk.TypeList,
 			Computed: true,
-		},
-
-		"metrics_ingestion_endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*schema.Schema{
+					"event_hub": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*schema.Schema{
+								"event_hub_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"name": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+							},
+						},
+					},
+					"event_hub_direct": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*schema.Schema{
+								"event_hub_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"name": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+							},
+						},
+					},
+					"azure_monitor_metrics": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*schema.Schema{
+								"name": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+							},
+						},
+					},
+					"log_analytics": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*schema.Schema{
+								"name": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"workspace_resource_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+							},
+						},
+					},
+					"monitor_account": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*schema.Schema{
+								"name": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"monitor_account_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+							},
+						},
+					},
+					"storage_blob": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*schema.Schema{
+								"name": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"container_name": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"storage_account_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+							},
+						},
+					},
+					"storage_blob_direct": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*schema.Schema{
+								"name": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"container_name": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"storage_account_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+							},
+						},
+					},
+					"storage_table_direct": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*schema.Schema{
+								"name": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"table_name": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"storage_account_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 
 		"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
@@ -567,6 +557,16 @@ func (d DataCollectionRuleDataSource) Attributes() map[string]*pluginsdk.Schema 
 		},
 
 		"kind": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"logs_ingestion_endpoint": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"metrics_ingestion_endpoint": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},

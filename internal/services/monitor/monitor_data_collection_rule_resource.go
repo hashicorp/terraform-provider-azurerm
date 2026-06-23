@@ -914,15 +914,15 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 
 func (r DataCollectionRuleResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
+		"immutable_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 		"logs_ingestion_endpoint": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 		"metrics_ingestion_endpoint": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-		"immutable_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
