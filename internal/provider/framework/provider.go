@@ -233,24 +233,6 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 		},
 
 		Blocks: map[string]schema.Block{
-			"enhanced_validation": schema.ListNestedBlock{
-				DeprecationMessage: "This block has been deprecated and will be removed in version 5.0 of the AzureRM provider. Please use the `enhanced_validation` block inside the `features` block instead.",
-				Validators: []validator.List{
-					listvalidator.SizeAtMost(1),
-				},
-				NestedObject: schema.NestedBlockObject{
-					Attributes: map[string]schema.Attribute{
-						"locations": schema.BoolAttribute{
-							Optional:    true,
-							Description: "Should the AzureRM Provider validate location arguments against the list of supported Azure Locations? When enabled, invalid locations are caught at plan time; when disabled, they are caught at apply time.",
-						},
-						"resource_providers": schema.BoolAttribute{
-							Optional:    true,
-							Description: "Should the AzureRM Provider validate Resource Provider arguments against the list of supported Resource Providers? When enabled, invalid resource providers are caught at plan time; when disabled, they are caught at apply time.",
-						},
-					},
-				},
-			},
 			"features": schema.ListNestedBlock{
 				Validators: []validator.List{
 					listvalidator.SizeBetween(1, 1),
@@ -565,6 +547,25 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 			Optional:           true,
 			Description:        "Should the AzureRM Provider skip registering all of the Resource Providers that it supports, if they're not already registered?",
 			DeprecationMessage: "This property is deprecated and will be removed in v5.0 of the AzureRM provider. Please use the `resource_provider_registrations` property instead.",
+		}
+
+		response.Schema.Blocks["enhanced_validation"] = schema.ListNestedBlock{
+			DeprecationMessage: "This block has been deprecated and will be removed in version 5.0 of the AzureRM provider. Please use the `enhanced_validation` block inside the `features` block instead.",
+			Validators: []validator.List{
+				listvalidator.SizeAtMost(1),
+			},
+			NestedObject: schema.NestedBlockObject{
+				Attributes: map[string]schema.Attribute{
+					"locations": schema.BoolAttribute{
+						Optional:    true,
+						Description: "Should the AzureRM Provider validate location arguments against the list of supported Azure Locations?",
+					},
+					"resource_providers": schema.BoolAttribute{
+						Optional:    true,
+						Description: "Should the AzureRM Provider validate Resource Provider arguments against the list of supported Resource Providers? When enabled, invalid resource providers are caught at plan time; when disabled, they are caught at apply time.",
+					},
+				},
+			},
 		}
 	}
 }
