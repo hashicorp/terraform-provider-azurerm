@@ -2198,7 +2198,7 @@ resource "azurerm_lb_outbound_rule" "test" {
   name                     = "OutboundRule-%[1]d"
   loadbalancer_id          = azurerm_lb.test.id
   protocol                 = "All"
-  enable_tcp_reset         = true
+  tcp_reset_enabled        = true
   allocated_outbound_ports = 1024
   idle_timeout_in_minutes  = 4
 
