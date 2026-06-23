@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -20,6 +21,10 @@ import (
 type StaticSiteCustomDomainResource struct{}
 
 func TestAccAzureStaticSiteCustomDomain_basic(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_static_site_custom_domain", "test")
 	r := StaticSiteCustomDomainResource{}
 
@@ -36,6 +41,10 @@ func TestAccAzureStaticSiteCustomDomain_basic(t *testing.T) {
 }
 
 func TestAccAzureStaticSiteCustomDomain_requiresImport(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this resource was removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_static_site_custom_domain", "test")
 	r := StaticSiteCustomDomainResource{}
 
@@ -56,7 +65,7 @@ func (r StaticSiteCustomDomainResource) Exists(ctx context.Context, clients *cli
 		return nil, err
 	}
 
-	resp, err := clients.Web.StaticSitesClient.GetStaticSiteCustomDomain(ctx, id.ResourceGroup, id.StaticSiteName, id.CustomDomainName)
+	resp, err := clients.Web.StaticSitesClientV1.GetStaticSiteCustomDomain(ctx, id.ResourceGroup, id.StaticSiteName, id.CustomDomainName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return pointer.To(false), nil

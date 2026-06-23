@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	loadBalancerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -97,7 +98,9 @@ func resourceArmLoadBalancerRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 	if exists {
 		if id.LoadBalancingRuleName == *existingRule.Name {
 			if d.IsNewResource() {
-				return tf.ImportAsExistsError("azurerm_lb_rule", *existingRule.Id)
+				if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+					return tf.ImportAsExistsError("azurerm_lb_rule", *existingRule.Id)
+				}
 			}
 
 			// this rule is being updated/reapplied remove old copy from the slice
@@ -107,12 +110,16 @@ func resourceArmLoadBalancerRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	loadBalancer.Model.Properties.LoadBalancingRules = &lbRules
 
-	err = client.CreateOrUpdateThenPoll(ctx, plbId, *loadBalancer.Model)
-	if err != nil {
-		return fmt.Errorf("updating %s: %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, plbId, *loadBalancer.Model, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, plbId, *loadBalancer.Model); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
-
-	d.SetId(id.ID())
 
 	return resourceArmLoadBalancerRuleRead(d, meta)
 }

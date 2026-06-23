@@ -9,14 +9,14 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type MongoDbLinkedServiceTypeProperties struct {
-	AllowSelfSignedServerCert *bool                      `json:"allowSelfSignedServerCert,omitempty"`
+	AllowSelfSignedServerCert *interface{}               `json:"allowSelfSignedServerCert,omitempty"`
 	AuthSource                *interface{}               `json:"authSource,omitempty"`
 	AuthenticationType        *MongoDbAuthenticationType `json:"authenticationType,omitempty"`
 	DatabaseName              interface{}                `json:"databaseName"`
-	EnableSsl                 *bool                      `json:"enableSsl,omitempty"`
+	EnableSsl                 *interface{}               `json:"enableSsl,omitempty"`
 	EncryptedCredential       *string                    `json:"encryptedCredential,omitempty"`
 	Password                  SecretBase                 `json:"password"`
-	Port                      *int64                     `json:"port,omitempty"`
+	Port                      *interface{}               `json:"port,omitempty"`
 	Server                    interface{}                `json:"server"`
 	Username                  *interface{}               `json:"username,omitempty"`
 }
@@ -25,13 +25,13 @@ var _ json.Unmarshaler = &MongoDbLinkedServiceTypeProperties{}
 
 func (s *MongoDbLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		AllowSelfSignedServerCert *bool                      `json:"allowSelfSignedServerCert,omitempty"`
+		AllowSelfSignedServerCert *interface{}               `json:"allowSelfSignedServerCert,omitempty"`
 		AuthSource                *interface{}               `json:"authSource,omitempty"`
 		AuthenticationType        *MongoDbAuthenticationType `json:"authenticationType,omitempty"`
 		DatabaseName              interface{}                `json:"databaseName"`
-		EnableSsl                 *bool                      `json:"enableSsl,omitempty"`
+		EnableSsl                 *interface{}               `json:"enableSsl,omitempty"`
 		EncryptedCredential       *string                    `json:"encryptedCredential,omitempty"`
-		Port                      *int64                     `json:"port,omitempty"`
+		Port                      *interface{}               `json:"port,omitempty"`
 		Server                    interface{}                `json:"server"`
 		Username                  *interface{}               `json:"username,omitempty"`
 	}

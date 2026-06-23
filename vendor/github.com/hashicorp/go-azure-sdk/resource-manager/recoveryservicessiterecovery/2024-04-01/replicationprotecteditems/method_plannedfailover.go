@@ -62,9 +62,20 @@ func (c ReplicationProtectedItemsClient) PlannedFailover(ctx context.Context, id
 
 // PlannedFailoverThenPoll performs PlannedFailover then polls until it's completed
 func (c ReplicationProtectedItemsClient) PlannedFailoverThenPoll(ctx context.Context, id ReplicationProtectedItemId, input PlannedFailoverInput) error {
+	return c.PlannedFailoverCallbackThenPoll(ctx, id, input, nil)
+}
+
+// PlannedFailoverCallbackThenPoll performs PlannedFailover, runs the optional callback function, then polls until it's completed
+func (c ReplicationProtectedItemsClient) PlannedFailoverCallbackThenPoll(ctx context.Context, id ReplicationProtectedItemId, input PlannedFailoverInput, callback func() error) error {
 	result, err := c.PlannedFailover(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing PlannedFailover: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

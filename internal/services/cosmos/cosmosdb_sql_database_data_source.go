@@ -7,14 +7,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceCosmosDbSQLDatabase() *pluginsdk.Resource {
@@ -62,53 +63,46 @@ func dataSourceCosmosDbSQLDatabase() *pluginsdk.Resource {
 }
 
 func dataSourceCosmosDbSQLDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.SqlClient
-	accountClient := meta.(*clients.Client).Cosmos.DatabaseClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewSqlDatabaseID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
+	id := cosmosdb.NewSqlDatabaseID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
 
-	resp, err := client.GetSQLDatabase(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name)
+	resp, err := client.SqlResourcesGetSqlDatabase(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("reading Cosmos SQL Database %q (Account: %q): %+v", id.Name, id.DatabaseAccountName, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
-	d.Set("resource_group_name", id.ResourceGroup)
+
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("account_name", id.DatabaseAccountName)
-	if props := resp.SQLDatabaseGetProperties; props != nil {
-		if res := props.Resource; res != nil {
-			d.Set("name", res.ID)
-		}
-	}
+	d.Set("name", id.SqlDatabaseName)
 
-	accResp, err := accountClient.Get(ctx, id.ResourceGroup, id.DatabaseAccountName)
+	databaseAccountID := cosmosdb.NewDatabaseAccountID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName)
+	accResp, err := client.DatabaseAccountsGet(ctx, databaseAccountID)
 	if err != nil {
-		return fmt.Errorf("reading CosmosDB Account %q (Resource Group %q): %+v", id.DatabaseAccountName, id.ResourceGroup, err)
-	}
-
-	if accResp.ID == nil || *accResp.ID == "" {
-		return fmt.Errorf("cosmosDB Account %q (Resource Group %q) ID is empty or nil", id.DatabaseAccountName, id.ResourceGroup)
+		return fmt.Errorf("retrieving %s: %+v", databaseAccountID, err)
 	}
 
 	// if the cosmos account is serverless calling the get throughput api would yield an error
-	if !isServerlessCapacityMode(accResp) {
-		throughputResp, err := client.GetSQLDatabaseThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name)
+	if !isServerlessCapacityMode(accResp.Model) {
+		throughputResp, err := client.SqlResourcesGetSqlDatabaseThroughput(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(throughputResp.Response) {
-				return fmt.Errorf("reading Throughput on Cosmos SQL Database %q (Account: %q) ID: %v", id.Name, id.DatabaseAccountName, err)
+			if !response.WasNotFound(throughputResp.HttpResponse) {
+				return fmt.Errorf("retrieving %s: %v", id, err)
 			} else {
 				d.Set("throughput", nil)
 				d.Set("autoscale_settings", nil)
 			}
 		} else {
-			common.SetResourceDataThroughputFromResponseLegacy(throughputResp, d)
+			common.SetResourceDataThroughputFromResponse(pointer.From(throughputResp.Model), d)
 		}
 	}
 

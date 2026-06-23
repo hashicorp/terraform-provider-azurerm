@@ -25,6 +25,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -646,15 +647,17 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	id := containerinstance.NewContainerGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.ContainerGroupsGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.ContainerGroupsGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_container_group", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_container_group", id.ID())
+		}
 	}
 
 	location := location.Normalize(d.Get("location").(string))
@@ -744,7 +747,7 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if priority := d.Get("priority").(string); priority != "" {
-		containerGroup.Properties.Priority = pointer.To(containerinstance.Priority(priority))
+		containerGroup.Properties.Priority = pointer.ToEnum[containerinstance.ContainerGroupPriority](priority)
 	}
 
 	// Avoid parallel provisioning if "subnet_ids" are given.
@@ -760,7 +763,7 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	if err := client.ContainerGroupsCreateOrUpdateThenPoll(ctx, id, containerGroup); err != nil {
+	if err := client.ContainerGroupsCreateOrUpdateCallbackThenPoll(ctx, id, containerGroup, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -826,7 +829,7 @@ func resourceContainerGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("tags") {
-		updateParameters := containerinstance.Resource{
+		updateParameters := containerinstance.ContainerGroupUpdate{
 			Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 		}
 
@@ -910,7 +913,7 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 			d.Set("ip_address", address.IP)
 			exposedPorts := make([]interface{}, len(address.Ports))
 			for i := range address.Ports {
-				exposedPorts[i] = (address.Ports)[i]
+				exposedPorts[i] = address.Ports[i]
 			}
 			d.Set("exposed_port", flattenPorts(exposedPorts))
 			d.Set("dns_name_label", address.DnsNameLabel)

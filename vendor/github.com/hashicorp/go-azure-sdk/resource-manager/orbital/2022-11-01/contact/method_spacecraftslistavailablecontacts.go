@@ -80,9 +80,20 @@ func (c ContactClient) SpacecraftsListAvailableContacts(ctx context.Context, id 
 
 // SpacecraftsListAvailableContactsThenPoll performs SpacecraftsListAvailableContacts then polls until it's completed
 func (c ContactClient) SpacecraftsListAvailableContactsThenPoll(ctx context.Context, id SpacecraftId, input ContactParameters) error {
+	return c.SpacecraftsListAvailableContactsCallbackThenPoll(ctx, id, input, nil)
+}
+
+// SpacecraftsListAvailableContactsCallbackThenPoll performs SpacecraftsListAvailableContacts, runs the optional callback function, then polls until it's completed
+func (c ContactClient) SpacecraftsListAvailableContactsCallbackThenPoll(ctx context.Context, id SpacecraftId, input ContactParameters, callback func() error) error {
 	result, err := c.SpacecraftsListAvailableContacts(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing SpacecraftsListAvailableContacts: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

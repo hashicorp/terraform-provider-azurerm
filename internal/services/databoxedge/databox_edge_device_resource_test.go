@@ -22,15 +22,16 @@ func TestAccDataboxEdgeDevice_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databox_edge_device", "test")
 	r := DataboxEdgeDeviceResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
+	data.ResourceTest(
+		t, r, []acceptance.TestStep{
+			{
+				Config: r.basic(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep(),
 		},
-		data.ImportStep(),
-	},
 	)
 }
 
@@ -38,18 +39,19 @@ func TestAccDataboxEdgeDevice_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databox_edge_device", "test")
 	r := DataboxEdgeDeviceResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
+	data.ResourceTest(
+		t, r, []acceptance.TestStep{
+			{
+				Config: r.basic(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			{
+				Config:      r.requiresImport(data),
+				ExpectError: acceptance.RequiresImportError("azurerm_databox_edge_device"),
+			},
 		},
-		{
-			Config:      r.requiresImport(data),
-			ExpectError: acceptance.RequiresImportError("azurerm_databox_edge_device"),
-		},
-	},
 	)
 }
 
@@ -57,15 +59,16 @@ func TestAccDataboxEdgeDevice_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databox_edge_device", "test")
 	r := DataboxEdgeDeviceResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
+	data.ResourceTest(
+		t, r, []acceptance.TestStep{
+			{
+				Config: r.complete(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep(),
 		},
-		data.ImportStep(),
-	},
 	)
 }
 
@@ -73,29 +76,30 @@ func TestAccDataboxEdgeDevice_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databox_edge_device", "test")
 	r := DataboxEdgeDeviceResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
+	data.ResourceTest(
+		t, r, []acceptance.TestStep{
+			{
+				Config: r.basic(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: r.complete(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: r.basic(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep(),
 		},
-		data.ImportStep(),
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	},
 	)
 }
 

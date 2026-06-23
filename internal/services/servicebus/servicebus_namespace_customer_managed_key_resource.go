@@ -94,8 +94,10 @@ func (r ServiceBusNamespaceCustomerManagedKeyResource) Create() sdk.ResourceFunc
 				return fmt.Errorf("retrieving %s: `model` is nil", *id)
 			}
 
-			if resp.Model.Properties != nil && resp.Model.Properties.Encryption != nil && resp.Model.Properties.Encryption.KeyVaultProperties != nil && len(*resp.Model.Properties.Encryption.KeyVaultProperties) > 0 {
-				return metadata.ResourceRequiresImport(r.ResourceType(), *id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				if resp.Model.Properties != nil && resp.Model.Properties.Encryption != nil && resp.Model.Properties.Encryption.KeyVaultProperties != nil && len(*resp.Model.Properties.Encryption.KeyVaultProperties) > 0 {
+					return metadata.ResourceRequiresImport(r.ResourceType(), *id)
+				}
 			}
 
 			payload := resp.Model
@@ -117,11 +119,11 @@ func (r ServiceBusNamespaceCustomerManagedKeyResource) Create() sdk.ResourceFunc
 				},
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, *id, *payload, metadata.SetIDCallback(id)); err != nil {
 				return fmt.Errorf("creating Customer Managed Key for %s: %+v", *id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}

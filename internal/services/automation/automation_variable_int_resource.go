@@ -12,9 +12,9 @@ import (
 
 func resourceAutomationVariableInt() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationVariableIntCreateUpdate,
+		Create: resourceAutomationVariableIntCreate,
 		Read:   resourceAutomationVariableIntRead,
-		Update: resourceAutomationVariableIntCreateUpdate,
+		Update: resourceAutomationVariableIntUpdate,
 		Delete: resourceAutomationVariableIntDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -33,8 +33,12 @@ func resourceAutomationVariableInt() *pluginsdk.Resource {
 	}
 }
 
-func resourceAutomationVariableIntCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	return resourceAutomationVariableCreateUpdate(d, meta, "Int")
+func resourceAutomationVariableIntCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+	return resourceAutomationVariableCreate(d, meta, "Int")
+}
+
+func resourceAutomationVariableIntUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	return resourceAutomationVariableUpdate(d, meta, "Int")
 }
 
 func resourceAutomationVariableIntRead(d *pluginsdk.ResourceData, meta interface{}) error {

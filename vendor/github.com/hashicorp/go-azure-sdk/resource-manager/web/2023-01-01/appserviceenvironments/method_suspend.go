@@ -77,9 +77,20 @@ func (c AppServiceEnvironmentsClient) Suspend(ctx context.Context, id commonids.
 
 // SuspendThenPoll performs Suspend then polls until it's completed
 func (c AppServiceEnvironmentsClient) SuspendThenPoll(ctx context.Context, id commonids.AppServiceEnvironmentId) error {
+	return c.SuspendCallbackThenPoll(ctx, id, nil)
+}
+
+// SuspendCallbackThenPoll performs Suspend, runs the optional callback function, then polls until it's completed
+func (c AppServiceEnvironmentsClient) SuspendCallbackThenPoll(ctx context.Context, id commonids.AppServiceEnvironmentId, callback func() error) error {
 	result, err := c.Suspend(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Suspend: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

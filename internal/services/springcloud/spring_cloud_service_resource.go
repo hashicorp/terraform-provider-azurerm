@@ -445,14 +445,17 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	id := parse.NewSpringCloudServiceID(subscriptionId, resourceGroup, name)
-	existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_spring_cloud_service", id.ID())
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_spring_cloud_service", id.ID())
+		}
 	}
 
 	location := location.Normalize(d.Get("location").(string))
@@ -493,10 +496,12 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
+
+	d.SetId(id.ID())
+
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
-	d.SetId(id.ID())
 
 	skuName := d.Get("sku_name").(string)
 	if skuName == "E0" && gitProperty != nil {
@@ -504,14 +509,11 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if skuName != "E0" {
-		log.Printf("[DEBUG] Updating Config Server Settings for %s..", id)
 		if err := updateConfigServerSettings(ctx, configServersClient, id, gitProperty); err != nil {
 			return err
 		}
-		log.Printf("[DEBUG] Updated Config Server Settings for %s.", id)
 	}
 
-	log.Printf("[DEBUG] Updating Monitor Settings for %s..", id)
 	monitorSettings := appplatform.MonitoringSettingResource{
 		Properties: expandSpringCloudTrace(d.Get("trace").([]interface{})),
 	}
@@ -522,7 +524,6 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 	if err = updateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for update of monitor settings for %s: %+v", id, err)
 	}
-	log.Printf("[DEBUG] Updated Monitor Settings for %s.", id)
 
 	if d.Get("service_registry_enabled").(bool) {
 		future, err := serviceRegistryClient.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, "default")
@@ -617,16 +618,13 @@ func resourceSpringCloudServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 			return fmt.Errorf("`config_server_git_setting` is not supported for sku `E0`")
 		}
 		if skuName != "E0" {
-			log.Printf("[DEBUG] Updating Config Server Settings for %s..", *id)
 			if err := updateConfigServerSettings(ctx, configServersClient, *id, gitProperty); err != nil {
 				return err
 			}
-			log.Printf("[DEBUG] Updated Config Server Settings for %s.", *id)
 		}
 	}
 
 	if d.HasChange("trace") {
-		log.Printf("[DEBUG] Updating Monitor Settings for %s..", id)
 		monitorSettings := appplatform.MonitoringSettingResource{
 			Properties: expandSpringCloudTrace(d.Get("trace").([]interface{})),
 		}
@@ -637,7 +635,6 @@ func resourceSpringCloudServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 		if err = updateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return fmt.Errorf("waiting for update of monitor settings for %s: %+v", id, err)
 		}
-		log.Printf("[DEBUG] Updated Monitor Settings for %s.", id)
 	}
 
 	if d.HasChange("service_registry_enabled") {
@@ -866,7 +863,6 @@ func resourceSpringCloudServiceDelete(d *pluginsdk.ResourceData, meta interface{
 }
 
 func updateConfigServerSettings(ctx context.Context, client *appplatform.ConfigServersClient, id parse.SpringCloudServiceId, gitProperty *appplatform.ConfigServerGitProperty) error {
-	log.Printf("[DEBUG] Updating Config Server Settings for %s..", id)
 	configServer := appplatform.ConfigServerResource{
 		Properties: &appplatform.ConfigServerProperties{
 			ConfigServer: &appplatform.ConfigServerSettings{
@@ -882,7 +878,6 @@ func updateConfigServerSettings(ctx context.Context, client *appplatform.ConfigS
 		return fmt.Errorf("waiting for update of config server for %s: %+v", id, err)
 	}
 
-	log.Printf("[DEBUG] Retrieving Config Server Settings for %s..", id)
 	resp, err := client.Get(ctx, id.ResourceGroup, id.SpringName)
 	if err != nil {
 		return fmt.Errorf("retrieving config server for %s: %+v", id, err)
@@ -892,7 +887,6 @@ func updateConfigServerSettings(ctx context.Context, client *appplatform.ConfigS
 			return fmt.Errorf("setting config server for %s: %+v", id, err)
 		}
 	}
-	log.Printf("[DEBUG] Updated Config Server Settings for %s.", id)
 	return nil
 }
 

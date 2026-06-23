@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/raiblocklists"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/raiblocklists"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -162,6 +162,10 @@ resource "azurerm_cognitive_account_rai_blocklist" "test" {
   name                 = "acctest-crb-%d"
   cognitive_account_id = azurerm_cognitive_account.test.id
   description          = "Acceptance test data new azurerm resource"
+  tags = {
+    Acceptance  = "Test"
+    Environment = "Dev"
+  }
 }
 		`, template, data.RandomInteger)
 }
@@ -174,6 +178,11 @@ resource "azurerm_cognitive_account_rai_blocklist" "test" {
   name                 = "acctest-crb-%d"
   cognitive_account_id = azurerm_cognitive_account.test.id
   description          = "Acceptance test data new azurerm resource updated"
+  tags = {
+    Acceptance  = "TestUpdated"
+    Environment = "Dev"
+    Updated     = "true"
+  }
 }
 		`, template, data.RandomInteger)
 }

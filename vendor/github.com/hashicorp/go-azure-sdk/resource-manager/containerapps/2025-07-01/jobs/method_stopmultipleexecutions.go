@@ -76,9 +76,20 @@ func (c JobsClient) StopMultipleExecutions(ctx context.Context, id JobId) (resul
 
 // StopMultipleExecutionsThenPoll performs StopMultipleExecutions then polls until it's completed
 func (c JobsClient) StopMultipleExecutionsThenPoll(ctx context.Context, id JobId) error {
+	return c.StopMultipleExecutionsCallbackThenPoll(ctx, id, nil)
+}
+
+// StopMultipleExecutionsCallbackThenPoll performs StopMultipleExecutions, runs the optional callback function, then polls until it's completed
+func (c JobsClient) StopMultipleExecutionsCallbackThenPoll(ctx context.Context, id JobId, callback func() error) error {
 	result, err := c.StopMultipleExecutions(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing StopMultipleExecutions: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

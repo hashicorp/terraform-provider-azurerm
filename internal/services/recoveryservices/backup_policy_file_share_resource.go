@@ -7,7 +7,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"regexp"
 	"strings"
 	"time"
@@ -113,8 +112,6 @@ func resourceBackupProtectionPolicyFileShareCreateUpdate(d *pluginsdk.ResourceDa
 
 	id := protectionpolicies.NewBackupPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("recovery_vault_name").(string), d.Get("name").(string))
 
-	log.Printf("[DEBUG] Creating/updating %s", id)
-
 	// getting this ready now because its shared between *everything*, time is... complicated for this resource
 	// if it's using hourly backup schedule, it passes null in times
 	var times []string
@@ -128,15 +125,17 @@ func resourceBackupProtectionPolicyFileShareCreateUpdate(d *pluginsdk.ResourceDa
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_backup_policy_file_share", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_backup_policy_file_share", id.ID())
+			}
 		}
 	}
 
@@ -192,8 +191,6 @@ func resourceBackupProtectionPolicyFileShareDelete(d *pluginsdk.ResourceData, me
 		return err
 	}
 
-	log.Printf("[DEBUG] Deleting %s", id)
-
 	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
@@ -210,8 +207,6 @@ func resourceBackupProtectionPolicyFileShareRead(d *pluginsdk.ResourceData, meta
 	if err != nil {
 		return err
 	}
-
-	log.Printf("[DEBUG] Reading %s", id)
 
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
@@ -656,8 +651,7 @@ func resourceBackupProtectionPolicyFileShareWaitForUpdate(ctx context.Context, c
 		state.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	_, err := state.WaitForStateContext(ctx)
-	if err != nil {
+	if _, err := state.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for update %s: %+v", id, err)
 	}
 
@@ -674,8 +668,7 @@ func resourceBackupProtectionPolicyFileShareWaitForDeletion(ctx context.Context,
 		Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
 	}
 
-	_, err := state.WaitForStateContext(ctx)
-	if err != nil {
+	if _, err := state.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for delete to finish for %s: %+v", id, err)
 	}
 

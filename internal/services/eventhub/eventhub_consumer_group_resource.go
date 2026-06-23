@@ -79,23 +79,24 @@ func (r ConsumerGroupResource) Attributes() map[string]*pluginsdk.Schema {
 func (r ConsumerGroupResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			metadata.Logger.Info("Decoding state..")
 			var state ConsumerGroupObject
 			if err := metadata.Decode(&state); err != nil {
 				return err
 			}
 
-			metadata.Logger.Infof("creating Consumer Group %q..", state.Name)
 			client := metadata.Client.Eventhub.ConsumerGroupClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := consumergroups.NewConsumerGroupID(subscriptionId, state.ResourceGroupName, state.NamespaceName, state.EventHubName, state.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := consumergroups.ConsumerGroup{
@@ -124,13 +125,11 @@ func (r ConsumerGroupResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Info("Decoding state..")
 			var state ConsumerGroupObject
 			if err := metadata.Decode(&state); err != nil {
 				return err
 			}
 
-			metadata.Logger.Infof("updating Consumer Group %q..", state.Name)
 			client := metadata.Client.Eventhub.ConsumerGroupClient
 
 			parameters := consumergroups.ConsumerGroup{
@@ -159,7 +158,6 @@ func (r ConsumerGroupResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("retrieving Consumer Group %q..", id.ConsumerGroupName)
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
@@ -194,7 +192,6 @@ func (r ConsumerGroupResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("deleting Consumer Group %q..", id.ConsumerGroupName)
 			if resp, err := client.Delete(ctx, *id); err != nil {
 				if !response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("deleting %s: %+v", id, err)

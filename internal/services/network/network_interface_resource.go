@@ -9,6 +9,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -220,15 +222,18 @@ func resourceNetworkInterfaceCreate(d *pluginsdk.ResourceData, meta interface{})
 	defer cancel()
 
 	id := commonids.NewNetworkInterfaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.Get(ctx, id, networkinterfaces.DefaultGetOperationOptions())
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_network_interface", id.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id, networkinterfaces.DefaultGetOperationOptions())
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+		}
+
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_network_interface", id.ID())
+		}
 	}
 
 	var enableIpForwarding, enableAcceleratedNetworking bool
@@ -295,7 +300,7 @@ func resourceNetworkInterfaceCreate(d *pluginsdk.ResourceData, meta interface{})
 		Tags:             tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, id, iface)
+	err = client.CreateOrUpdateCallbackThenPoll(ctx, id, iface, sdk.SetIDAndIdentityCallback(meta, &id, d))
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -425,8 +430,7 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 		tags := networkinterfaces.TagsObject{
 			Tags: tags.Expand(tagsRaw),
 		}
-		_, err = client.UpdateTags(ctx, *id, tags)
-		if err != nil {
+		if _, err = client.UpdateTags(ctx, *id, tags); err != nil {
 			return fmt.Errorf("updating tags for %s: %+v", *id, err)
 		}
 	}

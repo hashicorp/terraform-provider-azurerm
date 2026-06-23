@@ -41,7 +41,7 @@ func resourceFunctionApp() *pluginsdk.Resource {
 			return err
 		}),
 
-		DeprecationMessage: "The `azurerm_function_app` resource has been superseded by the `azurerm_linux_function_app` and `azurerm_windows_function_app` resources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider.",
+		DeprecationMessage: "The `azurerm_function_app` resource has been superseded by the `azurerm_linux_function_app` and `azurerm_windows_function_app` resources. This resource will be removed in v5.0 of the AzureRM Provider.",
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -244,7 +244,7 @@ func resourceFunctionApp() *pluginsdk.Resource {
 }
 
 func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -254,19 +254,19 @@ func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("could not determine Storage domain suffix for environment %q", meta.(*clients.Client).Account.Environment.Name)
 	}
 
-	log.Printf("[INFO] preparing arguments for AzureRM Function App creation.")
-
 	id := parse.NewFunctionAppID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
 		}
-	}
 
-	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_function_app", id.ID())
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_function_app", id.ID())
+		}
 	}
 
 	availabilityRequest := web.ResourceNameAvailabilityRequest{
@@ -352,6 +352,8 @@ func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
+	d.SetId(id.ID())
+
 	err = createFuture.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return err
@@ -374,8 +376,6 @@ func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
-	d.SetId(id.ID())
-
 	authSettingsRaw := d.Get("auth_settings").([]interface{})
 	authSettings := expandAppServiceAuthSettings(authSettingsRaw)
 
@@ -392,7 +392,7 @@ func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 }
 
 func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -580,7 +580,7 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 }
 
 func resourceFunctionAppRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -768,7 +768,7 @@ func resourceFunctionAppRead(d *pluginsdk.ResourceData, meta interface{}) error 
 }
 
 func resourceFunctionAppDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -776,8 +776,6 @@ func resourceFunctionAppDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	if err != nil {
 		return err
 	}
-
-	log.Printf("[DEBUG] Deleting Function App %q (resource group %q)", id.SiteName, id.ResourceGroup)
 
 	deleteMetrics := true
 	deleteEmptyServerFarm := false

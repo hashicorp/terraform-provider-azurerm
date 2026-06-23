@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -16,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -139,8 +142,11 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 				MaxItems:     10,
 				Optional:     true,
 				ExactlyOneOf: []string{"source_address_prefix", "source_address_prefixes", "source_application_security_group_ids"},
-				Elem:         &pluginsdk.Schema{Type: pluginsdk.TypeString},
-				Set:          pluginsdk.HashString,
+				Elem: &pluginsdk.Schema{
+					Type:             pluginsdk.TypeString,
+					DiffSuppressFunc: suppress.CaseDifference,
+				},
+				Set: pluginsdk.HashStringInsensitively,
 			},
 
 			// lintignore:S018
@@ -149,8 +155,11 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 				MaxItems:     10,
 				Optional:     true,
 				ExactlyOneOf: []string{"destination_address_prefix", "destination_address_prefixes", "destination_application_security_group_ids"},
-				Elem:         &pluginsdk.Schema{Type: pluginsdk.TypeString},
-				Set:          pluginsdk.HashString,
+				Elem: &pluginsdk.Schema{
+					Type:             pluginsdk.TypeString,
+					DiffSuppressFunc: suppress.CaseDifference,
+				},
+				Set: pluginsdk.HashStringInsensitively,
 			},
 
 			"access": {
@@ -188,15 +197,17 @@ func resourceNetworkSecurityRuleCreate(d *pluginsdk.ResourceData, meta interface
 
 	id := securityrules.NewSecurityRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("network_security_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_network_security_rule", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_network_security_rule", id.ID())
+		}
 	}
 
 	rule := securityrules.SecurityRule{
@@ -280,7 +291,7 @@ func resourceNetworkSecurityRuleCreate(d *pluginsdk.ResourceData, meta interface
 		rule.Properties.DestinationApplicationSecurityGroups = &destinationApplicationSecurityGroups
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, rule); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, rule, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 

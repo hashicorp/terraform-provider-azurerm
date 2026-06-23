@@ -197,13 +197,15 @@ func (r LinkedServiceSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 
 			id := linkedservices.NewLinkedServiceID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, config.Name)
 
-			existing, err := client.Get(ctx, id, linkedservices.DefaultGetOperationOptions())
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id, linkedservices.DefaultGetOperationOptions())
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				if !response.WasNotFound(existing.HttpResponse) {
+					return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				}
 			}
 
 			sqlMILinkedService := &linkedservices.AzureSqlMILinkedService{
@@ -433,8 +435,7 @@ func (r LinkedServiceSqlManagedInstanceResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			_, err = client.Delete(ctx, *id)
-			if err != nil {
+			if _, err = client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 

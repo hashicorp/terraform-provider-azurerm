@@ -104,16 +104,18 @@ func (s StorageDefenderResource) Create() sdk.ResourceFunc {
 
 			id := commonids.NewScopeID(plan.StorageAccountId)
 
-			resp, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(resp.HttpResponse) {
-					return fmt.Errorf("checking for existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				resp, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(resp.HttpResponse) {
+						return fmt.Errorf("checking for existing %s: %+v", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(resp.HttpResponse) &&
-				resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.IsEnabled != nil && *resp.Model.Properties.IsEnabled {
-				return tf.ImportAsExistsError(s.ResourceType(), id.ID())
+				if !response.WasNotFound(resp.HttpResponse) &&
+					resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.IsEnabled != nil && *resp.Model.Properties.IsEnabled {
+					return tf.ImportAsExistsError(s.ResourceType(), id.ID())
+				}
 			}
 
 			input := defenderforstorage.DefenderForStorageSetting{
@@ -140,8 +142,7 @@ func (s StorageDefenderResource) Create() sdk.ResourceFunc {
 				input.Properties.MalwareScanning.ScanResultsEventGridTopicResourceId = pointer.To(topicId.ID())
 			}
 
-			_, err = client.Create(ctx, id, input)
-			if err != nil {
+			if _, err := client.Create(ctx, id, input); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -218,8 +219,7 @@ func (s StorageDefenderResource) Update() sdk.ResourceFunc {
 				Properties: prop,
 			}
 
-			_, err = client.Create(ctx, *id, input)
-			if err != nil {
+			if _, err = client.Create(ctx, *id, input); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -299,8 +299,7 @@ func (s StorageDefenderResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("parsing %+v", err)
 			}
 
-			_, err = client.Get(ctx, *id)
-			if err != nil {
+			if _, err = client.Get(ctx, *id); err != nil {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
@@ -310,8 +309,7 @@ func (s StorageDefenderResource) Delete() sdk.ResourceFunc {
 				},
 			}
 
-			_, err = client.Create(ctx, *id, input)
-			if err != nil {
+			if _, err = client.Create(ctx, *id, input); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 

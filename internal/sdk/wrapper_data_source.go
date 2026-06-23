@@ -34,6 +34,10 @@ func (dw *DataSourceWrapper) DataSource() (*schema.Resource, error) {
 	}
 
 	modelObj := dw.dataSource.ModelObject()
+	// TODO: this should probably return an error when modelObj is nil, but currently 16 typed resources
+	// return nil because they use metadata.ResourceData directly instead of a typed model.
+	// Once those resources are migrated to use metadata.Decode/Encode with a proper model struct,
+	// this nil check should be replaced with an error.
 	if modelObj != nil {
 		if err := ValidateModelObject(modelObj); err != nil {
 			return nil, fmt.Errorf("validating model for %q: %+v", dw.dataSource.ResourceType(), err)

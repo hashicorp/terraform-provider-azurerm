@@ -62,9 +62,20 @@ func (c AzureFirewallsClient) PacketCaptureOperation(ctx context.Context, id Azu
 
 // PacketCaptureOperationThenPoll performs PacketCaptureOperation then polls until it's completed
 func (c AzureFirewallsClient) PacketCaptureOperationThenPoll(ctx context.Context, id AzureFirewallId, input FirewallPacketCaptureParameters) error {
+	return c.PacketCaptureOperationCallbackThenPoll(ctx, id, input, nil)
+}
+
+// PacketCaptureOperationCallbackThenPoll performs PacketCaptureOperation, runs the optional callback function, then polls until it's completed
+func (c AzureFirewallsClient) PacketCaptureOperationCallbackThenPoll(ctx context.Context, id AzureFirewallId, input FirewallPacketCaptureParameters, callback func() error) error {
 	result, err := c.PacketCaptureOperation(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing PacketCaptureOperation: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

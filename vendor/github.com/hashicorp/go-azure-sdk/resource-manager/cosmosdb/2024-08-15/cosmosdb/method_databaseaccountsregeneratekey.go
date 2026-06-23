@@ -61,9 +61,20 @@ func (c CosmosDBClient) DatabaseAccountsRegenerateKey(ctx context.Context, id Da
 
 // DatabaseAccountsRegenerateKeyThenPoll performs DatabaseAccountsRegenerateKey then polls until it's completed
 func (c CosmosDBClient) DatabaseAccountsRegenerateKeyThenPoll(ctx context.Context, id DatabaseAccountId, input DatabaseAccountRegenerateKeyParameters) error {
+	return c.DatabaseAccountsRegenerateKeyCallbackThenPoll(ctx, id, input, nil)
+}
+
+// DatabaseAccountsRegenerateKeyCallbackThenPoll performs DatabaseAccountsRegenerateKey, runs the optional callback function, then polls until it's completed
+func (c CosmosDBClient) DatabaseAccountsRegenerateKeyCallbackThenPoll(ctx context.Context, id DatabaseAccountId, input DatabaseAccountRegenerateKeyParameters, callback func() error) error {
 	result, err := c.DatabaseAccountsRegenerateKey(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing DatabaseAccountsRegenerateKey: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

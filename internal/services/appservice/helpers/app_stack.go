@@ -404,6 +404,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"3.11",
 						"3.12",
 						"3.13",
+						"3.14",
 					}, false),
 					ExactlyOneOf: linuxApplicationStackConstraint,
 				},
@@ -441,6 +442,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"11",
 						"17",
 						"21",
+						"25",
 					}, false),
 					ExactlyOneOf: linuxApplicationStackConstraint,
 					RequiredWith: []string{

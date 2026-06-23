@@ -62,9 +62,20 @@ func (c AppPlatformClient) ConfigurationServicesValidate(ctx context.Context, id
 
 // ConfigurationServicesValidateThenPoll performs ConfigurationServicesValidate then polls until it's completed
 func (c AppPlatformClient) ConfigurationServicesValidateThenPoll(ctx context.Context, id ConfigurationServiceId, input ConfigurationServiceSettings) error {
+	return c.ConfigurationServicesValidateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ConfigurationServicesValidateCallbackThenPoll performs ConfigurationServicesValidate, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) ConfigurationServicesValidateCallbackThenPoll(ctx context.Context, id ConfigurationServiceId, input ConfigurationServiceSettings, callback func() error) error {
 	result, err := c.ConfigurationServicesValidate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ConfigurationServicesValidate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

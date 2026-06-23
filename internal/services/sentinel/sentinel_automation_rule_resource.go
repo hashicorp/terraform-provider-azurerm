@@ -246,15 +246,17 @@ func resourceSentinelAutomationRuleCreateOrUpdate(d *pluginsdk.ResourceData, met
 	id := automationrules.NewAutomationRuleID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, name)
 
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			resp, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(resp.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(resp.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_sentinel_automation_rule", id.ID())
+			if !response.WasNotFound(resp.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_sentinel_automation_rule", id.ID())
+			}
 		}
 	}
 
@@ -286,8 +288,7 @@ func resourceSentinelAutomationRuleCreateOrUpdate(d *pluginsdk.ResourceData, met
 		params.Properties.TriggeringLogic.SetExpirationTimeUtcAsTime(t)
 	}
 
-	_, err = client.CreateOrUpdate(ctx, id, params)
-	if err != nil {
+	if _, err = client.CreateOrUpdate(ctx, id, params); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -362,8 +363,7 @@ func resourceSentinelAutomationRuleDelete(d *pluginsdk.ResourceData, meta interf
 		return err
 	}
 
-	_, err = client.Delete(ctx, *id)
-	if err != nil {
+	if _, err = client.Delete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 

@@ -15,10 +15,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/backupvaultresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupvaultresources"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -155,14 +158,16 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 	id := backupvaultresources.NewBackupVaultID(subscriptionId, resourceGroup, name)
 
 	if d.IsNewResource() {
-		existing, err := client.BackupVaultsGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing DataProtection BackupVault (%q): %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.BackupVaultsGet(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing DataProtection BackupVault (%q): %+v", id, err)
+				}
 			}
-		}
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_data_protection_backup_vault", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_data_protection_backup_vault", id.ID())
+			}
 		}
 	}
 
@@ -208,15 +213,21 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 		parameters.Properties.SecuritySettings.SoftDeleteSettings.RetentionDurationInDays = pointer.To(v.(float64))
 	}
 
-	err = client.BackupVaultsCreateOrUpdateThenPoll(ctx, id, parameters, backupvaultresources.DefaultBackupVaultsCreateOrUpdateOperationOptions())
-	if err != nil {
-		return fmt.Errorf("creating DataProtection BackupVault (%q): %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.BackupVaultsCreateOrUpdateCallbackThenPoll(ctx, id, parameters, backupvaultresources.DefaultBackupVaultsCreateOrUpdateOperationOptions(), sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+
+		d.SetId(id.ID())
+		if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+			return err
+		}
+	} else {
+		if err := client.BackupVaultsCreateOrUpdateThenPoll(ctx, id, parameters, backupvaultresources.DefaultBackupVaultsCreateOrUpdateOperationOptions()); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
-	d.SetId(id.ID())
-	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
-		return err
-	}
 	return resourceDataProtectionBackupVaultRead(d, meta)
 }
 
@@ -247,8 +258,8 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta inter
 		props := model.Properties
 
 		if len(props.StorageSettings) > 0 {
-			d.Set("datastore_type", string(pointer.From((props.StorageSettings)[0].DatastoreType)))
-			d.Set("redundancy", string(pointer.From((props.StorageSettings)[0].Type)))
+			d.Set("datastore_type", string(pointer.From(props.StorageSettings[0].DatastoreType)))
+			d.Set("redundancy", string(pointer.From(props.StorageSettings[0].Type)))
 		}
 
 		immutability := backupvaultresources.ImmutabilityStateDisabled
@@ -302,6 +313,14 @@ func resourceDataProtectionBackupVaultDelete(d *pluginsdk.ResourceData, meta int
 	if err := client.BackupVaultsDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting DataProtection BackupVault (%q): %+v", id, err)
 	}
+
+	// API has bug, which appears API returns before the resource is fully deleted. Tracked by this issue: https://github.com/Azure/azure-rest-api-specs/issues/38944
+	pollerType := custompollers.NewDataProtectionBackupVaultPoller(client, *id)
+	poller := pollers.NewPoller(pollerType, 30*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+	if err := poller.PollUntilDone(ctx); err != nil {
+		return err
+	}
+
 	return nil
 }
 

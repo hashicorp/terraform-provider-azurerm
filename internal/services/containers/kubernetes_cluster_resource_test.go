@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/agentpools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -22,10 +22,10 @@ import (
 type KubernetesClusterResource struct{}
 
 var (
-	olderKubernetesVersion        = "1.32.9"
-	currentKubernetesVersion      = "1.33.5"
-	olderKubernetesVersionAlias   = "1.32"
-	currentKubernetesVersionAlias = "1.33"
+	olderKubernetesVersion        = "1.34.3"
+	currentKubernetesVersion      = "1.35.1"
+	olderKubernetesVersionAlias   = "1.34"
+	currentKubernetesVersionAlias = "1.35"
 )
 
 func TestAccKubernetesCluster_hostEncryption(t *testing.T) {
@@ -618,7 +618,7 @@ resource "azurerm_dedicated_host" "test" {
   name                    = "acctest-DH-%[1]d"
   location                = azurerm_resource_group.test.location
   dedicated_host_group_id = azurerm_dedicated_host_group.test.id
-  sku_name                = "FSv2-Type2"
+  sku_name                = "DSv3-Type3"
   platform_fault_domain   = 0
 }
 
