@@ -1,8 +1,9 @@
 ## 4.79.0 (Unreleased)
 
 ENHANCEMENTS:
-* `azurerm_postgresql_flexible_server` add Ddsv6 skus to validation  [GH-32657]
-* `azurerm_virtual_network_gateway`: Add support for `max_scale_unit` and `min_scale_unit` [GH-32647]
+* `azurerm_batch_job` - migrate to `go-azure-sdk` [GH-32662]
+* `azurerm_postgresql_flexible_server` - add Ddsv6 skus to validation  [GH-32657]
+* `azurerm_virtual_network_gateway` - add support for `maximum_scale_unit` and `minimum_scale_unit` [GH-32647]
 
 * `azurerm_data_protection_backup_instance_data_lake_storage` - increase the limit of items for `storage_container_names` from 100 to 1000 [GH-32643]
 
