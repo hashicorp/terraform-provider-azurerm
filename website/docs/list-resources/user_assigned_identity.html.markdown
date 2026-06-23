@@ -17,6 +17,7 @@ Lists User Assigned Identity resources.
 ```hcl
 list "azurerm_user_assigned_identity" "example" {
   provider = azurerm
+  config {}
 }
 ```
 

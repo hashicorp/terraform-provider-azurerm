@@ -33,6 +33,7 @@ func TestAccUserAssignedIdentity_list(t *testing.T) {
 				Config: r.basicList(data),
 			},
 			{
+				// Wait for the subscription-level User Assigned Identity listing API to become eventually consistent after resource creation.
 				PreConfig: func() { time.Sleep(2 * time.Minute) },
 				Query:     true,
 				Config:    r.subscriptionListQuery(),
