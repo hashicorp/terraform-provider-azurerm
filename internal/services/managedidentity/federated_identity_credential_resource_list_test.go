@@ -18,7 +18,7 @@ import (
 
 func TestAccFederatedIdentityCredential_list(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_federated_identity_credential", "test")
-	r := FederatedIdentityCredentialTestResource{}
+	r := FederatedIdentityCredentialResource{}
 	resourceName := fmt.Sprintf("acctest-0-%d", data.RandomInteger)
 	userAssignedIdentityName := fmt.Sprintf("acctestuai-%d", data.RandomInteger)
 	resourceGroupName := fmt.Sprintf("acctestrg-%d", data.RandomInteger)
@@ -49,7 +49,7 @@ func TestAccFederatedIdentityCredential_list(t *testing.T) {
 	})
 }
 
-func (r FederatedIdentityCredentialTestResource) basicList(data acceptance.TestData) string {
+func (r FederatedIdentityCredentialResource) basicList(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -79,7 +79,7 @@ resource "azurerm_federated_identity_credential" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r FederatedIdentityCredentialTestResource) listQuery(data acceptance.TestData) string {
+func (r FederatedIdentityCredentialResource) listQuery(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 list "azurerm_federated_identity_credential" "list" {
   provider = azurerm

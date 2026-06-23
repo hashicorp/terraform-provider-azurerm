@@ -18,11 +18,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type FederatedIdentityCredentialTestResource struct{}
+type FederatedIdentityCredentialResource struct{}
 
 func TestAccFederatedIdentityCredential_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_federated_identity_credential", "test")
-	r := FederatedIdentityCredentialTestResource{}
+	r := FederatedIdentityCredentialResource{}
 
 	rg := *regexp.MustCompile(`-updated`)
 
@@ -64,7 +64,7 @@ func TestAccFederatedIdentityCredential_deprecated(t *testing.T) {
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_federated_identity_credential", "test")
-	r := FederatedIdentityCredentialTestResource{}
+	r := FederatedIdentityCredentialResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -80,7 +80,7 @@ func TestAccFederatedIdentityCredential_deprecated(t *testing.T) {
 
 func TestAccFederatedIdentityCredential_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_federated_identity_credential", "test")
-	r := FederatedIdentityCredentialTestResource{}
+	r := FederatedIdentityCredentialResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -93,7 +93,7 @@ func TestAccFederatedIdentityCredential_requiresImport(t *testing.T) {
 	})
 }
 
-func (r FederatedIdentityCredentialTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r FederatedIdentityCredentialResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := federatedidentitycredentials.ParseFederatedIdentityCredentialID(state.ID)
 	if err != nil {
 		return nil, err
@@ -107,7 +107,7 @@ func (r FederatedIdentityCredentialTestResource) Exists(ctx context.Context, cli
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r FederatedIdentityCredentialTestResource) basic(data acceptance.TestData) string {
+func (r FederatedIdentityCredentialResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_federated_identity_credential" "test" {
@@ -120,7 +120,7 @@ resource "azurerm_federated_identity_credential" "test" {
 `, r.template(data))
 }
 
-func (r FederatedIdentityCredentialTestResource) update(data acceptance.TestData) string {
+func (r FederatedIdentityCredentialResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_federated_identity_credential" "test" {
@@ -133,7 +133,7 @@ resource "azurerm_federated_identity_credential" "test" {
 `, r.template(data))
 }
 
-func (r FederatedIdentityCredentialTestResource) requiresImport(data acceptance.TestData) string {
+func (r FederatedIdentityCredentialResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_federated_identity_credential" "import" {
@@ -146,7 +146,7 @@ resource "azurerm_federated_identity_credential" "import" {
 `, r.basic(data))
 }
 
-func (r FederatedIdentityCredentialTestResource) deprecated(data acceptance.TestData) string {
+func (r FederatedIdentityCredentialResource) deprecated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_federated_identity_credential" "test" {
@@ -159,7 +159,7 @@ resource "azurerm_federated_identity_credential" "test" {
 `, r.template(data))
 }
 
-func (r FederatedIdentityCredentialTestResource) template(data acceptance.TestData) string {
+func (r FederatedIdentityCredentialResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
