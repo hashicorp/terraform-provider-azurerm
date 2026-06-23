@@ -25,8 +25,7 @@ import (
 )
 
 var (
-	_ sdk.ResourceWithCustomizeDiff = ExascaleDatabaseVirtualMachineClusterResource{}
-	_ sdk.ResourceWithUpdate        = ExascaleDatabaseVirtualMachineClusterResource{}
+	_ sdk.ResourceWithUpdate = ExascaleDatabaseVirtualMachineClusterResource{}
 )
 
 type ExascaleDatabaseVirtualMachineClusterResource struct{}
@@ -346,27 +345,6 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Attributes() map[string]*pl
 		"zone_ocid": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
-		},
-	}
-}
-
-func (ExascaleDatabaseVirtualMachineClusterResource) CustomizeDiff() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 30 * time.Second,
-		Func: func(_ context.Context, metadata sdk.ResourceMetaData) error {
-			if metadata.ResourceDiff == nil {
-				return nil
-			}
-			// for _, key := range []string{"node_count", "enabled_ecpu_count", "total_ecpu_count"} {
-			// 	if !metadata.ResourceDiff.NewValueKnown(key) {
-			// 		return nil
-			// 	}
-			// }
-			// totalEcpuCount := metadata.ResourceDiff.Get("total_ecpu_count").(int)
-			// if totalEcpuCount <= 0 {
-			// 	return fmt.Errorf("`total_ecpu_count` must be greater then 0")
-			// }
-			return nil
 		},
 	}
 }
