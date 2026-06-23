@@ -122,6 +122,30 @@ func TestAccWebPubsubNetworkACL_updateMultiplePrivateEndpoints(t *testing.T) {
 	})
 }
 
+func TestAccWebPubsubNetworkACL_ipRules(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_network_acl", "test")
+	r := WebPubsubNetworkACLResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ipRules(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ip_rule.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.ipRulesRemoved(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ip_rule.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r WebPubsubNetworkACLResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := webpubsub.ParseWebPubSubID(state.ID)
 	if err != nil {
@@ -208,6 +232,16 @@ resource "azurerm_web_pubsub_network_acl" "test" {
     allowed_request_types = ["ClientConnection"]
   }
 
+  ip_rule {
+    action   = "Allow"
+    ip_range = "10.0.1.0/24"
+  }
+
+  ip_rule {
+    action   = "Allow"
+    ip_range = "AzureFrontDoor.Backend"
+  }
+
   private_endpoint {
     id                    = azurerm_private_endpoint.test.id
     allowed_request_types = ["ClientConnection"]
@@ -227,6 +261,50 @@ resource "azurerm_web_pubsub_network_acl" "test" {
   default_action = "Deny"
   public_network {
     allowed_request_types = ["ClientConnection", "RESTAPI"]
+  }
+
+  depends_on = [azurerm_web_pubsub.test]
+}
+`, r.template(data))
+}
+
+func (r WebPubsubNetworkACLResource) ipRules(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_web_pubsub_network_acl" "test" {
+  web_pubsub_id  = azurerm_web_pubsub.test.id
+  default_action = "Deny"
+
+  public_network {
+    allowed_request_types = ["ClientConnection"]
+  }
+
+  ip_rule {
+    action   = "Allow"
+    ip_range = "10.0.1.0/24"
+  }
+
+  ip_rule {
+    action   = "Allow"
+    ip_range = "AzureFrontDoor.Backend"
+  }
+
+  depends_on = [azurerm_web_pubsub.test]
+}
+`, r.template(data))
+}
+
+func (r WebPubsubNetworkACLResource) ipRulesRemoved(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_web_pubsub_network_acl" "test" {
+  web_pubsub_id  = azurerm_web_pubsub.test.id
+  default_action = "Deny"
+
+  public_network {
+    allowed_request_types = ["ClientConnection"]
   }
 
   depends_on = [azurerm_web_pubsub.test]
