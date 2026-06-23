@@ -204,14 +204,16 @@ func (r FunctionAppFunctionResource) Create() sdk.ResourceFunc {
 
 			id := webapps.NewFunctionID(appId.SubscriptionId, appId.ResourceGroupName, appId.SiteName, appFunction.Name)
 
-			existing, err := client.GetFunction(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				if !response.WasBadRequest(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetFunction(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					if !response.WasBadRequest(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) && !response.WasBadRequest(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) && !response.WasBadRequest(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			var confJSON interface{}
@@ -261,7 +263,7 @@ func (r FunctionAppFunctionResource) Create() sdk.ResourceFunc {
 			locks.ByID(appId.ID())
 			defer locks.UnlockByID(appId.ID())
 
-			if err := client.CreateFunctionThenPoll(ctx, id, fnEnvelope); err != nil {
+			if err := client.CreateFunctionCallbackThenPoll(ctx, id, fnEnvelope, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

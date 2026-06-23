@@ -62,9 +62,20 @@ func (c MonitorsClient) Update(ctx context.Context, id MonitorId, input NewRelic
 
 // UpdateThenPoll performs Update then polls until it's completed
 func (c MonitorsClient) UpdateThenPoll(ctx context.Context, id MonitorId, input NewRelicMonitorResourceUpdate) error {
+	return c.UpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// UpdateCallbackThenPoll performs Update, runs the optional callback function, then polls until it's completed
+func (c MonitorsClient) UpdateCallbackThenPoll(ctx context.Context, id MonitorId, input NewRelicMonitorResourceUpdate, callback func() error) error {
 	result, err := c.Update(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Update: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

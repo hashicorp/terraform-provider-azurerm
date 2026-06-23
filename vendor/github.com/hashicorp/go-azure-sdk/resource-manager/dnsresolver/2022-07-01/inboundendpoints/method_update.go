@@ -91,9 +91,20 @@ func (c InboundEndpointsClient) Update(ctx context.Context, id InboundEndpointId
 
 // UpdateThenPoll performs Update then polls until it's completed
 func (c InboundEndpointsClient) UpdateThenPoll(ctx context.Context, id InboundEndpointId, input InboundEndpointPatch, options UpdateOperationOptions) error {
+	return c.UpdateCallbackThenPoll(ctx, id, input, options, nil)
+}
+
+// UpdateCallbackThenPoll performs Update, runs the optional callback function, then polls until it's completed
+func (c InboundEndpointsClient) UpdateCallbackThenPoll(ctx context.Context, id InboundEndpointId, input InboundEndpointPatch, options UpdateOperationOptions, callback func() error) error {
 	result, err := c.Update(ctx, id, input, options)
 	if err != nil {
 		return fmt.Errorf("performing Update: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

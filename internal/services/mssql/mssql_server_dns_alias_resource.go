@@ -79,20 +79,22 @@ func (m ServerDNSAliasResource) Create() sdk.ResourceFunc {
 			}
 
 			id := serverdnsaliases.NewDnsAliasID(serverID.SubscriptionId, serverID.ResourceGroup, serverID.Name, alias.Name)
-			existing, err := client.Get(ctx, id)
-			if !response.WasNotFound(existing.HttpResponse) {
-				if err != nil {
-					return fmt.Errorf("retreiving %s: %v", id, err)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					if err != nil {
+						return fmt.Errorf("retreiving %s: %v", id, err)
+					}
+					return metadata.ResourceRequiresImport(m.ResourceType(), id)
 				}
-				return metadata.ResourceRequiresImport(m.ResourceType(), id)
 			}
 
-			err = client.CreateOrUpdateThenPoll(ctx, id)
-			if err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}

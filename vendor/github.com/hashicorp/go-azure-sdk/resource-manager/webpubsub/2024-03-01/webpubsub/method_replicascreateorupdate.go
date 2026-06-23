@@ -62,9 +62,20 @@ func (c WebPubSubClient) ReplicasCreateOrUpdate(ctx context.Context, id ReplicaI
 
 // ReplicasCreateOrUpdateThenPoll performs ReplicasCreateOrUpdate then polls until it's completed
 func (c WebPubSubClient) ReplicasCreateOrUpdateThenPoll(ctx context.Context, id ReplicaId, input Replica) error {
+	return c.ReplicasCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ReplicasCreateOrUpdateCallbackThenPoll performs ReplicasCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c WebPubSubClient) ReplicasCreateOrUpdateCallbackThenPoll(ctx context.Context, id ReplicaId, input Replica, callback func() error) error {
 	result, err := c.ReplicasCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ReplicasCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

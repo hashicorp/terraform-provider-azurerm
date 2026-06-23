@@ -60,9 +60,20 @@ func (c DomainsClient) InitiateVerification(ctx context.Context, id DomainId, in
 
 // InitiateVerificationThenPoll performs InitiateVerification then polls until it's completed
 func (c DomainsClient) InitiateVerificationThenPoll(ctx context.Context, id DomainId, input VerificationParameter) error {
+	return c.InitiateVerificationCallbackThenPoll(ctx, id, input, nil)
+}
+
+// InitiateVerificationCallbackThenPoll performs InitiateVerification, runs the optional callback function, then polls until it's completed
+func (c DomainsClient) InitiateVerificationCallbackThenPoll(ctx context.Context, id DomainId, input VerificationParameter, callback func() error) error {
 	result, err := c.InitiateVerification(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing InitiateVerification: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

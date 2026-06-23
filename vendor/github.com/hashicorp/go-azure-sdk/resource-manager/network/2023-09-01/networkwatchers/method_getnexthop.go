@@ -62,9 +62,20 @@ func (c NetworkWatchersClient) GetNextHop(ctx context.Context, id NetworkWatcher
 
 // GetNextHopThenPoll performs GetNextHop then polls until it's completed
 func (c NetworkWatchersClient) GetNextHopThenPoll(ctx context.Context, id NetworkWatcherId, input NextHopParameters) error {
+	return c.GetNextHopCallbackThenPoll(ctx, id, input, nil)
+}
+
+// GetNextHopCallbackThenPoll performs GetNextHop, runs the optional callback function, then polls until it's completed
+func (c NetworkWatchersClient) GetNextHopCallbackThenPoll(ctx context.Context, id NetworkWatcherId, input NextHopParameters, callback func() error) error {
 	result, err := c.GetNextHop(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing GetNextHop: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

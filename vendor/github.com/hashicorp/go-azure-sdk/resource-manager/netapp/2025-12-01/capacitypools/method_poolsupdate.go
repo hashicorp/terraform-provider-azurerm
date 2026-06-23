@@ -62,9 +62,20 @@ func (c CapacityPoolsClient) PoolsUpdate(ctx context.Context, id CapacityPoolId,
 
 // PoolsUpdateThenPoll performs PoolsUpdate then polls until it's completed
 func (c CapacityPoolsClient) PoolsUpdateThenPoll(ctx context.Context, id CapacityPoolId, input CapacityPoolPatch) error {
+	return c.PoolsUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// PoolsUpdateCallbackThenPoll performs PoolsUpdate, runs the optional callback function, then polls until it's completed
+func (c CapacityPoolsClient) PoolsUpdateCallbackThenPoll(ctx context.Context, id CapacityPoolId, input CapacityPoolPatch, callback func() error) error {
 	result, err := c.PoolsUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing PoolsUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

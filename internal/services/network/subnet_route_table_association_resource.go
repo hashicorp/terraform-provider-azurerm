@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -88,10 +89,12 @@ func resourceSubnetRouteTableAssociationCreate(d *pluginsdk.ResourceData, meta i
 
 	if model := subnet.Model; model != nil {
 		if props := model.Properties; props != nil {
-			if rt := props.RouteTable; rt != nil {
-				// we're intentionally not checking the ID - if there's a RouteTable, it needs to be imported
-				if rt.Id != nil && model.Id != nil {
-					return tf.ImportAsExistsError("azurerm_subnet_route_table_association", *model.Id)
+			if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				if rt := props.RouteTable; rt != nil {
+					// we're intentionally not checking the ID - if there's a RouteTable, it needs to be imported
+					if rt.Id != nil && model.Id != nil {
+						return tf.ImportAsExistsError("azurerm_subnet_route_table_association", *model.Id)
+					}
 				}
 			}
 
@@ -101,9 +104,11 @@ func resourceSubnetRouteTableAssociationCreate(d *pluginsdk.ResourceData, meta i
 		}
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, *id, *subnet.Model); err != nil {
+	// TODO: migrate this to a Composite ID
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, *id, *subnet.Model, sdk.SetIDCallback(meta, id, d)); err != nil {
 		return fmt.Errorf("updating Route Table Association for %s: %+v", id, err)
 	}
+	d.SetId(id.ID())
 
 	timeout, _ := ctx.Deadline()
 
@@ -129,8 +134,6 @@ func resourceSubnetRouteTableAssociationCreate(d *pluginsdk.ResourceData, meta i
 	if _, err = vnetStateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for provisioning state of virtual network for Route Table Association for %s: %+v", id, err)
 	}
-
-	d.SetId(id.ID())
 
 	return resourceSubnetRouteTableAssociationRead(d, meta)
 }

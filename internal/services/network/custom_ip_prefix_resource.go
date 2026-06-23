@@ -163,15 +163,17 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 
 			id := customipprefixes.NewCustomIPPrefixID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			existing, err := r.client.Get(ctx, id, customipprefixes.DefaultGetOperationOptions())
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := r.client.Get(ctx, id, customipprefixes.DefaultGetOperationOptions())
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			_, cidr, err := net.ParseCIDR(model.CIDR)
@@ -233,9 +235,10 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 				payload.Zones = &model.Zones
 			}
 
-			if err := r.client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+			if err := r.client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
+			metadata.SetID(id)
 
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending:    []string{string(customipprefixes.ProvisioningStateUpdating)},
@@ -266,7 +269,6 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 			}
 
 			log.Printf("[DEBUG] Final CommissionedState is %q for %s..", *commissionedState, id)
-			metadata.SetID(id)
 			return nil
 		},
 	}

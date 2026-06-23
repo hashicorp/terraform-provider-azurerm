@@ -62,9 +62,20 @@ func (c RegisteredServerResourceClient) RegisteredServersCreate(ctx context.Cont
 
 // RegisteredServersCreateThenPoll performs RegisteredServersCreate then polls until it's completed
 func (c RegisteredServerResourceClient) RegisteredServersCreateThenPoll(ctx context.Context, id RegisteredServerId, input RegisteredServerCreateParameters) error {
+	return c.RegisteredServersCreateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// RegisteredServersCreateCallbackThenPoll performs RegisteredServersCreate, runs the optional callback function, then polls until it's completed
+func (c RegisteredServerResourceClient) RegisteredServersCreateCallbackThenPoll(ctx context.Context, id RegisteredServerId, input RegisteredServerCreateParameters, callback func() error) error {
 	result, err := c.RegisteredServersCreate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing RegisteredServersCreate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

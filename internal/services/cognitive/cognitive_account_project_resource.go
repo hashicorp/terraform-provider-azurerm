@@ -10,8 +10,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesaccounts"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesprojects"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/cognitiveservicesaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/cognitiveservicesprojects"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/validate"
@@ -140,13 +140,15 @@ func (r CognitiveAccountProjectResource) Create() sdk.ResourceFunc {
 
 			id := cognitiveservicesprojects.NewProjectID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.AccountName, model.Name)
 
-			existing, err := client.ProjectsGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.ProjectsGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			expandedIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(model.Identity)
@@ -164,7 +166,7 @@ func (r CognitiveAccountProjectResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err := client.ProjectsCreateThenPoll(ctx, id, payload); err != nil {
+			if err := client.ProjectsCreateCallbackThenPoll(ctx, id, payload, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

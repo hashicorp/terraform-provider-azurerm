@@ -86,12 +86,14 @@ func (s SpringCloudApplicationLiveViewResource) Create() sdk.ResourceFunc {
 			}
 			id := parse.NewSpringCloudApplicationLiveViewID(springId.SubscriptionId, springId.ResourceGroup, springId.SpringName, model.Name)
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.ApplicationLiveViewName)
-			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return metadata.ResourceRequiresImport(s.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.ApplicationLiveViewName)
+				if err != nil && !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return metadata.ResourceRequiresImport(s.ResourceType(), id)
+				}
 			}
 
 			applicationLiveViewResource := appplatform.ApplicationLiveViewResource{}
@@ -100,11 +102,12 @@ func (s SpringCloudApplicationLiveViewResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
+			metadata.SetID(id)
+
 			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 				return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 			}
 
-			metadata.SetID(id)
 			return nil
 		},
 	}

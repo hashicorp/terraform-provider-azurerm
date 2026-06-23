@@ -58,9 +58,20 @@ func (c NamedValueClient) WorkspaceNamedValueRefreshSecret(ctx context.Context, 
 
 // WorkspaceNamedValueRefreshSecretThenPoll performs WorkspaceNamedValueRefreshSecret then polls until it's completed
 func (c NamedValueClient) WorkspaceNamedValueRefreshSecretThenPoll(ctx context.Context, id WorkspaceNamedValueId) error {
+	return c.WorkspaceNamedValueRefreshSecretCallbackThenPoll(ctx, id, nil)
+}
+
+// WorkspaceNamedValueRefreshSecretCallbackThenPoll performs WorkspaceNamedValueRefreshSecret, runs the optional callback function, then polls until it's completed
+func (c NamedValueClient) WorkspaceNamedValueRefreshSecretCallbackThenPoll(ctx context.Context, id WorkspaceNamedValueId, callback func() error) error {
 	result, err := c.WorkspaceNamedValueRefreshSecret(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing WorkspaceNamedValueRefreshSecret: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

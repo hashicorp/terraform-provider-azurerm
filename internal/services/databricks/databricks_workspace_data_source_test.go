@@ -105,7 +105,7 @@ resource "azurerm_databricks_workspace" "test" {
   name                = "acctestDBW-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "standard"
+  sku                 = "premium"
 }
 
 data "azurerm_databricks_workspace" "test" {
