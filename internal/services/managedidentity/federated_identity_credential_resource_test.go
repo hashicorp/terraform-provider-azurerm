@@ -20,13 +20,24 @@ import (
 
 type FederatedIdentityCredentialResource struct{}
 
-func TestAccFederatedIdentityCredential_basic(t *testing.T) {
+func TestAccFederatedIdentityCredentialSequential(t *testing.T) {
+	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
+		"federatedIdentityCredential": {
+			"basic":            testAccFederatedIdentityCredential_basic,
+			"deprecated":       testAccFederatedIdentityCredential_deprecated,
+			"requiresImport":   testAccFederatedIdentityCredential_requiresImport,
+			"resourceIdentity": testAccFederatedIdentityCredential_resourceIdentity,
+		},
+	})
+}
+
+func testAccFederatedIdentityCredential_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_federated_identity_credential", "test")
 	r := FederatedIdentityCredentialResource{}
 
 	rg := *regexp.MustCompile(`-updated`)
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -58,7 +69,7 @@ func TestAccFederatedIdentityCredential_basic(t *testing.T) {
 	})
 }
 
-func TestAccFederatedIdentityCredential_deprecated(t *testing.T) {
+func testAccFederatedIdentityCredential_deprecated(t *testing.T) {
 	if features.FivePointOh() {
 		t.Skip("this test is only valid in versions prior to 5.0")
 	}
@@ -66,7 +77,7 @@ func TestAccFederatedIdentityCredential_deprecated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_federated_identity_credential", "test")
 	r := FederatedIdentityCredentialResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.deprecated(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -78,11 +89,11 @@ func TestAccFederatedIdentityCredential_deprecated(t *testing.T) {
 	})
 }
 
-func TestAccFederatedIdentityCredential_requiresImport(t *testing.T) {
+func testAccFederatedIdentityCredential_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_federated_identity_credential", "test")
 	r := FederatedIdentityCredentialResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
