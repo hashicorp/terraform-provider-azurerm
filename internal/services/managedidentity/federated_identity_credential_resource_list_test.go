@@ -38,7 +38,7 @@ func TestAccFederatedIdentityCredential_list(t *testing.T) {
 				QueryResultChecks: []querycheck.QueryResultCheck{
 					querycheck.ExpectLength("azurerm_federated_identity_credential.list", 3),
 					querycheck.ExpectIdentity("azurerm_federated_identity_credential.list", map[string]knownvalue.Check{
-						"name":                       knownvalue.StringExact(resourceName),
+						"name":                        knownvalue.StringExact(resourceName),
 						"resource_group_name":         knownvalue.StringExact(resourceGroupName),
 						"subscription_id":             knownvalue.StringExact(data.Subscriptions.Primary),
 						"user_assigned_identity_name": knownvalue.StringExact(userAssignedIdentityName),
