@@ -592,8 +592,17 @@ Please follow the format in the example below for listing breaking changes in re
 
 ### `azurerm_mssql_database`
 
+* The `enclave_type` property is no longer computed.
 * The `long_term_retention_policy.weekly_retention`, `long_term_retention_policy.monthly_retention` and `long_term_retention_policy.yearly_retention` properties now default to `PT0S`.
 * The `threat_detection_policy.email_account_admins` property has been removed in favour of the `threat_detection_policy.email_account_admins_enabled` property.
+
+### `azurerm_mssql_database_extended_auditing_policy`
+
+* The `storage_endpoint` property has been removed in favour of the `blob_storage_endpoint` property.
+
+### `azurerm_mssql_elasticpool`
+
+* The `enclave_type` property is no longer computed.
 
 ### `azurerm_mssql_managed_database`
 
@@ -613,6 +622,10 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_mssql_server`
 
 * The property `minimum_tls_version` no longer accepts `Disabled`, `1.0` or `1.1` as a value.
+
+### `azurerm_mssql_server_extended_auditing_policy`
+
+* The `storage_endpoint` property has been removed in favour of the `blob_storage_endpoint` property.
 
 ### `azurerm_mssql_server_security_alert_policy`
 

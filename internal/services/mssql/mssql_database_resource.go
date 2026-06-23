@@ -1644,7 +1644,6 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"enclave_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true, // TODO: Remove Computed in 4.0
 			ValidateFunc: validation.StringInSlice([]string{
 				string(databases.AlwaysEncryptedEnclaveTypeVBS),
 				string(databases.AlwaysEncryptedEnclaveTypeDefault),
@@ -1900,6 +1899,16 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			ConflictsWith: []string{"threat_detection_policy.0.email_account_admins_enabled"},
 			ValidateFunc:  validation.StringInSlice(PossibleValuesForEmailAccountAdminsStatus(), false),
 			Deprecated:    "`email_account_admins` has been deprecated in favour of `email_account_admins_enabled` and will be removed in v5.0 of the AzureRM Provider",
+		}
+
+		resource["enclave_type"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(databases.AlwaysEncryptedEnclaveTypeVBS),
+				string(databases.AlwaysEncryptedEnclaveTypeDefault),
+			}, false),
 		}
 
 		atLeastOneOf := []string{
