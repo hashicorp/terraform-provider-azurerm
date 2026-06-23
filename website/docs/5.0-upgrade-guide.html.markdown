@@ -463,6 +463,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * Validation for `rbac_authorization.resource_id` has been changed to validate for an integration runtime resource ID (case-sensitive) rather than validating for a non-empty string.
 
+### `azurerm_dedicated_host`
+
+* The `license_type` property no longer accepts `None` as a value. Omitting the property sets `None` in the request.
+
 ### `azurerm_disk_encryption_set`
 
 * The deprecated `managed_hsm_key_id` property has been removed in favour of the `key_vault_key_id` property.
