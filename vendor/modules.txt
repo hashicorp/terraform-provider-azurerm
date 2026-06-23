@@ -167,6 +167,7 @@ github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
 # github.com/hashicorp/go-azure-sdk/data-plane v0.20260616.1142719
 ## explicit; go 1.26.3
+github.com/hashicorp/go-azure-sdk/data-plane/batch/2022-01-01-15-0/jobs
 github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4
 github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/certificates
 github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/deletedcertificates
@@ -1532,7 +1533,6 @@ github.com/jackofallops/giovanni/storage/internal/metadata
 github.com/jackofallops/kermit/sdk/appconfiguration/1.0/appconfiguration
 github.com/jackofallops/kermit/sdk/appplatform/2023-05-01-preview/appplatform
 github.com/jackofallops/kermit/sdk/attestation/2022-08-01/attestation
-github.com/jackofallops/kermit/sdk/batch/2022-01.15.0/batch
 github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice
 github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory
 github.com/jackofallops/kermit/sdk/iotcentral/2022-10-31-preview/iotcentral
@@ -1541,7 +1541,6 @@ github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault
 github.com/jackofallops/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights
 github.com/jackofallops/kermit/sdk/synapse/2020-08-01-preview/synapse
 github.com/jackofallops/kermit/sdk/synapse/2021-06-01-preview/synapse
-github.com/jackofallops/kermit/sdk/web/2022-09-01/web
 github.com/jackofallops/kermit/version
 # github.com/magodo/terraform-provider-azurerm-example-gen v0.0.0-20250424222324-b015d063c1fc
 ## explicit; go 1.21
