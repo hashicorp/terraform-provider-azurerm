@@ -1790,11 +1790,12 @@ resource "azurerm_storage_account" "test" {
   resource_group_name      = azurerm_resource_group.test.name
   account_tier             = "Standard"
   account_replication_type = "LRS"
+}
 
-  static_website {
-    error_404_document = "error.html"
-    index_document     = "index.html"
-  }
+resource "azurerm_storage_account_static_website" "test" {
+  storage_account_id = azurerm_storage_account.test.id
+  error_404_document = "error.html"
+  index_document     = "index.html"
 }
 
 resource "azurerm_machine_learning_workspace" "test" {
