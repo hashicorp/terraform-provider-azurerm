@@ -84,7 +84,7 @@ The `ForPreflight` suffix is not used — the resource name provides the necessa
 `ResourceDiff` always contains the **complete planned state**, not just changed values. When
 `metadata.DecodeDiff(&model)` is called, the SDK resolves each field through a priority chain of
 `state → config → diff → newDiff`. Unchanged fields on an update are satisfied from the prior
-`state` layer and are never empty. However, any unknown values are unavailble in `diff` or `newDiff`. In 
+`state` layer and are never empty. However, any unknown values are unavailable in `diff` or `newDiff`. In 
 the case of unknown values, a value of "" may be sent to the API, which may be rejected by the validation
 creating a false negative failure. This is unfortunately a limitation of Terraform's plan-time data availability. 
 
