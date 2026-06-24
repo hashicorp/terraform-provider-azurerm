@@ -24,9 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var (
-	_ sdk.ResourceWithUpdate = ExascaleDatabaseVirtualMachineClusterResource{}
-)
+var _ sdk.ResourceWithUpdate = ExascaleDatabaseVirtualMachineClusterResource{}
 
 type ExascaleDatabaseVirtualMachineClusterResource struct{}
 
