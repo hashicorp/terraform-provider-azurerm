@@ -110,7 +110,7 @@ resource "azurerm_stream_analytics_output_function" "test" {
   name                      = "acctestoutput-%d"
   stream_analytics_job_name = azurerm_stream_analytics_job.test.name
   resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
-  function_app              = azurerm_function_app.test.name
+  function_app              = azurerm_linux_function_app.test.name
   function_name             = "somefunctionname"
   api_key                   = "test"
 }
@@ -142,7 +142,7 @@ resource "azurerm_stream_analytics_output_function" "test" {
   name                      = "acctestoutput-%d"
   stream_analytics_job_name = azurerm_stream_analytics_job.test.name
   resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
-  function_app              = azurerm_function_app.test.name
+  function_app              = azurerm_linux_function_app.test.name
   function_name             = "adifferentfunctionname"
   api_key                   = "withanewkey!"
   batch_max_in_bytes        = 128
