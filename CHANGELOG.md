@@ -1,6 +1,7 @@
 ## 4.79.0 (Unreleased)
 
 ENHANCEMENTS:
+* `desktopvirtualization` - upgrade API version to `2025-10-10` [GH-32563]
 * `azurerm_batch_job` - migrate to `go-azure-sdk` [GH-32662]
 * `azurerm_postgresql_flexible_server` - add Ddsv6 skus to validation  [GH-32657]
 * `azurerm_virtual_network_gateway` - add support for `maximum_scale_unit` and `minimum_scale_unit` [GH-32647]
