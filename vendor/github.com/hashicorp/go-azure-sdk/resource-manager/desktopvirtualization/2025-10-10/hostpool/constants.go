@@ -159,15 +159,17 @@ func parseHostpoolPublicNetworkAccess(input string) (*HostpoolPublicNetworkAcces
 type LoadBalancerType string
 
 const (
-	LoadBalancerTypeBreadthFirst LoadBalancerType = "BreadthFirst"
-	LoadBalancerTypeDepthFirst   LoadBalancerType = "DepthFirst"
-	LoadBalancerTypePersistent   LoadBalancerType = "Persistent"
+	LoadBalancerTypeBreadthFirst       LoadBalancerType = "BreadthFirst"
+	LoadBalancerTypeDepthFirst         LoadBalancerType = "DepthFirst"
+	LoadBalancerTypeMultiplePersistent LoadBalancerType = "MultiplePersistent"
+	LoadBalancerTypePersistent         LoadBalancerType = "Persistent"
 )
 
 func PossibleValuesForLoadBalancerType() []string {
 	return []string{
 		string(LoadBalancerTypeBreadthFirst),
 		string(LoadBalancerTypeDepthFirst),
+		string(LoadBalancerTypeMultiplePersistent),
 		string(LoadBalancerTypePersistent),
 	}
 }
@@ -187,9 +189,10 @@ func (s *LoadBalancerType) UnmarshalJSON(bytes []byte) error {
 
 func parseLoadBalancerType(input string) (*LoadBalancerType, error) {
 	vals := map[string]LoadBalancerType{
-		"breadthfirst": LoadBalancerTypeBreadthFirst,
-		"depthfirst":   LoadBalancerTypeDepthFirst,
-		"persistent":   LoadBalancerTypePersistent,
+		"breadthfirst":       LoadBalancerTypeBreadthFirst,
+		"depthfirst":         LoadBalancerTypeDepthFirst,
+		"multiplepersistent": LoadBalancerTypeMultiplePersistent,
+		"persistent":         LoadBalancerTypePersistent,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
