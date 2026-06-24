@@ -89,6 +89,29 @@ func TestAccMsSqlDatabase_free(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlDatabase_freeLimitValidation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MssqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			// `free_limit_exhaustion_behavior` cannot be set without `free_limit_enabled = true`
+			Config:      r.freeLimitExhaustionBehaviorWithoutEnabled(data),
+			ExpectError: regexp.MustCompile("`free_limit_exhaustion_behavior` can only be set when `free_limit_enabled` is `true`"),
+		},
+		{
+			// `free_limit_enabled` requires a serverless General Purpose SKU
+			Config:      r.freeLimitEnabledNonServerlessSku(data),
+			ExpectError: regexp.MustCompile("`free_limit_enabled` can only be set to `true` when `sku_name` is a serverless General Purpose SKU"),
+		},
+		{
+			// the default `AutoPause` exhaustion behavior requires `Local` backup storage
+			Config:      r.freeLimitEnabledNonLocalStorage(data),
+			ExpectError: regexp.MustCompile("`storage_account_type` must be `Local` when `free_limit_enabled` is `true`"),
+		},
+	})
+}
+
 func TestAccMsSqlDatabase_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MssqlDatabaseResource{}
@@ -1396,6 +1419,45 @@ resource "azurerm_mssql_database" "test" {
   free_limit_enabled          = true
   storage_account_type        = "Local"
   geo_backup_enabled          = false
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r MssqlDatabaseResource) freeLimitExhaustionBehaviorWithoutEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name                           = "acctest-db-%[2]d"
+  server_id                      = azurerm_mssql_server.test.id
+  free_limit_exhaustion_behavior = "AutoPause"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r MssqlDatabaseResource) freeLimitEnabledNonServerlessSku(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name               = "acctest-db-%[2]d"
+  server_id          = azurerm_mssql_server.test.id
+  sku_name           = "Basic"
+  free_limit_enabled = true
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r MssqlDatabaseResource) freeLimitEnabledNonLocalStorage(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name                 = "acctest-db-%[2]d"
+  server_id            = azurerm_mssql_server.test.id
+  sku_name             = "GP_S_Gen5_2"
+  free_limit_enabled   = true
+  storage_account_type = "Geo"
 }
 `, r.template(data), data.RandomInteger)
 }
