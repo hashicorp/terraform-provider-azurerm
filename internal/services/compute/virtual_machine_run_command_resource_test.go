@@ -54,13 +54,13 @@ func TestAccVirtualMachineRunCommand_recreate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_run_command", "test")
 	r := VirtualMachineRunCommandTestResource{}
 
-	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.basicWithScriptError(data),
-			ExpectError: regexp.MustCompile("running the command"),
+			ExpectError: regexp.MustCompile("failed to execute command"),
 		},
 		{
-			Config: r.basic(data),
+			Config: r.basicWithSkipImportCheck(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -226,6 +226,27 @@ resource "azurerm_virtual_machine_run_command" "import" {
   }
 }
 `, r.basic(data))
+}
+
+func (r VirtualMachineRunCommandTestResource) basicWithSkipImportCheck(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    skip_import_check_on_create_and_allow_overwriting_existing_resources = true
+  }
+}
+
+%s
+
+resource "azurerm_virtual_machine_run_command" "test" {
+  name               = "acctestvmrc-${var.random_string}"
+  location           = azurerm_resource_group.test.location
+  virtual_machine_id = azurerm_linux_virtual_machine.test.id
+  source {
+    script = "echo 'hello world'"
+  }
+}
+`, r.template(data))
 }
 
 func (r VirtualMachineRunCommandTestResource) basicWithParameters(data acceptance.TestData) string {
@@ -590,7 +611,7 @@ resource "azurerm_virtual_machine_run_command" "test" {
 `, r.template(data))
 	}
 	return fmt.Sprintf(`
-%s
+	%s
 
 provider "azurerm" {
   features {}
@@ -612,25 +633,22 @@ resource "azurerm_storage_container" "test" {
 }
 
 resource "azurerm_storage_blob" "test1" {
-  name                   = "script1"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-  source_content         = "echo 'hello world'"
+  name                 = "script1"
+  storage_container_id = azurerm_storage_container.test.id
+  type                 = "Block"
+  source_content       = "echo 'hello world'"
 }
 
 resource "azurerm_storage_blob" "test2" {
-  name                   = "output"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Append"
+  name                 = "output"
+  storage_container_id = azurerm_storage_container.test.id
+  type                 = "Append"
 }
 
 resource "azurerm_storage_blob" "test3" {
-  name                   = "error"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Append"
+  name                 = "error"
+  storage_container_id = azurerm_storage_container.test.id
+  type                 = "Append"
 }
 
 resource "azurerm_role_assignment" "test" {
@@ -805,25 +823,22 @@ resource "azurerm_storage_container" "test" {
 }
 
 resource "azurerm_storage_blob" "test1" {
-  name                   = "script1"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-  source_content         = "echo 'hello world'"
+  name                 = "script1"
+  storage_container_id = azurerm_storage_container.test.id
+  type                 = "Block"
+  source_content       = "echo 'hello world'"
 }
 
 resource "azurerm_storage_blob" "test2" {
-  name                   = "output"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Append"
+  name                 = "output"
+  storage_container_id = azurerm_storage_container.test.id
+  type                 = "Append"
 }
 
 resource "azurerm_storage_blob" "test3" {
-  name                   = "error"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Append"
+  name                 = "error"
+  storage_container_id = azurerm_storage_container.test.id
+  type                 = "Append"
 }
 
 data "azurerm_storage_account_sas" "test" {
