@@ -189,7 +189,6 @@ func (r StreamAnalyticsOutputEventhubResource) Exists(ctx context.Context, clien
 }
 
 func (r StreamAnalyticsOutputEventhubResource) avro(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -206,11 +205,10 @@ resource "azurerm_stream_analytics_output_eventhub" "test" {
     type = "Avro"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputEventhubResource) csv(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -229,11 +227,10 @@ resource "azurerm_stream_analytics_output_eventhub" "test" {
     field_delimiter = ","
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputEventhubResource) propertyColumns(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -253,11 +250,10 @@ resource "azurerm_stream_analytics_output_eventhub" "test" {
     field_delimiter = ","
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputEventhubResource) partitionKey(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -277,11 +273,10 @@ resource "azurerm_stream_analytics_output_eventhub" "test" {
     field_delimiter = ","
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputEventhubResource) json(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -300,11 +295,10 @@ resource "azurerm_stream_analytics_output_eventhub" "test" {
     format   = "LineSeparated"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputEventhubResource) jsonArrayFormat(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -323,11 +317,10 @@ resource "azurerm_stream_analytics_output_eventhub" "test" {
     format   = "Array"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputEventhubResource) updated(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -341,7 +334,7 @@ resource "azurerm_eventhub_namespace" "updated" {
 
 resource "azurerm_eventhub" "updated" {
   name                = "acctesteh2-%d"
-  namespace_name      = azurerm_eventhub_namespace.updated.name
+  namespace_id        = azurerm_eventhub_namespace.updated.id
   resource_group_name = azurerm_resource_group.test.name
   partition_count     = 2
   message_retention   = 1
@@ -360,11 +353,10 @@ resource "azurerm_stream_analytics_output_eventhub" "test" {
     type = "Avro"
   }
 }
-`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputEventhubResource) requiresImport(data acceptance.TestData) string {
-	template := r.json(data)
 	return fmt.Sprintf(`
 %s
 
@@ -383,11 +375,10 @@ resource "azurerm_stream_analytics_output_eventhub" "import" {
     format   = azurerm_stream_analytics_output_eventhub.test.serialization.0.format
   }
 }
-`, template)
+`, r.json(data))
 }
 
 func (r StreamAnalyticsOutputEventhubResource) authenticationMode(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -405,7 +396,7 @@ resource "azurerm_stream_analytics_output_eventhub" "test" {
     format   = "Array"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputEventhubResource) template(data acceptance.TestData) string {
@@ -429,7 +420,7 @@ resource "azurerm_eventhub_namespace" "test" {
 
 resource "azurerm_eventhub" "test" {
   name                = "acctesteh-%d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
+  namespace_id        = azurerm_eventhub_namespace.test.id
   resource_group_name = azurerm_resource_group.test.name
   partition_count     = 2
   message_retention   = 1

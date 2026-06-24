@@ -180,7 +180,6 @@ func (r StreamAnalyticsStreamInputEventHubResource) Exists(ctx context.Context, 
 }
 
 func (r StreamAnalyticsStreamInputEventHubResource) avro(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -198,11 +197,10 @@ resource "azurerm_stream_analytics_stream_input_eventhub" "test" {
     type = "Avro"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsStreamInputEventHubResource) csv(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -223,11 +221,10 @@ resource "azurerm_stream_analytics_stream_input_eventhub" "test" {
     field_delimiter = ","
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsStreamInputEventHubResource) json(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -247,11 +244,10 @@ resource "azurerm_stream_analytics_stream_input_eventhub" "test" {
     encoding = "UTF8"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsStreamInputEventHubResource) jsonNoOptional(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -269,11 +265,10 @@ resource "azurerm_stream_analytics_stream_input_eventhub" "test" {
     encoding = "UTF8"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsStreamInputEventHubResource) updated(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -287,7 +282,7 @@ resource "azurerm_eventhub_namespace" "updated" {
 
 resource "azurerm_eventhub" "updated" {
   name                = "acctesteh2-%d"
-  namespace_name      = azurerm_eventhub_namespace.updated.name
+  namespace_id        = azurerm_eventhub_namespace.updated.id
   resource_group_name = azurerm_resource_group.test.name
   partition_count     = 2
   message_retention   = 1
@@ -295,7 +290,7 @@ resource "azurerm_eventhub" "updated" {
 
 resource "azurerm_eventhub_consumer_group" "updated" {
   name                = "acctesteventhubcg2-%d"
-  namespace_name      = azurerm_eventhub_namespace.updated.name
+  namespace_id        = azurerm_eventhub_namespace.updated.id
   eventhub_name       = azurerm_eventhub.updated.name
   resource_group_name = azurerm_resource_group.test.name
 }
@@ -315,11 +310,10 @@ resource "azurerm_stream_analytics_stream_input_eventhub" "test" {
     type = "Avro"
   }
 }
-`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r StreamAnalyticsStreamInputEventHubResource) requiresImport(data acceptance.TestData) string {
-	template := r.json(data)
 	return fmt.Sprintf(`
 %s
 
@@ -340,11 +334,10 @@ resource "azurerm_stream_analytics_stream_input_eventhub" "import" {
     }
   }
 }
-`, template)
+`, r.json(data))
 }
 
 func (r StreamAnalyticsStreamInputEventHubResource) authenticationMode(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -365,7 +358,7 @@ resource "azurerm_stream_analytics_stream_input_eventhub" "test" {
     encoding = "UTF8"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsStreamInputEventHubResource) msiWithoutSharedAccessPolicy(data acceptance.TestData) string {
@@ -410,7 +403,7 @@ resource "azurerm_eventhub_namespace" "test" {
 
 resource "azurerm_eventhub" "test" {
   name                = "acctesteh-%d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
+  namespace_id        = azurerm_eventhub_namespace.test.id
   resource_group_name = azurerm_resource_group.test.name
   partition_count     = 2
   message_retention   = 1
@@ -418,7 +411,7 @@ resource "azurerm_eventhub" "test" {
 
 resource "azurerm_eventhub_consumer_group" "test" {
   name                = "acctesteventhubcg-%d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
+  namespace_id        = azurerm_eventhub_namespace.test.id
   eventhub_name       = azurerm_eventhub.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
