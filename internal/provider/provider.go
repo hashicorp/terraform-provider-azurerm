@@ -393,10 +393,11 @@ func azureProvider(supportLegacyTestSuite bool, testName string) *schema.Provide
 		}
 
 		p.Schema["enhanced_validation"] = &schema.Schema{
-			Type:       schema.TypeList,
-			Optional:   true,
-			MaxItems:   1,
-			Deprecated: "This block has been deprecated and will be removed in version 5.0 of the AzureRM provider. Please use the `enhanced_validation` block inside the `features` block instead.",
+			Type:          schema.TypeList,
+			Optional:      true,
+			MaxItems:      1,
+			ConflictsWith: []string{"features.0.enhanced_validation"},
+			Deprecated:    "This block has been deprecated and will be removed in version 5.0 of the AzureRM provider. Please use the `enhanced_validation` block inside the `features` block instead.",
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"locations": {
@@ -564,19 +565,6 @@ func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData
 		}
 
 		if raw, ok := d.GetOk("enhanced_validation"); ok {
-			featuresRaw := d.Get("features").([]interface{})
-			featuresEvSet := false
-			if len(featuresRaw) > 0 && featuresRaw[0] != nil {
-				featuresMap := featuresRaw[0].(map[string]interface{})
-				if _, hasEv := featuresMap["enhanced_validation"]; hasEv {
-					featuresEvSet = true
-				}
-			}
-
-			if featuresEvSet {
-				return nil, diag.Errorf("the `enhanced_validation` block is defined at both the provider root and inside the `features` block. Please remove the block at the provider root as it is deprecated.")
-			}
-
 			items := raw.([]interface{})
 			if len(items) > 0 && items[0] != nil {
 				evRaw := items[0].(map[string]interface{})
