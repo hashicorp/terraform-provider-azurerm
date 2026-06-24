@@ -85,7 +85,6 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 				ForceNew:         true,
 				ExactlyOneOf:     []string{"role_definition_id", "role_definition_name"},
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     roledefinitions.ValidateScopedRoleDefinitionID,
 			},
 
 			"role_definition_name": {
