@@ -140,7 +140,7 @@ func (ResourceProviderRegistrationResource) basic(name string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
-  skip_provider_registration = true
+  resource_provider_registrations = "none"
 }
 
 resource "azurerm_resource_provider_registration" "test" {
@@ -220,7 +220,7 @@ provider "azurerm" {
   subscription_id = "%[1]s"
 
   features {}
-  skip_provider_registration = true
+  resource_provider_registrations = "none"
 }
 
 resource "azurerm_resource_provider_registration" "test" {

@@ -63,9 +63,20 @@ func (c StorageAccountsClient) RestoreBlobRanges(ctx context.Context, id commoni
 
 // RestoreBlobRangesThenPoll performs RestoreBlobRanges then polls until it's completed
 func (c StorageAccountsClient) RestoreBlobRangesThenPoll(ctx context.Context, id commonids.StorageAccountId, input BlobRestoreParameters) error {
+	return c.RestoreBlobRangesCallbackThenPoll(ctx, id, input, nil)
+}
+
+// RestoreBlobRangesCallbackThenPoll performs RestoreBlobRanges, runs the optional callback function, then polls until it's completed
+func (c StorageAccountsClient) RestoreBlobRangesCallbackThenPoll(ctx context.Context, id commonids.StorageAccountId, input BlobRestoreParameters, callback func() error) error {
 	result, err := c.RestoreBlobRanges(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing RestoreBlobRanges: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

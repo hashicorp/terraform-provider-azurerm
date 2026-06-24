@@ -84,6 +84,8 @@ func (r IotCentralOrganizationResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
+			// TODO: import check
+
 			app, err := client.AppsClient.Get(ctx, *appId)
 			if err != nil || app.Model == nil {
 				return fmt.Errorf("checking for the presence of existing %q: %+v", appId, err)

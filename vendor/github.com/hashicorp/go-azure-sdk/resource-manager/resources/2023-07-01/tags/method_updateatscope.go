@@ -63,9 +63,20 @@ func (c TagsClient) UpdateAtScope(ctx context.Context, id commonids.ScopeId, inp
 
 // UpdateAtScopeThenPoll performs UpdateAtScope then polls until it's completed
 func (c TagsClient) UpdateAtScopeThenPoll(ctx context.Context, id commonids.ScopeId, input TagsPatchResource) error {
+	return c.UpdateAtScopeCallbackThenPoll(ctx, id, input, nil)
+}
+
+// UpdateAtScopeCallbackThenPoll performs UpdateAtScope, runs the optional callback function, then polls until it's completed
+func (c TagsClient) UpdateAtScopeCallbackThenPoll(ctx context.Context, id commonids.ScopeId, input TagsPatchResource, callback func() error) error {
 	result, err := c.UpdateAtScope(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing UpdateAtScope: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

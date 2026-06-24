@@ -58,9 +58,20 @@ func (c CosmosDBClient) CassandraResourcesMigrateCassandraKeyspaceToAutoscale(ct
 
 // CassandraResourcesMigrateCassandraKeyspaceToAutoscaleThenPoll performs CassandraResourcesMigrateCassandraKeyspaceToAutoscale then polls until it's completed
 func (c CosmosDBClient) CassandraResourcesMigrateCassandraKeyspaceToAutoscaleThenPoll(ctx context.Context, id CassandraKeyspaceId) error {
+	return c.CassandraResourcesMigrateCassandraKeyspaceToAutoscaleCallbackThenPoll(ctx, id, nil)
+}
+
+// CassandraResourcesMigrateCassandraKeyspaceToAutoscaleCallbackThenPoll performs CassandraResourcesMigrateCassandraKeyspaceToAutoscale, runs the optional callback function, then polls until it's completed
+func (c CosmosDBClient) CassandraResourcesMigrateCassandraKeyspaceToAutoscaleCallbackThenPoll(ctx context.Context, id CassandraKeyspaceId, callback func() error) error {
 	result, err := c.CassandraResourcesMigrateCassandraKeyspaceToAutoscale(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing CassandraResourcesMigrateCassandraKeyspaceToAutoscale: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

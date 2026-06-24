@@ -62,9 +62,20 @@ func (c DeploymentsClient) ValidateAtSubscriptionScope(ctx context.Context, id P
 
 // ValidateAtSubscriptionScopeThenPoll performs ValidateAtSubscriptionScope then polls until it's completed
 func (c DeploymentsClient) ValidateAtSubscriptionScopeThenPoll(ctx context.Context, id ProviderDeploymentId, input Deployment) error {
+	return c.ValidateAtSubscriptionScopeCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ValidateAtSubscriptionScopeCallbackThenPoll performs ValidateAtSubscriptionScope, runs the optional callback function, then polls until it's completed
+func (c DeploymentsClient) ValidateAtSubscriptionScopeCallbackThenPoll(ctx context.Context, id ProviderDeploymentId, input Deployment, callback func() error) error {
 	result, err := c.ValidateAtSubscriptionScope(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ValidateAtSubscriptionScope: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

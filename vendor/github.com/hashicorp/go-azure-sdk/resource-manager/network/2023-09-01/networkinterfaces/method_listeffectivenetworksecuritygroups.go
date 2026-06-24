@@ -77,9 +77,20 @@ func (c NetworkInterfacesClient) ListEffectiveNetworkSecurityGroups(ctx context.
 
 // ListEffectiveNetworkSecurityGroupsThenPoll performs ListEffectiveNetworkSecurityGroups then polls until it's completed
 func (c NetworkInterfacesClient) ListEffectiveNetworkSecurityGroupsThenPoll(ctx context.Context, id commonids.NetworkInterfaceId) error {
+	return c.ListEffectiveNetworkSecurityGroupsCallbackThenPoll(ctx, id, nil)
+}
+
+// ListEffectiveNetworkSecurityGroupsCallbackThenPoll performs ListEffectiveNetworkSecurityGroups, runs the optional callback function, then polls until it's completed
+func (c NetworkInterfacesClient) ListEffectiveNetworkSecurityGroupsCallbackThenPoll(ctx context.Context, id commonids.NetworkInterfaceId, callback func() error) error {
 	result, err := c.ListEffectiveNetworkSecurityGroups(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ListEffectiveNetworkSecurityGroups: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

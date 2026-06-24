@@ -60,9 +60,20 @@ func (c RunbookDraftClient) ReplaceContent(ctx context.Context, id RunbookId, in
 
 // ReplaceContentThenPoll performs ReplaceContent then polls until it's completed
 func (c RunbookDraftClient) ReplaceContentThenPoll(ctx context.Context, id RunbookId, input []byte) error {
+	return c.ReplaceContentCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ReplaceContentCallbackThenPoll performs ReplaceContent, runs the optional callback function, then polls until it's completed
+func (c RunbookDraftClient) ReplaceContentCallbackThenPoll(ctx context.Context, id RunbookId, input []byte, callback func() error) error {
 	result, err := c.ReplaceContent(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ReplaceContent: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

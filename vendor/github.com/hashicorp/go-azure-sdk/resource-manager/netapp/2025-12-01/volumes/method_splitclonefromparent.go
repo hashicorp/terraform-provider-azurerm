@@ -58,9 +58,20 @@ func (c VolumesClient) SplitCloneFromParent(ctx context.Context, id VolumeId) (r
 
 // SplitCloneFromParentThenPoll performs SplitCloneFromParent then polls until it's completed
 func (c VolumesClient) SplitCloneFromParentThenPoll(ctx context.Context, id VolumeId) error {
+	return c.SplitCloneFromParentCallbackThenPoll(ctx, id, nil)
+}
+
+// SplitCloneFromParentCallbackThenPoll performs SplitCloneFromParent, runs the optional callback function, then polls until it's completed
+func (c VolumesClient) SplitCloneFromParentCallbackThenPoll(ctx context.Context, id VolumeId, callback func() error) error {
 	result, err := c.SplitCloneFromParent(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing SplitCloneFromParent: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

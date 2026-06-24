@@ -125,7 +125,6 @@ func TestAccLogicAppStandard_publicNetworkAccessDisabled(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("public_network_access").HasValue("Disabled"),
-				check.That(data.ResourceName).Key("site_config.0.public_network_access_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -134,7 +133,6 @@ func TestAccLogicAppStandard_publicNetworkAccessDisabled(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("public_network_access").HasValue("Enabled"),
-				check.That(data.ResourceName).Key("site_config.0.public_network_access_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -143,7 +141,6 @@ func TestAccLogicAppStandard_publicNetworkAccessDisabled(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("public_network_access").HasValue("Disabled"),
-				check.That(data.ResourceName).Key("site_config.0.public_network_access_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -2606,7 +2603,7 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%[2]d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -2634,7 +2631,7 @@ resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%[2]d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 

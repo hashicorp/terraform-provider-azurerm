@@ -61,9 +61,20 @@ func (c VolumesClient) BreakFileLocks(ctx context.Context, id VolumeId, input Br
 
 // BreakFileLocksThenPoll performs BreakFileLocks then polls until it's completed
 func (c VolumesClient) BreakFileLocksThenPoll(ctx context.Context, id VolumeId, input BreakFileLocksRequest) error {
+	return c.BreakFileLocksCallbackThenPoll(ctx, id, input, nil)
+}
+
+// BreakFileLocksCallbackThenPoll performs BreakFileLocks, runs the optional callback function, then polls until it's completed
+func (c VolumesClient) BreakFileLocksCallbackThenPoll(ctx context.Context, id VolumeId, input BreakFileLocksRequest, callback func() error) error {
 	result, err := c.BreakFileLocks(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing BreakFileLocks: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

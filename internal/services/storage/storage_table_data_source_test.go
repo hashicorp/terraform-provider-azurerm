@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 type StorageTableDataSource struct{}
@@ -29,7 +30,8 @@ func TestAccDataSourceStorageTable_basic(t *testing.T) {
 }
 
 func (d StorageTableDataSource) basic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -62,18 +64,63 @@ resource "azurerm_storage_table" "test" {
     }
   }
 }
+`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
 
+resource "azurerm_resource_group" "test" {
+  name     = "tabledstest-%s"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "acctesttedsc%s"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_table" "test" {
+  name               = "tabletesttedsc%s"
+  storage_account_id = azurerm_storage_account.test.id
+
+  acl {
+    id = "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"
+
+    access_policy {
+      permissions = "raud"
+      start       = "2020-11-26T08:49:37.0000000Z"
+      expiry      = "2020-11-27T08:49:37.0000000Z"
+    }
+  }
+}
 `, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
 func (d StorageTableDataSource) basicWithDataSource(data acceptance.TestData) string {
+	if !features.FivePointOh() {
+		config := d.basic(data)
+		return fmt.Sprintf(`
+	%s
+
+data "azurerm_storage_table" "test" {
+  name                 = azurerm_storage_table.test.name
+  storage_account_name = azurerm_storage_table.test.storage_account_name
+}
+	`, config)
+	}
 	config := d.basic(data)
 	return fmt.Sprintf(`
 %s
 
 data "azurerm_storage_table" "test" {
-  name                 = azurerm_storage_table.test.name
-  storage_account_name = azurerm_storage_table.test.storage_account_name
+  name               = azurerm_storage_table.test.name
+  storage_account_id = azurerm_storage_table.test.storage_account_id
 }
 `, config)
 }

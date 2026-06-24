@@ -87,9 +87,20 @@ func (c VirtualNetworkGatewaysClient) GetAdvertisedRoutes(ctx context.Context, i
 
 // GetAdvertisedRoutesThenPoll performs GetAdvertisedRoutes then polls until it's completed
 func (c VirtualNetworkGatewaysClient) GetAdvertisedRoutesThenPoll(ctx context.Context, id VirtualNetworkGatewayId, options GetAdvertisedRoutesOperationOptions) error {
+	return c.GetAdvertisedRoutesCallbackThenPoll(ctx, id, options, nil)
+}
+
+// GetAdvertisedRoutesCallbackThenPoll performs GetAdvertisedRoutes, runs the optional callback function, then polls until it's completed
+func (c VirtualNetworkGatewaysClient) GetAdvertisedRoutesCallbackThenPoll(ctx context.Context, id VirtualNetworkGatewayId, options GetAdvertisedRoutesOperationOptions, callback func() error) error {
 	result, err := c.GetAdvertisedRoutes(ctx, id, options)
 	if err != nil {
 		return fmt.Errorf("performing GetAdvertisedRoutes: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
