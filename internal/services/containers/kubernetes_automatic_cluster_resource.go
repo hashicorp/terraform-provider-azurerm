@@ -70,7 +70,6 @@ type KubernetesAutomaticClusterModel struct {
 	Tags                            map[string]interface{}              `tfschema:"tags"`
 	UpgradeOverride                 []UpgradeOverrideModel              `tfschema:"upgrade_override"`
 	WebAppRouting                   []WebAppRoutingModel                `tfschema:"web_app_routing"`
-	WindowsProfile                  []WindowsProfileModel               `tfschema:"windows_profile"`
 	AIToolchainOperatorEnabled      bool                                `tfschema:"ai_toolchain_operator_enabled"`
 
 	// Addon fields
@@ -248,13 +247,6 @@ type WebAppRoutingIdentityModel struct {
 	UserAssignedIdentityID string `tfschema:"user_assigned_identity_id"`
 }
 
-type WindowsProfileModel struct {
-	AdminUsername string      `tfschema:"admin_username"`
-	AdminPassword string      `tfschema:"admin_password"`
-	License       string      `tfschema:"license"`
-	GMSA          []GMSAModel `tfschema:"group_managed_service_accounts"`
-}
-
 type GMSAModel struct {
 	DNSServer          string `tfschema:"dns_server"`
 	RootDomain         string `tfschema:"root_domain"`
@@ -408,36 +400,6 @@ func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
 			rd := metadata.ResourceDiff
 
 			if rd.Id() != "" {
-				// Check windows_profile gmsa changes
-				if rd.HasChange("windows_profile.0.group_managed_service_accounts") {
-					old, new := rd.GetChange("windows_profile.0.group_managed_service_accounts")
-					oldList := old.([]interface{})
-					newList := new.([]interface{})
-					if len(oldList) > 0 && len(newList) == 0 {
-						if err := metadata.ResourceDiff.ForceNew("windows_profile.group_managed_service_accounts"); err != nil {
-							return err
-						}
-					}
-				}
-
-				if rd.HasChange("windows_profile.0.group_managed_service_accounts.0.dns_server") {
-					old, new := rd.GetChange("windows_profile.0.group_managed_service_accounts.0.dns_server")
-					if old.(string) != "" && new.(string) == "" {
-						if err := metadata.ResourceDiff.ForceNew("windows_profile.group_managed_service_accounts.dns_server"); err != nil {
-							return err
-						}
-					}
-				}
-
-				if rd.HasChange("windows_profile.0.group_managed_service_accounts.0.root_domain") {
-					old, new := rd.GetChange("windows_profile.0.group_managed_service_accounts.0.root_domain")
-					if old.(string) != "" && new.(string) == "" {
-						if err := metadata.ResourceDiff.ForceNew("windows_profile.group_managed_service_accounts.root_domain"); err != nil {
-							return err
-						}
-					}
-				}
-
 				// Check api_server_access subnet_id changes
 				if rd.HasChange("api_server_access.0.subnet_id") {
 					old, new := rd.GetChange("api_server_access.0.subnet_id")
@@ -483,22 +445,17 @@ func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
 			if len(hostedSystem) == 0 {
 				identityInput := rd.Get("identity").([]interface{})
 				if len(identityInput) == 0 || identityInput[0] == nil {
-					return fmt.Errorf("when `hosted_system` is not configured, `identity.type` must be `UserAssigned`")
+					return fmt.Errorf("when `hosted_system` is not configured, `identity.type` must be `SystemAssigned`")
 				}
 
 				identityConfig := identityInput[0].(map[string]interface{})
 				identityType := identityConfig["type"].(string)
-				if !strings.EqualFold(identityType, string(identity.TypeUserAssigned)) {
-					return fmt.Errorf("when `hosted_system` is not configured, `identity.type` must be `UserAssigned`")
+				if !strings.EqualFold(identityType, string(identity.TypeSystemAssigned)) {
+					return fmt.Errorf("when `hosted_system` is not configured, `identity.type` must be `SystemAssigned`")
 				}
 
 				if outboundType == string(managedclusters.OutboundTypeLoadBalancer) {
 					return fmt.Errorf("when `hosted_system` is not configured, `network.outbound_type` cannot be `loadBalancer`")
-				}
-
-				linuxProfile := rd.Get("linux_profile").([]interface{})
-				if len(linuxProfile) > 0 {
-					return fmt.Errorf("when `hosted_system` is not configured, `linux_profile` cannot be specified")
 				}
 			}
 
@@ -1441,57 +1398,6 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			},
 		},
 
-		"windows_profile": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"admin_username": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ForceNew: true,
-					},
-					"admin_password": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						Sensitive:    true,
-						ValidateFunc: validation.StringLenBetween(14, 123),
-					},
-					"license": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(managedclusters.LicenseTypeWindowsServer),
-						}, false),
-					},
-					"group_managed_service_accounts": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"enabled": {
-									Type:     pluginsdk.TypeBool,
-									Optional: true,
-									Default:  true,
-								},
-								"dns_server": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
-								},
-								"root_domain": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
-								},
-							},
-						},
-					},
-				},
-			},
-		},
 		"aci_connector_linux": {
 			Type:     pluginsdk.TypeList,
 			MaxItems: 1,
@@ -1917,7 +1823,6 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 					BootstrapProfile:       expandKubernetesAutomaticClusterBootstrapProfile(model.BootstrapProfile),
 					HostedSystemProfile:    expandKubernetesAutomaticClusterHostedSystemProfile(model.HostedSystemProfile),
 					LinuxProfile:           expandKubernetesAutomaticClusterLinuxProfile(model.LinuxProfile),
-					WindowsProfile:         expandKubernetesAutomaticClusterWindowsProfile(model.WindowsProfile),
 					MetricsProfile:         expandKubernetesAutomaticClusterMetricsProfile(model.CostAnalysisEnabled),
 					NetworkProfile:         expandKubernetesAutomaticClusterNetworkProfile(model.NetworkProfile),
 					NodeResourceGroup:      pointer.To(model.NodeResourceGroup),
@@ -2084,8 +1989,6 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 			state.LinuxProfile = flattenKubernetesAutomaticClusterLinuxProfile(props.LinuxProfile)
 
 			state.NetworkProfile = flattenKubernetesAutomaticClusterNetworkProfile(props.NetworkProfile)
-
-			state.WindowsProfile = flattenKubernetesAutomaticClusterWindowsProfile(props.WindowsProfile, config)
 
 			state.HTTPProxyConfig = flattenKubernetesAutomaticClusterHttpProxyConfig(props.HTTPProxyConfig)
 
@@ -2622,89 +2525,6 @@ func flattenKubernetesAutomaticClusterIdentityProfile(profile map[string]managed
 	}
 
 	return kubeletIdentity, nil
-}
-
-func expandKubernetesAutomaticClusterWindowsProfile(input []WindowsProfileModel) *managedclusters.ManagedClusterWindowsProfile {
-	if len(input) == 0 {
-		return nil
-	}
-
-	config := input[0]
-
-	license := managedclusters.LicenseTypeNone
-	if config.License != "" {
-		license = managedclusters.LicenseType(config.License)
-	}
-
-	gmsaProfile := expandAutomaticGMSAProfile(config.GMSA)
-
-	return &managedclusters.ManagedClusterWindowsProfile{
-		AdminUsername: config.AdminUsername,
-		AdminPassword: pointer.To(config.AdminPassword),
-		LicenseType:   pointer.To(license),
-		GmsaProfile:   gmsaProfile,
-	}
-}
-
-func flattenKubernetesAutomaticClusterWindowsProfile(profile *managedclusters.ManagedClusterWindowsProfile, config KubernetesAutomaticClusterModel) []WindowsProfileModel {
-	if profile == nil {
-		return []WindowsProfileModel{}
-	}
-
-	adminUsername := profile.AdminUsername
-
-	adminPassword := ""
-	if len(config.WindowsProfile) != 0 {
-		adminPassword = config.WindowsProfile[0].AdminPassword
-	}
-
-	license := ""
-	if profile.LicenseType != nil && pointer.From(profile.LicenseType) != managedclusters.LicenseTypeNone {
-		license = string(pointer.From(profile.LicenseType))
-	}
-
-	gmsaProfile := flattenAutomaticGMSAProfile(profile.GmsaProfile)
-
-	return []WindowsProfileModel{
-		{
-			AdminUsername: adminUsername,
-			AdminPassword: adminPassword,
-			License:       license,
-			GMSA:          gmsaProfile,
-		},
-	}
-}
-
-func expandAutomaticGMSAProfile(input []GMSAModel) *managedclusters.WindowsGmsaProfile {
-	if len(input) == 0 {
-		return nil
-	}
-
-	config := input[0]
-
-	if !config.GMSAProfileEnabled {
-		return nil
-	}
-
-	return &managedclusters.WindowsGmsaProfile{
-		Enabled:        pointer.To(true),
-		DnsServer:      pointer.To(config.DNSServer),
-		RootDomainName: pointer.To(config.RootDomain),
-	}
-}
-
-func flattenAutomaticGMSAProfile(profile *managedclusters.WindowsGmsaProfile) []GMSAModel {
-	if profile == nil {
-		return []GMSAModel{}
-	}
-
-	return []GMSAModel{
-		{
-			GMSAProfileEnabled: pointer.From(profile.Enabled),
-			DNSServer:          pointer.From(profile.DnsServer),
-			RootDomain:         pointer.From(profile.RootDomainName),
-		},
-	}
 }
 
 func expandKubernetesAutomaticClusterImageCleaner(intervalHours int64) *managedclusters.ManagedClusterSecurityProfileImageCleaner {
