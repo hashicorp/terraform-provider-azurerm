@@ -32,13 +32,14 @@ func TestAccMonitorMetricAlert_list(t *testing.T) {
 				Config: r.basicList(data),
 			},
 			{
-				// ExpectIdentity is intentionally omitted here: the subscription-wide list API has eventual
-				// consistency on large subscriptions (e.g. TeamCity) and the results may not include
-				// newly created resources immediately.
+				// ExpectIdentity and an exact length are intentionally omitted here: the subscription-wide
+				// list API has eventual consistency on large subscriptions (e.g. TeamCity) and the results
+				// may not include newly created resources immediately. The deterministic count is asserted
+				// on the resource-group-scoped step below instead.
 				Query:  true,
 				Config: r.basicListQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLengthAtLeast("azurerm_monitor_metric_alert.list", 3),
+					querycheck.ExpectLengthAtLeast("azurerm_monitor_metric_alert.list", 1),
 				},
 			},
 			{
