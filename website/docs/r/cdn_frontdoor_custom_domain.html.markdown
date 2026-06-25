@@ -180,6 +180,8 @@ A `tls` block supports the following:
 
 * `minimum_version` - (Optional) TLS protocol version that will be used for HTTPS. Possible values are `TLS12` and `TLS13`. Defaults to `TLS12`.
 
+~> **Note:** When the `minimum_version` is set to `TLS13` a `cipher_suite` block and a `custom_ciphers` block with at least one TLS 1.3 cipher suite must be present.
+
 ---
 
 A `cipher_suite` block supports the following:
