@@ -474,7 +474,7 @@ func siteRecoveryReplicatedVMManagedDiskChangeRequiresNew(oldDisks, newDisks []i
 		}
 
 		for _, field := range []string{"staging_storage_account_id", "target_resource_group_id", "target_disk_encryption_set_id"} {
-			if siteRecoveryReplicatedVMManagedDiskValue(oldDisk, field) != siteRecoveryReplicatedVMManagedDiskValue(newDisk, field) {
+			if !strings.EqualFold(siteRecoveryReplicatedVMManagedDiskValue(oldDisk, field), siteRecoveryReplicatedVMManagedDiskValue(newDisk, field)) {
 				return true
 			}
 		}
