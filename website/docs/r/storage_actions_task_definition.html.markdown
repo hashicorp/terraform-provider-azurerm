@@ -59,9 +59,9 @@ The following arguments are supported:
 
 * `description` - (Required) A description for this Storage Actions Task Definition.
 
-* `enabled` - (Optional) Whether this Storage Actions Task Definition is enabled. Defaults to `true`.
-
 * `identity` - (Required) An `identity` block as defined below.
+
+* `enabled` - (Optional) Whether this Storage Actions Task Definition is enabled. Defaults to `true`.
 
 ---
 
