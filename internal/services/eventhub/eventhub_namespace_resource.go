@@ -26,6 +26,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -285,19 +286,22 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 	defer cancel()
 
 	id := namespaces.NewNamespaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.Get(ctx, id)
-	if err != nil {
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+		}
+
 		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			return tf.ImportAsExistsError("azurerm_eventhub_namespace", id.ID())
 		}
 	}
 
 	locks.ByName(id.NamespaceName, eventHubNamespaceResourceName)
 	defer locks.UnlockByName(id.NamespaceName, eventHubNamespaceResourceName)
-
-	if existing.Model != nil {
-		return tf.ImportAsExistsError("azurerm_eventhub_namespace", id.ID())
-	}
 
 	location := location.Normalize(d.Get("location").(string))
 	sku := d.Get("sku").(string)
@@ -349,7 +353,7 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 		parameters.Properties.MaximumThroughputUnits = pointer.To(int64(v.(int)))
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 

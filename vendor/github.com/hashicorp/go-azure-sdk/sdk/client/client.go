@@ -17,6 +17,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"reflect"
 	"regexp"
 	"runtime"
@@ -545,7 +546,8 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 		}
 
 		// Check for failed connections etc and decide if retries are appropriate
-		if r == nil {
+		// TODO this workaround is no longer required in 5.0 and later of AzureRM, and should be removed after it ships.
+		if r == nil && os.Getenv("ARM_FIVEPOINTZERO_BETA") != "true" {
 			if req.IsIdempotent() {
 				if !isResourceManagerHost(req) {
 					return extendedRetryPolicy(r, err)

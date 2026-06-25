@@ -153,15 +153,17 @@ func resourceApplicationInsightsWebTestsCreate(d *pluginsdk.ResourceData, meta i
 
 	id := webtests.NewWebTestID(appInsightsId.SubscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.WebTestsGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.WebTestsGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_application_insights_web_test", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_application_insights_web_test", id.ID())
+		}
 	}
 
 	// Azure uses a special "hidden-link" tag to associate a web test with its parent Application Insights

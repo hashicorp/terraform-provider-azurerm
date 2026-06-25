@@ -59,9 +59,20 @@ func (c DatabasesClient) Pause(ctx context.Context, id commonids.SqlDatabaseId) 
 
 // PauseThenPoll performs Pause then polls until it's completed
 func (c DatabasesClient) PauseThenPoll(ctx context.Context, id commonids.SqlDatabaseId) error {
+	return c.PauseCallbackThenPoll(ctx, id, nil)
+}
+
+// PauseCallbackThenPoll performs Pause, runs the optional callback function, then polls until it's completed
+func (c DatabasesClient) PauseCallbackThenPoll(ctx context.Context, id commonids.SqlDatabaseId, callback func() error) error {
 	result, err := c.Pause(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Pause: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

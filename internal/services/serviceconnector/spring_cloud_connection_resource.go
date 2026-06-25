@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2024-04-01/servicelinker"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -34,7 +35,7 @@ type SpringCloudConnectorResourceModel struct {
 }
 
 func (r SpringCloudConnectorResource) Arguments() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
+	args := map[string]*schema.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -59,11 +60,7 @@ func (r SpringCloudConnectorResource) Arguments() map[string]*schema.Schema {
 		"client_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			// TODO: remove `None` in 4.0, since this is Optional `None` == omitting the field
-			Default: string(servicelinker.ClientTypeNone),
 			ValidateFunc: validation.StringInSlice([]string{
-				// TODO: remove `None` in 4.0, since this is Optional `None` == omitting the field
-				string(servicelinker.ClientTypeNone),
 				string(servicelinker.ClientTypeDotnet),
 				string(servicelinker.ClientTypeJava),
 				string(servicelinker.ClientTypePython),
@@ -89,6 +86,28 @@ func (r SpringCloudConnectorResource) Arguments() map[string]*schema.Schema {
 
 		"authentication": authInfoSchema(),
 	}
+
+	if !features.FivePointOh() {
+		args["client_type"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(servicelinker.ClientTypeNone),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(servicelinker.ClientTypeNone),
+				string(servicelinker.ClientTypeDotnet),
+				string(servicelinker.ClientTypeJava),
+				string(servicelinker.ClientTypePython),
+				string(servicelinker.ClientTypeGo),
+				string(servicelinker.ClientTypePhp),
+				string(servicelinker.ClientTypeRuby),
+				string(servicelinker.ClientTypeDjango),
+				string(servicelinker.ClientTypeNodejs),
+				string(servicelinker.ClientTypeSpringBoot),
+			}, false),
+		}
+	}
+
+	return args
 }
 
 func (r SpringCloudConnectorResource) Attributes() map[string]*schema.Schema {
@@ -115,13 +134,16 @@ func (r SpringCloudConnectorResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.ServiceConnector.ServiceLinkerClient
 
 			id := servicelinker.NewScopedLinkerID(model.SpringCloudId, model.Name)
-			existing, err := client.LinkerGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.LinkerGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			authInfo, err := expandServiceConnectorAuthInfoForCreate(model.AuthInfo)
@@ -130,7 +152,8 @@ func (r SpringCloudConnectorResource) Create() sdk.ResourceFunc {
 			}
 
 			serviceConnectorProperties := servicelinker.LinkerProperties{
-				AuthInfo: authInfo,
+				AuthInfo:   authInfo,
+				ClientType: pointer.To(servicelinker.ClientTypeNone),
 			}
 
 			if storageAccountId, err := commonids.ParseStorageAccountID(model.TargetResourceId); err == nil {
@@ -150,8 +173,7 @@ func (r SpringCloudConnectorResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.ClientType != "" {
-				clientType := servicelinker.ClientType(model.ClientType)
-				serviceConnectorProperties.ClientType = &clientType
+				serviceConnectorProperties.ClientType = pointer.ToEnum[servicelinker.ClientType](model.ClientType)
 			}
 
 			if model.VnetSolution != "" {
@@ -168,11 +190,11 @@ func (r SpringCloudConnectorResource) Create() sdk.ResourceFunc {
 				Properties: serviceConnectorProperties,
 			}
 
-			if err := client.LinkerCreateOrUpdateThenPoll(ctx, id, props); err != nil {
+			if err := client.LinkerCreateOrUpdateCallbackThenPoll(ctx, id, props, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}
@@ -210,8 +232,10 @@ func (r SpringCloudConnectorResource) Read() sdk.ResourceFunc {
 					AuthInfo:         flattenServiceConnectorAuthInfo(props.AuthInfo, pwd),
 				}
 
-				if props.ClientType != nil {
-					state.ClientType = string(*props.ClientType)
+				if !features.FivePointOh() {
+					state.ClientType = pointer.FromEnum(props.ClientType)
+				} else if v := pointer.From(props.ClientType); v != servicelinker.ClientTypeNone {
+					state.ClientType = string(v)
 				}
 
 				if props.VNetSolution != nil && props.VNetSolution.Type != nil {

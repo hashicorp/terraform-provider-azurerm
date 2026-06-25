@@ -8,6 +8,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -88,7 +90,7 @@ func resourceRouteServerBgpConnectionCreate(d *pluginsdk.ResourceData, meta inte
 
 	id := commonids.NewVirtualHubBGPConnectionID(routerServerId.SubscriptionId, routerServerId.ResourceGroupName, routerServerId.VirtualHubName, d.Get("name").(string))
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.VirtualHubBgpConnectionGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -100,6 +102,7 @@ func resourceRouteServerBgpConnectionCreate(d *pluginsdk.ResourceData, meta inte
 			return tf.ImportAsExistsError("azurerm_route_server_bgp_connection", id.ID())
 		}
 	}
+
 	parameters := virtualwans.BgpConnection{
 		Name: pointer.To(d.Get("name").(string)),
 		Properties: &virtualwans.BgpConnectionProperties{
@@ -108,8 +111,8 @@ func resourceRouteServerBgpConnectionCreate(d *pluginsdk.ResourceData, meta inte
 		},
 	}
 
-	if err := client.VirtualHubBgpConnectionCreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	if err := client.VirtualHubBgpConnectionCreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())

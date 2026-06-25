@@ -34,6 +34,8 @@ type Client struct {
 
 	StorageTasksClient *storagetasks.StorageTasksClient
 
+	StorageUseAzureAD bool
+
 	authConfigForAzureAD *auth.Credentials
 }
 
@@ -106,6 +108,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	if o.StorageUseAzureAD {
 		client.authConfigForAzureAD = o.AuthConfig
+		client.StorageUseAzureAD = true
 	}
 
 	return &client, nil

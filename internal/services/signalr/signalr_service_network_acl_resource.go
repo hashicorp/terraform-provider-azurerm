@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2024-03-01/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -200,11 +201,17 @@ func resourceSignalRServiceNetworkACLCreateUpdate(d *pluginsdk.ResourceData, met
 		model.Properties.NetworkACLs = &networkACL
 	}
 
-	if err := client.UpdateThenPoll(ctx, *id, model); err != nil {
-		return fmt.Errorf("creating/updating NetworkACL for %s: %v", id, err)
+	if d.IsNewResource() {
+		if err := client.UpdateCallbackThenPoll(ctx, *id, model, sdk.SetIDCallback(meta, id, d)); err != nil {
+			return fmt.Errorf("creating Network ACL for %s: %v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.UpdateThenPoll(ctx, *id, model); err != nil {
+			return fmt.Errorf("updating Network ACL for %s: %v", id, err)
+		}
 	}
 
-	d.SetId(id.ID())
 	return resourceSignalRServiceNetworkACLRead(d, meta)
 }
 

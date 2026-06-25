@@ -114,15 +114,17 @@ func (r NetAppBackupPolicyResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("one or more issues found while performing deeper validations for %s:\n%+v", id, errorList)
 			}
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				if !response.WasNotFound(existing.HttpResponse) {
+					return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				}
 			}
 
 			parameters := backuppolicies.BackupPolicy{
@@ -136,8 +138,7 @@ func (r NetAppBackupPolicyResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			err = client.CreateThenPoll(ctx, id, parameters)
-			if err != nil {
+			if err := client.CreateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

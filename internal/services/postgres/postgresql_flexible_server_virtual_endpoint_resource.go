@@ -135,20 +135,19 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Create() sdk.ResourceFu
 				defer locks.UnlockByName(replicaServerId.FlexibleServerName, postgresqlFlexibleServerResourceName)
 			}
 
-			// This API can be a bit flaky if the same named resource is created/destroyed quickly
-			// usually waiting a minute or two before redeploying is enough to resolve the conflict
-			if err = client.CreateThenPoll(ctx, sourceEndpointId, virtualendpoints.VirtualEndpoint{
+			id := commonids.NewCompositeResourceID(&sourceEndpointId, &replicaEndpointId)
+
+			payload := virtualendpoints.VirtualEndpoint{
 				Name: &virtualEndpoint.Name,
 				Properties: &virtualendpoints.VirtualEndpointResourceProperties{
 					EndpointType: pointer.To(virtualendpoints.VirtualEndpointType(virtualEndpoint.Type)),
 					Members:      &[]string{replicaServerId.FlexibleServerName},
 				},
-			}); err != nil {
-				return fmt.Errorf("creating %s: %+v", sourceEndpointId, err)
 			}
 
-			id := commonids.NewCompositeResourceID(&sourceEndpointId, &replicaEndpointId)
-
+			if err = client.CreateCallbackThenPoll(ctx, sourceEndpointId, payload, metadata.SetIDCallback(id)); err != nil {
+				return fmt.Errorf("creating %s: %+v", sourceEndpointId, err)
+			}
 			metadata.SetID(id)
 
 			return nil

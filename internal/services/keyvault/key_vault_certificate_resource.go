@@ -485,15 +485,17 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("looking up Base URI for Certificate %q in %s: %+v", name, *keyVaultId, err)
 	}
 
-	existing, err := client.GetCertificate(ctx, *keyVaultBaseUrl, name, "")
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Certificate %q in %s: %s", name, *keyVaultBaseUrl, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.GetCertificate(ctx, *keyVaultBaseUrl, name, "")
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for presence of existing Certificate %q in %s: %s", name, *keyVaultBaseUrl, err)
+			}
 		}
-	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_key_vault_certificate", *existing.ID)
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_key_vault_certificate", *existing.ID)
+		}
 	}
 
 	t := d.Get("tags").(map[string]interface{})

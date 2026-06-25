@@ -62,9 +62,20 @@ func (c RestorablesClient) SqlResourcesRetrieveContinuousBackupInformation(ctx c
 
 // SqlResourcesRetrieveContinuousBackupInformationThenPoll performs SqlResourcesRetrieveContinuousBackupInformation then polls until it's completed
 func (c RestorablesClient) SqlResourcesRetrieveContinuousBackupInformationThenPoll(ctx context.Context, id ContainerId, input ContinuousBackupRestoreLocation) error {
+	return c.SqlResourcesRetrieveContinuousBackupInformationCallbackThenPoll(ctx, id, input, nil)
+}
+
+// SqlResourcesRetrieveContinuousBackupInformationCallbackThenPoll performs SqlResourcesRetrieveContinuousBackupInformation, runs the optional callback function, then polls until it's completed
+func (c RestorablesClient) SqlResourcesRetrieveContinuousBackupInformationCallbackThenPoll(ctx context.Context, id ContainerId, input ContinuousBackupRestoreLocation, callback func() error) error {
 	result, err := c.SqlResourcesRetrieveContinuousBackupInformation(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing SqlResourcesRetrieveContinuousBackupInformation: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

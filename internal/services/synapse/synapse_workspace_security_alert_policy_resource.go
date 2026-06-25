@@ -120,6 +120,8 @@ func resourceSynapseWorkspaceSecurityAlertPolicyCreateUpdate(d *pluginsdk.Resour
 		return err
 	}
 
+	// TODO: import check?
+
 	id := parse.NewWorkspaceSecurityAlertPolicyID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, "Default")
 
 	alertPolicy := expandServerSecurityAlertPolicy(d)
@@ -129,11 +131,13 @@ func resourceSynapseWorkspaceSecurityAlertPolicyCreateUpdate(d *pluginsdk.Resour
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
+
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
-
-	d.SetId(id.ID())
 
 	return resourceSynapseWorkspaceSecurityAlertPolicyRead(d, meta)
 }

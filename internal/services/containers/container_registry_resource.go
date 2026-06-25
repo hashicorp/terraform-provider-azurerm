@@ -26,6 +26,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -359,7 +360,7 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	id := registries.NewRegistryID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -454,9 +455,10 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if err := client.CreateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
+	d.SetId(id.ID())
 
 	// the ACR is being created so no previous geo-replication locations
 	var oldGeoReplicationLocations, newGeoReplicationLocations []replications.Replication
@@ -468,8 +470,6 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 			return fmt.Errorf("applying geo replications for %s: %+v", id, err)
 		}
 	}
-
-	d.SetId(id.ID())
 
 	return resourceContainerRegistryRead(d, meta)
 }

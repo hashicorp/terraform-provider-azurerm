@@ -129,14 +129,16 @@ func resourceArmSubscriptionPolicyRemediationCreateUpdate(d *pluginsdk.ResourceD
 	id := remediations.NewRemediationID(subscriptionId.SubscriptionId, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.GetAtSubscription(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id.ID(), err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.GetAtSubscription(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id.ID(), err)
+				}
 			}
-		}
-		if existing.Model != nil {
-			return tf.ImportAsExistsError("azurerm_subscription_policy_remediation", id.ID())
+			if existing.Model != nil {
+				return tf.ImportAsExistsError("azurerm_subscription_policy_remediation", id.ID())
+			}
 		}
 	}
 
@@ -148,7 +150,9 @@ func resourceArmSubscriptionPolicyRemediationCreateUpdate(d *pluginsdk.ResourceD
 		return fmt.Errorf("creating/updating %s: %+v", id.ID(), err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
 
 	return resourceArmSubscriptionPolicyRemediationRead(d, meta)
 }

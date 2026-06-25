@@ -123,15 +123,17 @@ func resourceDataFactoryLinkedServiceKeyVaultCreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Data Factory Key Vault %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
+			if err != nil {
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("checking for presence of existing Data Factory Key Vault %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_data_factory_linked_service_key_vault", id.ID())
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return tf.ImportAsExistsError("azurerm_data_factory_linked_service_key_vault", id.ID())
+			}
 		}
 	}
 

@@ -61,9 +61,20 @@ func (c AppPlatformClient) DeploymentsGenerateHeapDump(ctx context.Context, id D
 
 // DeploymentsGenerateHeapDumpThenPoll performs DeploymentsGenerateHeapDump then polls until it's completed
 func (c AppPlatformClient) DeploymentsGenerateHeapDumpThenPoll(ctx context.Context, id DeploymentId, input DiagnosticParameters) error {
+	return c.DeploymentsGenerateHeapDumpCallbackThenPoll(ctx, id, input, nil)
+}
+
+// DeploymentsGenerateHeapDumpCallbackThenPoll performs DeploymentsGenerateHeapDump, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) DeploymentsGenerateHeapDumpCallbackThenPoll(ctx context.Context, id DeploymentId, input DiagnosticParameters, callback func() error) error {
 	result, err := c.DeploymentsGenerateHeapDump(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing DeploymentsGenerateHeapDump: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

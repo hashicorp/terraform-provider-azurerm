@@ -400,13 +400,15 @@ func (r NetAppVolumeGroupSAPHanaResource) Create() sdk.ResourceFunc {
 
 			id := volumegroups.NewVolumeGroupID(subscriptionId, model.ResourceGroupName, model.AccountName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 
-			if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			volumeList, err := expandNetAppVolumeGroupSAPHanaVolumes(model.Volumes)
@@ -431,9 +433,10 @@ func (r NetAppVolumeGroupSAPHanaResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err = client.CreateThenPoll(ctx, id, parameters); err != nil {
+			if err = client.CreateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
+			metadata.SetID(id)
 
 			// Waiting for volume group be completely provisioned
 			if err := waitForVolumeGroupCreateOrUpdate(ctx, client, id); err != nil {
@@ -444,8 +447,6 @@ func (r NetAppVolumeGroupSAPHanaResource) Create() sdk.ResourceFunc {
 			if err := authorizeVolumeReplication(ctx, volumeList, volumeClient, subscriptionId, model.ResourceGroupName, model.AccountName); err != nil {
 				return err
 			}
-
-			metadata.SetID(id)
 
 			return nil
 		},

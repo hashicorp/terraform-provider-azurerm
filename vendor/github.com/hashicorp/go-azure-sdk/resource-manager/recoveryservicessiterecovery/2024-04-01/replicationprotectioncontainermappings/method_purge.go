@@ -57,9 +57,20 @@ func (c ReplicationProtectionContainerMappingsClient) Purge(ctx context.Context,
 
 // PurgeThenPoll performs Purge then polls until it's completed
 func (c ReplicationProtectionContainerMappingsClient) PurgeThenPoll(ctx context.Context, id ReplicationProtectionContainerMappingId) error {
+	return c.PurgeCallbackThenPoll(ctx, id, nil)
+}
+
+// PurgeCallbackThenPoll performs Purge, runs the optional callback function, then polls until it's completed
+func (c ReplicationProtectionContainerMappingsClient) PurgeCallbackThenPoll(ctx context.Context, id ReplicationProtectionContainerMappingId, callback func() error) error {
 	result, err := c.Purge(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Purge: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
