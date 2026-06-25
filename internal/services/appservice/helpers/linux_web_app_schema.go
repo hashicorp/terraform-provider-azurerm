@@ -842,6 +842,10 @@ func (s *SiteConfigLinux) ExpandForCreate(appSettings map[string]string) (*webap
 
 	if len(s.ApplicationStack) == 1 {
 		linuxAppStack := s.ApplicationStack[0]
+		if linuxAppStack.SiteContainersEnabled {
+			expanded.LinuxFxVersion = pointer.To(LinuxFxVersionSiteContainers)
+		}
+
 		if linuxAppStack.NetFrameworkVersion != "" {
 			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("%s|%s", FxStringPrefixDotNetCore, linuxAppStack.NetFrameworkVersion))
 		}
@@ -968,6 +972,10 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 
 	if len(s.ApplicationStack) == 1 {
 		linuxAppStack := s.ApplicationStack[0]
+		if linuxAppStack.SiteContainersEnabled {
+			expanded.LinuxFxVersion = pointer.To(LinuxFxVersionSiteContainers)
+		}
+
 		if linuxAppStack.NetFrameworkVersion != "" {
 			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOTNETCORE|%s", linuxAppStack.NetFrameworkVersion))
 		}
