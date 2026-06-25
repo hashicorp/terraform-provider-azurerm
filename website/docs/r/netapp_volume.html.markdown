@@ -318,11 +318,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the NetApp Volume.
 
-* `mount_target` - One or more `mount_target` blocks as defined below.
+* `mount_targets` - One or more `mount_targets` blocks as defined below.
 
 ---
 
-A `mount_target` block exports the following:
+A `mount_targets` block exports the following:
 
 * `ip_address` - The IP address of the mount target.
 

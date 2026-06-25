@@ -53,7 +53,7 @@ func dataSourceNetAppVolume() *pluginsdk.Resource {
 				ValidateFunc: validate.PoolName,
 			},
 
-			"mount_target": {
+			"mount_targets": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
@@ -208,7 +208,7 @@ func dataSourceNetAppVolume() *pluginsdk.Resource {
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-			Deprecated: "this property has been deprecated in favour of `mount_target` and will be removed in version 5.0 of the Provider.",
+			Deprecated: "this property has been deprecated in favour of `mount_targets` and will be removed in version 5.0 of the Provider.",
 		}
 	}
 
@@ -284,8 +284,8 @@ func dataSourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) err
 				return fmt.Errorf("setting `mount_ip_addresses`: %+v", err)
 			}
 		}
-		if err := d.Set("mount_target", flattenNetAppVolumeMountTarget(props.MountTargets)); err != nil {
-			return fmt.Errorf("setting `mount_target`: %+v", err)
+		if err := d.Set("mount_targets", flattenNetAppVolumeMountTargets(props.MountTargets)); err != nil {
+			return fmt.Errorf("setting `mount_targets`: %+v", err)
 		}
 		if err := d.Set("data_protection_replication", flattenNetAppVolumeDataProtectionReplication(props.DataProtection)); err != nil {
 			return fmt.Errorf("setting `data_protection_replication`: %+v", err)
