@@ -147,8 +147,6 @@ The following arguments are supported:
 
 * `file_system_cifs_username` - (Optional) The CIFS username used by the bucket when accessing volume data over SMB. Exactly one of `file_system_nfs_user` or `file_system_cifs_username` must be specified.
 
----
-
 * `path` - (Optional) The volume sub-path mounted inside the bucket. Defaults to `/`. Changing this forces a new resource to be created.
 
 * `permissions` - (Optional) The bucket permission level. Possible values are `ReadOnly` and `ReadWrite`. Defaults to `ReadOnly`.

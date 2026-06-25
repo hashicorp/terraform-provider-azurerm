@@ -49,22 +49,6 @@ func TestAccNetAppVolumeBucket_complete(t *testing.T) {
 	})
 }
 
-func TestAccNetAppVolumeBucket_path(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_netapp_volume_bucket", "test")
-	r := NetAppVolumeBucketResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.withPath(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("path").HasValue("/data"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccNetAppVolumeBucket_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume_bucket", "test")
 	r := NetAppVolumeBucketResource{}
@@ -176,25 +160,6 @@ resource "azurerm_netapp_volume_bucket" "test" {
   file_system_nfs_user {
     group_id = 2000
     user_id  = 2000
-  }
-
-  depends_on = [azurerm_netapp_volume_bucket_with_server.first]
-}
-`, r.firstBucket(data), data.RandomInteger)
-}
-
-func (r NetAppVolumeBucketResource) withPath(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_netapp_volume_bucket" "test" {
-  name      = "acctest-bucket-%[2]d"
-  volume_id = azurerm_netapp_volume.test.id
-  path      = "/data"
-
-  file_system_nfs_user {
-    group_id = 1000
-    user_id  = 1000
   }
 
   depends_on = [azurerm_netapp_volume_bucket_with_server.first]

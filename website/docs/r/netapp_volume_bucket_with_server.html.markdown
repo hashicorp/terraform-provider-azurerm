@@ -318,13 +318,11 @@ The following arguments are supported:
 
 * `file_system_cifs_username` - (Optional) The CIFS username used by the bucket when accessing volume data over SMB. Exactly one of `file_system_nfs_user` or `file_system_cifs_username` must be specified.
 
----
+* `server` - (Required) A `server` block as defined below. Used to provide the bucket server FQDN and a directly uploaded PEM certificate. The certificate source (`server.0.certificate_pem`) is mutually exclusive with `key_vault`.
 
 * `path` - (Optional) The volume sub-path mounted inside the bucket. Defaults to `/`. Changing this forces a new resource to be created.
 
 * `permissions` - (Optional) The bucket permission level. Possible values are `ReadOnly` and `ReadWrite`. Defaults to `ReadOnly`.
-
-* `server` - (Required) A `server` block as defined below. Used to provide the bucket server FQDN and a directly uploaded PEM certificate. The certificate source (`server.0.certificate_pem`) is mutually exclusive with `key_vault`.
 
 * `key_vault` - (Optional) A `key_vault` block as defined below. Used to source the server certificate and to store generated credentials in Azure Key Vault. Mutually exclusive with `server.0.certificate_pem`.
 
