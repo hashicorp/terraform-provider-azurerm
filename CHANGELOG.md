@@ -9,7 +9,14 @@ ENHANCEMENTS:
 * `azurerm_data_protection_backup_instance_data_lake_storage` - increase the limit of items for `storage_container_names` from 100 to 1000 [GH-32643]
 
 FEATURES:
+* **New Action**: `azurerm_netapp_volume_bucket_credentials` [GH-32319]
 * **New List Resource**: `azurerm_signalr_service_custom_certificate` [GH-32114]
+* **New Resource**:`azurerm_netapp_volume_bucket` [GH-32319]
+* **New Resource**: `azurerm_netapp_volume_bucket_with_server`[GH-32319]
+* **New Data Source**:`azurerm_netapp_volume_bucket` [GH-32319]
+* **New Resource**: `azurerm_netapp_volume_bucket_with_server`[GH-32319]
+* **New Data Source**: `azurerm_netapp_volume_bucket_with_server`[GH-32319]
+
 
 BUG FIXES:
 
