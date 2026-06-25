@@ -6,6 +6,7 @@ package containers_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"slices"
 	"testing"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -298,6 +300,21 @@ func TestAccContainerRegistry_geoReplicationRegionEndpoint(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccContainerRegistry_geoReplicationRegionEndpointConflict(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping since `regional_endpoint_enabled` is removed in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
+	r := ContainerRegistryResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.regionEndpointConflict(data),
+			ExpectError: regexp.MustCompile("only one of `regional_endpoint_enabled` and `global_endpoint_routing_enabled` can be set per `georeplications` block"),
+		},
 	})
 }
 
@@ -653,8 +670,8 @@ resource "azurerm_container_registry" "test" {
     zone_redundancy_enabled = true
   }
   georeplications {
-    location                  = "%s"
-    regional_endpoint_enabled = true
+    location                        = "%s"
+    global_endpoint_routing_enabled = true
     tags = {
       foo = "bar"
     }
@@ -810,6 +827,13 @@ resource "azurerm_container_registry" "test" {
 }
 
 func (ContainerRegistryResource) regionEndpoint(data acceptance.TestData) string {
+	// This config intentionally exercises the deprecated `regional_endpoint_enabled` property
+	// to ensure it keeps working until it is removed in v5.0, where it switches to the renamed
+	// `global_endpoint_routing_enabled` property.
+	regionEndpointProperty := "regional_endpoint_enabled = true"
+	if features.FivePointOh() {
+		regionEndpointProperty = "global_endpoint_routing_enabled = true"
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -824,8 +848,31 @@ resource "azurerm_container_registry" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "Premium"
   georeplications {
-    location                  = "%s"
-    regional_endpoint_enabled = true
+    location = "%s"
+    %s
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary, regionEndpointProperty)
+}
+
+func (ContainerRegistryResource) regionEndpointConflict(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-acr-%d"
+  location = "%s"
+}
+resource "azurerm_container_registry" "test" {
+  name                = "testacccr%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Premium"
+  georeplications {
+    location                        = "%s"
+    regional_endpoint_enabled       = true
+    global_endpoint_routing_enabled = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary)

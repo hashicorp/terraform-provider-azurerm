@@ -103,7 +103,7 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 							Default:  false,
 						},
 
-						"regional_endpoint_enabled": {
+						"global_endpoint_routing_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
@@ -339,6 +339,23 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				return fmt.Errorf("`data_endpoint_enabled` can only be applied when using the Premium Sku")
 			}
 
+			// `regional_endpoint_enabled` is deprecated in favour of `global_endpoint_routing_enabled`.
+			// Both map to the same API field so they are mutually exclusive within a `georeplications`
+			// block. ConflictsWith can't be used here because it cannot reference properties nested
+			// within a list block, so the check is performed against the raw config instead.
+			if !features.FivePointOh() {
+				if rawConfig := d.GetRawConfig(); !rawConfig.IsNull() {
+					if geoReplicationsRaw := rawConfig.AsValueMap()["georeplications"]; !geoReplicationsRaw.IsNull() {
+						for _, geoReplicationRaw := range geoReplicationsRaw.AsValueSlice() {
+							geoReplication := geoReplicationRaw.AsValueMap()
+							if !geoReplication["regional_endpoint_enabled"].IsNull() && !geoReplication["global_endpoint_routing_enabled"].IsNull() {
+								return fmt.Errorf("only one of `regional_endpoint_enabled` and `global_endpoint_routing_enabled` can be set per `georeplications` block")
+							}
+						}
+					}
+				}
+			}
+
 			return nil
 		}),
 	}
@@ -346,6 +363,19 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 	if !features.FivePointOh() {
 		r.Schema["encryption"].Computed = true
 		r.Schema["encryption"].Elem.(*pluginsdk.Resource).Schema["key_vault_key_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
+
+		// `regional_endpoint_enabled` has been renamed to `global_endpoint_routing_enabled`. Both
+		// properties map to the same underlying `RegionEndpointEnabled` API field and are mutually
+		// exclusive (enforced in CustomizeDiff, since ConflictsWith cannot reference properties
+		// nested within a list block). Both are marked Computed so unset values don't produce a diff.
+		geoReplicationSchema := r.Schema["georeplications"].Elem.(*pluginsdk.Resource).Schema
+		geoReplicationSchema["regional_endpoint_enabled"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "`regional_endpoint_enabled` has been deprecated in favour of `global_endpoint_routing_enabled` and will be removed in v5.0 of the AzureRM Provider",
+		}
+		geoReplicationSchema["global_endpoint_routing_enabled"].Computed = true
 	}
 
 	return r
@@ -914,7 +944,11 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 				replication["location"] = valueLocation
 				replication["tags"] = tags.Flatten(value.Tags)
 				replication["zone_redundancy_enabled"] = *value.Properties.ZoneRedundancy == replications.ZoneRedundancyEnabled
-				replication["regional_endpoint_enabled"] = value.Properties.RegionEndpointEnabled != nil && *value.Properties.RegionEndpointEnabled
+				regionEndpointEnabled := value.Properties.RegionEndpointEnabled != nil && *value.Properties.RegionEndpointEnabled
+				replication["global_endpoint_routing_enabled"] = regionEndpointEnabled
+				if !features.FivePointOh() {
+					replication["regional_endpoint_enabled"] = regionEndpointEnabled
+				}
 				geoReplications = append(geoReplications, replication)
 			}
 		}
@@ -1008,13 +1042,21 @@ func expandReplications(p []interface{}) []replications.Replication {
 		if value["zone_redundancy_enabled"].(bool) {
 			zoneRedundancy = replications.ZoneRedundancyEnabled
 		}
+		regionEndpointEnabled := value["global_endpoint_routing_enabled"].(bool)
+		if !features.FivePointOh() {
+			// honour the deprecated `regional_endpoint_enabled` when the user has set it.
+			// Mutual exclusivity with `global_endpoint_routing_enabled` is enforced in CustomizeDiff.
+			if v, ok := value["regional_endpoint_enabled"].(bool); ok && v {
+				regionEndpointEnabled = v
+			}
+		}
 		reps = append(reps, replications.Replication{
 			Location: location,
 			Name:     &location,
 			Tags:     tags,
 			Properties: &replications.ReplicationProperties{
 				ZoneRedundancy:        &zoneRedundancy,
-				RegionEndpointEnabled: pointer.To(value["regional_endpoint_enabled"].(bool)),
+				RegionEndpointEnabled: pointer.To(regionEndpointEnabled),
 			},
 		})
 	}
