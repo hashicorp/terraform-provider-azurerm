@@ -1,24 +1,23 @@
-## 4.79.0 (Unreleased)
-
-ENHANCEMENTS:
-* `desktopvirtualization` - upgrade API version to `2025-10-10` [GH-32563]
-* `azurerm_batch_job` - migrate to `go-azure-sdk` [GH-32662]
-* `azurerm_postgresql_flexible_server` - add Ddsv6 skus to validation  [GH-32657]
-* `azurerm_virtual_network_gateway` - add support for `maximum_scale_unit` and `minimum_scale_unit` [GH-32647]
-
-* `azurerm_data_protection_backup_instance_data_lake_storage` - increase the limit of items for `storage_container_names` from 100 to 1000 [GH-32643]
+## 4.79.0 (June 25, 2026)
 
 FEATURES:
-* **New Action**: `azurerm_netapp_volume_bucket_credentials` [GH-32319]
-* **New List Resource**: `azurerm_signalr_service_custom_certificate` [GH-32114]
-* **New Resource**:`azurerm_netapp_volume_bucket` [GH-32319]
-* **New Resource**: `azurerm_netapp_volume_bucket_with_server`[GH-32319]
-* **New Data Source**:`azurerm_netapp_volume_bucket` [GH-32319]
-* **New Resource**: `azurerm_netapp_volume_bucket_with_server`[GH-32319]
-* **New Data Source**: `azurerm_netapp_volume_bucket_with_server`[GH-32319]
 
+* **New Action**: `azurerm_netapp_volume_bucket_credentials` ([#32319](https://github.com/hashicorp/terraform-provider-azurerm/issues/32319))
+* **New Data Source**: `azurerm_netapp_volume_bucket` ([#32319](https://github.com/hashicorp/terraform-provider-azurerm/issues/32319))
+* **New Data Source**: `azurerm_netapp_volume_bucket_with_server`([#32319](https://github.com/hashicorp/terraform-provider-azurerm/issues/32319))
+* **New List Resource**: `azurerm_netapp_volume_bucket` ([#32319](https://github.com/hashicorp/terraform-provider-azurerm/issues/32319))
+* **New List Resource**: `azurerm_netapp_volume_bucket_with_server`([#32319](https://github.com/hashicorp/terraform-provider-azurerm/issues/32319))
+* **New List Resource**: `azurerm_signalr_service_custom_certificate` ([#32114](https://github.com/hashicorp/terraform-provider-azurerm/issues/32114))
+* **New Resource**: `azurerm_netapp_volume_bucket` ([#32319](https://github.com/hashicorp/terraform-provider-azurerm/issues/32319))
+* **New Resource**: `azurerm_netapp_volume_bucket_with_server`([#32319](https://github.com/hashicorp/terraform-provider-azurerm/issues/32319))
 
-BUG FIXES:
+ENHANCEMENTS:
+
+* `azurerm_batch_job` - migrate to `go-azure-sdk` ([#32662](https://github.com/hashicorp/terraform-provider-azurerm/issues/32662))
+* `azurerm_data_protection_backup_instance_data_lake_storage` - increase the limit of items for `storage_container_names` from 100 to 1000 ([#32643](https://github.com/hashicorp/terraform-provider-azurerm/issues/32643))
+* `azurerm_postgresql_flexible_server` - add Ddsv6 skus to validation  ([#32657](https://github.com/hashicorp/terraform-provider-azurerm/issues/32657))
+* `azurerm_virtual_network_gateway` - add support for `maximum_scale_unit` and `minimum_scale_unit` ([#32647](https://github.com/hashicorp/terraform-provider-azurerm/issues/32647))
+* `desktopvirtualization` - upgrade API version to `2025-10-10` ([#32563](https://github.com/hashicorp/terraform-provider-azurerm/issues/32563))
 
 ## 4.78.0 (June 18, 2026)
 
