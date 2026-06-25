@@ -598,7 +598,7 @@ func validateCipherSuiteConfiguration(ctx context.Context, diff *pluginsdk.Resou
 			return errors.New("at least one TLS 1.2 cipher suite must be specified in `custom_ciphers.tls12` when `minimum_version` is set to `TLS12`")
 		}
 
-		if minimumVersion == string(afdcustomdomains.AfdMinimumTlsVersionTLSOneThree) && tls13Configured && setLen(tls13Suites) == 0 {
+		if minimumVersion == string(afdcustomdomains.AfdMinimumTlsVersionTLSOneThree) && (!tls13Configured || setLen(tls13Suites) == 0) {
 			return errors.New("at least one TLS 1.3 cipher suite must be specified in `custom_ciphers.tls13` when `minimum_version` is set to `TLS13`")
 		}
 	} else if len(customCiphersRaw) > 0 && customCiphersRaw[0] != nil {
