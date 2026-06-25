@@ -456,6 +456,92 @@ func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
 				return fmt.Errorf("when `network.outbound_type` is set to `none`, `bootstrap_profile.artifact_source` must be set to `Cache`")
 			}
 
+			hostedSystem := rd.Get("hosted_system").([]interface{})
+			if len(hostedSystem) > 0 && hostedSystem[0] != nil {
+				identityInput := rd.Get("identity").([]interface{})
+				if len(identityInput) == 0 || identityInput[0] == nil {
+					return fmt.Errorf("`hosted_system` requires `identity.type` to be `SystemAssigned`")
+				}
+
+				identityConfig := identityInput[0].(map[string]interface{})
+				identityType := identityConfig["type"].(string)
+				if !strings.EqualFold(identityType, string(identity.TypeSystemAssigned)) {
+					return fmt.Errorf("`hosted_system` requires `identity.type` to be `SystemAssigned`")
+				}
+			}
+
+			if outboundType == string(managedclusters.OutboundTypeManagedNATGateway) && len(hostedSystem) > 0 && hostedSystem[0] != nil {
+				hostedSystemConfig := hostedSystem[0].(map[string]interface{})
+				nodeSubnetID := hostedSystemConfig["node_subnet_id"].(string)
+				systemNodeSubnetID := hostedSystemConfig["system_node_subnet_id"].(string)
+
+				if nodeSubnetID != "" || systemNodeSubnetID != "" {
+					return fmt.Errorf("Outbound type is managedNATGateway but agent pool 'hostedpool' is using custom VNet, which is not allowed.")
+				}
+			}
+
+			if len(hostedSystem) == 0 {
+				identityInput := rd.Get("identity").([]interface{})
+				if len(identityInput) == 0 || identityInput[0] == nil {
+					return fmt.Errorf("when `hosted_system` is not configured, `identity.type` must be `UserAssigned`")
+				}
+
+				identityConfig := identityInput[0].(map[string]interface{})
+				identityType := identityConfig["type"].(string)
+				if !strings.EqualFold(identityType, string(identity.TypeUserAssigned)) {
+					return fmt.Errorf("when `hosted_system` is not configured, `identity.type` must be `UserAssigned`")
+				}
+
+				if outboundType == string(managedclusters.OutboundTypeLoadBalancer) {
+					return fmt.Errorf("when `hosted_system` is not configured, `network.outbound_type` cannot be `loadBalancer`")
+				}
+
+				linuxProfile := rd.Get("linux_profile").([]interface{})
+				if len(linuxProfile) > 0 {
+					return fmt.Errorf("when `hosted_system` is not configured, `linux_profile` cannot be specified")
+				}
+			}
+
+			privateCluster := rd.Get("private_cluster").([]interface{})
+			if len(privateCluster) > 0 && privateCluster[0] != nil {
+				privateClusterConfig := privateCluster[0].(map[string]interface{})
+				privateDNSZoneID := privateClusterConfig["private_dns_zone_id"].(string)
+				dnsPrefix := privateClusterConfig["dns_prefix"].(string)
+
+				if privateDNSZoneID != "" {
+					identityInput := rd.Get("identity").([]interface{})
+					if len(identityInput) == 0 || identityInput[0] == nil {
+						return fmt.Errorf("a user assigned identity must be used when using a custom private dns zone")
+					}
+
+					identityConfig := identityInput[0].(map[string]interface{})
+					identityType := identityConfig["type"].(string)
+					if privateDNSZoneID != "System" && privateDNSZoneID != "None" && !strings.EqualFold(identityType, string(identity.TypeUserAssigned)) {
+						return fmt.Errorf("a user assigned identity must be used when using a custom private dns zone")
+					}
+				}
+
+				if dnsPrefix != "" && (privateDNSZoneID == "" || privateDNSZoneID == "System" || privateDNSZoneID == "None") {
+					return fmt.Errorf("`private_cluster.0.dns_prefix` should only be set for private cluster with custom private dns zone")
+				}
+			}
+
+			network := rd.Get("network").([]interface{})
+			if len(network) > 0 && network[0] != nil {
+				networkConfig := network[0].(map[string]interface{})
+				loadBalancerSku := networkConfig["load_balancer_sku"].(string)
+
+				loadBalancerProfile := networkConfig["load_balancer"].([]interface{})
+				if len(loadBalancerProfile) > 0 && !strings.EqualFold(loadBalancerSku, "standard") {
+					return fmt.Errorf("only load balancer SKU 'Standard' supports load balancer profiles. Provided load balancer type: %s", loadBalancerSku)
+				}
+
+				natGatewayProfile := networkConfig["nat_gateway"].([]interface{})
+				if len(natGatewayProfile) > 0 && !strings.EqualFold(loadBalancerSku, "standard") {
+					return fmt.Errorf("only load balancer SKU 'Standard' supports NAT Gateway profiles. Provided load balancer type: %s", loadBalancerSku)
+				}
+			}
+
 			return nil
 		},
 	}
@@ -540,7 +626,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			},
 		},
 
-		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
+		"identity": commonschema.SystemOrUserAssignedIdentityRequired(),
 
 		"image_cleaner_interval_in_hours": {
 			Type:         pluginsdk.TypeInt,
@@ -1785,24 +1871,17 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("validating configuration: %+v", err)
 			}
 
-			networkProfile, err := expandKubernetesAutomaticClusterNetworkProfile(model.NetworkProfile)
-			if err != nil {
-				return fmt.Errorf("expanding network profile: %+v", err)
-			}
-
 			securityProfile := &managedclusters.ManagedClusterSecurityProfile{
-				Defender:     expandKubernetesAutomaticClusterMicrosoftDefender(model.MicrosoftDefender, false),
-				ImageCleaner: expandKubernetesAutomaticClusterImageCleaner(model.ImageCleanerIntervalHours),
+				Defender:                  expandKubernetesAutomaticClusterMicrosoftDefender(model.MicrosoftDefender, false),
+				ImageCleaner:              expandKubernetesAutomaticClusterImageCleaner(model.ImageCleanerIntervalHours),
+				CustomCATrustCertificates: expandKubernetesAutomaticClusterCustomCATrustCertificates(model.CustomCATrustCertificatesBase64),
 			}
 
-			securityProfile.AzureKeyVaultKms, err = expandKubernetesAutomaticClusterKeyManagementService(model.KeyManagementService, ctx, keyVaultsClient, subscriptionId)
+			kmsProfile, err := expandKubernetesAutomaticClusterKeyManagementService(model.KeyManagementService, ctx, keyVaultsClient, subscriptionId)
 			if err != nil {
 				return err
 			}
-
-			if len(model.CustomCATrustCertificatesBase64) > 0 {
-				securityProfile.CustomCATrustCertificates = pointer.To(model.CustomCATrustCertificatesBase64)
-			}
+			securityProfile.AzureKeyVaultKms = kmsProfile
 
 			addonProfiles, err := expandKubernetesAutomaticClusterAddOns(&model, metadata.Client.Containers_v2026_04_01.Environment)
 			if err != nil {
@@ -1812,8 +1891,6 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 			(*addonProfiles)["azurepolicy"] = managedclusters.ManagedClusterAddonProfile{
 				Enabled: true,
 			}
-
-			apiAccessProfile := expandKubernetesAutomaticClusterAPIAccessProfile(model)
 
 			var azureADProfile *managedclusters.ManagedClusterAADProfile
 			if len(model.AzureActiveDirectoryRBAC) > 0 {
@@ -1830,7 +1907,7 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 					Tier: pointer.To(managedclusters.ManagedClusterSKUTier("standard")),
 				},
 				Properties: &managedclusters.ManagedClusterProperties{
-					ApiServerAccessProfile: apiAccessProfile,
+					ApiServerAccessProfile: expandKubernetesAutomaticClusterAPIAccessProfile(model),
 					AadProfile:             azureADProfile,
 					AddonProfiles:          addonProfiles,
 					AutoScalerProfile:      expandKubernetesAutomaticClusterAutoScalerProfile(model.AutoScalerProfile),
@@ -1842,7 +1919,7 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 					LinuxProfile:           expandKubernetesAutomaticClusterLinuxProfile(model.LinuxProfile),
 					WindowsProfile:         expandKubernetesAutomaticClusterWindowsProfile(model.WindowsProfile),
 					MetricsProfile:         expandKubernetesAutomaticClusterMetricsProfile(model.CostAnalysisEnabled),
-					NetworkProfile:         networkProfile,
+					NetworkProfile:         expandKubernetesAutomaticClusterNetworkProfile(model.NetworkProfile),
 					NodeResourceGroup:      pointer.To(model.NodeResourceGroup),
 					HTTPProxyConfig:        expandKubernetesAutomaticClusterHttpProxyConfig(model.HTTPProxyConfig),
 					SecurityProfile:        securityProfile,
@@ -1868,17 +1945,7 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 				parameters.Properties.IdentityProfile = expandKubernetesAutomaticClusterIdentityProfile(model.KubeletIdentity)
 			}
 
-			if len(model.PrivateCluster) > 0 && model.PrivateCluster[0].PrivateDNSZoneID != "" {
-				privateDNSZoneID := model.PrivateCluster[0].PrivateDNSZoneID
-				if (parameters.Identity == nil) || (privateDNSZoneID != "System" && privateDNSZoneID != "None" && (parameters.Identity.Type != identity.TypeUserAssigned)) {
-					return fmt.Errorf("a user assigned identity must be used when using a custom private dns zone")
-				}
-			}
-
 			if len(model.PrivateCluster) > 0 && model.PrivateCluster[0].DNSPrefixPrivateCluster != "" {
-				if apiAccessProfile.PrivateDNSZone == nil || *apiAccessProfile.PrivateDNSZone == "System" || *apiAccessProfile.PrivateDNSZone == "None" {
-					return fmt.Errorf("`private_cluster.0.dns_prefix` should only be set for private cluster with custom private dns zone")
-				}
 				parameters.Properties.FqdnSubdomain = pointer.To(model.PrivateCluster[0].DNSPrefixPrivateCluster)
 			} else {
 				parameters.Properties.DnsPrefix = pointer.To(model.DNSPrefix)
@@ -2194,11 +2261,7 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("network") {
-				networkProfile, err := expandKubernetesAutomaticClusterNetworkProfile(model.NetworkProfile)
-				if err != nil {
-					return fmt.Errorf("expanding network profile: %w", err)
-				}
-				props.NetworkProfile = networkProfile
+				props.NetworkProfile = expandKubernetesAutomaticClusterNetworkProfile(model.NetworkProfile)
 				updateCluster = true
 			}
 
@@ -2251,11 +2314,7 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 				}
 
 				if metadata.ResourceData.HasChange("custom_ca_trust_certificates_base64") {
-					if len(model.CustomCATrustCertificatesBase64) > 0 {
-						props.SecurityProfile.CustomCATrustCertificates = &model.CustomCATrustCertificatesBase64
-					} else {
-						props.SecurityProfile.CustomCATrustCertificates = nil
-					}
+					props.SecurityProfile.CustomCATrustCertificates = expandKubernetesAutomaticClusterCustomCATrustCertificates(model.CustomCATrustCertificatesBase64)
 				}
 
 				updateCluster = true
@@ -2655,6 +2714,14 @@ func expandKubernetesAutomaticClusterImageCleaner(intervalHours int64) *managedc
 	}
 }
 
+func expandKubernetesAutomaticClusterCustomCATrustCertificates(input []string) *[]string {
+	if len(input) == 0 {
+		return nil
+	}
+
+	return pointer.To(input)
+}
+
 func idsToAutomaticResourceReferences(ids []string) *[]managedclusters.ResourceReference {
 	if len(ids) == 0 {
 		return nil
@@ -2687,9 +2754,9 @@ func automaticResourceReferencesToIds(refs *[]managedclusters.ResourceReference)
 	return nil
 }
 
-func expandKubernetesAutomaticClusterNetworkProfile(input []NetworkProfileModel) (*managedclusters.ContainerServiceNetworkProfile, error) {
+func expandKubernetesAutomaticClusterNetworkProfile(input []NetworkProfileModel) *managedclusters.ContainerServiceNetworkProfile {
 	if len(input) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	config := input[0]
@@ -2702,20 +2769,8 @@ func expandKubernetesAutomaticClusterNetworkProfile(input []NetworkProfileModel)
 		IPFamilies:      &[]managedclusters.IPFamily{"IPv4"},
 	}
 
-	if len(config.LoadBalancerProfile) > 0 {
-		if !strings.EqualFold(loadBalancerSku, "standard") {
-			return nil, fmt.Errorf("only load balancer SKU 'Standard' supports load balancer profiles. Provided load balancer type: %s", loadBalancerSku)
-		}
-		networkProfile.LoadBalancerProfile = expandAutomaticLoadBalancerProfile(config.LoadBalancerProfile)
-	}
-
-	if len(config.NATGatewayProfile) > 0 {
-		if !strings.EqualFold(loadBalancerSku, "standard") {
-			return nil, fmt.Errorf("only load balancer SKU 'Standard' supports NAT Gateway profiles. Provided load balancer type: %s", loadBalancerSku)
-		}
-
-		networkProfile.NatGatewayProfile = expandAutomaticNatGatewayProfile(config.NATGatewayProfile)
-	}
+	networkProfile.LoadBalancerProfile = expandAutomaticLoadBalancerProfile(config.LoadBalancerProfile)
+	networkProfile.NatGatewayProfile = expandAutomaticNatGatewayProfile(config.NATGatewayProfile)
 
 	if config.DNSServiceIP != "" {
 		networkProfile.DnsServiceIP = pointer.To(config.DNSServiceIP)
@@ -2731,7 +2786,7 @@ func expandKubernetesAutomaticClusterNetworkProfile(input []NetworkProfileModel)
 
 	networkProfile.AdvancedNetworking = expandKubernetesAutomaticClusterAdvancedNetworking(config.AdvancedNetworking)
 
-	return &networkProfile, nil
+	return &networkProfile
 }
 
 func expandKubernetesAutomaticClusterAdvancedNetworking(input []AdvancedNetworkingModel) *managedclusters.AdvancedNetworking {
@@ -2798,9 +2853,7 @@ func expandAutomaticLoadBalancerProfile(input []LoadBalancerProfileModel) *manag
 		profile.IdleTimeoutInMinutes = pointer.To(config.IdleTimeoutInMinutes)
 	}
 
-	if config.OutboundPortsAllocated != 0 {
-		profile.AllocatedOutboundPorts = pointer.To(config.OutboundPortsAllocated)
-	}
+	profile.AllocatedOutboundPorts = pointer.To(config.OutboundPortsAllocated)
 
 	if config.ManagedOutboundIPCount > 0 {
 		profile.ManagedOutboundIPs = &managedclusters.ManagedClusterLoadBalancerProfileManagedOutboundIPs{
