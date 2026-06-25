@@ -279,6 +279,9 @@ func resourceWebpubsubNetworkACLDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
+	locks.ByName(id.WebPubSubName, "azurerm_web_pubsub")
+	defer locks.UnlockByName(id.WebPubSubName, "azurerm_web_pubsub")
+
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving %q: %+v", id, err)
@@ -292,6 +295,9 @@ func resourceWebpubsubNetworkACLDelete(d *pluginsdk.ResourceData, meta interface
 			Allow: &defaultRequestTypes,
 			Deny:  &denyRequestTypes,
 		},
+		// IPRules must be an explicit empty slice so the PUT sends `[]` and clears existing rules;
+		// a nil slice is omitted from the request and Azure retains the stored `ip_rule` entries
+		IPRules: &[]webpubsub.IPRule{},
 	}
 
 	if resp.Model == nil {
@@ -315,7 +321,7 @@ func resourceWebpubsubNetworkACLDelete(d *pluginsdk.ResourceData, meta interface
 
 	payload.Properties.NetworkACLs = networkACL
 
-	if err := client.UpdateThenPoll(ctx, *id, payload); err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, payload); err != nil {
 		return fmt.Errorf("resetting the default Network ACL configuration for %q: %+v", id, err)
 	}
 

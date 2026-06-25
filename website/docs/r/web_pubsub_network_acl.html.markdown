@@ -110,7 +110,7 @@ An `ip_rule` block supports the following:
 
 * `action` - (Required) The action to take for the matched IP rule. Possible values are `Allow` and `Deny`.
 
-* `ip_range` - (Required) The value to match for this rule. This can be an IP address, a CIDR range, or a [service tag](https://docs.microsoft.com/azure/virtual-network/service-tags-overview).
+* `ip_range` - (Required) The value to match for this rule. This can be an IP address, a CIDR range, or a [service tag](https://learn.microsoft.com/azure/virtual-network/service-tags-overview).
 
 ---
 
