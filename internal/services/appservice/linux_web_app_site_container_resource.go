@@ -104,10 +104,6 @@ func (r LinuxWebAppSiteContainerResource) Arguments() map[string]*pluginsdk.Sche
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
 			MinItems: 1,
-			Set: func(v interface{}) int {
-				m := v.(map[string]interface{})
-				return pluginsdk.HashString(m["name"].(string))
-			},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
@@ -231,6 +227,10 @@ func (r LinuxWebAppSiteContainerResource) Create() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
+
 			return nil
 		},
 	}
@@ -266,6 +266,10 @@ func (r LinuxWebAppSiteContainerResource) Read() sdk.ResourceFunc {
 			}
 
 			state := flattenLinuxWebAppSiteContainer(*id, container, config.PasswordSecret)
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
+			}
 
 			return metadata.Encode(&state)
 		},

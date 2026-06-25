@@ -68,6 +68,13 @@ func TestAccLinuxWebAppSiteContainer_update(t *testing.T) {
 			),
 		},
 		data.ImportStep("password_secret"),
+		{
+			Config: r.updateEnvVar(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("password_secret"),
 	})
 }
 
@@ -127,6 +134,12 @@ resource "azurerm_linux_web_app" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
+
+  app_settings = {
+    EXAMPLE_SETTING     = "example-value"
+    EXAMPLE_UPDATED     = "example-value-updated"
+    EXAMPLE_UPDATED_ALT = "example-value-alt"
+  }
 
   site_config {
     application_stack {
@@ -198,6 +211,25 @@ resource "azurerm_linux_web_app_site_container" "test" {
   environment_variable {
     name             = "EXAMPLE"
     app_setting_name = "EXAMPLE_UPDATED"
+  }
+}
+`, r.template(data))
+}
+
+func (r LinuxWebAppSiteContainerResource) updateEnvVar(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_web_app_site_container" "test" {
+  name             = "app"
+  linux_web_app_id = azurerm_linux_web_app.test.id
+  image            = "mcr.microsoft.com/appsvc/sample-hello-world:latest"
+  target_port      = 8080
+  primary          = true
+
+  environment_variable {
+    name             = "EXAMPLE"
+    app_setting_name = "EXAMPLE_UPDATED_ALT"
   }
 }
 `, r.template(data))
