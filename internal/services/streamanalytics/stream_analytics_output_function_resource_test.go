@@ -162,7 +162,7 @@ resource "azurerm_stream_analytics_output_function" "import" {
   function_name             = azurerm_stream_analytics_output_function.test.function_name
   api_key                   = azurerm_stream_analytics_output_function.test.api_key
 }
-`, r.template(data))
+`, r.basic(data))
 }
 
 func (r StreamAnalyticsOutputFunctionResource) template(data acceptance.TestData) string {

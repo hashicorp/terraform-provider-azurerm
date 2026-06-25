@@ -178,7 +178,7 @@ resource "azurerm_stream_analytics_output_synapse" "import" {
   database = "master"
   table    = "AccTestTable"
 }
-`, r.template(data))
+`, r.basic(data))
 }
 
 func (r StreamAnalyticsOutputSynapseResource) template(data acceptance.TestData) string {

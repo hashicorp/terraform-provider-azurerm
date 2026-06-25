@@ -410,7 +410,7 @@ resource "azurerm_eventhub" "test" {
 
 resource "azurerm_eventhub_consumer_group" "test" {
   name                = "acctesteventhubcg-%d"
-  namespace_id        = azurerm_eventhub_namespace.test.id
+  namespace_name      = azurerm_eventhub_namespace.test.name
   eventhub_name       = azurerm_eventhub.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
