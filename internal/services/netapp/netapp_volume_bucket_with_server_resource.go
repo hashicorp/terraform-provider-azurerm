@@ -122,7 +122,7 @@ func (r NetAppVolumeBucketWithServerResource) Create() sdk.ResourceFunc {
 					Permissions: pointer.To(buckets.BucketPermissions(model.Permissions)),
 					FileSystemUser: &buckets.FileSystemUser{
 						NfsUser:  expandNetAppBucketNfsUser(model.FileSystemNfsUser),
-						CifsUser: expandNetAppBucketCifsUser(model.FileSystemCifsUser),
+						CifsUser: expandNetAppBucketCifsUser(model.FileSystemCifsUsername),
 					},
 					AkvDetails: expandNetAppBucketAkvDetails(model.KeyVault),
 					Server:     expandNetAppBucketServer(model.Server),
@@ -180,7 +180,7 @@ func (r NetAppVolumeBucketWithServerResource) flatten(metadata sdk.ResourceMetaD
 
 		if props.FileSystemUser != nil {
 			model.FileSystemNfsUser = flattenNetAppBucketNfsUser(props.FileSystemUser.NfsUser)
-			model.FileSystemCifsUser = flattenNetAppBucketCifsUser(props.FileSystemUser.CifsUser)
+			model.FileSystemCifsUsername = flattenNetAppBucketCifsUser(props.FileSystemUser.CifsUser)
 		}
 		model.KeyVault = flattenNetAppBucketAkvDetails(props.AkvDetails)
 		model.Server = flattenNetAppBucketServer(props.Server)
@@ -229,10 +229,10 @@ func (r NetAppVolumeBucketWithServerResource) Update() sdk.ResourceFunc {
 				patchProps.Permissions = pointer.To(buckets.BucketPatchPermissions(state.Permissions))
 			}
 
-			if metadata.ResourceData.HasChange("file_system_nfs_user") || metadata.ResourceData.HasChange("file_system_cifs_user") {
+			if metadata.ResourceData.HasChange("file_system_nfs_user") || metadata.ResourceData.HasChange("file_system_cifs_username") {
 				patchProps.FileSystemUser = &buckets.FileSystemUser{
 					NfsUser:  expandNetAppBucketNfsUser(state.FileSystemNfsUser),
-					CifsUser: expandNetAppBucketCifsUser(state.FileSystemCifsUser),
+					CifsUser: expandNetAppBucketCifsUser(state.FileSystemCifsUsername),
 				}
 			}
 

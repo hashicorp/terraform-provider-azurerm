@@ -51,7 +51,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `file_system_nfs_user` - A `file_system_nfs_user` block as defined below (only set when the bucket is configured for NFS).
 
-* `file_system_cifs_user` - A `file_system_cifs_user` block as defined below (only set when the bucket is configured for CIFS).
+* `file_system_cifs_username` - The CIFS username used by the bucket (only set when the bucket is configured for CIFS).
 
 * `key_vault` - A `key_vault` block as defined below (populated only when the bucket is configured against Azure Key Vault).
 
@@ -70,12 +70,6 @@ A `file_system_nfs_user` block exports the following:
 * `group_id` - The POSIX group ID used by the bucket.
 
 * `user_id` - The POSIX user ID used by the bucket.
-
----
-
-A `file_system_cifs_user` block exports the following:
-
-* `username` - The CIFS username used by the bucket.
 
 ---
 

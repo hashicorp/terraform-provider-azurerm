@@ -51,23 +51,14 @@ func netAppBucketResourceCommonArguments() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			ExactlyOneOf: []string{"file_system_nfs_user", "file_system_cifs_user"},
+			ExactlyOneOf: []string{"file_system_nfs_user", "file_system_cifs_username"},
 		},
 
-		"file_system_cifs_user": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"username": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-				},
-			},
-			ExactlyOneOf: []string{"file_system_nfs_user", "file_system_cifs_user"},
+		"file_system_cifs_username": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+			ExactlyOneOf: []string{"file_system_nfs_user", "file_system_cifs_username"},
 		},
 
 		"key_vault": {
@@ -193,17 +184,9 @@ func netAppBucketDataSourceCommonAttributes() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"file_system_cifs_user": {
-			Type:     pluginsdk.TypeList,
+		"file_system_cifs_username": {
+			Type:     pluginsdk.TypeString,
 			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"username": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
-			},
 		},
 
 		"key_vault": {
@@ -264,13 +247,13 @@ func expandNetAppBucketNfsUser(input []netAppModels.NetAppVolumeBucketNfsUser) *
 	}
 }
 
-func expandNetAppBucketCifsUser(input []netAppModels.NetAppVolumeBucketCifsUser) *buckets.CifsUser {
-	if len(input) == 0 {
+func expandNetAppBucketCifsUser(input string) *buckets.CifsUser {
+	if input == "" {
 		return nil
 	}
 
 	return &buckets.CifsUser{
-		Username: pointer.To(input[0].Username),
+		Username: pointer.To(input),
 	}
 }
 
@@ -287,16 +270,12 @@ func flattenNetAppBucketNfsUser(input *buckets.NfsUser) []netAppModels.NetAppVol
 	}
 }
 
-func flattenNetAppBucketCifsUser(input *buckets.CifsUser) []netAppModels.NetAppVolumeBucketCifsUser {
+func flattenNetAppBucketCifsUser(input *buckets.CifsUser) string {
 	if input == nil {
-		return nil
+		return ""
 	}
 
-	return []netAppModels.NetAppVolumeBucketCifsUser{
-		{
-			Username: pointer.From(input.Username),
-		},
-	}
+	return pointer.From(input.Username)
 }
 
 func expandNetAppBucketAkvDetails(input []netAppModels.NetAppVolumeBucketKeyVault) *buckets.AzureKeyVaultDetails {

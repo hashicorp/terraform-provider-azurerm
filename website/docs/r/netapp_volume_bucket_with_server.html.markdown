@@ -314,9 +314,9 @@ The following arguments are supported:
 
 * `volume_id` - (Required) The ARM ID of the parent NetApp Volume the bucket attaches to. Changing this forces a new resource to be created.
 
-* `file_system_nfs_user` - (Optional) A `file_system_nfs_user` block as defined below. Exactly one of `file_system_nfs_user` or `file_system_cifs_user` must be specified.
+* `file_system_nfs_user` - (Optional) A `file_system_nfs_user` block as defined below. Exactly one of `file_system_nfs_user` or `file_system_cifs_username` must be specified.
 
-* `file_system_cifs_user` - (Optional) A `file_system_cifs_user` block as defined below. Exactly one of `file_system_nfs_user` or `file_system_cifs_user` must be specified.
+* `file_system_cifs_username` - (Optional) The CIFS username used by the bucket when accessing volume data over SMB. Exactly one of `file_system_nfs_user` or `file_system_cifs_username` must be specified.
 
 ---
 
@@ -335,12 +335,6 @@ A `file_system_nfs_user` block supports the following:
 * `group_id` - (Required) The POSIX group ID used by the bucket when accessing volume data over NFS.
 
 * `user_id` - (Required) The POSIX user ID used by the bucket when accessing volume data over NFS.
-
----
-
-A `file_system_cifs_user` block supports the following:
-
-* `username` - (Required) The CIFS username used by the bucket when accessing volume data over SMB.
 
 ---
 

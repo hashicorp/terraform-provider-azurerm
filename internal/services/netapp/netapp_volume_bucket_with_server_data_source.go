@@ -101,7 +101,7 @@ func (r NetAppVolumeBucketWithServerDataSource) Read() sdk.ResourceFunc {
 
 				if props.FileSystemUser != nil {
 					state.FileSystemNfsUser = flattenNetAppBucketNfsUser(props.FileSystemUser.NfsUser)
-					state.FileSystemCifsUser = flattenNetAppBucketCifsUser(props.FileSystemUser.CifsUser)
+					state.FileSystemCifsUsername = flattenNetAppBucketCifsUser(props.FileSystemUser.CifsUser)
 				}
 				state.KeyVault = flattenNetAppBucketAkvDetails(props.AkvDetails)
 				state.Server = flattenNetAppBucketServer(props.Server)

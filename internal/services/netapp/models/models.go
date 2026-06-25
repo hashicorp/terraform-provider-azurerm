@@ -195,10 +195,6 @@ type NetAppVolumeBucketNfsUser struct {
 	UserID  int64 `tfschema:"user_id"`
 }
 
-type NetAppVolumeBucketCifsUser struct {
-	Username string `tfschema:"username"`
-}
-
 type NetAppVolumeBucketServer struct {
 	Fqdn                        string `tfschema:"fqdn"`
 	CertificatePem              string `tfschema:"certificate_pem"`
@@ -218,7 +214,7 @@ type NetAppVolumeBucketModel struct {
 	Path                        string                       `tfschema:"path"`
 	Permissions                 string                       `tfschema:"permissions"`
 	FileSystemNfsUser           []NetAppVolumeBucketNfsUser  `tfschema:"file_system_nfs_user"`
-	FileSystemCifsUser          []NetAppVolumeBucketCifsUser `tfschema:"file_system_cifs_user"`
+	FileSystemCifsUsername      string                       `tfschema:"file_system_cifs_username"`
 	KeyVault                    []NetAppVolumeBucketKeyVault `tfschema:"key_vault"`
 	Status                      string                       `tfschema:"status"`
 	ServerIPAddress             string                       `tfschema:"server_ip_address"`
@@ -232,7 +228,7 @@ type NetAppVolumeBucketWithServerModel struct {
 	Path                        string                       `tfschema:"path"`
 	Permissions                 string                       `tfschema:"permissions"`
 	FileSystemNfsUser           []NetAppVolumeBucketNfsUser  `tfschema:"file_system_nfs_user"`
-	FileSystemCifsUser          []NetAppVolumeBucketCifsUser `tfschema:"file_system_cifs_user"`
+	FileSystemCifsUsername      string                       `tfschema:"file_system_cifs_username"`
 	Server                      []NetAppVolumeBucketServer   `tfschema:"server"`
 	KeyVault                    []NetAppVolumeBucketKeyVault `tfschema:"key_vault"`
 	Status                      string                       `tfschema:"status"`
@@ -247,7 +243,7 @@ type NetAppVolumeBucketDataSourceModel struct {
 	Path                        string                       `tfschema:"path"`
 	Permissions                 string                       `tfschema:"permissions"`
 	FileSystemNfsUser           []NetAppVolumeBucketNfsUser  `tfschema:"file_system_nfs_user"`
-	FileSystemCifsUser          []NetAppVolumeBucketCifsUser `tfschema:"file_system_cifs_user"`
+	FileSystemCifsUsername      string                       `tfschema:"file_system_cifs_username"`
 	KeyVault                    []NetAppVolumeBucketKeyVault `tfschema:"key_vault"`
 	Status                      string                       `tfschema:"status"`
 	ServerIPAddress             string                       `tfschema:"server_ip_address"`
@@ -261,7 +257,7 @@ type NetAppVolumeBucketWithServerDataSourceModel struct {
 	Path                        string                       `tfschema:"path"`
 	Permissions                 string                       `tfschema:"permissions"`
 	FileSystemNfsUser           []NetAppVolumeBucketNfsUser  `tfschema:"file_system_nfs_user"`
-	FileSystemCifsUser          []NetAppVolumeBucketCifsUser `tfschema:"file_system_cifs_user"`
+	FileSystemCifsUsername      string                       `tfschema:"file_system_cifs_username"`
 	Server                      []NetAppVolumeBucketServer   `tfschema:"server"`
 	KeyVault                    []NetAppVolumeBucketKeyVault `tfschema:"key_vault"`
 	Status                      string                       `tfschema:"status"`
