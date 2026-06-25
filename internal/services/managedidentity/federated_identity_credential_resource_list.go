@@ -62,7 +62,7 @@ func (FederatedIdentityCredentialListResource) List(ctx context.Context, request
 
 	userAssignedIdentityId, err := commonids.ParseUserAssignedIdentityID(data.UserAssignedIdentityId.ValueString())
 	if err != nil {
-		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("parsing user assigned identity id for `%s`", FederatedIdentityCredentialResource{}.ResourceType()), err)
+		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("parsing User Assigned Identity ID for `%s`", FederatedIdentityCredentialResource{}.ResourceType()), err)
 		return
 	}
 
