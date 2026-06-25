@@ -73,25 +73,22 @@ type KubernetesAutomaticClusterModel struct {
 	AIToolchainOperatorEnabled      bool                                `tfschema:"ai_toolchain_operator_enabled"`
 
 	// Addon fields
-	ACIConnectorLinux             []ACIConnectorLinuxModel         `tfschema:"aci_connector_linux"`
-	ConfidentialComputing         []ConfidentialComputingModel     `tfschema:"confidential_computing"`
-	HTTPApplicationRoutingEnabled bool                             `tfschema:"http_application_routing_enabled"`
-	IngressApplicationGateway     []IngressApplicationGatewayModel `tfschema:"ingress_application_gateway"`
-	KeyVaultSecretsProvider       []KeyVaultSecretsProviderModel   `tfschema:"key_vault_secrets_provider"`
-	OpenServiceMeshEnabled        bool                             `tfschema:"open_service_mesh_enabled"`
-	OMSAgent                      []OMSAgentModel                  `tfschema:"oms_agent"`
+	ACIConnectorLinux         []ACIConnectorLinuxModel         `tfschema:"aci_connector_linux"`
+	ConfidentialComputing     []ConfidentialComputingModel     `tfschema:"confidential_computing"`
+	IngressApplicationGateway []IngressApplicationGatewayModel `tfschema:"ingress_application_gateway"`
+	KeyVaultSecretsProvider   []KeyVaultSecretsProviderModel   `tfschema:"key_vault_secrets_provider"`
+	OMSAgent                  []OMSAgentModel                  `tfschema:"oms_agent"`
 
 	// Computed fields
-	CurrentKubernetesVersion       string            `tfschema:"current_kubernetes_version"`
-	FQDN                           string            `tfschema:"fully_qualified_domain_name"`
-	HTTPApplicationRoutingZoneName string            `tfschema:"http_application_routing_zone_name"`
-	KubeAdminConfig                []KubeConfigModel `tfschema:"kube_admin_config"`
-	KubeAdminConfigRaw             string            `tfschema:"kube_admin_config_raw"`
-	KubeConfig                     []KubeConfigModel `tfschema:"kube_config"`
-	KubeConfigRaw                  string            `tfschema:"kube_config_raw"`
-	NodeResourceGroupID            string            `tfschema:"node_resource_group_id"`
-	OIDCIssuerURL                  string            `tfschema:"oidc_issuer_url"`
-	PrivateFQDN                    string            `tfschema:"private_fully_qualified_domain_name"`
+	CurrentKubernetesVersion string            `tfschema:"current_kubernetes_version"`
+	FQDN                     string            `tfschema:"fully_qualified_domain_name"`
+	KubeAdminConfig          []KubeConfigModel `tfschema:"kube_admin_config"`
+	KubeAdminConfigRaw       string            `tfschema:"kube_admin_config_raw"`
+	KubeConfig               []KubeConfigModel `tfschema:"kube_config"`
+	KubeConfigRaw            string            `tfschema:"kube_config_raw"`
+	NodeResourceGroupID      string            `tfschema:"node_resource_group_id"`
+	OIDCIssuerURL            string            `tfschema:"oidc_issuer_url"`
+	PrivateFQDN              string            `tfschema:"private_fully_qualified_domain_name"`
 }
 
 type APIServerAccessProfileModel struct {
@@ -422,13 +419,13 @@ func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
 			if len(hostedSystem) > 0 && hostedSystem[0] != nil {
 				identityInput := rd.Get("identity").([]interface{})
 				if len(identityInput) == 0 || identityInput[0] == nil {
-					return fmt.Errorf("`hosted_system` requires `identity.type` to be `SystemAssigned`")
+					return fmt.Errorf("`hosted_system` requires `identity.type` to be `UserAssigned`")
 				}
 
 				identityConfig := identityInput[0].(map[string]interface{})
 				identityType := identityConfig["type"].(string)
-				if !strings.EqualFold(identityType, string(identity.TypeSystemAssigned)) {
-					return fmt.Errorf("`hosted_system` requires `identity.type` to be `SystemAssigned`")
+				if !strings.EqualFold(identityType, string(identity.TypeUserAssigned)) {
+					return fmt.Errorf("`hosted_system` requires `identity.type` to be `UserAssigned`")
 				}
 			}
 
@@ -1445,11 +1442,6 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 				},
 			},
 		},
-		"http_application_routing_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
 		"ingress_application_gateway": {
 			Type:     pluginsdk.TypeList,
 			MaxItems: 1,
@@ -1607,11 +1599,6 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 				},
 			},
 		},
-		"open_service_mesh_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
 	}
 
 	return arguments
@@ -1625,11 +1612,6 @@ func (r KubernetesAutomaticClusterResource) Attributes() map[string]*pluginsdk.S
 		},
 
 		"fully_qualified_domain_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"http_application_routing_zone_name": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -1963,12 +1945,9 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 			if props.AddonProfiles != nil {
 				state.ACIConnectorLinux,
 					state.ConfidentialComputing,
-					state.HTTPApplicationRoutingEnabled,
-					state.HTTPApplicationRoutingZoneName,
 					state.IngressApplicationGateway,
 					state.KeyVaultSecretsProvider,
-					state.OMSAgent,
-					state.OpenServiceMeshEnabled = flattenKubernetesAutomaticClusterAddOns(*props.AddonProfiles)
+					state.OMSAgent = flattenKubernetesAutomaticClusterAddOns(*props.AddonProfiles)
 			}
 
 			state.AutoScalerProfile, err = flattenKubernetesAutomaticClusterAutoScalerProfile(props.AutoScalerProfile)
@@ -2120,11 +2099,9 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChanges("aci_connector_linux",
 				"confidential_computing",
-				"http_application_routing_enabled",
 				"oms_agent",
 				"ingress_application_gateway",
-				"key_vault_secrets_provider",
-				"open_service_mesh_enabled") {
+				"key_vault_secrets_provider") {
 				addonProfiles, err := expandKubernetesAutomaticClusterAddOns(&model, metadata.Client.Containers_v2026_04_01.Environment)
 				if err != nil {
 					return fmt.Errorf("expanding addons: %w", err)
@@ -3664,10 +3641,6 @@ func flattenIdentityModel(input *identity.SystemOrUserAssignedMap) []identity.Sy
 func expandKubernetesAutomaticClusterAddOns(input *KubernetesAutomaticClusterModel, env environments.Environment) (*map[string]managedclusters.ManagedClusterAddonProfile, error) {
 	addonProfiles := map[string]managedclusters.ManagedClusterAddonProfile{}
 
-	addonProfiles[openServiceMeshKey] = managedclusters.ManagedClusterAddonProfile{
-		Enabled: input.OpenServiceMeshEnabled,
-	}
-
 	addonProfiles[confidentialComputingKey] = managedclusters.ManagedClusterAddonProfile{
 		Enabled: false,
 	}
@@ -3682,12 +3655,6 @@ func expandKubernetesAutomaticClusterAddOns(input *KubernetesAutomaticClusterMod
 		addonProfiles[confidentialComputingKey] = managedclusters.ManagedClusterAddonProfile{
 			Enabled: true,
 			Config:  pointer.To(config),
-		}
-	}
-
-	if input.HTTPApplicationRoutingEnabled {
-		addonProfiles[httpApplicationRoutingKey] = managedclusters.ManagedClusterAddonProfile{
-			Enabled: input.HTTPApplicationRoutingEnabled,
 		}
 	}
 
@@ -3781,12 +3748,9 @@ func expandKubernetesAutomaticClusterAddOns(input *KubernetesAutomaticClusterMod
 func flattenKubernetesAutomaticClusterAddOns(profile map[string]managedclusters.ManagedClusterAddonProfile) (
 	aciConnectorLinux []ACIConnectorLinuxModel,
 	confidentialComputing []ConfidentialComputingModel,
-	httpApplicationRoutingEnabled bool,
-	httpApplicationRoutingZoneName string,
 	ingressApplicationGateway []IngressApplicationGatewayModel,
 	keyVaultSecretsProvider []KeyVaultSecretsProviderModel,
 	omsAgent []OMSAgentModel,
-	openServiceMeshEnabled bool,
 ) {
 	aciConnector := kubernetesAddonProfileLocateTyped(profile, aciConnectorKey)
 	if aciConnector.Enabled {
@@ -3812,13 +3776,6 @@ func flattenKubernetesAutomaticClusterAddOns(profile map[string]managedclusters.
 		confidentialComputing = []ConfidentialComputingModel{{
 			SGXQuoteHelperEnabled: quoteHelperEnabled,
 		}}
-	}
-
-	httpApplicationRouting := kubernetesAddonProfileLocateTyped(profile, httpApplicationRoutingKey)
-	httpApplicationRoutingEnabled = httpApplicationRouting.Enabled
-
-	if v := kubernetesAddonProfileLocateTypedInConfig(httpApplicationRouting.Config, "HTTPApplicationRoutingZoneName"); v != "" {
-		httpApplicationRoutingZoneName = v
 	}
 
 	omsAgentProfile := kubernetesAddonProfileLocateTyped(profile, omsAgentKey)
@@ -3883,9 +3840,6 @@ func flattenKubernetesAutomaticClusterAddOns(profile map[string]managedclusters.
 			IngressApplicationGatewayIdentity: flattenIngressApplicationGatewayIdentityTyped(ingressApplicationGatewayIdentity),
 		}}
 	}
-
-	openServiceMesh := kubernetesAddonProfileLocateTyped(profile, openServiceMeshKey)
-	openServiceMeshEnabled = openServiceMesh.Enabled
 
 	azureKeyVaultSecretsProviderProfile := kubernetesAddonProfileLocateTyped(profile, azureKeyvaultSecretsProviderKey)
 	if azureKeyVaultSecretsProviderProfile.Enabled {
