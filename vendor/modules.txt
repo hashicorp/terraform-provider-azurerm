@@ -1861,7 +1861,7 @@ gopkg.in/dnaeon/go-vcr.v4/pkg/recorder
 # gopkg.in/yaml.v3 v3.0.1
 ## explicit
 gopkg.in/yaml.v3
-# software.sslmate.com/src/go-pkcs12 v0.6.0
+# software.sslmate.com/src/go-pkcs12 v0.7.2
 ## explicit; go 1.19
 software.sslmate.com/src/go-pkcs12
 software.sslmate.com/src/go-pkcs12/internal/rc2
