@@ -60,9 +60,20 @@ func (c BucketsClient) GenerateAkvCredentials(ctx context.Context, id BucketId, 
 
 // GenerateAkvCredentialsThenPoll performs GenerateAkvCredentials then polls until it's completed
 func (c BucketsClient) GenerateAkvCredentialsThenPoll(ctx context.Context, id BucketId, input BucketCredentialsExpiry) error {
+	return c.GenerateAkvCredentialsCallbackThenPoll(ctx, id, input, nil)
+}
+
+// GenerateAkvCredentialsCallbackThenPoll performs GenerateAkvCredentials, runs the optional callback function, then polls until it's completed
+func (c BucketsClient) GenerateAkvCredentialsCallbackThenPoll(ctx context.Context, id BucketId, input BucketCredentialsExpiry, callback func() error) error {
 	result, err := c.GenerateAkvCredentials(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing GenerateAkvCredentials: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

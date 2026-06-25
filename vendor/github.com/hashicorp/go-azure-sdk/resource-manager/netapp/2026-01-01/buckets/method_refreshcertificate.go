@@ -56,9 +56,20 @@ func (c BucketsClient) RefreshCertificate(ctx context.Context, id BucketId) (res
 
 // RefreshCertificateThenPoll performs RefreshCertificate then polls until it's completed
 func (c BucketsClient) RefreshCertificateThenPoll(ctx context.Context, id BucketId) error {
+	return c.RefreshCertificateCallbackThenPoll(ctx, id, nil)
+}
+
+// RefreshCertificateCallbackThenPoll performs RefreshCertificate, runs the optional callback function, then polls until it's completed
+func (c BucketsClient) RefreshCertificateCallbackThenPoll(ctx context.Context, id BucketId, callback func() error) error {
 	result, err := c.RefreshCertificate(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing RefreshCertificate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
