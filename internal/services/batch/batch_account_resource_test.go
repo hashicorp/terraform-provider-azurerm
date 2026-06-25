@@ -704,7 +704,6 @@ resource "azurerm_key_vault_key" "test" {
   ]
 }
 
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, tenantID)
 }
 
@@ -815,7 +814,6 @@ resource "azurerm_key_vault_key" "test" {
   ]
 }
 
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, tenantID)
 }
 
@@ -922,7 +920,6 @@ resource "azurerm_key_vault_key" "test" {
     "wrapKey",
   ]
 }
-
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, tenantID)
 }

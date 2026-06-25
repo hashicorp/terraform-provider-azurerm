@@ -346,7 +346,6 @@ data "azurerm_batch_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, tenantID)
 }
 
@@ -461,7 +460,6 @@ data "azurerm_batch_account" "test" {
   name                = azurerm_batch_account.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, tenantID)
 }

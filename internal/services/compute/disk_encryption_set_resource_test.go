@@ -346,7 +346,6 @@ resource "azurerm_key_vault_key" "test" {
   depends_on = [azurerm_key_vault_access_policy.service-principal]
 }
 
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, purgeProtectionEnabled)
 }
 

@@ -2870,7 +2870,6 @@ resource "azurerm_managed_disk" "test" {
   ]
 }
 
-
 `, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
 
