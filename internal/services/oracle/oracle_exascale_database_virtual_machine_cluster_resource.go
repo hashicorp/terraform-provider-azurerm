@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/exadbvmclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/exascaledbstoragevaults"
@@ -24,7 +25,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.ResourceWithUpdate = ExascaleDatabaseVirtualMachineClusterResource{}
+var (
+	_ sdk.ResourceWithUpdate   = ExascaleDatabaseVirtualMachineClusterResource{}
+	_ sdk.ResourceWithIdentity = ExascaleDatabaseVirtualMachineClusterResource{}
+)
 
 type ExascaleDatabaseVirtualMachineClusterResource struct{}
 
@@ -351,6 +355,10 @@ func (ExascaleDatabaseVirtualMachineClusterResource) ModelObject() interface{} {
 	return &ExascaleDatabaseVirtualMachineClusterResource{}
 }
 
+func (ExascaleDatabaseVirtualMachineClusterResource) Identity() resourceids.ResourceId {
+	return &exadbvmclusters.ExadbVMClusterId{}
+}
+
 func (ExascaleDatabaseVirtualMachineClusterResource) ResourceType() string {
 	return "azurerm_oracle_exascale_database_virtual_machine_cluster"
 }
@@ -442,7 +450,11 @@ func (r ExascaleDatabaseVirtualMachineClusterResource) Create() sdk.ResourceFunc
 			}
 
 			metadata.SetID(id)
-			return nil
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
+
+			return metadata.Encode(&model)
 		},
 	}
 }
@@ -488,7 +500,7 @@ func (r ExascaleDatabaseVirtualMachineClusterResource) Update() sdk.ResourceFunc
 	}
 }
 
-func (ExascaleDatabaseVirtualMachineClusterResource) Read() sdk.ResourceFunc {
+func (r ExascaleDatabaseVirtualMachineClusterResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -506,48 +518,56 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			state := ExascaleDatabaseVirtualMachineClusterResourceModel{
-				Name:              id.ExadbVmClusterName,
-				ResourceGroupName: id.ResourceGroupName,
-			}
-
-			if model := resp.Model; model != nil {
-				state.Location = location.Normalize(model.Location)
-				state.Tags = pointer.From(model.Tags)
-				state.Zones = pointer.From(model.Zones)
-
-				if props := model.Properties; props != nil {
-					state.DisplayName = props.DisplayName
-					state.EnabledEcpuCount = props.EnabledEcpuCount
-					state.ExascaleDbStorageVaultId = props.ExascaleDbStorageVaultId
-					state.GridImageOcid = pointer.From(props.GridImageOcid)
-					state.Hostname = props.Hostname
-					state.NumberOfVmsInCluster = props.NodeCount
-					state.Shape = props.Shape
-					state.SshPublicKeys = props.SshPublicKeys
-					state.SubnetId = props.SubnetId
-					state.TotalEcpuCount = props.TotalEcpuCount
-					state.VirtualMachineFileSystemStorage = FlattenVMFileSystemStorage(props.VMFileSystemStorage)
-					state.VnetId = props.VnetId
-					state.BackupSubnetCidr = pointer.From(props.BackupSubnetCidr)
-					state.ClusterName = pointer.From(props.ClusterName)
-					state.DataCollection = FlattenExadbDataCollectionOption(props.DataCollectionOptions)
-					state.Domain = pointer.From(props.Domain)
-					state.LicenseModel = pointer.FromEnum(props.LicenseModel)
-					state.InboundNetworkSecurityGroupRule = FlattenNetworkSecurityGroupCidr(props.NsgCidrs)
-					state.Ocid = pointer.From(props.Ocid)
-					state.PrivateZoneOcid = pointer.From(props.PrivateZoneOcid)
-					state.SingleClientAccessNameListenerPortTcp = pointer.From(props.ScanListenerPortTcp)
-					state.SingleClientAccessNameListenerPortTcpSsl = pointer.From(props.ScanListenerPortTcpSsl)
-					state.SystemVersion = pointer.From(props.SystemVersion)
-					state.TimeZone = pointer.From(props.TimeZone)
-					state.ZoneOcid = pointer.From(props.ZoneOcid)
-				}
-			}
-
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
+}
+
+func (ExascaleDatabaseVirtualMachineClusterResource) flatten(metadata sdk.ResourceMetaData, id *exadbvmclusters.ExadbVMClusterId, model *exadbvmclusters.ExadbVMCluster) error {
+	state := ExascaleDatabaseVirtualMachineClusterResourceModel{
+		Name:              id.ExadbVmClusterName,
+		ResourceGroupName: id.ResourceGroupName,
+	}
+
+	if model != nil {
+		state.Location = location.Normalize(model.Location)
+		state.Tags = pointer.From(model.Tags)
+		state.Zones = pointer.From(model.Zones)
+
+		if props := model.Properties; props != nil {
+			state.DisplayName = props.DisplayName
+			state.EnabledEcpuCount = props.EnabledEcpuCount
+			state.ExascaleDbStorageVaultId = props.ExascaleDbStorageVaultId
+			state.GridImageOcid = pointer.From(props.GridImageOcid)
+			state.Hostname = props.Hostname
+			state.NumberOfVmsInCluster = props.NodeCount
+			state.Shape = props.Shape
+			state.SshPublicKeys = props.SshPublicKeys
+			state.SubnetId = props.SubnetId
+			state.TotalEcpuCount = props.TotalEcpuCount
+			state.VirtualMachineFileSystemStorage = FlattenVMFileSystemStorage(props.VMFileSystemStorage)
+			state.VnetId = props.VnetId
+			state.BackupSubnetCidr = pointer.From(props.BackupSubnetCidr)
+			state.ClusterName = pointer.From(props.ClusterName)
+			state.DataCollection = FlattenExadbDataCollectionOption(props.DataCollectionOptions)
+			state.Domain = pointer.From(props.Domain)
+			state.LicenseModel = pointer.FromEnum(props.LicenseModel)
+			state.InboundNetworkSecurityGroupRule = FlattenNetworkSecurityGroupCidr(props.NsgCidrs)
+			state.Ocid = pointer.From(props.Ocid)
+			state.PrivateZoneOcid = pointer.From(props.PrivateZoneOcid)
+			state.SingleClientAccessNameListenerPortTcp = pointer.From(props.ScanListenerPortTcp)
+			state.SingleClientAccessNameListenerPortTcpSsl = pointer.From(props.ScanListenerPortTcpSsl)
+			state.SystemVersion = pointer.From(props.SystemVersion)
+			state.TimeZone = pointer.From(props.TimeZone)
+			state.ZoneOcid = pointer.From(props.ZoneOcid)
+		}
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }
 
 func (ExascaleDatabaseVirtualMachineClusterResource) Delete() sdk.ResourceFunc {

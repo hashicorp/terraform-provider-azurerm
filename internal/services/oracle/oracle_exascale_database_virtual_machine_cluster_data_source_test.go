@@ -14,8 +14,7 @@ import (
 
 type ExascaleDatabaseVirtualMachineClusterDataSource struct{}
 
-func TestExascaleDatabaseVirtualMachineClusterDataSource_basic(t *testing.T) {
-	skipIfExascaleGridImageOcidEnvVariableNotSpecified(t)
+func TestAccOracleExascaleDatabaseVirtualMachineClusterDataSource_basic(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, fmt.Sprintf("data.%[1]s", oracle.ExascaleDatabaseVirtualMachineClusterDataSource{}.ResourceType()), "test")
 	r := ExascaleDatabaseVirtualMachineClusterDataSource{}

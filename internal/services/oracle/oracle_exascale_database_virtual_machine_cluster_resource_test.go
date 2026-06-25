@@ -20,7 +20,13 @@ import (
 
 type ExascaleDatabaseVirtualMachineClusterResource struct{}
 
-const exascaleGridImageOcid = "ARM_TEST_ORACLE_EXASCALE_GRID_IMAGE_OCID"
+func getExascaleGridImageOcid() string {
+	const envName = "ARM_TEST_ORACLE_EXASCALE_GRID_IMAGE_OCID"
+	if os.Getenv(envName) == "" {
+		return "ocid1.dbpatch.oc1.eu-amsterdam-1.anqw2ljrt5t4sqqajnuk6idqnpujf5ed64vau5xvrkrazqiepcdtlcbied2a"
+	}
+	return os.Getenv(envName)
+}
 
 func (a ExascaleDatabaseVirtualMachineClusterResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := exadbvmclusters.ParseExadbVMClusterID(state.ID)
@@ -34,16 +40,7 @@ func (a ExascaleDatabaseVirtualMachineClusterResource) Exists(ctx context.Contex
 	return pointer.To(resp.Model != nil), nil
 }
 
-func skipIfExascaleGridImageOcidEnvVariableNotSpecified(t *testing.T) {
-	t.Helper()
-
-	if os.Getenv(exascaleGridImageOcid) == "" {
-		t.Skipf("skipping since %q has not been specified", exascaleGridImageOcid)
-	}
-}
-
-func TestExascaleDatabaseVirtualMachineClusterResource_basic(t *testing.T) {
-	skipIfExascaleGridImageOcidEnvVariableNotSpecified(t)
+func TestAccOracleExascaleDatabaseVirtualMachineClusterResource_basic(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, oracle.ExascaleDatabaseVirtualMachineClusterResource{}.ResourceType(), "test")
 	r := ExascaleDatabaseVirtualMachineClusterResource{}
@@ -60,8 +57,7 @@ func TestExascaleDatabaseVirtualMachineClusterResource_basic(t *testing.T) {
 	})
 }
 
-func TestExascaleDatabaseVirtualMachineClusterResource_complete(t *testing.T) {
-	skipIfExascaleGridImageOcidEnvVariableNotSpecified(t)
+func TestAccOracleExascaleDatabaseVirtualMachineClusterResource_complete(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, oracle.ExascaleDatabaseVirtualMachineClusterResource{}.ResourceType(), "test")
 	r := ExascaleDatabaseVirtualMachineClusterResource{}
@@ -77,8 +73,7 @@ func TestExascaleDatabaseVirtualMachineClusterResource_complete(t *testing.T) {
 	})
 }
 
-func TestExascaleDatabaseVirtualMachineClusterResource_requiresImport(t *testing.T) {
-	skipIfExascaleGridImageOcidEnvVariableNotSpecified(t)
+func TestAccOracleExascaleDatabaseVirtualMachineClusterResource_requiresImport(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, oracle.ExascaleDatabaseVirtualMachineClusterResource{}.ResourceType(), "test")
 	r := ExascaleDatabaseVirtualMachineClusterResource{}
@@ -93,8 +88,7 @@ func TestExascaleDatabaseVirtualMachineClusterResource_requiresImport(t *testing
 	})
 }
 
-func TestExascaleDatabaseVirtualMachineClusterResource_update(t *testing.T) {
-	skipIfExascaleGridImageOcidEnvVariableNotSpecified(t)
+func TestAccOracleExascaleDatabaseVirtualMachineClusterResource_update(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, oracle.ExascaleDatabaseVirtualMachineClusterResource{}.ResourceType(), "test")
 	r := ExascaleDatabaseVirtualMachineClusterResource{}
@@ -300,7 +294,5 @@ resource "azurerm_oracle_exascale_database_storage_vault" "test" {
   additional_flash_cache_percentage = 100
   zones                             = local.zones
 }
-
-
-`, data.RandomInteger, data.Locations.Primary, os.Getenv(exascaleGridImageOcid))
+`, data.RandomInteger, data.Locations.Primary, getExascaleGridImageOcid())
 }
