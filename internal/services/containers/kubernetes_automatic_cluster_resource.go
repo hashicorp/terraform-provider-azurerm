@@ -1730,7 +1730,7 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 				},
 				Properties: &managedclusters.ManagedClusterProperties{
 					ApiServerAccessProfile: expandKubernetesAutomaticClusterAPIAccessProfile(model),
-					AadProfile:             expandKubernetesAutomaticClusterCreateAADProfile(model.AzureActiveDirectoryRBAC),
+					AadProfile:             expandKubernetesAutomaticClusterAzureActiveDirectoryRBAC(model.AzureActiveDirectoryRBAC),
 					AddonProfiles:          addonProfiles,
 					AutoScalerProfile:      expandKubernetesAutomaticClusterAutoScalerProfile(model.AutoScalerProfile),
 					AzureMonitorProfile:    expandKubernetesAutomaticClusterAzureMonitorProfile(model.MonitorMetrics),
@@ -2038,28 +2038,8 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("azure_active_directory_role_based_access_control") {
-				var aadProfile *managedclusters.ManagedClusterAADProfile
-				if len(model.AzureActiveDirectoryRBAC) > 0 {
-					aad := model.AzureActiveDirectoryRBAC[0]
-					aadProfile = &managedclusters.ManagedClusterAADProfile{
-						Managed:             pointer.To(true),
-						TenantID:            pointer.To(aad.TenantID),
-						EnableAzureRBAC:     pointer.To(true),
-						AdminGroupObjectIDs: &aad.AdminGroupObjectIDs,
-					}
-				}
-				props.AadProfile = aadProfile
-
-				if props.AadProfile == nil || (props.AadProfile.Managed == nil || !*props.AadProfile.Managed) {
-					props.AadProfile = &managedclusters.ManagedClusterAADProfile{}
-					if err := clusterClient.ResetAADProfileThenPoll(ctx, *id, *props.AadProfile); err != nil {
-						return fmt.Errorf("updating AAD Profile for %s: %w", *id, err)
-					}
-				}
-
-				if props.AadProfile != nil && props.AadProfile.Managed != nil && *props.AadProfile.Managed {
-					updateCluster = true
-				}
+				props.AadProfile = expandKubernetesAutomaticClusterAzureActiveDirectoryRBAC(model.AzureActiveDirectoryRBAC)
+				updateCluster = true
 			}
 
 			if metadata.ResourceData.HasChange("network") {
@@ -3431,14 +3411,16 @@ func flattenKubernetesAutomaticClusterHostedSystemProfile(profile *managedcluste
 	}}
 }
 
-func expandKubernetesAutomaticClusterCreateAADProfile(input []AzureActiveDirectoryRBACModel) *managedclusters.ManagedClusterAADProfile {
+func expandKubernetesAutomaticClusterAzureActiveDirectoryRBAC(input []AzureActiveDirectoryRBACModel) *managedclusters.ManagedClusterAADProfile {
 	if len(input) == 0 {
 		return nil
 	}
 
 	return &managedclusters.ManagedClusterAADProfile{
 		Managed:             pointer.To(true),
-		AdminGroupObjectIDs: &input[0].AdminGroupObjectIDs,
+		TenantID:            pointer.To(input[0].TenantID),
+		EnableAzureRBAC:     pointer.To(true),
+		AdminGroupObjectIDs: pointer.To(input[0].AdminGroupObjectIDs),
 	}
 }
 
