@@ -57,7 +57,6 @@ type KubernetesAutomaticClusterModel struct {
 	KeyManagementService            []KeyManagementServiceModel         `tfschema:"key_management_service"`
 	KubeletIdentity                 []KubeletIdentityModel              `tfschema:"kubelet_identity"`
 	KubernetesVersion               string                              `tfschema:"kubernetes_version"`
-	LinuxProfile                    []LinuxProfileModel                 `tfschema:"linux_profile"`
 	MicrosoftDefender               []MicrosoftDefenderModel            `tfschema:"microsoft_defender"`
 	MonitorMetrics                  []MonitorMetricsModel               `tfschema:"monitor_metrics"`
 	NetworkProfile                  []NetworkProfileModel               `tfschema:"network"`
@@ -156,11 +155,6 @@ type KubeletIdentityModel struct {
 	ClientID               string `tfschema:"client_id"`
 	ObjectID               string `tfschema:"object_id"`
 	UserAssignedIdentityID string `tfschema:"user_assigned_identity_id"`
-}
-
-type LinuxProfileModel struct {
-	AdminUsername string `tfschema:"admin_username"`
-	SSHKeyData    string `tfschema:"ssh_key_data"`
 }
 
 type MicrosoftDefenderModel struct {
@@ -410,6 +404,7 @@ func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
 
 			// Validate outbound_type and bootstrap artifact_source
 			outboundType := rd.Get("network.0.outbound_type").(string)
+			identityType := rd.Get("identity.0.type").(string)
 			artifactSource := rd.Get("bootstrap_profile.0.artifact_source").(string)
 			if outboundType == string(managedclusters.OutboundTypeNone) && artifactSource != string(managedclusters.ArtifactSourceCache) {
 				return fmt.Errorf("when `network.outbound_type` is set to `none`, `bootstrap_profile.artifact_source` must be set to `Cache`")
@@ -417,13 +412,6 @@ func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
 
 			hostedSystem := rd.Get("hosted_system").([]interface{})
 			if len(hostedSystem) > 0 && hostedSystem[0] != nil {
-				identityInput := rd.Get("identity").([]interface{})
-				if len(identityInput) == 0 || identityInput[0] == nil {
-					return fmt.Errorf("`hosted_system` requires `identity.type` to be `UserAssigned`")
-				}
-
-				identityConfig := identityInput[0].(map[string]interface{})
-				identityType := identityConfig["type"].(string)
 				if !strings.EqualFold(identityType, string(identity.TypeUserAssigned)) {
 					return fmt.Errorf("`hosted_system` requires `identity.type` to be `UserAssigned`")
 				}
@@ -440,13 +428,6 @@ func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
 			}
 
 			if len(hostedSystem) == 0 {
-				identityInput := rd.Get("identity").([]interface{})
-				if len(identityInput) == 0 || identityInput[0] == nil {
-					return fmt.Errorf("when `hosted_system` is not configured, `identity.type` must be `SystemAssigned`")
-				}
-
-				identityConfig := identityInput[0].(map[string]interface{})
-				identityType := identityConfig["type"].(string)
 				if !strings.EqualFold(identityType, string(identity.TypeSystemAssigned)) {
 					return fmt.Errorf("when `hosted_system` is not configured, `identity.type` must be `SystemAssigned`")
 				}
@@ -463,13 +444,6 @@ func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
 				dnsPrefix := privateClusterConfig["dns_prefix"].(string)
 
 				if privateDNSZoneID != "" {
-					identityInput := rd.Get("identity").([]interface{})
-					if len(identityInput) == 0 || identityInput[0] == nil {
-						return fmt.Errorf("a user assigned identity must be used when using a custom private dns zone")
-					}
-
-					identityConfig := identityInput[0].(map[string]interface{})
-					identityType := identityConfig["type"].(string)
 					if privateDNSZoneID != "System" && privateDNSZoneID != "None" && !strings.EqualFold(identityType, string(identity.TypeUserAssigned)) {
 						return fmt.Errorf("a user assigned identity must be used when using a custom private dns zone")
 					}
@@ -980,28 +954,6 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 							"identity.0.identity_ids",
 						},
 						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
-					},
-				},
-			},
-		},
-
-		"linux_profile": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"admin_username": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: containerValidate.KubernetesAdminUserName,
-					},
-					"ssh_key_data": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 			},
@@ -1755,10 +1707,6 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			if err := validateKubernetesAutomaticClusterTyped(&model, nil); err != nil {
-				return fmt.Errorf("validating configuration: %+v", err)
-			}
-
 			securityProfile := &managedclusters.ManagedClusterSecurityProfile{
 				Defender:                  expandKubernetesAutomaticClusterMicrosoftDefender(model.MicrosoftDefender, false),
 				ImageCleaner:              expandKubernetesAutomaticClusterImageCleaner(model.ImageCleanerIntervalHours),
@@ -1780,14 +1728,6 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 				Enabled: true,
 			}
 
-			var azureADProfile *managedclusters.ManagedClusterAADProfile
-			if len(model.AzureActiveDirectoryRBAC) > 0 {
-				azureADProfile = &managedclusters.ManagedClusterAADProfile{
-					Managed:             pointer.To(true),
-					AdminGroupObjectIDs: &model.AzureActiveDirectoryRBAC[0].AdminGroupObjectIDs,
-				}
-			}
-
 			parameters := managedclusters.ManagedCluster{
 				Location: location.Normalize(model.Location),
 				Sku: &managedclusters.ManagedClusterSKU{
@@ -1796,15 +1736,13 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 				},
 				Properties: &managedclusters.ManagedClusterProperties{
 					ApiServerAccessProfile: expandKubernetesAutomaticClusterAPIAccessProfile(model),
-					AadProfile:             azureADProfile,
+					AadProfile:             expandKubernetesAutomaticClusterCreateAADProfile(model.AzureActiveDirectoryRBAC),
 					AddonProfiles:          addonProfiles,
 					AutoScalerProfile:      expandKubernetesAutomaticClusterAutoScalerProfile(model.AutoScalerProfile),
-					AutoUpgradeProfile:     pointer.To(managedclusters.ManagedClusterAutoUpgradeProfile{}),
 					AzureMonitorProfile:    expandKubernetesAutomaticClusterAzureMonitorProfile(model.MonitorMetrics),
 					KubernetesVersion:      pointer.To(model.KubernetesVersion),
 					BootstrapProfile:       expandKubernetesAutomaticClusterBootstrapProfile(model.BootstrapProfile),
 					HostedSystemProfile:    expandKubernetesAutomaticClusterHostedSystemProfile(model.HostedSystemProfile),
-					LinuxProfile:           expandKubernetesAutomaticClusterLinuxProfile(model.LinuxProfile),
 					MetricsProfile:         expandKubernetesAutomaticClusterMetricsProfile(model.CostAnalysisEnabled),
 					NetworkProfile:         expandKubernetesAutomaticClusterNetworkProfile(model.NetworkProfile),
 					NodeResourceGroup:      pointer.To(model.NodeResourceGroup),
@@ -1824,13 +1762,9 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			if len(model.Identity) > 0 {
-				parameters.Identity = expandIdentityModel(model.Identity)
-			}
+			parameters.Identity = expandIdentityModel(model.Identity)
 
-			if len(model.KubeletIdentity) > 0 {
-				parameters.Properties.IdentityProfile = expandKubernetesAutomaticClusterIdentityProfile(model.KubeletIdentity)
-			}
+			parameters.Properties.IdentityProfile = expandKubernetesAutomaticClusterIdentityProfile(model.KubeletIdentity)
 
 			if len(model.PrivateCluster) > 0 && model.PrivateCluster[0].DNSPrefixPrivateCluster != "" {
 				parameters.Properties.FqdnSubdomain = pointer.To(model.PrivateCluster[0].DNSPrefixPrivateCluster)
@@ -1843,7 +1777,7 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.SupportPlan != "" {
-				parameters.Properties.SupportPlan = pointer.To(managedclusters.KubernetesSupportPlan(model.SupportPlan))
+				parameters.Properties.SupportPlan = pointer.ToEnum[managedclusters.KubernetesSupportPlan](model.SupportPlan)
 			}
 
 			err = client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, managedclusters.DefaultCreateOrUpdateOperationOptions(), metadata.SetIDAndIdentityCallback(&id))
@@ -1965,8 +1899,6 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 			}
 			state.KubeletIdentity = kubeletIdentity
 
-			state.LinuxProfile = flattenKubernetesAutomaticClusterLinuxProfile(props.LinuxProfile)
-
 			state.NetworkProfile = flattenKubernetesAutomaticClusterNetworkProfile(props.NetworkProfile)
 
 			state.HTTPProxyConfig = flattenKubernetesAutomaticClusterHttpProxyConfig(props.HTTPProxyConfig)
@@ -2049,18 +1981,14 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 
 			existing, err := clusterClient.Get(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("retrieving existing %s: %+v", *id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			if existing.Model == nil {
-				return fmt.Errorf("retrieving existing %s: `model` was nil", *id)
+				return fmt.Errorf("retrieving %s: `model` was nil", *id)
 			}
 			if existing.Model.Properties == nil {
-				return fmt.Errorf("retrieving existing %s: `properties` was nil", *id)
-			}
-
-			if err := validateKubernetesAutomaticClusterTyped(&model, existing.Model); err != nil {
-				return err
+				return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 			}
 
 			if existing.Model.Identity != nil && existing.Model.Identity.IdentityIds != nil {
@@ -2289,25 +2217,17 @@ func expandKubernetesAutomaticClusterAPIAccessProfile(model KubernetesAutomaticC
 
 func flattenKubernetesAutomaticClusterAPIAccessProfile(profile *managedclusters.ManagedClusterAPIServerAccessProfile) ([]APIServerAccessProfileModel, []PrivateClusterModel, bool) {
 	apiServerAccessProfile := make([]APIServerAccessProfileModel, 0, 1)
-	runCommandEnabled := true
 
 	if profile == nil {
-		return apiServerAccessProfile, []PrivateClusterModel{}, runCommandEnabled
+		return apiServerAccessProfile, []PrivateClusterModel{}, true
 	}
 
 	// Extract private cluster settings
-	enablePrivateCluster := false
-	enablePrivateClusterPublicFQDN := false
+	enablePrivateCluster := pointer.From(profile.EnablePrivateCluster)
 
-	if profile.EnablePrivateCluster != nil {
-		enablePrivateCluster = *profile.EnablePrivateCluster
-	}
-	if profile.EnablePrivateClusterPublicFQDN != nil {
-		enablePrivateClusterPublicFQDN = *profile.EnablePrivateClusterPublicFQDN
-	}
-	if profile.DisableRunCommand != nil {
-		runCommandEnabled = !*profile.DisableRunCommand
-	}
+	enablePrivateClusterPublicFQDN := pointer.From(profile.EnablePrivateClusterPublicFQDN)
+
+	runCommandEnabled := !pointer.From(profile.DisableRunCommand)
 
 	// Handle PrivateDNSZone normalization
 	privateDNSZoneID := pointer.From(profile.PrivateDNSZone)
@@ -2397,57 +2317,6 @@ func expandKubernetesAutomaticClusterHostedSystemProfile(input []HostedSystemPro
 	return profile
 }
 
-func expandKubernetesAutomaticClusterLinuxProfile(input []LinuxProfileModel) *managedclusters.ContainerServiceLinuxProfile {
-	if len(input) == 0 {
-		return nil
-	}
-
-	config := input[0]
-
-	keyData := ""
-	if len(config.SSHKeyData) > 0 {
-		keyData = config.SSHKeyData
-	}
-
-	return &managedclusters.ContainerServiceLinuxProfile{
-		AdminUsername: config.AdminUsername,
-		Ssh: managedclusters.ContainerServiceSshConfiguration{
-			PublicKeys: []managedclusters.ContainerServiceSshPublicKey{
-				{
-					KeyData: keyData,
-				},
-			},
-		},
-	}
-}
-
-func flattenKubernetesAutomaticClusterLinuxProfile(profile *managedclusters.ContainerServiceLinuxProfile) []LinuxProfileModel {
-	if profile == nil {
-		return []LinuxProfileModel{}
-	}
-
-	adminUsername := profile.AdminUsername
-
-	sshKeyData := ""
-	ssh := profile.Ssh
-	if keys := ssh.PublicKeys; keys != nil {
-		for _, sshKey := range keys {
-			keyData := ""
-			if kd := sshKey.KeyData; kd != "" {
-				keyData = kd
-			}
-			sshKeyData = keyData
-		}
-	}
-
-	return []LinuxProfileModel{
-		{
-			AdminUsername: adminUsername,
-			SSHKeyData:    sshKeyData,
-		},
-	}
-}
-
 func expandKubernetesAutomaticClusterIdentityProfile(input []KubeletIdentityModel) *map[string]managedclusters.UserAssignedIdentity {
 	identityProfile := make(map[string]managedclusters.UserAssignedIdentity)
 	if len(input) == 0 {
@@ -2474,15 +2343,6 @@ func flattenKubernetesAutomaticClusterIdentityProfile(profile map[string]managed
 
 	kubeletIdentity := make([]KubeletIdentityModel, 0)
 	if kubeletidentity, ok := profile["kubeletidentity"]; ok {
-		clientId := ""
-		if clientid := kubeletidentity.ClientId; clientid != nil {
-			clientId = *clientid
-		}
-
-		objectId := ""
-		if objectid := kubeletidentity.ObjectId; objectid != nil {
-			objectId = *objectid
-		}
 
 		userAssignedIdentityId := ""
 		if resourceid := kubeletidentity.ResourceId; resourceid != nil {
@@ -2495,8 +2355,8 @@ func flattenKubernetesAutomaticClusterIdentityProfile(profile map[string]managed
 		}
 
 		kubeletIdentity = append(kubeletIdentity, KubeletIdentityModel{
-			ClientID:               clientId,
-			ObjectID:               objectId,
+			ClientID:               pointer.From(kubeletidentity.ClientId),
+			ObjectID:               pointer.From(kubeletidentity.ObjectId),
 			UserAssignedIdentityID: userAssignedIdentityId,
 		})
 	}
@@ -3579,6 +3439,17 @@ func flattenKubernetesAutomaticClusterHostedSystemProfile(profile *managedcluste
 	}}
 }
 
+func expandKubernetesAutomaticClusterCreateAADProfile(input []AzureActiveDirectoryRBACModel) *managedclusters.ManagedClusterAADProfile {
+	if len(input) == 0 {
+		return nil
+	}
+
+	return &managedclusters.ManagedClusterAADProfile{
+		Managed:             pointer.To(true),
+		AdminGroupObjectIDs: &input[0].AdminGroupObjectIDs,
+	}
+}
+
 func flattenKubernetesAutomaticClusterAzureActiveDirectoryRBAC(profile *managedclusters.ManagedClusterAADProfile) []AzureActiveDirectoryRBACModel {
 	if profile == nil || profile.Managed == nil || !*profile.Managed {
 		return []AzureActiveDirectoryRBACModel{}
@@ -3947,33 +3818,6 @@ func kubernetesAddonProfileLocateTypedInConfig(config *map[string]string, key st
 	}
 
 	return ""
-}
-
-func validateKubernetesAutomaticClusterTyped(model *KubernetesAutomaticClusterModel, cluster *managedclusters.ManagedCluster) error {
-	identityExists := len(model.Identity) > 0
-
-	if cluster == nil {
-		if !identityExists {
-			return fmt.Errorf("either an `identity` or `service_principal` block must be specified for cluster authentication")
-		}
-	} else {
-		servicePrincipalExistsOnCluster := false
-		if props := cluster.Properties; props != nil {
-			if sp := props.ServicePrincipalProfile; sp != nil {
-				if cid := sp.ClientId; cid != "" {
-					// if it's MSI we ignore the block
-					servicePrincipalExistsOnCluster = !strings.EqualFold(cid, "msi")
-				}
-			}
-		}
-
-		// a non-MI Service Principal exists on the cluster, but not locally
-		if servicePrincipalExistsOnCluster {
-			return fmt.Errorf("the Service Principal block cannot be removed once it has been set")
-		}
-		// Check if the user has a Service Principal block defined, but the Cluster's been upgraded to use MSI
-	}
-	return nil
 }
 
 func filterUnsupportedKubernetesAddOnsTyped(input map[string]managedclusters.ManagedClusterAddonProfile, env environments.Environment) (*map[string]managedclusters.ManagedClusterAddonProfile, error) {

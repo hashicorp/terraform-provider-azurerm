@@ -771,12 +771,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
 
-  linux_profile {
-    admin_username = "acctestuser%d"
-
-    ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-  }
-
   hosted_system {
     node_subnet_id        = azurerm_subnet.node.id
     system_node_subnet_id = azurerm_subnet.systemnode.id
@@ -795,7 +789,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     outbound_type = "loadBalancer"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (r KubernetesAutomaticClusterResource) advancedNetworkingBlock(data acceptance.TestData) string {
@@ -816,12 +810,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
-
-  linux_profile {
-    admin_username = "acctestuser%d"
-
-    ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-  }
 
   hosted_system {
     node_subnet_id        = azurerm_subnet.node.id
@@ -846,7 +834,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (r KubernetesAutomaticClusterResource) advancedNetworkingBlockUpdated(data acceptance.TestData) string {
@@ -867,12 +855,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
-
-  linux_profile {
-    admin_username = "acctestuser%d"
-
-    ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-  }
 
   hosted_system {
     node_subnet_id        = azurerm_subnet.node.id
@@ -897,7 +879,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (r KubernetesAutomaticClusterResource) advancedNetworkingBlockRemoved(data acceptance.TestData) string {
@@ -919,12 +901,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
 
-  linux_profile {
-    admin_username = "acctestuser%d"
-
-    ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-  }
-
   hosted_system {
     node_subnet_id        = azurerm_subnet.node.id
     system_node_subnet_id = azurerm_subnet.systemnode.id
@@ -943,7 +919,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     outbound_type = "loadBalancer"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (r KubernetesAutomaticClusterResource) serviceMeshProfile(data acceptance.TestData, internalIngressEnabled bool, externalIngressEnabled bool) string {
@@ -964,12 +940,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%[1]d"
-
-  linux_profile {
-    admin_username = "acctestuser%[1]d"
-
-    ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-  }
 
   hosted_system {
     node_subnet_id        = azurerm_subnet.node.id
@@ -1020,12 +990,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%[1]d"
 
-  linux_profile {
-    admin_username = "acctestuser%[1]d"
-
-    ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-  }
-
   hosted_system {
     node_subnet_id        = azurerm_subnet.node.id
     system_node_subnet_id = azurerm_subnet.systemnode.id
@@ -1074,12 +1038,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%[1]d"
 
-  linux_profile {
-    admin_username = "acctestuser%[1]d"
-
-    ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-  }
-
   hosted_system {
     node_subnet_id        = azurerm_subnet.node.id
     system_node_subnet_id = azurerm_subnet.systemnode.id
@@ -1122,12 +1080,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
 
-  linux_profile {
-    admin_username = "acctestuser%d"
-
-    ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-  }
-
   hosted_system {
     node_subnet_id        = azurerm_subnet.node.id
     system_node_subnet_id = azurerm_subnet.systemnode.id
@@ -1148,7 +1100,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     service_cidr   = "10.10.0.0/16"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (KubernetesAutomaticClusterResource) managedNatGatewayConfig(data acceptance.TestData) string {
@@ -1322,11 +1274,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
 %s
-  linux_profile {
-    admin_username = "acctestuser%d"
-
-    ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-  }
 
   identity {
     type = "SystemAssigned"
@@ -1336,7 +1283,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     load_balancer_sku = "standard"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, privateClusterBlock, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, privateClusterBlock)
 }
 
 func (r KubernetesAutomaticClusterResource) privateClusterWithPrivateDNSZoneConfig(data acceptance.TestData) string {
@@ -1373,12 +1320,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     private_dns_zone_id = azurerm_private_dns_zone.test.id
   }
 
-  linux_profile {
-    admin_username = "acctestuser%d"
-
-    ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-  }
-
   hosted_system {
     node_subnet_id        = azurerm_subnet.node.id
     system_node_subnet_id = azurerm_subnet.systemnode.id
@@ -1402,7 +1343,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     azurerm_role_assignment.test,
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (r KubernetesAutomaticClusterResource) privateClusterWithPrivateDNSZoneSubDomain(data acceptance.TestData) string {
@@ -1438,12 +1379,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     private_dns_zone_id = azurerm_private_dns_zone.test.id
     dns_prefix          = "prefix"
   }
-
-  linux_profile {
-    admin_username = "acctestuser%d"
-    ssh_key_data   = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-  }
-
   hosted_system {
     node_subnet_id        = azurerm_subnet.node.id
     system_node_subnet_id = azurerm_subnet.systemnode.id
@@ -1467,7 +1402,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     azurerm_role_assignment.test,
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.Locations.Primary, data.RandomInteger)
 }
 
 func (KubernetesAutomaticClusterResource) privateClusterWithPrivateDNSZoneSystemConfig(data acceptance.TestData) string {
@@ -1491,12 +1426,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     private_dns_zone_id = "System"
   }
 
-  linux_profile {
-    admin_username = "acctestuser%d"
-
-    ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-  }
-
   identity {
     type = "SystemAssigned"
   }
@@ -1505,7 +1434,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     load_balancer_sku = "standard"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (KubernetesAutomaticClusterResource) podCidrs(data acceptance.TestData) string {
@@ -1585,12 +1514,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%d"
   kubernetes_version  = "%s"
 
-  linux_profile {
-    admin_username = "acctestuser%d"
-
-    ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-  }
-
   hosted_system {
     node_subnet_id        = azurerm_subnet.node.id
     system_node_subnet_id = azurerm_subnet.systemnode.id
@@ -1610,7 +1533,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     load_balancer_sku = "standard"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion)
 }
 
 func (r KubernetesAutomaticClusterResource) standardLoadBalancerCompleteConfig(data acceptance.TestData) string {
@@ -1649,12 +1572,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
-
-  linux_profile {
-    admin_username = "acctestuser%d"
-    ssh_key_data   = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-  }
-
   hosted_system {
     node_subnet_id        = azurerm_subnet.node.id
     system_node_subnet_id = azurerm_subnet.systemnode.id
@@ -1676,7 +1593,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     load_balancer_sku = "standard"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, r.networkTemplate(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, r.networkTemplate(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (r KubernetesAutomaticClusterResource) standardLoadBalancerProfileConfig(data acceptance.TestData) string {
@@ -1698,13 +1615,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
   kubernetes_version  = "%s"
-
-  linux_profile {
-    admin_username = "acctestuser%d"
-
-    ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-  }
-
   hosted_system {
     node_subnet_id        = azurerm_subnet.node.id
     system_node_subnet_id = azurerm_subnet.systemnode.id
@@ -1727,7 +1637,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion)
 }
 
 func (r KubernetesAutomaticClusterResource) standardLoadBalancerProfileCompleteConfig(data acceptance.TestData) string {
@@ -1758,12 +1668,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%d"
   kubernetes_version  = "%s"
 
-  linux_profile {
-    admin_username = "acctestuser%d"
-
-    ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-  }
-
   hosted_system {
     node_subnet_id        = azurerm_subnet.node.id
     system_node_subnet_id = azurerm_subnet.systemnode.id
@@ -1787,7 +1691,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion)
 }
 
 func (r KubernetesAutomaticClusterResource) standardLoadBalancerProfileWithPortAndTimeoutConfig(data acceptance.TestData) string {
@@ -1815,12 +1719,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%[1]d"
   kubernetes_version  = "%[4]s"
-
-  linux_profile {
-    admin_username = "acctestuser%[1]d"
-
-    ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-  }
 
   hosted_system {
     node_subnet_id        = azurerm_subnet.node.id
@@ -1869,12 +1767,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%d"
   kubernetes_version  = "%s"
 
-  linux_profile {
-    admin_username = "acctestuser%d"
-
-    ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-  }
-
   hosted_system {
     node_subnet_id        = azurerm_subnet.node.id
     system_node_subnet_id = azurerm_subnet.systemnode.id
@@ -1897,7 +1789,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion)
 }
 
 func (r KubernetesAutomaticClusterResource) unsetPrefixedLoadBalancerProfileConfig(data acceptance.TestData) string {
@@ -1927,12 +1819,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%d"
   kubernetes_version  = "%s"
 
-  linux_profile {
-    admin_username = "acctestuser%d"
-
-    ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-  }
-
   hosted_system {
     node_subnet_id        = azurerm_subnet.node.id
     system_node_subnet_id = azurerm_subnet.systemnode.id
@@ -1955,7 +1841,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion)
 }
 
 func (r KubernetesAutomaticClusterResource) changingLoadBalancerProfileConfigIPPrefix(data acceptance.TestData) string {
@@ -1993,11 +1879,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%d"
   kubernetes_version  = "%s"
 
-  linux_profile {
-    admin_username = "acctestuser%d"
-    ssh_key_data   = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-  }
-
   hosted_system {
     node_subnet_id        = azurerm_subnet.node.id
     system_node_subnet_id = azurerm_subnet.systemnode.id
@@ -2020,7 +1901,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion)
 }
 
 func (r KubernetesAutomaticClusterResource) changingLoadBalancerProfileConfigManagedIPs(data acceptance.TestData) string {
@@ -2058,11 +1939,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%d"
   kubernetes_version  = "%s"
 
-  linux_profile {
-    admin_username = "acctestuser%d"
-    ssh_key_data   = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-  }
-
   hosted_system {
     node_subnet_id        = azurerm_subnet.node.id
     system_node_subnet_id = azurerm_subnet.systemnode.id
@@ -2084,7 +1960,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion)
 }
 
 func (r KubernetesAutomaticClusterResource) changingLoadBalancerProfileConfigIPIds(data acceptance.TestData) string {
@@ -2122,11 +1998,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%d"
   kubernetes_version  = "%s"
 
-  linux_profile {
-    admin_username = "acctestuser%d"
-    ssh_key_data   = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-  }
-
   hosted_system {
     node_subnet_id        = azurerm_subnet.node.id
     system_node_subnet_id = azurerm_subnet.systemnode.id
@@ -2151,7 +2022,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion)
 }
 
 func (r KubernetesAutomaticClusterResource) unsetLoadBalancerProfileConfigIPIds(data acceptance.TestData) string {
@@ -2189,11 +2060,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%d"
   kubernetes_version  = "%s"
 
-  linux_profile {
-    admin_username = "acctestuser%d"
-    ssh_key_data   = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-  }
-
   hosted_system {
     node_subnet_id        = azurerm_subnet.node.id
     system_node_subnet_id = azurerm_subnet.systemnode.id
@@ -2216,7 +2082,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion)
 }
 
 func (r KubernetesAutomaticClusterResource) httpProxyConfigUpdate(data acceptance.TestData, noProxy string) string {
@@ -2340,11 +2206,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%d"
   kubernetes_version  = "%s"
 
-  linux_profile {
-    admin_username = "acctestuser%d"
-    ssh_key_data   = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-  }
-
   hosted_system {
     node_subnet_id        = azurerm_subnet.node.id
     system_node_subnet_id = azurerm_subnet.systemnode.id
@@ -2373,7 +2234,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     no_proxy    = [%s]
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion, data.RandomInteger, noProxy)
+`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion, noProxy)
 }
 
 func (r KubernetesAutomaticClusterResource) httpProxyConfig(data acceptance.TestData, noProxy string) string {
@@ -2497,11 +2358,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%d"
   kubernetes_version  = "%s"
 
-  linux_profile {
-    admin_username = "acctestuser%d"
-    ssh_key_data   = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-  }
-
   hosted_system {
     node_subnet_id        = azurerm_subnet.node.id
     system_node_subnet_id = azurerm_subnet.systemnode.id
@@ -2530,7 +2386,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     no_proxy    = [%s]
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion, data.RandomInteger, noProxy)
+`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion, noProxy)
 }
 
 func (r KubernetesAutomaticClusterResource) httpProxyConfigWithTrustedCa(data acceptance.TestData) string {
@@ -2646,11 +2502,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%d"
   kubernetes_version  = "%s"
 
-  linux_profile {
-    admin_username = "acctestuser%d"
-    ssh_key_data   = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-  }
-
   hosted_system {
     node_subnet_id        = azurerm_subnet.node.id
     system_node_subnet_id = azurerm_subnet.systemnode.id
@@ -2687,7 +2538,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 }
 
 
-`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion)
 }
 
 func (r KubernetesAutomaticClusterResource) httpProxyConfigWithSubnet(data acceptance.TestData) string {
@@ -2748,11 +2599,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%d"
   kubernetes_version  = "%s"
 
-  linux_profile {
-    admin_username = "acctestuser%d"
-    ssh_key_data   = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-  }
-
   hosted_system {
     node_subnet_id        = azurerm_subnet.node.id
     system_node_subnet_id = azurerm_subnet.systemnode.id
@@ -2781,7 +2627,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     ]
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion)
 }
 
 func (r KubernetesAutomaticClusterResource) networkDataPlane(data acceptance.TestData) string {

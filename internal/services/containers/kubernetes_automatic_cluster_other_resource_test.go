@@ -46,24 +46,6 @@ func TestAccKubernetesAutomaticCluster_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesAutomaticCluster_linuxProfile(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.linuxProfileConfig(data, "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kube_config.0.cluster_ca_certificate").Exists(),
-				check.That(data.ResourceName).Key("kube_config.0.host").Exists(),
-				check.That(data.ResourceName).Key("linux_profile.0.admin_username").Exists(),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccKubernetesAutomaticCluster_nodeResourceGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
@@ -494,36 +476,6 @@ resource "azurerm_kubernetes_automatic_cluster" "import" {
 `, r.basicVMSSConfig(data))
 }
 
-func (KubernetesAutomaticClusterResource) linuxProfileConfig(data acceptance.TestData, keyData string) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
-}
-
-resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-
-  linux_profile {
-    admin_username = "acctestuser%d"
-
-    ssh_key_data = "%s"
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, keyData)
-}
-
 func (KubernetesAutomaticClusterResource) nodeResourceGroupConfig(data acceptance.TestData, nodeResourceGroupName string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -671,17 +623,11 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%d"
   kubernetes_version  = "%s"
 
-  linux_profile {
-    admin_username = "acctestuser%d"
-
-    ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-  }
-
   identity {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, version, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, version)
 }
 
 func (KubernetesAutomaticClusterResource) diskEncryptionConfig(data acceptance.TestData) string {
@@ -782,12 +728,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix             = "acctestaks%d"
   disk_encryption_set_id = azurerm_disk_encryption_set.test.id
 
-  linux_profile {
-    admin_username = "acctestuser%d"
-
-    ssh_key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-  }
-
   identity {
     type = "SystemAssigned"
   }
@@ -803,7 +743,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   ]
 
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (KubernetesAutomaticClusterResource) upgradeChannelConfig(data acceptance.TestData, controlPlaneVersion string) string {
