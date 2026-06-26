@@ -343,19 +343,25 @@ func TestAccNetAppVolume_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
 	r := NetAppVolumeResource{}
 
+	checks := []acceptance.TestCheckFunc{
+		check.That(data.ResourceName).ExistsInAzure(r),
+		check.That(data.ResourceName).Key("service_level").HasValue("Standard"),
+		check.That(data.ResourceName).Key("storage_quota_in_gb").HasValue("101"),
+		check.That(data.ResourceName).Key("large_volume_enabled").HasValue("false"),
+		check.That(data.ResourceName).Key("export_policy_rule.#").HasValue("3"),
+		check.That(data.ResourceName).Key("tags.%").HasValue("3"),
+		check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
+		check.That(data.ResourceName).Key("mount_targets.#").HasValue("1"),
+	}
+
+	if !features.FivePointOh() {
+		checks = append(checks, check.That(data.ResourceName).Key("mount_ip_addresses.#").HasValue("1"))
+	}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("service_level").HasValue("Standard"),
-				check.That(data.ResourceName).Key("storage_quota_in_gb").HasValue("101"),
-				check.That(data.ResourceName).Key("large_volume_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("export_policy_rule.#").HasValue("3"),
-				check.That(data.ResourceName).Key("tags.%").HasValue("3"),
-				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
-				check.That(data.ResourceName).Key("mount_targets.#").HasValue("1"),
-			),
+			Check:  acceptance.ComposeTestCheckFunc(checks...),
 		},
 		data.ImportStep(),
 	})
