@@ -24,6 +24,8 @@ const (
 
 var _ pollers.PollerType = &MsSqlDatabaseOnlinePoller{}
 
+// MsSqlDatabaseOnlinePoller reports the database as ready only once it has no in-progress
+// operations and its `Status` has been `Online` for msSqlDatabaseOnlineTargetOccurrences polls.
 type MsSqlDatabaseOnlinePoller struct {
 	client                   *databases.DatabasesClient
 	id                       commonids.SqlDatabaseId
@@ -118,6 +120,7 @@ func hasInProgressDatabaseOperations(ctx context.Context, client *databases.Data
 			continue
 		}
 
+		// Completed operations remain listed, so only the non-terminal states count as in progress.
 		switch *operation.Properties.State {
 		case "CancelInProgress", "InProgress", "Pending":
 			return true, nil

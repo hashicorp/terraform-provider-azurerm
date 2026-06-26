@@ -8,14 +8,6 @@ import (
 	"strings"
 )
 
-// CompareDatabaseSkuServiceTiers returns true if sku1 has a higher service tier than sku2
-func CompareDatabaseSkuServiceTiers(sku1, sku2 string) bool {
-	index1, _ := databaseSkuTierAndCapacity(sku1)
-	index2, _ := databaseSkuTierAndCapacity(sku2)
-
-	return index1 > 0 && index2 > 0 && index1 > index2
-}
-
 // CompareDatabaseSkuScaleUp returns true if sku1 is a higher service tier or capacity than sku2.
 func CompareDatabaseSkuScaleUp(sku1, sku2 string) bool {
 	index1, capacity1 := databaseSkuTierAndCapacity(sku1)
@@ -32,7 +24,10 @@ func CompareDatabaseSkuScaleUp(sku1, sku2 string) bool {
 	series1 := databaseSkuSeries(sku1)
 	series2 := databaseSkuSeries(sku2)
 
-	return series1 != "" && strings.EqualFold(series1, series2) && capacity1 > 0 && capacity2 > 0 && capacity1 > capacity2
+	// NOTE: capacities are only compared within the same series, so capacity1 > capacity2 is
+	// sufficient on its own. We intentionally do not require capacity2 > 0 here, otherwise a
+	// scale up from a zero-capacity SKU such as `S0` would be missed (`databaseSkuCapacity("S0")` is 0).
+	return series1 != "" && strings.EqualFold(series1, series2) && capacity1 > capacity2
 }
 
 func databaseSkuTierAndCapacity(sku string) (int, int) {

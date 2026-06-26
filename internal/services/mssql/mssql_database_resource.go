@@ -1183,6 +1183,8 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceMsSqlDatabaseRead(d, meta)
 }
 
+// waitForMsSqlDatabaseOnline waits for the database to finish provisioning. `Status` can read
+// `Online` while an operation is still running, so the poller also checks the `/operations` list.
 func waitForMsSqlDatabaseOnline(ctx context.Context, client *databases.DatabasesClient, id commonids.SqlDatabaseId) error {
 	pollerType := custompollers.NewMsSqlDatabaseOnlinePoller(client, id)
 	poller := pollers.NewPoller(pollerType, 0, pollers.DefaultNumberOfDroppedConnectionsToAllow)
