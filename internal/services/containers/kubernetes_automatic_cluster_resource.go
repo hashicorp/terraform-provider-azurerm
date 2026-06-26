@@ -238,12 +238,6 @@ type WebAppRoutingIdentityModel struct {
 	UserAssignedIdentityID string `tfschema:"user_assigned_identity_id"`
 }
 
-type GMSAModel struct {
-	DNSServer          string `tfschema:"dns_server"`
-	RootDomain         string `tfschema:"root_domain"`
-	GMSAProfileEnabled bool   `tfschema:"enabled"`
-}
-
 type KubeConfigModel struct {
 	Host                 string `tfschema:"host"`
 	Username             string `tfschema:"username"`
