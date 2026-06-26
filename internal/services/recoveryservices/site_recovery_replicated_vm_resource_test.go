@@ -1437,12 +1437,24 @@ resource "azurerm_network_interface" "test" {
   }
 }
 
+resource "azurerm_managed_disk" "test_premiumv2" {
+  name                 = "datadisk-%[1]d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_type = "PremiumV2_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 1
+  zone                 = "1"
+}
+
 resource "azurerm_virtual_machine" "test" {
   name                = "vm-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
   vm_size = "Standard_B1s"
+
+  zones = ["1"]
 
   delete_os_disk_on_termination    = true
   delete_data_disks_on_termination = true
@@ -1463,11 +1475,12 @@ resource "azurerm_virtual_machine" "test" {
   }
 
   storage_data_disk {
-    name              = "datadisk-%[1]d"
-    create_option     = "Empty"
-    disk_size_gb      = "1"
-    lun               = 0
-    managed_disk_type = "Premium_LRS"
+    name            = azurerm_managed_disk.test_premiumv2.name
+    create_option   = "Attach"
+    disk_size_gb    = "1"
+    lun             = 0
+    managed_disk_id = azurerm_managed_disk.test_premiumv2.id
+    caching         = "None"
   }
 
   os_profile {
@@ -1514,7 +1527,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
   }
 
   managed_disk {
-    disk_id                    = azurerm_virtual_machine.test.storage_data_disk[0].managed_disk_id
+    disk_id                    = azurerm_managed_disk.test_premiumv2.id
     staging_storage_account_id = azurerm_storage_account.test.id
     target_resource_group_id   = azurerm_resource_group.test2.id
     target_disk_type           = "PremiumV2_LRS"
