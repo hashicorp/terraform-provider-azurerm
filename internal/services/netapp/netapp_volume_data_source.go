@@ -208,7 +208,7 @@ func dataSourceNetAppVolume() *pluginsdk.Resource {
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-			Deprecated: "this property has been deprecated in favour of `mount_targets` and will be removed in version 5.0 of the Provider.",
+			Deprecated: "This property has been deprecated in favour of `mount_targets` and will be removed in version 5.0 of the Provider.",
 		}
 	}
 
