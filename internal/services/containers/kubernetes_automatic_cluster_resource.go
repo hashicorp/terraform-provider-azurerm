@@ -423,7 +423,7 @@ func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
 				systemNodeSubnetID := hostedSystemConfig["system_node_subnet_id"].(string)
 
 				if nodeSubnetID != "" || systemNodeSubnetID != "" {
-					return fmt.Errorf("Outbound type is managedNATGateway but agent pool 'hostedpool' is using custom VNet, which is not allowed.")
+					return fmt.Errorf("network.outbound_type cannot be managedNATGateway when using hosted_system")
 				}
 			}
 
