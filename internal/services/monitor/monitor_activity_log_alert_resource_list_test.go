@@ -32,14 +32,18 @@ func TestAccMonitorActivityLogAlert_list(t *testing.T) {
 				Config: r.basicList(data),
 			},
 			{
-				// ExpectIdentity and an exact length are intentionally omitted here: the subscription-wide
-				// list API has eventual consistency on large subscriptions (e.g. TeamCity) and the results
-				// may not include newly created resources immediately. The deterministic count is asserted
-				// on the resource-group-scoped step below instead.
 				Query:  true,
 				Config: r.basicListQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
 					querycheck.ExpectLengthAtLeast("azurerm_monitor_activity_log_alert.list", 1),
+					querycheck.ExpectIdentity(
+						"azurerm_monitor_activity_log_alert.list",
+						map[string]knownvalue.Check{
+							"name":                knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
+							"resource_group_name": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
+							"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary),
+						},
+					),
 				},
 			},
 			{
