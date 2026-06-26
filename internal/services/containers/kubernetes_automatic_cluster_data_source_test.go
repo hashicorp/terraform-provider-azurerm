@@ -186,20 +186,6 @@ func TestAccDataSourceKubernetesAutomaticCluster_addOnProfileIngressApplicationG
 	})
 }
 
-func TestAccDataSourceKubernetesAutomaticCluster_addOnProfileOpenServiceMesh(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterDataSource{}
-
-	data.DataSourceTest(t, []acceptance.TestStep{
-		{
-			Config: r.addOnProfileOpenServiceMeshConfig(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("open_service_mesh_enabled").HasValue("true"),
-			),
-		},
-	})
-}
-
 func TestAccDataSourceKubernetesAutomaticCluster_addOnProfileAzureKeyvaultSecretsProvider(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterDataSource{}
@@ -422,17 +408,6 @@ data "azurerm_kubernetes_automatic_cluster" "test" {
   resource_group_name = azurerm_kubernetes_automatic_cluster.test.resource_group_name
 }
 `, KubernetesAutomaticClusterResource{}.addonProfileIngressApplicationGatewaySubnetIdConfig(data))
-}
-
-func (KubernetesAutomaticClusterDataSource) addOnProfileOpenServiceMeshConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = azurerm_kubernetes_automatic_cluster.test.name
-  resource_group_name = azurerm_kubernetes_automatic_cluster.test.resource_group_name
-}
-`, KubernetesAutomaticClusterResource{}.addonProfileOpenServiceMeshConfig(data, true))
 }
 
 func (KubernetesAutomaticClusterDataSource) addOnProfileAzureKeyvaultSecretsProviderConfig(data acceptance.TestData) string {

@@ -76,7 +76,7 @@ type KubernetesAutomaticClusterModel struct {
 	ConfidentialComputing     []ConfidentialComputingModel     `tfschema:"confidential_computing"`
 	IngressApplicationGateway []IngressApplicationGatewayModel `tfschema:"ingress_application_gateway"`
 	KeyVaultSecretsProvider   []KeyVaultSecretsProviderModel   `tfschema:"key_vault_secrets_provider"`
-	OMSAgent                  []OMSAgentModel                  `tfschema:"oms_agent"`
+	OMSAgent                  []OMSAgentModel                  `tfschema:"open_service_mesh_agent"`
 
 	// Computed fields
 	CurrentKubernetesVersion string            `tfschema:"current_kubernetes_version"`
@@ -396,6 +396,11 @@ func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 			}
 
+			if rd.HasChange("identity.0.type") {
+				if err := metadata.ResourceDiff.ForceNew("identity.0.type"); err != nil {
+					return err
+				}
+			}
 			// Validate outbound_type and bootstrap artifact_source
 			outboundType := rd.Get("network.0.outbound_type").(string)
 			identityType := rd.Get("identity.0.type").(string)
@@ -404,10 +409,27 @@ func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
 				return fmt.Errorf("when `network.outbound_type` is set to `none`, `bootstrap_profile.artifact_source` must be set to `Cache`")
 			}
 
-			hostedSystem := rd.Get("hosted_system").([]interface{})
-			if len(hostedSystem) > 0 && hostedSystem[0] != nil {
-				if !strings.EqualFold(identityType, string(identity.TypeUserAssigned)) {
-					return fmt.Errorf("`hosted_system` requires `identity.type` to be `UserAssigned`")
+			hostedSystem := rd.Get("hosted_system.0.").([]interface{})
+			if rd.Id() == "" {
+				if len(hostedSystem) == 0 {
+					if !strings.EqualFold(identityType, string(identity.TypeSystemAssigned)) {
+						return fmt.Errorf("when `hosted_system` is not configured, `identity.type` must be `SystemAssigned`")
+					}
+
+					if outboundType == string(managedclusters.OutboundTypeLoadBalancer) {
+						return fmt.Errorf("when `hosted_system` is not configured, `network.outbound_type` cannot be `loadBalancer`")
+					}
+
+					if rd.Get("api_server_access.0.subnet_id") != "" {
+						return fmt.Errorf("when `hosted_system` is not configured, `api_server_access.subnet_id` can not be set")
+					}
+				} else {
+					if !strings.EqualFold(identityType, string(identity.TypeUserAssigned)) {
+						return fmt.Errorf("`hosted_system` requires `identity.type` to be `UserAssigned`")
+					}
+					if rd.Get("api_server_access.0.subnet_id") == nil {
+						return fmt.Errorf("`hosted_system` requires `api_server_access.subnet_id` to be set")
+					}
 				}
 			}
 
@@ -418,16 +440,6 @@ func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
 
 				if nodeSubnetID != "" || systemNodeSubnetID != "" {
 					return fmt.Errorf("network.outbound_type cannot be managedNATGateway when using hosted_system")
-				}
-			}
-
-			if len(hostedSystem) == 0 {
-				if !strings.EqualFold(identityType, string(identity.TypeSystemAssigned)) {
-					return fmt.Errorf("when `hosted_system` is not configured, `identity.type` must be `SystemAssigned`")
-				}
-
-				if outboundType == string(managedclusters.OutboundTypeLoadBalancer) {
-					return fmt.Errorf("when `hosted_system` is not configured, `network.outbound_type` cannot be `loadBalancer`")
 				}
 			}
 
@@ -1507,7 +1519,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 				},
 			},
 		},
-		"oms_agent": {
+		"open_service_mesh_agent": {
 			Type:     pluginsdk.TypeList,
 			MaxItems: 1,
 			Optional: true,
@@ -2021,7 +2033,7 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChanges("aci_connector_linux",
 				"confidential_computing",
-				"oms_agent",
+				"open_service_mesh_agent",
 				"ingress_application_gateway",
 				"key_vault_secrets_provider") {
 				addonProfiles, err := expandKubernetesAutomaticClusterAddOns(&model, metadata.Client.Containers_v2026_04_01.Environment)
