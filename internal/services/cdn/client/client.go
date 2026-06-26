@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package client
@@ -12,25 +12,32 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rulesets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/securitypolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-09-01/rules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-04-15/afdcustomdomains"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-06-01/afdendpoints"
+	rules_v2025_12_01 "github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rules"
 	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	FrontDoorEndpointsClient        *cdnFrontDoorSdk.AFDEndpointsClient
-	FrontDoorOriginGroupsClient     *cdnFrontDoorSdk.AFDOriginGroupsClient
-	FrontDoorOriginsClient          *cdnFrontDoorSdk.AFDOriginsClient
-	FrontDoorCustomDomainsClient    *cdnFrontDoorSdk.AFDCustomDomainsClient
-	FrontDoorSecurityPoliciesClient *securitypolicies.SecurityPoliciesClient
-	FrontDoorRoutesClient           *cdnFrontDoorSdk.RoutesClient
-	FrontDoorRulesClient            *rules.RulesClient
-	FrontDoorProfilesClient         *profiles.ProfilesClient
-	FrontDoorSecretsClient          *cdnFrontDoorSdk.SecretsClient
-	FrontDoorRuleSetsClient         *rulesets.RuleSetsClient
-	FrontDoorFirewallPoliciesClient *waf.WebApplicationFirewallPoliciesClient
-	CustomDomainsClient             *cdnSdk.CustomDomainsClient
-	EndpointsClient                 *cdnSdk.EndpointsClient
-	ProfilesClient                  *cdnSdk.ProfilesClient
+	FrontDoorEndpointsClient         *cdnFrontDoorSdk.AFDEndpointsClient
+	FrontDoorOriginGroupsClient      *cdnFrontDoorSdk.AFDOriginGroupsClient
+	FrontDoorOriginsClient           *cdnFrontDoorSdk.AFDOriginsClient
+	FrontDoorCustomDomainsClient     *cdnFrontDoorSdk.AFDCustomDomainsClient
+	AFDCustomDomainsClient           *afdcustomdomains.AFDCustomDomainsClient
+	FrontDoorSecurityPoliciesClient  *securitypolicies.SecurityPoliciesClient
+	FrontDoorRoutesClient            *cdnFrontDoorSdk.RoutesClient
+	FrontDoorRulesClient             *rules.RulesClient
+	FrontDoorRulesClient_v2025_12_01 *rules_v2025_12_01.RulesClient
+	FrontDoorProfilesClient          *profiles.ProfilesClient
+	FrontDoorSecretsClient           *cdnFrontDoorSdk.SecretsClient
+	FrontDoorRuleSetsClient          *rulesets.RuleSetsClient
+	FrontDoorFirewallPoliciesClient  *waf.WebApplicationFirewallPoliciesClient
+	CustomDomainsClient              *cdnSdk.CustomDomainsClient
+	EndpointsClient                  *cdnSdk.EndpointsClient
+	ProfilesClient                   *cdnSdk.ProfilesClient
+
+	AFDEndpointsClient *afdendpoints.AFDEndpointsClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -45,6 +52,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	frontDoorCustomDomainsClient := cdnFrontDoorSdk.NewAFDCustomDomainsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&frontDoorCustomDomainsClient.Client, o.ResourceManagerAuthorizer)
+
+	afdCustomDomainsClient, err := afdcustomdomains.NewAFDCustomDomainsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building AFDCustomDomainsClient: %+v", err)
+	}
+	o.Configure(afdCustomDomainsClient.Client, o.Authorizers.ResourceManager)
 
 	frontDoorSecurityPoliciesClient, err := securitypolicies.NewSecurityPoliciesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -63,6 +76,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building RulesClient: %+v", err)
 	}
 	o.Configure(frontDoorRulesClient.Client, o.Authorizers.ResourceManager)
+
+	frontDoorRulesClient_v2025_12_01, err := rules_v2025_12_01.NewRulesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building RulesClient v2025_12_01: %+v", err)
+	}
+	o.Configure(frontDoorRulesClient_v2025_12_01.Client, o.Authorizers.ResourceManager)
 
 	frontDoorProfilesClient, err := profiles.NewProfilesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -88,21 +107,31 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	profilesClient := cdnSdk.NewProfilesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&profilesClient.Client, o.ResourceManagerAuthorizer)
 
+	afdEndpointsClient, err := afdendpoints.NewAFDEndpointsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Azure Front Door Endpoints CLient: %+v", err)
+	}
+	o.Configure(afdEndpointsClient.Client, o.Authorizers.ResourceManager)
+
 	client := Client{
-		FrontDoorEndpointsClient:        &frontDoorEndpointsClient,
-		FrontDoorOriginGroupsClient:     &frontDoorOriginGroupsClient,
-		FrontDoorOriginsClient:          &frontDoorOriginsClient,
-		FrontDoorCustomDomainsClient:    &frontDoorCustomDomainsClient,
-		FrontDoorSecurityPoliciesClient: frontDoorSecurityPoliciesClient,
-		FrontDoorRoutesClient:           &frontDoorRoutesClient,
-		FrontDoorRulesClient:            frontDoorRulesClient,
-		FrontDoorProfilesClient:         frontDoorProfilesClient,
-		FrontDoorSecretsClient:          &frontDoorPolicySecretsClient,
-		FrontDoorRuleSetsClient:         frontDoorRuleSetsClient,
-		FrontDoorFirewallPoliciesClient: &frontDoorFirewallPoliciesClient,
-		CustomDomainsClient:             &customDomainsClient,
-		EndpointsClient:                 &endpointsClient,
-		ProfilesClient:                  &profilesClient,
+		FrontDoorEndpointsClient:         &frontDoorEndpointsClient,
+		FrontDoorOriginGroupsClient:      &frontDoorOriginGroupsClient,
+		FrontDoorOriginsClient:           &frontDoorOriginsClient,
+		FrontDoorCustomDomainsClient:     &frontDoorCustomDomainsClient,
+		AFDCustomDomainsClient:           afdCustomDomainsClient,
+		FrontDoorSecurityPoliciesClient:  frontDoorSecurityPoliciesClient,
+		FrontDoorRoutesClient:            &frontDoorRoutesClient,
+		FrontDoorRulesClient:             frontDoorRulesClient,
+		FrontDoorRulesClient_v2025_12_01: frontDoorRulesClient_v2025_12_01,
+		FrontDoorProfilesClient:          frontDoorProfilesClient,
+		FrontDoorSecretsClient:           &frontDoorPolicySecretsClient,
+		FrontDoorRuleSetsClient:          frontDoorRuleSetsClient,
+		FrontDoorFirewallPoliciesClient:  &frontDoorFirewallPoliciesClient,
+		CustomDomainsClient:              &customDomainsClient,
+		EndpointsClient:                  &endpointsClient,
+		ProfilesClient:                   &profilesClient,
+
+		AFDEndpointsClient: afdEndpointsClient,
 	}
 
 	return &client, nil

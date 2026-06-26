@@ -22,9 +22,9 @@ type GoogleAdWordsLinkedServiceTypeProperties struct {
 	LoginCustomerID        *interface{}                     `json:"loginCustomerID,omitempty"`
 	PrivateKey             SecretBase                       `json:"privateKey"`
 	RefreshToken           SecretBase                       `json:"refreshToken"`
-	SupportLegacyDataTypes *bool                            `json:"supportLegacyDataTypes,omitempty"`
+	SupportLegacyDataTypes *interface{}                     `json:"supportLegacyDataTypes,omitempty"`
 	TrustedCertPath        *interface{}                     `json:"trustedCertPath,omitempty"`
-	UseSystemTrustStore    *bool                            `json:"useSystemTrustStore,omitempty"`
+	UseSystemTrustStore    *interface{}                     `json:"useSystemTrustStore,omitempty"`
 }
 
 var _ json.Unmarshaler = &GoogleAdWordsLinkedServiceTypeProperties{}
@@ -40,9 +40,9 @@ func (s *GoogleAdWordsLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) e
 		GoogleAdsApiVersion    *interface{}                     `json:"googleAdsApiVersion,omitempty"`
 		KeyFilePath            *interface{}                     `json:"keyFilePath,omitempty"`
 		LoginCustomerID        *interface{}                     `json:"loginCustomerID,omitempty"`
-		SupportLegacyDataTypes *bool                            `json:"supportLegacyDataTypes,omitempty"`
+		SupportLegacyDataTypes *interface{}                     `json:"supportLegacyDataTypes,omitempty"`
 		TrustedCertPath        *interface{}                     `json:"trustedCertPath,omitempty"`
-		UseSystemTrustStore    *bool                            `json:"useSystemTrustStore,omitempty"`
+		UseSystemTrustStore    *interface{}                     `json:"useSystemTrustStore,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

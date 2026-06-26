@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -12,7 +12,7 @@ import (
 func ApiManagementChildName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
-	// from the portal: `The field may contain only numbers, letters, underscore (-), and dash (-) sign when preceded and followed by number or a letter.`
+	// from the portal: `The field may contain only numbers, letters, underscore (_), and dash (-) sign when preceded and followed by number or a letter.`
 	if matched := regexp.MustCompile(`^[a-zA-Z0-9]([a-zA-Z0-9-_]{0,78}[a-zA-Z0-9])?$`).Match([]byte(value)); !matched {
 		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters, underscores and dashes up to 80 characters in length", k))
 	}

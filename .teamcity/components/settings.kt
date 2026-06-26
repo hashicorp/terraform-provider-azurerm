@@ -13,10 +13,13 @@ var defaultParallelism = 20
 var defaultTimeout = 12
 
 // specifies the default version of Terraform Core which should be used for testing
-var defaultTerraformCoreVersion = "1.12.2"
+var defaultTerraformCoreVersion = "1.14.3"
 
 // This represents a cron view of days of the week, Monday - Friday.
 const val defaultDaysOfWeek = "2,3,4,5,6"
+
+// This represents a cron view of Monday.
+const val defaultWeeklyDay = "2"
 
 // Cron value for any day of month
 const val defaultDaysOfMonth = "*"
@@ -59,6 +62,9 @@ var serviceTestConfigurationOverrides = mapOf(
 
         // Chaosstudio is only available in certain locations
         "chaosstudio" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus", "westus", false)),
+
+        // Codesigning is only available in certain locations
+        "codesigning" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus", "westus", true)),
 
         // "cognitive" is expensive - Monday, Wednesday, Friday
         // cognitive is only available in certain locations
@@ -119,14 +125,14 @@ var serviceTestConfigurationOverrides = mapOf(
         // Logic uses app service which is only available in certain locations
         "logic" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
 
+        // Rotate machinelearning acctest across supported-but-less-frequently-used locations to prevent quota and rate limiting
+        "machinelearning" to testConfiguration(locationOverride = LocationConfiguration("westus3", "northeurope", "uksouth", true)),
+
         // Managed Redis is only available in certain locations, and has limited quota
         "managedredis" to testConfiguration(locationOverride = LocationConfiguration("uksouth", "westus3", "southcentralus", true)),
 
         // Maps is only available in certain locations
         "maps" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "westus2", "eastus", false)),
-
-        // MobileNetwork is only available in certain locations
-        "mobilenetwork" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westeurope", "centraluseuap", false)),
 
         // Mongocluster free tier is currently only available in southindia
         "mongocluster" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus2", "southindia", false)),
@@ -162,7 +168,7 @@ var serviceTestConfigurationOverrides = mapOf(
 
         "policy" to testConfiguration(useAltSubscription = true),
 
-        "postgres" to testConfiguration(locationOverride = LocationConfiguration("northeurope", "centralus", "westeurope", false)),
+        "postgres" to testConfiguration(locationOverride = LocationConfiguration("westus3", "northeurope", "westeurope", false)),
 
         // Private DNS Resolver is only available in certain locations
         "privatednsresolver" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westus3", "westeurope", true)),
@@ -199,10 +205,6 @@ var serviceTestConfigurationOverrides = mapOf(
 
         // Currently, we have insufficient quota to actually run these, but there are a few nodes in West Europe, so we'll pin it there for now
         "vmware" to testConfiguration(parallelism = 3, locationOverride = LocationConfiguration("westeurope", "westus2", "eastus2", false)),
-
-        // In general, Azure Voice Service is available in several different regions, but each subscription will only be allowlisted for specific regions(`westcentralus`, `westcentralus`, `westcentralus`).
-        // Only the regions (`westcentralus`) is specified since the devtest subscription does not support creating resource group for the other two regions.
-        "voiceservices" to testConfiguration(parallelism = 3, locationOverride = LocationConfiguration("westcentralus", "westcentralus", "westcentralus", false)),
 
         // Offset start hour to avoid collision with new App Service, reduce frequency of testing days
         "web" to testConfiguration(startHour = 3, daysOfWeek = "1,3,5", locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", true)),

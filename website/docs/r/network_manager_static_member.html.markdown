@@ -60,14 +60,16 @@ The following arguments are supported:
 
 * `network_group_id` - (Required) Specifies the ID of the Network Manager Group. Changing this forces a new Network Manager Static Member to be created.
 
-* `target_virtual_network_id` - (Required) Specifies the Resource ID of the Virtual Network using as the Static Member. Changing this forces a new Network Manager Static Member to be created.
+* `target_virtual_network_id` - (Required) Specifies the Resource ID of the Virtual Network or Subnet used as the Static Member. Changing this forces a new Network Manager Static Member to be created.
+
+~> **Note:** Subnet is supported only if the Network Manager has added `Routing` to `scope_accesses` and the Network Group has set `Subnet` as the `member_type` value.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Network Manager Static Member.
- 
+
 * `region` - The region of the Network Manager Static Member.
 
 ## Timeouts
@@ -90,4 +92,4 @@ terraform import azurerm_network_manager_static_member.example /subscriptions/00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2024-05-01
+* `Microsoft.Network` - 2025-01-01

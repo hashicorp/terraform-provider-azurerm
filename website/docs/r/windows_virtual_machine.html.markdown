@@ -68,7 +68,7 @@ resource "azurerm_windows_virtual_machine" "example" {
   name                = "example-machine"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  size                = "Standard_F2"
+  size                = "Standard_D4_v5"
   admin_username      = "adminuser"
   admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
@@ -103,7 +103,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group in which the Windows Virtual Machine should be exist. Changing this forces a new resource to be created.
 
-* `size` - (Required) The SKU which should be used for this Virtual Machine, such as `Standard_F2`.
+* `size` - (Required) The SKU which should be used for this Virtual Machine, such as `Standard_D4_v5`.
 
 ---
 
@@ -211,7 +211,7 @@ The following arguments are supported:
 
 * `os_image_notification` - (Optional) A `os_image_notification` block as defined below.
 
-* `os_managed_disk_id` - (Optional) The ID of an existing Managed Disk to use as the OS Disk for this Windows Virtual Machine.
+* `os_managed_disk_id` - (Optional) The ID of an existing Managed Disk to use as the OS Disk for this Windows Virtual Machine. Changing this forces a new resource to be created.
 
 ~> **Note:** When specifying an existing Managed Disk it is not currently possible to subsequently manage the Operating System Profile properties: `admin_username`, `admin_password`, `bypass_platform_safety_checks_on_user_schedule_enabled`, `computer_name`, `custom_data`, `provision_vm_agent`, `patch_mode`, `patch_assessment_mode`, or `reboot_setting`.
 

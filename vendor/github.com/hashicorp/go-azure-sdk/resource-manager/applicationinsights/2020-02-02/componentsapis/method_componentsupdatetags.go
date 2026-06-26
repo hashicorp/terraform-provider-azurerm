@@ -18,7 +18,7 @@ type ComponentsUpdateTagsOperationResponse struct {
 }
 
 // ComponentsUpdateTags ...
-func (c ComponentsAPIsClient) ComponentsUpdateTags(ctx context.Context, id ComponentId, input TagsResource) (result ComponentsUpdateTagsOperationResponse, err error) {
+func (c ComponentsAPIsClient) ComponentsUpdateTags(ctx context.Context, id ComponentId, input ApplicationInsightsCommonTypesTagsResource) (result ComponentsUpdateTagsOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{

@@ -1,4 +1,4 @@
-# Copyright (c) HashiCorp, Inc.
+# Copyright IBM Corp. 2014, 2025
 # SPDX-License-Identifier: MPL-2.0
 
 provider "azurerm" {
@@ -50,6 +50,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "main" {
     linux_configuration {
       computer_name_prefix = var.prefix
       admin_username       = "adminuser"
+      patch_mode           = "AutomaticByPlatform"
 
       admin_ssh_key {
         username   = "adminuser"

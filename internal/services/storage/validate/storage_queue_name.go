@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -13,7 +13,8 @@ func StorageQueueName(v interface{}, k string) (warnings []string, errors []erro
 
 	if !regexp.MustCompile(`^[a-z0-9-]+$`).MatchString(value) {
 		errors = append(errors, fmt.Errorf(
-			"only lowercase alphanumeric characters and hyphens allowed in %q", k))
+			"only lowercase alphanumeric characters and hyphens allowed in %q", k,
+		))
 	}
 
 	if regexp.MustCompile(`^-`).MatchString(value) {
@@ -26,12 +27,14 @@ func StorageQueueName(v interface{}, k string) (warnings []string, errors []erro
 
 	if len(value) > 63 {
 		errors = append(errors, fmt.Errorf(
-			"%q cannot be longer than 63 characters", k))
+			"%q cannot be longer than 63 characters", k,
+		))
 	}
 
 	if len(value) < 3 {
 		errors = append(errors, fmt.Errorf(
-			"%q must be at least 3 characters", k))
+			"%q must be at least 3 characters", k,
+		))
 	}
 
 	return warnings, errors

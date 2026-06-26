@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package digitaltwins_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2023-01-31/timeseriesdatabaseconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type TimeSeriesDatabaseConnectionResource struct{}
@@ -57,7 +57,7 @@ func (r TimeSeriesDatabaseConnectionResource) Exists(ctx context.Context, client
 	if err != nil {
 		return nil, fmt.Errorf("retrieving TimeSeriesDatabaseConnection %s: %+v", id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r TimeSeriesDatabaseConnectionResource) basic(data acceptance.TestData) string {
@@ -145,11 +145,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctesteventhub-%[2]d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  partition_count     = 2
-  message_retention   = 7
+  name              = "acctesteventhub-%[2]d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 7
 }
 
 resource "azurerm_kusto_cluster" "test" {
@@ -193,6 +192,7 @@ resource "azurerm_kusto_database_principal_assignment" "test" {
   principal_type = "App"
   role           = "Admin"
 }
+
 
 `, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }

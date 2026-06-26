@@ -93,7 +93,7 @@ The following arguments are supported:
 
 * `repair_enabled` - (Optional) Is the automatic repair enabled on the Cassandra Cluster? Defaults to `true`.
 
-* `version` - (Optional) The version of Cassandra what the Cluster converges to run. Possible values are `3.11` and `4.0`. Defaults to `3.11`. Changing this forces a new Cassandra Cluster to be created.
+* `version` - (Optional) The version of Cassandra what the Cluster converges to run. Possible values are `3.11`, `4.0`, `4.1` and `5.0`. Defaults to `3.11`. Changing this forces a new Cassandra Cluster to be created.
 
 * `tags` - (Optional) A mapping of tags assigned to the resource.
 

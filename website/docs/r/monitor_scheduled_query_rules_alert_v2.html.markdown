@@ -87,6 +87,7 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "example" {
       key  = "value"
       key2 = "value2"
     }
+    email_subject = "Email Header"
   }
 
   identity {
@@ -163,6 +164,8 @@ An `action` block supports the following:
 * `action_groups` - (Optional) List of Action Group resource IDs to invoke when the alert fires.
 
 * `custom_properties` - (Optional) Specifies the properties of an alert payload.
+
+* `email_subject` - (Optional) Custom subject override for all email ids in Azure action group.
 
 ---
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mysql_test
@@ -8,19 +8,19 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/firewallrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MySQLFlexibleServerFirewallRuleResource struct{}
+type MysqlFlexibleServerFirewallRuleResource struct{}
 
 func TestAccMySQLFlexibleServerFirewallRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server_firewall_rule", "test")
-	r := MySQLFlexibleServerFirewallRuleResource{}
+	r := MysqlFlexibleServerFirewallRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccMySQLFlexibleServerFirewallRule_basic(t *testing.T) {
 
 func TestAccMySQLFlexibleServerFirewallRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server_firewall_rule", "test")
-	r := MySQLFlexibleServerFirewallRuleResource{}
+	r := MysqlFlexibleServerFirewallRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -48,7 +48,7 @@ func TestAccMySQLFlexibleServerFirewallRule_requiresImport(t *testing.T) {
 	})
 }
 
-func (t MySQLFlexibleServerFirewallRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t MysqlFlexibleServerFirewallRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := firewallrules.ParseFirewallRuleID(state.ID)
 	if err != nil {
 		return nil, err
@@ -59,10 +59,10 @@ func (t MySQLFlexibleServerFirewallRuleResource) Exists(ctx context.Context, cli
 		return nil, err
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
-func (MySQLFlexibleServerFirewallRuleResource) basic(data acceptance.TestData) string {
+func (MysqlFlexibleServerFirewallRuleResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -93,7 +93,7 @@ resource "azurerm_mysql_flexible_server_firewall_rule" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (r MySQLFlexibleServerFirewallRuleResource) requiresImport(data acceptance.TestData) string {
+func (r MysqlFlexibleServerFirewallRuleResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 

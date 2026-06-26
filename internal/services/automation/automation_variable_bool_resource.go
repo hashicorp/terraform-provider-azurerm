@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation
@@ -6,15 +6,15 @@ package automation
 import (
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/variable"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/variable"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func resourceAutomationVariableBool() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationVariableBoolCreateUpdate,
+		Create: resourceAutomationVariableBoolCreate,
 		Read:   resourceAutomationVariableBoolRead,
-		Update: resourceAutomationVariableBoolCreateUpdate,
+		Update: resourceAutomationVariableBoolUpdate,
 		Delete: resourceAutomationVariableBoolDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -33,8 +33,12 @@ func resourceAutomationVariableBool() *pluginsdk.Resource {
 	}
 }
 
-func resourceAutomationVariableBoolCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	return resourceAutomationVariableCreateUpdate(d, meta, "Bool")
+func resourceAutomationVariableBoolCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+	return resourceAutomationVariableCreate(d, meta, "Bool")
+}
+
+func resourceAutomationVariableBoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	return resourceAutomationVariableUpdate(d, meta, "Bool")
 }
 
 func resourceAutomationVariableBoolRead(d *pluginsdk.ResourceData, meta interface{}) error {

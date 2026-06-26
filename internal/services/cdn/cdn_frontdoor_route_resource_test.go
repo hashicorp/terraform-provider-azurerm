@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn_test
@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -28,6 +29,34 @@ func TestAccCdnFrontDoorRoute_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("cdn_frontdoor_origin_group_id", "cdn_frontdoor_origin_ids"),
+	})
+}
+
+func TestAccCdnFrontDoorRoute_basicDependsOn(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_route", "test")
+	r := CdnFrontDoorRouteResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicDependsOn(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("cdn_frontdoor_origin_group_id"),
+	})
+}
+
+func TestAccCdnFrontDoorRoute_basicDependsOnAndField(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_route", "test")
+	r := CdnFrontDoorRouteResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicDependsOnAndField(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -82,6 +111,13 @@ func TestAccCdnFrontDoorRoute_update(t *testing.T) {
 			),
 		},
 		data.ImportStep("cdn_frontdoor_origin_group_id", "cdn_frontdoor_origin_ids"),
+		{
+			Config: r.updateDependsOn(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("cdn_frontdoor_origin_group_id"),
 	})
 }
 
@@ -119,12 +155,12 @@ func (r CdnFrontDoorRouteResource) Exists(ctx context.Context, clients *clients.
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r CdnFrontDoorRouteResource) template(data acceptance.TestData) string {
@@ -193,6 +229,41 @@ resource "azurerm_cdn_frontdoor_route" "test" {
   cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.test.id]
   patterns_to_match             = ["/*"]
   supported_protocols           = ["Http", "Https"]
+}
+`, template, data.RandomInteger)
+}
+
+func (r CdnFrontDoorRouteResource) basicDependsOn(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_route" "test" {
+  name                          = "accTestRoute-%d"
+  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.test.id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+  patterns_to_match             = ["/*"]
+  supported_protocols           = ["Http", "Https"]
+
+  depends_on = [azurerm_cdn_frontdoor_origin.test]
+}
+`, template, data.RandomInteger)
+}
+
+func (r CdnFrontDoorRouteResource) basicDependsOnAndField(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_route" "test" {
+  name                          = "accTestRoute-%d"
+  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.test.id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.test.id]
+  patterns_to_match             = ["/*"]
+  supported_protocols           = ["Http", "Https"]
+
+  depends_on = [azurerm_cdn_frontdoor_origin.test]
 }
 `, template, data.RandomInteger)
 }
@@ -284,6 +355,33 @@ resource "azurerm_cdn_frontdoor_route" "test" {
     query_strings                 = ["bar"]
     query_string_caching_behavior = "IncludeSpecifiedQueryStrings"
   }
+}
+`, template, data.RandomInteger)
+}
+
+func (r CdnFrontDoorRouteResource) updateDependsOn(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_route" "test" {
+  name                          = "accTestRoute-%d"
+  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.test.id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+
+  enabled                    = true
+  forwarding_protocol        = "HttpOnly"
+  https_redirect_enabled     = false
+  patterns_to_match          = ["/*"]
+  cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.test.id]
+  supported_protocols        = ["Https"]
+
+  cache {
+    query_strings                 = ["bar"]
+    query_string_caching_behavior = "IncludeSpecifiedQueryStrings"
+  }
+
+  depends_on = [azurerm_cdn_frontdoor_origin.test]
 }
 `, template, data.RandomInteger)
 }

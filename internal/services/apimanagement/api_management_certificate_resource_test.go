@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement_test
@@ -89,7 +89,7 @@ func TestAccApiManagementCertificate_basicKeyVaultUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_certificate", "test")
 	r := ApiManagementCertificateResource{}
 
-	certUpdatedRegex := regexp.MustCompile(fmt.Sprintf(`https://acct%d\.vault\.azure\.net/secrets/cert2/[a-z0-9]{32}`, data.RandomInteger))
+	certUpdatedRegex := regexp.MustCompile(fmt.Sprintf(`https://acctest%s\.vault\.azure\.net/secrets/cert2/[a-z0-9]{32}`, data.RandomString))
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -278,7 +278,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest%d"
+  name                = "acctest%s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -365,7 +365,7 @@ resource "azurerm_key_vault_certificate" "cert2" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r ApiManagementCertificateResource) requiresImport(data acceptance.TestData) string {

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package loganalytics
@@ -10,12 +10,12 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -56,7 +56,7 @@ func resourceLogAnalyticsClusterCustomerManagedKey() *pluginsdk.Resource {
 			"key_vault_key_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 			},
 		},
 	}
@@ -94,9 +94,11 @@ func resourceLogAnalyticsClusterCustomerManagedKeyCreate(d *pluginsdk.ResourceDa
 		return fmt.Errorf("retrieving `azurerm_log_analytics_cluster` %s: `Properties` is nil", *id)
 	}
 
-	if props.KeyVaultProperties != nil {
-		if keyProps := *props.KeyVaultProperties; keyProps.KeyName != nil && *keyProps.KeyName != "" {
-			return tf.ImportAsExistsError("azurerm_log_analytics_cluster_customer_managed_key", id.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		if props.KeyVaultProperties != nil {
+			if keyProps := *props.KeyVaultProperties; keyProps.KeyName != nil && *keyProps.KeyName != "" {
+				return tf.ImportAsExistsError("azurerm_log_analytics_cluster_customer_managed_key", id.ID())
+			}
 		}
 	}
 
@@ -107,20 +109,21 @@ func resourceLogAnalyticsClusterCustomerManagedKeyCreate(d *pluginsdk.ResourceDa
 	//		Please refer to https://docs.microsoft.com/en-us/azure/azure-monitor/log-query/logs-dedicated-clusters#link-a-workspace-to-the-cluster for more information on how to associate a workspace to the cluster.
 	props.AssociatedWorkspaces = nil
 
-	keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(d.Get("key_vault_key_id").(string))
+	keyId, err := keyvault.ParseNestedItemID(d.Get("key_vault_key_id").(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 	if err != nil {
-		return fmt.Errorf("parsing Key Vault Key ID: %+v", err)
+		return err
 	}
 
 	model.Properties.KeyVaultProperties = &clusters.KeyVaultProperties{
-		KeyVaultUri: pointer.To(keyId.KeyVaultBaseUrl),
+		KeyVaultUri: pointer.To(keyId.KeyVaultBaseURL),
 		KeyName:     pointer.To(keyId.Name),
 		KeyVersion:  pointer.To(keyId.Version),
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, *id, *model, sdk.SetIDCallback(meta, id, d)); err != nil {
 		return fmt.Errorf("creating Customer Managed Key for %s: %+v", *id, err)
 	}
+	d.SetId(id.ID())
 
 	updateWait, err := logAnalyticsClusterWaitForState(ctx, client, *id)
 	if err != nil {
@@ -130,7 +133,6 @@ func resourceLogAnalyticsClusterCustomerManagedKeyCreate(d *pluginsdk.ResourceDa
 		return fmt.Errorf("waiting for %s to finish adding Customer Managed Key: %+v", *id, err)
 	}
 
-	d.SetId(id.ID())
 	return resourceLogAnalyticsClusterCustomerManagedKeyRead(d, meta)
 }
 
@@ -147,7 +149,7 @@ func resourceLogAnalyticsClusterCustomerManagedKeyUpdate(d *pluginsdk.ResourceDa
 	locks.ByID(id.ID())
 	defer locks.UnlockByID(id.ID())
 
-	keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(d.Get("key_vault_key_id").(string))
+	keyId, err := keyvault.ParseNestedItemID(d.Get("key_vault_key_id").(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 	if err != nil {
 		return fmt.Errorf("parsing Key Vault Key ID: %+v", err)
 	}
@@ -174,7 +176,7 @@ func resourceLogAnalyticsClusterCustomerManagedKeyUpdate(d *pluginsdk.ResourceDa
 	model.Properties.AssociatedWorkspaces = nil
 
 	model.Properties.KeyVaultProperties = &clusters.KeyVaultProperties{
-		KeyVaultUri: pointer.To(keyId.KeyVaultBaseUrl),
+		KeyVaultUri: pointer.To(keyId.KeyVaultBaseURL),
 		KeyName:     pointer.To(keyId.Name),
 		KeyVersion:  pointer.To(keyId.Version),
 	}
@@ -215,7 +217,7 @@ func resourceLogAnalyticsClusterCustomerManagedKeyRead(d *pluginsdk.ResourceData
 				keyVersion := pointer.From(kvProps.KeyVersion)
 
 				if keyVaultUri != "" && keyName != "" {
-					keyId, err := keyVaultParse.NewNestedItemID(keyVaultUri, keyVaultParse.NestedItemTypeKey, keyName, keyVersion)
+					keyId, err := keyvault.NewNestedItemID(keyVaultUri, keyvault.NestedItemTypeKey, keyName, keyVersion)
 					if err != nil {
 						return err
 					}

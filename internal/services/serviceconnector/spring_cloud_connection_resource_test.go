@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package serviceconnector_test
@@ -8,13 +8,14 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2024-04-01/servicelinker"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ServiceConnectorSpringCloudResource struct{}
@@ -28,11 +29,11 @@ func (r ServiceConnectorSpringCloudResource) Exists(ctx context.Context, client 
 	resp, err := client.ServiceConnector.ServiceLinkerClient.LinkerGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func TestAccServiceConnectorSpringCloudCosmosdb_basic(t *testing.T) {
@@ -132,6 +133,24 @@ func TestAccServiceConnectorSpringCloud_complete(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccServiceConnectorSpringCloud_clientTypeNone(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as `client_type` no longer accepts `none` in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_connection", "test")
+	r := ServiceConnectorSpringCloudResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.clientTypeNone(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -426,6 +445,22 @@ resource "azurerm_spring_cloud_connection" "test" {
   }
 }
 `, template, data.RandomInteger)
+}
+
+func (r ServiceConnectorSpringCloudResource) clientTypeNone(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_spring_cloud_connection" "test" {
+  name               = "acctestserviceconnector%[2]d"
+  spring_cloud_id    = azurerm_spring_cloud_java_deployment.test.id
+  target_resource_id = azurerm_cosmosdb_sql_database.test.id
+  client_type        = "none"
+  authentication {
+    type = "systemAssignedIdentity"
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (r ServiceConnectorSpringCloudResource) template(data acceptance.TestData) string {

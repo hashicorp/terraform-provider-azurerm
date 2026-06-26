@@ -11,13 +11,13 @@ import (
 var _ StoreWriteSettings = AzureBlobStorageWriteSettings{}
 
 type AzureBlobStorageWriteSettings struct {
-	BlockSizeInMB *int64 `json:"blockSizeInMB,omitempty"`
+	BlockSizeInMB *interface{} `json:"blockSizeInMB,omitempty"`
 
 	// Fields inherited from StoreWriteSettings
 
 	CopyBehavior             *interface{}    `json:"copyBehavior,omitempty"`
-	DisableMetricsCollection *bool           `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64          `json:"maxConcurrentConnections,omitempty"`
+	DisableMetricsCollection *interface{}    `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *interface{}    `json:"maxConcurrentConnections,omitempty"`
 	Metadata                 *[]MetadataItem `json:"metadata,omitempty"`
 	Type                     string          `json:"type"`
 }

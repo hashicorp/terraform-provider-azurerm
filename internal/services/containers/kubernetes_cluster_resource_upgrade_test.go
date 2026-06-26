@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers_test
@@ -279,14 +279,14 @@ func TestAccKubernetesCluster_upgradeSettings(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.upgradeSettings(data, 35, 18),
+			Config: r.upgradeSettings(data, 10, 5, "Cordon"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.upgradeSettings(data, 5, 0),
+			Config: r.upgradeSettings(data, 15, 10, "Schedule"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -295,7 +295,7 @@ func TestAccKubernetesCluster_upgradeSettings(t *testing.T) {
 	})
 }
 
-func (r KubernetesClusterResource) upgradeSettings(data acceptance.TestData, drainTimeout int, nodeSoakDuration int) string {
+func (r KubernetesClusterResource) upgradeSettings(data acceptance.TestData, drainTimeout int, nodeSoak int, undrainableBehavior string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -320,14 +320,20 @@ resource "azurerm_kubernetes_cluster" "test" {
       max_surge                     = "10%%"
       drain_timeout_in_minutes      = %d
       node_soak_duration_in_minutes = %d
+      undrainable_node_behavior     = %q
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   identity {
     type = "SystemAssigned"
   }
 }
-  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, drainTimeout, nodeSoakDuration)
+  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, drainTimeout, nodeSoak, undrainableBehavior)
 }
 
 func (KubernetesClusterResource) upgradeControlPlaneConfig(data acceptance.TestData, controlPlaneVersion string) string {
@@ -355,6 +361,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   identity {
@@ -390,6 +401,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   identity {
@@ -466,6 +482,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   identity {

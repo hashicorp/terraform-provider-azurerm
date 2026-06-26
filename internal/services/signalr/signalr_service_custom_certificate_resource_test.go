@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package signalr_test
@@ -8,20 +8,20 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2024-03-01/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CustomCertSignalrServiceResource struct{}
+type SignalrServiceCustomCertificateResource struct{}
 
 func TestAccCustomCertSignalrService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service_custom_certificate", "test")
-	r := CustomCertSignalrServiceResource{}
+	r := SignalrServiceCustomCertificateResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,19 +36,20 @@ func TestAccCustomCertSignalrService_basic(t *testing.T) {
 
 func TestAccCustomCertSignalrService_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service_custom_certificate", "test")
-	r := CustomCertSignalrServiceResource{}
+	r := SignalrServiceCustomCertificateResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func (r CustomCertSignalrServiceResource) basic(data acceptance.TestData) string {
+func (r SignalrServiceCustomCertificateResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -148,7 +149,7 @@ resource "azurerm_signalr_service_custom_certificate" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString)
 }
 
-func (r CustomCertSignalrServiceResource) requiresImport(data acceptance.TestData) string {
+func (r SignalrServiceCustomCertificateResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -160,7 +161,7 @@ resource "azurerm_signalr_service_custom_certificate" "import" {
 `, r.basic(data))
 }
 
-func (r CustomCertSignalrServiceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r SignalrServiceCustomCertificateResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := signalr.ParseCustomCertificateID(state.ID)
 	if err != nil {
 		return nil, err
@@ -169,10 +170,10 @@ func (r CustomCertSignalrServiceResource) Exists(ctx context.Context, client *cl
 	resp, err := client.SignalR.SignalRClient.CustomCertificatesGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }

@@ -43,7 +43,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
   name                 = "example-vmss"
   resource_group_name  = azurerm_resource_group.example.name
   location             = azurerm_resource_group.example.location
-  sku                  = "Standard_F2"
+  sku                  = "Standard_D4_v5"
   instances            = 4
   admin_username       = "adminuser"
   admin_password       = "P@ssword1234!"
@@ -194,4 +194,4 @@ terraform import azurerm_virtual_machine_scale_set_packet_capture.capture1 /subs
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2024-05-01
+* `Microsoft.Network` - 2025-01-01

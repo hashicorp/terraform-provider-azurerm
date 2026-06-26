@@ -56,7 +56,7 @@ resource "azurerm_virtual_machine" "example" {
   location              = azurerm_resource_group.example.location
   resource_group_name   = azurerm_resource_group.example.name
   network_interface_ids = [azurerm_network_interface.example.id]
-  vm_size               = "Standard_F2"
+  vm_size               = "Standard_D4_v5"
 
   storage_image_reference {
     publisher = "Canonical"
@@ -193,4 +193,4 @@ terraform import azurerm_virtual_machine_packet_capture.capture1 /subscriptions/
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2024-05-01
+* `Microsoft.Network` - 2025-01-01

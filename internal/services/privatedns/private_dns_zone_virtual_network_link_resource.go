@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package privatedns
@@ -18,11 +18,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name private_dns_zone_virtual_network_link -service-package-name privatedns -properties "name,private_dns_zone_name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
@@ -100,26 +100,28 @@ func resourcePrivateDnsZoneVirtualNetworkLinkCreateUpdate(d *pluginsdk.ResourceD
 
 	id := virtualnetworklinks.NewVirtualNetworkLinkID(subscriptionId, d.Get("resource_group_name").(string), d.Get("private_dns_zone_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_private_dns_zone_virtual_network_link", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_private_dns_zone_virtual_network_link", id.ID())
+			}
 		}
 	}
 
 	parameters := virtualnetworklinks.VirtualNetworkLink{
-		Location: utils.String("global"),
+		Location: pointer.To("global"),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		Properties: &virtualnetworklinks.VirtualNetworkLinkProperties{
 			VirtualNetwork: &virtualnetworklinks.SubResource{
-				Id: utils.String(d.Get("virtual_network_id").(string)),
+				Id: pointer.To(d.Get("virtual_network_id").(string)),
 			},
-			RegistrationEnabled: utils.Bool(d.Get("registration_enabled").(bool)),
+			RegistrationEnabled: pointer.To(d.Get("registration_enabled").(bool)),
 		},
 	}
 
@@ -128,15 +130,24 @@ func resourcePrivateDnsZoneVirtualNetworkLinkCreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	options := virtualnetworklinks.CreateOrUpdateOperationOptions{
-		IfMatch:     utils.String(""),
-		IfNoneMatch: utils.String(""),
+		IfMatch:     pointer.To(""),
+		IfNoneMatch: pointer.To(""),
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters, options); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, options, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+		if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+			return err
+		}
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, parameters, options); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
-	d.SetId(id.ID())
 	return resourcePrivateDnsZoneVirtualNetworkLinkRead(d, meta)
 }
 
@@ -158,12 +169,15 @@ func resourcePrivateDnsZoneVirtualNetworkLinkRead(d *pluginsdk.ResourceData, met
 		}
 		return fmt.Errorf("reading %s: %+v", *id, err)
 	}
+	return resourcePrivateDnsZoneVirtualNetworkLinkFlatten(d, id, resp.Model)
+}
 
+func resourcePrivateDnsZoneVirtualNetworkLinkFlatten(d *pluginsdk.ResourceData, id *virtualnetworklinks.VirtualNetworkLinkId, model *virtualnetworklinks.VirtualNetworkLink) error {
 	d.Set("name", id.VirtualNetworkLinkName)
 	d.Set("private_dns_zone_name", id.PrivateDnsZoneName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("registration_enabled", props.RegistrationEnabled)
 			d.Set("resolution_policy", pointer.From(props.ResolutionPolicy))
@@ -190,7 +204,7 @@ func resourcePrivateDnsZoneVirtualNetworkLinkDelete(d *pluginsdk.ResourceData, m
 		return err
 	}
 
-	options := virtualnetworklinks.DeleteOperationOptions{IfMatch: utils.String("")}
+	options := virtualnetworklinks.DeleteOperationOptions{IfMatch: pointer.To("")}
 
 	if err = client.DeleteThenPoll(ctx, *id, options); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package eventgrid
@@ -102,12 +102,14 @@ func (r EventGridPartnerConfigurationResource) Create() sdk.ResourceFunc {
 			// See the SDK sample usage: https://github.com/hashicorp/go-azure-sdk/tree/main/resource-manager/eventgrid/2025-02-15/partnerconfigurations
 			id := commonids.NewResourceGroupID(subscriptionId, config.ResourceGroup)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			param := partnerconfigurations.PartnerConfiguration{
@@ -120,7 +122,7 @@ func (r EventGridPartnerConfigurationResource) Create() sdk.ResourceFunc {
 				},
 				Tags: pointer.To(config.Tags),
 			}
-			if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, param, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

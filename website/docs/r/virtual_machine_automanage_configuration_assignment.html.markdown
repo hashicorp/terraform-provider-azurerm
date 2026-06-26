@@ -52,7 +52,7 @@ resource "azurerm_linux_virtual_machine" "example" {
   name                            = "examplevm"
   resource_group_name             = azurerm_resource_group.example.name
   location                        = azurerm_resource_group.example.location
-  size                            = "Standard_F2"
+  size                            = "Standard_D4_v5"
   admin_username                  = "adminuser"
   admin_password                  = "P@$$w0rd1234!"
   disable_password_authentication = false

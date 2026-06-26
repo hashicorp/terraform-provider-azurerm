@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -56,15 +56,17 @@ func resourceApiManagementProductTagCreate(d *pluginsdk.ResourceData, meta inter
 	id := producttag.NewProductTagID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("api_management_product_id").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.TagGetByProduct(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.TagGetByProduct(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_product_tag", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_api_management_product_tag", id.ID())
+			}
 		}
 	}
 
@@ -124,7 +126,6 @@ func resourceApiManagementProductTagDelete(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	log.Printf("[DEBUG] Deleting %s", *id)
 	resp, err := client.TagDetachFromProduct(ctx, *id)
 	if err != nil {
 		if !response.WasNotFound(resp.HttpResponse) {

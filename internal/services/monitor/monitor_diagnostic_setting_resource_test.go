@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor_test
@@ -273,6 +273,24 @@ func TestAccMonitorDiagnosticSetting_enabledLogsMix(t *testing.T) {
 	})
 }
 
+func TestAccMonitorDiagnosticSetting_enabledLogsDeprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("`retention_policy` removed in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
+	r := MonitorDiagnosticSettingResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.enabledLogsDeprecated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enabled_log.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMonitorDiagnosticSetting_enabledLogsCategoryGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
 	r := MonitorDiagnosticSettingResource{}
@@ -392,7 +410,7 @@ resource "azurerm_eventhub" "test" {
 }
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
-  name                = "example"
+  name                = "acctest-EHN-AR%[1]d"
   namespace_name      = azurerm_eventhub_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
   listen              = true
@@ -448,7 +466,7 @@ resource "azurerm_eventhub" "test" {
 }
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
-  name                = "example"
+  name                = "acctest-EHN-AR%[1]d"
   namespace_name      = azurerm_eventhub_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
   listen              = true
@@ -506,7 +524,7 @@ resource "azurerm_eventhub" "test" {
 }
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
-  name                = "example"
+  name                = "acctest-EHN-AR%[1]d"
   namespace_name      = azurerm_eventhub_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
   listen              = true
@@ -530,11 +548,6 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   enabled_log {
     category_group = "Audit"
-
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_metric {
@@ -640,90 +653,46 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   enabled_log {
     category = "ActivityRuns"
-    retention_policy {
-      enabled = false
-      days    = 0
-    }
   }
 
   enabled_log {
     category = "PipelineRuns"
-    retention_policy {
-      enabled = false
-      days    = 0
-    }
   }
 
   enabled_log {
     category = "TriggerRuns"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SSISIntegrationRuntimeLogs"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SSISPackageEventMessageContext"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SSISPackageEventMessages"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SSISPackageExecutableStatistics"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SSISPackageExecutionComponentPhases"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SSISPackageExecutionDataStatistics"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SandboxActivityRuns"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SandboxPipelineRuns"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_metric {
@@ -760,7 +729,7 @@ resource "azurerm_elastic_cloud_elasticsearch" "test" {
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   sku_name                    = "ess-consumption-2024_Monthly"
-  elastic_cloud_email_address = "user@example.com"
+  elastic_cloud_email_address = "user-%[1]d@example.com"
 }
 
 resource "azurerm_monitor_diagnostic_setting" "test" {
@@ -1023,7 +992,73 @@ resource "azurerm_eventhub" "test" {
 }
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
-  name                = "example"
+  name                = "acctest-EHN-AR%[1]d"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  listen              = true
+  send                = true
+  manage              = true
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctest%[3]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "standard"
+}
+
+resource "azurerm_monitor_diagnostic_setting" "test" {
+  name                           = "acctest-DS-%[1]d"
+  target_resource_id             = azurerm_key_vault.test.id
+  eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
+  eventhub_name                  = azurerm_eventhub.test.name
+
+  enabled_log {
+    category = "AuditEvent"
+  }
+
+  enabled_log {
+    category = "AzurePolicyEvaluationDetails"
+  }
+
+  enabled_metric {
+    category = "AllMetrics"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
+}
+
+func (MonitorDiagnosticSettingResource) enabledLogsDeprecated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctest-EHN-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Basic"
+}
+
+resource "azurerm_eventhub" "test" {
+  name              = "acctest-EH-%[1]d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 1
+}
+
+resource "azurerm_eventhub_namespace_authorization_rule" "test" {
+  name                = "acctest-EHN-AR%[1]d"
   namespace_name      = azurerm_eventhub_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
   listen              = true
@@ -1048,10 +1083,6 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   enabled_log {
     category = "AuditEvent"
 
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
@@ -1099,7 +1130,7 @@ resource "azurerm_eventhub" "test" {
 }
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
-  name                = "example"
+  name                = "acctest-EHN-AR%[1]d"
   namespace_name      = azurerm_eventhub_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
   listen              = true
@@ -1123,11 +1154,6 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   enabled_log {
     category = "AuditEvent"
-
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_metric {
@@ -1166,7 +1192,7 @@ resource "azurerm_eventhub" "test" {
 }
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
-  name                = "example"
+  name                = "acctest-EHN-AR%[1]d"
   namespace_name      = azurerm_eventhub_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
   listen              = true
@@ -1190,20 +1216,10 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   enabled_log {
     category_group = "allLogs"
-
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category_group = "audit"
-
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_metric {
@@ -1242,7 +1258,7 @@ resource "azurerm_eventhub" "test" {
 }
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
-  name                = "example"
+  name                = "acctest-EHN-AR%[1]d"
   namespace_name      = azurerm_eventhub_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
   listen              = true
@@ -1266,11 +1282,6 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   enabled_log {
     category_group = "allLogs"
-
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_metric {
@@ -1315,90 +1326,46 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   enabled_log {
     category = "ActivityRuns"
-    retention_policy {
-      enabled = false
-      days    = 0
-    }
   }
 
   enabled_log {
     category = "PipelineRuns"
-    retention_policy {
-      enabled = false
-      days    = 0
-    }
   }
 
   enabled_log {
     category = "TriggerRuns"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SSISIntegrationRuntimeLogs"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SSISPackageEventMessageContext"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SSISPackageEventMessages"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SSISPackageExecutableStatistics"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SSISPackageExecutionComponentPhases"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SSISPackageExecutionDataStatistics"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SandboxActivityRuns"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SandboxPipelineRuns"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_metric {
@@ -1445,90 +1412,48 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   enabled_log {
     category = "ActivityRuns"
-    retention_policy {
-      enabled = false
-      days    = 0
-    }
   }
 
   enabled_log {
     category = "PipelineRuns"
-    retention_policy {
-      enabled = false
-      days    = 0
-    }
   }
 
   enabled_log {
     category = "TriggerRuns"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SSISIntegrationRuntimeLogs"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SSISPackageEventMessageContext"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SSISPackageEventMessages"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
+
   }
 
   enabled_log {
     category = "SSISPackageExecutableStatistics"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
+
   }
 
   enabled_log {
     category = "SSISPackageExecutionComponentPhases"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SSISPackageExecutionDataStatistics"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SandboxActivityRuns"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SandboxPipelineRuns"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_metric {

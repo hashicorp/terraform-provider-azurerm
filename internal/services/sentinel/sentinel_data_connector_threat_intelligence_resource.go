@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sentinel
@@ -22,7 +22,7 @@ import (
 
 func resourceSentinelDataConnectorThreatIntelligence() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSentinelDataConnectorThreatIntelligenceCreateUpdate,
+		Create: resourceSentinelDataConnectorThreatIntelligenceCreate,
 		Read:   resourceSentinelDataConnectorThreatIntelligenceRead,
 		Delete: resourceSentinelDataConnectorThreatIntelligenceDelete,
 
@@ -68,10 +68,10 @@ func resourceSentinelDataConnectorThreatIntelligence() *pluginsdk.Resource {
 	}
 }
 
-func resourceSentinelDataConnectorThreatIntelligenceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelDataConnectorThreatIntelligenceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	workspaceId, err := workspaces.ParseWorkspaceID(d.Get("log_analytics_workspace_id").(string))
@@ -81,7 +81,7 @@ func resourceSentinelDataConnectorThreatIntelligenceCreateUpdate(d *pluginsdk.Re
 	name := d.Get("name").(string)
 	id := parse.NewDataConnectorID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, name)
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {

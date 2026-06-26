@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute_test
@@ -8,13 +8,14 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/dedicatedhosts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type DedicatedHostResource struct{}
@@ -87,7 +88,7 @@ func TestAccDedicatedHost_licenseType(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.licenceType(data, "None"),
+			Config: r.noLicenceType(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -107,6 +108,25 @@ func TestAccDedicatedHost_licenseType(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.noLicenceType(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccDedicatedHost_licenseTypeNone(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("`license_type` no longer accepts `None` as a value in 5.0")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_dedicated_host", "test")
+	r := DedicatedHostResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.licenceType(data, "None"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -169,7 +189,7 @@ func TestAccDedicatedHost_requiresImport(t *testing.T) {
 	})
 }
 
-func (t DedicatedHostResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r DedicatedHostResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseDedicatedHostID(state.ID)
 	if err != nil {
 		return nil, err
@@ -180,7 +200,7 @@ func (t DedicatedHostResource) Exists(ctx context.Context, clients *clients.Clie
 		return nil, fmt.Errorf("retrieving Compute Dedicated Host %q", id.String())
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r DedicatedHostResource) basic(data acceptance.TestData) string {
@@ -239,6 +259,20 @@ resource "azurerm_dedicated_host" "test" {
   license_type            = %q
 }
 `, r.template(data), data.RandomInteger, licenseType)
+}
+
+func (r DedicatedHostResource) noLicenceType(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_dedicated_host" "test" {
+  name                    = "acctest-DH-%[2]d"
+  location                = azurerm_resource_group.test.location
+  dedicated_host_group_id = azurerm_dedicated_host_group.test.id
+  sku_name                = "FSv2-Type2"
+  platform_fault_domain   = 1
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (r DedicatedHostResource) complete(data acceptance.TestData) string {

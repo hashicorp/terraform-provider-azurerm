@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -40,5 +40,5 @@ data "azurerm_web_application_firewall_policy" "test" {
   name                = azurerm_web_application_firewall_policy.test.name
 
 }
-`, WebApplicationFirewallResource{}.complete(data))
+`, WebApplicationFirewallPolicyResource{}.complete(data))
 }

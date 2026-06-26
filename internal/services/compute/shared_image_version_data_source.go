@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -191,7 +191,7 @@ func obtainImage(client *galleryimageversions.GalleryImageVersionsClient, ctx co
 
 			for i := len(images) - 1; i >= 0; i-- {
 				if prop := images[i].Properties; prop == nil || prop.PublishingProfile == nil || prop.PublishingProfile.ExcludeFromLatest == nil || !*prop.PublishingProfile.ExcludeFromLatest {
-					return &(images[i]), nil
+					return &images[i], nil
 				}
 			}
 		}

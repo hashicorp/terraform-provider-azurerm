@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package iothub
@@ -175,7 +175,9 @@ func resourceIotHubSharedAccessPolicyCreateUpdate(d *pluginsdk.ResourceData, met
 
 		if strings.EqualFold(*existingAccessPolicy.KeyName, id.IotHubKeyName) {
 			if d.IsNewResource() {
-				return tf.ImportAsExistsError("azurerm_iothub_shared_access_policy", id.ID())
+				if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+					return tf.ImportAsExistsError("azurerm_iothub_shared_access_policy", id.ID())
+				}
 			}
 
 			if existingAccessPolicy.PrimaryKey != nil {
@@ -206,11 +208,11 @@ func resourceIotHubSharedAccessPolicyCreateUpdate(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for %s to finish updating: %+v", id, err)
 	}
-
-	d.SetId(id.ID())
 
 	return resourceIotHubSharedAccessPolicyRead(d, meta)
 }

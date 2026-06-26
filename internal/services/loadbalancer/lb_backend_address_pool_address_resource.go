@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package loadbalancer
@@ -183,14 +183,15 @@ func (r BackendAddressPoolAddressResource) Create() sdk.ResourceFunc {
 					addresses = *pool.Model.Properties.LoadBalancerBackendAddresses
 				}
 
-				metadata.Logger.Infof("checking for existing %s..", id)
-				for _, address := range addresses {
-					if address.Name == nil {
-						continue
-					}
+				if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+					for _, address := range addresses {
+						if address.Name == nil {
+							continue
+						}
 
-					if *address.Name == model.Name {
-						return metadata.ResourceRequiresImport(r.ResourceType(), id)
+						if *address.Name == model.Name {
+							return metadata.ResourceRequiresImport(r.ResourceType(), id)
+						}
 					}
 				}
 
@@ -221,12 +222,10 @@ func (r BackendAddressPoolAddressResource) Create() sdk.ResourceFunc {
 
 				pool.Model.Properties.LoadBalancerBackendAddresses = &addresses
 
-				metadata.Logger.Infof("adding %s..", id)
-				err = lbClient.LoadBalancerBackendAddressPoolsCreateOrUpdateThenPoll(ctx, *poolId, *pool.Model)
-				if err != nil {
+				// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
+				if err := lbClient.LoadBalancerBackendAddressPoolsCreateOrUpdateThenPoll(ctx, *poolId, *pool.Model); err != nil {
 					return fmt.Errorf("updating %s: %+v", id, err)
 				}
-				metadata.Logger.Infof("waiting for update %s..", id)
 
 				metadata.SetID(id)
 			}
@@ -386,7 +385,6 @@ func (r BackendAddressPoolAddressResource) Delete() sdk.ResourceFunc {
 				}
 			}
 
-			metadata.Logger.Infof("removing %s..", *id)
 			pool.Model.Properties.LoadBalancerBackendAddresses = &newAddresses
 
 			err = lbClient.LoadBalancerBackendAddressPoolsCreateOrUpdateThenPoll(ctx, poolId, *pool.Model)

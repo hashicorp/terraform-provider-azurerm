@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package client
@@ -13,7 +13,7 @@ import (
 
 func NewClient(o *common.ClientOptions) (*nginx_2024_11_01_preview.Client, error) {
 	client, err := nginx_2024_11_01_preview.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
-		c.Authorizer = o.Authorizers.ResourceManager
+		o.Configure(c.Client, o.Authorizers.ResourceManager)
 	})
 	if err != nil {
 		return nil, fmt.Errorf("building clients for Nginx: %+v", err)

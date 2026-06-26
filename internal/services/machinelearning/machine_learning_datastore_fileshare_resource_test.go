@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package machinelearning_test
@@ -8,13 +8,14 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/datastore"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MachineLearningDataStoreFileShare struct{}
@@ -96,18 +97,18 @@ func (r MachineLearningDataStoreFileShare) Exists(ctx context.Context, client *c
 	resp, err := dataStoreClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Machine Learning Data Store File Share %q: %+v", state.ID, err)
 	}
 
-	return utils.Bool(resp.Model.Properties != nil), nil
+	return pointer.To(resp.Model.Properties != nil), nil
 }
 
 func (r MachineLearningDataStoreFileShare) fileShareAccountKey(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%s
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+		%s
 
 resource "azurerm_storage_share" "test" {
   name                 = "accfs%[2]d"
@@ -121,13 +122,30 @@ resource "azurerm_machine_learning_datastore_fileshare" "test" {
   storage_fileshare_id = azurerm_storage_share.test.resource_manager_id
   account_key          = azurerm_storage_account.test.primary_access_key
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+	%s
+
+resource "azurerm_storage_share" "test" {
+  name               = "accfs%[2]d"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 1
+}
+
+resource "azurerm_machine_learning_datastore_fileshare" "test" {
+  name                 = "accdatastore%[2]d"
+  workspace_id         = azurerm_machine_learning_workspace.test.id
+  storage_fileshare_id = azurerm_storage_share.test.resource_manager_id
+  account_key          = azurerm_storage_account.test.primary_access_key
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (r MachineLearningDataStoreFileShare) fileShareSas(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%s
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+		%s
 
 resource "azurerm_storage_share" "test" {
   name                 = "accfs%[2]d"
@@ -176,15 +194,62 @@ resource "azurerm_machine_learning_datastore_fileshare" "test" {
   storage_fileshare_id    = azurerm_storage_share.test.resource_manager_id
   shared_access_signature = data.azurerm_storage_account_sas.test.sas
 }
+`, r.template(data), data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+	%s
 
+resource "azurerm_storage_share" "test" {
+  name               = "accfs%[2]d"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 1
+}
 
+data "azurerm_storage_account_sas" "test" {
+  connection_string = azurerm_storage_account.test.primary_connection_string
+  https_only        = true
+  signed_version    = "2019-10-10"
 
+  resource_types {
+    service   = true
+    container = true
+    object    = true
+  }
 
-`, template, data.RandomInteger)
+  services {
+    blob  = true
+    queue = false
+    table = false
+    file  = true
+  }
+
+  start  = "2022-01-01T06:17:07Z"
+  expiry = "2024-12-23T06:17:07Z"
+
+  permissions {
+    read    = true
+    write   = true
+    delete  = false
+    list    = false
+    add     = true
+    create  = true
+    update  = false
+    process = false
+    tag     = false
+    filter  = false
+  }
+}
+
+resource "azurerm_machine_learning_datastore_fileshare" "test" {
+  name                    = "accdatastore%[2]d"
+  workspace_id            = azurerm_machine_learning_workspace.test.id
+  storage_fileshare_id    = azurerm_storage_share.test.resource_manager_id
+  shared_access_signature = data.azurerm_storage_account_sas.test.sas
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (r MachineLearningDataStoreFileShare) requiresImport(data acceptance.TestData) string {
-	template := r.fileShareAccountKey(data)
 	return fmt.Sprintf(`
 %s
 
@@ -195,7 +260,7 @@ resource "azurerm_machine_learning_datastore_fileshare" "import" {
   account_key          = azurerm_machine_learning_datastore_fileshare.test.account_key
 }
 
-`, template)
+`, r.fileShareAccountKey(data))
 }
 
 func (r MachineLearningDataStoreFileShare) template(data acceptance.TestData) string {

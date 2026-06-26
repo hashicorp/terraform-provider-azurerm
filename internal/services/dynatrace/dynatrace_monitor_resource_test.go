@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dynatrace_test
@@ -44,7 +44,7 @@ func NewDynatraceMonitorResource() MonitorsResource {
 
 func TestAccDynatraceMonitor_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dynatrace_monitor", "test")
-	r := MonitorsResource{}
+	r := NewDynatraceMonitorResource()
 	r.preCheck(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -61,7 +61,7 @@ func TestAccDynatraceMonitor_basic(t *testing.T) {
 
 func TestAccDynatraceMonitor_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dynatrace_monitor", "test")
-	r := MonitorsResource{}
+	r := NewDynatraceMonitorResource()
 	r.preCheck(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -91,7 +91,7 @@ func TestAccDynatraceMonitor_update(t *testing.T) {
 
 func TestAccDynatraceMonitor_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dynatrace_monitor", "test")
-	r := MonitorsResource{}
+	r := NewDynatraceMonitorResource()
 	r.preCheck(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -107,7 +107,7 @@ func TestAccDynatraceMonitor_complete(t *testing.T) {
 
 func TestAccDynatraceMonitor_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dynatrace_monitor", "test")
-	r := MonitorsResource{}
+	r := NewDynatraceMonitorResource()
 	r.preCheck(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{

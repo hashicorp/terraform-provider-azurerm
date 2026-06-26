@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute_test
@@ -9,12 +9,12 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type DiskEncryptionSetResource struct{}
@@ -133,7 +133,7 @@ func TestAccDiskEncryptionSet_keyRotateInvalid(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.keyRotateInvalid(data),
-			ExpectError: regexp.MustCompile("'auto_key_rotation_enabled' field is set to 'true' expected a key vault key with a versionless ID but version information was found"),
+			ExpectError: regexp.MustCompile("`auto_key_rotation_enabled` field is set to `true` expected a key vault key with a versionless ID but version information was found"),
 		},
 	})
 }
@@ -146,7 +146,7 @@ func TestAccDiskEncryptionSet_keyRotateFalseInvalid(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.keyRotateFalseInvalid(data),
-			ExpectError: regexp.MustCompile("'auto_key_rotation_enabled' field is set to 'false' expected a key vault key with a versioned ID but no version information was found"),
+			ExpectError: regexp.MustCompile("`auto_key_rotation_enabled` field is set to `false` expected a key vault key with a versioned ID but no version information was found"),
 		},
 	})
 }
@@ -272,7 +272,7 @@ func (DiskEncryptionSetResource) Exists(ctx context.Context, clients *clients.Cl
 		return nil, fmt.Errorf("retrieving Compute Disk Encryption Set %q: `model` was nil", id.String())
 	}
 
-	return utils.Bool(model.Id != nil), nil
+	return pointer.To(model.Id != nil), nil
 }
 
 func (DiskEncryptionSetResource) dependencies(data acceptance.TestData, purgeProtectionEnabled bool) string {

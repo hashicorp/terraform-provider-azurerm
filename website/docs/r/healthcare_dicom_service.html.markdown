@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Whether to enabled public networks when data plane traffic coming from public networks while private endpoint is enabled. Defaults to `true`.
 
-* `storage` - (Optional) A `storage` block as defined below.
+* `storage` - (Optional) A `storage` block as defined below. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the Healthcare DICOM Service.
 
