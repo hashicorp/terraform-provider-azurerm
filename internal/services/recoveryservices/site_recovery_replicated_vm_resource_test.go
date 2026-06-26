@@ -1499,7 +1499,8 @@ resource "azurerm_storage_account" "test" {
   name                     = "acct%[1]d"
   location                 = azurerm_resource_group.test.location
   resource_group_name      = azurerm_resource_group.test.name
-  account_tier             = "Standard"
+  account_tier             = "Premium"
+  account_kind             = "BlockBlobStorage"
   account_replication_type = "LRS"
 }
 
