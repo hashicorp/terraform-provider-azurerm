@@ -35,8 +35,8 @@ type LinkedServiceAzurePostgreSQLResourceModel struct {
 	DataFactoryID          string                   `tfschema:"data_factory_id"`
 	AuthenticationType     string                   `tfschema:"authentication_type"`
 	Database               string                   `tfschema:"database_name"`
-	Server                 string                   `tfschema:"fully_qualified_domain_name"`
 	Port                   int                      `tfschema:"port"`
+	Server                 string                   `tfschema:"server"`
 	Annotations            []string                 `tfschema:"annotations"`
 	CredentialName         string                   `tfschema:"credential_name"`
 	Description            string                   `tfschema:"description"`
@@ -81,16 +81,16 @@ func (LinkedServiceAzurePostgreSQLResource) Arguments() map[string]*pluginsdk.Sc
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"fully_qualified_domain_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
 		"port": {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ValidateFunc: azValidate.PortNumberOrZero,
+		},
+
+		"server": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"annotations": {
@@ -202,6 +202,7 @@ func (r LinkedServiceAzurePostgreSQLResource) CustomizeDiff() sdk.ResourceFunc {
 		},
 	}
 }
+
 func (LinkedServiceAzurePostgreSQLResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
@@ -227,7 +228,7 @@ func (r LinkedServiceAzurePostgreSQLResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			dataFactoryId, err := factories.ParseFactoryID(config.DataFactoryID)
+			dataFactoryId, err := linkedservices.ParseFactoryID(config.DataFactoryID)
 			if err != nil {
 				return err
 			}
@@ -323,7 +324,6 @@ func (LinkedServiceAzurePostgreSQLResource) Read() sdk.ResourceFunc {
 			}
 
 			resp, err := client.Get(ctx, *id, linkedservices.DefaultGetOperationOptions())
-
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -394,7 +394,7 @@ func expandLinkedServiceAzurePostgreSQLTypeProperties(config LinkedServiceAzureP
 }
 
 func (LinkedServiceAzurePostgreSQLResource) flatten(metadata sdk.ResourceMetaData, id *linkedservices.LinkedServiceId, model *linkedservices.LinkedServiceResource) error {
-	dataFactoryId := factories.NewFactoryID(id.SubscriptionId, id.ResourceGroupName, id.FactoryName)
+	dataFactoryId := linkedservices.NewFactoryID(id.SubscriptionId, id.ResourceGroupName, id.FactoryName)
 	state := LinkedServiceAzurePostgreSQLResourceModel{
 		Name:          id.LinkedServiceName,
 		DataFactoryID: dataFactoryId.ID(),
@@ -414,9 +414,7 @@ func (LinkedServiceAzurePostgreSQLResource) flatten(metadata sdk.ResourceMetaDat
 	if database, ok := pointer.From(props.Database).(string); ok {
 		state.Database = database
 	}
-	if server, ok := pointer.From(props.Server).(string); ok {
-		state.Server = server
-	}
+
 	switch port := pointer.From(props.Port).(type) {
 	case int:
 		state.Port = port
@@ -425,6 +423,11 @@ func (LinkedServiceAzurePostgreSQLResource) flatten(metadata sdk.ResourceMetaDat
 	case float64:
 		state.Port = int(port)
 	}
+
+	if server, ok := pointer.From(props.Server).(string); ok {
+		state.Server = server
+	}
+
 	state.Annotations = flattenTypedLinkedServiceAnnotations(linkedService.Annotations)
 	if props.Credential != nil {
 		state.CredentialName = props.Credential.ReferenceName
