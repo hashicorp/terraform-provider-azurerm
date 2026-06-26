@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/appserviceplans"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -403,10 +402,8 @@ func (r LogicAppResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("the Site Name %q failed the availability check: %+v", id.SiteName, *model.Message)
 			}
 
-			isASE, err := logicAppIsOnASE(ctx, servicePlanClient, metadata.ResourceData)
-			if err != nil {
-				return err
-			}
+			// For Logic App on ASE, the app settings differ from Logic App on ASP skus. Reference: https://github.com/hashicorp/terraform-provider-azurerm/issues/29872#issuecomment-2992814581
+			isASE := servicePlan.Model != nil && servicePlan.Model.Properties != nil && servicePlan.Model.Properties.HostingEnvironmentProfile != nil && servicePlan.Model.Properties.HostingEnvironmentProfile.Id != nil
 
 			basicAppSettings, err := getBasicLogicAppSettings(data, *storageAccountDomainSuffix, isASE)
 			if err != nil {
@@ -1341,19 +1338,4 @@ func reconcilePNA(d sdk.ResourceMetaData) string {
 	}
 
 	return pna
-}
-
-// For Logic App on ASE, the app settings differ from Logic App on ASP skus. Reference: https://github.com/hashicorp/terraform-provider-azurerm/issues/29872#issuecomment-2992814581
-func logicAppIsOnASE(ctx context.Context, client *appserviceplans.AppServicePlansClient, d *pluginsdk.ResourceData) (bool, error) {
-	servicePlanId, err := commonids.ParseAppServicePlanID(d.Get("app_service_plan_id").(string))
-	if err != nil {
-		return false, err
-	}
-
-	servicePlanResp, err := client.Get(ctx, *servicePlanId)
-	if err != nil {
-		return false, fmt.Errorf("retrieving Service Plan SKU %s: %+v", *servicePlanId, err)
-	}
-
-	return servicePlanResp.Model != nil && servicePlanResp.Model.Properties != nil && servicePlanResp.Model.Properties.HostingEnvironmentProfile != nil && servicePlanResp.Model.Properties.HostingEnvironmentProfile.Id != nil, nil
 }
