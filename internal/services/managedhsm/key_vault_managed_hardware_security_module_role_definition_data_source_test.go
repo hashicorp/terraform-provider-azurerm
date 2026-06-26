@@ -41,7 +41,7 @@ func (KeyVaultManagedHardwareSecurityModuleRoleDefinitionDataSource) basic(data 
 
 data "azurerm_key_vault_managed_hardware_security_module_role_definition" "test" {
   managed_hsm_id = azurerm_key_vault_managed_hardware_security_module.test.id
-  name           = "21dbd100-6940-42c2-9190-5d6cb909625b"
+  name           = azurerm_key_vault_managed_hardware_security_module_role_definition.test.name
 }
 `, KeyVaultMHSMRoleDefinitionResource{}.basic(data))
 }

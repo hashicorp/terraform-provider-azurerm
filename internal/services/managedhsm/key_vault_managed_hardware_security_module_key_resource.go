@@ -158,6 +158,16 @@ func (r KeyVaultMHSMKeyResource) CustomizeDiff() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			diff := metadata.ResourceDiff
 
+			// There isn't a way to remove these dates from a key so we'll recreate the resource when they are removed from config
+			for _, field := range []string{"not_before_date", "expiration_date"} {
+				oldValue, newValue := diff.GetChange(field)
+				if oldValue.(string) != "" && newValue.(string) == "" {
+					if err := diff.ForceNew(field); err != nil {
+						return err
+					}
+				}
+			}
+
 			// if any value has changed, we need to SetNewComputed on versioned_id as any change to the key is a new version
 			if diff.HasChanges("key_opts", "not_before_date", "tags", "expiration_date") {
 				return diff.SetNewComputed("versioned_id")
