@@ -405,11 +405,15 @@ func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
 			outboundType := rd.Get("network.0.outbound_type").(string)
 			identityType := rd.Get("identity.0.type").(string)
 			artifactSource := rd.Get("bootstrap_profile.0.artifact_source").(string)
+			apiServerSubnetID := rd.Get("api_server_access.0.subnet_id").(string)
 			if outboundType == string(managedclusters.OutboundTypeNone) && artifactSource != string(managedclusters.ArtifactSourceCache) {
 				return fmt.Errorf("when `network.outbound_type` is set to `none`, `bootstrap_profile.artifact_source` must be set to `Cache`")
 			}
 
-			hostedSystem := rd.Get("hosted_system.0.").([]interface{})
+			hostedSystem := make([]interface{}, 0)
+			if v, ok := rd.Get("hosted_system").([]interface{}); ok {
+				hostedSystem = v
+			}
 			if rd.Id() == "" {
 				if len(hostedSystem) == 0 {
 					if !strings.EqualFold(identityType, string(identity.TypeSystemAssigned)) {
@@ -420,26 +424,20 @@ func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
 						return fmt.Errorf("when `hosted_system` is not configured, `network.outbound_type` cannot be `loadBalancer`")
 					}
 
-					if rd.Get("api_server_access.0.subnet_id") != "" {
+					if apiServerSubnetID != "" {
 						return fmt.Errorf("when `hosted_system` is not configured, `api_server_access.subnet_id` can not be set")
 					}
-				} else {
+				}
+				if len(hostedSystem) > 0 && hostedSystem[0] != nil {
 					if !strings.EqualFold(identityType, string(identity.TypeUserAssigned)) {
 						return fmt.Errorf("`hosted_system` requires `identity.type` to be `UserAssigned`")
 					}
-					if rd.Get("api_server_access.0.subnet_id") == nil {
+					if outboundType == string(managedclusters.OutboundTypeManagedNATGateway) {
+						return fmt.Errorf("when `hosted_system` is configured, `network.outbound_type` cannot be `managedNATGateway`")
+					}
+					if apiServerSubnetID == "" {
 						return fmt.Errorf("`hosted_system` requires `api_server_access.subnet_id` to be set")
 					}
-				}
-			}
-
-			if outboundType == string(managedclusters.OutboundTypeManagedNATGateway) && len(hostedSystem) > 0 && hostedSystem[0] != nil {
-				hostedSystemConfig := hostedSystem[0].(map[string]interface{})
-				nodeSubnetID := hostedSystemConfig["node_subnet_id"].(string)
-				systemNodeSubnetID := hostedSystemConfig["system_node_subnet_id"].(string)
-
-				if nodeSubnetID != "" || systemNodeSubnetID != "" {
-					return fmt.Errorf("network.outbound_type cannot be managedNATGateway when using hosted_system")
 				}
 			}
 
