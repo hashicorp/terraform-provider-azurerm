@@ -1531,7 +1531,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
     staging_storage_account_id = azurerm_storage_account.test.id
     target_resource_group_id   = azurerm_resource_group.test2.id
     target_disk_type           = "PremiumV2_LRS"
-    target_replica_disk_type   = "PremiumV2_LRS"
+    target_replica_disk_type   = "Premium_LRS"
   }
 
   network_interface {
