@@ -405,7 +405,19 @@ func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
 			outboundType := rd.Get("network.0.outbound_type").(string)
 			identityType := rd.Get("identity.0.type").(string)
 			artifactSource := rd.Get("bootstrap_profile.0.artifact_source").(string)
-			apiServerSubnetID := rd.Get("api_server_access.0.subnet_id").(string)
+			apiServerSubnetIDIsSet := false
+
+			if rawAPIServerAccess := rd.GetRawConfig().AsValueMap()["api_server_access"]; !rawAPIServerAccess.IsNull() {
+				if !rawAPIServerAccess.IsKnown() {
+					apiServerSubnetIDIsSet = true
+				} else if len(rawAPIServerAccess.AsValueSlice()) > 0 {
+					rawAPIServerAccessConfig := rawAPIServerAccess.AsValueSlice()[0]
+					if !rawAPIServerAccessConfig.IsNull() {
+						rawSubnetID := rawAPIServerAccessConfig.AsValueMap()["subnet_id"]
+						apiServerSubnetIDIsSet = !rawSubnetID.IsNull()
+					}
+				}
+			}
 			if outboundType == string(managedclusters.OutboundTypeNone) && artifactSource != string(managedclusters.ArtifactSourceCache) {
 				return fmt.Errorf("when `network.outbound_type` is set to `none`, `bootstrap_profile.artifact_source` must be set to `Cache`")
 			}
@@ -424,7 +436,7 @@ func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
 						return fmt.Errorf("when `hosted_system` is not configured, `network.outbound_type` cannot be `loadBalancer`")
 					}
 
-					if apiServerSubnetID != "" {
+					if apiServerSubnetIDIsSet {
 						return fmt.Errorf("when `hosted_system` is not configured, `api_server_access.subnet_id` can not be set")
 					}
 				}
@@ -435,7 +447,7 @@ func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
 					if outboundType == string(managedclusters.OutboundTypeManagedNATGateway) {
 						return fmt.Errorf("when `hosted_system` is configured, `network.outbound_type` cannot be `managedNATGateway`")
 					}
-					if apiServerSubnetID == "" {
+					if !apiServerSubnetIDIsSet {
 						return fmt.Errorf("`hosted_system` requires `api_server_access.subnet_id` to be set")
 					}
 				}
@@ -1048,7 +1060,6 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 					"outbound_type": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						Default:  string(managedclusters.OutboundTypeManagedNATGateway),
 						ValidateFunc: validation.StringInSlice([]string{
 							string(managedclusters.OutboundTypeLoadBalancer),
 							string(managedclusters.OutboundTypeUserDefinedRouting),
