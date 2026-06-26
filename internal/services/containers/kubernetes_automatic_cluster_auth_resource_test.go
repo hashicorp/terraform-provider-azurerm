@@ -302,9 +302,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_subnet_id        = azurerm_subnet.node.id
     system_node_subnet_id = azurerm_subnet.systemnode.id
   }
-  
+
   api_server_access {
-   subnet_id = azurerm_subnet.api.id
+    subnet_id = azurerm_subnet.api.id
   }
 
   identity {
