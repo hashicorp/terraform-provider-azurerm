@@ -2337,14 +2337,12 @@ func flattenKubernetesAutomaticClusterIdentityProfile(profile map[string]managed
 
 	kubeletIdentity := make([]KubeletIdentityModel, 0)
 	if kubeletidentity, ok := profile["kubeletidentity"]; ok {
-
 		userAssignedIdentityId := ""
 		if resourceid := kubeletidentity.ResourceId; resourceid != nil {
 			parsedId, err := commonids.ParseUserAssignedIdentityIDInsensitively(*resourceid)
 			if err != nil {
 				return nil, err
 			}
-
 			userAssignedIdentityId = parsedId.ID()
 		}
 
