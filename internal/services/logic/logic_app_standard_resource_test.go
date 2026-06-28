@@ -2697,6 +2697,7 @@ resource "azurerm_logic_app_standard" "test" {
   app_service_plan_id        = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  vnet_content_share_enabled = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
