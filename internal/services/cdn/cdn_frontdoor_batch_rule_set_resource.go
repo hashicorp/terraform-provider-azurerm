@@ -78,12 +78,12 @@ func (r CdnFrontDoorBatchRuleSetResource) CustomizeDiff() sdk.ResourceFunc {
 			}
 
 			rawConfig := metadata.ResourceDiff.GetRawConfig()
-			if rawConfig.IsNull() {
+			if rawConfig.IsNull() || !rawConfig.IsKnown() {
 				return nil
 			}
 
 			rulesValue := rawConfig.AsValueMap()["rules"]
-			if rulesValue.IsNull() || rulesValue.LengthInt() == 0 {
+			if rulesValue.IsNull() || !rulesValue.IsKnown() || rulesValue.LengthInt() == 0 {
 				return nil
 			}
 
