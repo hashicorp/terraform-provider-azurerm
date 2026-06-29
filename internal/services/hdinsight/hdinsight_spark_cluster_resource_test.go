@@ -1441,7 +1441,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "acctest"
-  storage_account_id    = azurerm_storage_account.test.id
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 		`, data.RandomInteger, data.Locations.Primary, data.RandomString)
