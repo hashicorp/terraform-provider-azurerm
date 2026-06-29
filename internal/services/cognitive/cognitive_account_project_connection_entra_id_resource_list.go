@@ -25,43 +25,32 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type CognitiveAccountProjectConnectionListResource struct{}
+type CognitiveAccountProjectConnectionEntraIDListResource struct{}
 
-var _ sdk.FrameworkListWrappedResource = new(CognitiveAccountProjectConnectionListResource)
+var _ sdk.FrameworkListWrappedResource = new(CognitiveAccountProjectConnectionEntraIDListResource)
 
-func (CognitiveAccountProjectConnectionListResource) ResourceFunc() *pluginsdk.Resource {
-	return sdk.WrappedResource(CognitiveAccountProjectConnectionResource{})
+func (CognitiveAccountProjectConnectionEntraIDListResource) ResourceFunc() *pluginsdk.Resource {
+	return sdk.WrappedResource(CognitiveAccountProjectConnectionEntraIDResource{})
 }
 
-func (CognitiveAccountProjectConnectionListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
-	response.TypeName = CognitiveAccountProjectConnectionResource{}.ResourceType()
+func (CognitiveAccountProjectConnectionEntraIDListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
+	response.TypeName = CognitiveAccountProjectConnectionEntraIDResource{}.ResourceType()
 }
 
-func (CognitiveAccountProjectConnectionListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
-	response.Schema = cognitiveAccountProjectConnectionListResourceConfigSchema()
+func (CognitiveAccountProjectConnectionEntraIDListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
+	response.Schema = cognitiveAccountProjectConnectionEntraIDListResourceConfigSchema()
 }
 
-type cognitiveAccountProjectConnectionListModel struct {
-	CognitiveAccountName types.String   `tfsdk:"cognitive_account_name"`
-	ProjectName          types.String   `tfsdk:"project_name"`
-	ResourceGroupName    types.String   `tfsdk:"resource_group_name"`
-	SubscriptionId       types.String   `tfsdk:"subscription_id"`
-	AuthTypes            []types.String `tfsdk:"auth_types"`
+type cognitiveAccountProjectConnectionEntraIDListModel struct {
+	CognitiveAccountName types.String `tfsdk:"cognitive_account_name"`
+	ProjectName          types.String `tfsdk:"project_name"`
+	ResourceGroupName    types.String `tfsdk:"resource_group_name"`
+	SubscriptionId       types.String `tfsdk:"subscription_id"`
 }
 
-func cognitiveAccountProjectConnectionListResourceConfigSchema() schema.Schema {
+func cognitiveAccountProjectConnectionEntraIDListResourceConfigSchema() schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"auth_types": schema.ListAttribute{
-				Optional:    true,
-				ElementType: types.StringType,
-				Validators: []validator.List{
-					typehelpers.WrappedListValidator{
-						Func: validation.StringInSlice(projectconnectionresource.PossibleValuesForConnectionAuthType(), false),
-					},
-				},
-			},
-
 			"cognitive_account_name": schema.StringAttribute{
 				Optional: true,
 				Validators: []validator.String{
@@ -101,10 +90,10 @@ func cognitiveAccountProjectConnectionListResourceConfigSchema() schema.Schema {
 	}
 }
 
-func (CognitiveAccountProjectConnectionListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
+func (CognitiveAccountProjectConnectionEntraIDListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.Cognitive.ProjectConnectionResourceClient
 
-	var data cognitiveAccountProjectConnectionListModel
+	var data cognitiveAccountProjectConnectionEntraIDListModel
 	diags := request.Config.Get(ctx, &data)
 	if diags.HasError() {
 		stream.Results = list.ListResultsStreamDiagnostics(diags)
@@ -117,14 +106,9 @@ func (CognitiveAccountProjectConnectionListResource) List(ctx context.Context, r
 		return
 	}
 
-	authTypeFilter := make(map[string]struct{})
-	for _, v := range data.AuthTypes {
-		authTypeFilter[v.ValueString()] = struct{}{}
-	}
-
-	projects, err := cognitiveAccountProjectConnectionListProjects(ctx, metadata, data)
+	projects, err := cognitiveAccountProjectConnectionEntraIDListProjects(ctx, metadata, data)
 	if err != nil {
-		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", CognitiveAccountProjectConnectionResource{}.ResourceType()), err)
+		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", CognitiveAccountProjectConnectionEntraIDResource{}.ResourceType()), err)
 		return
 	}
 
@@ -154,11 +138,8 @@ func (CognitiveAccountProjectConnectionListResource) List(ctx context.Context, r
 				}
 
 				base := connection.Properties.ConnectionPropertiesV2()
-
-				if len(authTypeFilter) > 0 {
-					if _, match := authTypeFilter[string(base.AuthType)]; !match {
-						continue
-					}
+				if base.AuthType != projectconnectionresource.ConnectionAuthTypeAAD {
+					continue
 				}
 
 				connectionId, err := projectconnectionresource.ParseProjectConnectionID(pointer.From(connection.Id))
@@ -171,7 +152,7 @@ func (CognitiveAccountProjectConnectionListResource) List(ctx context.Context, r
 				result := request.NewListResult(listCtx)
 				result.DisplayName = fmt.Sprintf("%s (%s)", pointer.From(connection.Name), string(base.AuthType))
 
-				rd := sdk.WrappedResource(CognitiveAccountProjectConnectionResource{}).Data(&terraform.InstanceState{})
+				rd := sdk.WrappedResource(CognitiveAccountProjectConnectionEntraIDResource{}).Data(&terraform.InstanceState{})
 				rd.SetId(connectionId.ID())
 				if err := pluginsdk.SetResourceIdentityData(rd, connectionId); err != nil {
 					sdk.SetErrorDiagnosticAndPushListResult(result, push, "setting Cognitive Account Project Connection identity", err)
@@ -198,7 +179,7 @@ func (CognitiveAccountProjectConnectionListResource) List(ctx context.Context, r
 	}
 }
 
-func cognitiveAccountProjectConnectionListProjects(ctx context.Context, metadata sdk.ResourceMetadata, data cognitiveAccountProjectConnectionListModel) ([]cognitiveservicesprojects.Project, error) {
+func cognitiveAccountProjectConnectionEntraIDListProjects(ctx context.Context, metadata sdk.ResourceMetadata, data cognitiveAccountProjectConnectionEntraIDListModel) ([]cognitiveservicesprojects.Project, error) {
 	subscriptionID := metadata.SubscriptionId
 	if !data.SubscriptionId.IsNull() {
 		subscriptionID = data.SubscriptionId.ValueString()
