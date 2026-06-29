@@ -973,12 +973,16 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 				model.Properties.SiteConfig = siteConfig
 			}
 
+			vnetRoutingProps := &webapps.OutboundVnetRouting{}
+			if model.Properties.OutboundVnetRouting != nil {
+				vnetRoutingProps = model.Properties.OutboundVnetRouting
+			}
 			if metadata.ResourceData.HasChange("vnet_application_traffic_enabled") {
-				model.Properties.OutboundVnetRouting.ApplicationTraffic = pointer.To(state.VnetApplicationTrafficEnabled)
+				vnetRoutingProps.ApplicationTraffic = pointer.To(state.VnetApplicationTrafficEnabled)
 			}
 
 			if !features.FivePointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
-				model.Properties.OutboundVnetRouting.ApplicationTraffic = siteConfig.VnetRouteAllEnabled
+				vnetRoutingProps.ApplicationTraffic = siteConfig.VnetRouteAllEnabled
 			}
 
 			if metadata.ResourceData.HasChange("maximum_instance_count") {
@@ -1032,6 +1036,7 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 			}
 
 			model.Properties.SiteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, state.AppSettings)
+			model.Properties.OutboundVnetRouting = vnetRoutingProps
 
 			if metadata.ResourceData.HasChange("public_network_access_enabled") {
 				pna := helpers.PublicNetworkAccessEnabled

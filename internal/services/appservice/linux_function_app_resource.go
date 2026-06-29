@@ -564,7 +564,7 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 					HTTPSOnly:            pointer.To(functionApp.HttpsOnly),
 					SiteConfig:           siteConfig,
 					ClientCertEnabled:    pointer.To(functionApp.ClientCertEnabled),
-					ClientCertMode:       pointer.To(webapps.ClientCertMode(functionApp.ClientCertMode)),
+					ClientCertMode:       pointer.ToEnum[webapps.ClientCertMode](functionApp.ClientCertMode),
 					DailyMemoryTimeQuota: pointer.To(functionApp.DailyMemoryTimeQuota), // TODO - Investigate, setting appears silently ignored on Linux Function Apps?
 					OutboundVnetRouting: &webapps.OutboundVnetRouting{
 						BackupRestoreTraffic: pointer.To(functionApp.VirtualNetworkBackupRestoreEnabled),
@@ -982,7 +982,7 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 			}
 
 			vnetRoutingProps := &webapps.OutboundVnetRouting{}
-			if model.Properties.OutboundVnetRouting == nil {
+			if model.Properties.OutboundVnetRouting != nil {
 				vnetRoutingProps = model.Properties.OutboundVnetRouting
 			}
 			if metadata.ResourceData.HasChange("virtual_network_backup_restore_enabled") {
