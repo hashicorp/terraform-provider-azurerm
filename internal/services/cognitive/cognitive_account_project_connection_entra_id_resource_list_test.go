@@ -13,6 +13,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/querycheck"
+	"github.com/hashicorp/terraform-plugin-testing/querycheck/queryfilter"
+	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
@@ -46,6 +48,16 @@ func TestAccCognitiveAccountProjectConnectionEntraID_list(t *testing.T) {
 							"project_name":        knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
 						},
 					),
+					querycheck.ExpectResourceKnownValues(
+						"azurerm_cognitive_account_project_connection_entra_id.list",
+						queryfilter.ByDisplayName(knownvalue.StringRegexp(regexp.MustCompile("acctest-conn2-"))),
+						[]querycheck.KnownValueCheck{
+							{
+								Path:       tfjsonpath.New("authentication_type"),
+								KnownValue: knownvalue.StringExact("AAD"),
+							},
+						},
+					),
 				},
 			},
 		},
@@ -70,6 +82,16 @@ func TestAccCognitiveAccountProjectConnectionEntraID_listAccountScope(t *testing
 				Config: r.listQueryAccountScope(data),
 				QueryResultChecks: []querycheck.QueryResultCheck{
 					querycheck.ExpectLengthAtLeast("azurerm_cognitive_account_project_connection_entra_id.list", 2),
+					querycheck.ExpectResourceKnownValues(
+						"azurerm_cognitive_account_project_connection_entra_id.list",
+						queryfilter.ByDisplayName(knownvalue.StringRegexp(regexp.MustCompile("acctest-conn2-"))),
+						[]querycheck.KnownValueCheck{
+							{
+								Path:       tfjsonpath.New("authentication_type"),
+								KnownValue: knownvalue.StringExact("AAD"),
+							},
+						},
+					),
 				},
 			},
 		},
@@ -86,6 +108,7 @@ list "azurerm_cognitive_account_project_connection_entra_id" "list" {
     resource_group_name    = azurerm_resource_group.test.name
     subscription_id        = "%[1]s"
   }
+  include_resource = true
 }
 `, data.Subscriptions.Primary)
 }
@@ -99,6 +122,7 @@ list "azurerm_cognitive_account_project_connection_entra_id" "list" {
     resource_group_name    = azurerm_resource_group.test.name
     subscription_id        = "%[1]s"
   }
+  include_resource = true
 }
 `, data.Subscriptions.Primary)
 }

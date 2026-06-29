@@ -160,7 +160,7 @@ func (CognitiveAccountProjectConnectionEntraIDListResource) List(ctx context.Con
 				}
 				_ = rd.Set("name", connectionId.ConnectionName)
 				_ = rd.Set("cognitive_account_project_id", projectconnectionresource.NewProjectID(connectionId.SubscriptionId, connectionId.ResourceGroupName, connectionId.AccountName, connectionId.ProjectName).ID())
-				_ = rd.Set("auth_type", string(base.AuthType))
+				_ = rd.Set("authentication_type", string(base.AuthType))
 				_ = rd.Set("category", pointer.FromEnum(base.Category))
 				_ = rd.Set("target", pointer.From(base.Target))
 				_ = rd.Set("metadata", pointer.From(base.Metadata))

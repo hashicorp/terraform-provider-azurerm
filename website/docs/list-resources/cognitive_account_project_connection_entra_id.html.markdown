@@ -55,7 +55,7 @@ Each returned item includes the following attributes:
 
 * `id` - The ID of the Cognitive Services Account Project Connection Entra ID resource.
 
-* `auth_type` - The authentication type of the connection.
+* `authentication_type` - The authentication type of the connection.
 
 * `category` - The category of the connection.
 
