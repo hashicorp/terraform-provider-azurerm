@@ -1379,6 +1379,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     private_dns_zone_id = azurerm_private_dns_zone.test.id
     dns_prefix          = "prefix"
   }
+
   hosted_system {
     node_subnet_id        = azurerm_subnet.node.id
     system_node_subnet_id = azurerm_subnet.systemnode.id

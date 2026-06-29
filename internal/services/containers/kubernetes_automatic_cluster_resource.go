@@ -465,7 +465,7 @@ func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
 					}
 				}
 
-				if dnsPrefix != "" && (privateDNSZoneID == "" || privateDNSZoneID == "System" || privateDNSZoneID == "None") {
+				if dnsPrefix != "" && (privateDNSZoneID == "System" || privateDNSZoneID == "None") {
 					return fmt.Errorf("`private_cluster.0.dns_prefix` should only be set for private cluster with custom private dns zone")
 				}
 			}
@@ -1060,6 +1060,8 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 					"outbound_type": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
+						// NOTE: O+C - Azure will set ManagedNATGateway or LoadBalancer if none is set depending on the networking
+						Computed: true,
 						ValidateFunc: validation.StringInSlice([]string{
 							string(managedclusters.OutboundTypeLoadBalancer),
 							string(managedclusters.OutboundTypeUserDefinedRouting),
