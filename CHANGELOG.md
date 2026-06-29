@@ -1,3 +1,48 @@
+## 4.79.0 (June 25, 2026)
+
+FEATURES:
+
+* **New Action**: `azurerm_netapp_volume_bucket_credentials` ([#32319](https://github.com/hashicorp/terraform-provider-azurerm/issues/32319))
+* **New Data Source**: `azurerm_netapp_volume_bucket` ([#32319](https://github.com/hashicorp/terraform-provider-azurerm/issues/32319))
+* **New Data Source**: `azurerm_netapp_volume_bucket_with_server`([#32319](https://github.com/hashicorp/terraform-provider-azurerm/issues/32319))
+* **New List Resource**: `azurerm_netapp_volume_bucket` ([#32319](https://github.com/hashicorp/terraform-provider-azurerm/issues/32319))
+* **New List Resource**: `azurerm_netapp_volume_bucket_with_server`([#32319](https://github.com/hashicorp/terraform-provider-azurerm/issues/32319))
+* **New List Resource**: `azurerm_signalr_service_custom_certificate` ([#32114](https://github.com/hashicorp/terraform-provider-azurerm/issues/32114))
+* **New Resource**: `azurerm_netapp_volume_bucket` ([#32319](https://github.com/hashicorp/terraform-provider-azurerm/issues/32319))
+* **New Resource**: `azurerm_netapp_volume_bucket_with_server`([#32319](https://github.com/hashicorp/terraform-provider-azurerm/issues/32319))
+
+ENHANCEMENTS:
+
+* `azurerm_batch_job` - migrate to `go-azure-sdk` ([#32662](https://github.com/hashicorp/terraform-provider-azurerm/issues/32662))
+* `azurerm_data_protection_backup_instance_data_lake_storage` - increase the limit of items for `storage_container_names` from 100 to 1000 ([#32643](https://github.com/hashicorp/terraform-provider-azurerm/issues/32643))
+* `azurerm_postgresql_flexible_server` - add Ddsv6 skus to validation  ([#32657](https://github.com/hashicorp/terraform-provider-azurerm/issues/32657))
+* `azurerm_virtual_network_gateway` - add support for `maximum_scale_unit` and `minimum_scale_unit` ([#32647](https://github.com/hashicorp/terraform-provider-azurerm/issues/32647))
+* `desktopvirtualization` - upgrade API version to `2025-10-10` ([#32563](https://github.com/hashicorp/terraform-provider-azurerm/issues/32563))
+
+## 4.78.0 (June 18, 2026)
+
+FEATURES:
+
+* **New List Resource:** `azurerm_signalr_service_custom_domain` ([#32124](https://github.com/hashicorp/terraform-provider-azurerm/issues/32124))
+* **New List Resource:** `azurerm_storage_sync_server_endpoint` ([#31988](https://github.com/hashicorp/terraform-provider-azurerm/issues/31988))
+
+ENHANCEMENTS:
+
+* dependencies: `go-azure-sdk` - update to `v0.20260616.1142719` ([#32631](https://github.com/hashicorp/terraform-provider-azurerm/issues/32631))
+* Data Source: `azurerm_network_manager_connectivity_configuration` - export the `connected_group_address_overlap`, `connected_group_private_endpoints_scale`, and `peering_enforcement` properties ([#31562](https://github.com/hashicorp/terraform-provider-azurerm/issues/31562))
+* Data Source: `azurerm_storage_container` - export the `url` property ([#29036](https://github.com/hashicorp/terraform-provider-azurerm/issues/29036))
+* `azurerm_kubernetes_cluster` - add support `KataVmIsolation` for `workload_runtime` ([#32579](https://github.com/hashicorp/terraform-provider-azurerm/issues/32579))
+* `azurerm_kubernetes_cluster_node_pool` - add support `KataVmIsolation` for `workload_runtime` ([#32579](https://github.com/hashicorp/terraform-provider-azurerm/issues/32579))
+* `azurerm_mssql_managed_instance` - add support for the `storage_iops` property ([#32250](https://github.com/hashicorp/terraform-provider-azurerm/issues/32250))
+* `azurerm_network_manager_connectivity_configuration` - add support for the `connected_group_address_overlap`, `connected_group_private_endpoints_scale`, and `peering_enforcement` properties ([#31562](https://github.com/hashicorp/terraform-provider-azurerm/issues/31562))  
+* `azurerm_storage_container` - export the `url` property ([#29036](https://github.com/hashicorp/terraform-provider-azurerm/issues/29036))
+
+BUG FIXES:
+
+* `azurerm_cosmosdb_account` - fix an issue that prevented diffs on `geo_location.zone_redundant` from showing ([#32620](https://github.com/hashicorp/terraform-provider-azurerm/issues/32620)) 
+* `azurerm_express_route_connection` - fix an issue that caused unintentional changes to `internet_security_enabled` on updates ([#32498](https://github.com/hashicorp/terraform-provider-azurerm/issues/32498))
+* `azurerm_static_web_app` - fix an issue that caused updates to fail once a private endpoint was attached ([#32631](https://github.com/hashicorp/terraform-provider-azurerm/issues/32631))
+
 ## 4.77.0 (June 11, 2026)
 
 FEATURES:
