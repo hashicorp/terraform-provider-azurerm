@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -1039,6 +1040,10 @@ func TestAccLinuxWebApp_withPython314(t *testing.T) {
 }
 
 func TestAccLinuxWebApp_withRuby26(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("`application_stack.site_config.ruby_version` has been removed, this test is no longer valid")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
 	r := LinuxWebAppResource{}
 
@@ -1054,6 +1059,10 @@ func TestAccLinuxWebApp_withRuby26(t *testing.T) {
 }
 
 func TestAccLinuxWebApp_withRuby27(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("`application_stack.site_config.ruby_version` has been removed, this test is no longer valid")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
 	r := LinuxWebAppResource{}
 

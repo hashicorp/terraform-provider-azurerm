@@ -611,8 +611,10 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForCreate(appSettings map[string]strin
 			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("NODE|%s", linuxAppStack.NodeVersion))
 		}
 
-		if linuxAppStack.RubyVersion != "" {
-			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("RUBY|%s", linuxAppStack.RubyVersion))
+		if !features.FivePointOh() {
+			if linuxAppStack.RubyVersion != "" {
+				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("RUBY|%s", linuxAppStack.RubyVersion))
+			}
 		}
 
 		if linuxAppStack.PythonVersion != "" {
@@ -742,8 +744,10 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaDat
 			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("NODE|%s", linuxAppStack.NodeVersion))
 		}
 
-		if linuxAppStack.RubyVersion != "" {
-			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("RUBY|%s", linuxAppStack.RubyVersion))
+		if !features.FivePointOh() {
+			if linuxAppStack.RubyVersion != "" {
+				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("RUBY|%s", linuxAppStack.RubyVersion))
+			}
 		}
 
 		if linuxAppStack.PythonVersion != "" {
