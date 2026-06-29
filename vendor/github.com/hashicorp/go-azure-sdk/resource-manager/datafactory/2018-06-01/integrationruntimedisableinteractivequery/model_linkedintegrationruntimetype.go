@@ -25,9 +25,9 @@ func (s BaseLinkedIntegrationRuntimeTypeImpl) LinkedIntegrationRuntimeType() Bas
 
 var _ LinkedIntegrationRuntimeType = RawLinkedIntegrationRuntimeTypeImpl{}
 
-// RawLinkedIntegrationRuntimeTypeImpl is returned when the Discriminated Value doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+// RawLinkedIntegrationRuntimeTypeImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawLinkedIntegrationRuntimeTypeImpl struct {
 	linkedIntegrationRuntimeType BaseLinkedIntegrationRuntimeTypeImpl
 	Type                         string
@@ -36,6 +36,10 @@ type RawLinkedIntegrationRuntimeTypeImpl struct {
 
 func (s RawLinkedIntegrationRuntimeTypeImpl) LinkedIntegrationRuntimeType() BaseLinkedIntegrationRuntimeTypeImpl {
 	return s.linkedIntegrationRuntimeType
+}
+
+func (s RawLinkedIntegrationRuntimeTypeImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
 }
 
 func UnmarshalLinkedIntegrationRuntimeTypeImplementation(input []byte) (LinkedIntegrationRuntimeType, error) {

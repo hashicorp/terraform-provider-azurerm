@@ -27,9 +27,9 @@ func (s BaseFirewallPolicyRuleImpl) FirewallPolicyRule() BaseFirewallPolicyRuleI
 
 var _ FirewallPolicyRule = RawFirewallPolicyRuleImpl{}
 
-// RawFirewallPolicyRuleImpl is returned when the Discriminated Value doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+// RawFirewallPolicyRuleImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawFirewallPolicyRuleImpl struct {
 	firewallPolicyRule BaseFirewallPolicyRuleImpl
 	Type               string
@@ -38,6 +38,10 @@ type RawFirewallPolicyRuleImpl struct {
 
 func (s RawFirewallPolicyRuleImpl) FirewallPolicyRule() BaseFirewallPolicyRuleImpl {
 	return s.firewallPolicyRule
+}
+
+func (s RawFirewallPolicyRuleImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
 }
 
 func UnmarshalFirewallPolicyRuleImplementation(input []byte) (FirewallPolicyRule, error) {
