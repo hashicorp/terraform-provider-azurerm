@@ -209,8 +209,8 @@ resource "azurerm_key_vault_managed_hardware_security_module_key" "test" {
   curve          = "P-521"
   key_opts       = ["sign"]
 
-  not_before_date = "2020-01-01T01:02:03Z"
-  expiration_date = "2021-01-01T01:02:03Z"
+  not_before_date = "2020-01-02T01:02:03Z"
+  expiration_date = "2021-01-02T01:02:03Z"
 
   depends_on = [
     azurerm_key_vault_managed_hardware_security_module_role_assignment.test,

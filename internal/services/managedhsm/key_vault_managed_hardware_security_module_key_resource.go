@@ -16,8 +16,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/managedhsms"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -413,8 +415,20 @@ func (r KeyVaultMHSMKeyResource) Update() sdk.ResourceFunc {
 				parameters.KeyAttributes.Expires = &expirationUnixTime
 			}
 
-			if _, err = client.UpdateKey(ctx, id.BaseUri(), config.Name, "", parameters); err != nil {
+			resp, err := client.UpdateKey(ctx, id.BaseUri(), config.Name, "", parameters)
+			if err != nil {
 				return err
+			}
+
+			// Managed HSM serves the data plane from multiple partitions; a read immediately after an update
+			// may be routed to a stale replica, so we poll until the read-back `updated` timestamp matches
+			// the write response to ensure consistency before the framework performs its read
+			if resp.Attributes != nil && resp.Attributes.Updated != nil {
+				pollerType := custompollers.NewKeyUpdatePoller(metadata.Client.ManagedHSMs.DataPlaneKeysClient, id.BaseUri(), config.Name, *resp.Attributes.Updated)
+				poller := pollers.NewPoller(pollerType, 5*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+				if err := poller.PollUntilDone(ctx); err != nil {
+					return fmt.Errorf("waiting for key %q update to propagate: %+v", config.Name, err)
+				}
 			}
 
 			return nil
