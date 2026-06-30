@@ -353,6 +353,7 @@ func TestAccNetAppVolume_complete(t *testing.T) {
 		check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
 		check.That(data.ResourceName).Key("mount_targets.#").HasValue("1"),
 		check.That(data.ResourceName).Key("mount_targets.0.ip_address").Exists(),
+		check.That(data.ResourceName).Key("mount_targets.0.smb_server_fqdn").IsEmpty(),
 	}
 
 	if !features.FivePointOh() {

@@ -27,6 +27,7 @@ func TestAccDataSourceNetAppVolume_basic(t *testing.T) {
 		check.That(data.ResourceName).Key("protocols.0").Exists(),
 		check.That(data.ResourceName).Key("mount_targets.#").HasValue("1"),
 		check.That(data.ResourceName).Key("mount_targets.0.ip_address").Exists(),
+		check.That(data.ResourceName).Key("mount_targets.0.smb_server_fqdn").IsEmpty(),
 		check.That(data.ResourceName).Key("encryption_key_source").HasValue("Microsoft.NetApp"),
 		check.That(data.ResourceName).Key("large_volume_enabled").HasValue("false"),
 	}
