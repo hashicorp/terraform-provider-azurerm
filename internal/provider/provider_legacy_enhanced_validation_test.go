@@ -70,30 +70,6 @@ func TestProvider_LegacyEnhancedValidation(t *testing.T) {
 				LocationFallback:  nil,
 			},
 		},
-		{
-			name: "Both blocks defined v4 (Conflict Error)",
-			config: map[string]any{
-				"enhanced_validation": []any{
-					map[string]any{
-						"locations":          true,
-						"resource_providers": true,
-					},
-				},
-				"features": []any{
-					map[string]any{
-						"enhanced_validation": []any{
-							map[string]any{
-								"locations":                   false,
-								"resource_providers":          false,
-								"preflight_enabled":           false,
-								"preflight_location_fallback": "",
-							},
-						},
-					},
-				},
-			},
-			expectError: true,
-		},
 	}
 
 	for _, tc := range cases {

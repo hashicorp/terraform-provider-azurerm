@@ -95,7 +95,7 @@ same way it does during a create.
 
 ## Implementation patterns
 
-Three patterns are available. Choose based on how the resource handles create vs. update.
+Two patterns are available. Choose based on how the resource handles create vs. update.
 
 ### Pattern 1 — Reuse the create expand function for all operations
 
@@ -194,12 +194,10 @@ if metadata.Client.Features.EnhancedValidation.PreflightEnabled {
 
 ## Decision guide
 
-| Question | Answer | Pattern |
-|---|---|---|
-| Does `update()` send a full PUT body with the same shape as `create()`? | Yes | **1** |
-| Do you want to skip plan-time API calls for in-place updates? | Yes | **2** |
-| Does `update()` send a structurally different (but still full) PUT body than `create()`? | Yes | **3** |
-| Does `update()` send a PATCH (partial) body? | Yes | **3** with a dedicated `expandUpdateForMyResource` |
+| Question                                                          | Answer | Pattern |
+|-------------------------------------------------------------------|--------|---------|
+| Can we build a complete and syntacticly valid request for Create? | Yes    | **1**   |
+| Do you want to skip plan-time API calls for in-place updates?     | Yes    | **2**   |
 
 ---
 

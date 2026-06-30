@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/list"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -553,6 +554,7 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 			DeprecationMessage: "This block has been deprecated and will be removed in version 5.0 of the AzureRM provider. Please use the `enhanced_validation` block inside the `features` block instead.",
 			Validators: []validator.List{
 				listvalidator.SizeAtMost(1),
+				listvalidator.ConflictsWith(path.MatchRoot("features").AtListIndex(0).AtName("enhanced_validation")),
 			},
 			NestedObject: schema.NestedBlockObject{
 				Attributes: map[string]schema.Attribute{
@@ -567,6 +569,11 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 				},
 			},
 		}
+
+		enhancedValidation := response.Schema.Blocks["features"].(schema.ListNestedBlock).NestedObject.Blocks["enhanced_validation"].(schema.ListNestedBlock)
+		enhancedValidation.Validators = append(enhancedValidation.Validators, listvalidator.ConflictsWith(path.MatchRoot("enhanced_validation")))
+		response.Schema.Blocks["features"].(schema.ListNestedBlock).NestedObject.Blocks["enhanced_validation"] = enhancedValidation
+
 	}
 }
 
