@@ -4,12 +4,13 @@
 package monitor_test
 
 import (
+	"testing"
+
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	customstatecheck "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/statecheck"
-	"testing"
 )
 
 func TestAccMonitorActivityLogAlert_resourceIdentity(t *testing.T) {
