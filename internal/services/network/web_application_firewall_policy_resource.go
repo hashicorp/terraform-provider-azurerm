@@ -4,6 +4,7 @@
 package network
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -334,6 +335,16 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 																	string(webapplicationfirewallpolicies.ActionTypeLog),
 																}, false),
 															},
+
+															"sensitivity_level": {
+																Type:     pluginsdk.TypeString,
+																Optional: true,
+																ValidateFunc: validation.StringInSlice([]string{
+																	string(webapplicationfirewallpolicies.SensitivityTypeLow),
+																	string(webapplicationfirewallpolicies.SensitivityTypeMedium),
+																	string(webapplicationfirewallpolicies.SensitivityTypeHigh),
+																}, false),
+															},
 														},
 													},
 												},
@@ -496,7 +507,46 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(resourceWebApplicationFirewallPolicyCustomizeDiff),
 	}
+}
+
+func resourceWebApplicationFirewallPolicyCustomizeDiff(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+	for _, managedRulesRaw := range d.Get("managed_rules").([]interface{}) {
+		if managedRulesRaw == nil {
+			continue
+		}
+		managedRules := managedRulesRaw.(map[string]interface{})
+
+		for _, managedRuleSetRaw := range managedRules["managed_rule_set"].([]interface{}) {
+			if managedRuleSetRaw == nil {
+				continue
+			}
+			managedRuleSet := managedRuleSetRaw.(map[string]interface{})
+			ruleSetType := managedRuleSet["type"].(string)
+
+			for _, ruleGroupOverrideRaw := range managedRuleSet["rule_group_override"].([]interface{}) {
+				if ruleGroupOverrideRaw == nil {
+					continue
+				}
+				ruleGroupOverride := ruleGroupOverrideRaw.(map[string]interface{})
+
+				for _, ruleRaw := range ruleGroupOverride["rule"].([]interface{}) {
+					if ruleRaw == nil {
+						continue
+					}
+					rule := ruleRaw.(map[string]interface{})
+
+					if rule["sensitivity_level"].(string) != "" && ruleSetType != "Microsoft_HTTPDDoSRuleSet" {
+						return fmt.Errorf("`sensitivity_level` can only be set when `type` of the `managed_rule_set` is `Microsoft_HTTPDDoSRuleSet`")
+					}
+				}
+			}
+		}
+	}
+
+	return nil
 }
 
 func resourceWebApplicationFirewallPolicyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -947,6 +997,11 @@ func expandWebApplicationFirewallPolicyOverrideRules(input []interface{}) *[]web
 			result.Action = pointer.To(webapplicationfirewallpolicies.ActionType(action))
 		}
 
+		sensitivityLevel := v["sensitivity_level"].(string)
+		if sensitivityLevel != "" {
+			result.Sensitivity = pointer.To(webapplicationfirewallpolicies.SensitivityType(sensitivityLevel))
+		}
+
 		results = append(results, result)
 	}
 
@@ -1213,6 +1268,8 @@ func flattenWebApplicationFirewallPolicyOverrideRules(input *[]webapplicationfir
 		v["enabled"] = pointer.From(item.State) == webapplicationfirewallpolicies.ManagedRuleEnabledStateEnabled
 
 		v["action"] = string(pointer.From(item.Action))
+
+		v["sensitivity_level"] = string(pointer.From(item.Sensitivity))
 
 		results = append(results, v)
 	}

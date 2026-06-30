@@ -22,6 +22,7 @@ var ValidateWebApplicationFirewallPolicyRuleGroupName = validation.StringInSlice
 	"crs_42_tight_security",
 	"crs_45_trojans",
 	"crs_49_inbound_blocking",
+	"ExcessiveRequests",
 	"General",
 	"GoodBots",
 	"KnownBadBots",
@@ -74,6 +75,7 @@ var ValidateWebApplicationFirewallPolicyRuleSetType = validation.StringInSlice([
 	"OWASP",
 	"Microsoft_BotManagerRuleSet",
 	"Microsoft_DefaultRuleSet",
+	"Microsoft_HTTPDDoSRuleSet",
 }, false)
 
 var ValidateWebApplicationFirewallPolicyExclusionRuleSetVersion = validation.StringInSlice([]string{
