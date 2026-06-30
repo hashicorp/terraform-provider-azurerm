@@ -74,7 +74,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "cosmos" to testConfiguration(locationOverride = LocationConfiguration("westus", "northeurope", "eastus2", true)),
 
         // Confidential Ledger
-        "confidentialledger" to testConfiguration(locationOverride = LocationConfiguration("eastus","southcentralus","westeurope", false)),
+        "confidentialledger" to testConfiguration(locationOverride = LocationConfiguration("eastus","southeastasia","westeurope", false)),
 
         // Container App Managed Environments are limited to 20 per location, using 10 as they can take some time to clear
         // Enable rotation test to mitigate resource burden in a single region
