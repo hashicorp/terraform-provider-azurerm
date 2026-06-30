@@ -1595,17 +1595,10 @@ func flattenNetAppVolumeMountTargets(input *[]volumes.MountTargetProperties) []i
 	}
 
 	for _, item := range *input {
-		result := make(map[string]interface{})
-
-		if item.IPAddress != nil {
-			result["ip_address"] = pointer.From(item.IPAddress)
-		}
-
-		if item.SmbServerFqdn != nil {
-			result["smb_server_fqdn"] = pointer.From(item.SmbServerFqdn)
-		}
-
-		results = append(results, result)
+		results = append(results, map[string]interface{}{
+			"ip_address":      pointer.From(item.IPAddress),
+			"smb_server_fqdn": pointer.From(item.SmbServerFqdn),
+		})
 	}
 
 	return results
