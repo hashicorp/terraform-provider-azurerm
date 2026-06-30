@@ -91,7 +91,6 @@ func TestAccVirtualMachine_basicLinuxMachineUseExistingOsDiskImage(t *testing.T)
 			Config: r.basicLinuxMachineUseExistingOsDiskImage(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).ExistsInAzure(r),
 				data.CheckWithClientForResource(r.unmanagedDiskExistsInContainer("myosdisk1.vhd", true), "azurerm_storage_container.test"),
 				data.CheckWithClientForResource(r.unmanagedDiskExistsInContainer("mirrorosdisk.vhd", true), "azurerm_storage_container.test"),
 				acceptance.TestMatchResourceAttr("azurerm_virtual_machine.mirror", "storage_os_disk.0.image_uri", regexp.MustCompile("myosdisk1.vhd$")),
