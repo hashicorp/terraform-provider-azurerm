@@ -241,7 +241,6 @@ func resourceKeyVaultManagedStorageAccountRead(d *pluginsdk.ResourceData, meta i
 
 func resourceKeyVaultManagedStorageAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
-	client := meta.(*clients.Client).KeyVault.ManagementClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -277,9 +276,10 @@ func resourceKeyVaultManagedStorageAccountDelete(d *pluginsdk.ResourceData, meta
 	shouldPurge := meta.(*clients.Client).Features.KeyVault.PurgeSoftDeleteOnDestroy
 	description := fmt.Sprintf("Secret %q (Key Vault %q)", id.Name, id.KeyVaultBaseURL)
 	deleter := deleteAndPurgeSecret{
-		client:      client,
-		keyVaultUri: id.KeyVaultBaseURL,
-		name:        id.Name,
+		secretsClient:        keyVaultsClient.DataPlaneKeyVaultClient.Secrets.Clone(id.KeyVaultBaseURL),
+		deletedSecretsClient: keyVaultsClient.DataPlaneKeyVaultClient.DeletedSecrets.Clone(id.KeyVaultBaseURL),
+		keyVaultUri:          id.KeyVaultBaseURL,
+		name:                 id.Name,
 	}
 	if err := deleteAndOptionallyPurge(ctx, description, shouldPurge, deleter); err != nil {
 		return err

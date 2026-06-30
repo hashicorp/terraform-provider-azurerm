@@ -10,12 +10,13 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/deletedsecrets"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/secrets"
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -24,8 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	kv "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 func resourceKeyVaultSecret() *pluginsdk.Resource {
@@ -123,7 +122,6 @@ func resourceKeyVaultSecret() *pluginsdk.Resource {
 
 func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
-	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -140,16 +138,20 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("looking up Secret %q vault url from id %q: %+v", name, *keyVaultId, err)
 	}
 
+	client := meta.(*clients.Client).KeyVault.DataPlaneKeyVaultClient.Secrets.Clone(*keyVaultBaseUrl)
+	secretId := secrets.NewSecretID(*keyVaultBaseUrl, name)
+	secretVersionId := secrets.NewSecretversionID(secretId.BaseURI, secretId.SecretName, "")
+
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-		existing, err := client.GetSecret(ctx, *keyVaultBaseUrl, name, "")
+		existing, err := client.GetSecret(ctx, secretVersionId)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing Secret %q (Key Vault %q): %s", name, *keyVaultBaseUrl, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_key_vault_secret", *existing.ID)
+		if model := existing.Model; model != nil && pointer.From(model.Id) != "" {
+			return tf.ImportAsExistsError("azurerm_key_vault_secret", *model.Id)
 		}
 	}
 
@@ -166,53 +168,56 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	contentType := d.Get("content_type").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	parameters := kv.SecretSetParameters{
-		Value:            pointer.To(value),
-		ContentType:      pointer.To(contentType),
-		Tags:             tags.Expand(t),
-		SecretAttributes: &kv.SecretAttributes{},
+	parameters := secrets.SecretSetParameters{
+		Value:       value,
+		ContentType: pointer.To(contentType),
+		Tags:        pointer.To(tags.ToTypedObject(tags.Expand(t))),
+		Attributes:  &secrets.SecretAttributes{},
 	}
 
 	if v, ok := d.GetOk("not_before_date"); ok {
 		notBeforeDate, _ := time.Parse(time.RFC3339, v.(string)) // validated by schema
-		notBeforeUnixTime := date.UnixTime(notBeforeDate)
-		parameters.SecretAttributes.NotBefore = &notBeforeUnixTime
+		parameters.Attributes.Nbf = pointer.To(notBeforeDate.Unix())
 	}
 
 	if v, ok := d.GetOk("expiration_date"); ok {
 		expirationDate, _ := time.Parse(time.RFC3339, v.(string)) // validated by schema
-		expirationUnixTime := date.UnixTime(expirationDate)
-		parameters.SecretAttributes.Expires = &expirationUnixTime
+		parameters.Attributes.Exp = pointer.To(expirationDate.Unix())
 	}
 
-	if resp, err := client.SetSecret(ctx, *keyVaultBaseUrl, name, parameters); err != nil {
+	if resp, err := client.SetSecret(ctx, secretId, parameters); err != nil {
 		// In the case that the Secret already exists in a Soft Deleted / Recoverable state we check if `recover_soft_deleted_key_vaults` is set
 		// and attempt recovery where appropriate
-		if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedSecrets && utils.ResponseWasConflict(resp.Response) {
-			recoveredSecret, err := client.RecoverDeletedSecret(ctx, *keyVaultBaseUrl, name)
+		if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedSecrets && response.WasConflict(resp.HttpResponse) {
+			deletedSecretsClient := meta.(*clients.Client).KeyVault.DataPlaneKeyVaultClient.DeletedSecrets.Clone(*keyVaultBaseUrl)
+			deletedSecretId := deletedsecrets.NewDeletedsecretID(*keyVaultBaseUrl, name)
+			recoveredSecret, err := deletedSecretsClient.RecoverDeletedSecret(ctx, deletedSecretId)
 			if err != nil {
 				return err
 			}
-			log.Printf("[DEBUG] Recovering Secret %q with ID: %q", name, *recoveredSecret.ID)
-			// We need to wait for consistency, recovered Key Vault Child items are not as readily available as newly created
-			if secret := recoveredSecret.ID; secret != nil {
-				stateConf := &pluginsdk.StateChangeConf{
-					Pending:                   []string{"pending"},
-					Target:                    []string{"available"},
-					Refresh:                   keyVaultChildItemRefreshFunc(*secret),
-					Delay:                     30 * time.Second,
-					PollInterval:              10 * time.Second,
-					ContinuousTargetOccurence: 10,
-					Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
-				}
+			if recoveredSecret.Model != nil {
+				secretIdStr := recoveredSecret.Model.Id
+				log.Printf("[DEBUG] Recovering Secret %q with ID: %q", name, pointer.From(secretIdStr))
+				// We need to wait for consistency, recovered Key Vault Child items are not as readily available as newly created
+				if secretIdStr != nil {
+					stateConf := &pluginsdk.StateChangeConf{
+						Pending:                   []string{"pending"},
+						Target:                    []string{"available"},
+						Refresh:                   keyVaultChildItemRefreshFunc(*secretIdStr),
+						Delay:                     30 * time.Second,
+						PollInterval:              10 * time.Second,
+						ContinuousTargetOccurence: 10,
+						Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
+					}
 
-				if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-					return fmt.Errorf("waiting for Key Vault Secret %q to become available: %s", name, err)
-				}
-				log.Printf("[DEBUG] Secret %q recovered with ID: %q", name, *recoveredSecret.ID)
+					if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+						return fmt.Errorf("waiting for Key Vault Secret %q to become available: %s", name, err)
+					}
+					log.Printf("[DEBUG] Secret %q recovered with ID: %q", name, *secretIdStr)
 
-				if _, err := client.SetSecret(ctx, *keyVaultBaseUrl, name, parameters); err != nil {
-					return err
+					if _, err := client.SetSecret(ctx, secretId, parameters); err != nil {
+						return err
+					}
 				}
 			}
 		} else {
@@ -222,28 +227,27 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	// "" indicates the latest version
-	read, err := client.GetSecret(ctx, *keyVaultBaseUrl, name, "")
+	read, err := client.GetSecret(ctx, secretVersionId)
 	if err != nil {
 		return err
 	}
 
-	if read.ID == nil {
+	if read.Model == nil || read.Model.Id == nil {
 		return fmt.Errorf("cannot read KeyVault Secret '%s' (in key vault '%s')", name, *keyVaultBaseUrl)
 	}
 
-	secretId, err := keyvault.ParseNestedItemID(*read.ID, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret)
+	parsedSecretId, err := keyvault.ParseNestedItemID(*read.Model.Id, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret)
 	if err != nil {
 		return err
 	}
 
-	d.SetId(secretId.ID())
+	d.SetId(parsedSecretId.ID())
 
 	return resourceKeyVaultSecretRead(d, meta)
 }
 
 func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
-	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Print("[INFO] preparing arguments for AzureRM KeyVault Secret update.")
@@ -270,22 +274,24 @@ func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		return nil
 	}
 
+	client := meta.(*clients.Client).KeyVault.DataPlaneKeyVaultClient.Secrets.Clone(id.KeyVaultBaseURL)
+	secretId := secrets.NewSecretID(id.KeyVaultBaseURL, id.Name)
+	secretVersionId := secrets.NewSecretversionID(id.KeyVaultBaseURL, id.Name, "")
+
 	value := d.Get("value").(string)
 	contentType := d.Get("content_type").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	secretAttributes := &kv.SecretAttributes{}
+	secretAttributes := &secrets.SecretAttributes{}
 
 	if v, ok := d.GetOk("not_before_date"); ok {
 		notBeforeDate, _ := time.Parse(time.RFC3339, v.(string)) // validated by schema
-		notBeforeUnixTime := date.UnixTime(notBeforeDate)
-		secretAttributes.NotBefore = &notBeforeUnixTime
+		secretAttributes.Nbf = pointer.To(notBeforeDate.Unix())
 	}
 
 	if v, ok := d.GetOk("expiration_date"); ok {
 		expirationDate, _ := time.Parse(time.RFC3339, v.(string)) // validated by schema
-		expirationUnixTime := date.UnixTime(expirationDate)
-		secretAttributes.Expires = &expirationUnixTime
+		secretAttributes.Exp = pointer.To(expirationDate.Unix())
 	}
 
 	if d.HasChanges("value", "value_wo_version") {
@@ -297,48 +303,51 @@ func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			value = valueWo.AsString()
 		}
 		// for changing the value of the secret we need to create a new version
-		parameters := kv.SecretSetParameters{
-			Value:            pointer.To(value),
-			ContentType:      pointer.To(contentType),
-			Tags:             tags.Expand(t),
-			SecretAttributes: secretAttributes,
+		parameters := secrets.SecretSetParameters{
+			Value:       value,
+			ContentType: pointer.To(contentType),
+			Tags:        pointer.To(tags.ToTypedObject(tags.Expand(t))),
+			Attributes:  secretAttributes,
 		}
 
-		if _, err = client.SetSecret(ctx, id.KeyVaultBaseURL, id.Name, parameters); err != nil {
+		if _, err = client.SetSecret(ctx, secretId, parameters); err != nil {
 			return err
 		}
 	} else {
-		parameters := kv.SecretUpdateParameters{
-			ContentType:      pointer.To(contentType),
-			Tags:             tags.Expand(t),
-			SecretAttributes: secretAttributes,
+		parameters := secrets.SecretUpdateParameters{
+			ContentType: pointer.To(contentType),
+			Tags:        pointer.To(tags.ToTypedObject(tags.Expand(t))),
+			Attributes:  secretAttributes,
 		}
 
-		if _, err = client.UpdateSecret(ctx, id.KeyVaultBaseURL, id.Name, "", parameters); err != nil {
+		if _, err = client.UpdateSecret(ctx, secretVersionId, parameters); err != nil {
 			return err
 		}
 	}
 
 	// "" indicates the latest version
-	read, err := client.GetSecret(ctx, id.KeyVaultBaseURL, id.Name, "")
+	read, err := client.GetSecret(ctx, secretVersionId)
 	if err != nil {
 		return fmt.Errorf("getting Key Vault Secret %q : %+v", id.Name, err)
 	}
 
-	secretId, err := keyvault.ParseNestedItemID(*read.ID, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret)
+	if read.Model == nil || read.Model.Id == nil {
+		return fmt.Errorf("cannot read KeyVault Secret '%s' (in key vault '%s')", id.Name, id.KeyVaultBaseURL)
+	}
+
+	parsedSecretId, err := keyvault.ParseNestedItemID(*read.Model.Id, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret)
 	if err != nil {
 		return err
 	}
 
 	// the ID is suffixed with the secret version
-	d.SetId(secretId.ID())
+	d.SetId(parsedSecretId.ID())
 
 	return resourceKeyVaultSecretRead(d, meta)
 }
 
 func resourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
-	client := meta.(*clients.Client).KeyVault.ManagementClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -373,10 +382,13 @@ func resourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return nil
 	}
 
+	client := meta.(*clients.Client).KeyVault.DataPlaneKeyVaultClient.Secrets.Clone(id.KeyVaultBaseURL)
+	secretVersionId := secrets.NewSecretversionID(id.KeyVaultBaseURL, id.Name, "")
+
 	// we always want to get the latest version
-	resp, err := client.GetSecret(ctx, id.KeyVaultBaseURL, id.Name, "")
+	resp, err := client.GetSecret(ctx, secretVersionId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] Secret %q was not found in Key Vault at URI %q - removing from state", id.Name, id.KeyVaultBaseURL)
 			d.SetId("")
 			return nil
@@ -384,33 +396,37 @@ func resourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("making Read request on Azure KeyVault Secret %s: %+v", id.Name, err)
 	}
 
+	if resp.Model == nil || resp.Model.Id == nil {
+		return fmt.Errorf("reading KeyVault Secret %q: response model was nil", id.Name)
+	}
+
 	// the version may have changed, so parse the updated id
-	respID, err := keyvault.ParseNestedItemID(*resp.ID, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret)
+	respID, err := keyvault.ParseNestedItemID(*resp.Model.Id, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret)
 	if err != nil {
 		return err
 	}
 
 	d.Set("name", respID.Name)
-	d.Set("value", resp.Value)
+	d.Set("value", resp.Model.Value)
 	// Unset value if is a write-only value
 	if _, ok := d.GetOk("value_wo_version"); ok {
 		d.Set("value", nil)
 	}
 	d.Set("version", respID.Version)
-	d.Set("content_type", resp.ContentType)
+	d.Set("content_type", resp.Model.ContentType)
 	d.Set("versionless_id", id.VersionlessID())
 	d.Set("value_wo_version", d.Get("value_wo_version").(int))
 
-	if attributes := resp.Attributes; attributes != nil {
+	if attributes := resp.Model.Attributes; attributes != nil {
 		notBeforeDate := ""
-		if v := attributes.NotBefore; v != nil {
-			notBeforeDate = time.Time(*v).Format(time.RFC3339)
+		if v := attributes.Nbf; v != nil {
+			notBeforeDate = time.Unix(*v, 0).UTC().Format(time.RFC3339)
 		}
 		d.Set("not_before_date", notBeforeDate)
 
 		expirationDate := ""
-		if v := attributes.Expires; v != nil {
-			expirationDate = time.Time(*v).Format(time.RFC3339)
+		if v := attributes.Exp; v != nil {
+			expirationDate = time.Unix(*v, 0).UTC().Format(time.RFC3339)
 		}
 		d.Set("expiration_date", expirationDate)
 	}
@@ -418,12 +434,11 @@ func resourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) err
 	d.Set("resource_id", parse.NewSecretID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, id.Name, id.Version).ID())
 	d.Set("resource_versionless_id", parse.NewSecretVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, id.Name).ID())
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return tags.FlattenAndSet(d, tags.FromTypedObject(pointer.From(resp.Model.Tags)))
 }
 
 func resourceKeyVaultSecretDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
-	client := meta.(*clients.Client).KeyVault.ManagementClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -464,9 +479,10 @@ func resourceKeyVaultSecretDelete(d *pluginsdk.ResourceData, meta interface{}) e
 
 	description := fmt.Sprintf("Secret %q (Key Vault %q)", id.Name, id.KeyVaultBaseURL)
 	deleter := deleteAndPurgeSecret{
-		client:      client,
-		keyVaultUri: id.KeyVaultBaseURL,
-		name:        id.Name,
+		secretsClient:        keyVaultsClient.DataPlaneKeyVaultClient.Secrets.Clone(id.KeyVaultBaseURL),
+		deletedSecretsClient: keyVaultsClient.DataPlaneKeyVaultClient.DeletedSecrets.Clone(id.KeyVaultBaseURL),
+		keyVaultUri:          id.KeyVaultBaseURL,
+		name:                 id.Name,
 	}
 	if err := deleteAndOptionallyPurge(ctx, description, shouldPurge, deleter); err != nil {
 		return err
@@ -478,26 +494,32 @@ func resourceKeyVaultSecretDelete(d *pluginsdk.ResourceData, meta interface{}) e
 var _ deleteAndPurgeNestedItem = deleteAndPurgeSecret{}
 
 type deleteAndPurgeSecret struct {
-	client      *kv.BaseClient
-	keyVaultUri string
-	name        string
+	secretsClient        *secrets.SecretsClient
+	deletedSecretsClient *deletedsecrets.DeletedSecretsClient
+	keyVaultUri          string
+	name                 string
 }
 
 func (d deleteAndPurgeSecret) DeleteNestedItem(ctx context.Context) (autorest.Response, error) {
-	resp, err := d.client.DeleteSecret(ctx, d.keyVaultUri, d.name)
-	return resp.Response, err
+	secretId := secrets.NewSecretID(d.keyVaultUri, d.name)
+	resp, err := d.secretsClient.DeleteSecret(ctx, secretId)
+	return autorest.Response{Response: resp.HttpResponse}, err
 }
 
 func (d deleteAndPurgeSecret) NestedItemHasBeenDeleted(ctx context.Context) (autorest.Response, error) {
-	resp, err := d.client.GetSecret(ctx, d.keyVaultUri, d.name, "")
-	return resp.Response, err
+	secretVersionId := secrets.NewSecretversionID(d.keyVaultUri, d.name, "")
+	resp, err := d.secretsClient.GetSecret(ctx, secretVersionId)
+	return autorest.Response{Response: resp.HttpResponse}, err
 }
 
 func (d deleteAndPurgeSecret) PurgeNestedItem(ctx context.Context) (autorest.Response, error) {
-	return d.client.PurgeDeletedSecret(ctx, d.keyVaultUri, d.name)
+	deletedSecretId := deletedsecrets.NewDeletedsecretID(d.keyVaultUri, d.name)
+	resp, err := d.deletedSecretsClient.PurgeDeletedSecret(ctx, deletedSecretId)
+	return autorest.Response{Response: resp.HttpResponse}, err
 }
 
 func (d deleteAndPurgeSecret) NestedItemHasBeenPurged(ctx context.Context) (autorest.Response, error) {
-	resp, err := d.client.GetDeletedSecret(ctx, d.keyVaultUri, d.name)
-	return resp.Response, err
+	deletedSecretId := deletedsecrets.NewDeletedsecretID(d.keyVaultUri, d.name)
+	resp, err := d.deletedSecretsClient.GetDeletedSecret(ctx, deletedSecretId)
+	return autorest.Response{Response: resp.HttpResponse}, err
 }
