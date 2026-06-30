@@ -214,6 +214,22 @@ func TestAccSecurityCenterAutomation_sourceMulti(t *testing.T) {
 	})
 }
 
+func TestAccSecurityCenterAutomation_logAnalyticsWithAlertRulesAndMultipleSources(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_security_center_automation", "test")
+	r := SecurityCenterAutomationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.logAnalyticsWithAlertRulesAndMultipleSources(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("source.#").HasValue("4"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t SecurityCenterAutomationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.AutomationID(state.ID)
 	if err != nil {
@@ -944,6 +960,142 @@ resource "azurerm_security_center_automation" "test" {
     event_source = "SecureScoresSnapshot"
   }
 
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
+}
+
+func (SecurityCenterAutomationResource) logAnalyticsWithAlertRulesAndMultipleSources(data acceptance.TestData) string {
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestlogs-%d"
+  location            = "%s"
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_security_center_automation" "test" {
+  name                = "acctestautomation-%d"
+  location            = "%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  scopes = [
+    "/subscriptions/${data.azurerm_client_config.current.subscription_id}"
+  ]
+
+  action {
+    type        = "loganalytics"
+    resource_id = azurerm_log_analytics_workspace.test.id
+  }
+
+  source {
+    event_source = "Alerts"
+    rule_set {
+      rule {
+        property_path  = "Severity"
+        operator       = "Equals"
+        expected_value = "High"
+        property_type  = "String"
+      }
+      rule {
+        property_path  = "Severity"
+        operator       = "Equals"
+        expected_value = "Medium"
+        property_type  = "String"
+      }
+    }
+  }
+
+  source {
+    event_source = "SecureScores"
+  }
+
+  source {
+    event_source = "SecureScoreControls"
+  }
+
+  source {
+    event_source = "SecureScoresSnapshot"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestlogs-%d"
+  location            = "%s"
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_security_center_automation" "test" {
+  name                = "acctestautomation-%d"
+  location            = "%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  scopes = [
+    "/subscriptions/${data.azurerm_client_config.current.subscription_id}"
+  ]
+
+  action {
+    type        = "Workspace"
+    resource_id = azurerm_log_analytics_workspace.test.id
+  }
+
+  source {
+    event_source = "Alerts"
+    rule_set {
+      rule {
+        property_path  = "Severity"
+        operator       = "Equals"
+        expected_value = "High"
+        property_type  = "String"
+      }
+      rule {
+        property_path  = "Severity"
+        operator       = "Equals"
+        expected_value = "Medium"
+        property_type  = "String"
+      }
+    }
+  }
+
+  source {
+    event_source = "SecureScores"
+  }
+
+  source {
+    event_source = "SecureScoreControls"
+  }
+
+  source {
+    event_source = "SecureScoresSnapshot"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
 }
