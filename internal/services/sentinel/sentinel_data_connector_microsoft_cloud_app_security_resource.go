@@ -86,15 +86,17 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurityCreateUpdate(d *plugi
 	id := parse.NewDataConnectorID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, name)
 
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, name)
+			if err != nil {
+				if !utils.ResponseWasNotFound(resp.Response) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !utils.ResponseWasNotFound(resp.Response) {
-			return tf.ImportAsExistsError("azurerm_sentinel_data_connector_microsoft_cloud_app_security", id.ID())
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return tf.ImportAsExistsError("azurerm_sentinel_data_connector_microsoft_cloud_app_security", id.ID())
+			}
 		}
 	}
 
@@ -152,7 +154,9 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurityCreateUpdate(d *plugi
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
 
 	return resourceSentinelDataConnectorMicrosoftCloudAppSecurityRead(d, meta)
 }

@@ -202,15 +202,17 @@ func resourceStorageDataLakeGen2FileSystemCreate(d *pluginsdk.ResourceData, meta
 	propertiesRaw := d.Get("properties").(map[string]interface{})
 	properties := ExpandMetaData(propertiesRaw)
 
-	resp, err := dataPlaneFilesystemsClient.GetProperties(ctx, id.FileSystemName)
-	if err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("checking for existence of existing File System %q in %s: %v", id.FileSystemName, accountId, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		resp, err := dataPlaneFilesystemsClient.GetProperties(ctx, id.FileSystemName)
+		if err != nil {
+			if !response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("checking for existence of existing File System %q in %s: %v", id.FileSystemName, accountId, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(resp.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_storage_data_lake_gen2_filesystem", id.ID())
+		if !response.WasNotFound(resp.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_storage_data_lake_gen2_filesystem", id.ID())
+		}
 	}
 
 	input := filesystems.CreateInput{

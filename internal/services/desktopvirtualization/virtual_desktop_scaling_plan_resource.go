@@ -16,8 +16,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/hostpool"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/scalingplan"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/hostpool"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/scalingplan"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -98,13 +98,13 @@ func resourceVirtualDesktopScalingPlan() *pluginsdk.Resource {
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
-									string(scalingplan.DaysOfWeekMonday),
-									string(scalingplan.DaysOfWeekTuesday),
-									string(scalingplan.DaysOfWeekWednesday),
-									string(scalingplan.DaysOfWeekThursday),
-									string(scalingplan.DaysOfWeekFriday),
-									string(scalingplan.DaysOfWeekSaturday),
-									string(scalingplan.DaysOfWeekSunday),
+									string(scalingplan.DayOfWeekMonday),
+									string(scalingplan.DayOfWeekTuesday),
+									string(scalingplan.DayOfWeekWednesday),
+									string(scalingplan.DayOfWeekThursday),
+									string(scalingplan.DayOfWeekFriday),
+									string(scalingplan.DayOfWeekSaturday),
+									string(scalingplan.DayOfWeekSunday),
 								}, false),
 							},
 						},
@@ -255,7 +255,7 @@ func resourceVirtualDesktopScalingPlanCreate(d *pluginsdk.ResourceData, meta int
 	defer cancel()
 
 	id := scalingplan.NewScalingPlanID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -398,9 +398,9 @@ func expandScalingPlanSchedule(input []interface{}) *[]scalingplan.ScalingSchedu
 		v := item.(map[string]interface{})
 		name := v["name"].(string)
 		daysOfWeekRaw := v["days_of_week"].(*pluginsdk.Set).List()
-		daysOfWeek := make([]scalingplan.DaysOfWeek, 0)
+		daysOfWeek := make([]scalingplan.DayOfWeek, 0)
 		for _, weekday := range daysOfWeekRaw {
-			daysOfWeek = append(daysOfWeek, scalingplan.DaysOfWeek(weekday.(string)))
+			daysOfWeek = append(daysOfWeek, scalingplan.DayOfWeek(weekday.(string)))
 		}
 
 		rampUpStartTime := v["ramp_up_start_time"].(string)

@@ -101,8 +101,10 @@ func (r DataProtectionBackupVaultCustomerManagedKeyResource) Create() sdk.Resour
 				return fmt.Errorf("retrieving %s: `model` is nil", *id)
 			}
 
-			if resp.Model.Properties.SecuritySettings != nil && resp.Model.Properties.SecuritySettings.EncryptionSettings != nil {
-				return metadata.ResourceRequiresImport(r.ResourceType(), *id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				if resp.Model.Properties.SecuritySettings != nil && resp.Model.Properties.SecuritySettings.EncryptionSettings != nil {
+					return metadata.ResourceRequiresImport(r.ResourceType(), *id)
+				}
 			}
 
 			payload := resp.Model
@@ -123,7 +125,7 @@ func (r DataProtectionBackupVaultCustomerManagedKeyResource) Create() sdk.Resour
 				IdentityType: pointer.To(backupvaultresources.IdentityTypeSystemAssigned),
 			}
 
-			err = client.BackupVaultsCreateOrUpdateThenPoll(ctx, *id, *payload, backupvaultresources.DefaultBackupVaultsCreateOrUpdateOperationOptions())
+			err = client.BackupVaultsCreateOrUpdateCallbackThenPoll(ctx, *id, *payload, backupvaultresources.DefaultBackupVaultsCreateOrUpdateOperationOptions(), metadata.SetIDAndIdentityCallback(id))
 			if err != nil {
 				return fmt.Errorf("creating Customer Managed Key for %s: %+v", *id, err)
 			}

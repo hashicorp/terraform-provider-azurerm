@@ -18,10 +18,10 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
-	github.com/hashicorp/go-azure-helpers v0.79.0
-	github.com/hashicorp/go-azure-sdk/data-plane v0.20260520.1145341
-	github.com/hashicorp/go-azure-sdk/resource-manager v0.20260520.1145341
-	github.com/hashicorp/go-azure-sdk/sdk v0.20260520.1145341
+	github.com/hashicorp/go-azure-helpers v0.80.0
+	github.com/hashicorp/go-azure-sdk/data-plane v0.20260616.1142719
+	github.com/hashicorp/go-azure-sdk/resource-manager v0.20260616.1142719
+	github.com/hashicorp/go-azure-sdk/sdk v0.20260616.1142719
 	github.com/hashicorp/go-cty v1.5.0
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/go-multierror v1.1.1
@@ -113,7 +113,7 @@ require (
 	github.com/zclconf/go-cty v1.17.0 // indirect
 	go.yaml.in/yaml/v4 v4.0.0-rc.3 // indirect
 	golang.org/x/mod v0.35.0 // indirect
-	golang.org/x/net v0.54.0 // indirect
+	golang.org/x/net v0.55.0 // indirect
 	golang.org/x/oauth2 v0.34.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
 	golang.org/x/sys v0.45.0 // indirect
@@ -122,7 +122,7 @@ require (
 	google.golang.org/grpc v1.79.3 // indirect
 	google.golang.org/protobuf v1.36.10 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
-	software.sslmate.com/src/go-pkcs12 v0.6.0 // indirect
+	software.sslmate.com/src/go-pkcs12 v0.7.2 // indirect
 )
 
-go 1.25.10
+go 1.26.4

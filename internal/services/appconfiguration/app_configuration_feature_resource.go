@@ -260,17 +260,19 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("waiting for App Configuration Feature %q read permission to be propagated: %+v", featureKey, err)
 			}
 
-			kv, err := client.GetKeyValue(ctx, featureKey, model.Label, "", "", "", []appconfiguration.KeyValueFields{})
-			if err != nil {
-				if v, ok := err.(autorest.DetailedError); ok {
-					if !utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
-						return fmt.Errorf("got http status code %d while checking for key's %q existence: %+v", v.Response.StatusCode, featureKey, v.Error())
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				kv, err := client.GetKeyValue(ctx, featureKey, model.Label, "", "", "", []appconfiguration.KeyValueFields{})
+				if err != nil {
+					if v, ok := err.(autorest.DetailedError); ok {
+						if !utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
+							return fmt.Errorf("got http status code %d while checking for key's %q existence: %+v", v.Response.StatusCode, featureKey, v.Error())
+						}
+					} else {
+						return fmt.Errorf("while checking for key's %q existence: %+v", featureKey, err)
 					}
-				} else {
-					return fmt.Errorf("while checking for key's %q existence: %+v", featureKey, err)
+				} else if kv.StatusCode == 200 {
+					return tf.ImportAsExistsError(k.ResourceType(), nestedItemId.ID())
 				}
-			} else if kv.StatusCode == 200 {
-				return tf.ImportAsExistsError(k.ResourceType(), nestedItemId.ID())
 			}
 
 			entity := appconfiguration.KeyValue{

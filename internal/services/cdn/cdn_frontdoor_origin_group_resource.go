@@ -155,15 +155,18 @@ func resourceCdnFrontDoorOriginGroupCreate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	id := parse.NewFrontDoorOriginGroupID(profile.SubscriptionId, profile.ResourceGroup, profile.ProfileName, d.Get("name").(string))
-	existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
-		}
-	}
 
-	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_cdn_frontdoor_origin_group", id.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
+		}
+
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_cdn_frontdoor_origin_group", id.ID())
+		}
 	}
 
 	props := cdn.AFDOriginGroup{

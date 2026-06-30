@@ -273,7 +273,9 @@ func resourceStorageShareCreate(d *pluginsdk.ResourceData, meta interface{}) err
 				return fmt.Errorf("checking for existing %s: %v", id, err)
 			}
 			if exists != nil && *exists {
-				return tf.ImportAsExistsError("azurerm_storage_share", id.ID())
+				if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+					return tf.ImportAsExistsError("azurerm_storage_share", id.ID())
+				}
 			}
 
 			input := shares.CreateInput{
@@ -310,14 +312,16 @@ func resourceStorageShareCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	id := fileshares.NewShareID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.StorageAccountName, d.Get("name").(string))
 
-	existing, err := sharesClient.Get(ctx, id, fileshares.DefaultGetOperationOptions())
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing %q: %v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := sharesClient.Get(ctx, id, fileshares.DefaultGetOperationOptions())
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %q: %v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_storage_share", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_storage_share", id.ID())
+		}
 	}
 
 	payload := fileshares.FileShare{
@@ -463,12 +467,9 @@ func resourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	// TODO - The following section for `url` will need to be updated to go-azure-sdk when the Giovanni Deprecation process has been completed
-	account, err := meta.(*clients.Client).Storage.FindAccount(ctx, subscriptionId, id.StorageAccountName)
+	account, err := meta.(*clients.Client).Storage.GetAccount(ctx, commonids.NewStorageAccountID(id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName))
 	if err != nil {
-		return fmt.Errorf("retrieving Account %q for Share %q: %v", id.StorageAccountName, id.ShareName, err)
-	}
-	if account == nil {
-		return fmt.Errorf("locating Storage Account %q", id.StorageAccountName)
+		return fmt.Errorf("retrieving Account for Share %q: %v", id, err)
 	}
 
 	// Determine the file endpoint, so we can build a data plane ID

@@ -72,7 +72,8 @@ func resourceBotChannelAlexaCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	defer cancel()
 
 	id := parse.NewBotChannelID(subscriptionId, d.Get("resource_group_name").(string), d.Get("bot_name").(string), string(botservice.ChannelNameAlexaChannel))
-	if d.IsNewResource() {
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, id.ChannelName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -100,6 +101,8 @@ func resourceBotChannelAlexaCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	// Issue: https://github.com/Azure/azure-rest-api-specs/issues/15298
 	// There is a long running issue on updating the Alexa Channel.
 	// The Bot Channel API cannot update Skill ID immediately after the Alexa Channel is created.
@@ -117,7 +120,6 @@ func resourceBotChannelAlexaCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
 	return resourceBotChannelAlexaRead(d, meta)
 }
 

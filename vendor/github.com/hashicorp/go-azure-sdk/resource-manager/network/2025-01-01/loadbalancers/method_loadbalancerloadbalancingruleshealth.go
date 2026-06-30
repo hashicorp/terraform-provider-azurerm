@@ -58,9 +58,20 @@ func (c LoadBalancersClient) LoadBalancerLoadBalancingRulesHealth(ctx context.Co
 
 // LoadBalancerLoadBalancingRulesHealthThenPoll performs LoadBalancerLoadBalancingRulesHealth then polls until it's completed
 func (c LoadBalancersClient) LoadBalancerLoadBalancingRulesHealthThenPoll(ctx context.Context, id LoadBalancingRuleId) error {
+	return c.LoadBalancerLoadBalancingRulesHealthCallbackThenPoll(ctx, id, nil)
+}
+
+// LoadBalancerLoadBalancingRulesHealthCallbackThenPoll performs LoadBalancerLoadBalancingRulesHealth, runs the optional callback function, then polls until it's completed
+func (c LoadBalancersClient) LoadBalancerLoadBalancingRulesHealthCallbackThenPoll(ctx context.Context, id LoadBalancingRuleId, callback func() error) error {
 	result, err := c.LoadBalancerLoadBalancingRulesHealth(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing LoadBalancerLoadBalancingRulesHealth: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

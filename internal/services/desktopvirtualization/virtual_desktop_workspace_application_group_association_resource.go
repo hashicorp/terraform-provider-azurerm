@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/applicationgroup"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/workspace"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/applicationgroup"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/workspace"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -102,7 +102,9 @@ func resourceVirtualDesktopWorkspaceApplicationGroupAssociationCreate(d *plugins
 
 	applicationGroupIdStr := applicationGroupId.ID()
 	if associationExists(model.Properties, applicationGroupIdStr) {
-		return tf.ImportAsExistsError("azurerm_virtual_desktop_workspace_application_group_association", associationId)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			return tf.ImportAsExistsError("azurerm_virtual_desktop_workspace_application_group_association", associationId)
+		}
 	}
 	applicationGroupAssociations = append(applicationGroupAssociations, applicationGroupIdStr)
 

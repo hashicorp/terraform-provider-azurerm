@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/scalingplan"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/scalingplan"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -103,7 +103,9 @@ func resourceVirtualDesktopScalingPlanHostPoolAssociationCreate(d *pluginsdk.Res
 
 	hostPoolStr := hostPoolId.ID()
 	if scalingPlanHostPoolAssociationExists(model.Properties, hostPoolStr) {
-		return tf.ImportAsExistsError("azurerm_virtual_desktop_scaling_plan_host_pool_association", associationId)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			return tf.ImportAsExistsError("azurerm_virtual_desktop_scaling_plan_host_pool_association", associationId)
+		}
 	}
 	hostPoolAssociations = append(hostPoolAssociations, scalingplan.ScalingHostPoolReference{
 		HostPoolArmPath:    &hostPoolStr,

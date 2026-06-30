@@ -60,9 +60,20 @@ func (c MongoClustersClient) Promote(ctx context.Context, id MongoClusterId, inp
 
 // PromoteThenPoll performs Promote then polls until it's completed
 func (c MongoClustersClient) PromoteThenPoll(ctx context.Context, id MongoClusterId, input PromoteReplicaRequest) error {
+	return c.PromoteCallbackThenPoll(ctx, id, input, nil)
+}
+
+// PromoteCallbackThenPoll performs Promote, runs the optional callback function, then polls until it's completed
+func (c MongoClustersClient) PromoteCallbackThenPoll(ctx context.Context, id MongoClusterId, input PromoteReplicaRequest, callback func() error) error {
 	result, err := c.Promote(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Promote: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -62,9 +62,20 @@ func (c VirtualWANsClient) ConfigurationPolicyGroupsCreateOrUpdate(ctx context.C
 
 // ConfigurationPolicyGroupsCreateOrUpdateThenPoll performs ConfigurationPolicyGroupsCreateOrUpdate then polls until it's completed
 func (c VirtualWANsClient) ConfigurationPolicyGroupsCreateOrUpdateThenPoll(ctx context.Context, id ConfigurationPolicyGroupId, input VpnServerConfigurationPolicyGroup) error {
+	return c.ConfigurationPolicyGroupsCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ConfigurationPolicyGroupsCreateOrUpdateCallbackThenPoll performs ConfigurationPolicyGroupsCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c VirtualWANsClient) ConfigurationPolicyGroupsCreateOrUpdateCallbackThenPoll(ctx context.Context, id ConfigurationPolicyGroupId, input VpnServerConfigurationPolicyGroup, callback func() error) error {
 	result, err := c.ConfigurationPolicyGroupsCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ConfigurationPolicyGroupsCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
