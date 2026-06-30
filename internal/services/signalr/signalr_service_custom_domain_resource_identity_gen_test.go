@@ -4,7 +4,6 @@
 package signalr_test
 
 import (
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
@@ -14,10 +13,6 @@ import (
 )
 
 func TestAccSignalrServiceCustomDomain_resourceIdentity(t *testing.T) {
-	if os.Getenv("ARM_TEST_DNS_ZONE") == "" || os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
-		t.Skip("Skipping as ARM_TEST_DNS_ZONE and/or ARM_TEST_DATA_RESOURCE_GROUP are not specified")
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service_custom_domain", "test")
 	r := SignalrServiceCustomDomainResource{}
 
