@@ -1,4 +1,4 @@
-package managedhsms
+package deletedmanagedhsms
 
 import (
 	"context"
@@ -11,14 +11,14 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type GetDeletedOperationResponse struct {
+type ManagedHsmsGetDeletedOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
 	Model        *DeletedManagedHsm
 }
 
-// GetDeleted ...
-func (c ManagedHsmsClient) GetDeleted(ctx context.Context, id DeletedManagedHSMId) (result GetDeletedOperationResponse, err error) {
+// ManagedHsmsGetDeleted ...
+func (c DeletedManagedHsmsClient) ManagedHsmsGetDeleted(ctx context.Context, id DeletedManagedHSMId) (result ManagedHsmsGetDeletedOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
