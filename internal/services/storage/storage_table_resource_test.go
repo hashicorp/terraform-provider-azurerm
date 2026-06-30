@@ -6,6 +6,7 @@ package storage_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -570,15 +571,130 @@ resource "azurerm_storage_table" "test" {
       expiry      = "2020-11-27T08:49:37.0000000Z"
     }
   }
-  acl {
-    id = "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"
+  	acl {
+		id = "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"
 
-    access_policy {
-      permissions = "raud"
-      start       = "2019-07-02T09:38:21.0000000Z"
-      expiry      = "2019-07-02T10:38:21.0000000Z"
-    }
-  }
+		access_policy {
+			permissions = "raud"
+			start       = "2019-07-02T09:38:21.0000000Z"
+			expiry      = "2019-07-02T10:38:21.0000000Z"
+		}
+	}
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+}
+
+func (r StorageTableResource) withAccountId(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_storage_table" "test" {
+  name               = "acctestst%d"
+  storage_account_id = azurerm_storage_account.test.id
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+}
+
+func (r StorageTableResource) withAccountName(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_storage_table" "test" {
+  name                 = "acctestst%d"
+  storage_account_name = azurerm_storage_account.test.name
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+}
+
+func TestAccStorageTable_migrateToStorageID(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping as test is not valid in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_table", "test")
+	r := StorageTableResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withAccountName(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_account_name").IsSet(),
+				check.That(data.ResourceName).Key("storage_account_id").DoesNotExist(),
+				check.That(data.ResourceName).Key("id").MatchesRegex(regexp.MustCompile("https:*")),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withAccountId(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_account_name").IsEmpty(),
+				check.That(data.ResourceName).Key("storage_account_id").IsSet(),
+				check.That(data.ResourceName).Key("id").MatchesRegex(regexp.MustCompile("/subscriptions/*")),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageTable_migrateFromStorageIDShouldFail(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping as test is not valid in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_table", "test")
+	r := StorageTableResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withAccountId(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_account_name").IsEmpty(),
+				check.That(data.ResourceName).Key("storage_account_id").IsSet(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config:      r.withAccountName(data),
+			ExpectError: regexp.MustCompile("expected action to not be Replace"),
+		},
+	})
 }
