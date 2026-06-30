@@ -573,7 +573,6 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 		enhancedValidation := response.Schema.Blocks["features"].(schema.ListNestedBlock).NestedObject.Blocks["enhanced_validation"].(schema.ListNestedBlock)
 		enhancedValidation.Validators = append(enhancedValidation.Validators, listvalidator.ConflictsWith(path.MatchRoot("enhanced_validation")))
 		response.Schema.Blocks["features"].(schema.ListNestedBlock).NestedObject.Blocks["enhanced_validation"] = enhancedValidation
-
 	}
 }
 
