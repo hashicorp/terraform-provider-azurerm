@@ -208,7 +208,9 @@ func TestAccLogicAppStandard_appSettingsVnetRouteAllEnabled(t *testing.T) {
 				check.That(data.ResourceName).Key("site_config.0.vnet_route_all_enabled").HasValue("true"),
 			),
 		},
-		data.ImportStep(),
+		// `WEBSITE_VNET_ROUTE_ALL` set via `app_settings` is indistinguishable from the platform-injected value on
+		// import, so it is not round-tripped into `app_settings`; `site_config.0.vnet_route_all_enabled` carries it.
+		data.ImportStep("app_settings.%", "app_settings.WEBSITE_VNET_ROUTE_ALL"),
 	})
 }
 
@@ -1126,6 +1128,14 @@ func TestAccLogicAppStandard_onASE(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				data.CheckWithClient(r.hasAppSettings(false, "WEBSITE_CONTENTSHARE", "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.onASEUpdateAppSettings(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("app_settings.WEBSITE_NODE_DEFAULT_VERSION").HasValue("~20"),
 			),
 		},
 		data.ImportStep(),
@@ -2605,6 +2615,17 @@ resource "azurerm_logic_app_standard" "test" {
 }
 
 func (r LogicAppStandardResource) onASE(data acceptance.TestData) string {
+	return r.onASEConfig(data, "")
+}
+
+func (r LogicAppStandardResource) onASEUpdateAppSettings(data acceptance.TestData) string {
+	return r.onASEConfig(data, `
+  app_settings = {
+    WEBSITE_NODE_DEFAULT_VERSION = "~20"
+  }`)
+}
+
+func (r LogicAppStandardResource) onASEConfig(data acceptance.TestData, appSettings string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2698,8 +2719,9 @@ resource "azurerm_logic_app_standard" "test" {
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
   vnet_content_share_enabled = true
+%[4]s
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, appSettings)
 }
 
 func (r LogicAppStandardResource) keyVaultReferenceIdentityInvalid(data acceptance.TestData) string {

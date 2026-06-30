@@ -694,6 +694,14 @@ func (r LogicAppResource) Read() sdk.ResourceFunc {
 				delete(appSettings, functionVersionAppSettingName)
 				delete(appSettings, contentShareAppSettingName)
 
+				// WEBSITE_VNET_ROUTE_ALL is managed via `site_config.vnet_route_all_enabled` and may be platform-injected
+				// (e.g. on ASE), so keep it here only when the user already manages it to avoid a persistent diff.
+				if prior, ok := metadata.ResourceData.Get("app_settings").(map[string]interface{}); ok {
+					if _, tracked := prior["WEBSITE_VNET_ROUTE_ALL"]; !tracked {
+						delete(appSettings, "WEBSITE_VNET_ROUTE_ALL")
+					}
+				}
+
 				state.AppSettings = appSettings
 			}
 
