@@ -135,7 +135,6 @@ func (r MachineLearningDataStoreFileShare) Arguments() map[string]*pluginsdk.Sch
 	}
 
 	if !features.FivePointOh() {
-		// if it's not 5.0, expect the old id format
 		res["storage_fileshare_id"].ValidateFunc = storagevalidate.StorageShareResourceManagerID
 	}
 
@@ -414,6 +413,5 @@ func parseStorageFileShareID(input string) (*fileshares.ShareId, error) {
 		}
 		return pointer.To(fileshares.NewShareID(id.SubscriptionId, id.ResourceGroup, id.StorageAccountName, id.FileshareName)), nil
 	}
-
 	return fileshares.ParseShareID(input)
 }
