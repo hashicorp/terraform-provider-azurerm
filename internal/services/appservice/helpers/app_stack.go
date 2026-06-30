@@ -582,6 +582,11 @@ func linuxApplicationStackSchemaComputed() *pluginsdk.Schema {
 					Computed:  true,
 					Sensitive: true,
 				},
+
+				"site_containers_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
 			},
 		},
 	}
