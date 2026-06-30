@@ -186,7 +186,7 @@ The `georeplications` block supports the following:
 
 * `location` - (Required) A location where the container registry should be geo-replicated.
 
-* `global_endpoint_routing_enabled` - (Optional) Whether this geo-replicated location participates in global endpoint routing for the Container Registry's geo-replicated login server. Defaults to `false`.
+* `global_endpoint_routing_enabled` - (Optional) Whether this geo-replicated location participates in global endpoint routing for the Container Registry's geo-replicated login server.
 
 * `zone_redundancy_enabled` - (Optional) Whether zone redundancy is enabled for this replication location? Defaults to `false`.
 
