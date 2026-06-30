@@ -41,6 +41,11 @@ func dataSourceArmClientConfig() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+
+			"principal_type": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -50,12 +55,13 @@ func dataSourceArmClientConfigRead(d *pluginsdk.ResourceData, meta interface{}) 
 	_, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := fmt.Sprintf("clientConfigs/clientId=%s;objectId=%s;subscriptionId=%s;tenantId=%s", client.Account.ClientId, client.Account.ObjectId, client.Account.SubscriptionId, client.Account.TenantId)
+	id := fmt.Sprintf("clientConfigs/clientId=%s;objectId=%s;subscriptionId=%s;tenantId=%s;principalType=%s", client.Account.ClientId, client.Account.ObjectId, client.Account.SubscriptionId, client.Account.TenantId, client.Account.PrincipalType)
 	d.SetId(base64.StdEncoding.EncodeToString([]byte(id)))
 	d.Set("client_id", client.Account.ClientId)
 	d.Set("object_id", client.Account.ObjectId)
 	d.Set("subscription_id", client.Account.SubscriptionId)
 	d.Set("tenant_id", client.Account.TenantId)
+	d.Set("principal_type", client.Account.PrincipalType)
 
 	return nil
 }
