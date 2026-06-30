@@ -2,6 +2,7 @@ package exports
 
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/systemdata"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,5 +15,6 @@ type Export struct {
 	Location   *string                  `json:"location,omitempty"`
 	Name       *string                  `json:"name,omitempty"`
 	Properties *ExportProperties        `json:"properties,omitempty"`
+	SystemData *systemdata.SystemData   `json:"systemData,omitempty"`
 	Type       *string                  `json:"type,omitempty"`
 }
