@@ -6,11 +6,13 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"go/token"
 	"log"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/loader"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/passes"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/reporting"
 	"golang.org/x/tools/go/analysis/checker"
 	"golang.org/x/tools/go/packages"
 )
@@ -37,6 +39,8 @@ func NewRunner(cfg *Config) *Runner {
 
 // Run executes the linter and returns an exit code
 func (r *Runner) Run(ctx context.Context) ExitCode {
+	reporting.Reset()
+
 	loaderOpts := loader.LoaderOptions{
 		All:        r.Config.All,
 		RemoteName: r.Config.RemoteName,
@@ -135,6 +139,9 @@ func (r *Runner) reportDiagnostics(graph *checker.Graph) bool {
 
 		for _, diag := range act.Diagnostics {
 			pos := act.Package.Fset.Position(diag.Pos)
+			if !shouldKeepDiagnostic(act.Package.PkgPath, pos, diag.Message) {
+				continue
+			}
 			key := fmt.Sprintf("%s:%d:%d|%s", pos.Filename, pos.Line, pos.Column, diag.Message)
 
 			if reported[key] {
@@ -153,4 +160,13 @@ func (r *Runner) reportDiagnostics(graph *checker.Graph) bool {
 	}
 
 	return foundIssues
+}
+
+func shouldKeepDiagnostic(pkgPath string, pos token.Position, message string) bool {
+	meta, ok := reporting.Lookup(pkgPath, pos.Filename, pos.Line, pos.Column, message)
+	if !ok {
+		return true
+	}
+
+	return loader.ShouldKeepDiagnostic(meta)
 }

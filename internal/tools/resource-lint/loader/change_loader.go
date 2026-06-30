@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/go-git/go-git/v5"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/reporting"
 )
 
 const servicePathPrefix = "internal/services/"
@@ -108,6 +109,14 @@ func ShouldReport(filename string, line int) bool {
 	return globalChangeSet.ShouldReport(filename, line)
 }
 
+// ShouldKeepDiagnostic applies metadata-backed filtering to a diagnostic.
+func ShouldKeepDiagnostic(meta reporting.DiagnosticMeta) bool {
+	if globalChangeSet == nil {
+		return true
+	}
+	return globalChangeSet.ShouldKeepDiagnostic(meta)
+}
+
 // IsFileChanged checks if a file has any changes
 func IsFileChanged(filename string) bool {
 	if globalChangeSet == nil {
@@ -164,6 +173,39 @@ func (cs *ChangeSet) ShouldReport(filename string, line int) bool {
 	}
 
 	return false
+}
+
+// ShouldKeepDiagnostic applies metadata-backed filtering to a diagnostic.
+func (cs *ChangeSet) ShouldKeepDiagnostic(meta reporting.DiagnosticMeta) bool {
+	evidenceFile := meta.EvidenceFile
+	if evidenceFile == "" {
+		evidenceFile = meta.ReportFile
+	}
+
+	relPath := normalizeFilePath(evidenceFile)
+	if !isServiceFile(relPath) {
+		return false
+	}
+	if !cs.changedFiles[relPath] {
+		return false
+	}
+
+	switch meta.MatchMode {
+	case reporting.MatchModeNewFile:
+		return cs.newFiles[relPath]
+	case reporting.MatchModeFileChanged:
+		return true
+	case reporting.MatchModeExactAdded, reporting.MatchModeSameHunk, "":
+		lineMap := cs.changedLines[relPath]
+		for _, line := range meta.EvidenceLines {
+			if lineMap[line] {
+				return true
+			}
+		}
+		return false
+	default:
+		return false
+	}
 }
 
 // IsFileChanged checks if a file has any changes

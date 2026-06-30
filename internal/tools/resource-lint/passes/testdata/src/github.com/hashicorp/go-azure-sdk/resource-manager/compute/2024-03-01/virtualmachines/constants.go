@@ -34,3 +34,39 @@ func PossibleValuesForOperatingSystemTypes() []string {
 		string(OperatingSystemTypesWindows),
 	}
 }
+
+type ShutdownOnIdleMode string
+
+const (
+	ShutdownOnIdleModeNone        ShutdownOnIdleMode = "None"
+	ShutdownOnIdleModeUserAbsence ShutdownOnIdleMode = "UserAbsence"
+	ShutdownOnIdleModeLowUsage    ShutdownOnIdleMode = "LowUsage"
+)
+
+func PossibleValuesForShutdownOnIdleMode() []string {
+	return []string{
+		string(ShutdownOnIdleModeNone),
+		string(ShutdownOnIdleModeUserAbsence),
+		string(ShutdownOnIdleModeLowUsage),
+	}
+}
+
+type GetOperationOptions struct {
+	Expand *string
+}
+
+func DefaultGetOperationOptions() GetOperationOptions {
+	return GetOperationOptions{}
+}
+
+type DeleteOperationOptions struct {
+	Force *bool
+}
+
+func DefaultDeleteOperationOptions() DeleteOperationOptions {
+	return DeleteOperationOptions{}
+}
+
+type ListOperationOptions struct {
+	Filter *string
+}

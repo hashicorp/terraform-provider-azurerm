@@ -10,12 +10,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/loader"
 	localschema "github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/passes/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/reporting"
 	"golang.org/x/tools/go/analysis"
 )
 
 const AZRN001Doc = `check that percentage properties use _percentage suffix instead of _in_percent
 
-The AZRN001 analyzer reports when percentage property names use '_in_percent' 
+The AZRN001 analyzer reports when percentage property names use '_in_percent'
 suffix instead of the preferred '_percentage' suffix.
 
 Example violations:
@@ -60,14 +61,20 @@ func runAZRN001(pass *analysis.Pass) (interface{}, error) {
 		if strings.Contains(fieldName, "_in_percent") {
 			suggestedName := strings.ReplaceAll(fieldName, "_in_percent", "_percentage")
 			pos := pass.Fset.Position(schemaLit.Pos())
-			// Only report if this line is in the changed lines
-			if loader.ShouldReport(pos.Filename, pos.Line) {
-				pass.Reportf(schemaLit.Pos(), "%s: field %q should use %s suffix instead of %s (suggested: %q)\n",
-					azrn001Name, fieldName,
-					helper.FixedCode("'_percentage'"),
-					helper.IssueLine("'_in_percent'"),
-					suggestedName)
+			if !loader.IsFileChanged(pos.Filename) {
+				continue
 			}
+			reporting.Reportf(pass, reporting.ReportOptions{
+				Rule:          azrn001Name,
+				ReportPos:     schemaLit.Pos(),
+				EvidenceFile:  pos.Filename,
+				EvidenceLines: []int{pos.Line},
+				MatchMode:     reporting.MatchModeExactAdded,
+			}, "%s: field %q should use %s suffix instead of %s (suggested: %q)\n",
+				azrn001Name, fieldName,
+				helper.FixedCode("'_percentage'"),
+				helper.IssueLine("'_in_percent'"),
+				suggestedName)
 		}
 	}
 

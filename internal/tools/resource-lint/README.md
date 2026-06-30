@@ -146,6 +146,7 @@ import (
     "go/ast"
     
     "github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/loader"
+    "github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/reporting"
     "golang.org/x/tools/go/analysis"
     "golang.org/x/tools/go/analysis/passes/inspect"
     "golang.org/x/tools/go/ast/inspector"
@@ -190,10 +191,15 @@ func runAZXXNNN(pass *analysis.Pass) (interface{}, error) {
         
         // Your analysis logic here...
         
-        // Report issue (only if line is changed)
-        if loader.ShouldReport(filename, pos.Line) {
-            pass.Reportf(n.Pos(), "%s: description of the issue", azxxnnnName)
-        }
+        // Report the issue through the reporting package so the diagnostic
+        // metadata is recorded for change-based filtering
+        reporting.Reportf(pass, reporting.ReportOptions{
+            Rule:          azxxnnnName,
+            ReportPos:     n.Pos(),
+            EvidenceFile:  filename,
+            EvidenceLines: []int{pos.Line},
+            MatchMode:     reporting.MatchModeExactAdded,
+        }, "%s: description of the issue", azxxnnnName)
     })
     
     return nil, nil
@@ -259,73 +265,3 @@ go test -v ./internal/tools/resource-lint/passes -run TestAZXXNNN
 # Run all tests
 go test -v ./internal/tools/resource-lint/...
 ```
-
-### Key APIs
-
-#### `loader` Package - Change Filtering
-
-| Function | Description |
-|----------|-------------|
-| `loader.IsFileChanged(filename)` | Check if file has changes (for filtering) |
-| `loader.ShouldReport(filename, line)` | Check if specific line should be reported |
-| `loader.IsNewFile(filename)` | Check if file is newly created |
-
-#### `helper` Package - Common Utilities
-
-| Function/Type | Description |
-|---------------|-------------|
-| **Output Formatting** | |
-| `helper.FixedCode(s)` | Format string as suggested fix (green) |
-| `helper.IssueLine(s)` | Format string as problematic code (yellow) |
-| `helper.Bold(s)` | Format string as bold |
-| `helper.FormatCode(s)` | Format string as code (magenta) |
-| **Schema Detection** | |
-| `helper.IsSchemaMap(cl, info)` | Check if composite literal is `map[string]*pluginsdk.Schema` |
-| `helper.IsSchemaSchema(info, cl)` | Check if composite literal is `pluginsdk.Schema` type |
-| `helper.IsNestedSchemaMap(file, cl)` | Check if schema map is nested within an `Elem` field |
-| **Type Detection** | |
-| `helper.IsResourceData(info, sel)` | Check if selector is `*pluginsdk.ResourceData` |
-| `helper.GetReceiverTypeName(expr)` | Get receiver type name from method declaration |
-| **Typed Resource** | |
-| `helper.TypedResourceInfo` | Struct containing typed resource metadata (model, schema, CRUD funcs) |
-| `helper.NewTypedResourceInfo(name, file, info)` | Parse typed resource from file |
-| `helper.GetTypedServices()` | Get all registered typed services from provider |
-
-#### `passes/schema` Package - Schema Analysis (Fact Exporters)
-
-These analyzers export facts that can be reused by other analyzers via `pass.ResultOf`:
-
-| Analyzer | Result Type | Description |
-|----------|-------------|-------------|
-| `schema.CompleteSchemaAnalyzer` | `*CompleteSchemaInfo` | Resolves all schema fields including cross-package calls (e.g., `commonschema.ResourceGroupName()`) |
-| `schema.TypedResourceInfoAnalyzer` | `[]*helper.TypedResourceInfo` | Extracts typed resource metadata (Arguments, Attributes, CRUD methods) |
-| `schema.CommonAnalyzer` | `*CommonSchemaInfo` | Caches `commonschema` package schema definitions |
-| `schema.InlineSchemaAnalyzer` | `*InlineSchemaInfo` | Parses inline `&pluginsdk.Schema{}` literals |
-
-**Usage Example:**
-
-```go
-var MyAnalyzer = &analysis.Analyzer{
-    Name:     "myanalyzer",
-    Requires: []*analysis.Analyzer{schema.CompleteSchemaAnalyzer},
-    Run:      runMyAnalyzer,
-}
-
-func runMyAnalyzer(pass *analysis.Pass) (interface{}, error) {
-    // Get pre-computed schema info
-    schemaInfo := pass.ResultOf[schema.CompleteSchemaAnalyzer].(*schema.CompleteSchemaInfo)
-    
-    // Use it to get resolved schema fields for a schema map
-    fields := schemaInfo.SchemaFields[schemaMapLit.Pos()]
-    // ...
-}
-```
-
-### Tips
-
-1. **Always use change filtering** - Call `loader.IsFileChanged()` and `loader.ShouldReport()` to support incremental analysis
-2. **Pre-filter AST nodes** - Use `inspector.Preorder` with specific node types for better performance
-3. **Skip test files** - Usually add `strings.HasSuffix(filename, "_test.go")` check
-4. **Skip migration packages** - Add `strings.Contains(pass.Pkg.Path(), "/migration")` check if needed
-5. **Reuse schema analyzers** - Add `schema.CompleteSchemaAnalyzer` to `Requires` instead of re-parsing schemas
-6. **Write comprehensive tests** - Include both valid and invalid cases in test data

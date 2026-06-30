@@ -46,3 +46,8 @@ func invalidCase4() *virtualmachines.OperatingSystemTypes {
 	osType := "Windows"
 	return pointer.To(virtualmachines.OperatingSystemTypes(osType)) // want `AZBP003`
 }
+
+func ignoredInvalidCase() *virtualmachines.VirtualMachinePriorityTypes {
+	priority := "Spot"
+	return pointer.To(virtualmachines.VirtualMachinePriorityTypes(priority)) //lintignore:AZBP003 // ignored in fixture
+}

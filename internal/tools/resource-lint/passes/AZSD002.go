@@ -11,13 +11,14 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/loader"
 	localschema "github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/passes/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/reporting"
 	"golang.org/x/tools/go/analysis"
 )
 
 const AZSD002Doc = `check AtLeastOneOf validation for TypeList fields with all optional nested fields
 
-The AZSD002 analyzer checks that when a pluginsdk.TypeList block has no required nested 
-fields, AtLeastOneOf must be set on the optional fields to ensure at least one is specified.
+The AZSD002 analyzer checks that when a pluginsdk.TypeList block has no required nested
+fields, AtLeastOneOf or ExactlyOneOf must be set on the optional fields to ensure at least one is specified.
 
 Example violation:
   "setting": {
@@ -102,8 +103,8 @@ func runAZSD002(pass *analysis.Pass) (interface{}, error) {
 			continue
 		}
 
-		// Only check TypeList fields
-		if !schemaInfo.IsType(schema.SchemaValueTypeList) {
+		// Only check TypeList fields with max items == 1
+		if !schemaInfo.IsType(schema.SchemaValueTypeList) || schemaInfo.Schema.MaxItems != 1 {
 			continue
 		}
 
@@ -129,6 +130,7 @@ func runAZSD002(pass *analysis.Pass) (interface{}, error) {
 		optionalFieldsCount := 0
 		hasRequiredField := false
 		hasAtLeastOneOfOrExactlyOneOf := false
+		hasDefaultValue := false
 		for _, elt := range nestedSchemaMap.Elts {
 			kv, ok := elt.(*ast.KeyValueExpr)
 			if !ok {
@@ -151,6 +153,12 @@ func runAZSD002(pass *analysis.Pass) (interface{}, error) {
 				break
 			}
 
+			// Skip if any nested field has a default value
+			if nestedInfo.DeclaresField(schema.SchemaFieldDefault) {
+				hasDefaultValue = true
+				break
+			}
+
 			if nestedInfo.Schema.Optional {
 				// Check if at least one optional field has AtLeastOneOf
 				atLeastOneOfKV := nestedInfo.Fields[schema.SchemaFieldAtLeastOneOf]
@@ -163,20 +171,31 @@ func runAZSD002(pass *analysis.Pass) (interface{}, error) {
 			}
 		}
 
-		// Only report if there are no required fields, multiple optional fields,
+		// Only report if there are no required fields, no default values, multiple optional fields,
 		// and none of them have AtLeastOneOf set
-		if !hasRequiredField && !hasAtLeastOneOfOrExactlyOneOf && optionalFieldsCount >= 2 {
+		if !hasRequiredField && !hasDefaultValue && !hasAtLeastOneOfOrExactlyOneOf && optionalFieldsCount >= 2 {
 			pos := pass.Fset.Position(schemaLit.Pos())
-			if loader.ShouldReport(pos.Filename, pos.Line) {
-				if propertyName := cached.PropertyName; propertyName != "" {
-					pass.Reportf(schemaLit.Pos(),
-						"%s: TypeList field `%s` has %s, %s must be set on the optional fields to ensure at least one is specified.\n",
-						azsd002Name, propertyName, helper.IssueLine("all optional nested fields"), helper.FixedCode("`AtLeastOneOf` or `ExactlyOneOf`"))
-				} else {
-					pass.Reportf(schemaLit.Pos(),
-						"%s: TypeList field has %s, %s must be set on the optional fields to ensure at least one is specified.\n",
-						azsd002Name, helper.IssueLine("all optional nested fields"), helper.FixedCode("`AtLeastOneOf` or `ExactlyOneOf`"))
-				}
+			if !loader.IsFileChanged(pos.Filename) {
+				continue
+			}
+			if propertyName := cached.PropertyName; propertyName != "" {
+				reporting.Reportf(pass, reporting.ReportOptions{
+					Rule:          azsd002Name,
+					ReportPos:     schemaLit.Pos(),
+					EvidenceFile:  pos.Filename,
+					EvidenceLines: []int{pos.Line},
+					MatchMode:     reporting.MatchModeExactAdded,
+				}, "%s: TypeList field `%s` has %s, %s must be set on the optional fields to ensure at least one is specified.\n",
+					azsd002Name, propertyName, helper.IssueLine("all optional nested fields"), helper.FixedCode("`AtLeastOneOf` or `ExactlyOneOf`"))
+			} else {
+				reporting.Reportf(pass, reporting.ReportOptions{
+					Rule:          azsd002Name,
+					ReportPos:     schemaLit.Pos(),
+					EvidenceFile:  pos.Filename,
+					EvidenceLines: []int{pos.Line},
+					MatchMode:     reporting.MatchModeExactAdded,
+				}, "%s: TypeList field has %s, %s must be set on the optional fields to ensure at least one is specified.\n",
+					azsd002Name, helper.IssueLine("all optional nested fields"), helper.FixedCode("`AtLeastOneOf` or `ExactlyOneOf`"))
 			}
 		}
 	}

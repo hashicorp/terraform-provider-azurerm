@@ -27,3 +27,7 @@ func invalidCases() {
 	_ = fmt.Errorf("invalid input")        // want `AZRE001`
 	_ = fmt.Errorf("error occurred")       // want `AZRE001`
 }
+
+func ignoredInvalidCase() {
+	_ = fmt.Errorf("ignored input") //lintignore:AZRE001 // ignored in fixture
+}

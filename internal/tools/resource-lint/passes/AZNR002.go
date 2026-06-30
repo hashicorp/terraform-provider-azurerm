@@ -4,6 +4,7 @@
 package passes
 
 import (
+	"fmt"
 	"go/ast"
 	"go/token"
 	"go/types"
@@ -14,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/loader"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/passes/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/reporting"
 
 	"golang.org/x/tools/go/analysis"
 )
@@ -148,6 +150,11 @@ func findHandledPropertiesInUpdate(pass *analysis.Pass, resource *helper.TypedRe
 	// Pattern 3: ResourceData method calls (HasChange/HasChanges/Get)
 	traceResourceDataCalls(updateFuncBody, resource, handledProps)
 
+	// Pattern 4: If ResourceData is passed as argument to another function (e.g., pluginsdk.GetWriteOnly),
+	if hasResourceDataPassedAsArg(updateFuncBody, resource) {
+		return nil
+	}
+
 	return handledProps
 }
 
@@ -268,6 +275,37 @@ func traceResourceDataCalls(body *ast.BlockStmt, resource *helper.TypedResourceI
 	})
 }
 
+// hasResourceDataPassedAsArg detects if ResourceData is passed as an argument to any function call.
+// This indicates the update logic may be delegated to an external function (e.g., pluginsdk.GetWriteOnly),
+// and we should skip property checking for this resource to avoid false positives.
+func hasResourceDataPassedAsArg(body *ast.BlockStmt, resource *helper.TypedResourceInfo) bool {
+	if body == nil || resource.TypesInfo == nil {
+		return false
+	}
+
+	found := false
+	ast.Inspect(body, func(n ast.Node) bool {
+		if found {
+			return false
+		}
+		call, ok := n.(*ast.CallExpr)
+		if !ok {
+			return true
+		}
+
+		for _, arg := range call.Args {
+			typ := resource.TypesInfo.TypeOf(arg)
+			if typ != nil && helper.IsTypeResourceData(typ) {
+				found = true
+				return false
+			}
+		}
+
+		return true
+	})
+	return found
+}
+
 // reportMissingProperties reports properties that are updatable but not handled
 func reportMissingProperties(pass *analysis.Pass, ignorer *commentignore.Ignorer, resource *helper.TypedResourceInfo, updatableProps map[string]string, handledProps map[string]bool) {
 	var missingProps []string
@@ -305,28 +343,44 @@ func reportMissingProperties(pass *analysis.Pass, ignorer *commentignore.Ignorer
 			position := pass.Fset.Position(fieldInfo.Pos)
 			// Check if position is valid (Pos is in current pass's FileSet)
 			if position.IsValid() {
-				if !loader.ShouldReport(position.Filename, position.Line) {
+				if !loader.IsFileChanged(position.Filename) {
 					continue
 				}
-				pass.Reportf(fieldInfo.Pos,
-					"%s: updatable property `%s` is not handled in Update function. If non-updatable, mark as %s in Arguments() schema\n",
-					aznr002Name,
-					helper.IssueLine(tfSchemaName),
-					helper.FixedCode("ForceNew: true"))
+				reporting.Report(pass, reporting.ReportOptions{
+					Rule:      aznr002Name,
+					ReportPos: fieldInfo.Pos,
+					Message: fmt.Sprintf(
+						"%s: updatable property `%s` is not handled in Update function. If non-updatable, mark as %s in Arguments() schema\n",
+						aznr002Name,
+						helper.IssueLine(tfSchemaName),
+						helper.FixedCode("ForceNew: true"),
+					),
+					EvidenceFile:  position.Filename,
+					EvidenceLines: []int{position.Line},
+					MatchMode:     reporting.MatchModeExactAdded,
+				})
 				continue
 			}
 		}
 
 		// Fallback to Update function position (for cross-package schemas)
 		if fieldInfo.Position.IsValid() {
-			if !loader.ShouldReport(fieldInfo.Position.Filename, fieldInfo.Position.Line) {
+			if !loader.IsFileChanged(fieldInfo.Position.Filename) {
 				continue
 			}
 		}
-		pass.Reportf(resource.UpdateFunc.Pos(),
-			"%s: updatable property `%s` is not handled in Update function. If non-updatable, mark as %s in Arguments() schema\n",
-			aznr002Name,
-			helper.IssueLine(tfSchemaName),
-			helper.FixedCode("ForceNew: true"))
+		reporting.Report(pass, reporting.ReportOptions{
+			Rule:      aznr002Name,
+			ReportPos: resource.UpdateFunc.Pos(),
+			Message: fmt.Sprintf(
+				"%s: updatable property `%s` is not handled in Update function. If non-updatable, mark as %s in Arguments() schema\n",
+				aznr002Name,
+				helper.IssueLine(tfSchemaName),
+				helper.FixedCode("ForceNew: true"),
+			),
+			EvidenceFile:  fieldInfo.Position.Filename,
+			EvidenceLines: []int{fieldInfo.Position.Line},
+			MatchMode:     reporting.MatchModeExactAdded,
+		})
 	}
 }

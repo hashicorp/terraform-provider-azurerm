@@ -87,6 +87,26 @@ func validCases() map[string]*schema.Schema {
 				},
 			},
 		},
+
+		// Valid: Nested field has a default value, should be skipped
+		"config_with_default": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"enabled": {
+						Type:     schema.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"mode": {
+						Type:     schema.TypeString,
+						Optional: true,
+					},
+				},
+			},
+		},
 	}
 }
 

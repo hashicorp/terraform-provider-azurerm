@@ -4,6 +4,9 @@
 package pluginsdk
 
 import (
+	"context"
+	"time"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -22,3 +25,25 @@ type (
 	Schema       = schema.Schema
 	ResourceData = schema.ResourceData
 )
+
+// StateChangeConf mocks the pluginsdk.StateChangeConf type
+type StateChangeConf struct {
+	Pending      []string
+	Target       []string
+	Refresh      StateRefreshFunc
+	Timeout      time.Duration
+	PollInterval time.Duration
+}
+
+// StateRefreshFunc is a function that refreshes the state
+type StateRefreshFunc func() (interface{}, string, error)
+
+// WaitForStateContext waits for the state to reach a target
+func (conf *StateChangeConf) WaitForStateContext(ctx context.Context) (interface{}, error) {
+	return nil, nil
+}
+
+// GetWriteOnly retrieves a write-only attribute value from the ResourceData.
+func GetWriteOnly(d *ResourceData, key string, valType interface{}) (interface{}, error) {
+	return d.Get(key), nil
+}

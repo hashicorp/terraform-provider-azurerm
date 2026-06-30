@@ -8,8 +8,10 @@ import (
 	"go/token"
 	"strings"
 
+	"github.com/bflad/tfproviderlint/passes/commentignore"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/loader"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/reporting"
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/analysis/passes/inspect"
 	"golang.org/x/tools/go/ast/inspector"
@@ -22,7 +24,7 @@ use fmt.Errorf() instead of errors.New().
 
 Example violations:
   fmt.Errorf("something went wrong")  // should use errors.New()
-  
+
 Valid usage:
   errors.New("something went wrong")
   fmt.Errorf("value %s is invalid", value)  // has placeholder, OK`
@@ -33,10 +35,15 @@ var AZRE001Analyzer = &analysis.Analyzer{
 	Name:     azre001Name,
 	Doc:      AZRE001Doc,
 	Run:      runAZRE001,
-	Requires: []*analysis.Analyzer{inspect.Analyzer},
+	Requires: []*analysis.Analyzer{inspect.Analyzer, commentignore.Analyzer},
 }
 
 func runAZRE001(pass *analysis.Pass) (interface{}, error) {
+	ignorer, ok := pass.ResultOf[commentignore.Analyzer].(*commentignore.Ignorer)
+	if !ok {
+		return nil, nil
+	}
+
 	// Pre-filter: Build set of changed files that import "fmt"
 	relevantFiles := make(map[string]bool)
 	for _, f := range pass.Files {
@@ -124,13 +131,20 @@ func runAZRE001(pass *analysis.Pass) (interface{}, error) {
 		// Check if the string value contains any placeholders (%v, %s, %d, %+v, etc.)
 		// If it doesn't contain %, it's a fixed string and should use errors.New()
 		if !strings.Contains(formatStr, "%") {
-			// Reuse pos from earlier to avoid duplicate Position lookup
-			if loader.ShouldReport(filename, pos.Line) {
-				pass.Reportf(call.Pos(), "%s: fixed error strings should use %s instead of %s\n",
-					azre001Name,
-					helper.FixedCode("errors.New()"),
-					helper.IssueLine("fmt.Errorf()"))
+			if ignorer.ShouldIgnore(azre001Name, call) {
+				return
 			}
+
+			reporting.Reportf(pass, reporting.ReportOptions{
+				Rule:          azre001Name,
+				ReportPos:     call.Pos(),
+				EvidenceFile:  filename,
+				EvidenceLines: []int{pos.Line},
+				MatchMode:     reporting.MatchModeExactAdded,
+			}, "%s: fixed error strings should use %s instead of %s\n",
+				azre001Name,
+				helper.FixedCode("errors.New()"),
+				helper.IssueLine("fmt.Errorf()"))
 		}
 	})
 

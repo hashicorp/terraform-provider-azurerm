@@ -7,6 +7,7 @@ import (
 	"go/ast"
 	"go/token"
 	"go/types"
+	"strings"
 
 	"github.com/bflad/tfproviderlint/helper/astutils"
 	"github.com/bflad/tfproviderlint/helper/terraformtype/helper/schema"
@@ -171,4 +172,61 @@ func GetNestedSchemaMap(resourceSchema *ast.CompositeLit) *ast.CompositeLit {
 		}
 	}
 	return nil
+}
+
+// IsAzureSDKEnumType determines if a named type is an Azure SDK enum type
+func IsAzureSDKEnumType(pass *analysis.Pass, named *types.Named) bool {
+	basic, ok := named.Underlying().(*types.Basic)
+	if !ok {
+		return false
+	}
+
+	info := basic.Info()
+	if info&types.IsString == 0 && info&types.IsInteger == 0 {
+		return false
+	}
+
+	pkg := named.Obj().Pkg()
+	if pkg == nil || !strings.Contains(pkg.Path(), "github.com/hashicorp/go-azure-sdk") {
+		return false
+	}
+
+	// 3. Check for PossibleValuesFor{TypeName} function - the standard enum pattern
+	typeName := named.Obj().Name()
+	functionName := "PossibleValuesFor" + typeName
+
+	obj := pkg.Scope().Lookup(functionName)
+	if obj == nil {
+		// Fallback: check if defined in constants.go
+		pos := named.Obj().Pos()
+		position := pass.Fset.Position(pos)
+		return strings.HasSuffix(position.Filename, "constants.go")
+	}
+
+	// Verify it's a function returning []string
+	fn, ok := obj.(*types.Func)
+	if !ok {
+		return false
+	}
+
+	sig, ok := fn.Type().(*types.Signature)
+	if !ok {
+		return false
+	}
+	if sig.Params().Len() != 0 || sig.Results().Len() != 1 {
+		return false
+	}
+
+	// Check return type is []string
+	slice, ok := sig.Results().At(0).Type().(*types.Slice)
+	if !ok {
+		return false
+	}
+
+	elem, ok := slice.Elem().(*types.Basic)
+	if !ok {
+		return false
+	}
+
+	return ok && elem.Kind() == basic.Kind()
 }

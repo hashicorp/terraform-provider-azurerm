@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/loader"
 	localschema "github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/passes/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/reporting"
 	"golang.org/x/tools/go/analysis"
 )
 
@@ -68,7 +69,7 @@ func runAZBP002(pass *analysis.Pass) (interface{}, error) {
 		schemaInfo := cached.Info
 		schemaLit := schemaInfo.AstCompositeLit
 
-		if ignorer.ShouldIgnore(azbp001Name, schemaInfo.AstCompositeLit) {
+		if ignorer.ShouldIgnore(azbp002Name, schemaInfo.AstCompositeLit) {
 			continue
 		}
 
@@ -90,8 +91,14 @@ func runAZBP002(pass *analysis.Pass) (interface{}, error) {
 		// Check order: Optional should come before Computed
 		if optionalPos > computedPos {
 			pos := pass.Fset.Position(schemaLit.Pos())
-			if loader.ShouldReport(pos.Filename, pos.Line) {
-				pass.Reportf(schemaLit.Pos(), "%s: field has %s and %s in wrong order (%s must come before %s)\n",
+			if loader.IsFileChanged(pos.Filename) {
+				reporting.Reportf(pass, reporting.ReportOptions{
+					Rule:          azbp002Name,
+					ReportPos:     schemaLit.Pos(),
+					EvidenceFile:  pos.Filename,
+					EvidenceLines: []int{pos.Line},
+					MatchMode:     reporting.MatchModeExactAdded,
+				}, "%s: field has %s and %s in wrong order (%s must come before %s)\n",
 					azbp002Name,
 					helper.FixedCode("Optional"), helper.IssueLine("Computed"),
 					helper.FixedCode("Optional"), helper.IssueLine("Computed"))
@@ -123,14 +130,27 @@ func runAZBP002(pass *analysis.Pass) (interface{}, error) {
 
 		if !hasOCComment {
 			pos := pass.Fset.Position(schemaLit.Pos())
-			if loader.ShouldReport(pos.Filename, pos.Line) {
-				if propertyName := cached.PropertyName; propertyName != "" {
-					pass.Reportf(schemaLit.Pos(), "%s: field `%s` is Optional+Computed but missing required comment. Add %s between Optional and Computed\n",
-						azbp002Name, propertyName, helper.FixedCode("'// NOTE: O+C - <explanation>'"))
-				} else {
-					pass.Reportf(schemaLit.Pos(), "%s: field is Optional+Computed but missing required comment. Add %s between Optional and Computed\n",
-						azbp002Name, helper.FixedCode("'// NOTE: O+C - <explanation>'"))
-				}
+			if !loader.IsFileChanged(pos.Filename) {
+				continue
+			}
+			if propertyName := cached.PropertyName; propertyName != "" {
+				reporting.Reportf(pass, reporting.ReportOptions{
+					Rule:          azbp002Name,
+					ReportPos:     schemaLit.Pos(),
+					EvidenceFile:  pos.Filename,
+					EvidenceLines: []int{pos.Line},
+					MatchMode:     reporting.MatchModeExactAdded,
+				}, "%s: field `%s` is Optional+Computed but missing required comment. Add %s between Optional and Computed\n",
+					azbp002Name, propertyName, helper.FixedCode("'// NOTE: O+C - <explanation>'"))
+			} else {
+				reporting.Reportf(pass, reporting.ReportOptions{
+					Rule:          azbp002Name,
+					ReportPos:     schemaLit.Pos(),
+					EvidenceFile:  pos.Filename,
+					EvidenceLines: []int{pos.Line},
+					MatchMode:     reporting.MatchModeExactAdded,
+				}, "%s: field is Optional+Computed but missing required comment. Add %s between Optional and Computed\n",
+					azbp002Name, helper.FixedCode("'// NOTE: O+C - <explanation>'"))
 			}
 		}
 	}

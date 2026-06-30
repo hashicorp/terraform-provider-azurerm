@@ -9,12 +9,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/loader"
 	localschema "github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/passes/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/reporting"
 	"golang.org/x/tools/go/analysis"
 )
 
 const AZBP001Doc = `check that all String arguments have validation
 
-The AZBP001 analyzer reports cases where String type schema fields 
+The AZBP001 analyzer reports cases where String type schema fields
 (Required or Optional) do not have a ValidateFunc.
 
 Example violations:
@@ -23,14 +24,14 @@ Example violations:
       Required: true,
       // Missing ValidateFunc!
   }
-  
+
 Valid usage:
   "name": {
       Type:         schema.TypeString,
       Required:     true,
       ValidateFunc: validation.StringIsNotEmpty,
   }
-  
+
   "description": {
       Type:     schema.TypeString,
       Computed: true,  // OK - computed-only fields don't need validation
@@ -79,14 +80,27 @@ func runAZBP001(pass *analysis.Pass) (interface{}, error) {
 
 		if !hasValidation {
 			pos := pass.Fset.Position(schemaLit.Pos())
-			if loader.ShouldReport(pos.Filename, pos.Line) {
-				if propertyName := cached.PropertyName; propertyName != "" {
-					pass.Reportf(schemaLit.Pos(), "%s: string argument `%s` %s\n",
-						azbp001Name, propertyName, helper.FixedCode("must have ValidateFunc"))
-				} else {
-					pass.Reportf(schemaLit.Pos(), "%s: string argument %s\n",
-						azbp001Name, helper.FixedCode("must have ValidateFunc"))
-				}
+			if !loader.IsFileChanged(pos.Filename) {
+				continue
+			}
+			if propertyName := cached.PropertyName; propertyName != "" {
+				reporting.Reportf(pass, reporting.ReportOptions{
+					Rule:          azbp001Name,
+					ReportPos:     schemaLit.Pos(),
+					EvidenceFile:  pos.Filename,
+					EvidenceLines: []int{pos.Line},
+					MatchMode:     reporting.MatchModeExactAdded,
+				}, "%s: string argument `%s` %s\n",
+					azbp001Name, propertyName, helper.FixedCode("must have ValidateFunc"))
+			} else {
+				reporting.Reportf(pass, reporting.ReportOptions{
+					Rule:          azbp001Name,
+					ReportPos:     schemaLit.Pos(),
+					EvidenceFile:  pos.Filename,
+					EvidenceLines: []int{pos.Line},
+					MatchMode:     reporting.MatchModeExactAdded,
+				}, "%s: string argument %s\n",
+					azbp001Name, helper.FixedCode("must have ValidateFunc"))
 			}
 		}
 	}

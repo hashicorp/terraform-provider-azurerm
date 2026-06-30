@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/loader"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/passes/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/reporting"
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/analysis/passes/inspect"
 	"golang.org/x/tools/go/ast/inspector"
@@ -118,11 +119,18 @@ func runAZNR001(pass *analysis.Pass) (interface{}, error) {
 		// Check for ordering issues
 		expectedOrder, issue := checkAZNR001OrderingIssues(fields)
 		if issue != "" {
+			pos := pass.Fset.Position(comp.Pos())
 			actualOrder := make([]string, len(fields))
 			for i, f := range fields {
 				actualOrder[i] = f.Name
 			}
-			pass.Reportf(comp.Pos(), "%s: %s\nExpected order (assuming ID fields are correct):\n  %s\nActual order:\n  %s\n",
+			reporting.Reportf(pass, reporting.ReportOptions{
+				Rule:          aznr001Name,
+				ReportPos:     comp.Pos(),
+				EvidenceFile:  pos.Filename,
+				EvidenceLines: []int{pos.Line},
+				MatchMode:     reporting.MatchModeNewFile,
+			}, "%s: %s\nExpected order (assuming ID fields are correct):\n  %s\nActual order:\n  %s\n",
 				aznr001Name, issue,
 				helper.FixedCode(strings.Join(expectedOrder, ", ")),
 				helper.IssueLine(strings.Join(actualOrder, ", ")))

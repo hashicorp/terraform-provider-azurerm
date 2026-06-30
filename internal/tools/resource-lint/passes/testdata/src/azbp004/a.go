@@ -83,6 +83,14 @@ func invalidCase5(props *Props) {
 	useEnabledAgain(enabled)
 }
 
+func ignoredInvalidCase(props *Props) {
+	enabled := false //lintignore:AZBP004 // ignored in fixture
+	if props.Enabled != nil {
+		enabled = *props.Enabled
+	}
+	useEnabled(enabled)
+}
+
 // Edge cases
 
 func edgeCase1(props *Props) {

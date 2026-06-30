@@ -62,6 +62,22 @@ func validCases() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Optional: true,
 		},
+
+		// Valid: MaxItems:1 with single property that has a default value
+		"config_with_default": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"enabled": {
+						Type:     schema.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+				},
+			},
+		},
 	}
 }
 
