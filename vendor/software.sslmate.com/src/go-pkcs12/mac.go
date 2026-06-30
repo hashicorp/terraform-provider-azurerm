@@ -13,6 +13,7 @@ import (
 	"crypto/x509/pkix"
 	"encoding/asn1"
 	"errors"
+	"fmt"
 	"hash"
 
 	"golang.org/x/crypto/pbkdf2"
@@ -38,6 +39,27 @@ type pbmac1Params struct {
 	MacAlg pkix.AlgorithmIdentifier
 }
 
+func makePBMAC1Parameters(salt []byte, iterations int) ([]byte, error) {
+	var err error
+
+	var kdfparams pbkdf2Params
+	if kdfparams.Salt.FullBytes, err = asn1.Marshal(salt); err != nil {
+		return nil, err
+	}
+	kdfparams.Iterations = iterations
+	kdfparams.KeyLength = 32
+	kdfparams.Prf.Algorithm = oidHmacWithSHA256
+
+	var params pbmac1Params
+	params.Kdf.Algorithm = oidPBKDF2
+	if params.Kdf.Parameters.FullBytes, err = asn1.Marshal(kdfparams); err != nil {
+		return nil, err
+	}
+	params.MacAlg.Algorithm = oidHmacWithSHA256
+
+	return asn1.Marshal(params)
+}
+
 var (
 	oidSHA1   = asn1.ObjectIdentifier([]int{1, 3, 14, 3, 2, 26})
 	oidSHA256 = asn1.ObjectIdentifier([]int{2, 16, 840, 1, 101, 3, 4, 2, 1})
@@ -52,7 +74,7 @@ var (
 func doPBMAC1(algorithm pkix.AlgorithmIdentifier, message, password []byte) ([]byte, error) {
 	var params pbmac1Params
 	if err := unmarshal(algorithm.Parameters.FullBytes, &params); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error decoding PBMAC1 parameters: %w", err)
 	}
 
 	// Only PBKDF2 is supported as KDF
@@ -101,6 +123,10 @@ func doPBMAC1(algorithm pkix.AlgorithmIdentifier, message, password []byte) ([]b
 	// KeyLength is mandatory in RFC 9579
 	if kdfParams.KeyLength <= 0 {
 		return nil, errors.New("pkcs12: PBMAC1 requires explicit KeyLength parameter in PBKDF2 parameters")
+	}
+	// RFC 9579 RECOMMENDS rejecting key lengths less than 20; this is necessary to prevent possible authentication bypass (e.g. OpenSSL's CVE-2026-34181)
+	if kdfParams.KeyLength < 20 {
+		return nil, fmt.Errorf("pkcs12: PBMAC1 key length %d is too short to be secure (minimum 20 octets)", kdfParams.KeyLength)
 	}
 	keyLen := kdfParams.KeyLength
 
