@@ -3915,7 +3915,7 @@ resource "azurerm_virtual_machine" "test" {
   resource_group_name          = azurerm_resource_group.test.name
   network_interface_ids        = [azurerm_network_interface.test.id, azurerm_network_interface.test2.id]
   primary_network_interface_id = azurerm_network_interface.test.id
-  vm_size                      = "Standard_A3"
+  vm_size                      = "Standard_D1_v2"
 
   storage_image_reference {
     publisher = "Canonical"
@@ -4021,7 +4021,7 @@ resource "azurerm_virtual_machine" "test" {
   resource_group_name          = azurerm_resource_group.test.name
   network_interface_ids        = [azurerm_network_interface.test.id, azurerm_network_interface.test2.id]
   primary_network_interface_id = azurerm_network_interface.test.id
-  vm_size                      = "Standard_A3"
+  vm_size                      = "Standard_D1_v2"
 
   storage_image_reference {
     publisher = "Canonical"
