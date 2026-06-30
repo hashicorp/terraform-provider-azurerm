@@ -188,8 +188,6 @@ The `georeplications` block supports the following:
 
 * `global_endpoint_routing_enabled` - (Optional) Whether this geo-replicated location participates in global endpoint routing for the Container Registry's geo-replicated login server. Defaults to `false`.
 
-* `regional_endpoint_enabled` - (Optional, **Deprecated**) Whether this geo-replicated location participates in global endpoint routing for the Container Registry's geo-replicated login server. This property has been deprecated in favour of `global_endpoint_routing_enabled` and will be removed in v5.0 of the AzureRM Provider.
-
 * `zone_redundancy_enabled` - (Optional) Whether zone redundancy is enabled for this replication location? Defaults to `false`.
 
 ~> **Note:** Changing the `zone_redundancy_enabled` forces an underlying replication to be created.

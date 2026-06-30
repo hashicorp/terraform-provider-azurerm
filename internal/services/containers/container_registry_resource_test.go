@@ -827,13 +827,6 @@ resource "azurerm_container_registry" "test" {
 }
 
 func (ContainerRegistryResource) regionEndpoint(data acceptance.TestData) string {
-	// This config intentionally exercises the deprecated `regional_endpoint_enabled` property
-	// to ensure it keeps working until it is removed in v5.0, where it switches to the renamed
-	// `global_endpoint_routing_enabled` property.
-	regionEndpointProperty := "regional_endpoint_enabled = true"
-	if features.FivePointOh() {
-		regionEndpointProperty = "global_endpoint_routing_enabled = true"
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -848,11 +841,11 @@ resource "azurerm_container_registry" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "Premium"
   georeplications {
-    location = "%s"
-    %s
+    location                        = "%s"
+    global_endpoint_routing_enabled = true
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary, regionEndpointProperty)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary)
 }
 
 func (ContainerRegistryResource) regionEndpointConflict(data acceptance.TestData) string {

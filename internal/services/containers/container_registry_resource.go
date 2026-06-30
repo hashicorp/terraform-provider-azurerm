@@ -339,10 +339,6 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				return fmt.Errorf("`data_endpoint_enabled` can only be applied when using the Premium Sku")
 			}
 
-			// `regional_endpoint_enabled` is deprecated in favour of `global_endpoint_routing_enabled`.
-			// Both map to the same API field so they are mutually exclusive within a `georeplications`
-			// block. ConflictsWith can't be used here because it cannot reference properties nested
-			// within a list block, so the check is performed against the raw config instead.
 			if !features.FivePointOh() {
 				if rawConfig := d.GetRawConfig(); !rawConfig.IsNull() {
 					if geoReplicationsRaw := rawConfig.AsValueMap()["georeplications"]; !geoReplicationsRaw.IsNull() {
