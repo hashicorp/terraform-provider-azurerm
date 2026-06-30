@@ -262,7 +262,7 @@ func resourceMonitorScheduledQueryRulesAlertCreateUpdate(d *pluginsdk.ResourceDa
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_monitor_scheduled_query_rules_alert", id.ID())
+				return tf.ImportAsExistsError(monitorScheduledQueryRulesAlertResourceName, id.ID())
 			}
 		}
 	}
@@ -327,10 +327,14 @@ func resourceMonitorScheduledQueryRulesAlertRead(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("getting Monitor %s: %+v", *id, err)
 	}
 
+	return resourceMonitorScheduledQueryRulesAlertFlatten(d, id, resp.Model)
+}
+
+func resourceMonitorScheduledQueryRulesAlertFlatten(d *pluginsdk.ResourceData, id *scheduledqueryrules.ScheduledQueryRuleId, model *scheduledqueryrules.LogSearchRuleResource) error {
 	d.Set("name", id.ScheduledQueryRuleName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.Normalize(model.Location))
 
 		props := model.Properties
@@ -346,7 +350,7 @@ func resourceMonitorScheduledQueryRulesAlertRead(d *pluginsdk.ResourceData, meta
 		if !ok {
 			return fmt.Errorf("wrong action type in %s: %T", *id, props.Action)
 		}
-		if err = d.Set("action", flattenAzureRmScheduledQueryRulesAlertAction(action.AznsAction)); err != nil {
+		if err := d.Set("action", flattenAzureRmScheduledQueryRulesAlertAction(action.AznsAction)); err != nil {
 			return fmt.Errorf("setting `action`: %+v", err)
 		}
 		severity, err := strconv.Atoi(string(action.Severity))
