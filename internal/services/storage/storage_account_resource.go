@@ -268,7 +268,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 
 						"user_assigned_identity_id": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 						},
 					},
@@ -1128,6 +1128,10 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					}
 				}
 
+				if err := validateCustomerManagedKeyUserAssignedIdentity(d); err != nil {
+					return err
+				}
+
 				if !features.FivePointOh() && !v.(*clients.Client).Features.Storage.DataPlaneAvailable {
 					rawQueueProperties, diags := d.GetRawConfigAt(sdk.ConstructCtyPath("queue_properties"))
 					if diags.HasError() {
@@ -1247,7 +1251,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 
 					"user_assigned_identity_id": {
 						Type:         pluginsdk.TypeString,
-						Required:     true,
+						Optional:     true,
 						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 					},
 				},
@@ -1534,6 +1538,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	// See: https://docs.microsoft.com/en-gb/azure/storage/common/account-encryption-key-create?tabs=portal
 	queueEncryptionKeyType := storageaccounts.KeyType(d.Get("queue_encryption_key_type").(string))
 	tableEncryptionKeyType := storageaccounts.KeyType(d.Get("table_encryption_key_type").(string))
+
 	encryptionRaw := d.Get("customer_managed_key").([]interface{})
 	encryption, err := expandAccountCustomerManagedKey(d, ctx, keyVaultClient, id.SubscriptionId, encryptionRaw, accountTier, accountKind, *expandedIdentity, queueEncryptionKeyType, tableEncryptionKeyType)
 	if err != nil {
@@ -2469,6 +2474,37 @@ func resourceStorageAccountDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
+func validateCustomerManagedKeyUserAssignedIdentity(d *pluginsdk.ResourceDiff) error {
+	identityRaw := d.Get("identity").([]interface{})
+	if len(identityRaw) == 0 || identityRaw[0] == nil {
+		return nil
+	}
+
+	identityType := identityRaw[0].(map[string]interface{})["type"].(string)
+	if !strings.Contains(identityType, string(identity.TypeUserAssigned)) {
+		return nil
+	}
+
+	cmkRaw, diags := d.GetRawConfigAt(sdk.ConstructCtyPath("customer_managed_key"))
+	if diags.HasError() || !cmkRaw.IsKnown() || cmkRaw.IsNull() || cmkRaw.LengthInt() == 0 {
+		return nil
+	}
+
+	uaiRaw, diags := d.GetRawConfigAt(sdk.ConstructCtyPath("customer_managed_key.0.user_assigned_identity_id"))
+	if diags.HasError() {
+		return nil
+	}
+	// Defer to apply time when the value is unknown (e.g. a reference to another resource).
+	if !uaiRaw.IsKnown() {
+		return nil
+	}
+	if uaiRaw.IsNull() || uaiRaw.AsString() == "" {
+		return fmt.Errorf("`customer_managed_key.0.user_assigned_identity_id` must be specified when `identity` is `UserAssigned`")
+	}
+
+	return nil
+}
+
 func expandAccountCustomDomain(input []interface{}) *storageaccounts.CustomDomain {
 	if len(input) == 0 {
 		return &storageaccounts.CustomDomain{
@@ -2521,8 +2557,8 @@ func expandAccountCustomerManagedKey(d *pluginsdk.ResourceData, ctx context.Cont
 		return nil, fmt.Errorf("customer managed key can only be used with account kind `StorageV2` or account tier `Premium`")
 	}
 
-	if expandedIdentity.Type != identity.TypeUserAssigned && expandedIdentity.Type != identity.TypeSystemAssignedUserAssigned {
-		return nil, fmt.Errorf("customer managed key can only be configured when the storage account uses a `UserAssigned` or `SystemAssigned, UserAssigned` managed identity but got %q", string(expandedIdentity.Type))
+	if expandedIdentity.Type != identity.TypeUserAssigned && expandedIdentity.Type != identity.TypeSystemAssignedUserAssigned && expandedIdentity.Type != identity.TypeSystemAssigned {
+		return nil, fmt.Errorf("customer managed key can only be configured when the storage account uses a `SystemAssigned`, `UserAssigned` or `SystemAssigned, UserAssigned` managed identity but got %q", string(expandedIdentity.Type))
 	}
 
 	v := input[0].(map[string]interface{})
