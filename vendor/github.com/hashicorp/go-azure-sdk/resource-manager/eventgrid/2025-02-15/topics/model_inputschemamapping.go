@@ -25,9 +25,9 @@ func (s BaseInputSchemaMappingImpl) InputSchemaMapping() BaseInputSchemaMappingI
 
 var _ InputSchemaMapping = RawInputSchemaMappingImpl{}
 
-// RawInputSchemaMappingImpl is returned when the Discriminated Value doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+// RawInputSchemaMappingImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawInputSchemaMappingImpl struct {
 	inputSchemaMapping BaseInputSchemaMappingImpl
 	Type               string
@@ -36,6 +36,10 @@ type RawInputSchemaMappingImpl struct {
 
 func (s RawInputSchemaMappingImpl) InputSchemaMapping() BaseInputSchemaMappingImpl {
 	return s.inputSchemaMapping
+}
+
+func (s RawInputSchemaMappingImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
 }
 
 func UnmarshalInputSchemaMappingImplementation(input []byte) (InputSchemaMapping, error) {
