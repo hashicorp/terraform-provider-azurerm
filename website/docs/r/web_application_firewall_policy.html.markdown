@@ -266,7 +266,9 @@ The `rule` block supports the following:
 
 * `action` - (Optional) Describes the override action to be applied when rule matches. Possible values are `Allow`, `AnomalyScoring`, `Block`, `JSChallenge` and `Log`. `JSChallenge` is only valid for rulesets of type `Microsoft_BotManagerRuleSet`.
 
-* `sensitivity_level` - (Optional) Describes the override sensitivity to be applied when rule matches. Possible values are `High`, `Low` and `Medium`. This can only be set when `type` of the `managed_rule_set` is `Microsoft_HTTPDDoSRuleSet`.
+* `sensitivity_level` - (Optional) Describes the override sensitivity to be applied when rule matches. Possible values are `High`, `Low` and `Medium`. 
+
+~> **Note:** This can only be set when `type` of the `managed_rule_set` is `Microsoft_HTTPDDoSRuleSet`.
 
 ---
 
