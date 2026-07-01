@@ -259,8 +259,8 @@ func resourcePublicIpCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	ddosProtectionPlanId, planOk := d.GetOk("ddos_protection_plan_id")
 	if planOk {
-		if !strings.EqualFold(ddosProtectionMode, "enabled") {
-			return fmt.Errorf("ddos protection plan id can only be set when ddos protection is enabled")
+		if !strings.EqualFold(ddosProtectionMode, string(publicipaddresses.DdosSettingsProtectionModeEnabled)) {
+			return errors.New("ddos protection plan id can only be set when ddos protection is enabled")
 		}
 		publicIp.Properties.DdosSettings.DdosProtectionPlan = &publicipaddresses.SubResource{
 			Id: pointer.To(ddosProtectionPlanId.(string)),
@@ -365,14 +365,18 @@ func resourcePublicIpUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("ddos_protection_plan_id") {
-		if !strings.EqualFold(string(*payload.Properties.DdosSettings.ProtectionMode), "enabled") {
-			return fmt.Errorf("ddos protection plan id can only be set when ddos protection is enabled")
-		}
 		if payload.Properties.DdosSettings == nil {
 			payload.Properties.DdosSettings = &publicipaddresses.DdosSettings{}
 		}
-		payload.Properties.DdosSettings.DdosProtectionPlan = &publicipaddresses.SubResource{
-			Id: pointer.To(d.Get("ddos_protection_plan_id").(string)),
+		if ddosProtectionPlanId, planOk := d.GetOk("ddos_protection_plan_id"); planOk {
+			if !strings.EqualFold(string(pointer.From(payload.Properties.DdosSettings.ProtectionMode)), string(publicipaddresses.DdosSettingsProtectionModeEnabled)) {
+				return errors.New("ddos protection plan id can only be set when ddos protection is enabled")
+			}
+			payload.Properties.DdosSettings.DdosProtectionPlan = &publicipaddresses.SubResource{
+				Id: pointer.To(ddosProtectionPlanId.(string)),
+			}
+		} else {
+			payload.Properties.DdosSettings.DdosProtectionPlan = nil
 		}
 	}
 
@@ -478,13 +482,15 @@ func resourcePublicIpFlatten(d *pluginsdk.ResourceData, id *commonids.PublicIPAd
 			d.Set("domain_name_label_scope", domainNameLabelScope)
 
 			ddosProtectionMode := string(publicipaddresses.DdosSettingsProtectionModeVirtualNetworkInherited)
+			ddosProtectionPlanId := ""
 			if ddosSetting := props.DdosSettings; ddosSetting != nil {
 				ddosProtectionMode = string(pointer.From(ddosSetting.ProtectionMode))
 				if subResource := ddosSetting.DdosProtectionPlan; subResource != nil {
-					d.Set("ddos_protection_plan_id", subResource.Id)
+					ddosProtectionPlanId = pointer.From(subResource.Id)
 				}
 			}
 			d.Set("ddos_protection_mode", ddosProtectionMode)
+			d.Set("ddos_protection_plan_id", ddosProtectionPlanId)
 
 			d.Set("ip_tags", flattenPublicIpPropsIpTags(props.IPTags))
 
