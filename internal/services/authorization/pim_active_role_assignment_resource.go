@@ -95,7 +95,10 @@ func (PimActiveRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema 
 			Required:     true,
 			ForceNew:     true,
 			Description:  "Role definition ID for this role assignment",
-			ValidateFunc: validate.PimRoleDefinitionID,
+			ValidateFunc: validate.RoleDefinitionResourceID,
+			DiffSuppressFunc: func(_, old, new string, _ *pluginsdk.ResourceData) bool {
+				return parse.RoleDefinitionResourceIdsMatch(old, new)
+			},
 		},
 
 		"principal_id": {
@@ -397,10 +400,7 @@ func (r PimActiveRoleAssignmentResource) Read() sdk.ResourceFunc {
 				state.Justification = pointer.From(request.Properties.Justification)
 				state.PrincipalId = request.Properties.PrincipalId
 				state.PrincipalType = string(pointer.From(request.Properties.PrincipalType))
-
-				if !parse.PimRoleDefinitionIdsMatch(state.RoleDefinitionId, request.Properties.RoleDefinitionId) {
-					state.RoleDefinitionId = request.Properties.RoleDefinitionId
-				}
+				state.RoleDefinitionId = request.Properties.RoleDefinitionId
 
 				if ticketInfo := request.Properties.TicketInfo; ticketInfo != nil {
 					if len(state.TicketInfo) == 0 {
@@ -466,10 +466,7 @@ func (r PimActiveRoleAssignmentResource) Read() sdk.ResourceFunc {
 				// The request has likely expired, so populate from the schedule (not all fields will be available)
 				state.PrincipalId = pointer.From(props.PrincipalId)
 				state.PrincipalType = string(pointer.From(props.PrincipalType))
-
-				if !parse.PimRoleDefinitionIdsMatch(state.RoleDefinitionId, pointer.From(props.RoleDefinitionId)) {
-					state.RoleDefinitionId = pointer.From(props.RoleDefinitionId)
-				}
+				state.RoleDefinitionId = pointer.From(props.RoleDefinitionId)
 
 				if props.StartDateTime != nil {
 					if len(state.ScheduleInfo) == 0 {
@@ -654,7 +651,7 @@ func findRoleAssignmentSchedule(ctx context.Context, client *roleassignmentsched
 
 	for _, schedule := range schedulesResult.Items {
 		if props := schedule.Properties; props != nil {
-			if props.RoleDefinitionId != nil && parse.PimRoleDefinitionIdsMatch(*props.RoleDefinitionId, id.RoleDefinitionId) &&
+			if props.RoleDefinitionId != nil && parse.RoleDefinitionResourceIdsMatch(*props.RoleDefinitionId, id.RoleDefinitionId) &&
 				props.Scope != nil && strings.EqualFold(*props.Scope, scopeId.ID()) &&
 				props.PrincipalId != nil && strings.EqualFold(*props.PrincipalId, id.PrincipalId) &&
 				props.MemberType != nil && *props.MemberType == roleassignmentschedules.MemberTypeDirect {

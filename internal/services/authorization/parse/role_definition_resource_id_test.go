@@ -5,7 +5,7 @@ package parse
 
 import "testing"
 
-func TestPimRoleDefinitionID(t *testing.T) {
+func TestRoleDefinitionResourceID(t *testing.T) {
 	cases := []struct {
 		name          string
 		input         string
@@ -63,7 +63,7 @@ func TestPimRoleDefinitionID(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			id, err := PimRoleDefinitionID(tc.input)
+			id, err := RoleDefinitionResourceID(tc.input)
 			if tc.wantErr {
 				if err == nil {
 					t.Errorf("expected error but got nil")
@@ -84,7 +84,7 @@ func TestPimRoleDefinitionID(t *testing.T) {
 	}
 }
 
-func TestPimRoleDefinitionIdsMatch(t *testing.T) {
+func TestRoleDefinitionResourceIdsMatch(t *testing.T) {
 	cases := []struct {
 		name     string
 		a        string
@@ -149,27 +149,27 @@ func TestPimRoleDefinitionIdsMatch(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			if result := PimRoleDefinitionIdsMatch(tc.a, tc.b); result != tc.expected {
-				t.Errorf("PimRoleDefinitionIdsMatch(%q, %q) = %v, want %v", tc.a, tc.b, result, tc.expected)
+			if result := RoleDefinitionResourceIdsMatch(tc.a, tc.b); result != tc.expected {
+				t.Errorf("RoleDefinitionResourceIdsMatch(%q, %q) = %v, want %v", tc.a, tc.b, result, tc.expected)
 			}
 		})
 	}
 }
 
-func TestPimRoleDefinitionId_ID(t *testing.T) {
+func TestRoleDefinitionResourceId_ID(t *testing.T) {
 	cases := []struct {
 		name     string
-		id       PimRoleDefinitionId
+		id       RoleDefinitionResourceId
 		expected string
 	}{
 		{
 			name:     "scoped",
-			id:       NewPimRoleDefinitionID("/subscriptions/00000000-0000-0000-0000-000000000000", "acdd72a7-3385-48ef-bd42-f606fba81ae7"),
+			id:       NewRoleDefinitionResourceID("/subscriptions/00000000-0000-0000-0000-000000000000", "acdd72a7-3385-48ef-bd42-f606fba81ae7"),
 			expected: "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7",
 		},
 		{
 			name:     "unscoped",
-			id:       NewPimRoleDefinitionID("", "acdd72a7-3385-48ef-bd42-f606fba81ae7"),
+			id:       NewRoleDefinitionResourceID("", "acdd72a7-3385-48ef-bd42-f606fba81ae7"),
 			expected: "/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7",
 		},
 	}

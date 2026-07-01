@@ -151,6 +151,22 @@ func TestAccPimActiveRoleAssignment_subscriptionScopedRoleDefinitionId(t *testin
 	})
 }
 
+func TestAccPimActiveRoleAssignment_resourceGroupScopedRoleDefinitionId(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_pim_active_role_assignment", "test")
+	r := PimActiveRoleAssignmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.resourceGroupScopedRoleDefinitionId(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("scope").Exists(),
+			),
+		},
+		data.ImportStep("schedule.0.start_date_time", "role_definition_id"),
+	})
+}
+
 func (r PimActiveRoleAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.PimRoleAssignmentID(state.ID)
 	if err != nil {
@@ -171,7 +187,7 @@ func (r PimActiveRoleAssignmentResource) Exists(ctx context.Context, client *cli
 
 	for _, schedule := range schedulesResult.Items {
 		if props := schedule.Properties; props != nil {
-			if props.RoleDefinitionId != nil && parse.PimRoleDefinitionIdsMatch(*props.RoleDefinitionId, id.RoleDefinitionId) &&
+			if props.RoleDefinitionId != nil && parse.RoleDefinitionResourceIdsMatch(*props.RoleDefinitionId, id.RoleDefinitionId) &&
 				props.Scope != nil && strings.EqualFold(*props.Scope, scopeId.ID()) &&
 				props.PrincipalId != nil && strings.EqualFold(*props.PrincipalId, id.PrincipalId) &&
 				props.MemberType != nil && *props.MemberType == roleassignmentschedules.MemberTypeDirect {
@@ -560,4 +576,47 @@ resource "azurerm_pim_active_role_assignment" "test" {
   }
 }
 `, r.template(data))
+}
+
+func (r PimActiveRoleAssignmentResource) resourceGroupScopedRoleDefinitionId(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "test" {}
+
+data "azurerm_role_definition" "test" {
+  name = "Monitoring Data Reader"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[2]d"
+  location = "%[3]s"
+}
+
+%[1]s
+
+resource "time_static" "test" {}
+
+resource "azurerm_pim_active_role_assignment" "test" {
+  scope              = azurerm_resource_group.test.id
+  role_definition_id = "${azurerm_resource_group.test.id}${data.azurerm_role_definition.test.id}"
+  principal_id       = azuread_user.test.object_id
+
+  schedule {
+    start_date_time = time_static.test.rfc3339
+    expiration {
+      duration_hours = 8
+    }
+  }
+
+  justification = "Expiration Duration Set"
+
+  ticket {
+    number = "1"
+    system = "example ticket system"
+  }
+}
+`, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
