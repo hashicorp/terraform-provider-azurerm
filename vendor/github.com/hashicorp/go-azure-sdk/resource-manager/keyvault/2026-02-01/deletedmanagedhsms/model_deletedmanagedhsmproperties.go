@@ -1,4 +1,4 @@
-package managedhsms
+package deletedmanagedhsms
 
 import (
 	"time"

@@ -1,4 +1,4 @@
-package managedhsms
+package deletedmanagedhsms
 
 import (
 	"context"
@@ -14,14 +14,14 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type PurgeDeletedOperationResponse struct {
+type ManagedHsmsPurgeDeletedOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
 }
 
-// PurgeDeleted ...
-func (c ManagedHsmsClient) PurgeDeleted(ctx context.Context, id DeletedManagedHSMId) (result PurgeDeletedOperationResponse, err error) {
+// ManagedHsmsPurgeDeleted ...
+func (c DeletedManagedHsmsClient) ManagedHsmsPurgeDeleted(ctx context.Context, id DeletedManagedHSMId) (result ManagedHsmsPurgeDeletedOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -54,15 +54,15 @@ func (c ManagedHsmsClient) PurgeDeleted(ctx context.Context, id DeletedManagedHS
 	return
 }
 
-// PurgeDeletedThenPoll performs PurgeDeleted then polls until it's completed
-func (c ManagedHsmsClient) PurgeDeletedThenPoll(ctx context.Context, id DeletedManagedHSMId) error {
-	result, err := c.PurgeDeleted(ctx, id)
+// ManagedHsmsPurgeDeletedThenPoll performs ManagedHsmsPurgeDeleted then polls until it's completed
+func (c DeletedManagedHsmsClient) ManagedHsmsPurgeDeletedThenPoll(ctx context.Context, id DeletedManagedHSMId) error {
+	result, err := c.ManagedHsmsPurgeDeleted(ctx, id)
 	if err != nil {
-		return fmt.Errorf("performing PurgeDeleted: %+v", err)
+		return fmt.Errorf("performing ManagedHsmsPurgeDeleted: %+v", err)
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("polling after PurgeDeleted: %+v", err)
+		return fmt.Errorf("polling after ManagedHsmsPurgeDeleted: %+v", err)
 	}
 
 	return nil
