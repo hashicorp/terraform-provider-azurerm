@@ -140,7 +140,7 @@ func resourceApiManagementAPIPolicyRead(d *pluginsdk.ResourceData, meta interfac
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id, apipolicy.GetOperationOptions{Format: pointer.To(apipolicy.PolicyExportFormatXml)})
+	resp, err := client.Get(ctx, *id, apipolicy.GetOperationOptions{Format: pointer.To(apipolicy.PolicyExportFormatRawxml)})
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state!", *id)

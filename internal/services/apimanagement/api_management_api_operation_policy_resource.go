@@ -141,7 +141,7 @@ func resourceApiManagementAPIOperationPolicyRead(d *pluginsdk.ResourceData, meta
 	apiName := getApiName(id.ApiId)
 	operationName := id.OperationId
 
-	resp, err := client.Get(ctx, *id, apioperationpolicy.GetOperationOptions{Format: pointer.To(apioperationpolicy.PolicyExportFormatXml)})
+	resp, err := client.Get(ctx, *id, apioperationpolicy.GetOperationOptions{Format: pointer.To(apioperationpolicy.PolicyExportFormatRawxml)})
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
