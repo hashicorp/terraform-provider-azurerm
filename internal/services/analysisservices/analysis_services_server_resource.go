@@ -422,8 +422,8 @@ func hashAnalysisServicesServerIPv4FirewallRule(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
 
-	buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(m["name"].(string))))
-	buf.WriteString(fmt.Sprintf("%s-", m["range_start"].(string)))
+	fmt.Fprintf(&buf, "%s-", strings.ToLower(m["name"].(string)))
+	fmt.Fprintf(&buf, "%s-", m["range_start"].(string))
 	buf.WriteString(m["range_end"].(string))
 
 	return pluginsdk.HashString(buf.String())

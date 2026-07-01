@@ -126,6 +126,11 @@ func resourceStorageContainer() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
+
+			"url": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 		},
 	}
 
@@ -441,6 +446,7 @@ func resourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 		resourceManagerId := commonids.NewStorageContainerID(account.StorageAccountId.SubscriptionId, account.StorageAccountId.ResourceGroupName, id.AccountId.AccountName, id.ContainerName)
 		d.Set("resource_manager_id", resourceManagerId.ID())
+		d.Set("url", id.ID())
 
 		return nil
 	}
@@ -490,6 +496,25 @@ func resourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) e
 			}
 		}
 	}
+
+	account, err := meta.(*clients.Client).Storage.GetAccount(ctx, commonids.NewStorageAccountID(id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName))
+	if err != nil {
+		return fmt.Errorf("retrieving Account for Container %q: %v", id, err)
+	}
+
+	// Determine the blob endpoint, so we can build a data plane ID
+	endpoint, err := account.DataPlaneEndpoint(client.EndpointTypeBlob)
+	if err != nil {
+		return fmt.Errorf("determining Blob endpoint: %v", err)
+	}
+
+	// Parse the blob endpoint as a data plane account ID
+	accountId, err := accounts.ParseAccountID(*endpoint, meta.(*clients.Client).Storage.StorageDomainSuffix)
+	if err != nil {
+		return fmt.Errorf("parsing Account ID: %v", err)
+	}
+
+	d.Set("url", containers.NewContainerID(*accountId, id.ContainerName).ID())
 
 	return nil
 }

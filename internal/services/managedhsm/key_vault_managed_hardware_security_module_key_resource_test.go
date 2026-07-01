@@ -54,7 +54,7 @@ func testAccKeyVaultMHSMKey_complete(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data),
+			Config: r.completeUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -185,6 +185,32 @@ resource "azurerm_key_vault_managed_hardware_security_module_key" "test" {
   tags = {
     "hello" = "world"
   }
+
+  depends_on = [
+    azurerm_key_vault_managed_hardware_security_module_role_assignment.test,
+    azurerm_key_vault_managed_hardware_security_module_role_assignment.test1
+  ]
+}
+`, r.template(data), data.RandomString)
+}
+
+func (r KeyVaultMHSMKeyTestResource) completeUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_key_vault_managed_hardware_security_module_key" "test" {
+  name           = "acctestHSMK-%[2]s"
+  managed_hsm_id = azurerm_key_vault_managed_hardware_security_module.test.id
+  key_type       = "EC-HSM"
+  curve          = "P-521"
+  key_opts       = ["sign"]
+
+  not_before_date = "2020-01-02T01:02:03Z"
+  expiration_date = "2021-01-02T01:02:03Z"
 
   depends_on = [
     azurerm_key_vault_managed_hardware_security_module_role_assignment.test,

@@ -116,7 +116,7 @@ func ResourceAutomationJobScheduleDigest(v interface{}) string {
 		runOn = pointer.From(pointer.From(job.Runbook).Name)
 		paramString = pointer.From(job.Parameters)
 	}
-	buf.WriteString(fmt.Sprintf("%s-%s-", scheduleName, runOn))
+	fmt.Fprintf(&buf, "%s-%s-", scheduleName, runOn)
 
 	keys := make([]string, 0, len(paramString))
 	for k := range paramString {
@@ -125,7 +125,7 @@ func ResourceAutomationJobScheduleDigest(v interface{}) string {
 	}
 	sort.Strings(keys)
 	for _, k := range keys {
-		buf.WriteString(fmt.Sprintf("%s:%v;", strings.ToLower(k), paramString[k]))
+		fmt.Fprintf(&buf, "%s:%v;", strings.ToLower(k), paramString[k])
 	}
 	return buf.String()
 }
