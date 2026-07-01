@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -147,14 +148,17 @@ func resourceDedicatedHardwareSecurityModuleCreate(d *pluginsdk.ResourceData, me
 	defer cancel()
 
 	id := dedicatedhsms.NewDedicatedHSMID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.DedicatedHsmGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.DedicatedHsmGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_dedicated_hardware_security_module", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_dedicated_hardware_security_module", id.ID())
+		}
 	}
 
 	skuName := dedicatedhsms.SkuName(d.Get("sku_name").(string))
@@ -187,7 +191,7 @@ func resourceDedicatedHardwareSecurityModuleCreate(d *pluginsdk.ResourceData, me
 		}
 	}
 
-	if err := client.DedicatedHsmCreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.DedicatedHsmCreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 

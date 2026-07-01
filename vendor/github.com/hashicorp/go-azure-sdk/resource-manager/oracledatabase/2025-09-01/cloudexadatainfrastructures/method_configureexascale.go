@@ -62,9 +62,20 @@ func (c CloudExadataInfrastructuresClient) ConfigureExascale(ctx context.Context
 
 // ConfigureExascaleThenPoll performs ConfigureExascale then polls until it's completed
 func (c CloudExadataInfrastructuresClient) ConfigureExascaleThenPoll(ctx context.Context, id CloudExadataInfrastructureId, input ConfigureExascaleCloudExadataInfrastructureDetails) error {
+	return c.ConfigureExascaleCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ConfigureExascaleCallbackThenPoll performs ConfigureExascale, runs the optional callback function, then polls until it's completed
+func (c CloudExadataInfrastructuresClient) ConfigureExascaleCallbackThenPoll(ctx context.Context, id CloudExadataInfrastructureId, input ConfigureExascaleCloudExadataInfrastructureDetails, callback func() error) error {
 	result, err := c.ConfigureExascale(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ConfigureExascale: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

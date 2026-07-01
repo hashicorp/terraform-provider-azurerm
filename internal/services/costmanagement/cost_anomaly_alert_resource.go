@@ -105,12 +105,15 @@ func (r AnomalyAlertResource) Create() sdk.ResourceFunc {
 			}
 			id := scheduledactions.NewScopedScheduledActionID(subscriptionId, metadata.ResourceData.Get("name").(string))
 
-			existing, err := client.GetByScope(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetByScope(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			emailAddressesRaw := metadata.ResourceData.Get("email_addresses").(*pluginsdk.Set).List()

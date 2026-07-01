@@ -62,9 +62,20 @@ func (c ManagedClustersClient) ResetServicePrincipalProfile(ctx context.Context,
 
 // ResetServicePrincipalProfileThenPoll performs ResetServicePrincipalProfile then polls until it's completed
 func (c ManagedClustersClient) ResetServicePrincipalProfileThenPoll(ctx context.Context, id commonids.KubernetesClusterId, input ManagedClusterServicePrincipalProfile) error {
+	return c.ResetServicePrincipalProfileCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ResetServicePrincipalProfileCallbackThenPoll performs ResetServicePrincipalProfile, runs the optional callback function, then polls until it's completed
+func (c ManagedClustersClient) ResetServicePrincipalProfileCallbackThenPoll(ctx context.Context, id commonids.KubernetesClusterId, input ManagedClusterServicePrincipalProfile, callback func() error) error {
 	result, err := c.ResetServicePrincipalProfile(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ResetServicePrincipalProfile: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

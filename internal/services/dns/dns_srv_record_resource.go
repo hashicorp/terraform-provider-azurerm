@@ -121,15 +121,17 @@ func resourceDnsSrvRecordCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	id := recordsets.NewRecordTypeID(subscriptionId, resGroup, zoneName, recordsets.RecordTypeSRV, name)
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_dns_srv_record", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_dns_srv_record", id.ID())
+		}
 	}
 
 	ttl := int64(d.Get("ttl").(int))
@@ -320,10 +322,10 @@ func resourceDnsSrvRecordHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%d-", m["priority"].(int)))
-		buf.WriteString(fmt.Sprintf("%d-", m["weight"].(int)))
-		buf.WriteString(fmt.Sprintf("%d-", m["port"].(int)))
-		buf.WriteString(fmt.Sprintf("%s-", m["target"].(string)))
+		fmt.Fprintf(&buf, "%d-", m["priority"].(int))
+		fmt.Fprintf(&buf, "%d-", m["weight"].(int))
+		fmt.Fprintf(&buf, "%d-", m["port"].(int))
+		fmt.Fprintf(&buf, "%s-", m["target"].(string))
 	}
 
 	return pluginsdk.HashString(buf.String())

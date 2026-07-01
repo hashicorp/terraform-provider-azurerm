@@ -153,15 +153,15 @@ func (m AutomationRuntimeEnvironmentResource) ResourceType() string {
 func (m AutomationRuntimeEnvironmentResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
-		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.Automation.RuntimeEnvironment
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Automation.RuntimeEnvironment
 
 			var model AutomationRuntimeEnvironmentResourceModel
-			if err := meta.Decode(&model); err != nil {
+			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			subscriptionID := meta.Client.Account.SubscriptionId
+			subscriptionID := metadata.Client.Account.SubscriptionId
 
 			autAccId, err := runtimeenvironment.ParseAutomationAccountIDInsensitively(model.AutomationAccountId)
 			if err != nil {
@@ -170,13 +170,15 @@ func (m AutomationRuntimeEnvironmentResource) Create() sdk.ResourceFunc {
 
 			id := runtimeenvironment.NewRuntimeEnvironmentID(subscriptionID, autAccId.ResourceGroupName, autAccId.AutomationAccountName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return meta.ResourceRequiresImport(m.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(m.ResourceType(), id)
+				}
 			}
 
 			req := runtimeenvironment.RuntimeEnvironment{
@@ -206,7 +208,7 @@ func (m AutomationRuntimeEnvironmentResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			meta.SetID(id)
+			metadata.SetID(id)
 			return nil
 		},
 	}

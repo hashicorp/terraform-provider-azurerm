@@ -62,9 +62,20 @@ func (c LocalRulesResourcesClient) LocalRulesCreateOrUpdate(ctx context.Context,
 
 // LocalRulesCreateOrUpdateThenPoll performs LocalRulesCreateOrUpdate then polls until it's completed
 func (c LocalRulesResourcesClient) LocalRulesCreateOrUpdateThenPoll(ctx context.Context, id LocalRuleId, input LocalRulesResource) error {
+	return c.LocalRulesCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// LocalRulesCreateOrUpdateCallbackThenPoll performs LocalRulesCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c LocalRulesResourcesClient) LocalRulesCreateOrUpdateCallbackThenPoll(ctx context.Context, id LocalRuleId, input LocalRulesResource, callback func() error) error {
 	result, err := c.LocalRulesCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing LocalRulesCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -62,9 +62,20 @@ func (c PrivateLinkServicesClient) CheckPrivateLinkServiceVisibilityByResourceGr
 
 // CheckPrivateLinkServiceVisibilityByResourceGroupThenPoll performs CheckPrivateLinkServiceVisibilityByResourceGroup then polls until it's completed
 func (c PrivateLinkServicesClient) CheckPrivateLinkServiceVisibilityByResourceGroupThenPoll(ctx context.Context, id ProviderLocationId, input CheckPrivateLinkServiceVisibilityRequest) error {
+	return c.CheckPrivateLinkServiceVisibilityByResourceGroupCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CheckPrivateLinkServiceVisibilityByResourceGroupCallbackThenPoll performs CheckPrivateLinkServiceVisibilityByResourceGroup, runs the optional callback function, then polls until it's completed
+func (c PrivateLinkServicesClient) CheckPrivateLinkServiceVisibilityByResourceGroupCallbackThenPoll(ctx context.Context, id ProviderLocationId, input CheckPrivateLinkServiceVisibilityRequest, callback func() error) error {
 	result, err := c.CheckPrivateLinkServiceVisibilityByResourceGroup(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CheckPrivateLinkServiceVisibilityByResourceGroup: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

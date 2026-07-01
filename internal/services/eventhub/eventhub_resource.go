@@ -6,7 +6,6 @@ package eventhub
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -265,8 +264,6 @@ func resourceEventHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure ARM EventHub creation.")
-
 	namespaceName := ""
 	resourceGroupName := ""
 	if v := d.Get("namespace_id").(string); v != "" {
@@ -285,7 +282,7 @@ func resourceEventHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	id := eventhubs.NewEventhubID(subscriptionId, resourceGroupName, namespaceName, d.Get("name").(string))
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -293,7 +290,7 @@ func resourceEventHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 		}
 
-		if existing.Model != nil {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_eventhub", id.ID())
 		}
 	}
@@ -332,8 +329,6 @@ func resourceEventHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Azure ARM EventHub update.")
 
 	id, err := eventhubs.ParseEventhubID(d.Id())
 	if err != nil {

@@ -111,15 +111,16 @@ func TestAccCosmosDBAccount_keyVaultUri(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.key_vault_uri(data, cosmosdb.DatabaseAccountKindMongoDB, cosmosdb.DefaultConsistencyLevelStrong),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
-				checkAccCosmosDBAccount_basic(data, cosmosdb.DefaultConsistencyLevelStrong, 1),
-			),
+	data.ResourceTest(
+		t, r, []acceptance.TestStep{
+			{
+				Config: r.key_vault_uri(data, cosmosdb.DatabaseAccountKindMongoDB, cosmosdb.DefaultConsistencyLevelStrong),
+				Check: acceptance.ComposeAggregateTestCheckFunc(
+					checkAccCosmosDBAccount_basic(data, cosmosdb.DefaultConsistencyLevelStrong, 1),
+				),
+			},
+			data.ImportStep(),
 		},
-		data.ImportStep(),
-	},
 	)
 }
 
@@ -151,10 +152,11 @@ func TestAccCosmosDBAccount_ManagedHSMUri(t *testing.T) {
 
 	if !features.FivePointOh() {
 		// remove cmkArgument parameter from `managedHSMKey` post 5.x
-		steps = append(steps, acceptance.TestStep{
-			// Tests migration path from `managed_hsm_key_id` to `key_vault_key_id` without replacing resource
-			Config: r.managedHSMKey(data, uuids, "key_vault_key_id"),
-		},
+		steps = append(
+			steps, acceptance.TestStep{
+				// Tests migration path from `managed_hsm_key_id` to `key_vault_key_id` without replacing resource
+				Config: r.managedHSMKey(data, uuids, "key_vault_key_id"),
+			},
 		)
 	}
 
@@ -1344,7 +1346,7 @@ func TestAccCosmosDBAccount_localAuthenticationDisabled(t *testing.T) {
 			Config: r.basic(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("local_authentication_disabled").HasValue("false"),
+				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -1352,7 +1354,7 @@ func TestAccCosmosDBAccount_localAuthenticationDisabled(t *testing.T) {
 			Config: r.basicWithLocalAuthenticationDisabled(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("local_authentication_disabled").HasValue("true"),
+				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -4073,7 +4075,8 @@ resource "azurerm_cosmosdb_account" "test" {
 }
 
 func (CosmosDBAccountResource) basicWithLocalAuthenticationDisabled(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -4100,6 +4103,37 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   local_authentication_disabled = true
+}
+`, data.RandomInteger, data.Locations.Primary, string(kind), string(consistency))
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "%[3]s"
+
+  consistency_policy {
+    consistency_level = "%[4]s"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+
+  local_authentication_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, string(kind), string(consistency))
 }

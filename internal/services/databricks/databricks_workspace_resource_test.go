@@ -32,7 +32,7 @@ func TestAccDatabricksWorkspace_basic(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, "standard"),
+			Config: r.basic(data, "premium"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -97,7 +97,7 @@ func TestAccDatabricksWorkspace_sameName(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.sameName(data, "standard"),
+			Config: r.sameName(data, "premium"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -112,7 +112,7 @@ func TestAccDatabricksWorkspace_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, "standard"),
+			Config: r.basic(data, "premium"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -127,7 +127,7 @@ func TestAccDatabricksWorkspace_machineLearning(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.machineLearning(data, "standard"),
+			Config: r.machineLearning(data, "premium"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -292,7 +292,7 @@ func TestAccDatabricksWorkspace_updateSKU(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data, "standard"),
+			Config: r.basic(data, "premium"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -672,7 +672,7 @@ resource "azurerm_databricks_workspace" "test" {
 }
 
 func (DatabricksWorkspaceResource) basicForResourceIdentity(data acceptance.TestData) string {
-	return DatabricksWorkspaceResource{}.basic(data, "standard")
+	return DatabricksWorkspaceResource{}.basic(data, "premium")
 }
 
 func (DatabricksWorkspaceResource) defaultStorageFirewall(data acceptance.TestData, sku string) string {
@@ -1152,7 +1152,7 @@ resource "azurerm_databricks_workspace" "test" {
 }
 
 func (DatabricksWorkspaceResource) requiresImport(data acceptance.TestData) string {
-	template := DatabricksWorkspaceResource{}.basic(data, "standard")
+	template := DatabricksWorkspaceResource{}.basic(data, "premium")
 	return fmt.Sprintf(`
 %s
 
@@ -1245,7 +1245,7 @@ resource "azurerm_databricks_workspace" "test" {
   name                        = "acctestDBW-%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
-  sku                         = "standard"
+  sku                         = "premium"
   managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
 
   custom_parameters {
@@ -1260,7 +1260,7 @@ resource "azurerm_databricks_workspace" "test" {
 
   tags = {
     Environment = "Production"
-    Pricing     = "Standard"
+    Pricing     = "Premium"
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -1332,7 +1332,7 @@ resource "azurerm_databricks_workspace" "test" {
   name                        = "acctestDBW-%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
-  sku                         = "standard"
+  sku                         = "premium"
   managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
 
   custom_parameters {
@@ -1347,7 +1347,7 @@ resource "azurerm_databricks_workspace" "test" {
 
   tags = {
     Environment = "Production"
-    Pricing     = "Standard"
+    Pricing     = "Premium"
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -1419,7 +1419,7 @@ resource "azurerm_databricks_workspace" "test" {
   name                        = "acctestDBW-%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
-  sku                         = "standard"
+  sku                         = "premium"
   managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
 
   custom_parameters {
@@ -1434,7 +1434,7 @@ resource "azurerm_databricks_workspace" "test" {
 
   tags = {
     Environment = "Production"
-    Pricing     = "Standard"
+    Pricing     = "Premium"
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -1537,7 +1537,7 @@ resource "azurerm_databricks_workspace" "test" {
 
   tags = {
     Environment = "Production"
-    Pricing     = "Standard"
+    Pricing     = "Premium"
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -1641,7 +1641,7 @@ resource "azurerm_databricks_workspace" "test" {
 
   tags = {
     Environment = "Production"
-    Pricing     = "Standard"
+    Pricing     = "Premium"
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -1729,7 +1729,7 @@ resource "azurerm_databricks_workspace" "test" {
   name                        = "acctestDBW-%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
-  sku                         = "standard"
+  sku                         = "premium"
   managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
 
   custom_parameters {
@@ -1743,7 +1743,7 @@ resource "azurerm_databricks_workspace" "test" {
   }
 
   tags = {
-    Pricing = "Standard"
+    Pricing = "Premium"
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -1790,11 +1790,12 @@ resource "azurerm_storage_account" "test" {
   resource_group_name      = azurerm_resource_group.test.name
   account_tier             = "Standard"
   account_replication_type = "LRS"
+}
 
-  static_website {
-    error_404_document = "error.html"
-    index_document     = "index.html"
-  }
+resource "azurerm_storage_account_static_website" "test" {
+  storage_account_id = azurerm_storage_account.test.id
+  error_404_document = "error.html"
+  index_document     = "index.html"
 }
 
 resource "azurerm_machine_learning_workspace" "test" {
@@ -2198,7 +2199,7 @@ resource "azurerm_lb_outbound_rule" "test" {
   name                     = "OutboundRule-%[1]d"
   loadbalancer_id          = azurerm_lb.test.id
   protocol                 = "All"
-  enable_tcp_reset         = true
+  tcp_reset_enabled        = true
   allocated_outbound_ports = 1024
   idle_timeout_in_minutes  = 4
 

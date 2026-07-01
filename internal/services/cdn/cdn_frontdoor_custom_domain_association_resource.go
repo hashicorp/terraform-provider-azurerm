@@ -5,7 +5,6 @@ package cdn
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -66,8 +65,6 @@ func resourceCdnFrontDoorCustomDomainAssociationCreate(d *pluginsdk.ResourceData
 	client := meta.(*clients.Client).Cdn.AFDCustomDomainsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for CDN FrontDoor Route <-> CDN FrontDoor Custom Domain Association creation")
 
 	cdId, err := parse.FrontDoorCustomDomainID(d.Get("cdn_frontdoor_custom_domain_id").(string))
 	if err != nil {

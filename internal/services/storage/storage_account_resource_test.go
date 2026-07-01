@@ -212,7 +212,8 @@ func TestAccStorageAccount_blobConnectionString(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(check.That(data.ResourceName).ExistsInAzure(r),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("primary_blob_connection_string").Exists(),
 			),
 		},

@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -168,15 +169,17 @@ func resourcePrivateDnsZoneCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	id := privatezones.NewPrivateDnsZoneID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError(privateDnsZoneResourceName, id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError(privateDnsZoneResourceName, id.ID())
+			}
 		}
 	}
 
@@ -190,8 +193,18 @@ func resourcePrivateDnsZoneCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		IfNoneMatch: pointer.To(""),
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters, options); err != nil {
-		return fmt.Errorf("creating/updating %s: %s", id, err)
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, options, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %s", id, err)
+		}
+		d.SetId(id.ID())
+		if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+			return err
+		}
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, parameters, options); err != nil {
+			return fmt.Errorf("updating %s: %s", id, err)
+		}
 	}
 
 	if v, ok := d.GetOk("soa_record"); ok {
@@ -220,11 +233,6 @@ func resourcePrivateDnsZoneCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		if _, err := recordSetsClient.RecordSetsCreateOrUpdate(ctx, recordId, rsParameters, createOptions); err != nil {
 			return fmt.Errorf("creating/updating %s: %s", recordId, err)
 		}
-	}
-
-	d.SetId(id.ID())
-	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
-		return err
 	}
 
 	return resourcePrivateDnsZoneRead(d, meta)

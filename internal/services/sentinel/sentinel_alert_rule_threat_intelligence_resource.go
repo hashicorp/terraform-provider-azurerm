@@ -103,15 +103,17 @@ func (a AlertRuleThreatIntelligenceResource) Create() sdk.ResourceFunc {
 
 			id := alertrules.NewAlertRuleID(workspaceID.SubscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, metaModel.Name)
 
-			resp, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(resp.HttpResponse) {
-					return fmt.Errorf("checking for existing %q: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				resp, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(resp.HttpResponse) {
+						return fmt.Errorf("checking for existing %q: %+v", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(resp.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_sentinel_alert_rule_threat_intelligence", id.ID())
+				if !response.WasNotFound(resp.HttpResponse) {
+					return tf.ImportAsExistsError("azurerm_sentinel_alert_rule_threat_intelligence", id.ID())
+				}
 			}
 
 			template, err := fetchAlertRuleThreatIntelligenceTemplate(ctx, metadata.Client.Sentinel.AlertRuleTemplatesClient, *workspaceID, metaModel.TemplateName)

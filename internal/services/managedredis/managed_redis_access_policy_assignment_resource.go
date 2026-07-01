@@ -81,13 +81,15 @@ func (r ManagedRedisAccessPolicyAssignmentResource) Create() sdk.ResourceFunc {
 			dbId := databases.NewDatabaseID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, defaultDatabaseName)
 			id := databases.NewAccessPolicyAssignmentID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, defaultDatabaseName, model.ObjectID)
 
-			existing, err := client.AccessPolicyAssignmentGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.AccessPolicyAssignmentGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			dbResp, err := client.Get(ctx, dbId)
@@ -108,7 +110,7 @@ func (r ManagedRedisAccessPolicyAssignmentResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err := client.AccessPolicyAssignmentCreateUpdateThenPoll(ctx, id, createInput); err != nil {
+			if err := client.AccessPolicyAssignmentCreateUpdateCallbackThenPoll(ctx, id, createInput, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

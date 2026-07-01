@@ -124,15 +124,17 @@ func resourcePrivateDnsSrvRecordCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	id := privatedns.NewRecordTypeID(subscriptionId, d.Get("resource_group_name").(string), d.Get("zone_name").(string), privatedns.RecordTypeSRV, d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.RecordSetsGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.RecordSetsGet(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_private_dns_srv_record", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_private_dns_srv_record", id.ID())
+			}
 		}
 	}
 
@@ -153,7 +155,10 @@ func resourcePrivateDnsSrvRecordCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
+
 	return resourcePrivateDnsSrvRecordRead(d, meta)
 }
 
@@ -264,10 +269,10 @@ func resourcePrivateDnsSrvRecordHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%d-", m["priority"].(int)))
-		buf.WriteString(fmt.Sprintf("%d-", m["weight"].(int)))
-		buf.WriteString(fmt.Sprintf("%d-", m["port"].(int)))
-		buf.WriteString(fmt.Sprintf("%s-", m["target"].(string)))
+		fmt.Fprintf(&buf, "%d-", m["priority"].(int))
+		fmt.Fprintf(&buf, "%d-", m["weight"].(int))
+		fmt.Fprintf(&buf, "%d-", m["port"].(int))
+		fmt.Fprintf(&buf, "%s-", m["target"].(string))
 	}
 
 	return pluginsdk.HashString(buf.String())

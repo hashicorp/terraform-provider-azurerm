@@ -121,16 +121,18 @@ func (r KeyVaultCertificateContactsResource) Create() sdk.ResourceFunc {
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())
 
-			existing, err := client.GetCertificateContacts(ctx, *keyVaultBaseUri)
-			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
-					return fmt.Errorf("checking for presence of existing Certificate Contacts (Key Vault %q): %s", *keyVaultBaseUri, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetCertificateContacts(ctx, *keyVaultBaseUri)
+				if err != nil {
+					if !utils.ResponseWasNotFound(existing.Response) {
+						return fmt.Errorf("checking for presence of existing Certificate Contacts (Key Vault %q): %s", *keyVaultBaseUri, err)
+					}
 				}
-			}
 
-			if !utils.ResponseWasNotFound(existing.Response) {
-				if existing.ContactList != nil && len(*existing.ContactList) != 0 {
-					return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				if !utils.ResponseWasNotFound(existing.Response) {
+					if existing.ContactList != nil && len(*existing.ContactList) != 0 {
+						return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+					}
 				}
 			}
 

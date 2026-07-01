@@ -61,9 +61,20 @@ func (c AFDEndpointsClient) PurgeContent(ctx context.Context, id AfdEndpointId, 
 
 // PurgeContentThenPoll performs PurgeContent then polls until it's completed
 func (c AFDEndpointsClient) PurgeContentThenPoll(ctx context.Context, id AfdEndpointId, input AfdPurgeParameters) error {
+	return c.PurgeContentCallbackThenPoll(ctx, id, input, nil)
+}
+
+// PurgeContentCallbackThenPoll performs PurgeContent, runs the optional callback function, then polls until it's completed
+func (c AFDEndpointsClient) PurgeContentCallbackThenPoll(ctx context.Context, id AfdEndpointId, input AfdPurgeParameters, callback func() error) error {
 	result, err := c.PurgeContent(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing PurgeContent: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

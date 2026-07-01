@@ -8,3 +8,7 @@ const defaultApiVersion = "7.4"
 func userAgent() string {
 	return "hashicorp/go-azure-sdk/roledefinitions/7.4"
 }
+
+func AzureAPIVersion() string {
+	return defaultApiVersion
+}

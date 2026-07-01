@@ -33,7 +33,8 @@ func (t TimeoutType) IngString() string {
 
 // GenLine generate a line for timeout if not exists
 func (t *TimeoutDiffItem) GenLine(rt string) string {
-	return fmt.Sprintf("* `%s` - (Defaults to %s) Used when %s the %s.",
+	return fmt.Sprintf(
+		"* `%s` - (Defaults to %s) Used when %s the %s.",
 		t.Type.String(),
 		t.ValueString(),
 		t.Type.IngString(),
@@ -90,9 +91,9 @@ func newTimeoutDiff(checkBase checkBase, items []TimeoutDiffItem) *timeoutDiff {
 
 func (t timeoutDiff) String() string {
 	var bs strings.Builder
-	bs.WriteString(fmt.Sprintf("%d Document has incorrect or missing Timeouts. These should be:", t.Line()))
+	fmt.Fprintf(&bs, "%d Document has incorrect or missing Timeouts. These should be:", t.Line())
 	for _, item := range t.TimeoutDiff {
-		bs.WriteString(fmt.Sprintf("\n* `%s` - (Defaults to %s) Used when %s the xxx", item.Type, item.ValueString(), item.Type.IngString()))
+		fmt.Fprintf(&bs, "\n* `%s` - (Defaults to %s) Used when %s the xxx", item.Type, item.ValueString(), item.Type.IngString())
 	}
 	return bs.String()
 }

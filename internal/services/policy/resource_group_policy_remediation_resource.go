@@ -130,14 +130,16 @@ func resourceArmResourceGroupPolicyRemediationCreateUpdate(d *pluginsdk.Resource
 	id := remediations.NewProviderRemediationID(resourceGroupId.SubscriptionId, resourceGroupId.ResourceGroup, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.GetAtResourceGroup(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id.ID(), err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.GetAtResourceGroup(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id.ID(), err)
+				}
 			}
-		}
-		if existing.Model != nil {
-			return tf.ImportAsExistsError("azurerm_resource_group_policy_remediation", id.ID())
+			if existing.Model != nil {
+				return tf.ImportAsExistsError("azurerm_resource_group_policy_remediation", id.ID())
+			}
 		}
 	}
 
@@ -149,7 +151,9 @@ func resourceArmResourceGroupPolicyRemediationCreateUpdate(d *pluginsdk.Resource
 		return fmt.Errorf("creating/updating %s: %+v", id.ID(), err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
 
 	return resourceArmResourceGroupPolicyRemediationRead(d, meta)
 }
@@ -202,7 +206,8 @@ func resourceArmResourceGroupPolicyRemediationDelete(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if err := waitForRemediationToDelete(ctx, existing.Model.Properties, id.ID(), d.Timeout(pluginsdk.TimeoutDelete),
+	if err := waitForRemediationToDelete(
+		ctx, existing.Model.Properties, id.ID(), d.Timeout(pluginsdk.TimeoutDelete),
 		func() error {
 			_, err := client.CancelAtResourceGroup(ctx, *id)
 			return err

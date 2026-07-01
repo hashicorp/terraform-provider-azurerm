@@ -114,15 +114,17 @@ func resourcePrivateDnsMxRecordCreateUpdate(d *pluginsdk.ResourceData, meta inte
 
 	id := privatedns.NewRecordTypeID(subscriptionId, d.Get("resource_group_name").(string), d.Get("zone_name").(string), privatedns.RecordTypeMX, d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.RecordSetsGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.RecordSetsGet(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_private_dns_mx_record", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_private_dns_mx_record", id.ID())
+			}
 		}
 	}
 
@@ -143,7 +145,10 @@ func resourcePrivateDnsMxRecordCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
+
 	return resourcePrivateDnsMxRecordRead(d, meta)
 }
 
@@ -252,8 +257,8 @@ func resourcePrivateDnsMxRecordHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%d-", m["preference"].(int)))
-		buf.WriteString(fmt.Sprintf("%s-", m["exchange"].(string)))
+		fmt.Fprintf(&buf, "%d-", m["preference"].(int))
+		fmt.Fprintf(&buf, "%s-", m["exchange"].(string))
 	}
 
 	return pluginsdk.HashString(buf.String())

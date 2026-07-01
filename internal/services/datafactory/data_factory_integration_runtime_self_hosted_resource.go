@@ -128,15 +128,17 @@ func resourceDataFactoryIntegrationRuntimeSelfHostedCreateUpdate(d *pluginsdk.Re
 	id := integrationruntimes.NewIntegrationRuntimeID(dataFactoryId.SubscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, integrationruntimes.DefaultGetOperationOptions())
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id, integrationruntimes.DefaultGetOperationOptions())
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_data_factory_integration_runtime_self_hosted", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_data_factory_integration_runtime_self_hosted", id.ID())
+			}
 		}
 	}
 
@@ -163,7 +165,9 @@ func resourceDataFactoryIntegrationRuntimeSelfHostedCreateUpdate(d *pluginsdk.Re
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
 
 	return resourceDataFactoryIntegrationRuntimeSelfHostedRead(d, meta)
 }
@@ -285,9 +289,9 @@ func resourceDataFactoryIntegrationRuntimeSelfHostedRbacAuthorizationHash(v inte
 	if m, ok := v.(map[string]interface{}); ok {
 		if v, ok := m["resource_id"]; ok {
 			if !features.FivePointOh() {
-				buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(v.(string))))
+				fmt.Fprintf(&buf, "%s-", strings.ToLower(v.(string)))
 			} else {
-				buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+				fmt.Fprintf(&buf, "%s-", v.(string))
 			}
 		}
 	}

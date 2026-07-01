@@ -76,9 +76,20 @@ func (c ExpressRouteCircuitArpTableClient) ExpressRouteCircuitsListArpTable(ctx 
 
 // ExpressRouteCircuitsListArpTableThenPoll performs ExpressRouteCircuitsListArpTable then polls until it's completed
 func (c ExpressRouteCircuitArpTableClient) ExpressRouteCircuitsListArpTableThenPoll(ctx context.Context, id ArpTableId) error {
+	return c.ExpressRouteCircuitsListArpTableCallbackThenPoll(ctx, id, nil)
+}
+
+// ExpressRouteCircuitsListArpTableCallbackThenPoll performs ExpressRouteCircuitsListArpTable, runs the optional callback function, then polls until it's completed
+func (c ExpressRouteCircuitArpTableClient) ExpressRouteCircuitsListArpTableCallbackThenPoll(ctx context.Context, id ArpTableId, callback func() error) error {
 	result, err := c.ExpressRouteCircuitsListArpTable(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ExpressRouteCircuitsListArpTable: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

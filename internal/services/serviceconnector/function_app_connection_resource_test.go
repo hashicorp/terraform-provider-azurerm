@@ -180,24 +180,23 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 }
 
-resource "azurerm_app_service_plan" "test" {
+resource "azurerm_service_plan" "test" {
   name                = "acctestASP-%[3]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
+  os_type             = "Windows"
+  sku_name            = "S1"
 }
 
-resource "azurerm_function_app" "test" {
+resource "azurerm_windows_function_app" "test" {
   name                       = "acctest-%[3]d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  service_plan_id            = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {}
 
   lifecycle {
     ignore_changes = [
@@ -208,7 +207,7 @@ resource "azurerm_function_app" "test" {
 
 resource "azurerm_function_app_connection" "test" {
   name               = "acctestserviceconnector%[3]d"
-  function_app_id    = azurerm_function_app.test.id
+  function_app_id    = azurerm_windows_function_app.test.id
   target_resource_id = azurerm_storage_account.test.id
   authentication {
     type = "systemAssignedIdentity"
@@ -254,24 +253,23 @@ resource "azurerm_key_vault" "test" {
   soft_delete_retention_days = 7
 }
 
-resource "azurerm_app_service_plan" "test" {
+resource "azurerm_service_plan" "test" {
   name                = "acctestASP-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
+  os_type             = "Windows"
+  sku_name            = "S1"
 }
 
-resource "azurerm_function_app" "test" {
+resource "azurerm_windows_function_app" "test" {
   name                       = "acctest-%[2]d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  service_plan_id            = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {}
 
   lifecycle {
     ignore_changes = [
@@ -282,7 +280,7 @@ resource "azurerm_function_app" "test" {
 
 resource "azurerm_function_app_connection" "test" {
   name               = "acctestserviceconnector%[2]d"
-  function_app_id    = azurerm_function_app.test.id
+  function_app_id    = azurerm_windows_function_app.test.id
   target_resource_id = azurerm_storage_account.test.id
 
   secret_store {
@@ -302,7 +300,7 @@ func (r FunctionAppConnectorResource) complete(data acceptance.TestData) string 
 
 resource "azurerm_function_app_connection" "test" {
   name               = "acctestserviceconnector%[2]d"
-  function_app_id    = azurerm_function_app.test.id
+  function_app_id    = azurerm_windows_function_app.test.id
   target_resource_id = azurerm_cosmosdb_account.test.id
   client_type        = "java"
   authentication {
@@ -319,7 +317,7 @@ func (r FunctionAppConnectorResource) cosmosdbBasic(data acceptance.TestData) st
 
 resource "azurerm_function_app_connection" "test" {
   name               = "acctestserviceconnector%[2]d"
-  function_app_id    = azurerm_function_app.test.id
+  function_app_id    = azurerm_windows_function_app.test.id
   target_resource_id = azurerm_cosmosdb_account.test.id
   authentication {
     type = "systemAssignedIdentity"
@@ -335,7 +333,7 @@ func (r FunctionAppConnectorResource) cosmosdbSecretAuth(data acceptance.TestDat
 
 resource "azurerm_function_app_connection" "test" {
   name               = "acctestserviceconnector%[2]d"
-  function_app_id    = azurerm_function_app.test.id
+  function_app_id    = azurerm_windows_function_app.test.id
   target_resource_id = azurerm_cosmosdb_account.test.id
   authentication {
     type   = "secret"
@@ -359,7 +357,7 @@ resource "azurerm_user_assigned_identity" "test" {
 
 resource "azurerm_function_app_connection" "test" {
   name               = "acctestserviceconnector%[3]d"
-  function_app_id    = azurerm_function_app.test.id
+  function_app_id    = azurerm_windows_function_app.test.id
   target_resource_id = azurerm_cosmosdb_account.test.id
   authentication {
     type         = "servicePrincipalSecret"
@@ -386,7 +384,7 @@ resource "azurerm_user_assigned_identity" "test" {
 
 resource "azurerm_function_app_connection" "test" {
   name               = "acctestserviceconnector%[3]d"
-  function_app_id    = azurerm_function_app.test.id
+  function_app_id    = azurerm_windows_function_app.test.id
   target_resource_id = azurerm_cosmosdb_account.test.id
   authentication {
     type            = "userAssignedIdentity"
@@ -417,17 +415,9 @@ resource "azurerm_cosmosdb_sql_container" "update" {
   partition_key_paths = ["/definitionupdate"]
 }
 
-resource "azurerm_service_plan" "update" {
-  location            = azurerm_resource_group.test.location
-  name                = "testserviceplanupdate%[3]s"
-  resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "P1v2"
-  os_type             = "Linux"
-}
-
 resource "azurerm_function_app_connection" "test" {
   name               = "acctestserviceconnector%[2]d"
-  function_app_id    = azurerm_function_app.test.id
+  function_app_id    = azurerm_windows_function_app.test.id
   target_resource_id = azurerm_cosmosdb_account.test.id
   authentication {
     type = "systemAssignedIdentity"
@@ -489,24 +479,23 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 }
 
-resource "azurerm_app_service_plan" "test" {
+resource "azurerm_service_plan" "test" {
   name                = "acctestASP-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
+  os_type             = "Windows"
+  sku_name            = "S1"
 }
 
-resource "azurerm_function_app" "test" {
+resource "azurerm_windows_function_app" "test" {
   name                       = "acctest-%[1]d-func"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  service_plan_id            = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {}
 
   lifecycle {
     ignore_changes = [

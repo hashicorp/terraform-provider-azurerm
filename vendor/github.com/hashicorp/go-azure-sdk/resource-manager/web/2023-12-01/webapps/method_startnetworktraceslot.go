@@ -95,9 +95,20 @@ func (c WebAppsClient) StartNetworkTraceSlot(ctx context.Context, id SlotId, opt
 
 // StartNetworkTraceSlotThenPoll performs StartNetworkTraceSlot then polls until it's completed
 func (c WebAppsClient) StartNetworkTraceSlotThenPoll(ctx context.Context, id SlotId, options StartNetworkTraceSlotOperationOptions) error {
+	return c.StartNetworkTraceSlotCallbackThenPoll(ctx, id, options, nil)
+}
+
+// StartNetworkTraceSlotCallbackThenPoll performs StartNetworkTraceSlot, runs the optional callback function, then polls until it's completed
+func (c WebAppsClient) StartNetworkTraceSlotCallbackThenPoll(ctx context.Context, id SlotId, options StartNetworkTraceSlotOperationOptions, callback func() error) error {
 	result, err := c.StartNetworkTraceSlot(ctx, id, options)
 	if err != nil {
 		return fmt.Errorf("performing StartNetworkTraceSlot: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

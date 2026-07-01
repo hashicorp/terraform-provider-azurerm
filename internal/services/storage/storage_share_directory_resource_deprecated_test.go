@@ -223,7 +223,8 @@ resource "azurerm_storage_share_directory" "test" {
 }
 
 func (r StorageShareDirectoryResourceDeprecated) basicAzureADAuth(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   storage_use_azuread = true
   features {}
@@ -252,7 +253,38 @@ resource "azurerm_storage_share_directory" "test" {
   name             = "dir"
   storage_share_id = azurerm_storage_share.test.id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+		`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  storage_use_azuread = true
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_share" "test" {
+  name               = "fileshare"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 50
+}
+
+resource "azurerm_storage_share_directory" "test" {
+  name             = "dir"
+  storage_share_id = azurerm_storage_share.test.id
+}
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r StorageShareDirectoryResourceDeprecated) uppercase(data acceptance.TestData) string {
@@ -358,7 +390,8 @@ resource "azurerm_storage_share_directory" "dos" {
 }
 
 func (r StorageShareDirectoryResourceDeprecated) template(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -381,5 +414,30 @@ resource "azurerm_storage_share" "test" {
   storage_account_name = azurerm_storage_account.test.name
   quota                = 50
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+		`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_share" "test" {
+  name               = "fileshare"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 50
+}
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

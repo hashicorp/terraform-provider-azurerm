@@ -396,15 +396,17 @@ func resourceMonitorMetricAlertCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	id := metricalerts.NewMetricAlertID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing Monitor %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing Monitor %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_monitor_metric_alert", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_monitor_metric_alert", id.ID())
+			}
 		}
 	}
 
@@ -905,9 +907,9 @@ func flattenMonitorMetricAlertAction(input *[]metricalerts.MetricAlertAction) (r
 func resourceMonitorMetricAlertActionHash(input interface{}) int {
 	var buf bytes.Buffer
 	if v, ok := input.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%s-", v["action_group_id"].(string)))
+		fmt.Fprintf(&buf, "%s-", v["action_group_id"].(string))
 		if m, ok := v["webhook_properties"].(map[string]interface{}); ok && m != nil {
-			buf.WriteString(fmt.Sprintf("%v-", m))
+			fmt.Fprintf(&buf, "%v-", m)
 		}
 	}
 	return pluginsdk.HashString(buf.String())

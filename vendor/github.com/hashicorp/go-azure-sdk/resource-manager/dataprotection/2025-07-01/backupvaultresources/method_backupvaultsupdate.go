@@ -91,9 +91,20 @@ func (c BackupVaultResourcesClient) BackupVaultsUpdate(ctx context.Context, id B
 
 // BackupVaultsUpdateThenPoll performs BackupVaultsUpdate then polls until it's completed
 func (c BackupVaultResourcesClient) BackupVaultsUpdateThenPoll(ctx context.Context, id BackupVaultId, input PatchResourceRequestInput, options BackupVaultsUpdateOperationOptions) error {
+	return c.BackupVaultsUpdateCallbackThenPoll(ctx, id, input, options, nil)
+}
+
+// BackupVaultsUpdateCallbackThenPoll performs BackupVaultsUpdate, runs the optional callback function, then polls until it's completed
+func (c BackupVaultResourcesClient) BackupVaultsUpdateCallbackThenPoll(ctx context.Context, id BackupVaultId, input PatchResourceRequestInput, options BackupVaultsUpdateOperationOptions, callback func() error) error {
 	result, err := c.BackupVaultsUpdate(ctx, id, input, options)
 	if err != nil {
 		return fmt.Errorf("performing BackupVaultsUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
