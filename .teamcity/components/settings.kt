@@ -18,6 +18,9 @@ var defaultTerraformCoreVersion = "1.14.3"
 // This represents a cron view of days of the week, Monday - Friday.
 const val defaultDaysOfWeek = "2,3,4,5,6"
 
+// This represents a cron view of Monday.
+const val defaultWeeklyDay = "2"
+
 // Cron value for any day of month
 const val defaultDaysOfMonth = "*"
 
@@ -202,10 +205,6 @@ var serviceTestConfigurationOverrides = mapOf(
 
         // Currently, we have insufficient quota to actually run these, but there are a few nodes in West Europe, so we'll pin it there for now
         "vmware" to testConfiguration(parallelism = 3, locationOverride = LocationConfiguration("westeurope", "westus2", "eastus2", false)),
-
-        // In general, Azure Voice Service is available in several different regions, but each subscription will only be allowlisted for specific regions(`westcentralus`, `westcentralus`, `westcentralus`).
-        // Only the regions (`westcentralus`) is specified since the devtest subscription does not support creating resource group for the other two regions.
-        "voiceservices" to testConfiguration(parallelism = 3, locationOverride = LocationConfiguration("westcentralus", "westcentralus", "westcentralus", false)),
 
         // Offset start hour to avoid collision with new App Service, reduce frequency of testing days
         "web" to testConfiguration(startHour = 3, daysOfWeek = "1,3,5", locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", true)),

@@ -8,3 +8,7 @@ const defaultApiVersion = "2023-04-02"
 func userAgent() string {
 	return "hashicorp/go-azure-sdk/disks/2023-04-02"
 }
+
+func AzureAPIVersion() string {
+	return defaultApiVersion
+}

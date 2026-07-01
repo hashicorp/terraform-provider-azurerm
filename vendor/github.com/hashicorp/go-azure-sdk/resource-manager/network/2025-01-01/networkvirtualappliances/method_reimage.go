@@ -62,9 +62,20 @@ func (c NetworkVirtualAppliancesClient) Reimage(ctx context.Context, id NetworkV
 
 // ReimageThenPoll performs Reimage then polls until it's completed
 func (c NetworkVirtualAppliancesClient) ReimageThenPoll(ctx context.Context, id NetworkVirtualApplianceId, input NetworkVirtualApplianceInstanceIds) error {
+	return c.ReimageCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ReimageCallbackThenPoll performs Reimage, runs the optional callback function, then polls until it's completed
+func (c NetworkVirtualAppliancesClient) ReimageCallbackThenPoll(ctx context.Context, id NetworkVirtualApplianceId, input NetworkVirtualApplianceInstanceIds, callback func() error) error {
 	result, err := c.Reimage(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Reimage: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

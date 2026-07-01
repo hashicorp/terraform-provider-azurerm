@@ -61,9 +61,20 @@ func (c VirtualMachineScaleSetsClient) Start(ctx context.Context, id VirtualMach
 
 // StartThenPoll performs Start then polls until it's completed
 func (c VirtualMachineScaleSetsClient) StartThenPoll(ctx context.Context, id VirtualMachineScaleSetId, input VirtualMachineScaleSetVMInstanceIDs) error {
+	return c.StartCallbackThenPoll(ctx, id, input, nil)
+}
+
+// StartCallbackThenPoll performs Start, runs the optional callback function, then polls until it's completed
+func (c VirtualMachineScaleSetsClient) StartCallbackThenPoll(ctx context.Context, id VirtualMachineScaleSetId, input VirtualMachineScaleSetVMInstanceIDs, callback func() error) error {
 	result, err := c.Start(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Start: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

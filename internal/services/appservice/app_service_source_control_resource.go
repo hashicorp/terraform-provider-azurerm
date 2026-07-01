@@ -155,12 +155,14 @@ func (r SourceControlResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			existing, err := client.GetConfiguration(ctx, *id)
-			if err != nil || existing.Model == nil || existing.Model.Properties == nil {
-				return fmt.Errorf("checking for existing Source Control configuration on %s: %+v", id, err)
-			}
-			if pointer.From(existing.Model.Properties.ScmType) != webapps.ScmTypeNone {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetConfiguration(ctx, *id)
+				if err != nil || existing.Model == nil || existing.Model.Properties == nil {
+					return fmt.Errorf("checking for existing Source Control configuration on %s: %+v", id, err)
+				}
+				if pointer.From(existing.Model.Properties.ScmType) != webapps.ScmTypeNone {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			if appSourceControl.LocalGitSCM {

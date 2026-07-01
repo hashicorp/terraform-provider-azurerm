@@ -18,6 +18,8 @@ import (
 
 type AccountResource struct{}
 
+type VideoIndexerAccountResource = AccountResource
+
 func TestAccVideoIndexerAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_video_indexer_account", "test")
 	r := AccountResource{}

@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/communicationservices"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/validate"
@@ -58,7 +59,7 @@ func (CommunicationServiceResource) StateUpgraders() sdk.StateUpgradeData {
 }
 
 func (CommunicationServiceResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	args := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -69,11 +70,9 @@ func (CommunicationServiceResource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"data_location": {
-			Type: pluginsdk.TypeString,
-			// TODO: should this become Required and remove the default in 4.0?
-			Optional: true,
+			Type:     pluginsdk.TypeString,
+			Required: true,
 			ForceNew: true,
-			Default:  "United States",
 			ValidateFunc: validation.StringInSlice([]string{
 				"Africa",
 				"Asia Pacific",
@@ -97,6 +96,36 @@ func (CommunicationServiceResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.FivePointOh() {
+		args["data_location"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			Default:  "United States",
+			ValidateFunc: validation.StringInSlice([]string{
+				"Africa",
+				"Asia Pacific",
+				"Australia",
+				"Brazil",
+				"Canada",
+				"Europe",
+				"France",
+				"Germany",
+				"India",
+				"Japan",
+				"Korea",
+				"Norway",
+				"Switzerland",
+				"UAE",
+				"UK",
+				"United States",
+				"usgov",
+			}, false),
+		}
+	}
+
+	return args
 }
 
 func (CommunicationServiceResource) Attributes() map[string]*pluginsdk.Schema {
@@ -155,12 +184,14 @@ func (r CommunicationServiceResource) Create() sdk.ResourceFunc {
 
 			id := communicationservices.NewCommunicationServiceID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			param := communicationservices.CommunicationServiceResource{
@@ -172,7 +203,7 @@ func (r CommunicationServiceResource) Create() sdk.ResourceFunc {
 				Tags: pointer.To(model.Tags),
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, param, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

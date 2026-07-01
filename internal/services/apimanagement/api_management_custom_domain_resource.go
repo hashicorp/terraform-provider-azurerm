@@ -112,8 +112,10 @@ func apiManagementCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	if d.IsNewResource() {
-		if existing.Model != nil && existing.Model.Properties.HostnameConfigurations != nil && len(*existing.Model.Properties.HostnameConfigurations) > 1 {
-			return tf.ImportAsExistsError(apiManagementCustomDomainResourceName, *existing.Model.Id)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if existing.Model != nil && existing.Model.Properties.HostnameConfigurations != nil && len(*existing.Model.Properties.HostnameConfigurations) > 1 {
+				return tf.ImportAsExistsError(apiManagementCustomDomainResourceName, *existing.Model.Id)
+			}
 		}
 	}
 
@@ -147,6 +149,7 @@ func apiManagementCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		}
 	}
 
+	// TODO: implement callback, requires migrating to an ID implementing `resourceids.ResourceId`
 	if err := client.CreateOrUpdateThenPoll(ctx, *apiMgmtId, *existing.Model); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
@@ -244,8 +247,6 @@ func apiManagementCustomDomainDelete(d *pluginsdk.ResourceData, meta interface{}
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to become ready: %+v", *id, err)
 	}
-
-	log.Printf("[DEBUG] Deleting %s", *id)
 
 	if resp.Model != nil {
 		resp.Model.Properties.HostnameConfigurations = nil

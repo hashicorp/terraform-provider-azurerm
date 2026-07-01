@@ -100,13 +100,15 @@ func (r CustomCertWebPubsubResource) Create() sdk.ResourceFunc {
 			locks.ByID(webPubsubId.ID())
 			defer locks.UnlockByID(webPubsubId.ID())
 
-			existing, err := client.CustomCertificatesGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.CustomCertificatesGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			customCertObj := webpubsub.CustomCertificate{
@@ -119,11 +121,11 @@ func (r CustomCertWebPubsubResource) Create() sdk.ResourceFunc {
 				customCertObj.Properties.KeyVaultSecretVersion = pointer.To(keyVaultCertificateId.Version)
 			}
 
-			if err := client.CustomCertificatesCreateOrUpdateThenPoll(ctx, id, customCertObj); err != nil {
-				return fmt.Errorf("creating web pubsub custom certificate: %s: %+v", id, err)
+			if err := client.CustomCertificatesCreateOrUpdateCallbackThenPoll(ctx, id, customCertObj, metadata.SetIDCallback(&id)); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}

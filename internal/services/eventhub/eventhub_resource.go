@@ -4,8 +4,8 @@
 package eventhub
 
 import (
+	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -171,6 +171,24 @@ func resourceEventHub() *pluginsdk.Resource {
 										Required:     true,
 										ValidateFunc: commonids.ValidateStorageAccountID,
 									},
+
+									// Storage SAS is the default authentication type for capture destination, it's not supported by the API, so hard coding the value to align with azure portal behavior.
+									"storage_authentication_type": {
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+										Default:  "StorageSAS",
+										ValidateFunc: validation.StringInSlice([]string{
+											"StorageSAS",
+											string(eventhubs.CaptureIdentityTypeSystemAssigned),
+											string(eventhubs.CaptureIdentityTypeUserAssigned),
+										}, false),
+									},
+
+									"storage_authentication_id": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+									},
 								},
 							},
 						},
@@ -196,6 +214,17 @@ func resourceEventHub() *pluginsdk.Resource {
 				Computed: true,
 			},
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+			capture := d.GetRawConfig().AsValueMap()["capture_description"]
+			if !capture.IsNull() && len(capture.AsValueSlice()) > 0 {
+				destination := capture.AsValueSlice()[0].AsValueMap()["destination"].AsValueSlice()[0].AsValueMap()
+				if !destination["storage_authentication_type"].IsNull() && destination["storage_authentication_type"].AsString() == string(eventhubs.CaptureIdentityTypeUserAssigned) && destination["storage_authentication_id"].IsNull() {
+					return fmt.Errorf("`storage_authentication_id` must be specified when `storage_authentication_type` is set to `UserAssigned`")
+				}
+			}
+			return nil
+		}),
 	}
 
 	if !features.FivePointOh() {
@@ -235,8 +264,6 @@ func resourceEventHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure ARM EventHub creation.")
-
 	namespaceName := ""
 	resourceGroupName := ""
 	if v := d.Get("namespace_id").(string); v != "" {
@@ -255,7 +282,7 @@ func resourceEventHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	id := eventhubs.NewEventhubID(subscriptionId, resourceGroupName, namespaceName, d.Get("name").(string))
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -263,7 +290,7 @@ func resourceEventHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 		}
 
-		if existing.Model != nil {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_eventhub", id.ID())
 		}
 	}
@@ -302,8 +329,6 @@ func resourceEventHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Azure ARM EventHub update.")
 
 	id, err := eventhubs.ParseEventhubID(d.Id())
 	if err != nil {
@@ -498,6 +523,20 @@ func expandEventHubCaptureDescription(d *pluginsdk.ResourceData) *eventhubs.Capt
 					StorageAccountResourceId: pointer.To(storageAccountId),
 				},
 			}
+
+			if destinationAuthType := destination["storage_authentication_type"]; destinationAuthType != nil && destinationAuthType.(string) != "" {
+				authType := eventhubs.CaptureIdentityType(destinationAuthType.(string))
+				if authType != "StorageSAS" {
+					captureDescription.Destination.Identity = &eventhubs.CaptureIdentity{
+						Type: pointer.To(authType),
+					}
+				}
+			}
+
+			if destinationAuthTypeId := destination["storage_authentication_id"]; destinationAuthTypeId != nil && destinationAuthTypeId.(string) != "" {
+				authId := destinationAuthTypeId.(string)
+				captureDescription.Destination.Identity.UserAssignedIdentity = &authId
+			}
 		}
 	}
 
@@ -573,6 +612,14 @@ func flattenEventHubCaptureDescription(description *eventhubs.CaptureDescription
 				if storageAccountId := props.StorageAccountResourceId; storageAccountId != nil {
 					destinationOutput["storage_account_id"] = *storageAccountId
 				}
+			}
+
+			destinationOutput["storage_authentication_type"] = "StorageSAS"
+			if storageIdentity := destination.Identity; storageIdentity != nil {
+				if storageAuthType := storageIdentity.Type; storageAuthType != nil {
+					destinationOutput["storage_authentication_type"] = pointer.From(storageIdentity.Type)
+				}
+				destinationOutput["storage_authentication_id"] = pointer.From(storageIdentity.UserAssignedIdentity)
 			}
 
 			output["destination"] = []interface{}{destinationOutput}

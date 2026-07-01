@@ -6,7 +6,6 @@ package trafficmanager
 import (
 	"errors"
 	"fmt"
-	"log"
 	"math"
 	"strconv"
 	"strings"
@@ -17,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/profiles"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -26,6 +26,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name traffic_manager_profile -service-package-name trafficmanager -properties "name,resource_group_name" -test-params "Geographic" -known-values "subscription_id:data.Subscriptions.Primary"
+
+const azureTrafficManagerProfileResourceName = "azurerm_traffic_manager_profile"
+
 func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceArmTrafficManagerProfileCreate,
@@ -33,10 +37,11 @@ func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
 		Update: resourceArmTrafficManagerProfileUpdate,
 		Delete: resourceArmTrafficManagerProfileDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := profiles.ParseTrafficManagerProfileID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&profiles.TrafficManagerProfileId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&profiles.TrafficManagerProfileId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -203,18 +208,19 @@ func resourceArmTrafficManagerProfileCreate(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Traffic Manager Profile creation.")
-
 	id := profiles.NewTrafficManagerProfileID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s", id)
-		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_traffic_manager_profile", id.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s", id)
+			}
+		}
+
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_traffic_manager_profile", id.ID())
+		}
 	}
 
 	trafficRoutingMethod := profiles.TrafficRoutingMethod(d.Get("traffic_routing_method").(string))
@@ -256,6 +262,10 @@ func resourceArmTrafficManagerProfileCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceArmTrafficManagerProfileRead(d, meta)
 }
 
@@ -278,10 +288,14 @@ func resourceArmTrafficManagerProfileRead(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	return resourceArmTrafficManagerProfileFlatten(d, id, resp.Model)
+}
+
+func resourceArmTrafficManagerProfileFlatten(d *pluginsdk.ResourceData, id *profiles.TrafficManagerProfileId, model *profiles.Profile) error {
 	d.Set("name", id.TrafficManagerProfileName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if profile := model.Properties; profile != nil {
 			profileStatus := ""
 			if profile.ProfileStatus != nil {
@@ -312,7 +326,8 @@ func resourceArmTrafficManagerProfileRead(d *pluginsdk.ResourceData, meta interf
 			return err
 		}
 	}
-	return nil
+
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceArmTrafficManagerProfileUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

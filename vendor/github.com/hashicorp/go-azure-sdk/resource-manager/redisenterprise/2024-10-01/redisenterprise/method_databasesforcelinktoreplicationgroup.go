@@ -60,9 +60,20 @@ func (c RedisEnterpriseClient) DatabasesForceLinkToReplicationGroup(ctx context.
 
 // DatabasesForceLinkToReplicationGroupThenPoll performs DatabasesForceLinkToReplicationGroup then polls until it's completed
 func (c RedisEnterpriseClient) DatabasesForceLinkToReplicationGroupThenPoll(ctx context.Context, id DatabaseId, input ForceLinkParameters) error {
+	return c.DatabasesForceLinkToReplicationGroupCallbackThenPoll(ctx, id, input, nil)
+}
+
+// DatabasesForceLinkToReplicationGroupCallbackThenPoll performs DatabasesForceLinkToReplicationGroup, runs the optional callback function, then polls until it's completed
+func (c RedisEnterpriseClient) DatabasesForceLinkToReplicationGroupCallbackThenPoll(ctx context.Context, id DatabaseId, input ForceLinkParameters, callback func() error) error {
 	result, err := c.DatabasesForceLinkToReplicationGroup(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing DatabasesForceLinkToReplicationGroup: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

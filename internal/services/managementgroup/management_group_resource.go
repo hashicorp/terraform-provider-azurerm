@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/management/2020-05-01/managementgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -114,23 +115,23 @@ func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	recurse := false
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, managementgroups.GetOperationOptions{
-			CacheControl: &managementGroupCacheControl,
-			Expand:       pointer.To(managementgroups.ExpandChildren),
-			Recurse:      &recurse,
-		})
-		if err != nil {
-			// 403 is returned if group does not exist, bug tracked at: https://github.com/Azure/azure-rest-api-specs/issues/9549
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id, managementgroups.GetOperationOptions{
+				CacheControl: &managementGroupCacheControl,
+				Expand:       pointer.To(managementgroups.ExpandChildren),
+				Recurse:      &recurse,
+			})
+			if err != nil {
+				// 403 is returned if group does not exist, bug tracked at: https://github.com/Azure/azure-rest-api-specs/issues/9549
+				if !response.WasNotFound(existing.HttpResponse) && !response.WasForbidden(existing.HttpResponse) {
+					return fmt.Errorf("unable to check for presence of existing Management Group %q: %s", groupName, err)
+				}
+			}
 			if !response.WasNotFound(existing.HttpResponse) && !response.WasForbidden(existing.HttpResponse) {
-				return fmt.Errorf("unable to check for presence of existing Management Group %q: %s", groupName, err)
+				return tf.ImportAsExistsError("azurerm_management_group", id.ID())
 			}
 		}
-		if !response.WasNotFound(existing.HttpResponse) && !response.WasForbidden(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_management_group", id.ID())
-		}
 	}
-
-	log.Printf("[INFO] Creating Management Group %q", groupName)
 
 	properties := managementgroups.CreateManagementGroupRequest{
 		Name: pointer.To(groupName),
@@ -148,11 +149,19 @@ func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		properties.Properties.DisplayName = pointer.To(v.(string))
 	}
 
-	err := client.CreateOrUpdateThenPoll(ctx, id, properties, managementgroups.CreateOrUpdateOperationOptions{
+	opts := managementgroups.CreateOrUpdateOperationOptions{
 		CacheControl: &managementGroupCacheControl,
-	})
-	if err != nil {
-		return fmt.Errorf("unable to create Management Group %q: %+v", groupName, err)
+	}
+
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, properties, opts, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, properties, opts); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
 	// We have a potential race condition / consistency issue whereby the implicit role assignment for the SP may not be
@@ -183,8 +192,6 @@ func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("unable to retrieve Management Group %q: %+v", groupName, err)
 	}
 
-	d.SetId(id.ID())
-
 	subscriptionIds := expandManagementGroupSubscriptionIds(d.Get("subscription_ids").(*pluginsdk.Set))
 
 	// first remove any which need to be removed
@@ -213,7 +220,6 @@ func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	// then add the new ones
-	log.Printf("[DEBUG] Preparing to assign Subscriptions to Management Group %q", groupName)
 	for _, subscriptionId := range subscriptionIds {
 		log.Printf("[DEBUG] Assigning Subscription ID %q to management group %q", subscriptionId, groupName)
 		if _, err := client.SubscriptionsCreate(ctx, managementgroups.NewSubscriptionID(groupName, subscriptionId), managementgroups.SubscriptionsCreateOperationOptions{

@@ -111,6 +111,11 @@ func dataSourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				},
 			},
 
+			"node_image_version": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"orchestrator_version": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -259,6 +264,8 @@ func dataSourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta int
 		if err := d.Set("node_taints", utils.FlattenStringSlice(props.NodeTaints)); err != nil {
 			return fmt.Errorf("setting `node_taints`: %+v", err)
 		}
+
+		d.Set("node_image_version", props.NodeImageVersion)
 
 		d.Set("orchestrator_version", props.OrchestratorVersion)
 		osDiskSizeGB := 0

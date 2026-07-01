@@ -222,14 +222,15 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 						"recommendation_category": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"Cost",
-								"Reliability",
-								"OperationalExcellence",
-								"Performance",
-								"HighAvailability",
-								"Security",
-							},
+							ValidateFunc: validation.StringInSlice(
+								[]string{
+									"Cost",
+									"Reliability",
+									"OperationalExcellence",
+									"Performance",
+									"HighAvailability",
+									"Security",
+								},
 								false,
 							),
 							ConflictsWith: []string{"criteria.0.recommendation_type"},
@@ -237,11 +238,12 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 						"recommendation_impact": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"High",
-								"Medium",
-								"Low",
-							},
+							ValidateFunc: validation.StringInSlice(
+								[]string{
+									"High",
+									"Medium",
+									"Low",
+								},
 								false,
 							),
 							ConflictsWith: []string{"criteria.0.recommendation_type"},
@@ -265,12 +267,13 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 										Optional: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
-											ValidateFunc: validation.StringInSlice([]string{
-												"Available",
-												"Degraded",
-												"Unavailable",
-												"Unknown",
-											},
+											ValidateFunc: validation.StringInSlice(
+												[]string{
+													"Available",
+													"Degraded",
+													"Unavailable",
+													"Unknown",
+												},
 												false,
 											),
 										},
@@ -281,12 +284,13 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 										Optional: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
-											ValidateFunc: validation.StringInSlice([]string{
-												"Available",
-												"Degraded",
-												"Unavailable",
-												"Unknown",
-											},
+											ValidateFunc: validation.StringInSlice(
+												[]string{
+													"Available",
+													"Degraded",
+													"Unavailable",
+													"Unknown",
+												},
 												false,
 											),
 										},
@@ -297,11 +301,12 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 										Optional: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
-											ValidateFunc: validation.StringInSlice([]string{
-												"PlatformInitiated",
-												"UserInitiated",
-												"Unknown",
-											},
+											ValidateFunc: validation.StringInSlice(
+												[]string{
+													"PlatformInitiated",
+													"UserInitiated",
+													"Unknown",
+												},
 												false,
 											),
 										},
@@ -324,13 +329,14 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 										Optional: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
-											ValidateFunc: validation.StringInSlice([]string{
-												"Incident",
-												"Maintenance",
-												"Informational",
-												"ActionRequired",
-												"Security",
-											},
+											ValidateFunc: validation.StringInSlice(
+												[]string{
+													"Incident",
+													"Maintenance",
+													"Informational",
+													"ActionRequired",
+													"Security",
+												},
 												false,
 											),
 										},
@@ -431,15 +437,17 @@ func resourceMonitorActivityLogAlertCreateUpdate(d *pluginsdk.ResourceData, meta
 	id := activitylogalertsapis.NewActivityLogAlertID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.ActivityLogAlertsGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing Monitor %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.ActivityLogAlertsGet(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing Monitor %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_monitor_activity_log_alert", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_monitor_activity_log_alert", id.ID())
+			}
 		}
 	}
 

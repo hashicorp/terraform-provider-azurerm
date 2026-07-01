@@ -13,11 +13,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/managedcassandras"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -69,7 +70,7 @@ func resourceCassandraDatacenter() *pluginsdk.Resource {
 			"backup_storage_customer_key_uri": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: keyVaultValidate.NestedItemId,
+				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 			},
 
 			"base64_encoded_yaml_fragment": {
@@ -88,7 +89,7 @@ func resourceCassandraDatacenter() *pluginsdk.Resource {
 			"managed_disk_customer_key_uri": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: keyVaultValidate.NestedItemId,
+				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 			},
 
 			"node_count": {
@@ -141,14 +142,16 @@ func resourceCassandraDatacenterCreate(d *pluginsdk.ResourceData, meta interface
 	}
 	id := managedcassandras.NewDataCenterID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.CassandraClusterName, d.Get("name").(string))
 
-	existing, err := client.CassandraDataCentersGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.CassandraDataCentersGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_cosmosdb_cassandra_datacenter", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_cosmosdb_cassandra_datacenter", id.ID())
+		}
 	}
 
 	payload := managedcassandras.DataCenterResource{
@@ -178,7 +181,7 @@ func resourceCassandraDatacenterCreate(d *pluginsdk.ResourceData, meta interface
 		payload.Properties.Sku = pointer.To(v.(string))
 	}
 
-	if err = client.CassandraDataCentersCreateUpdateThenPoll(ctx, id, payload); err != nil {
+	if err = client.CassandraDataCentersCreateUpdateCallbackThenPoll(ctx, id, payload, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %q: %+v", id, err)
 	}
 

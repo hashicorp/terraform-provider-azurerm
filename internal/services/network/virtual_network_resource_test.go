@@ -687,7 +687,7 @@ resource "azurerm_virtual_network" "test" {
 
   ip_address_pool {
     id                     = azurerm_network_manager_ipam_pool.test.id
-    number_of_ip_addresses = "100"
+    number_of_ip_addresses = "32"
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -792,7 +792,7 @@ resource "azurerm_virtual_network" "test" {
 
   ip_address_pool {
     id                     = azurerm_network_manager_ipam_pool.test.id
-    number_of_ip_addresses = "300"
+    number_of_ip_addresses = "128"
   }
 }
 `, data.RandomInteger, data.Locations.Primary)

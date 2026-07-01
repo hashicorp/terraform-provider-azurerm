@@ -364,15 +364,17 @@ func resourceSentinelAlertRuleScheduledCreateUpdate(d *pluginsdk.ResourceData, m
 	id := alertrules.NewAlertRuleID(workspaceID.SubscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, name)
 
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("checking for existing Sentinel Alert Rule Scheduled %q: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			resp, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(resp.HttpResponse) {
+					return fmt.Errorf("checking for existing Sentinel Alert Rule Scheduled %q: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(resp.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_sentinel_alert_rule_scheduled", id.ID())
+			if !response.WasNotFound(resp.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_sentinel_alert_rule_scheduled", id.ID())
+			}
 		}
 	}
 

@@ -9,13 +9,44 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/views"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
+
+// Shared nested model structs for cost management view resources
+
+type CostManagementViewAggregationModel struct {
+	Name       string `tfschema:"name"`
+	ColumnName string `tfschema:"column_name"`
+}
+
+type CostManagementViewSortingModel struct {
+	Direction string `tfschema:"direction"`
+	Name      string `tfschema:"name"`
+}
+
+type CostManagementViewGroupingModel struct {
+	Type string `tfschema:"type"`
+	Name string `tfschema:"name"`
+}
+
+type CostManagementViewDatasetModel struct {
+	Granularity string                               `tfschema:"granularity"`
+	Aggregation []CostManagementViewAggregationModel `tfschema:"aggregation"`
+	Sorting     []CostManagementViewSortingModel     `tfschema:"sorting"`
+	Grouping    []CostManagementViewGroupingModel    `tfschema:"grouping"`
+}
+
+type CostManagementViewKpiModel struct {
+	Type string `tfschema:"type"`
+}
+
+type CostManagementViewPivotModel struct {
+	Name string `tfschema:"name"`
+	Type string `tfschema:"type"`
+}
 
 type costManagementViewBaseResource struct{}
 
@@ -166,106 +197,6 @@ func (br costManagementViewBaseResource) attributes() map[string]*pluginsdk.Sche
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (br costManagementViewBaseResource) createFunc(resourceName, scopeFieldName string) sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.CostManagement.ViewsClient
-			id := views.NewScopedViewID(metadata.ResourceData.Get(scopeFieldName).(string), metadata.ResourceData.Get("name").(string))
-
-			existing, err := client.GetByScope(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-				}
-			}
-
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError(resourceName, id.ID())
-			}
-
-			accumulated := views.AccumulatedTypeFalse
-			if accumulatedRaw := metadata.ResourceData.Get("accumulated").(bool); accumulatedRaw {
-				accumulated = views.AccumulatedTypeTrue
-			}
-
-			props := views.View{
-				Properties: &views.ViewProperties{
-					Accumulated: pointer.To(accumulated),
-					DisplayName: pointer.To(metadata.ResourceData.Get("display_name").(string)),
-					Chart:       pointer.To(views.ChartType(metadata.ResourceData.Get("chart_type").(string))),
-					Query: &views.ReportConfigDefinition{
-						DataSet:   expandDataset(metadata.ResourceData.Get("dataset").([]interface{})),
-						Timeframe: views.ReportTimeframeType(metadata.ResourceData.Get("timeframe").(string)),
-						Type:      views.ReportTypeUsage,
-					},
-					Kpis:   expandKpis(metadata.ResourceData.Get("kpi").([]interface{})),
-					Pivots: expandPivots(metadata.ResourceData.Get("pivot").([]interface{})),
-				},
-			}
-
-			if _, err = client.CreateOrUpdateByScope(ctx, id, props); err != nil {
-				return fmt.Errorf("creating %s: %+v", id, err)
-			}
-
-			metadata.SetID(id)
-			return nil
-		},
-	}
-}
-
-func (br costManagementViewBaseResource) readFunc(scopeFieldName string) sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.CostManagement.ViewsClient
-
-			id, err := views.ParseScopedViewID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
-			}
-
-			resp, err := client.GetByScope(ctx, *id)
-			if err != nil {
-				if response.WasNotFound(resp.HttpResponse) {
-					return metadata.MarkAsGone(id)
-				}
-				return fmt.Errorf("reading %s: %+v", *id, err)
-			}
-
-			metadata.ResourceData.Set("name", id.ViewName)
-			// lintignore:R001
-			metadata.ResourceData.Set(scopeFieldName, id.Scope)
-
-			if model := resp.Model; model != nil {
-				if props := model.Properties; props != nil {
-					metadata.ResourceData.Set("chart_type", string(pointer.From(props.Chart)))
-
-					accumulated := false
-					if props.Accumulated != nil {
-						accumulated = views.AccumulatedTypeTrue == *props.Accumulated
-					}
-					metadata.ResourceData.Set("accumulated", accumulated)
-
-					metadata.ResourceData.Set("display_name", props.DisplayName)
-					metadata.ResourceData.Set("kpi", flattenKpis(props.Kpis))
-					metadata.ResourceData.Set("pivot", flattenPivots(props.Pivots))
-
-					if query := props.Query; query != nil {
-						metadata.ResourceData.Set("timeframe", string(query.Timeframe))
-						metadata.ResourceData.Set("report_type", string(query.Type))
-						if query.DataSet != nil {
-							metadata.ResourceData.Set("dataset", flattenDataset(query.DataSet))
-						}
-					}
-				}
-			}
-
-			return nil
-		},
-	}
-}
-
 func (br costManagementViewBaseResource) deleteFunc() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -286,284 +217,163 @@ func (br costManagementViewBaseResource) deleteFunc() sdk.ResourceFunc {
 	}
 }
 
-func (br costManagementViewBaseResource) updateFunc() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.CostManagement.ViewsClient
+// Typed model expand/flatten helpers
 
-			id, err := views.ParseScopedViewID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
-			}
-
-			// Update operation requires latest eTag to be set in the request.
-			existing, err := client.GetByScope(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("reading %s: %+v", *id, err)
-			}
-			model := existing.Model
-
-			if model != nil {
-				if model.ETag == nil {
-					return fmt.Errorf("add %s: etag was nil", *id)
-				}
-			}
-
-			if model.Properties == nil {
-				return fmt.Errorf("retreiving properties for %s for update: %+v", *id, err)
-			}
-
-			if metadata.ResourceData.HasChange("display_name") {
-				model.Properties.DisplayName = pointer.To(metadata.ResourceData.Get("display_name").(string))
-			}
-
-			if metadata.ResourceData.HasChange("chart_type") {
-				model.Properties.Chart = pointer.To(views.ChartType(metadata.ResourceData.Get("chart_type").(string)))
-			}
-
-			if metadata.ResourceData.HasChange("dataset") {
-				model.Properties.Query.DataSet = expandDataset(metadata.ResourceData.Get("dataset").([]interface{}))
-			}
-			if metadata.ResourceData.HasChange("timeframe") {
-				model.Properties.Query.Timeframe = views.ReportTimeframeType(metadata.ResourceData.Get("timeframe").(string))
-			}
-
-			if metadata.ResourceData.HasChange("kpi") {
-				model.Properties.Kpis = expandKpis(metadata.ResourceData.Get("kpi").([]interface{}))
-			}
-
-			if metadata.ResourceData.HasChange("pivot") {
-				model.Properties.Pivots = expandPivots(metadata.ResourceData.Get("pivot").([]interface{}))
-			}
-
-			if _, err = client.CreateOrUpdateByScope(ctx, *id, *model); err != nil {
-				return fmt.Errorf("updating %s: %+v", *id, err)
-			}
-
-			return nil
-		},
-	}
-}
-
-func expandDataset(input []interface{}) *views.ReportConfigDataset {
-	if len(input) == 0 || input[0] == nil {
+func expandDatasetFromModel(input []CostManagementViewDatasetModel) *views.ReportConfigDataset {
+	if len(input) == 0 {
 		return nil
 	}
 
-	attrs := input[0].(map[string]interface{})
+	ds := input[0]
 	dataset := &views.ReportConfigDataset{
-		Granularity: pointer.To(views.ReportGranularityType(attrs["granularity"].(string))),
+		Granularity: pointer.To(views.ReportGranularityType(ds.Granularity)),
 	}
 
-	if aggregation := attrs["aggregation"].(*pluginsdk.Set).List(); len(aggregation) > 0 {
-		dataset.Aggregation = expandAggregation(aggregation)
+	if len(ds.Aggregation) > 0 {
+		aggregation := map[string]views.ReportConfigAggregation{}
+		for _, a := range ds.Aggregation {
+			aggregation[a.Name] = views.ReportConfigAggregation{
+				Name:     a.ColumnName,
+				Function: views.FunctionTypeSum,
+			}
+		}
+		dataset.Aggregation = &aggregation
 	}
 
-	if sorting := attrs["sorting"].([]interface{}); len(sorting) > 0 {
-		dataset.Sorting = expandSorting(sorting)
+	if len(ds.Sorting) > 0 {
+		sorting := make([]views.ReportConfigSorting, 0)
+		for _, s := range ds.Sorting {
+			sorting = append(sorting, views.ReportConfigSorting{
+				Direction: pointer.To(views.ReportConfigSortingType(s.Direction)),
+				Name:      s.Name,
+			})
+		}
+		dataset.Sorting = &sorting
 	}
 
-	if grouping := attrs["grouping"].([]interface{}); len(grouping) > 0 {
-		dataset.Grouping = expandGrouping(grouping)
+	if len(ds.Grouping) > 0 {
+		grouping := make([]views.ReportConfigGrouping, 0)
+		for _, g := range ds.Grouping {
+			grouping = append(grouping, views.ReportConfigGrouping{
+				Type: views.QueryColumnType(g.Type),
+				Name: g.Name,
+			})
+		}
+		dataset.Grouping = &grouping
 	}
 
 	return dataset
 }
 
-func expandAggregation(input []interface{}) *map[string]views.ReportConfigAggregation {
-	outputSorting := map[string]views.ReportConfigAggregation{}
-	if len(input) == 0 || input[0] == nil {
-		return &outputSorting
+func flattenDatasetToModel(input *views.ReportConfigDataset) []CostManagementViewDatasetModel {
+	if input == nil {
+		return []CostManagementViewDatasetModel{}
 	}
 
-	for _, item := range input {
-		v := item.(map[string]interface{})
-		name := v["name"].(string)
-		outputSorting[name] = views.ReportConfigAggregation{
-			Name:     v["column_name"].(string),
-			Function: views.FunctionTypeSum,
+	ds := CostManagementViewDatasetModel{}
+
+	if input.Granularity != nil {
+		ds.Granularity = string(*input.Granularity)
+	}
+
+	if input.Aggregation != nil {
+		aggregation := make([]CostManagementViewAggregationModel, 0)
+		for name, item := range *input.Aggregation {
+			aggregation = append(aggregation, CostManagementViewAggregationModel{
+				Name:       name,
+				ColumnName: item.Name,
+			})
 		}
+		ds.Aggregation = aggregation
 	}
 
-	return &outputSorting
+	if input.Sorting != nil {
+		sorting := make([]CostManagementViewSortingModel, 0)
+		for _, item := range *input.Sorting {
+			if item.Direction == nil {
+				continue
+			}
+			sorting = append(sorting, CostManagementViewSortingModel{
+				Name:      item.Name,
+				Direction: string(*item.Direction),
+			})
+		}
+		ds.Sorting = sorting
+	}
+
+	if input.Grouping != nil {
+		grouping := make([]CostManagementViewGroupingModel, 0)
+		for _, item := range *input.Grouping {
+			grouping = append(grouping, CostManagementViewGroupingModel{
+				Name: item.Name,
+				Type: string(item.Type),
+			})
+		}
+		ds.Grouping = grouping
+	}
+
+	return []CostManagementViewDatasetModel{ds}
 }
 
-func expandGrouping(input []interface{}) *[]views.ReportConfigGrouping {
-	outputGrouping := []views.ReportConfigGrouping{}
-	if len(input) == 0 || input[0] == nil {
-		return &outputGrouping
-	}
-
-	for _, item := range input {
-		v := item.(map[string]interface{})
-		outputGrouping = append(outputGrouping, views.ReportConfigGrouping{
-			Type: views.QueryColumnType(v["type"].(string)),
-			Name: v["name"].(string),
-		})
-	}
-
-	return &outputGrouping
-}
-
-func expandSorting(input []interface{}) *[]views.ReportConfigSorting {
-	outputSorting := []views.ReportConfigSorting{}
-	if len(input) == 0 || input[0] == nil {
-		return &outputSorting
-	}
-
-	for _, item := range input {
-		v := item.(map[string]interface{})
-		outputSorting = append(outputSorting, views.ReportConfigSorting{
-			Direction: pointer.To(views.ReportConfigSortingType(v["direction"].(string))),
-			Name:      v["name"].(string),
-		})
-	}
-
-	return &outputSorting
-}
-
-func expandKpis(input []interface{}) *[]views.KpiProperties {
-	outputKpis := []views.KpiProperties{}
-	if len(input) == 0 || input[0] == nil {
-		return &outputKpis
-	}
-
-	for _, item := range input {
-		v := item.(map[string]interface{})
-		outputKpis = append(outputKpis, views.KpiProperties{
-			Type:    pointer.To(views.KpiTypeType(v["type"].(string))),
+func expandKpisFromModel(input []CostManagementViewKpiModel) *[]views.KpiProperties {
+	kpis := make([]views.KpiProperties, 0)
+	for _, k := range input {
+		kpis = append(kpis, views.KpiProperties{
+			Type:    pointer.To(views.KpiTypeType(k.Type)),
 			Enabled: pointer.To(true),
 		})
 	}
-
-	return &outputKpis
+	return &kpis
 }
 
-func expandPivots(input []interface{}) *[]views.PivotProperties {
-	outputPivots := []views.PivotProperties{}
-	if len(input) == 0 || input[0] == nil {
-		return &outputPivots
-	}
-
-	for _, item := range input {
-		v := item.(map[string]interface{})
-		outputPivots = append(outputPivots, views.PivotProperties{
-			Type: pointer.To(views.PivotTypeType(v["type"].(string))),
-			Name: pointer.To((v["name"].(string))),
-		})
-	}
-
-	return &outputPivots
-}
-
-func flattenKpis(input *[]views.KpiProperties) []interface{} {
-	outputKpis := []interface{}{}
+func flattenKpisToModel(input *[]views.KpiProperties) []CostManagementViewKpiModel {
 	if input == nil || len(*input) == 0 {
-		return outputKpis
+		return []CostManagementViewKpiModel{}
 	}
 
+	result := make([]CostManagementViewKpiModel, 0)
 	for _, item := range *input {
 		kpiType := ""
 		if v := item.Type; v != nil && item.Enabled != nil && *item.Enabled {
 			kpiType = string(*v)
 		}
-
-		outputKpis = append(outputKpis, map[string]interface{}{
-			"type": kpiType,
+		result = append(result, CostManagementViewKpiModel{
+			Type: kpiType,
 		})
 	}
-
-	return outputKpis
+	return result
 }
 
-func flattenPivots(input *[]views.PivotProperties) []interface{} {
-	outputPivots := []interface{}{}
+func expandPivotsFromModel(input []CostManagementViewPivotModel) *[]views.PivotProperties {
+	pivots := make([]views.PivotProperties, 0)
+	for _, p := range input {
+		pivots = append(pivots, views.PivotProperties{
+			Type: pointer.To(views.PivotTypeType(p.Type)),
+			Name: pointer.To(p.Name),
+		})
+	}
+	return &pivots
+}
+
+func flattenPivotsToModel(input *[]views.PivotProperties) []CostManagementViewPivotModel {
 	if input == nil || len(*input) == 0 {
-		return outputPivots
+		return []CostManagementViewPivotModel{}
 	}
 
+	result := make([]CostManagementViewPivotModel, 0)
 	for _, item := range *input {
 		pivotType := ""
 		if v := item.Type; v != nil {
 			pivotType = string(*v)
 		}
-
 		name := ""
 		if p := item.Name; p != nil {
 			name = *p
 		}
-
-		outputPivots = append(outputPivots, map[string]interface{}{
-			"name": name,
-			"type": pivotType,
+		result = append(result, CostManagementViewPivotModel{
+			Name: name,
+			Type: pivotType,
 		})
 	}
-
-	return outputPivots
-}
-
-func flattenDataset(input *views.ReportConfigDataset) []interface{} {
-	outputDataset := map[string]interface{}{
-		"aggregation": flattenAggregation(input.Aggregation),
-		"sorting":     flattenSorting(input.Sorting),
-		"grouping":    flattenGrouping(input.Grouping),
-	}
-
-	if input.Granularity != nil {
-		outputDataset["granularity"] = string(*input.Granularity)
-	}
-
-	return []interface{}{outputDataset}
-}
-
-func flattenAggregation(input *map[string]views.ReportConfigAggregation) []interface{} {
-	outputAggregations := []interface{}{}
-	if input == nil || len(*input) == 0 {
-		return outputAggregations
-	}
-
-	for name, item := range *input {
-		outputAggregations = append(outputAggregations, map[string]interface{}{
-			"name":        name,
-			"column_name": item.Name,
-		})
-	}
-
-	return outputAggregations
-}
-
-func flattenGrouping(input *[]views.ReportConfigGrouping) []interface{} {
-	outputGroupings := []interface{}{}
-	if input == nil || len(*input) == 0 {
-		return outputGroupings
-	}
-
-	for _, item := range *input {
-		outputGroupings = append(outputGroupings, map[string]interface{}{
-			"name": item.Name,
-			"type": string(item.Type),
-		})
-	}
-
-	return outputGroupings
-}
-
-func flattenSorting(input *[]views.ReportConfigSorting) []interface{} {
-	outputSortings := []interface{}{}
-	if input == nil || len(*input) == 0 {
-		return outputSortings
-	}
-
-	for _, item := range *input {
-		if item.Direction == nil {
-			continue
-		}
-		outputSortings = append(outputSortings, map[string]interface{}{
-			"name":      item.Name,
-			"direction": string(*item.Direction),
-		})
-	}
-
-	return outputSortings
+	return result
 }

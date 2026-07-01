@@ -4,8 +4,10 @@
 package purview
 
 import (
+	"bytes"
 	"fmt"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -16,8 +18,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/purview/2021-12-01/account"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -49,14 +53,15 @@ func resourcePurviewAccount() *pluginsdk.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
 					regexp.MustCompile(`^[a-zA-Z0-9][-a-zA-Z0-9]{1,61}[a-zA-Z0-9]$`),
-					"The Purview account name must be between 3 and 63 characters long, it can contain only letters, numbers and hyphens, and the first and last characters must be a letter or number."),
+					"The Purview account name must be between 3 and 63 characters long, it can contain only letters, numbers and hyphens, and the first and last characters must be a letter or number.",
+				),
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"location": commonschema.Location(),
 
-			"identity": commonschema.SystemOrUserAssignedIdentityRequired(),
+			"identity": resourcePurviewAccountIdentitySchema(),
 
 			"managed_event_hub_enabled": {
 				Type:     pluginsdk.TypeBool,
@@ -144,15 +149,17 @@ func resourcePurviewAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	id := account.NewAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_purview_account", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_purview_account", id.ID())
+		}
 	}
 
 	purviewAccount := account.Account{
@@ -161,7 +168,7 @@ func resourcePurviewAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	expandedIdentity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
+	expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -183,11 +190,11 @@ func resourcePurviewAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		purviewAccount.Properties.ManagedEventHubState = pointer.To(account.ManagedEventHubStateDisabled)
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, purviewAccount); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, purviewAccount, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-
 	d.SetId(id.ID())
+
 	return resourcePurviewAccountRead(d, meta)
 }
 
@@ -217,10 +224,11 @@ func resourcePurviewAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 
-		flattenedIdentity, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
+		flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
 		if err != nil {
 			return fmt.Errorf("flattening `identity`: %+v", err)
 		}
+
 		if err := d.Set("identity", flattenedIdentity); err != nil {
 			return fmt.Errorf("flattening `identity`: %+v", err)
 		}
@@ -305,7 +313,7 @@ func resourcePurviewAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("identity") {
-		expandedIdentity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
+		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -349,4 +357,31 @@ func flattenPurviewAccountManagedResources(managedResources *account.ManagedReso
 			"event_hub_namespace_id": pointer.From(managedResources.EventHubNamespace),
 		},
 	}
+}
+
+// resourcePurviewAccountIdentitySchema will take the common `SystemAssignedUserAssignedIdentityRequired` schema and make
+// small changes to match this purview resource schemas with what is supported by API.
+// The API inconsistency has been reported: https://github.com/Azure/azure-rest-api-specs/issues/22257
+func resourcePurviewAccountIdentitySchema() *schema.Schema {
+	customSchema := commonschema.SystemAssignedUserAssignedIdentityRequired()
+
+	// remove UserAssigned from type validation, it is not supported in API
+	customSchema.Elem.(*schema.Resource).Schema["type"].ValidateFunc = validation.StringInSlice([]string{
+		string(identity.TypeSystemAssigned),
+		string(identity.TypeSystemAssignedUserAssigned),
+	}, false)
+
+	// API is returning lower-case IDs which cause false diff report if mixed case was used by client.
+	// Change the Set hash function to hash lower case always, which will suppress this invalid diff.
+	customSchema.Elem.(*schema.Resource).Schema["identity_ids"].Set = resourcePurviewAccountIdentityIdsSetHash
+
+	return customSchema
+}
+
+func resourcePurviewAccountIdentityIdsSetHash(v interface{}) int {
+	var buf bytes.Buffer
+
+	buf.WriteString(strings.ToLower(v.(string)))
+
+	return pluginsdk.HashString(buf.String())
 }

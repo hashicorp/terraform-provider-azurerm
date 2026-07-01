@@ -9,14 +9,24 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/exports"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
+
+// Shared nested model structs for cost management export resources
+
+type CostManagementExportDataStorageLocationModel struct {
+	ContainerId    string `tfschema:"container_id"`
+	RootFolderPath string `tfschema:"root_folder_path"`
+}
+
+type CostManagementExportDataOptionsModel struct {
+	Type      string `tfschema:"type"`
+	TimeFrame string `tfschema:"time_frame"`
+}
 
 type costManagementExportBaseResource struct{}
 
@@ -129,90 +139,6 @@ func (br costManagementExportBaseResource) attributes() map[string]*pluginsdk.Sc
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (br costManagementExportBaseResource) createFunc(resourceName, scopeFieldName string) sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.CostManagement.ExportClient
-			id := exports.NewScopedExportID(metadata.ResourceData.Get(scopeFieldName).(string), metadata.ResourceData.Get("name").(string))
-			var opts exports.GetOperationOptions
-			existing, err := client.Get(ctx, id, opts)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-				}
-			}
-
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError(resourceName, id.ID())
-			}
-
-			if err := createOrUpdateCostManagementExport(ctx, client, metadata, id, nil); err != nil {
-				return fmt.Errorf("creating %s: %+v", id, err)
-			}
-
-			metadata.SetID(id)
-			return nil
-		},
-	}
-}
-
-func (br costManagementExportBaseResource) readFunc(scopeFieldName string) sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.CostManagement.ExportClient
-
-			id, err := exports.ParseScopedExportID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
-			}
-
-			var opts exports.GetOperationOptions
-			resp, err := client.Get(ctx, *id, opts)
-			if err != nil {
-				if response.WasNotFound(resp.HttpResponse) {
-					return metadata.MarkAsGone(id)
-				}
-				return fmt.Errorf("reading %s: %+v", *id, err)
-			}
-
-			metadata.ResourceData.Set("name", id.ExportName)
-			// lintignore:R001
-			metadata.ResourceData.Set(scopeFieldName, id.Scope)
-
-			if model := resp.Model; model != nil {
-				if props := model.Properties; props != nil {
-					if schedule := props.Schedule; schedule != nil {
-						if recurrencePeriod := schedule.RecurrencePeriod; recurrencePeriod != nil {
-							metadata.ResourceData.Set("recurrence_period_start_date", recurrencePeriod.From)
-							metadata.ResourceData.Set("recurrence_period_end_date", recurrencePeriod.To)
-						}
-						status := *schedule.Status == exports.StatusTypeActive
-
-						metadata.ResourceData.Set("active", status)
-						metadata.ResourceData.Set("recurrence_type", string(pointer.From(schedule.Recurrence)))
-					}
-
-					exportDeliveryInfo, err := flattenExportDataStorageLocation(&props.DeliveryInfo)
-					if err != nil {
-						return fmt.Errorf("flattening `export_data_storage_location`: %+v", err)
-					}
-					if err := metadata.ResourceData.Set("export_data_storage_location", exportDeliveryInfo); err != nil {
-						return fmt.Errorf("setting `export_data_storage_location`: %+v", err)
-					}
-					if err := metadata.ResourceData.Set("export_data_options", flattenExportDefinition(&props.Definition)); err != nil {
-						return fmt.Errorf("setting `export_data_options`: %+v", err)
-					}
-					metadata.ResourceData.Set("file_format", string(pointer.From(props.Format)))
-				}
-			}
-
-			return nil
-		},
-	}
-}
-
 func (br costManagementExportBaseResource) deleteFunc() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -233,123 +159,38 @@ func (br costManagementExportBaseResource) deleteFunc() sdk.ResourceFunc {
 	}
 }
 
-func (br costManagementExportBaseResource) updateFunc() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.CostManagement.ExportClient
-
-			id, err := exports.ParseScopedExportID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
-			}
-
-			// Update operation requires latest eTag to be set in the request.
-			var opts exports.GetOperationOptions
-			resp, err := client.Get(ctx, *id, opts)
-			if err != nil {
-				return fmt.Errorf("reading %s: %+v", *id, err)
-			}
-
-			if model := resp.Model; model != nil {
-				if model.ETag == nil {
-					return fmt.Errorf("add %s: etag was nil", *id)
-				}
-			}
-
-			if err := createOrUpdateCostManagementExport(ctx, client, metadata, *id, resp.Model.ETag); err != nil {
-				return fmt.Errorf("updating %s: %+v", *id, err)
-			}
-
-			return nil
-		},
-	}
-}
-
-func createOrUpdateCostManagementExport(ctx context.Context, client *exports.ExportsClient, metadata sdk.ResourceMetaData, id exports.ScopedExportId, etag *string) error {
-	status := exports.StatusTypeActive
-	if v := metadata.ResourceData.Get("active"); !v.(bool) {
-		status = exports.StatusTypeInactive
-	}
-
-	deliveryInfo, err := expandExportDataStorageLocation(metadata.ResourceData.Get("export_data_storage_location").([]interface{}))
-	if err != nil {
-		return fmt.Errorf("expanding `export_data_storage_location`: %+v", err)
-	}
-
-	format := exports.FormatType(metadata.ResourceData.Get("file_format").(string))
-
-	recurrenceType := exports.RecurrenceType(metadata.ResourceData.Get("recurrence_type").(string))
-	props := exports.Export{
-		ETag: etag,
-		Properties: &exports.ExportProperties{
-			Schedule: &exports.ExportSchedule{
-				Recurrence: &recurrenceType,
-				RecurrencePeriod: &exports.ExportRecurrencePeriod{
-					From: metadata.ResourceData.Get("recurrence_period_start_date").(string),
-					To:   pointer.To(metadata.ResourceData.Get("recurrence_period_end_date").(string)),
-				},
-				Status: &status,
-			},
-			DeliveryInfo: *deliveryInfo,
-			Format:       &format,
-			Definition:   *expandExportDefinition(metadata.ResourceData.Get("export_data_options").([]interface{})),
-		},
-	}
-
-	_, err = client.CreateOrUpdate(ctx, id, props)
-
-	return err
-}
-
-func expandExportDataStorageLocation(input []interface{}) (*exports.ExportDeliveryInfo, error) {
-	if len(input) == 0 || input[0] == nil {
+// expandExportDataStorageLocationFromModel converts the typed model to the SDK type
+func expandExportDataStorageLocationFromModel(input []CostManagementExportDataStorageLocationModel) (*exports.ExportDeliveryInfo, error) {
+	if len(input) == 0 {
 		return nil, nil
 	}
-	attrs := input[0].(map[string]interface{})
 
-	containerId, err := commonids.ParseStorageContainerID(attrs["container_id"].(string))
+	loc := input[0]
+
+	containerId, err := commonids.ParseStorageContainerID(loc.ContainerId)
 	if err != nil {
 		return nil, err
 	}
 
 	storageId := commonids.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName)
 
-	deliveryInfo := &exports.ExportDeliveryInfo{
+	return &exports.ExportDeliveryInfo{
 		Destination: exports.ExportDeliveryDestination{
 			ResourceId:     pointer.To(storageId.ID()),
 			Container:      containerId.ContainerName,
-			RootFolderPath: pointer.To(attrs["root_folder_path"].(string)),
+			RootFolderPath: pointer.To(loc.RootFolderPath),
 		},
-	}
-
-	return deliveryInfo, nil
+	}, nil
 }
 
-func expandExportDefinition(input []interface{}) *exports.ExportDefinition {
-	if len(input) == 0 || input[0] == nil {
-		return nil
-	}
-
-	attrs := input[0].(map[string]interface{})
-	definitionInfo := &exports.ExportDefinition{
-		Type:      exports.ExportType(attrs["type"].(string)),
-		Timeframe: exports.TimeframeType(attrs["time_frame"].(string)),
-	}
-
-	return definitionInfo
-}
-
-func flattenExportDataStorageLocation(input *exports.ExportDeliveryInfo) ([]interface{}, error) {
-	if input == nil {
-		return []interface{}{}, nil
-	}
-
+// flattenExportDataStorageLocationToModel converts the SDK type to the typed model
+func flattenExportDataStorageLocationToModel(input exports.ExportDeliveryInfo) ([]CostManagementExportDataStorageLocationModel, error) {
 	destination := input.Destination
-	var err error
+
 	var storageAccountId *commonids.StorageAccountId
 
 	if v := destination.ResourceId; v != nil {
+		var err error
 		storageAccountId, err = commonids.ParseStorageAccountIDInsensitively(*v)
 		if err != nil {
 			return nil, err
@@ -366,28 +207,38 @@ func flattenExportDataStorageLocation(input *exports.ExportDeliveryInfo) ([]inte
 		rootFolderPath = *v
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"container_id":     containerId,
-			"root_folder_path": rootFolderPath,
+	return []CostManagementExportDataStorageLocationModel{
+		{
+			ContainerId:    containerId,
+			RootFolderPath: rootFolderPath,
 		},
 	}, nil
 }
 
-func flattenExportDefinition(input *exports.ExportDefinition) []interface{} {
-	if input == nil {
-		return []interface{}{}
+// expandExportDataOptionsFromModel converts the typed model to the SDK type
+func expandExportDataOptionsFromModel(input []CostManagementExportDataOptionsModel) *exports.ExportDefinition {
+	if len(input) == 0 {
+		return nil
 	}
 
+	opt := input[0]
+	return &exports.ExportDefinition{
+		Type:      exports.ExportType(opt.Type),
+		Timeframe: exports.TimeframeType(opt.TimeFrame),
+	}
+}
+
+// flattenExportDataOptionsToModel converts the SDK type to the typed model
+func flattenExportDataOptionsToModel(input exports.ExportDefinition) []CostManagementExportDataOptionsModel {
 	queryType := ""
 	if v := input.Type; v != "" {
 		queryType = string(input.Type)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"time_frame": string(input.Timeframe),
-			"type":       queryType,
+	return []CostManagementExportDataOptionsModel{
+		{
+			TimeFrame: string(input.Timeframe),
+			Type:      queryType,
 		},
 	}
 }

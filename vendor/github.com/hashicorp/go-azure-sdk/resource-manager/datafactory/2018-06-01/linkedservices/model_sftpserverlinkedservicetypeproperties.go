@@ -15,10 +15,10 @@ type SftpServerLinkedServiceTypeProperties struct {
 	HostKeyFingerprint    *interface{}            `json:"hostKeyFingerprint,omitempty"`
 	PassPhrase            SecretBase              `json:"passPhrase"`
 	Password              SecretBase              `json:"password"`
-	Port                  *int64                  `json:"port,omitempty"`
+	Port                  *interface{}            `json:"port,omitempty"`
 	PrivateKeyContent     SecretBase              `json:"privateKeyContent"`
 	PrivateKeyPath        *interface{}            `json:"privateKeyPath,omitempty"`
-	SkipHostKeyValidation *bool                   `json:"skipHostKeyValidation,omitempty"`
+	SkipHostKeyValidation *interface{}            `json:"skipHostKeyValidation,omitempty"`
 	UserName              *interface{}            `json:"userName,omitempty"`
 }
 
@@ -30,9 +30,9 @@ func (s *SftpServerLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) erro
 		EncryptedCredential   *string                 `json:"encryptedCredential,omitempty"`
 		Host                  interface{}             `json:"host"`
 		HostKeyFingerprint    *interface{}            `json:"hostKeyFingerprint,omitempty"`
-		Port                  *int64                  `json:"port,omitempty"`
+		Port                  *interface{}            `json:"port,omitempty"`
 		PrivateKeyPath        *interface{}            `json:"privateKeyPath,omitempty"`
-		SkipHostKeyValidation *bool                   `json:"skipHostKeyValidation,omitempty"`
+		SkipHostKeyValidation *interface{}            `json:"skipHostKeyValidation,omitempty"`
 		UserName              *interface{}            `json:"userName,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {

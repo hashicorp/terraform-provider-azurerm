@@ -315,21 +315,21 @@ func TestAccKubernetesCluster_addonProfileServiceMeshProfile_revisions(t *testin
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-25"]`),
+			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-28"]`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-25", "asm-1-26"]`),
+			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-28", "asm-1-29"]`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-25"]`),
+			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-28"]`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -402,6 +402,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   aci_connector_linux {
     subnet_name = azurerm_subnet.test-aci.name
   }
@@ -465,6 +470,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -508,6 +518,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   azure_policy_enabled = %t
@@ -571,6 +586,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   oms_agent {
@@ -638,6 +658,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   oms_agent {
     log_analytics_workspace_id      = azurerm_log_analytics_workspace.test.id
     msi_auth_for_monitoring_enabled = true
@@ -684,6 +709,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -723,6 +753,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   http_application_routing_enabled = %t
@@ -857,6 +892,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   ingress_application_gateway {
     gateway_id = azurerm_application_gateway.test.id
   }
@@ -911,6 +951,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   ingress_application_gateway {
     gateway_name = "acctestgwn%d"
     subnet_cidr  = "%s"
@@ -955,6 +1000,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   identity {
@@ -1020,6 +1070,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   ingress_application_gateway {
     gateway_name = "acctestgwn%d"
     subnet_id    = azurerm_subnet.test.id
@@ -1075,6 +1130,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   open_service_mesh_enabled = %t
 
   identity {
@@ -1116,6 +1176,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   key_vault_secrets_provider {
@@ -1164,6 +1229,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   confidential_computing {
     sgx_quote_helper_enabled = %t
   }
@@ -1207,6 +1277,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   identity {
@@ -1446,6 +1521,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type = "UserAssigned"
     identity_ids = [
@@ -1467,7 +1547,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     mode                             = "Istio"
     internal_ingress_gateway_enabled = true
     external_ingress_gateway_enabled = true
-    revisions                        = ["asm-1-26"]
+    revisions                        = ["asm-1-28"]
     certificate_authority {
       key_vault_id           = azurerm_key_vault.test.id
       root_cert_object_name  = azurerm_key_vault_certificate.test_cert1.name
@@ -1529,11 +1609,16 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 2
-    vm_size        = "Standard_DS2_v2"
+    vm_size        = "Standard_D2s_v3"
     vnet_subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   identity {

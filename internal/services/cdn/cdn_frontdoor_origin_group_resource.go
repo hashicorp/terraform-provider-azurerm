@@ -28,10 +28,10 @@ func resourceCdnFrontDoorOriginGroup() *pluginsdk.Resource {
 		Delete: resourceCdnFrontDoorOriginGroupDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(4 * time.Hour),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(4 * time.Hour),
+			Delete: pluginsdk.DefaultTimeout(6 * time.Hour),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -155,15 +155,18 @@ func resourceCdnFrontDoorOriginGroupCreate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	id := parse.NewFrontDoorOriginGroupID(profile.SubscriptionId, profile.ResourceGroup, profile.ProfileName, d.Get("name").(string))
-	existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
-		}
-	}
 
-	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_cdn_frontdoor_origin_group", id.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
+		}
+
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_cdn_frontdoor_origin_group", id.ID())
+		}
 	}
 
 	props := cdn.AFDOriginGroup{
@@ -299,8 +302,9 @@ func resourceCdnFrontDoorOriginGroupDelete(d *pluginsdk.ResourceData, meta inter
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
+		return fmt.Errorf("waiting for the deletion operation of %s: %+v", *id, err)
 	}
+
 	return nil
 }
 
