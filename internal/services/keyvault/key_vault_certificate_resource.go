@@ -841,7 +841,6 @@ func resourceKeyVaultCertificateDelete(d *pluginsdk.ResourceData, meta interface
 	if err != nil {
 		if response.WasNotFound(kv.HttpResponse) {
 			log.Printf("[DEBUG] Certificate %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseURL)
-			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("checking if key vault %q for Certificate %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseURL, err)
