@@ -426,6 +426,7 @@ func TestAccWebApplicationFirewallPolicy_HttpDDoSRuleSet(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func TestAccWebApplicationFirewallPolicy_HttpDDoSRuleSetUpdateRule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
 	r := WebApplicationFirewallPolicyResource{}
@@ -440,6 +441,35 @@ func TestAccWebApplicationFirewallPolicy_HttpDDoSRuleSetUpdateRule(t *testing.T)
 		data.ImportStep(),
 		{
 			Config: r.httpDDoSRuleSetRule(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.httpDDoSRuleSet(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWebApplicationFirewallPolicy_HttpDDoSRuleSetExclusion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
+	r := WebApplicationFirewallPolicyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.httpDDoSRuleSet(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.httpDDoSRuleSetExclusion(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -2351,6 +2381,94 @@ resource "azurerm_web_application_firewall_policy" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
+func (WebApplicationFirewallPolicyResource) httpDDoSRuleSetExclusion(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_web_application_firewall_policy" "test" {
+  name                = "acctestwafpolicy-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  tags = {
+    env = "test"
+  }
+
+  managed_rules {
+    exclusion {
+      match_variable          = "RequestHeaderNames"
+      selector                = "x-shared-secret"
+      selector_match_operator = "Equals"
+
+      excluded_rule_set {
+        type    = "Microsoft_HTTPDDoSRuleSet"
+        version = "1.0"
+        rule_group {
+          rule_group_name = "ExcessiveRequests"
+          excluded_rules = [
+            "500100",
+            "500110",
+          ]
+        }
+      }
+    }
+
+    managed_rule_set {
+      type    = "OWASP"
+      version = "3.2"
+      rule_group_override {
+        rule_group_name = "REQUEST-920-PROTOCOL-ENFORCEMENT"
+        rule {
+          id      = "920300"
+          enabled = true
+          action  = "Log"
+        }
+
+        rule {
+          id      = "920440"
+          enabled = true
+          action  = "Block"
+        }
+      }
+    }
+
+    managed_rule_set {
+      type    = "Microsoft_HTTPDDoSRuleSet"
+      version = "1.0"
+      rule_group_override {
+        rule_group_name = "ExcessiveRequests"
+        rule {
+          id                = "500100"
+          enabled           = true
+          action            = "Log"
+          sensitivity_level = "High"
+        }
+        rule {
+          id                = "500110"
+          enabled           = true
+          action            = "Log"
+          sensitivity_level = "Low"
+        }
+      }
+    }
+  }
+
+
+  policy_settings {
+    enabled = true
+    mode    = "Prevention"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
 func (WebApplicationFirewallPolicyResource) httpDDoSRuleSetRule(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2380,6 +2498,21 @@ resource "azurerm_web_application_firewall_policy" "test" {
     managed_rule_set {
       type    = "Microsoft_HTTPDDoSRuleSet"
       version = "1.0"
+      rule_group_override {
+        rule_group_name = "ExcessiveRequests"
+        rule {
+          id                = "500100"
+          enabled           = true
+          action            = "Log"
+          sensitivity_level = "High"
+        }
+        rule {
+          id                = "500110"
+          enabled           = true
+          action            = "Log"
+          sensitivity_level = "High"
+        }
+      }
     }
   }
   policy_settings {

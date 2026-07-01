@@ -90,4 +90,5 @@ var ValidateWebApplicationFirewallPolicyExclusionRuleSetType = validation.String
 	"OWASP",
 	"Microsoft_BotManagerRuleSet",
 	"Microsoft_DefaultRuleSet",
+	"Microsoft_HTTPDDoSRuleSet",
 }, false)
