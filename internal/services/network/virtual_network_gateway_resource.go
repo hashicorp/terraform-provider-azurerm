@@ -1636,8 +1636,8 @@ func hashVirtualNetworkGatewayRootCert(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
 
-	buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["public_cert_data"].(string)))
+	fmt.Fprintf(&buf, "%s-", m["name"].(string))
+	fmt.Fprintf(&buf, "%s-", m["public_cert_data"].(string))
 
 	return pluginsdk.HashString(buf.String())
 }
@@ -1646,8 +1646,8 @@ func hashVirtualNetworkGatewayRevokedCert(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
 
-	buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["thumbprint"].(string)))
+	fmt.Fprintf(&buf, "%s-", m["name"].(string))
+	fmt.Fprintf(&buf, "%s-", m["thumbprint"].(string))
 
 	return pluginsdk.HashString(buf.String())
 }

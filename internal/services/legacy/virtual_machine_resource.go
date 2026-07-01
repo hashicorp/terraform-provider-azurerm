@@ -1819,8 +1819,8 @@ func resourceVirtualMachineStorageOsProfileHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%s-", m["admin_username"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["computer_name"].(string)))
+		fmt.Fprintf(&buf, "%s-", m["admin_username"].(string))
+		fmt.Fprintf(&buf, "%s-", m["computer_name"].(string))
 	}
 
 	return pluginsdk.HashString(buf.String())
@@ -1831,13 +1831,13 @@ func resourceVirtualMachineStorageOsProfileWindowsConfigHash(v interface{}) int 
 
 	if m, ok := v.(map[string]interface{}); ok {
 		if v, ok := m["provision_vm_agent"]; ok {
-			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+			fmt.Fprintf(&buf, "%t-", v.(bool))
 		}
 		if v, ok := m["enable_automatic_upgrades"]; ok {
-			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+			fmt.Fprintf(&buf, "%t-", v.(bool))
 		}
 		if v, ok := m["timezone"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(v.(string))))
+			fmt.Fprintf(&buf, "%s-", strings.ToLower(v.(string)))
 		}
 	}
 
@@ -1849,7 +1849,7 @@ func resourceVirtualMachineStorageOsProfileLinuxConfigHash(v interface{}) int {
 
 	if m, ok := v.(map[string]interface{}); ok {
 		if v, ok := m["disable_password_authentication"]; ok {
-			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+			fmt.Fprintf(&buf, "%t-", v.(bool))
 		}
 	}
 
@@ -1861,16 +1861,16 @@ func resourceVirtualMachineStorageImageReferenceHash(v interface{}) int {
 
 	if m, ok := v.(map[string]interface{}); ok {
 		if v, ok := m["publisher"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+			fmt.Fprintf(&buf, "%s-", v.(string))
 		}
 		if v, ok := m["offer"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+			fmt.Fprintf(&buf, "%s-", v.(string))
 		}
 		if v, ok := m["sku"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+			fmt.Fprintf(&buf, "%s-", v.(string))
 		}
 		if v, ok := m["id"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+			fmt.Fprintf(&buf, "%s-", v.(string))
 		}
 	}
 
