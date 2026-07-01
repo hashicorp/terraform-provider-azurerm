@@ -175,8 +175,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			"storage_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				// NOTE: O+C For non-default server, the storage type is derived from the source if omitted
-				Computed: true,
+				Default:  string(servers.StorageTypePremiumLRS),
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(servers.StorageTypePremiumLRS),
@@ -754,8 +753,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 		storageMb = int(*storage.StorageSizeGB) * 1024
 	}
 
-	storageType := d.Get("storage_type").(string)
-	if storageType != string(servers.StorageTypePremiumVTwoLRS) {
+	if d.Get("storage_type").(string) != string(servers.StorageTypePremiumVTwoLRS) {
 		if storage.Tier == nil || *storage.Tier == "" {
 			storageTierMappings := validate.InitializeFlexibleServerStorageTierDefaults()
 			storageTiers := storageTierMappings[storageMb]
@@ -936,14 +934,8 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 				}
 
 				d.Set("storage_type", pointer.FromEnum(storage.Type))
-
-				if storage.Iops != nil {
-					d.Set("storage_iops", int(*storage.Iops))
-				}
-
-				if storage.Throughput != nil {
-					d.Set("storage_throughput", int(*storage.Throughput))
-				}
+				d.Set("storage_iops", pointer.From(storage.Iops))
+				d.Set("storage_throughput", pointer.From(storage.Throughput))
 			}
 
 			if backup := props.Backup; backup != nil {
