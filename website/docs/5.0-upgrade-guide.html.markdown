@@ -871,6 +871,10 @@ Please follow the format in the example below for listing breaking changes in da
 * The deprecated `managed_resource_group` property has been removed.
 * The deprecated `diagnose_support_enabled` property has been removed.
 
+### `azurerm_role_definition`
+
+* The `role_definition_id` output attribute will now correctly return a UUID instead of a Resource Manager ID when the `name` input property is supplied.
+
 ### `azurerm_servicebus_namespace_disaster_recovery_config`
 
 * The deprecated `namespace_name` property has been removed.
