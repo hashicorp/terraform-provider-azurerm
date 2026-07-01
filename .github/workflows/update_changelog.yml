@@ -137,7 +137,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
-          go-version: '1.22'
+          go-version-file: ./.go-version
 
       - name: Add commit message to changelog pull request
       # at this point a PR is opened for sure, now add entry

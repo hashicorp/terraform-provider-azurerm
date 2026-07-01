@@ -116,7 +116,7 @@ resource "azurerm_dev_test_windows_virtual_machine" "test" {
   gallery_image_reference {
     offer     = "WindowsServer"
     publisher = "MicrosoftWindowsServer"
-    sku       = "2012-Datacenter"
+    sku       = "2022-datacenter"
     version   = "latest"
   }
 }
@@ -142,7 +142,7 @@ resource "azurerm_dev_test_windows_virtual_machine" "import" {
   gallery_image_reference {
     offer     = "WindowsServer"
     publisher = "MicrosoftWindowsServer"
-    sku       = "2012-Datacenter"
+    sku       = "2022-datacenter"
     version   = "latest"
   }
 }
@@ -169,7 +169,7 @@ resource "azurerm_dev_test_windows_virtual_machine" "test" {
   gallery_image_reference {
     offer     = "WindowsServer"
     publisher = "MicrosoftWindowsServer"
-    sku       = "2012-Datacenter"
+    sku       = "2022-datacenter"
     version   = "latest"
   }
 
