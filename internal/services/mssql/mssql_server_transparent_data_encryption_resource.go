@@ -4,6 +4,7 @@
 package mssql
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"strings"
@@ -15,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/encryptionprotectors"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/serverkeys"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
@@ -57,9 +59,10 @@ func resourceMsSqlTransparentDataEncryption() *pluginsdk.Resource {
 			},
 
 			"key_vault_key_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
+				Type:             pluginsdk.TypeString,
+				Optional:         true,
+				DiffSuppressFunc: diffSuppressKeyVaultVersionedKey,
+				ValidateFunc:     keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 			},
 
 			"auto_rotation_enabled": {
@@ -102,10 +105,17 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceDat
 
 	var key *keyvault.NestedItemID
 	if v, ok := d.GetOk("key_vault_key_id"); ok {
-		keyId, err := keyvault.ParseNestedItemID(v.(string), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
+		keyId, err := keyvault.ParseNestedItemID(v.(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 		if err != nil {
 			return err
 		}
+
+		// With `auto_rotation_enabled` the configured ID may be versionless, in which case
+		// the current version needs resolving before the Server Key can be created.
+		if keyId, err = resourceMsSqlTransparentDataEncryptionVersionedKey(ctx, keyId, "key_vault_key_id", d.Get("auto_rotation_enabled").(bool), meta); err != nil {
+			return err
+		}
+
 		key = keyId
 	}
 
@@ -233,4 +243,70 @@ func resourceMsSqlTransparentDataEncryptionKeyVaultName(keyVaultURL string) (str
 	}
 
 	return strings.Split(parsedURL.Host, ".")[0], nil
+}
+
+// If versionless KV key is used in config/state, suppress the diff with versioned key.
+// This is needed because backend API will return back a versioned key if it's given versionless one
+func diffSuppressKeyVaultVersionedKey(_, oldValue, newValue string, d *schema.ResourceData) bool {
+	if d == nil || !d.Get("auto_rotation_enabled").(bool) {
+		return false
+	}
+
+	newId, err := keyvault.ParseNestedItemID(newValue, keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
+	if err != nil {
+		return false
+	}
+
+	if newId.Version != "" {
+		return false
+	}
+
+	oldId, err := keyvault.ParseNestedItemID(oldValue, keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
+	if err != nil {
+		return false
+	}
+
+	return strings.EqualFold(oldId.KeyVaultBaseURL, newId.KeyVaultBaseURL) && strings.EqualFold(oldId.Name, newId.Name)
+}
+
+func resourceMsSqlTransparentDataEncryptionVersionedKey(ctx context.Context, id *keyvault.NestedItemID, fieldName string, autoRotationEnabled bool, meta interface{}) (*keyvault.NestedItemID, error) {
+	if id.Version != "" {
+		return id, nil
+	}
+
+	if !autoRotationEnabled {
+		return nil, fmt.Errorf("`%s` must be a versioned Key Vault Key ID when `auto_rotation_enabled` is false", fieldName)
+	}
+
+	var keyUrl string
+	if id.IsManagedHSM() {
+		resp, err := meta.(*clients.Client).ManagedHSMs.DataPlaneKeysClient.GetKey(ctx, id.KeyVaultBaseURL, id.Name, "")
+		if err != nil {
+			return nil, err
+		}
+
+		if resp.Key != nil {
+			keyUrl = pointer.From(resp.Key.Kid)
+		}
+	} else {
+		resp, err := meta.(*clients.Client).KeyVault.ManagementClient.GetKey(ctx, id.KeyVaultBaseURL, id.Name, "")
+		if err != nil {
+			return nil, err
+		}
+
+		if resp.Key != nil {
+			keyUrl = pointer.From(resp.Key.Kid)
+		}
+	}
+
+	if keyUrl == "" {
+		return nil, fmt.Errorf("retrieving latest version for Key Vault Key %q at %q: empty key ID returned", id.Name, id.KeyVaultBaseURL)
+	}
+
+	versionedId, err := keyvault.ParseNestedItemID(keyUrl, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
+	if err != nil {
+		return nil, err
+	}
+
+	return versionedId, nil
 }
