@@ -432,7 +432,7 @@ func expandAfdDomainTlsParameters(d *pluginsdk.ResourceData, input []interface{}
 	minimumVersionConfigured := false
 	minimumTlsVersionConfigured := false
 
-	minTlsVersion := ""
+	var minTlsVersion string
 
 	if rawConfig := d.GetRawConfig(); !rawConfig.IsNull() {
 		tlsConfig := rawConfig.GetAttr("tls")
