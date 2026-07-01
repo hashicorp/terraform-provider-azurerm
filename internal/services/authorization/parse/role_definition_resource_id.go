@@ -40,7 +40,7 @@ func (id RoleDefinitionResourceId) String() string {
 
 // RoleDefinitionResourceID parses a role definition ID with a scope prefix such as a subscription,
 // resource group, resource, or the provider-level /providers prefix.
-// The SDK's ScopedRoleDefinitionID parser is not used here because it does not accept
+// The SDK's roledefinitions.ParseScopedRoleDefinitionID parser is not used here because it does not accept
 // provider-level role definition IDs that start with /providers/Microsoft.Authorization.
 func RoleDefinitionResourceID(input string) (*RoleDefinitionResourceId, error) {
 	matches := roleDefinitionResourceIdPattern.FindStringSubmatch(input)

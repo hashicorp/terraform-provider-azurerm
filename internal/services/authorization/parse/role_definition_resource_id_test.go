@@ -38,7 +38,7 @@ func TestRoleDefinitionResourceID(t *testing.T) {
 			expectedUUID:  "acdd72a7-3385-48ef-bd42-f606fba81ae7",
 		},
 		{
-			name:          "unscoped (provider-scoped)",
+			name:          "tenant-scoped",
 			input:         "/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7",
 			expectedScope: "",
 			expectedUUID:  "acdd72a7-3385-48ef-bd42-f606fba81ae7",
@@ -98,13 +98,13 @@ func TestRoleDefinitionResourceIdsMatch(t *testing.T) {
 			expected: true,
 		},
 		{
-			name:     "unscoped vs scoped same UUID",
+			name:     "tenant-scoped vs subscription-scoped same UUID",
 			a:        "/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7",
 			b:        "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7",
 			expected: true,
 		},
 		{
-			name:     "scoped vs unscoped same UUID",
+			name:     "subscription-scoped vs tenant-scoped same UUID",
 			a:        "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7",
 			b:        "/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7",
 			expected: true,
@@ -128,7 +128,7 @@ func TestRoleDefinitionResourceIdsMatch(t *testing.T) {
 			expected: true,
 		},
 		{
-			name:     "resource group-scoped vs unscoped same UUID",
+			name:     "resource group-scoped vs tenant-scoped same UUID",
 			a:        "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myRG/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7",
 			b:        "/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7",
 			expected: true,
@@ -140,7 +140,7 @@ func TestRoleDefinitionResourceIdsMatch(t *testing.T) {
 			expected: true,
 		},
 		{
-			name:     "management group-scoped vs unscoped same UUID",
+			name:     "management group-scoped vs tenant-scoped same UUID",
 			a:        "/providers/Microsoft.Management/managementGroups/myMG/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7",
 			b:        "/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7",
 			expected: true,
@@ -168,7 +168,7 @@ func TestRoleDefinitionResourceId_ID(t *testing.T) {
 			expected: "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7",
 		},
 		{
-			name:     "unscoped",
+			name:     "tenant-scoped",
 			id:       NewRoleDefinitionResourceID("", "acdd72a7-3385-48ef-bd42-f606fba81ae7"),
 			expected: "/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7",
 		},

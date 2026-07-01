@@ -135,13 +135,13 @@ func TestAccPimEligibleRoleAssignment_condition(t *testing.T) {
 	})
 }
 
-func TestAccPimEligibleRoleAssignment_unscopedRoleDefinitionId(t *testing.T) {
+func TestAccPimEligibleRoleAssignment_tenantScopedRoleDefinitionId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_pim_eligible_role_assignment", "test")
 	r := PimEligibleRoleAssignmentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.unscopedRoleDefinitionId(data),
+			Config: r.tenantScopedRoleDefinitionId(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scope").Exists(),
@@ -523,7 +523,7 @@ resource "azurerm_pim_eligible_role_assignment" "test" {
 `, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (r PimEligibleRoleAssignmentResource) unscopedRoleDefinitionId(data acceptance.TestData) string {
+func (r PimEligibleRoleAssignmentResource) tenantScopedRoleDefinitionId(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_subscription" "primary" {}
 

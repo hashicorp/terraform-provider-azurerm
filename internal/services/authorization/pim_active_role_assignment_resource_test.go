@@ -119,13 +119,13 @@ func TestAccPimActiveRoleAssignment_expirationByDate(t *testing.T) {
 	})
 }
 
-func TestAccPimActiveRoleAssignment_unscopedRoleDefinitionId(t *testing.T) {
+func TestAccPimActiveRoleAssignment_tenantScopedRoleDefinitionId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_pim_active_role_assignment", "test")
 	r := PimActiveRoleAssignmentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.unscopedRoleDefinitionId(data),
+			Config: r.tenantScopedRoleDefinitionId(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scope").Exists(),
@@ -497,7 +497,7 @@ resource "azurerm_pim_active_role_assignment" "test" {
 `, data.RandomInteger)
 }
 
-func (r PimActiveRoleAssignmentResource) unscopedRoleDefinitionId(data acceptance.TestData) string {
+func (r PimActiveRoleAssignmentResource) tenantScopedRoleDefinitionId(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
