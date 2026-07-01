@@ -13,9 +13,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/portal/2019-01-01-preview/dashboard"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/portal/2026-04-01/dashboards"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -23,14 +26,14 @@ import (
 )
 
 func resourcePortalDashboard() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourcePortalDashboardCreateUpdate,
 		Read:   resourcePortalDashboardRead,
 		Update: resourcePortalDashboardCreateUpdate,
 		Delete: resourcePortalDashboardDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := dashboard.ParseDashboardID(id)
+			_, err := dashboards.ParseDashboardID(id)
 			return err
 		}),
 
@@ -63,6 +66,22 @@ func resourcePortalDashboard() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["dashboard_properties"].DiffSuppressOnRefresh = true
+		resource.Schema["dashboard_properties"].DiffSuppressFunc = func(k, old, new string, d *schema.ResourceData) bool {
+			if old == new {
+				return true
+			}
+			if parsedLegacy, ok := parse.LegacyDashboardProperties(new); ok {
+				if converted, err := json.Marshal(parsedLegacy); err == nil {
+					return utils.NormalizeJson(old) == utils.NormalizeJson(string(converted))
+				}
+			}
+			return false
+		}
+	}
+	return resource
 }
 
 func resourcePortalDashboardCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -71,7 +90,7 @@ func resourcePortalDashboardCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := dashboard.NewDashboardID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := dashboards.NewDashboardID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
@@ -88,17 +107,33 @@ func resourcePortalDashboardCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	props := dashboard.Dashboard{
+	props := dashboards.Dashboard{
 		Location: location.Normalize(d.Get("location").(string)),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	var dashboardProperties dashboard.DashboardProperties
-
 	dashboardPropsRaw := d.Get("dashboard_properties").(string)
+
+	if !features.FivePointOh() {
+		if dashboardProperties, ok := parse.LegacyDashboardProperties(dashboardPropsRaw); ok {
+			props.Properties = dashboardProperties
+
+			if _, err := client.CreateOrUpdate(ctx, id, props); err != nil {
+				return fmt.Errorf("creating/updating %s %+v", id, err)
+			}
+
+			if d.IsNewResource() {
+				d.SetId(id.ID())
+			}
+			return resourcePortalDashboardRead(d, meta)
+		}
+	}
+
+	var dashboardProperties dashboards.DashboardPropertiesWithProvisioningState
 	if err := json.Unmarshal([]byte(dashboardPropsRaw), &dashboardProperties); err != nil {
 		return fmt.Errorf("parsing JSON: %+v", err)
 	}
+	parse.NormalizeDashboardPartMetadata(&dashboardProperties)
 
 	props.Properties = &dashboardProperties
 
@@ -118,7 +153,7 @@ func resourcePortalDashboardRead(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := dashboard.ParseDashboardID(d.Id())
+	id, err := dashboards.ParseDashboardID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -140,6 +175,7 @@ func resourcePortalDashboardRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("location", location.Normalize(model.Location))
 
 		if props := model.Properties; props != nil {
+			parse.NormalizeDashboardPartMetadata(props)
 			v, err := json.Marshal(props)
 			if err != nil {
 				return fmt.Errorf("parsing JSON for Dashboard Properties: %+v", err)
@@ -160,7 +196,7 @@ func resourcePortalDashboardDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := dashboard.ParseDashboardID(d.Id())
+	id, err := dashboards.ParseDashboardID(d.Id())
 	if err != nil {
 		return err
 	}

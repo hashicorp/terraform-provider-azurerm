@@ -1015,7 +1015,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/p
 github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/prerulesresources
 github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/remediations
 github.com/hashicorp/go-azure-sdk/resource-manager/portal/2019-01-01-preview/dashboard
-github.com/hashicorp/go-azure-sdk/resource-manager/portal/2019-01-01-preview/tenantconfiguration
+github.com/hashicorp/go-azure-sdk/resource-manager/portal/2026-04-01/dashboards
+github.com/hashicorp/go-azure-sdk/resource-manager/portal/2026-04-01/tenantconfigurations
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/configurations
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/databases
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/firewallrules

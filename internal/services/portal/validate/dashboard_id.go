@@ -8,7 +8,7 @@ package validate
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/parse"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/portal/2026-04-01/dashboards"
 )
 
 func DashboardID(input interface{}, key string) (warnings []string, errors []error) {
@@ -18,7 +18,7 @@ func DashboardID(input interface{}, key string) (warnings []string, errors []err
 		return
 	}
 
-	if _, err := parse.DashboardID(v); err != nil {
+	if _, err := dashboards.ParseDashboardID(v); err != nil {
 		errors = append(errors, err)
 	}
 
