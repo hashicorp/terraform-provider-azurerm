@@ -21,7 +21,7 @@ type ConfidentialLedgerResource struct{}
 func TestAccConfidentialLedgerSequential(t *testing.T) {
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"confidentialLedger": {
-			"public":         TestAccConfidentialLedger_public,
+			"public":         testAccConfidentialLedger_public,
 			"private":        testAccConfidentialLedger_private,
 			"requiresImport": testAccConfidentialLedger_requiresImport,
 			"certBased":      testAccConfidentialLedger_certBased,
@@ -29,7 +29,7 @@ func TestAccConfidentialLedgerSequential(t *testing.T) {
 	})
 }
 
-func TestAccConfidentialLedger_public(t *testing.T) {
+func testAccConfidentialLedger_public(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_confidential_ledger", "test")
 	r := ConfidentialLedgerResource{}
 
