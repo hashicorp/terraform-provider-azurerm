@@ -160,7 +160,6 @@ resource "azurerm_public_ip" "primary" {
   allocation_method   = "Static"
   location            = azurerm_resource_group.primary.location
   resource_group_name = azurerm_resource_group.primary.name
-  sku                 = "Basic"
 }
 
 resource "azurerm_public_ip" "secondary" {
@@ -168,7 +167,6 @@ resource "azurerm_public_ip" "secondary" {
   allocation_method   = "Static"
   location            = azurerm_resource_group.secondary.location
   resource_group_name = azurerm_resource_group.secondary.name
-  sku                 = "Basic"
 }
 
 resource "azurerm_network_interface" "vm" {

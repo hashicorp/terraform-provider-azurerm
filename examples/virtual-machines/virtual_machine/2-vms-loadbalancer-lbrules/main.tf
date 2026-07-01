@@ -31,7 +31,7 @@ resource "azurerm_public_ip" "lbpip" {
   name                = "${var.rg_prefix}-ip"
   location            = var.location
   resource_group_name = azurerm_resource_group.rg.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
   domain_name_label   = var.lb_ip_dns_name
 }
 
@@ -61,8 +61,8 @@ resource "azurerm_lb" "lb" {
 }
 
 resource "azurerm_lb_backend_address_pool" "backend_pool" {
-  loadbalancer_id     = azurerm_lb.lb.id
-  name                = "BackendPool1"
+  loadbalancer_id = azurerm_lb.lb.id
+  name            = "BackendPool1"
 }
 
 resource "azurerm_lb_nat_rule" "tcp" {

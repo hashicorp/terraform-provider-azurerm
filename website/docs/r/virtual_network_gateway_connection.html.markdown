@@ -49,7 +49,8 @@ resource "azurerm_public_ip" "example" {
   name                = "test"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  zones               = ["1", "2", "3"]
 }
 
 resource "azurerm_virtual_network_gateway" "example" {
@@ -113,7 +114,8 @@ resource "azurerm_public_ip" "us" {
   name                = "us"
   location            = azurerm_resource_group.us.location
   resource_group_name = azurerm_resource_group.us.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  zones               = ["1", "2", "3"]
 }
 
 resource "azurerm_virtual_network_gateway" "us" {
@@ -155,7 +157,8 @@ resource "azurerm_public_ip" "europe" {
   name                = "europe"
   location            = azurerm_resource_group.europe.location
   resource_group_name = azurerm_resource_group.europe.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  zones               = ["1", "2", "3"]
 }
 
 resource "azurerm_virtual_network_gateway" "europe" {

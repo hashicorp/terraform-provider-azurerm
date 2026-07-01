@@ -103,7 +103,6 @@ resource "azurerm_public_ip" "azufwpip" {
   resource_group_name = azurerm_resource_group.azurg.name
   location            = azurerm_resource_group.azurg.location
   allocation_method   = "Static"
-  sku                 = "Standard"
 
   tags = {
     environment = "Staging"
@@ -117,8 +116,7 @@ resource "azurerm_public_ip" "azujumppip" {
   name                = "jumpBox-ip"
   resource_group_name = azurerm_resource_group.azurg.name
   location            = azurerm_resource_group.azurg.location
-  allocation_method   = "Dynamic"
-  sku                 = "Basic"
+  allocation_method   = "Static"
 
   tags = {
     environment = "Staging"

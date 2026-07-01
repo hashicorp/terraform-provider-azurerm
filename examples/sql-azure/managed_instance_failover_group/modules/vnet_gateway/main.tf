@@ -12,7 +12,8 @@ resource "azurerm_public_ip" "pip_1" {
   name                = "${var.prefix}_pip_1"
   location            = var.location_1
   resource_group_name = var.resource_group_name_1
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  zones               = ["1", "2", "3"]
 }
 
 resource "azurerm_virtual_network_gateway" "vnet_gw_1" {
@@ -55,7 +56,8 @@ resource "azurerm_public_ip" "pip_2" {
   name                = "${var.prefix}_pip_2"
   location            = var.location_2
   resource_group_name = var.resource_group_name_2
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  zones               = ["1", "2", "3"]
 }
 
 resource "azurerm_virtual_network_gateway" "vnet_gw_2" {

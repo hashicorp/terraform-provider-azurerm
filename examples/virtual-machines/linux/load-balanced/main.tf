@@ -33,7 +33,7 @@ resource "azurerm_public_ip" "pip" {
   name                = "${var.prefix}-pip"
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
 }
 
 resource "azurerm_network_interface" "main" {
@@ -92,8 +92,8 @@ resource "azurerm_lb" "example" {
 }
 
 resource "azurerm_lb_backend_address_pool" "example" {
-  loadbalancer_id     = azurerm_lb.example.id
-  name                = "BackEndAddressPool"
+  loadbalancer_id = azurerm_lb.example.id
+  name            = "BackEndAddressPool"
 }
 
 resource "azurerm_lb_nat_rule" "example" {

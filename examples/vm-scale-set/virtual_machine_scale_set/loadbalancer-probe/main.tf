@@ -28,7 +28,7 @@ resource "azurerm_public_ip" "example" {
   name                = "${var.prefix}-pip"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
   domain_name_label   = azurerm_resource_group.example.name
 }
 
@@ -44,15 +44,15 @@ resource "azurerm_lb" "example" {
 }
 
 resource "azurerm_lb_backend_address_pool" "example" {
-  loadbalancer_id     = azurerm_lb.example.id
-  name                = "BackEndAddressPool"
+  loadbalancer_id = azurerm_lb.example.id
+  name            = "BackEndAddressPool"
 }
 
 resource "azurerm_lb_probe" "example" {
-  loadbalancer_id     = azurerm_lb.example.id
-  name                = "ssh-probe"
-  protocol            = "Tcp"
-  port                = 22
+  loadbalancer_id = azurerm_lb.example.id
+  name            = "ssh-probe"
+  protocol        = "Tcp"
+  port            = 22
 }
 
 resource "azurerm_lb_nat_pool" "example" {
