@@ -958,6 +958,40 @@ func TestAccCosmosDBAccount_updateAnalyticalStorage(t *testing.T) {
 	})
 }
 
+func TestAccCosmosDBAccount_analyticalStorageEnabledGlobalDocumentDB(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.analyticalStorage(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual, true),
+			PlanOnly:    true,
+			ExpectError: regexp.MustCompile("analytical_storage_enabled` cannot be set to `true`"),
+		},
+	})
+}
+
+func TestAccCosmosDBAccount_analyticalStorageEnabledUpdateGlobalDocumentDB(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.analyticalStorage(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual, false),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				checkAccCosmosDBAccount_basic(data, cosmosdb.DefaultConsistencyLevelEventual, 1),
+				check.That(data.ResourceName).Key("analytical_storage_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config:      r.analyticalStorage(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual, true),
+			PlanOnly:    true,
+			ExpectError: regexp.MustCompile("`analytical_storage_enabled` cannot be changed from `false` to `true`"),
+		},
+	})
+}
+
 func TestAccCosmosDBAccount_updateCapacity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
