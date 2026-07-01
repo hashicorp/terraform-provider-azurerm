@@ -441,7 +441,7 @@ func expandAfdDomainTlsParameters(d *pluginsdk.ResourceData, input []interface{}
 			if !tlsBlock.IsNull() {
 				secretWasConfigured = !tlsBlock.GetAttr("cdn_frontdoor_secret_id").IsNull()
 				minimumVersionConfigured = !tlsBlock.GetAttr("minimum_version").IsNull()
-				if ! features.FivePointOh() {
+				if !features.FivePointOh() {
 					minimumTlsVersionConfigured = !tlsBlock.GetAttr("minimum_tls_version").IsNull()
 				}
 			}
@@ -758,7 +758,7 @@ func frontDoorCustomDomainTlsCustomizeDiff(_ context.Context, diff *pluginsdk.Re
 			tlsBlock := tlsConfig.AsValueSlice()[0]
 			if !tlsBlock.IsNull() {
 				minimumVersionConfigured = !tlsBlock.GetAttr("minimum_version").IsNull()
-				if !features.FivePointOh(){
+				if !features.FivePointOh() {
 					minimumTlsVersionConfigured = !tlsBlock.GetAttr("minimum_tls_version").IsNull()
 				}
 
