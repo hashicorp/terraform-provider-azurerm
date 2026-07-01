@@ -258,8 +258,8 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
   host_name   = join(".", ["fd", azurerm_dns_zone.child.name])
 
   tls {
-    certificate_type    = "ManagedCertificate"
-    minimum_tls_version = "TLS12"
+    certificate_type = "ManagedCertificate"
+    minimum_version  = "TLS12"
   }
 }
 
@@ -349,7 +349,6 @@ resource "azurerm_cdn_frontdoor_endpoint" "test" {
 }
 
 func (r CdnFrontDoorSecurityPolicyResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -377,7 +376,7 @@ resource "azurerm_cdn_frontdoor_security_policy" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorSecurityPolicyResource) basicEndpoint(data acceptance.TestData) string {
@@ -521,7 +520,6 @@ resource "azurerm_cdn_frontdoor_security_policy" "test" {
 }
 
 func (r CdnFrontDoorSecurityPolicyResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -549,7 +547,7 @@ resource "azurerm_cdn_frontdoor_security_policy" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorSecurityPolicyResource) completeEndpoint(data acceptance.TestData) string {
