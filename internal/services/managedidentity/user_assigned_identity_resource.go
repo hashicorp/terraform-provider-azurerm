@@ -6,6 +6,7 @@ package managedidentity
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -143,6 +144,21 @@ func (r UserAssignedIdentityResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending: []string{"NotFound"},
+				Target:  []string{"Found"},
+				Refresh: pluginsdk.ResourceCreateRefreshFunc(func() (*http.Response, error) {
+					resp, err := client.UserAssignedIdentitiesGet(ctx, id)
+					return resp.HttpResponse, err
+				}),
+				MinTimeout:                5 * time.Second,
+				ContinuousTargetOccurence: 3,
+				Timeout:                   metadata.ResourceData.Timeout(pluginsdk.TimeoutCreate),
+			}
+			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for %s to become available: %+v", id, err)
+			}
+
 			metadata.SetID(id)
 			return nil
 		},
@@ -210,6 +226,7 @@ func (r UserAssignedIdentityResource) Delete() sdk.ResourceFunc {
 		},
 	}
 }
+
 
 func (r UserAssignedIdentityResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
