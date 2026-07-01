@@ -150,7 +150,7 @@ func (CognitiveAccountProjectConnectionEntraIDListResource) List(ctx context.Con
 				}
 
 				result := request.NewListResult(listCtx)
-				result.DisplayName = fmt.Sprintf("%s (%s)", pointer.From(connection.Name), string(base.AuthType))
+				result.DisplayName = pointer.From(connection.Name)
 
 				rd := sdk.WrappedResource(CognitiveAccountProjectConnectionEntraIDResource{}).Data(&terraform.InstanceState{})
 				rd.SetId(connectionId.ID())

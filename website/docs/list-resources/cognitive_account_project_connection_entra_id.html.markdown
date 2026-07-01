@@ -41,11 +41,11 @@ list "azurerm_cognitive_account_project_connection_entra_id" "example" {
 
 This list resource supports the following arguments:
 
-* `cognitive_account_name` - (Optional) The name of the Cognitive Services Account. Required when `project_name` is specified.
+* `cognitive_account_name` - (Optional) The name of the Cognitive Services Account. This argument must be specified together with `resource_group_name`. It is also required when `project_name` is specified.
 
 * `project_name` - (Optional) The name of the Cognitive Services Account Project. If specified, `cognitive_account_name` and `resource_group_name` must also be specified.
 
-* `resource_group_name` - (Optional) The name of the Resource Group containing the Cognitive Services Account. Required when `cognitive_account_name` or `project_name` is specified.
+* `resource_group_name` - (Optional) The name of the Resource Group containing the Cognitive Services Account. This argument must be specified together with `cognitive_account_name`. It is also required when `project_name` is specified.
 
 * `subscription_id` - (Optional) The Subscription ID to query. Defaults to the value specified in the Provider Configuration.
 
