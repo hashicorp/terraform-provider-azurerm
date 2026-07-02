@@ -80,6 +80,11 @@ func resourceKeyVault() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
+			"rbac_authorization_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Required: true,
+			},
+
 			"sku_name": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
@@ -139,12 +144,6 @@ func resourceKeyVault() *pluginsdk.Resource {
 			"enabled_for_template_deployment": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-			},
-
-			"rbac_authorization_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
 			},
 
 			"network_acls": {

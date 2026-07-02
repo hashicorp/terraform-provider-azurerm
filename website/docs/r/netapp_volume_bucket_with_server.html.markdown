@@ -201,6 +201,7 @@ resource "azurerm_key_vault" "certificate" {
   name                       = "example-cert-kv"
   location                   = azurerm_resource_group.example.location
   resource_group_name        = azurerm_resource_group.example.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
@@ -210,6 +211,7 @@ resource "azurerm_key_vault" "credentials" {
   name                       = "example-creds-kv"
   location                   = azurerm_resource_group.example.location
   resource_group_name        = azurerm_resource_group.example.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7

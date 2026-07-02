@@ -50,11 +50,12 @@ resource "azurerm_databricks_workspace_root_dbfs_customer_managed_key" "example"
 resource "azurerm_key_vault" "example" {
   provider = azurerm.keyVaultSubscription
   
-  name                = "${var.prefix}-keyvault"
-  location            = azurerm_resource_group.keyVault.location
-  resource_group_name = azurerm_resource_group.keyVault.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "premium"
+  name                       = "${var.prefix}-keyvault"
+  location                   = azurerm_resource_group.keyVault.location
+  resource_group_name        = azurerm_resource_group.keyVault.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
 
   purge_protection_enabled   = true
   soft_delete_retention_days = 7
