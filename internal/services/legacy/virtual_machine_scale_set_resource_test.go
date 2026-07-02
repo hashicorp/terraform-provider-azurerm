@@ -955,8 +955,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -1026,8 +1026,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -1075,8 +1075,8 @@ resource "azurerm_virtual_machine_scale_set" "import" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -1150,8 +1150,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -1222,8 +1222,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -1611,8 +1611,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -1687,8 +1687,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -1770,8 +1770,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -1850,8 +1850,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -1933,8 +1933,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -2013,8 +2013,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -2097,8 +2097,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -2178,8 +2178,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -2261,8 +2261,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -2341,8 +2341,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -2421,8 +2421,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -2498,8 +2498,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -2572,8 +2572,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -2643,8 +2643,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -2717,8 +2717,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -2788,8 +2788,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -2865,8 +2865,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -2939,8 +2939,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -3016,8 +3016,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -3090,8 +3090,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -3176,8 +3176,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -3259,8 +3259,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -3341,8 +3341,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -3420,8 +3420,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -3673,9 +3673,9 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    os_type        = "linux"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    os_type           = "linux"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -3777,9 +3777,9 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    os_type        = "linux"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    os_type           = "linux"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -3884,9 +3884,9 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    os_type        = "linux"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    os_type           = "linux"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -3992,9 +3992,9 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    os_type        = "linux"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    os_type           = "linux"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -4103,9 +4103,9 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    os_type        = "linux"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    os_type           = "linux"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -4207,9 +4207,9 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    os_type        = "linux"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    os_type           = "linux"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -4584,8 +4584,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -4765,8 +4765,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -4978,8 +4978,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -5078,8 +5078,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -5152,8 +5152,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -5223,8 +5223,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -5299,8 +5299,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -5372,8 +5372,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -5458,8 +5458,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -5541,8 +5541,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -5635,8 +5635,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -5726,8 +5726,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -5808,8 +5808,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -5910,8 +5910,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -6015,8 +6015,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -6118,8 +6118,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -6216,8 +6216,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -6318,8 +6318,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -6423,8 +6423,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -6526,8 +6526,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -6628,8 +6628,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
     vhd_containers    = ["should_cause_conflict"]
   }
@@ -6799,8 +6799,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -6869,8 +6869,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -7029,8 +7029,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -7110,8 +7110,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -7469,8 +7469,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -7551,8 +7551,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
