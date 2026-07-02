@@ -247,8 +247,8 @@ func (r KeyVaultMHSMKeyResource) Create() sdk.ResourceFunc {
 			}
 
 			if config.KeySize > 0 {
-				if config.KeyType != string(keyvault.JSONWebKeyTypeRSAHSM) {
-					return fmt.Errorf("`key_type` must be `RSA-HSM` when `key_size` is set")
+				if config.KeyType != string(keyvault.JSONWebKeyTypeRSAHSM) && config.KeyType != string(keyvault.JSONWebKeyTypeOctHSM) {
+					return fmt.Errorf("`key_type` must be `RSA-HSM` or `oct-HSM` when `key_size` is set")
 				}
 				parameters.KeySize = pointer.To(int32(config.KeySize))
 			}
