@@ -153,6 +153,8 @@ The following arguments are supported:
 
 * `dns_settings` - (Optional) A `dns_settings` block as defined below.
 
+* `identity` - (Optional) An `identity` block as defined below.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Palo Alto Next Generation Firewall Virtual Network Local Rulestack.
 
 ---
@@ -192,6 +194,14 @@ A `frontend_config` block supports the following:
 * `public_ip_address_id` - (Required) The ID of the Public IP Address on which to receive traffic. 
 
 ~> **Note:** This must be an Azure Public IP address ID also specified in the `public_ip_address_ids` list.
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Palo Alto Next Generation Firewall Virtual Network Local Rulestack. The only possible value is `UserAssigned`.
+
+* `identity_ids` - (Required) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Palo Alto Next Generation Firewall Virtual Network Local Rulestack.
 
 ---
 
