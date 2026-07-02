@@ -4,11 +4,8 @@
 package cdnfrontdoorruleconditions
 
 import (
-	"fmt"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-09-01/rules"
-	helperValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -228,23 +225,7 @@ func flattenCdnFrontDoorNormalizedCondition(condition normalizedCondition) map[s
 }
 
 func validateCdnFrontDoorExpandConditionOperatorValues(operator string, matchValues *[]string, m CdnFrontDoorConditionParameters) error {
-	if operator == "" {
-		return fmt.Errorf("%q is invalid: no 'operator' value has been set, got %q", m.ConfigName, operator)
-	}
-
-	// NOTE: There are now 14 different 'Any' operators in the new API, however they are all the same value so I am just hardcoding the value evaluation here,
-	//       the multiple values appears to be by design as they have exposed an "Any" field for each condition type (e.g., 'ClientPortOperatorAny',
-	//       'CookiesOperatorAny', 'HostNameOperatorAny', etc.) due to the swagger issue raised by TomBuildsStuff...
-	if operator == "Any" && len(*matchValues) > 0 {
-		return fmt.Errorf("%q is invalid: the 'match_values' field must not be set if the conditions 'operator' is set to 'Any'", m.ConfigName)
-	}
-
-	// make the 'match_values' field required if the operator is not set to 'Any'...
-	if operator != "Any" && len(*matchValues) == 0 {
-		return fmt.Errorf("%q is invalid: the 'match_values' field must be set if the conditions 'operator' is not set to 'Any'", m.ConfigName)
-	}
-
-	return nil
+	return validate.CdnFrontDoorValidateConditionMatchValues(m.ConfigName, operator, *matchValues)
 }
 
 func ExpandCdnFrontDoorRemoteAddressCondition(input []interface{}) (*[]rules.DeliveryRuleCondition, error) {
@@ -265,26 +246,14 @@ func ExpandCdnFrontDoorRemoteAddressCondition(input []interface{}) (*[]rules.Del
 		}
 
 		if condition.Parameters.Operator == rules.RemoteAddressOperatorGeoMatch {
-			for _, matchValue := range item["match_values"].([]interface{}) {
-				if matchValue != nil {
-					if ok, _ := helperValidate.RegExHelper(matchValue, "match_values", `^[A-Z]{2}$`); !ok {
-						return nil, fmt.Errorf("%q is invalid: when the 'operator' is set to 'GeoMatch' the value must be a valid country code consisting of 2 uppercase characters, got %q", conditionMapping.ConfigName, matchValue)
-					}
-				}
+			if err := validate.CdnFrontDoorValidateGeoMatchCountryCodes(conditionMapping.ConfigName, pointer.From(condition.Parameters.MatchValues)); err != nil {
+				return nil, err
 			}
 		}
 
 		if condition.Parameters.Operator == rules.RemoteAddressOperatorIPMatch {
-			// make sure all of the passed CIDRs are valid
-			for _, matchValue := range item["match_values"].([]interface{}) {
-				if _, err := validate.FrontDoorRuleCidrIsValid(matchValue, "match_values"); err != nil {
-					return nil, fmt.Errorf("%q is invalid: when the 'operator' is set to 'IPMatch' the 'match_values' must be a valid IPv4 or IPv6 CIDR, got %q", conditionMapping.ConfigName, matchValue.(string))
-				}
-			}
-
-			// Check for CIDR overlap and CIDR duplicates in the match values
-			if _, err := validate.FrontDoorRuleCidrOverlap(item["match_values"].([]interface{}), "match_values"); err != nil {
-				return nil, fmt.Errorf("%q is invalid: %+v", conditionMapping.ConfigName, err)
+			if err := validate.CdnFrontDoorValidateCIDRMatchValues(conditionMapping.ConfigName, pointer.From(condition.Parameters.MatchValues)); err != nil {
+				return nil, err
 			}
 		}
 
@@ -732,16 +701,8 @@ func ExpandCdnFrontDoorSocketAddressCondition(input []interface{}) (*[]rules.Del
 		}
 
 		if condition.Parameters.Operator == rules.SocketAddrOperatorIPMatch {
-			// make sure all of the passed CIDRs are valid
-			for _, matchValue := range item["match_values"].([]interface{}) {
-				if _, err := validate.FrontDoorRuleCidrIsValid(matchValue, "match_values"); err != nil {
-					return nil, fmt.Errorf("%q is invalid: when the 'operator' is set to 'IPMatch' the 'match_values' must be a valid IPv4 or IPv6 CIDR, got %q", conditionMapping.ConfigName, matchValue.(string))
-				}
-			}
-
-			// Check for CIDR overlap and CIDR duplicates in the match values
-			if _, err := validate.FrontDoorRuleCidrOverlap(item["match_values"].([]interface{}), "match_values"); err != nil {
-				return nil, fmt.Errorf("%q is invalid: %+v", conditionMapping.ConfigName, err)
+			if err := validate.CdnFrontDoorValidateCIDRMatchValues(conditionMapping.ConfigName, pointer.From(condition.Parameters.MatchValues)); err != nil {
+				return nil, err
 			}
 		}
 

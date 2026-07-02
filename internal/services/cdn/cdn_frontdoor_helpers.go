@@ -9,6 +9,8 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rulesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rules"
 	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -80,6 +82,17 @@ func flattenEnabledBool(input cdn.EnabledState) bool {
 
 func flattenHttpsRedirectToBool(input cdn.HTTPSRedirect) bool {
 	return input == cdn.HTTPSRedirectEnabled
+}
+
+// batchModeClientRuleSetID converts the legacy 2024-02-01 SDK ruleset ID into
+// the 2025-12-01 SDK ruleset ID type required by the batch-mode client.
+//
+// The two ID types exist because:
+//   - Legacy non-batch ruleset operations use the 2024-02-01 SDK surface.
+//   - Batch-mode ruleset operations use the 2025-12-01 client, which expects a
+//     different RuleSetId type.
+func batchModeClientRuleSetID(id rulesets.RuleSetId) rules.RuleSetId {
+	return rules.NewRuleSetID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName, id.RuleSetName)
 }
 
 func flattenTransformSlice(input *[]waf.TransformType) []interface{} {
@@ -552,4 +565,15 @@ func expandCustomDomains(input []interface{}) ([]interface{}, error) {
 	}
 
 	return out, nil
+}
+
+// Exposed `Disabled` as a valid value for provider issue #19008.
+// Keep `cache_behavior` values aligned across the Front Door rule and batch rule set resources.
+func PossibleValuesForRuleCacheBehavior() []string {
+	return []string{
+		string(rules.RuleCacheBehaviorHonorOrigin),
+		string(rules.RuleCacheBehaviorOverrideAlways),
+		string(rules.RuleCacheBehaviorOverrideIfOriginMissing),
+		string(rules.RuleIsCompressionEnabledDisabled),
+	}
 }

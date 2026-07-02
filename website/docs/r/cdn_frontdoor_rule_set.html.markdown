@@ -25,8 +25,48 @@ resource "azurerm_cdn_frontdoor_profile" "example" {
 }
 
 resource "azurerm_cdn_frontdoor_rule_set" "example" {
-  name                     = "ExampleRuleSet"
+  name                     = "exampleruleset"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
+}
+
+resource "azurerm_cdn_frontdoor_origin_group" "example" {
+  name                     = "example-origin-group"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
+
+  load_balancing {
+    additional_latency_in_milliseconds = 0
+    sample_size                        = 16
+    successful_samples_required        = 3
+  }
+}
+
+resource "azurerm_cdn_frontdoor_origin" "example" {
+  name                          = "example-origin"
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
+  enabled                       = true
+
+  certificate_name_check_enabled = false
+  host_name                      = "contoso.com"
+  http_port                      = 80
+  https_port                     = 443
+  origin_host_header             = "www.contoso.com"
+  priority                       = 1
+  weight                         = 1
+}
+
+resource "azurerm_cdn_frontdoor_endpoint" "example" {
+  name                     = "example-endpoint"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
+}
+
+resource "azurerm_cdn_frontdoor_route" "example" {
+  name                          = "example-route"
+  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.example.id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
+  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.example.id]
+  cdn_frontdoor_rule_set_ids    = [azurerm_cdn_frontdoor_rule_set.example.id]
+  patterns_to_match             = ["/*"]
+  supported_protocols           = ["Http", "Https"]
 }
 ```
 
@@ -34,9 +74,11 @@ resource "azurerm_cdn_frontdoor_rule_set" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Front Door Rule Set. Changing this forces a new Front Door Rule Set to be created.
+* `name` - (Required) The name which should be used for this Front Door Rule Set. Changing this forces a new resource to be created.
 
-* `cdn_frontdoor_profile_id` - (Required) The ID of the Front Door Profile. Changing this forces a new Front Door Rule Set to be created.
+* `cdn_frontdoor_profile_id` - (Required) The resource ID of the Front Door Profile where this Front Door Rule Set should be created. Changing this forces a new resource to be created.
+
+~> **Note:** This resource only supports the non-batch Front Door Standard/Premium Rule Set path. Existing or imported rule sets where `batch_mode_enabled` is `true` must be managed with `azurerm_cdn_frontdoor_batch_rule_set` instead.
 
 ## Attributes Reference
 
@@ -54,7 +96,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 ## Import
 
-Front Door Rule Sets can be imported using the `resource id`, e.g.
+A Front Door Rule Set can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_cdn_frontdoor_rule_set.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/ruleSets/ruleSet1

@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rulesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -19,8 +20,6 @@ import (
 type CdnFrontDoorRuleSetResource struct{}
 
 func TestAccCdnFrontDoorRuleSet_basic_unattachedRoute(t *testing.T) {
-	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
-
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule_set", "test")
 	r := CdnFrontDoorRuleSetResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -63,8 +62,6 @@ func TestAccCdnFrontDoorRuleSet_requiresImport(t *testing.T) {
 }
 
 func TestAccCdnFrontDoorRuleSet_complete_unattachedRoute(t *testing.T) {
-	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
-
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule_set", "test")
 	r := CdnFrontDoorRuleSetResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -93,14 +90,15 @@ func TestAccCdnFrontDoorRuleSet_complete_attachedRoute(t *testing.T) {
 }
 
 func (r CdnFrontDoorRuleSetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	client := clients.Cdn.FrontDoorRuleSetsClient
+	client := clients.Cdn.FrontDoorRuleSetsClient_v2025_12_01
 
 	id, err := rulesets.ParseRuleSetID(state.ID)
 	if err != nil {
 		return nil, err
 	}
+	batchModeID := rules.NewRuleSetID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName, id.RuleSetName)
 
-	if _, err = client.Get(ctx, *id); err != nil {
+	if _, err = client.Get(ctx, batchModeID); err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
@@ -108,7 +106,6 @@ func (r CdnFrontDoorRuleSetResource) Exists(ctx context.Context, clients *client
 }
 
 func (r CdnFrontDoorRuleSetResource) basic(data acceptance.TestData, attachRoute bool) string {
-	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -120,11 +117,10 @@ resource "azurerm_cdn_frontdoor_rule_set" "test" {
   name                     = "acctestfdruleset%d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 }
-`, template, data.RandomIntOfLength(8))
+`, r.templateWithAttachedRoute(data, attachRoute), data.RandomIntOfLength(8))
 }
 
 func (r CdnFrontDoorRuleSetResource) requiresImport(data acceptance.TestData) string {
-	config := r.basic(data, true)
 	return fmt.Sprintf(`
 %s
 
@@ -132,11 +128,10 @@ resource "azurerm_cdn_frontdoor_rule_set" "import" {
   name                     = azurerm_cdn_frontdoor_rule_set.test.name
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 }
-`, config)
+`, r.basic(data, true))
 }
 
 func (r CdnFrontDoorRuleSetResource) complete(data acceptance.TestData, attachRoute bool) string {
-	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -148,7 +143,7 @@ resource "azurerm_cdn_frontdoor_rule_set" "test" {
   name                     = "acctestfdruleset%d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 }
-`, template, data.RandomIntOfLength(8))
+`, r.templateWithAttachedRoute(data, attachRoute), data.RandomIntOfLength(8))
 }
 
 func (r CdnFrontDoorRuleSetResource) templateWithAttachedRoute(data acceptance.TestData, attachRoute bool) string {

@@ -87,7 +87,7 @@ func resourceCdnFrontDoorRuleSetCreate(d *pluginsdk.ResourceData, meta interface
 }
 
 func resourceCdnFrontDoorRuleSetRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontDoorRuleSetsClient
+	batchModeRuleSetClient := meta.(*clients.Client).Cdn.FrontDoorRuleSetsClient_v2025_12_01
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -95,8 +95,12 @@ func resourceCdnFrontDoorRuleSetRead(d *pluginsdk.ResourceData, meta interface{}
 	if err != nil {
 		return err
 	}
+	// The legacy rulesets client is still the CRUD surface for this resource, but
+	// only the 2025 ruleset client exposes `batchMode`, so reads inspect that flag
+	// through the newer client before continuing with the legacy resource flow.
+	batchModeID := batchModeClientRuleSetID(*id)
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := batchModeRuleSetClient.Get(ctx, batchModeID)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found, removing from state", id)
@@ -104,6 +108,9 @@ func resourceCdnFrontDoorRuleSetRead(d *pluginsdk.ResourceData, meta interface{}
 			return nil
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+	if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.BatchMode != nil && *resp.Model.Properties.BatchMode {
+		return fmt.Errorf("retrieving %s: `azurerm_cdn_frontdoor_rule_set` does not support rule sets where `batch_mode_enabled` is `true`; use `azurerm_cdn_frontdoor_batch_rule_set` instead", id)
 	}
 
 	d.Set("name", id.RuleSetName)
@@ -113,7 +120,8 @@ func resourceCdnFrontDoorRuleSetRead(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func resourceCdnFrontDoorRuleSetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontDoorRuleSetsClient
+	ruleSetDeleteClient := meta.(*clients.Client).Cdn.FrontDoorRuleSetsClient
+	batchModeRuleSetClient := meta.(*clients.Client).Cdn.FrontDoorRuleSetsClient_v2025_12_01
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -121,8 +129,22 @@ func resourceCdnFrontDoorRuleSetDelete(d *pluginsdk.ResourceData, meta interface
 	if err != nil {
 		return err
 	}
+	// The legacy rulesets client performs the delete, but we must first inspect
+	// `batchMode` through the 2025 ruleset client because the older surface does
+	// not expose that field and this legacy resource must not operate on batch
+	// rulesets.
+	batchModeID := batchModeClientRuleSetID(*id)
 
-	err = client.DeleteThenPoll(ctx, *id)
+	resp, err := batchModeRuleSetClient.Get(ctx, batchModeID)
+	if err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("retrieving %s: %+v", id, err)
+		}
+	} else if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.BatchMode != nil && *resp.Model.Properties.BatchMode {
+		return fmt.Errorf("deleting %s using `azurerm_cdn_frontdoor_rule_set` is not supported when `batch_mode_enabled` is `true`; use `azurerm_cdn_frontdoor_batch_rule_set` instead", id)
+	}
+
+	err = ruleSetDeleteClient.DeleteThenPoll(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
