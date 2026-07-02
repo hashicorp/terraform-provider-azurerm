@@ -153,6 +153,7 @@ An `application_logs` block supports the following:
 
 An `application_stack` block supports the following:
 
+~> **Note:** When an `application_stack` block is specified, exactly one of `docker_image_name`, `dotnet_version`, `go_version`, `java_version`, `node_version`, `php_version`, `python_version`, `ruby_version`, or `site_containers_enabled` must be set.
 
 * `docker_image_name` - (Optional) The docker image, including tag, to be used. e.g. `appsvc/staticsite:latest`.
 
@@ -191,6 +192,8 @@ An `application_stack` block supports the following:
 * `python_version` - (Optional) The version of Python to run. Possible values include `3.14`, `3.13`, `3.12`, `3.11`, `3.10`, `3.9`, `3.8` and `3.7`.
 
 * `ruby_version` - (Optional) The version of Ruby to run. Possible values include `2.6` and `2.7`.
+
+* `site_containers_enabled` - (Optional) Should the Web App use the multi-container (sidecar) runtime stack? When set to `true` the `linuxFxVersion` is set to `sitecontainers` and container definitions are managed via the [`azurerm_linux_web_app_site_container`](linux_web_app_site_container.html) resource. Defaults to `false`.
 
 ---
 

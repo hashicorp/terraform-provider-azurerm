@@ -1006,6 +1006,7 @@ func (r LinuxWebAppSlotResource) CustomizeDiff() sdk.ResourceFunc {
 					}
 				}
 			}
+
 			return nil
 		},
 	}

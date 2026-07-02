@@ -165,6 +165,8 @@ An `application_stack` block exports the following:
 
 * `ruby_version` - The version of Ruby in use.
 
+* `site_containers_enabled` - Whether the Linux Web App uses site containers (sidecars) defined via `azurerm_linux_web_app_site_container` resources.
+
 ---
 
 A `auth_settings` block exports the following:
