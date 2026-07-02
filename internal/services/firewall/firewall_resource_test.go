@@ -339,6 +339,24 @@ func TestAccFirewall_inVirtualHub(t *testing.T) {
 	})
 }
 
+func TestAccFirewall_inVirtualHubWithIPConfigurationWithoutSubnet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
+	r := FirewallResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.inVirtualHubWithIPConfigurationWithoutSubnet(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ip_configuration.0.name").HasValue("configuration"),
+				check.That(data.ResourceName).Key("ip_configuration.0.public_ip_address_id").Exists(),
+				check.That(data.ResourceName).Key("virtual_hub.0.private_ip_address").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccFirewall_privateRanges(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
 	r := FirewallResource{}
@@ -1228,6 +1246,66 @@ resource "azurerm_firewall" "test" {
   firewall_policy_id = azurerm_firewall_policy.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, pipCount)
+}
+
+func (FirewallResource) inVirtualHubWithIPConfigurationWithoutSubnet(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-fw-%[1]d"
+  location = "%s"
+}
+
+resource "azurerm_firewall_policy" "test" {
+  name                = "acctest-firewallpolicy-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_virtual_wan" "test" {
+  name                = "acctest-virtualwan-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_virtual_hub" "test" {
+  name                = "acctest-virtualhub-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  virtual_wan_id      = azurerm_virtual_wan.test.id
+  address_prefix      = "10.0.1.0/24"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpip-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_firewall" "test" {
+  name                = "acctest-firewall-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "AZFW_Hub"
+  sku_tier            = "Standard"
+
+  ip_configuration {
+    name                 = "configuration"
+    public_ip_address_id = azurerm_public_ip.test.id
+  }
+
+  virtual_hub {
+    virtual_hub_id = azurerm_virtual_hub.test.id
+  }
+
+  firewall_policy_id = azurerm_firewall_policy.test.id
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (FirewallResource) privateRanges(data acceptance.TestData) string {
