@@ -19,8 +19,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/ipampools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/subnets"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -107,7 +109,7 @@ var subnetDelegationServiceNames = []string{
 }
 
 func resourceSubnet() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create:   resourceSubnetCreate,
 		Read:     resourceSubnetRead,
 		Update:   resourceSubnetUpdate,
@@ -172,11 +174,35 @@ func resourceSubnet() *pluginsdk.Resource {
 				},
 			},
 
-			"service_endpoints": {
-				Type:     pluginsdk.TypeSet,
+			"service_endpoint": {
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-				Set:      pluginsdk.HashString,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"service": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Microsoft.AzureActiveDirectory",
+								"Microsoft.AzureCosmosDB",
+								"Microsoft.CognitiveServices",
+								"Microsoft.ContainerRegistry",
+								"Microsoft.EventHub",
+								"Microsoft.KeyVault",
+								"Microsoft.ServiceBus",
+								"Microsoft.Sql",
+								"Microsoft.Storage",
+								"Microsoft.Storage.Global",
+								"Microsoft.Web",
+							}, false),
+						},
+						"network_identifier": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: azure.ValidateResourceID,
+						},
+					},
+				},
 			},
 
 			"service_endpoint_policy_ids": {
@@ -293,6 +319,23 @@ func resourceSubnet() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["service_endpoints"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			// NOTE: O+C to allow the deprecated `service_endpoints` property and `service_endpoint` block to coexist in v4
+			Computed:      true,
+			Elem:          &pluginsdk.Schema{Type: pluginsdk.TypeString},
+			Set:           pluginsdk.HashString,
+			Deprecated:    "The `service_endpoints` property has been superseded by the `service_endpoint` block and will be removed in v5.0 of the AzureRM Provider.",
+			ConflictsWith: []string{"service_endpoint"},
+		}
+		resource.Schema["service_endpoint"].ConflictsWith = []string{"service_endpoints"}
+		resource.Schema["service_endpoint"].Computed = true
+	}
+
+	return resource
 }
 
 // TODO: refactor the create/flatten functions
@@ -352,8 +395,18 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	serviceEndpointPoliciesRaw := d.Get("service_endpoint_policy_ids").(*pluginsdk.Set).List()
 	properties.ServiceEndpointPolicies = expandSubnetServiceEndpointPolicies(serviceEndpointPoliciesRaw)
 
-	serviceEndpointsRaw := d.Get("service_endpoints").(*pluginsdk.Set).List()
-	properties.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
+	if !features.FivePointOh() {
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "service_endpoints") {
+			serviceEndpointsRaw := d.Get("service_endpoints").(*pluginsdk.Set).List()
+			properties.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
+		} else {
+			serviceEndpointRaw := d.Get("service_endpoint").([]interface{})
+			properties.ServiceEndpoints = expandSubnetServiceEndpoint(serviceEndpointRaw)
+		}
+	} else {
+		serviceEndpointRaw := d.Get("service_endpoint").([]interface{})
+		properties.ServiceEndpoints = expandSubnetServiceEndpoint(serviceEndpointRaw)
+	}
 
 	properties.SharingScope = pointer.ToEnum[subnets.SharingScope](d.Get("sharing_scope").(string))
 
@@ -508,9 +561,19 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		props.SharingScope = pointer.ToEnum[subnets.SharingScope](d.Get("sharing_scope").(string))
 	}
 
-	if d.HasChange("service_endpoints") {
-		serviceEndpointsRaw := d.Get("service_endpoints").(*pluginsdk.Set).List()
-		props.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
+	if !features.FivePointOh() {
+		if d.HasChange("service_endpoints") && !pluginsdk.IsExplicitlyNullInConfig(d, "service_endpoints") {
+			serviceEndpointsRaw := d.Get("service_endpoints").(*pluginsdk.Set).List()
+			props.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
+		} else if d.HasChange("service_endpoint") {
+			serviceEndpointRaw := d.Get("service_endpoint").([]interface{})
+			props.ServiceEndpoints = expandSubnetServiceEndpoint(serviceEndpointRaw)
+		}
+	} else {
+		if d.HasChange("service_endpoint") {
+			serviceEndpointRaw := d.Get("service_endpoint").([]interface{})
+			props.ServiceEndpoints = expandSubnetServiceEndpoint(serviceEndpointRaw)
+		}
 	}
 
 	if d.HasChange("service_endpoint_policy_ids") {
@@ -618,9 +681,16 @@ func resourceSubnetFlatten(d *pluginsdk.ResourceData, id commonids.SubnetId, sub
 			d.Set("private_link_service_network_policies_enabled", flattenSubnetNetworkPolicy(string(pointer.From(props.PrivateLinkServiceNetworkPolicies))))
 			d.Set("sharing_scope", pointer.FromEnum(props.SharingScope))
 
-			serviceEndpoints := flattenSubnetServiceEndpoints(props.ServiceEndpoints)
-			if err := d.Set("service_endpoints", serviceEndpoints); err != nil {
-				return fmt.Errorf("setting `service_endpoints`: %+v", err)
+			if !features.FivePointOh() {
+				serviceEndpoints := flattenSubnetServiceEndpoints(props.ServiceEndpoints)
+				if err := d.Set("service_endpoints", serviceEndpoints); err != nil {
+					return fmt.Errorf("setting `service_endpoints`: %+v", err)
+				}
+			}
+
+			serviceEndpoint := flattenSubnetServiceEndpoint(props.ServiceEndpoints)
+			if err := d.Set("service_endpoint", serviceEndpoint); err != nil {
+				return fmt.Errorf("setting `service_endpoint`: %+v", err)
 			}
 
 			serviceEndpointPolicies := flattenSubnetServiceEndpointPolicies(props.ServiceEndpointPolicies)
@@ -682,6 +752,47 @@ func flattenSubnetServiceEndpoints(serviceEndpoints *[]subnets.ServiceEndpointPr
 		if endpoint.Service != nil {
 			endpoints = append(endpoints, *endpoint.Service)
 		}
+	}
+
+	return endpoints
+}
+
+func expandSubnetServiceEndpoint(input []interface{}) *[]subnets.ServiceEndpointPropertiesFormat {
+	endpoints := make([]subnets.ServiceEndpointPropertiesFormat, 0)
+
+	for _, item := range input {
+		v := item.(map[string]interface{})
+		endpoint := subnets.ServiceEndpointPropertiesFormat{
+			Service: pointer.To(v["service"].(string)),
+		}
+		if networkIdentifier := v["network_identifier"].(string); networkIdentifier != "" {
+			endpoint.NetworkIdentifier = &subnets.SubResource{
+				Id: pointer.To(networkIdentifier),
+			}
+		}
+		endpoints = append(endpoints, endpoint)
+	}
+
+	return &endpoints
+}
+
+func flattenSubnetServiceEndpoint(serviceEndpoints *[]subnets.ServiceEndpointPropertiesFormat) []interface{} {
+	endpoints := make([]interface{}, 0)
+
+	if serviceEndpoints == nil {
+		return endpoints
+	}
+
+	for _, endpoint := range *serviceEndpoints {
+		item := map[string]interface{}{
+			"service": pointer.From(endpoint.Service),
+		}
+		networkIdentifier := ""
+		if endpoint.NetworkIdentifier != nil {
+			networkIdentifier = pointer.From(endpoint.NetworkIdentifier.Id)
+		}
+		item["network_identifier"] = networkIdentifier
+		endpoints = append(endpoints, item)
 	}
 
 	return endpoints
