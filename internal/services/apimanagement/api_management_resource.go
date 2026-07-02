@@ -103,6 +103,14 @@ func resourceApiManagementService() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("sku_name", func(ctx context.Context, old, new, meta interface{}) bool {
 				return (strings.Contains(old.(string), "V2") && !strings.Contains(new.(string), "V2")) || (strings.Contains(new.(string), "V2") && !strings.Contains(old.(string), "V2"))
 			}),
+
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+				if skuName := d.Get("sku_name").(string); strings.Contains(skuName, "V2") && len(d.Get("certificate").([]interface{})) > 0 {
+					return fmt.Errorf("`certificate` cannot be set when V2 SKU is used (`sku_name` is `%s`). Please use `azurerm_api_management_certificate` instead", skuName)
+				}
+
+				return nil
+			}),
 		),
 	}
 }
