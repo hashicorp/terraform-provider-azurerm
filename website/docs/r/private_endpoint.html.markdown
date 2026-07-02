@@ -314,6 +314,21 @@ A `private_service_connection` block exports:
 
 * `private_ip_address` - The private IP address associated with the private endpoint, note that you will have a private IP address assigned to the private endpoint even if the connection request was `Rejected`.
 
+* `connection_actions_required` - Indicates if changes on the service provider require any updates on the consumer.
+
+* `connection_state_description` - The reason for approval/rejection of the connection.
+
+* `connection_status` - The status of the connection between service consumer and provider. Indicates whether the connection has been Approved/Rejected/Removed by the owner of the service.
+
+---
+
+An `ip_configuration` block exports:
+
+* `name` - (Required) The Name of the IP Configuration.
+
+* `private_ip_address` - (Required) The static IP address set by this configuration. It is recommended to use the private IP address exported in the `private_service_connection` block to obtain the address associated with the private endpoint.
+
+* `subresource_name` - (Required) The subresource this IP address applies to, which corresponds to the `group_id`.
 
 ---
 
