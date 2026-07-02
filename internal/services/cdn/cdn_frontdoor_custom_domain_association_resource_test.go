@@ -87,8 +87,8 @@ func (r CdnFrontDoorCustomDomainAssociationResource) Exists(ctx context.Context,
 	}
 
 	client := clients.Cdn.AFDCustomDomainsClient
-	customDomainId := afdcustomdomains.NewCustomDomainID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.AssociationName)
-	resp, err := client.Get(ctx, customDomainId)
+	customDomainId := afddomains.NewCustomDomainID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.AssociationName)
+	resp, err := client.AFDCustomDomainsGet(ctx, customDomainId)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(false), nil
