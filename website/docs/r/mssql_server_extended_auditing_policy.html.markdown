@@ -41,7 +41,7 @@ resource "azurerm_storage_account" "example" {
 
 resource "azurerm_mssql_server_extended_auditing_policy" "example" {
   server_id                               = azurerm_mssql_server.example.id
-  storage_endpoint                        = azurerm_storage_account.example.primary_blob_endpoint
+  blob_storage_endpoint                   = azurerm_storage_account.example.primary_blob_endpoint
   storage_account_access_key              = azurerm_storage_account.example.primary_access_key
   storage_account_access_key_is_secondary = false
   retention_in_days                       = 6
@@ -143,7 +143,7 @@ resource "azurerm_storage_account" "example" {
 }
 
 resource "azurerm_mssql_server_extended_auditing_policy" "example" {
-  storage_endpoint       = azurerm_storage_account.example.primary_blob_endpoint
+  blob_storage_endpoint  = azurerm_storage_account.example.primary_blob_endpoint
   server_id              = azurerm_mssql_server.example.id
   retention_in_days      = 6
   log_monitoring_enabled = false
@@ -180,7 +180,7 @@ resource "azurerm_mssql_server" "example" {
 
 resource "azurerm_mssql_server_extended_auditing_policy" "example" {
   server_id                               = azurerm_mssql_server.example.id
-  storage_endpoint                        = azurerm_storage_account.example.primary_blob_endpoint
+  blob_storage_endpoint                        = azurerm_storage_account.example.primary_blob_endpoint
   storage_account_access_key              = azurerm_storage_account.example.primary_access_key
   storage_account_access_key_is_secondary = false
   retention_in_days                       = 6
@@ -223,7 +223,7 @@ resource "azurerm_mssql_server_extended_auditing_policy" "example" {
 }
 
 resource "azurerm_monitor_diagnostic_setting" "example" {
-  name                           = "example-diagnotic-setting"
+  name                           = "example-diagnostic-setting"
   target_resource_id             = "${azurerm_mssql_server.example.id}/databases/master"
   eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.example.id
   eventhub_name                  = azurerm_eventhub.example.name
@@ -246,9 +246,9 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Whether to enable the extended auditing policy. Possible values are `true` and `false`. Defaults to `true`.
 
--> **Note:** If `enabled` is `true`, `storage_endpoint` or `log_monitoring_enabled` are required.
+-> **Note:** If `enabled` is `true`, `blob_storage_endpoint` or `log_monitoring_enabled` are required.
 
-* `storage_endpoint` - (Optional) The blob storage endpoint (e.g. <https://example.blob.core.windows.net>). This blob storage will hold all extended auditing logs.
+* `blob_storage_endpoint` - (Optional) The blob storage endpoint (e.g. <https://example.blob.core.windows.net>). This blob storage will hold all extended auditing logs.
 
 * `retention_in_days` - (Optional) The number of days to retain logs for in the storage account. Defaults to `0`.
 

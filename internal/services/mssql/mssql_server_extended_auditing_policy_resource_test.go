@@ -230,7 +230,7 @@ func (r MsSqlServerExtendedAuditingPolicyResource) basic(data acceptance.TestDat
 
 resource "azurerm_mssql_server_extended_auditing_policy" "test" {
   server_id                  = azurerm_mssql_server.test.id
-  storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
+  blob_storage_endpoint      = azurerm_storage_account.test.primary_blob_endpoint
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 `, r.template(data))
@@ -242,7 +242,7 @@ func (r MsSqlServerExtendedAuditingPolicyResource) requiresImport(data acceptanc
 
 resource "azurerm_mssql_server_extended_auditing_policy" "import" {
   server_id                  = azurerm_mssql_server.test.id
-  storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
+  blob_storage_endpoint      = azurerm_storage_account.test.primary_blob_endpoint
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 `, r.template(data))
@@ -254,7 +254,7 @@ func (r MsSqlServerExtendedAuditingPolicyResource) complete(data acceptance.Test
 
 resource "azurerm_mssql_server_extended_auditing_policy" "test" {
   server_id                               = azurerm_mssql_server.test.id
-  storage_endpoint                        = azurerm_storage_account.test.primary_blob_endpoint
+  blob_storage_endpoint                   = azurerm_storage_account.test.primary_blob_endpoint
   storage_account_access_key              = azurerm_storage_account.test.primary_access_key
   storage_account_access_key_is_secondary = false
   retention_in_days                       = 6
@@ -307,7 +307,7 @@ resource "azurerm_storage_account" "test2" {
 
 resource "azurerm_mssql_server_extended_auditing_policy" "test" {
   server_id                               = azurerm_mssql_server.test.id
-  storage_endpoint                        = azurerm_storage_account.test2.primary_blob_endpoint
+  blob_storage_endpoint                   = azurerm_storage_account.test2.primary_blob_endpoint
   storage_account_access_key              = azurerm_storage_account.test2.primary_access_key
   storage_account_access_key_is_secondary = true
   retention_in_days                       = 3
@@ -374,8 +374,8 @@ resource "azurerm_role_assignment" "test" {
 }
 
 resource "azurerm_mssql_server_extended_auditing_policy" "test" {
-  server_id        = azurerm_mssql_server.test.id
-  storage_endpoint = azurerm_storage_account.test.primary_blob_endpoint
+  server_id             = azurerm_mssql_server.test.id
+  blob_storage_endpoint = azurerm_storage_account.test.primary_blob_endpoint
 
   depends_on = [
     azurerm_role_assignment.test,
@@ -390,7 +390,7 @@ func (r MsSqlServerExtendedAuditingPolicyResource) predicateExpression(data acce
 
 resource "azurerm_mssql_server_extended_auditing_policy" "test" {
   server_id                  = azurerm_mssql_server.test.id
-  storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
+  blob_storage_endpoint      = azurerm_storage_account.test.primary_blob_endpoint
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   predicate_expression = "action_id != 17234"
@@ -404,7 +404,7 @@ func (r MsSqlServerExtendedAuditingPolicyResource) auditActionsAndGroups(data ac
 
 resource "azurerm_mssql_server_extended_auditing_policy" "test" {
   server_id                  = azurerm_mssql_server.test.id
-  storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
+  blob_storage_endpoint      = azurerm_storage_account.test.primary_blob_endpoint
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   audit_actions_and_groups = %s
