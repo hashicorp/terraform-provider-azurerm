@@ -79,7 +79,9 @@ func (r Registration) Resources() []sdk.Resource {
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{}
+	return []sdk.DataSource{
+		PostgresqlFlexibleServerActiveDirectoryAdministratorDataSource{},
+	}
 }
 
 func (r Registration) Actions() []func() action.Action {
