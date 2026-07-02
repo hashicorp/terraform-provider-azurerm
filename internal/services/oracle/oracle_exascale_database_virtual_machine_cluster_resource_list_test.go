@@ -16,7 +16,6 @@ import (
 )
 
 func TestAccOracleExascaleDatabaseVirtualMachineClusterResource_list_basic(t *testing.T) {
-
 	r := ExascaleDatabaseVirtualMachineClusterResource{}
 	listResourceAddress := "azurerm_oracle_exascale_database_virtual_machine_cluster.list"
 

@@ -41,7 +41,6 @@ func (a ExascaleDatabaseVirtualMachineClusterResource) Exists(ctx context.Contex
 }
 
 func TestAccOracleExascaleDatabaseVirtualMachineClusterResource_basic(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, oracle.ExascaleDatabaseVirtualMachineClusterResource{}.ResourceType(), "test")
 	r := ExascaleDatabaseVirtualMachineClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -58,7 +57,6 @@ func TestAccOracleExascaleDatabaseVirtualMachineClusterResource_basic(t *testing
 }
 
 func TestAccOracleExascaleDatabaseVirtualMachineClusterResource_complete(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, oracle.ExascaleDatabaseVirtualMachineClusterResource{}.ResourceType(), "test")
 	r := ExascaleDatabaseVirtualMachineClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -74,7 +72,6 @@ func TestAccOracleExascaleDatabaseVirtualMachineClusterResource_complete(t *test
 }
 
 func TestAccOracleExascaleDatabaseVirtualMachineClusterResource_requiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, oracle.ExascaleDatabaseVirtualMachineClusterResource{}.ResourceType(), "test")
 	r := ExascaleDatabaseVirtualMachineClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -89,7 +86,6 @@ func TestAccOracleExascaleDatabaseVirtualMachineClusterResource_requiresImport(t
 }
 
 func TestAccOracleExascaleDatabaseVirtualMachineClusterResource_update(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, oracle.ExascaleDatabaseVirtualMachineClusterResource{}.ResourceType(), "test")
 	r := ExascaleDatabaseVirtualMachineClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
