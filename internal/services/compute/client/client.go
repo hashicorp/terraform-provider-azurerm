@@ -35,10 +35,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachineextensions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachineimages"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetextensions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetrollingupgrades"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetvms"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesetextensions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesetrollingupgrades"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesetvms"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2015-06-01/agreements"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/standbypool/2025-03-01/standbyvirtualmachinepools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -304,9 +304,9 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 func (c *Client) CancelRollingUpgradesBeforeDeletion(ctx context.Context, id virtualmachinescalesets.VirtualMachineScaleSetId) error {
 	// TODO replace with commonid once https://github.com/hashicorp/pandora/issues/4017 has been merged
-	virtualMachineScaleSetId := virtualmachinescalesetrollingupgrades.NewVirtualMachineScaleSetID(id.SubscriptionId, id.ResourceGroupName, id.VirtualMachineScaleSetName)
+	rollingUpgradeId := virtualmachinescalesetrollingupgrades.NewVirtualMachineScaleSetID(id.SubscriptionId, id.ResourceGroupName, id.VirtualMachineScaleSetName)
 
-	resp, err := c.VirtualMachineScaleSetRollingUpgradesClient.GetLatest(ctx, virtualMachineScaleSetId)
+	resp, err := c.VirtualMachineScaleSetRollingUpgradesClient.GetLatest(ctx, rollingUpgradeId)
 	if err != nil {
 		// No rolling upgrades are running so skipping attempt to cancel them before deletion
 		if response.WasNotFound(resp.HttpResponse) {
@@ -327,18 +327,9 @@ func (c *Client) CancelRollingUpgradesBeforeDeletion(ctx context.Context, id vir
 		return nil
 	}
 
-	future, err := c.VirtualMachineScaleSetRollingUpgradesClient.Cancel(ctx, virtualMachineScaleSetId)
-	if err != nil {
-		// If there is no rolling upgrade the API will throw a 409/No rolling upgrade to cancel
-		// we don't error out in this case
-		if response.WasConflict(future.HttpResponse) {
-			return nil
-		}
+	rollingId := virtualmachinescalesetrollingupgrades.NewVirtualMachineScaleSetID(id.SubscriptionId, id.ResourceGroupName, id.VirtualMachineScaleSetName)
+	if err := c.VirtualMachineScaleSetRollingUpgradesClient.CancelCallbackThenPoll(ctx, rollingId, nil); err != nil {
 		return fmt.Errorf("cancelling rolling upgrades for %s: %+v", id, err)
-	}
-
-	if err := future.Poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("waiting for cancelling of rolling upgrades for %s: %+v", id, err)
 	}
 
 	log.Printf("[DEBUG] cancelled Virtual Machine Scale Set Rolling Upgrades for %s.", id)
