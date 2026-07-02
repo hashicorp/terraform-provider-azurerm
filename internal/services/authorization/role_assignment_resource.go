@@ -303,15 +303,27 @@ func resourceArmRoleAssignmentUpdate(d *pluginsdk.ResourceData, meta interface{}
 	props := *existing.Model.Properties
 
 	if d.HasChange("description") {
-		props.Description = pointer.ToOrNil(d.Get("description").(string))
+		if v := d.Get("description").(string); v == "" {
+			props.Description = nil
+		} else {
+			props.Description = &v
+		}
 	}
 
 	// Order matters here that "condition_version" shall be handled prior to "condition".
 	if d.HasChange("condition_version") {
-		props.ConditionVersion = pointer.ToOrNil(d.Get("condition_version").(string))
+		if v := d.Get("condition_version").(string); v == "" {
+			props.ConditionVersion = nil
+		} else {
+			props.ConditionVersion = &v
+		}
 	}
 	if d.HasChange("condition") {
-		props.Condition = pointer.ToOrNil(d.Get("condition").(string))
+		if v := d.Get("condition").(string); v == "" {
+			props.Condition = nil
+		} else {
+			props.Condition = &v
+		}
 
 		// Implicitly setting the condition_version in case it is not specified in config (as how Create() has been implemented).
 		if d.GetRawConfig().AsValueMap()["condition_version"].IsNull() {
