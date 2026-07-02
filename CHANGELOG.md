@@ -1,3 +1,16 @@
+## 4.80.0 (July 02, 2026)
+
+ENHANCEMENTS:
+
+* dependencies: `go-azure-sdk` - update to `v0.20260629.1154953` ([#32691](https://github.com/hashicorp/terraform-provider-azurerm/issues/32691))
+* dependencies: `managedhsm` - update to API version `2026-02-01` ([#32377](https://github.com/hashicorp/terraform-provider-azurerm/issues/32377))
+* `azurerm_cdn_frontdoor_custom_domain` - add basic validation for the `host_name` property ([#32349](https://github.com/hashicorp/terraform-provider-azurerm/issues/32349))
+* `azurerm_cdn_frontdoor_custom_domain` - improve validation for additional `host_name` constraints when `tls.certificate_type` is `ManagedCertificate` ([#32349](https://github.com/hashicorp/terraform-provider-azurerm/issues/32349))
+
+BUG FIXES:
+
+* `azurerm_machine_learning_datastore_fileshare` - fix 5.0 migration bug for the `storage_fileshare_id` property ([#32586](https://github.com/hashicorp/terraform-provider-azurerm/issues/32586))
+
 ## 4.79.0 (June 25, 2026)
 
 FEATURES:
