@@ -17,9 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/blobs"
 )
 
 type VirtualMachineResource struct{}
@@ -238,65 +236,6 @@ func (VirtualMachineResource) deallocate(ctx context.Context, client *clients.Cl
 	}
 
 	return nil
-}
-
-func (VirtualMachineResource) unmanagedDiskExistsInContainer(blobName string, shouldExist bool) acceptance.ClientCheckFunc {
-	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
-		defer cancel()
-
-		var account *client.AccountDetails
-		var err error
-
-		accountIdStr, accountIdExists := state.Attributes["storage_account_id"]
-		accountName, accountNameExists := state.Attributes["storage_account_name"]
-		containerName := state.Attributes["name"]
-
-		switch {
-		case accountIdExists:
-			accountId, err := commonids.ParseStorageAccountID(accountIdStr)
-			if err != nil {
-				return fmt.Errorf("parsing Storage Account ID %q: %s", accountIdStr, err)
-			}
-			account, err = clients.Storage.GetAccount(ctx, *accountId)
-			if err != nil {
-				return fmt.Errorf("retrieving Account %q: %s", accountIdStr, err)
-			}
-		case accountNameExists:
-			account, err = clients.Storage.FindAccount(ctx, clients.Account.SubscriptionId, accountName)
-			if err != nil {
-				return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %s", accountName, blobName, containerName, err)
-			}
-			if account == nil {
-				return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
-			}
-		}
-
-		dataPlaneClient, err := clients.Storage.BlobsDataPlaneClient(ctx, *account, clients.Storage.DataPlaneOperationSupportingAnyAuthMethod())
-		if err != nil {
-			return fmt.Errorf("building Blobs Client: %s", err)
-		}
-
-		input := blobs.GetPropertiesInput{}
-		props, err := dataPlaneClient.GetProperties(ctx, containerName, blobName, input)
-		if err != nil {
-			if response.WasNotFound(props.HttpResponse) {
-				if !shouldExist {
-					return nil
-				}
-
-				return fmt.Errorf("The Blob for the Unmanaged Disk %q should exist in the Container %q but it didn't!", blobName, containerName)
-			}
-
-			return fmt.Errorf("retrieving properties for Blob %q (Container %q): %s", blobName, containerName, err)
-		}
-
-		if !shouldExist {
-			return fmt.Errorf("The Blob for the Unmanaged Disk %q shouldn't exist in the Container %q but it did!", blobName, containerName)
-		}
-
-		return nil
-	}
 }
 
 func (VirtualMachineResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
