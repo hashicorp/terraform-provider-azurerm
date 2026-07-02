@@ -94,10 +94,14 @@ func (PimEligibleRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schem
 		},
 
 		"role_definition_id": {
-			Type:        pluginsdk.TypeString,
-			Required:    true,
-			ForceNew:    true,
-			Description: "Role definition ID for this eligible role assignment",
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			Description:  "Role definition ID for this eligible role assignment",
+			ValidateFunc: validate.RoleDefinitionResourceID,
+			DiffSuppressFunc: func(_, old, new string, _ *pluginsdk.ResourceData) bool {
+				return parse.RoleDefinitionResourceIdsMatch(old, new)
+			},
 		},
 
 		"principal_id": {
@@ -695,7 +699,7 @@ func findRoleEligibilitySchedule(ctx context.Context, client *roleeligibilitysch
 
 	for _, schedule := range schedulesResult.Items {
 		if props := schedule.Properties; props != nil {
-			if props.RoleDefinitionId != nil && strings.EqualFold(*props.RoleDefinitionId, id.RoleDefinitionId) &&
+			if props.RoleDefinitionId != nil && parse.RoleDefinitionResourceIdsMatch(*props.RoleDefinitionId, id.RoleDefinitionId) &&
 				props.Scope != nil && strings.EqualFold(*props.Scope, scopeId.ID()) &&
 				props.PrincipalId != nil && strings.EqualFold(*props.PrincipalId, id.PrincipalId) &&
 				props.MemberType != nil && *props.MemberType == roleeligibilityschedules.MemberTypeDirect {
