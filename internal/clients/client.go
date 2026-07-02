@@ -51,6 +51,7 @@ import (
 	consumption "github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/client"
 	containerapps "github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/client"
 	containerServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
+	containerservices_v2026_04_01 "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client_2026-04-01"
 	cosmosdb "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/client"
 	costmanagement "github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/client"
 	customproviders "github.com/hashicorp/terraform-provider-azurerm/internal/services/customproviders/client"
@@ -188,6 +189,7 @@ type Client struct {
 	Consumption                       *consumption.Client
 	ContainerApps                     *containerapps.Client
 	Containers                        *containerServices.Client
+	Containers_v2026_04_01            *containerservices_v2026_04_01.Client
 	Cosmos                            *cosmosdb.Client
 	CostManagement                    *costmanagement.Client
 	CustomProviders                   *customproviders.Client
@@ -384,6 +386,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.Containers, err = containerServices.NewContainersClient(o); err != nil {
 		return fmt.Errorf("building clients for Containers: %+v", err)
+	}
+	if client.Containers_v2026_04_01, err = containerservices_v2026_04_01.NewContainersClient(o); err != nil {
+		return fmt.Errorf("building clients for Containers v2026_04_01: %+v", err)
 	}
 	if client.ContainerApps, err = containerapps.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Container Apps: %+v", err)
