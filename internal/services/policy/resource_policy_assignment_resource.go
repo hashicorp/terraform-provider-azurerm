@@ -12,10 +12,39 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.ResourceWithUpdate = ResourceAssignmentResource{}
-
 type ResourceAssignmentResource struct {
 	base assignmentBaseResource
+}
+
+var _ sdk.ResourceWithUpdate = ResourceAssignmentResource{}
+
+func (r ResourceAssignmentResource) ResourceType() string {
+	return "azurerm_resource_policy_assignment"
+}
+
+func (r ResourceAssignmentResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return validate.ResourceAssignmentId()
+}
+
+type ResourceAssignmentModel struct {
+	Name                 string                                `tfschema:"name"`
+	ResourceId           string                                `tfschema:"resource_id"`
+	PolicyDefinitionId   string                                `tfschema:"policy_definition_id"`
+	Description          string                                `tfschema:"description"`
+	DisplayName          string                                `tfschema:"display_name"`
+	Location             string                                `tfschema:"location"`
+	Enforce              bool                                  `tfschema:"enforce"`
+	Metadata             string                                `tfschema:"metadata"`
+	Parameters           string                                `tfschema:"parameters"`
+	NotScopes            []string                              `tfschema:"not_scopes"`
+	Identity             []assignmentIdentityModel             `tfschema:"identity"`
+	NonComplianceMessage []assignmentNonComplianceMessageModel `tfschema:"non_compliance_message"`
+	Overrides            []assignmentOverrideModel             `tfschema:"overrides"`
+	ResourceSelectors    []assignmentResourceSelectorModel     `tfschema:"resource_selectors"`
+}
+
+func (r ResourceAssignmentResource) ModelObject() interface{} {
+	return &ResourceAssignmentModel{}
 }
 
 func (r ResourceAssignmentResource) Arguments() map[string]*pluginsdk.Schema {
@@ -50,26 +79,14 @@ func (r ResourceAssignmentResource) Create() sdk.ResourceFunc {
 	return r.base.createFunc(r.ResourceType(), "resource_id")
 }
 
-func (r ResourceAssignmentResource) Delete() sdk.ResourceFunc {
-	return r.base.deleteFunc()
-}
-
-func (r ResourceAssignmentResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ResourceAssignmentId()
-}
-
-func (r ResourceAssignmentResource) ModelObject() interface{} {
-	return nil
-}
-
 func (r ResourceAssignmentResource) Read() sdk.ResourceFunc {
 	return r.base.readFunc("resource_id")
 }
 
-func (r ResourceAssignmentResource) ResourceType() string {
-	return "azurerm_resource_policy_assignment"
-}
-
 func (r ResourceAssignmentResource) Update() sdk.ResourceFunc {
 	return r.base.updateFunc()
+}
+
+func (r ResourceAssignmentResource) Delete() sdk.ResourceFunc {
+	return r.base.deleteFunc()
 }
