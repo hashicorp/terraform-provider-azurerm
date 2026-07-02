@@ -130,7 +130,7 @@ func TestAccLinuxVirtualMachineScaleSet_authDisablePasswordAuthUpdate(t *testing
 	steps := []acceptance.TestStep{
 		{
 			// disable it
-			Config: r.authSSHKey(data),
+			Config: r.authSSHKeyAndPassword(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -146,7 +146,7 @@ func TestAccLinuxVirtualMachineScaleSet_authDisablePasswordAuthUpdate(t *testing
 		data.ImportStep("admin_password"),
 		{
 			// disable it
-			Config: r.authSSHKey(data),
+			Config: r.authSSHKeyAndPassword(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -342,7 +342,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   sku                 = "Standard_F2"
   instances           = 1
   admin_username      = "adminuser"
-  admin_password      = "P@ssw0rd1234!"
+  admin_password      = "P@ssword1234!"
 
   admin_ssh_key {
     username   = "adminuser"
