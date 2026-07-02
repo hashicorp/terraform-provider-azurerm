@@ -102,7 +102,6 @@ func (r StreamAnalyticsOutputSynapseResource) Exists(ctx context.Context, client
 }
 
 func (r StreamAnalyticsOutputSynapseResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -117,11 +116,10 @@ resource "azurerm_stream_analytics_output_synapse" "test" {
   database = "master"
   table    = "AccTestTable"
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputSynapseResource) sqlPool(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -144,11 +142,10 @@ resource "azurerm_stream_analytics_output_synapse" "test" {
   database = azurerm_synapse_sql_pool.test.name
   table    = "AccTestTable"
 }
-`, template, data.RandomInteger, data.RandomString)
+`, r.template(data), data.RandomInteger, data.RandomString)
 }
 
 func (r StreamAnalyticsOutputSynapseResource) updated(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -163,11 +160,10 @@ resource "azurerm_stream_analytics_output_synapse" "test" {
   database = "master"
   table    = "AccTestTable"
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputSynapseResource) requiresImport(data acceptance.TestData) string {
-	template := r.basic(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -182,7 +178,7 @@ resource "azurerm_stream_analytics_output_synapse" "import" {
   database = "master"
   table    = "AccTestTable"
 }
-`, template)
+`, r.basic(data))
 }
 
 func (r StreamAnalyticsOutputSynapseResource) template(data acceptance.TestData) string {

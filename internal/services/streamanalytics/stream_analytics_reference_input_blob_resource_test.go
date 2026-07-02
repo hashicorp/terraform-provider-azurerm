@@ -134,7 +134,6 @@ func (r StreamAnalyticsReferenceInputBlobResource) Exists(ctx context.Context, c
 }
 
 func (r StreamAnalyticsReferenceInputBlobResource) avro(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -153,11 +152,10 @@ resource "azurerm_stream_analytics_reference_input_blob" "test" {
     type = "Avro"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsReferenceInputBlobResource) csv(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -178,11 +176,10 @@ resource "azurerm_stream_analytics_reference_input_blob" "test" {
     field_delimiter = ","
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsReferenceInputBlobResource) json(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -202,48 +199,13 @@ resource "azurerm_stream_analytics_reference_input_blob" "test" {
     encoding = "UTF8"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsReferenceInputBlobResource) updated(data acceptance.TestData) string {
-	template := r.template(data)
 	if !features.FivePointOh() {
 		return fmt.Sprintf(`
-		%s
-
-resource "azurerm_storage_account" "updated" {
-  name                     = "acctestsa2%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "updated" {
-  name                  = "example2"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
-resource "azurerm_stream_analytics_reference_input_blob" "test" {
-  name                      = "acctestinput-%d"
-  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
-  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
-  storage_account_name      = azurerm_storage_account.updated.name
-  storage_account_key       = azurerm_storage_account.updated.primary_access_key
-  storage_container_name    = azurerm_storage_container.updated.name
-  path_pattern              = "some-other-pattern"
-  date_format               = "yyyy-MM-dd"
-  time_format               = "HH"
-
-  serialization {
-    type = "Avro"
-  }
-}
-		`, template, data.RandomString, data.RandomInteger)
-	}
-	return fmt.Sprintf(`
-	%s
+%s
 
 resource "azurerm_storage_account" "updated" {
   name                     = "acctestsa2%s"
@@ -274,11 +236,44 @@ resource "azurerm_stream_analytics_reference_input_blob" "test" {
     type = "Avro"
   }
 }
-	`, template, data.RandomString, data.RandomInteger)
+`, r.template(data), data.RandomString, data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "updated" {
+  name                     = "acctestsa2%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "updated" {
+  name                  = "example2"
+  storage_account_id    = azurerm_storage_account.test.id
+  container_access_type = "private"
+}
+
+resource "azurerm_stream_analytics_reference_input_blob" "test" {
+  name                      = "acctestinput-%d"
+  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
+  storage_account_name      = azurerm_storage_account.updated.name
+  storage_account_key       = azurerm_storage_account.updated.primary_access_key
+  storage_container_name    = azurerm_storage_container.updated.name
+  path_pattern              = "some-other-pattern"
+  date_format               = "yyyy-MM-dd"
+  time_format               = "HH"
+
+  serialization {
+    type = "Avro"
+  }
+}
+`, r.template(data), data.RandomString, data.RandomInteger)
 }
 
 func (r StreamAnalyticsReferenceInputBlobResource) authenticationMode(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -298,11 +293,10 @@ resource "azurerm_stream_analytics_reference_input_blob" "test" {
     encoding = "UTF8"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsReferenceInputBlobResource) requiresImport(data acceptance.TestData) string {
-	template := r.json(data)
 	return fmt.Sprintf(`
 %s
 
@@ -324,7 +318,7 @@ resource "azurerm_stream_analytics_reference_input_blob" "import" {
     }
   }
 }
-`, template)
+`, r.json(data))
 }
 
 func (r StreamAnalyticsReferenceInputBlobResource) template(data acceptance.TestData) string {
@@ -350,7 +344,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "example"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 

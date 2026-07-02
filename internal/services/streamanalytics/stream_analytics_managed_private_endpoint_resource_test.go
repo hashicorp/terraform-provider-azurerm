@@ -66,7 +66,6 @@ func (r StreamAnalyticsManagedPrivateEndpointResource) Exists(ctx context.Contex
 }
 
 func (r StreamAnalyticsManagedPrivateEndpointResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -77,11 +76,10 @@ resource "azurerm_stream_analytics_managed_private_endpoint" "test" {
   target_resource_id            = azurerm_storage_account.test.id
   subresource_name              = "blob"
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsManagedPrivateEndpointResource) requiresImport(data acceptance.TestData) string {
-	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -92,7 +90,7 @@ resource "azurerm_stream_analytics_managed_private_endpoint" "import" {
   target_resource_id            = azurerm_stream_analytics_managed_private_endpoint.test.target_resource_id
   subresource_name              = azurerm_stream_analytics_managed_private_endpoint.test.subresource_name
 }
-`, template)
+`, r.basic(data))
 }
 
 func (r StreamAnalyticsManagedPrivateEndpointResource) template(data acceptance.TestData) string {
