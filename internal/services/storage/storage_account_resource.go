@@ -2160,6 +2160,7 @@ func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 	var primaryEndpoints *storageaccounts.Endpoints
 	var secondaryEndpoints *storageaccounts.Endpoints
 	var routingPreference *storageaccounts.RoutingPreference
+	dnsEndpointType := storageaccounts.DnsEndpointTypeStandard
 	if account.Kind != nil {
 		accountKind = *account.Kind
 	}
@@ -2222,7 +2223,6 @@ func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 		}
 		d.Set("default_to_oauth_authentication", defaultToOAuthAuthentication)
 
-		dnsEndpointType := storageaccounts.DnsEndpointTypeStandard
 		if props.DnsEndpointType != nil {
 			dnsEndpointType = *props.DnsEndpointType
 		}
@@ -2332,7 +2332,7 @@ func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 	if keys.Model != nil && keys.Model.Keys != nil {
 		storageAccountKeys = *keys.Model.Keys
 	}
-	keysAndConnectionStrings := flattenAccountAccessKeysAndConnectionStrings(id.StorageAccountName, *storageDomainSuffix, storageAccountKeys, endpoints)
+	keysAndConnectionStrings := flattenAccountAccessKeysAndConnectionStrings(id.StorageAccountName, *storageDomainSuffix, storageAccountKeys, endpoints, dnsEndpointType)
 	keysAndConnectionStrings.set(d)
 
 	blobProperties := make([]interface{}, 0)
@@ -2459,8 +2459,17 @@ func resourceStorageAccountDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	locks.MultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
 	defer locks.UnlockMultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
 
-	if _, err := client.Delete(ctx, *id); err != nil {
-		return fmt.Errorf("deleting %s: %+v", *id, err)
+	if err := pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutDelete), func() *pluginsdk.RetryError {
+		resp, err := client.Delete(ctx, *id)
+		if err != nil {
+			if response.WasConflict(resp.HttpResponse) {
+				return pluginsdk.RetryableError(fmt.Errorf("deleting %s: storage account operation in progress, retrying: %+v", *id, err))
+			}
+			return pluginsdk.NonRetryableError(fmt.Errorf("deleting %s: %+v", *id, err))
+		}
+		return nil
+	}); err != nil {
+		return err
 	}
 
 	// remove this from the cache
