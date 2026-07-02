@@ -6,8 +6,10 @@ package containers
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -15,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/fleets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 var (
@@ -29,10 +32,18 @@ func (r KubernetesFleetManagerResource) ModelObject() interface{} {
 }
 
 type KubernetesFleetManagerResourceSchema struct {
-	Location          string                 `tfschema:"location"`
-	Name              string                 `tfschema:"name"`
-	ResourceGroupName string                 `tfschema:"resource_group_name"`
-	Tags              map[string]interface{} `tfschema:"tags"`
+	Location          string                   `tfschema:"location"`
+	Name              string                   `tfschema:"name"`
+	ResourceGroupName string                   `tfschema:"resource_group_name"`
+	HubProfile        []FleetManagerHubProfile `tfschema:"hub_profile"`
+	Tags              map[string]interface{}   `tfschema:"tags"`
+}
+
+type FleetManagerHubProfile struct {
+	DnsPrefix         string `tfschema:"dns_prefix"`
+	Fqdn              string `tfschema:"fqdn"`
+	KubernetesVersion string `tfschema:"kubernetes_version"`
+	PortalFqdn        string `tfschema:"portal_fqdn"`
 }
 
 func (r KubernetesFleetManagerResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -53,18 +64,26 @@ func (r KubernetesFleetManagerResource) Arguments() map[string]*pluginsdk.Schema
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
 		"hub_profile": {
-			Deprecated: "The service team has indicated this field is now deprecated and not to be used, as such we are marking it as such and no longer sending it to the API, please see url: https://learn.microsoft.com/en-us/azure/kubernetes-fleet/architectural-overview",
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"dns_prefix": {
 						Required: true,
+						ForceNew: true,
 						Type:     pluginsdk.TypeString,
+						ValidateFunc: validation.All(
+							validation.StringLenBetween(1, 54),
+							validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9]$|^[a-zA-Z0-9][a-zA-Z0-9-]{0,52}[a-zA-Z0-9]$`), "must match the pattern ^[a-zA-Z0-9]$|^[a-zA-Z0-9][a-zA-Z0-9-]{0,52}[a-zA-Z0-9]$"),
+						),
 					},
 					"fqdn": {
 						Computed: true,
 						Type:     pluginsdk.TypeString,
 					},
 					"kubernetes_version": {
+						Computed: true,
+						Type:     pluginsdk.TypeString,
+					},
+					"portal_fqdn": {
 						Computed: true,
 						Type:     pluginsdk.TypeString,
 					},
@@ -217,6 +236,10 @@ func (r KubernetesFleetManagerResource) mapKubernetesFleetManagerResourceSchemaT
 	if output.Properties == nil {
 		output.Properties = &fleets.FleetProperties{}
 	}
+
+	if len(input.HubProfile) > 0 {
+		output.Properties.HubProfile = expandFleetManagerHubProfile(input.HubProfile)
+	}
 }
 
 func (r KubernetesFleetManagerResource) mapFleetToKubernetesFleetManagerResourceSchema(input fleets.Fleet, output *KubernetesFleetManagerResourceSchema) {
@@ -225,5 +248,32 @@ func (r KubernetesFleetManagerResource) mapFleetToKubernetesFleetManagerResource
 
 	if input.Properties == nil {
 		input.Properties = &fleets.FleetProperties{}
+	}
+
+	output.HubProfile = flattenFleetManagerHubProfile(input.Properties.HubProfile)
+}
+
+func expandFleetManagerHubProfile(input []FleetManagerHubProfile) *fleets.FleetHubProfile {
+	if len(input) == 0 {
+		return nil
+	}
+
+	return &fleets.FleetHubProfile{
+		DnsPrefix: pointer.To(input[0].DnsPrefix),
+	}
+}
+
+func flattenFleetManagerHubProfile(input *fleets.FleetHubProfile) []FleetManagerHubProfile {
+	if input == nil {
+		return []FleetManagerHubProfile{}
+	}
+
+	return []FleetManagerHubProfile{
+		{
+			DnsPrefix:         pointer.From(input.DnsPrefix),
+			Fqdn:              pointer.From(input.Fqdn),
+			KubernetesVersion: pointer.From(input.KubernetesVersion),
+			PortalFqdn:        pointer.From(input.PortalFqdn),
+		},
 	}
 }
