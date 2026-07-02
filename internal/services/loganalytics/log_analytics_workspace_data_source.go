@@ -52,6 +52,16 @@ func dataSourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"internet_ingestion_access_type": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"internet_query_access_type": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"workspace_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -123,6 +133,18 @@ func dataSourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interfa
 				d.Set("daily_quota_gb", props.WorkspaceCapping.DailyQuotaGb)
 			} else {
 				d.Set("daily_quota_gb", pointer.To(-1))
+			}
+
+			if v := props.PublicNetworkAccessForIngestion; v != nil {
+				d.Set("internet_ingestion_access_type", string(*v))
+			} else {
+				d.Set("internet_ingestion_access_type", string(workspaces.PublicNetworkAccessTypeEnabled))
+			}
+
+			if v := props.PublicNetworkAccessForQuery; v != nil {
+				d.Set("internet_query_access_type", string(*v))
+			} else {
+				d.Set("internet_query_access_type", string(workspaces.PublicNetworkAccessTypeEnabled))
 			}
 		}
 
