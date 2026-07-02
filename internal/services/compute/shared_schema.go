@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-07-03/galleryimageversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -1264,4 +1265,26 @@ func flattenWindowsSecretsVMSS(input *[]virtualmachinescalesets.VaultSecretGroup
 	}
 
 	return output
+}
+
+func uefiKeySchema() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Schema: map[string]*pluginsdk.Schema{
+			"certificate_base64": {
+				Type:     pluginsdk.TypeList,
+				Required: true,
+				ForceNew: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsBase64,
+				},
+			},
+			"type": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(galleryimageversions.PossibleValuesForUefiKeyType(), false),
+			},
+		},
+	}
 }
