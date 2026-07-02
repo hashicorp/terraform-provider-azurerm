@@ -1,10 +1,13 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name redhat_openshift_cluster -service-package-name redhatopenshift -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-expect-non-empty
+
 package redhatopenshift
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -12,10 +15,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redhatopenshift/2025-07-25/openshiftclusters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redhatopenshift/validate"
@@ -24,23 +28,29 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.ResourceWithUpdate = RedHatOpenShiftCluster{}
+var (
+	_ sdk.ResourceWithCustomizeDiff = RedHatOpenShiftCluster{}
+	_ sdk.ResourceWithIdentity      = RedHatOpenShiftCluster{}
+	_ sdk.ResourceWithUpdate        = RedHatOpenShiftCluster{}
+)
 
 type RedHatOpenShiftCluster struct{}
 
 type RedHatOpenShiftClusterModel struct {
-	Tags             map[string]string  `tfschema:"tags"`
-	Name             string             `tfschema:"name"`
-	Location         string             `tfschema:"location"`
-	ResourceGroup    string             `tfschema:"resource_group_name"`
-	ConsoleUrl       string             `tfschema:"console_url"`
-	ServicePrincipal []ServicePrincipal `tfschema:"service_principal"`
-	ClusterProfile   []ClusterProfile   `tfschema:"cluster_profile"`
-	NetworkProfile   []NetworkProfile   `tfschema:"network_profile"`
-	MainProfile      []MainProfile      `tfschema:"main_profile"`
-	WorkerProfile    []WorkerProfile    `tfschema:"worker_profile"`
-	ApiServerProfile []ApiServerProfile `tfschema:"api_server_profile"`
-	IngressProfile   []IngressProfile   `tfschema:"ingress_profile"`
+	Tags                            map[string]string                 `tfschema:"tags"`
+	Name                            string                            `tfschema:"name"`
+	Location                        string                            `tfschema:"location"`
+	ResourceGroup                   string                            `tfschema:"resource_group_name"`
+	ConsoleUrl                      string                            `tfschema:"console_url"`
+	Identity                        []identity.ModelUserAssigned      `tfschema:"identity"`
+	ServicePrincipal                []ServicePrincipal                `tfschema:"service_principal"`
+	ClusterProfile                  []ClusterProfile                  `tfschema:"cluster_profile"`
+	NetworkProfile                  []NetworkProfile                  `tfschema:"network_profile"`
+	MainProfile                     []MainProfile                     `tfschema:"main_profile"`
+	WorkerProfile                   []WorkerProfile                   `tfschema:"worker_profile"`
+	ApiServerProfile                []ApiServerProfile                `tfschema:"api_server_profile"`
+	IngressProfile                  []IngressProfile                  `tfschema:"ingress_profile"`
+	PlatformWorkloadIdentityProfile []PlatformWorkloadIdentityProfile `tfschema:"platform_workload_identity_profile"`
 }
 
 type ServicePrincipal struct {
@@ -58,10 +68,28 @@ type ClusterProfile struct {
 }
 
 type NetworkProfile struct {
-	OutboundType                             string `tfschema:"outbound_type"`
-	PodCidr                                  string `tfschema:"pod_cidr"`
-	ServiceCidr                              string `tfschema:"service_cidr"`
-	PreconfiguredNetworkSecurityGroupEnabled bool   `tfschema:"preconfigured_network_security_group_enabled"`
+	OutboundType                             string                `tfschema:"outbound_type"`
+	PodCidr                                  string                `tfschema:"pod_cidr"`
+	ServiceCidr                              string                `tfschema:"service_cidr"`
+	PreconfiguredNetworkSecurityGroupEnabled bool                  `tfschema:"preconfigured_network_security_group_enabled"`
+	LoadBalancerProfile                      []LoadBalancerProfile `tfschema:"load_balancer_profile"`
+}
+
+type LoadBalancerProfile struct {
+	ManagedOutboundIpCount int64    `tfschema:"managed_outbound_ip_count"`
+	EffectiveOutboundIps   []string `tfschema:"effective_outbound_ips"`
+}
+
+type PlatformWorkloadIdentityProfile struct {
+	UpgradeableTo            string                     `tfschema:"upgradeable_to"`
+	PlatformWorkloadIdentity []PlatformWorkloadIdentity `tfschema:"platform_workload_identity"`
+}
+
+type PlatformWorkloadIdentity struct {
+	Name       string `tfschema:"name"`
+	IdentityId string `tfschema:"identity_id"`
+	ClientId   string `tfschema:"client_id"`
+	ObjectId   string `tfschema:"object_id"`
 }
 
 type MainProfile struct {
@@ -92,6 +120,37 @@ type ApiServerProfile struct {
 	Url        string `tfschema:"url"`
 }
 
+func (r RedHatOpenShiftCluster) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			outboundType := metadata.ResourceDiff.Get("network_profile.0.outbound_type").(string)
+			loadBalancerProfile := metadata.ResourceDiff.Get("network_profile.0.load_balancer_profile")
+			if outboundType != string(openshiftclusters.OutboundTypeLoadbalancer) && len(loadBalancerProfile.([]interface{})) > 0 {
+				return errors.New("`network_profile.0.load_balancer_profile` requires `network_profile.0.outbound_type` to be `Loadbalancer`")
+			}
+
+			if metadata.ResourceDiff.Id() == "" {
+				return nil
+			}
+
+			// The service principal can be swapped, but it cannot be added or removed in place.
+			oldServicePrincipal, newServicePrincipal := metadata.ResourceDiff.GetChange("service_principal")
+			if len(oldServicePrincipal.([]interface{})) != len(newServicePrincipal.([]interface{})) {
+				return metadata.ResourceDiff.ForceNew("service_principal")
+			}
+
+			// The identity can be swapped, but it cannot be added or removed in place.
+			oldIdentity, newIdentity := metadata.ResourceDiff.GetChange("identity")
+			if len(oldIdentity.([]interface{})) != len(newIdentity.([]interface{})) {
+				return metadata.ResourceDiff.ForceNew("identity")
+			}
+
+			return nil
+		},
+	}
+}
+
 func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
@@ -101,9 +160,34 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
+		"resource_group_name": commonschema.ResourceGroupName(),
+
 		"location": commonschema.Location(),
 
-		"resource_group_name": commonschema.ResourceGroupName(),
+		"api_server_profile": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			ForceNew: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"visibility": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringInSlice(openshiftclusters.PossibleValuesForVisibility(), false),
+					},
+					"ip_address": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"url": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		},
 
 		"cluster_profile": {
 			Type:     pluginsdk.TypeList,
@@ -130,13 +214,6 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 						ForceNew: true,
 						Default:  false,
 					},
-					"pull_secret": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ForceNew:     true,
-						Sensitive:    true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
 					"managed_resource_group_name": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
@@ -150,177 +227,15 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 							return false
 						},
 					},
-					"resource_group_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
-			},
-		},
-
-		"service_principal": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"client_id": {
+					"pull_secret": {
 						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.IsUUID,
-					},
-					"client_secret": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
+						Optional:     true,
+						ForceNew:     true,
 						Sensitive:    true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
-				},
-			},
-		},
-
-		"network_profile": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			ForceNew: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"pod_cidr": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: commonValidate.CIDR,
-					},
-					"service_cidr": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: commonValidate.CIDR,
-					},
-					"outbound_type": {
+					"resource_group_id": {
 						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
-						Default:  string(openshiftclusters.OutboundTypeLoadbalancer),
-						ValidateFunc: validation.StringInSlice(
-							openshiftclusters.PossibleValuesForOutboundType(),
-							false,
-						),
-					},
-					"preconfigured_network_security_group_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						ForceNew: true,
-						Default:  false,
-					},
-				},
-			},
-		},
-
-		"main_profile": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			ForceNew: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"subnet_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: azure.ValidateResourceID,
-					},
-					"vm_size": {
-						Type:             pluginsdk.TypeString,
-						Required:         true,
-						ForceNew:         true,
-						DiffSuppressFunc: suppress.CaseDifference,
-						ValidateFunc:     validation.StringIsNotEmpty,
-					},
-					"encryption_at_host_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						ForceNew: true,
-						Default:  false,
-					},
-					"disk_encryption_set_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ForceNew:     true,
-						ValidateFunc: azure.ValidateResourceID,
-					},
-				},
-			},
-		},
-
-		"worker_profile": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			ForceNew: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"vm_size": {
-						Type:             pluginsdk.TypeString,
-						Required:         true,
-						ForceNew:         true,
-						DiffSuppressFunc: suppress.CaseDifference,
-						ValidateFunc:     validation.StringIsNotEmpty,
-					},
-					"disk_size_gb": {
-						Type:         pluginsdk.TypeInt,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.IntAtLeast(128),
-					},
-					"node_count": {
-						Type:         pluginsdk.TypeInt,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.IntBetween(3, 60),
-					},
-					"subnet_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: azure.ValidateResourceID,
-					},
-					"encryption_at_host_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						ForceNew: true,
-						Default:  false,
-					},
-					"disk_encryption_set_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ForceNew:     true,
-						ValidateFunc: azure.ValidateResourceID,
-					},
-				},
-			},
-		},
-
-		"api_server_profile": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			ForceNew: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"visibility": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringInSlice(openshiftclusters.PossibleValuesForVisibility(), false),
-					},
-					"ip_address": {
-						Type:     schema.TypeString,
-						Computed: true,
-					},
-					"url": {
-						Type:     schema.TypeString,
 						Computed: true,
 					},
 				},
@@ -352,6 +267,251 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"main_profile": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			ForceNew: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"subnet_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: commonids.ValidateSubnetID,
+					},
+					"vm_size": {
+						Type:             pluginsdk.TypeString,
+						Required:         true,
+						ForceNew:         true,
+						DiffSuppressFunc: suppress.CaseDifference,
+						ValidateFunc:     validation.StringIsNotEmpty,
+					},
+					"disk_encryption_set_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: commonids.ValidateDiskEncryptionSetID,
+					},
+					"encryption_at_host_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						ForceNew: true,
+						Default:  false,
+					},
+				},
+			},
+		},
+
+		"network_profile": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"pod_cidr": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: commonValidate.CIDR,
+					},
+					"service_cidr": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: commonValidate.CIDR,
+					},
+					"load_balancer_profile": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						// NOTE: O+C - Azure returns the default load balancer profile, including effective outbound IPs, when this block is omitted.
+						Computed: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"managed_outbound_ip_count": {
+									Type:         pluginsdk.TypeInt,
+									Required:     true,
+									ValidateFunc: validation.IntBetween(1, 20),
+								},
+								"effective_outbound_ips": {
+									Type:     pluginsdk.TypeList,
+									Computed: true,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+							},
+						},
+					},
+					"outbound_type": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ForceNew: true,
+						Default:  string(openshiftclusters.OutboundTypeLoadbalancer),
+						ValidateFunc: validation.StringInSlice(
+							openshiftclusters.PossibleValuesForOutboundType(),
+							false,
+						),
+					},
+					"preconfigured_network_security_group_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						ForceNew: true,
+						Default:  false,
+					},
+				},
+			},
+		},
+
+		"worker_profile": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			ForceNew: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"disk_size_gb": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.IntAtLeast(128),
+					},
+					"node_count": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.IntBetween(3, 60),
+					},
+					"subnet_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: commonids.ValidateSubnetID,
+					},
+					"vm_size": {
+						Type:             pluginsdk.TypeString,
+						Required:         true,
+						ForceNew:         true,
+						DiffSuppressFunc: suppress.CaseDifference,
+						ValidateFunc:     validation.StringIsNotEmpty,
+					},
+					"disk_encryption_set_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: commonids.ValidateDiskEncryptionSetID,
+					},
+					"encryption_at_host_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						ForceNew: true,
+						Default:  false,
+					},
+				},
+			},
+		},
+
+		"identity": {
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			MaxItems:     1,
+			ExactlyOneOf: []string{"service_principal", "identity"},
+			RequiredWith: []string{"platform_workload_identity_profile"},
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"type": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(identity.TypeUserAssigned),
+						}, false),
+					},
+					// lintignore:S018
+					"identity_ids": {
+						Type:     pluginsdk.TypeSet,
+						Required: true,
+						MinItems: 1,
+						MaxItems: 1,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+						},
+					},
+				},
+			},
+		},
+
+		"platform_workload_identity_profile": {
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			MaxItems:     1,
+			RequiredWith: []string{"identity"},
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"platform_workload_identity": {
+						Type:     pluginsdk.TypeSet,
+						Required: true,
+						MinItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"identity_id": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+								},
+								"name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"client_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"object_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+							},
+						},
+					},
+					"upgradeable_to": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validate.ClusterVersion,
+						DiffSuppressFunc: func(_, old, new string, _ *pluginsdk.ResourceData) bool {
+							// The backend does not support clearing upgradeable_to via PATCH;
+							// suppress the diff so removing it from config is a no-op.
+							return old != "" && new == ""
+						},
+					},
+				},
+			},
+		},
+
+		"service_principal": {
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			MaxItems:     1,
+			ExactlyOneOf: []string{"service_principal", "identity"},
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"client_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.IsUUID,
+					},
+					"client_secret": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						Sensitive:    true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+		},
+
 		"tags": commonschema.Tags(),
 	}
 }
@@ -375,6 +535,10 @@ func (r RedHatOpenShiftCluster) ResourceType() string {
 
 func (r RedHatOpenShiftCluster) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return openshiftclusters.ValidateOpenShiftClusterID
+}
+
+func (r RedHatOpenShiftCluster) Identity() resourceids.ResourceId {
+	return &openshiftclusters.OpenShiftClusterId{}
 }
 
 func (r RedHatOpenShiftCluster) Create() sdk.ResourceFunc {
@@ -408,21 +572,34 @@ func (r RedHatOpenShiftCluster) Create() sdk.ResourceFunc {
 				Name:     pointer.To(id.OpenShiftClusterName),
 				Location: location.Normalize(config.Location),
 				Properties: &openshiftclusters.OpenShiftClusterProperties{
-					ClusterProfile:          expandOpenshiftClusterProfile(config.ClusterProfile, id.SubscriptionId),
-					ServicePrincipalProfile: expandOpenshiftServicePrincipalProfile(config.ServicePrincipal),
-					NetworkProfile:          expandOpenshiftNetworkProfile(config.NetworkProfile),
-					MasterProfile:           expandOpenshiftMainProfile(config.MainProfile),
-					WorkerProfiles:          expandOpenshiftWorkerProfiles(config.WorkerProfile),
-					ApiserverProfile:        expandOpenshiftApiServerProfile(config.ApiServerProfile),
-					IngressProfiles:         expandOpenshiftIngressProfiles(config.IngressProfile),
+					ClusterProfile:                  expandOpenshiftClusterProfile(config.ClusterProfile, id.SubscriptionId),
+					ServicePrincipalProfile:         expandOpenshiftServicePrincipalProfile(config.ServicePrincipal),
+					NetworkProfile:                  expandOpenshiftNetworkProfile(config.NetworkProfile),
+					MasterProfile:                   expandOpenshiftMainProfile(config.MainProfile),
+					WorkerProfiles:                  expandOpenshiftWorkerProfiles(config.WorkerProfile),
+					ApiserverProfile:                expandOpenshiftApiServerProfile(config.ApiServerProfile),
+					IngressProfiles:                 expandOpenshiftIngressProfiles(config.IngressProfile),
+					PlatformWorkloadIdentityProfile: expandOpenshiftPlatformWorkloadIdentityProfile(config.PlatformWorkloadIdentityProfile),
 				},
 				Tags: pointer.To(config.Tags),
 			}
 
-			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
+			if len(config.Identity) > 0 {
+				expandedIdentity, err := identity.ExpandUserAssignedMapFromModel(config.Identity)
+				if err != nil {
+					return fmt.Errorf("expanding `identity`: %+v", err)
+				}
+				parameters.Identity = expandedIdentity
+			}
+
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
+
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 
 			return nil
 		},
@@ -445,19 +622,42 @@ func (r RedHatOpenShiftCluster) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			parameter := openshiftclusters.OpenShiftClusterUpdate{}
+			var update openshiftclusters.OpenShiftClusterUpdate
 
-			if metadata.ResourceData.HasChange("tags") {
-				parameter.Tags = pointer.To(state.Tags)
+			if metadata.ResourceData.HasChange("identity") {
+				expandedIdentity, err := identity.ExpandUserAssignedMapFromModel(state.Identity)
+				if err != nil {
+					return fmt.Errorf("expanding `identity`: %+v", err)
+				}
+				update.Identity = expandedIdentity
 			}
 
 			if metadata.ResourceData.HasChange("service_principal") {
-				parameter.Properties = &openshiftclusters.OpenShiftClusterProperties{
-					ServicePrincipalProfile: expandOpenshiftServicePrincipalProfile(state.ServicePrincipal),
+				if update.Properties == nil {
+					update.Properties = &openshiftclusters.OpenShiftClusterProperties{}
 				}
+				update.Properties.ServicePrincipalProfile = expandOpenshiftServicePrincipalProfile(state.ServicePrincipal)
 			}
 
-			if err := client.UpdateThenPoll(ctx, *id, parameter); err != nil {
+			if metadata.ResourceData.HasChange("platform_workload_identity_profile") {
+				if update.Properties == nil {
+					update.Properties = &openshiftclusters.OpenShiftClusterProperties{}
+				}
+				update.Properties.PlatformWorkloadIdentityProfile = expandOpenshiftPlatformWorkloadIdentityProfile(state.PlatformWorkloadIdentityProfile)
+			}
+
+			if metadata.ResourceData.HasChange("network_profile") {
+				if update.Properties == nil {
+					update.Properties = &openshiftclusters.OpenShiftClusterProperties{}
+				}
+				update.Properties.NetworkProfile = expandOpenshiftNetworkProfile(state.NetworkProfile)
+			}
+
+			if metadata.ResourceData.HasChange("tags") {
+				update.Tags = pointer.To(state.Tags)
+			}
+
+			if err := client.UpdateThenPoll(ctx, *id, update); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -491,43 +691,63 @@ func (r RedHatOpenShiftCluster) Read() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			state := RedHatOpenShiftClusterModel{
-				Name:          id.OpenShiftClusterName,
-				ResourceGroup: id.ResourceGroupName,
-			}
-
-			if model := resp.Model; model != nil {
-				state.Location = location.Normalize(model.Location)
-				state.Tags = pointer.From(model.Tags)
-
-				if props := model.Properties; props != nil {
-					clusterProfile, err := flattenOpenShiftClusterProfile(props.ClusterProfile, config)
-					if err != nil {
-						return fmt.Errorf("flatten cluster profile: %+v", err)
-					}
-					state.ClusterProfile = *clusterProfile
-
-					state.ServicePrincipal = flattenOpenShiftServicePrincipalProfile(props.ServicePrincipalProfile, config)
-					state.NetworkProfile = flattenOpenShiftNetworkProfile(props.NetworkProfile)
-					state.MainProfile = flattenOpenShiftMainProfile(props.MasterProfile)
-					state.ApiServerProfile = flattenOpenShiftAPIServerProfile(props.ApiserverProfile)
-					state.IngressProfile = flattenOpenShiftIngressProfiles(props.IngressProfiles)
-
-					workerProfiles, err := flattenOpenShiftWorkerProfiles(props.WorkerProfiles)
-					if err != nil {
-						return fmt.Errorf("flattening worker profiles: %+v", err)
-					}
-					state.WorkerProfile = workerProfiles
-
-					if props.ConsoleProfile != nil {
-						state.ConsoleUrl = pointer.From(props.ConsoleProfile.Url)
-					}
-				}
-			}
-
-			return metadata.Encode(&state)
+			return r.flatten(metadata, *id, resp.Model, config)
 		},
 	}
+}
+
+func (RedHatOpenShiftCluster) flatten(metadata sdk.ResourceMetaData, id openshiftclusters.OpenShiftClusterId, model *openshiftclusters.OpenShiftCluster, config RedHatOpenShiftClusterModel) error {
+	state := RedHatOpenShiftClusterModel{
+		Name:          id.OpenShiftClusterName,
+		ResourceGroup: id.ResourceGroupName,
+	}
+
+	if model != nil {
+		state.Location = location.Normalize(model.Location)
+		state.Tags = pointer.From(model.Tags)
+
+		flattenedIdentity, err := identity.FlattenUserAssignedMapToModel(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		state.Identity = pointer.From(flattenedIdentity)
+
+		if props := model.Properties; props != nil {
+			clusterProfile, err := flattenOpenShiftClusterProfile(props.ClusterProfile, config)
+			if err != nil {
+				return fmt.Errorf("flatten cluster profile: %+v", err)
+			}
+			state.ClusterProfile = *clusterProfile
+
+			state.ServicePrincipal = flattenOpenShiftServicePrincipalProfile(props.ServicePrincipalProfile, config)
+			state.NetworkProfile = flattenOpenShiftNetworkProfile(props.NetworkProfile)
+			state.MainProfile = flattenOpenShiftMainProfile(props.MasterProfile)
+			state.ApiServerProfile = flattenOpenShiftAPIServerProfile(props.ApiserverProfile)
+			state.IngressProfile = flattenOpenShiftIngressProfiles(props.IngressProfiles)
+
+			platformWorkloadIdentityProfile, err := flattenOpenShiftPlatformWorkloadIdentityProfile(props.PlatformWorkloadIdentityProfile)
+			if err != nil {
+				return fmt.Errorf("flattening `platform_workload_identity_profile`: %+v", err)
+			}
+			state.PlatformWorkloadIdentityProfile = platformWorkloadIdentityProfile
+
+			workerProfiles, err := flattenOpenShiftWorkerProfiles(props.WorkerProfiles)
+			if err != nil {
+				return fmt.Errorf("flattening worker profiles: %+v", err)
+			}
+			state.WorkerProfile = workerProfiles
+
+			if props.ConsoleProfile != nil {
+				state.ConsoleUrl = pointer.From(props.ConsoleProfile.Url)
+			}
+		}
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }
 
 func (r RedHatOpenShiftCluster) Delete() sdk.ResourceFunc {
@@ -657,11 +877,26 @@ func expandOpenshiftNetworkProfile(input []NetworkProfile) *openshiftclusters.Ne
 	}
 
 	return &openshiftclusters.NetworkProfile{
-		OutboundType:     pointer.To(openshiftclusters.OutboundType(input[0].OutboundType)),
-		PodCidr:          pointer.To(input[0].PodCidr),
-		ServiceCidr:      pointer.To(input[0].ServiceCidr),
-		PreconfiguredNSG: pointer.To(preconfiguredNSG),
+		OutboundType:        pointer.ToEnum[openshiftclusters.OutboundType](input[0].OutboundType),
+		PodCidr:             pointer.To(input[0].PodCidr),
+		ServiceCidr:         pointer.To(input[0].ServiceCidr),
+		PreconfiguredNSG:    pointer.To(preconfiguredNSG),
+		LoadBalancerProfile: expandOpenshiftLoadBalancerProfile(input[0].LoadBalancerProfile),
 	}
+}
+
+func expandOpenshiftLoadBalancerProfile(input []LoadBalancerProfile) *openshiftclusters.LoadBalancerProfile {
+	if len(input) == 0 {
+		return nil
+	}
+
+	result := &openshiftclusters.LoadBalancerProfile{}
+	if input[0].ManagedOutboundIpCount > 0 {
+		result.ManagedOutboundIPs = &openshiftclusters.ManagedOutboundIPs{
+			Count: pointer.To(input[0].ManagedOutboundIpCount),
+		}
+	}
+	return result
 }
 
 func flattenOpenShiftNetworkProfile(profile *openshiftclusters.NetworkProfile) []NetworkProfile {
@@ -680,8 +915,87 @@ func flattenOpenShiftNetworkProfile(profile *openshiftclusters.NetworkProfile) [
 			PodCidr:                                  pointer.From(profile.PodCidr),
 			ServiceCidr:                              pointer.From(profile.ServiceCidr),
 			PreconfiguredNetworkSecurityGroupEnabled: preconfiguredNetworkSecurityGroupEnabled,
+			LoadBalancerProfile:                      flattenOpenShiftLoadBalancerProfile(profile.LoadBalancerProfile),
 		},
 	}
+}
+
+func flattenOpenShiftLoadBalancerProfile(profile *openshiftclusters.LoadBalancerProfile) []LoadBalancerProfile {
+	if profile == nil {
+		return []LoadBalancerProfile{}
+	}
+
+	var count int64
+	if profile.ManagedOutboundIPs != nil {
+		count = pointer.From(profile.ManagedOutboundIPs.Count)
+	}
+
+	effectiveIps := make([]string, 0)
+	if profile.EffectiveOutboundIPs != nil {
+		for _, ip := range *profile.EffectiveOutboundIPs {
+			effectiveIps = append(effectiveIps, pointer.From(ip.Id))
+		}
+	}
+
+	return []LoadBalancerProfile{
+		{
+			ManagedOutboundIpCount: count,
+			EffectiveOutboundIps:   effectiveIps,
+		},
+	}
+}
+
+func expandOpenshiftPlatformWorkloadIdentityProfile(input []PlatformWorkloadIdentityProfile) *openshiftclusters.PlatformWorkloadIdentityProfile {
+	if len(input) == 0 {
+		return nil
+	}
+
+	identities := make(map[string]openshiftclusters.PlatformWorkloadIdentity, len(input[0].PlatformWorkloadIdentity))
+	for _, item := range input[0].PlatformWorkloadIdentity {
+		identities[item.Name] = openshiftclusters.PlatformWorkloadIdentity{
+			ResourceId: pointer.To(item.IdentityId),
+		}
+	}
+
+	result := &openshiftclusters.PlatformWorkloadIdentityProfile{
+		PlatformWorkloadIdentities: &identities,
+	}
+
+	if input[0].UpgradeableTo != "" {
+		result.UpgradeableTo = pointer.To(input[0].UpgradeableTo)
+	}
+
+	return result
+}
+
+func flattenOpenShiftPlatformWorkloadIdentityProfile(profile *openshiftclusters.PlatformWorkloadIdentityProfile) ([]PlatformWorkloadIdentityProfile, error) {
+	if profile == nil {
+		return []PlatformWorkloadIdentityProfile{}, nil
+	}
+
+	identities := make([]PlatformWorkloadIdentity, 0)
+	if profile.PlatformWorkloadIdentities != nil {
+		for name, item := range *profile.PlatformWorkloadIdentities {
+			resourceId := pointer.From(item.ResourceId)
+			parsed, err := commonids.ParseUserAssignedIdentityIDInsensitively(resourceId)
+			if err != nil {
+				return nil, err
+			}
+			identities = append(identities, PlatformWorkloadIdentity{
+				Name:       name,
+				IdentityId: parsed.ID(),
+				ClientId:   pointer.From(item.ClientId),
+				ObjectId:   pointer.From(item.ObjectId),
+			})
+		}
+	}
+
+	return []PlatformWorkloadIdentityProfile{
+		{
+			UpgradeableTo:            pointer.From(profile.UpgradeableTo),
+			PlatformWorkloadIdentity: identities,
+		},
+	}, nil
 }
 
 func expandOpenshiftMainProfile(input []MainProfile) *openshiftclusters.MasterProfile {
@@ -727,7 +1041,7 @@ func expandOpenshiftWorkerProfiles(input []WorkerProfile) *[]openshiftclusters.W
 		return nil
 	}
 
-	profiles := make([]openshiftclusters.WorkerProfile, 0)
+	profiles := make([]openshiftclusters.WorkerProfile, 0, 1)
 
 	encryptionAtHost := openshiftclusters.EncryptionAtHostDisabled
 	if input[0].EncryptionAtHostEnabled {
@@ -814,7 +1128,7 @@ func expandOpenshiftIngressProfiles(input []IngressProfile) *[]openshiftclusters
 		return nil
 	}
 
-	profiles := make([]openshiftclusters.IngressProfile, 0)
+	profiles := make([]openshiftclusters.IngressProfile, 0, 1)
 
 	profile := openshiftclusters.IngressProfile{
 		Name:       pointer.To("default"),
