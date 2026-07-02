@@ -2,7 +2,51 @@
 
 In an effort to keep the [provider documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs) consistent, this page documents some standards that have been agreed on.
 
+This document defines standards for resource and data source reference documentation in `website\docs\r` and `website\docs\d`. It does not define standards for other documentation types such as `guides`, `functions`, `actions`, `upgrade guides`, or `list` pages.
+
 This page will grow over time, and suggestions are welcome!
+
+## Documentation Locations
+
+Resource and data source reference documentation is located under the `website\docs` directory in the repository. This documentation is split between `resources` and `data sources` which are kept in different sub-directories of the `website\docs` directory.
+
+- Resource documentation is in the `website\docs\r` directory.
+- Data source documentation is in the `website\docs\d` directory.
+
+Reference documentation should follow the name of the Terraform resource or data source it is documenting.
+
+- If you are documenting the resource `azurerm_example` the documentation should be named `example.html.markdown` and placed in the `website\docs\r` directory.
+- If you are documenting the data source `azurerm_example` the documentation should be named `example.html.markdown` and placed in the `website\docs\d` directory.
+
+## Front Matter
+
+Each resource/data source must include the below Front Matter at the begining of the documentation file e.g., `example.html.markdown`.
+
+The `subcategory` value should come from the website category defined for the service. To find the allowed values, check `website/allowed-subcategories`. If you scaffold the documentation using `make scaffold-website`, the generated front matter will also tell you which category to use. If the service supports multiple website categories, match the existing documentation for that service.
+
+For resources the front matter should be defined as:
+
+```markdown
+---
+subcategory: "ExampleService"
+layout: "azurerm"
+page_title: "Azure Resource Manager: azurerm_example"
+description: |-
+  Manages an Example.
+---
+```
+
+For data sources the front matter should be defined as:
+
+```markdown
+---
+subcategory: "ExampleService"
+layout: "azurerm"
+page_title: "Azure Resource Manager: Data Source: azurerm_example"
+description: |-
+  Gets information about an existing Example.
+---
+```
 
 ## Examples
 
@@ -25,16 +69,9 @@ The following conventions apply to code fences:
 
 ## Arguments
 
-### Ordering
+The ``## Arguments Reference`` section is used to document fields that can be set by the user in the Terraform configuration.
 
-Arguments in the documentation are expected to be ordered as follows:
-
-1. Any arguments that make up the resource's ID, with the last user specified segment (usually `name`) first. e.g. `name` then `resource_group_name`, or `name` then `parent_resource_id`.
-2. The `location` field if present.
-3. Required arguments, sorted alphabetically.
-4. Optional arguments, sorted alphabetically, with the exception of `tags`, which must always be documented last.
-
--> **Note:** This ordering applies to both `typed` and `untyped` implementations. Even when typed resources or data sources surface computed or optional fields via `Attributes()`/`model` structs, the published documentation must still follow the sequence described above.
+Directly after the initial heading of ``## Arguments Reference`` you must include the exact text ``The following arguments are supported:``.
 
 ### Descriptions
 
@@ -42,47 +79,78 @@ The following conventions apply to argument descriptions:
 
 - Descriptions should be concise, avoid adding too much detail, links to external documentation, etc. If more detail must be added, use a [note](#notes).
 - If an argument has `ForceNew: true`, its description must end with `Changing this forces a new resource to be created.`
-- If the argument has validation allowing only specific inputs, e.g. `validation.StringInSlice()`, these must be documented using `` Possible values are `value1`, `value2`, and `value3. ``. Other common entries include:
-  - Arguments with a single allowed value: `` The only possible value is `value1`. ``
-  - Arguments allowing a range of values, e.g. `validation.IntBetween()`: `` Possible values range between `1` and `100`. ``
 - If the argument has a default value, this must be documented using `` Defaults to `default1`. ``
+- If the argument has validation allowing only specific inputs, e.g. `validation.StringInSlice()`, these must be documented using `` Possible values are `valueOne`, `valueTwo`, and `valueThree`. ``.
+  * Other common entries include:
+    - Arguments with a single allowed value: `` The only possible value is `valueOne`. ``
+    - Arguments allowing a range of values, e.g. `validation.IntBetween()`: `` Possible values range between `1` and `100`. ``
+
 
 Examples:
 
-- `` * `name` - (Required) The name which should be used for this resource. Changing this forces a new resource to be created.``
-- `` * `public_network_access` - (Optional) The public network access setting for this resource. Possible values are `Enabled` and `Disabled`. Defaults to `Enabled`. ``
-- `` * `disk_size_in_gb` - (Optional) The disk size in gigabytes. Possible values range between `4` and `256`. ``
+- `name` - (Required) The name which should be used for this resource. Changing this forces a new resource to be created.
+- `argument_enabled` - (Optional) Whether the `argument` is enabled. Defaults to `false`.
+- `argument_in_gb` - (Optional) The argument in gigabytes. Possible values range between `4` and `256`. Defaults to `129`.
+
+### Ordering
+
+Arguments in the documentation are expected to be ordered as follows:
+
+- Any arguments that make up the resource's ID, with the last user specified segment (usually `name`) first. e.g. `name` then `resource_group_name`, or `name` then `parent_resource_id`.
+- The `location` field if present.
+- Required arguments, sorted alphabetically.
+- Optional arguments, sorted alphabetically, with the exception of `tags`, which must always be documented last.
+
+> **Note:** This ordering applies to both `typed` and `untyped` implementations. Even when typed resources or data sources surface computed or optional fields via `Attributes()`/`model` structs, the published documentation must still follow the sequence described above.
 
 ### Block Arguments
 
-Block arguments must have two entries in the documentation:
+Block arguments require two entries in the documentation:
 
-1. The initial entry, e.g. `` * `block_argument` - (Optional) A `block_argument` as defined below. ``, using the correct indefinite article for the block name (`A` or `An`, as appropriate).
-2. A subsection, added after all top-level arguments. If multiple blocks are present in the resource, these subsections should be ordered alphabetically.
+- The initial entry, e.g. `` * `block_argument` - (Optional) A `block_argument` as defined below. ``, using the correct indefinite article for the block name (`A` or `An`, as appropriate).
+- A subsection, added after all top-level arguments. If multiple blocks are present in the resource, these subsections should be ordered alphabetically.
 
 Arguments within a block subsection are expected to be ordered as follows:
 
-1. Required arguments, sorted alphabetically.
-2. Optional arguments, sorted alphabetically.
+- Required arguments, sorted alphabetically.
+- Optional arguments, sorted alphabetically.
 
 Example:
 
-```
+```markdown
 ## Arguments Reference
 
-`name` - (Required) The name which should be used for this resource.
+The following arguments are supported:
 
-`block_argument` - (Optional) A `block_argument` as defined below.
+* `name` - (Required) The name which should be used for this resource. Changing this forces a new resource to be created.
 
-`some_other_argument` - (Optional) This argument does something magical.
+-> **Note:** The `name` must begin and end with an alphanumeric character, and may contain only alphanumeric characters and hyphens.
+
+* `resource_group_name` - (Required) The name of the Resource Group where the resource should exist. Changing this forces a new resource to be created.
+
+* `location` - (Required) The Azure Region where the resource should exist. Changing this forces a new resource to be created.
+
+* `argument` - (Required) This argument does something nifty. Possible values are `nifty`, `super-nifty`, and `stupendous`.
+
+* `block_argument` - (Optional) A `block_argument` as defined below.
+
+* `some_other_argument` - (Optional) This argument does something magical. Possible values are `magical` or `muggle`. Defaults to `magical`.
+
+* `tags` - (Optional) Specifies a mapping of tags to assign to the resource.
 
 ---
 
 A `block_argument` supports the following:
 
-* `nested_argument_1` - (Required) A nested argument that must be specified.
+* `argument` - (Required) The argument that should be used for this block argument. Possible values are `this`, `that`, and `other`.
 
-* `nested_argument_2` - (Optional) A nested argument that may be specified.
+* `some_other_block_argument` - (Required) Specifies the some other block argument. The only possible value is `value`.
+
+* `optional_block_argument` - (Optional) The optional block argument for the resource. Possible values range between `1` and `2048`. Defaults to `1024`.
+
+* `some_other_optional_block_argument` - (Optional) Specifies the some other optional block argument. Defaults to `false`.
+
+~> **Note:** The argument `some_other_optional_block_argument` is required when `argument` is set to `stupendous`.
 
 ## Attributes Reference
 
@@ -92,48 +160,57 @@ A `block_argument` supports the following:
 
 ## Attributes
 
+The ``## Attributes Reference`` section is used to document `Computed` fields that are returned by Terraform after the resource or data source is read.
+
+Directly after the initial heading of ``## Attributes Reference`` you must include the exact text ``In addition to the Arguments listed above - the following Attributes are exported:``.
+
+### Descriptions
+
+Attribute descriptions should be concise, and must not include `possible`, `default`, or `ForceNew` values.
+
 ### Ordering
 
 Attributes in the documentation are expected to be ordered as follows:
 
-1. The `id` attribute.
-2. The remaining attributes, sorted alphabetically.
-
-### Descriptions
-
-Attribute descriptions should be concise, and must not include possible or default values.
+- The `id` attribute.
+- The remaining attributes are sorted alphabetically, no exceptions.
 
 ### Block Attributes
 
 Block attributes must have two entries in the documentation:
 
-1. The initial entry, e.g. `` * `block_attribute` - A `block_attribute` as defined below. ``, using the correct indefinite article for the block name (`A` or `An`, as appropriate).
-2. A subsection, added after all top-level attributes. If multiple blocks are present in the resource, these subsections should be ordered alphabetically.
+- The initial entry in the ``## Attributes Reference``, e.g. ``* `block_attribute` - A `block_attribute` as defined below.``, using the correct indefinite article for the block name (`A` or `An`, as appropriate).
+- A subsection, added after all top-level attributes. If multiple blocks are present in the resource, these subsections should be ordered alphabetically.
 
 Attributes within a block subsection are expected to be ordered as follows:
 
-1. The `id` attribute, if present.
-2. The remaining attributes, sorted alphabetically.
+- alphabetically
+
+Each block subsection is ordered independently of the top-level `## Attributes Reference` list.
 
 Example:
 
-```
+```markdown
 ## Attributes Reference
 
-`id` - The ID of this resource.
+In addition to the Arguments listed above - the following Attributes are exported:
 
-`block_attribute` - A `block_attribute` as defined below.
+* `id` - The ID of this resource.
 
-`some_other_attribute` - This attribute returns something magical.
+* `block_attribute` - A `block_attribute` as defined below.
+
+* `example_attribute` - This attribute returns an example value.
+
+* `some_other_attribute` - This attribute returns something magical.
 
 ---
 
-A `block_attribute` exports the following:
+A `block_attribute` block exports the following:
 
-* `nested_attribute_1` - A very whimsical attribute.
+* `attribute` - This attribute returns an example value.
 
-* `nested_attribute_2` - A much more monotonous attribute.
-
+* `some_other_attribute` - This attribute returns another example value.
+...
 ```
 
 ## Notes
@@ -143,7 +220,7 @@ Note blocks are used to provide additional information to users beyond the basic
 In the past, there have been different approaches to how notes were formatted, some examples are:
 
 - Different words to indicate level of importance, e.g. `Info`, `Important`, `Caution`, and `Be Aware`.
-- Capitalisation differences, e.g. `Note:` vs `NOTE:`.
+- Capitalization differences, e.g. `Note:` vs `NOTE:`.
 - Whether or not a colon is included, e.g. `Note:` vs `Note`.
 
 Going forward, all notes should follow the exact same format (`(->|~>|!>) **Note:**`) where level of importance is indicated through the different types of notes as documented below.
@@ -183,7 +260,7 @@ To add a warning note, use `~> **Note:**`, within the Terraform registry documen
 For example, an argument that is optional but required when another argument is set to `true`:
 
 ```markdown
-* `optional_argument_enabled` - (Optional) Is the optional argument enabled? Defaults to `false`.
+* `optional_argument_enabled` - (Optional) Whether the `optional argument` is enabled. Defaults to `false`.
 
 * `optional_argument` - (Optional) An optional argument.
 
@@ -199,7 +276,7 @@ To add a caution note, use `!> **Note:**`, within the Terraform registry documen
 For example, an argument that when set to `true` cannot be reversed without recreating the resource:
 
 ```markdown
-* `irreversible_argument_enabled` - (Optional) Is irreversible argument enabled? Defaults to `false`.
+* `irreversible_argument_enabled` - (Optional) Whether the `irreversible argument` is enabled. Defaults to `false`.
 
 !> **Note:** The argument `irreversible_argument_enabled` cannot be disabled after being enabled.
 ```
