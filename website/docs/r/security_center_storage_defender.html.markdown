@@ -38,6 +38,8 @@ The following arguments are supported:
 
 * `storage_account_id` - (Required) The ID of the storage account the defender applied to. Changing this forces a new resource to be created.
 
+* `defender_enabled` - (Optional) Whether the defender should be enabled for this storage account. Defaults to `true`.
+
 * `override_subscription_settings_enabled` - (Optional) Whether the settings defined for this storage account should override the settings defined for the subscription. Defaults to `false`.
 
 * `malware_scanning_on_upload_enabled` - (Optional) Whether On Upload malware scanning should be enabled. Defaults to `false`.
