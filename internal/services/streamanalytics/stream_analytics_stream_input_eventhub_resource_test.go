@@ -289,7 +289,7 @@ resource "azurerm_eventhub" "updated" {
 
 resource "azurerm_eventhub_consumer_group" "updated" {
   name                = "acctesteventhubcg2-%d"
-  namespace_id        = azurerm_eventhub_namespace.updated.id
+  namespace_name      = azurerm_eventhub_namespace.updated.name
   eventhub_name       = azurerm_eventhub.updated.name
   resource_group_name = azurerm_resource_group.test.name
 }
