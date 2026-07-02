@@ -36,6 +36,7 @@ func (r Registration) Resources() []sdk.Resource {
 		LogAnalyticsSolutionResource{},
 		LogAnalyticsWorkspaceTableResource{},
 		WorkspaceTableCustomLogResource{},
+		WorkspaceTableMicrosoftResource{},
 	}
 }
 
