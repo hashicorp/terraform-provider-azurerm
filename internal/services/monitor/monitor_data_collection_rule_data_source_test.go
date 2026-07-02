@@ -51,6 +51,26 @@ func TestAccMonitorDataCollectionRuleDataSource_complete(t *testing.T) {
 	})
 }
 
+func TestAccMonitorDataCollectionRuleDataSource_kindDirect(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_monitor_data_collection_rule", "test")
+	d := MonitorDataCollectionRuleDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: d.kindDirect(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("kind").HasValue("Direct"),
+				check.That(data.ResourceName).Key("immutable_id").Exists(),
+				check.That(data.ResourceName).Key("destinations.0.log_analytics.0.name").HasValue("test-destination-log"),
+				check.That(data.ResourceName).Key("data_flow.#").HasValue("1"),
+				check.That(data.ResourceName).Key("stream_declaration.#").HasValue("1"),
+				check.That(data.ResourceName).Key("logs_ingestion_endpoint").IsNotEmpty(),
+				check.That(data.ResourceName).Key("metrics_ingestion_endpoint").IsNotEmpty(),
+			),
+		},
+	})
+}
+
 func (d MonitorDataCollectionRuleDataSource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -60,4 +80,15 @@ data "azurerm_monitor_data_collection_rule" "test" {
   resource_group_name = azurerm_monitor_data_collection_rule.test.resource_group_name
 }
 `, MonitorDataCollectionRuleResource{}.complete(data))
+}
+
+func (d MonitorDataCollectionRuleDataSource) kindDirect(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_monitor_data_collection_rule" "test" {
+	name                = azurerm_monitor_data_collection_rule.test.name
+	resource_group_name = azurerm_monitor_data_collection_rule.test.resource_group_name
+}
+`, MonitorDataCollectionRuleResource{}.kindDirect(data))
 }
