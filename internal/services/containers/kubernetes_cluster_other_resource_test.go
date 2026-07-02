@@ -6,6 +6,7 @@ package containers_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -4164,4 +4165,52 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
   `, data.RandomInteger, data.Locations.Primary, enabled, currentKubernetesVersion)
+}
+
+func TestAccKubernetesCluster_nodeOsUpgradeChannelSecurityPatchInvalid(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.nodeOsUpgradeChannelSecurityPatchConfig(data, "SecurityPatch", "KubernetesOfficial"),
+			ExpectError: regexp.MustCompile("`node_os_upgrade_channel` cannot be set to `SecurityPatch` when `support_plan` is set to `KubernetesOfficial`"),
+		},
+	})
+}
+
+func (KubernetesClusterResource) nodeOsUpgradeChannelSecurityPatchConfig(data acceptance.TestData, nodeOsUpgradeChannel, supportPlan string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[1]d"
+
+  support_plan            = "%[3]s"
+  node_os_upgrade_channel = "%[4]s"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, supportPlan, nodeOsUpgradeChannel)
 }
