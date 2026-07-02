@@ -303,25 +303,22 @@ func resourceArmRoleAssignmentUpdate(d *pluginsdk.ResourceData, meta interface{}
 	props := *existing.Model.Properties
 
 	if d.HasChange("description") {
-		if v := d.Get("description").(string); v == "" {
-			props.Description = nil
-		} else {
+		props.Description = nil
+		if v := d.Get("description").(string); v != "" {
 			props.Description = &v
 		}
 	}
 
 	// Order matters here that "condition_version" shall be handled prior to "condition".
 	if d.HasChange("condition_version") {
-		if v := d.Get("condition_version").(string); v == "" {
-			props.ConditionVersion = nil
-		} else {
+		props.ConditionVersion = nil
+		if v := d.Get("condition_version").(string); v != "" {
 			props.ConditionVersion = &v
 		}
 	}
 	if d.HasChange("condition") {
-		if v := d.Get("condition").(string); v == "" {
-			props.Condition = nil
-		} else {
+		props.Condition = nil
+		if v := d.Get("condition").(string); v != "" {
 			props.Condition = &v
 		}
 
