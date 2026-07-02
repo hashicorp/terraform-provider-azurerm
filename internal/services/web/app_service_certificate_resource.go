@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyVaultSuppress "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -71,11 +72,13 @@ func resourceAppServiceCertificate() *pluginsdk.Resource {
 			},
 
 			"key_vault_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: commonids.ValidateKeyVaultID,
-				RequiredWith: []string{"key_vault_secret_id"},
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				// The service may cause case different, tracked by https://github.com/Azure/azure-rest-api-specs/issues/34436
+				DiffSuppressFunc: suppress.CaseDifference,
+				ValidateFunc:     commonids.ValidateKeyVaultID,
+				RequiredWith:     []string{"key_vault_secret_id"},
 			},
 
 			"key_vault_secret_id": {
