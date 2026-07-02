@@ -139,6 +139,8 @@ The following arguments are supported:
 
 ~> **Note:** The feature can also be enabled via the app setting `WEBSITE_PULL_IMAGE_OVER_VNET`. The Setting is enabled by default for app running in the App Service Environment.
 
+* `vnet_application_traffic_enabled` - (Optional) Should the traffic for the application be routed over virtual network enabled. Defaults to `false`.
+
 * `webdeploy_publish_basic_authentication_enabled` - (Optional) Should the default WebDeploy Basic Authentication publishing credentials enabled. Defaults to `true`.
 
 ---
@@ -515,8 +517,6 @@ A `site_config` block supports the following:
 
 * `use_32_bit_worker` - (Optional) Should the Windows Web App use a 32-bit worker. Defaults to `true`.
 
-* `vnet_route_all_enabled` - (Optional) Should all outbound traffic to have NAT Gateways, Network Security Groups and User Defined Routes applied? Defaults to `false`.
-
 * `websockets_enabled` - (Optional) Should Web Sockets be enabled. Defaults to `false`.
 
 * `windows_fx_version` - The Windows FX Version string.
@@ -792,4 +792,4 @@ terraform import azurerm_windows_function_app_slot.example "/subscriptions/12345
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Web` - 2023-12-01, 2023-01-01
+* `Microsoft.Web` - 2025-05-01, 2023-01-01

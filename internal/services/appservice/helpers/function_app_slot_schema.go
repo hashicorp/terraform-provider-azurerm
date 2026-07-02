@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2025-05-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
@@ -55,7 +55,7 @@ type SiteConfigWindowsFunctionAppSlot struct {
 	Cors                          []CorsSetting                        `tfschema:"cors"`
 	DetailedErrorLogging          bool                                 `tfschema:"detailed_error_logging_enabled"`
 	WindowsFxVersion              string                               `tfschema:"windows_fx_version"`
-	VnetRouteAllEnabled           bool                                 `tfschema:"vnet_route_all_enabled"` // Not supported in Dynamic plans
+	VnetRouteAllEnabled           bool                                 `tfschema:"vnet_route_all_enabled,removedInNextMajorVersion"` // Not supported in Dynamic plans
 }
 
 func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
@@ -310,13 +310,6 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 
 				"cors": CorsSettingsSchema(),
 
-				"vnet_route_all_enabled": {
-					Type:        pluginsdk.TypeBool,
-					Optional:    true,
-					Default:     false,
-					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
-				},
-
 				"detailed_error_logging_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
@@ -338,6 +331,14 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 			"VS2019",
 			"VS2022",
 		}, false)
+
+		s.Elem.(*pluginsdk.Resource).Schema["vnet_route_all_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"vnet_application_traffic_enabled"},
+			Deprecated:    "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `vnet_application_traffic_enabled` property and will be removed in v5.0 of the AzureRM Provider",
+		}
 	}
 
 	return s
@@ -383,7 +384,7 @@ type SiteConfigLinuxFunctionAppSlot struct {
 	Cors                          []CorsSetting                      `tfschema:"cors"`
 	DetailedErrorLogging          bool                               `tfschema:"detailed_error_logging_enabled"`
 	LinuxFxVersion                string                             `tfschema:"linux_fx_version"`
-	VnetRouteAllEnabled           bool                               `tfschema:"vnet_route_all_enabled"` // Not supported in Dynamic plans
+	VnetRouteAllEnabled           bool                               `tfschema:"vnet_route_all_enabled,removedInNextMajorVersion"` // Not supported in Dynamic plans
 }
 
 func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
@@ -652,13 +653,6 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 
 				"cors": CorsSettingsSchema(),
 
-				"vnet_route_all_enabled": {
-					Type:        pluginsdk.TypeBool,
-					Optional:    true,
-					Default:     false,
-					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
-				},
-
 				"detailed_error_logging_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
@@ -680,6 +674,14 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 			"VS2019",
 			"VS2022",
 		}, false)
+
+		s.Elem.(*pluginsdk.Resource).Schema["vnet_route_all_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"vnet_application_traffic_enabled"},
+			Deprecated:    "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `vnet_application_traffic_enabled` property and will be removed in v5.0 of the AzureRM Provider",
+		}
 	}
 
 	return s
@@ -805,7 +807,9 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 		expanded.MinimumElasticInstanceCount = pointer.To(windowsSlotSiteConfig.ElasticInstanceMinimum)
 	}
 
-	expanded.VnetRouteAllEnabled = pointer.To(windowsSlotSiteConfig.VnetRouteAllEnabled)
+	if !features.FivePointOh() {
+		expanded.VnetRouteAllEnabled = pointer.To(windowsSlotSiteConfig.VnetRouteAllEnabled)
+	}
 
 	if metadata.ResourceData.HasChange("site_config.0.default_documents") {
 		expanded.DefaultDocuments = &windowsSlotSiteConfig.DefaultDocuments
@@ -932,7 +936,6 @@ func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *webapps.
 		ScmUseMainIpRestriction:       pointer.From(functionAppSlotSiteConfig.ScmIPSecurityRestrictionsUseMain),
 		RemoteDebugging:               pointer.From(functionAppSlotSiteConfig.RemoteDebuggingEnabled),
 		RemoteDebuggingVersion:        strings.ToUpper(pointer.From(functionAppSlotSiteConfig.RemoteDebuggingVersion)),
-		VnetRouteAllEnabled:           pointer.From(functionAppSlotSiteConfig.VnetRouteAllEnabled),
 		IpRestrictionDefaultAction:    string(pointer.From(functionAppSlotSiteConfig.IPSecurityRestrictionsDefaultAction)),
 		ScmIpRestrictionDefaultAction: string(pointer.From(functionAppSlotSiteConfig.ScmIPSecurityRestrictionsDefaultAction)),
 	}
@@ -1151,7 +1154,9 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 		expanded.MinimumElasticInstanceCount = pointer.To(linuxSlotSiteConfig.ElasticInstanceMinimum)
 	}
 
-	expanded.VnetRouteAllEnabled = pointer.To(linuxSlotSiteConfig.VnetRouteAllEnabled)
+	if !features.FivePointOh() {
+		expanded.VnetRouteAllEnabled = pointer.To(linuxSlotSiteConfig.VnetRouteAllEnabled)
+	}
 
 	if metadata.ResourceData.HasChange("site_config.0.container_registry_managed_identity_client_id") {
 		expanded.AcrUserManagedIdentityID = pointer.To(linuxSlotSiteConfig.ContainerRegistryMSI)
@@ -1284,7 +1289,6 @@ func FlattenSiteConfigLinuxFunctionAppSlot(functionAppSlotSiteConfig *webapps.Si
 		UseManagedIdentityACR:         pointer.From(functionAppSlotSiteConfig.AcrUseManagedIdentityCreds),
 		RemoteDebugging:               pointer.From(functionAppSlotSiteConfig.RemoteDebuggingEnabled),
 		RemoteDebuggingVersion:        strings.ToUpper(pointer.From(functionAppSlotSiteConfig.RemoteDebuggingVersion)),
-		VnetRouteAllEnabled:           pointer.From(functionAppSlotSiteConfig.VnetRouteAllEnabled),
 		IpRestrictionDefaultAction:    string(pointer.From(functionAppSlotSiteConfig.IPSecurityRestrictionsDefaultAction)),
 		ScmIpRestrictionDefaultAction: string(pointer.From(functionAppSlotSiteConfig.ScmIPSecurityRestrictionsDefaultAction)),
 	}
