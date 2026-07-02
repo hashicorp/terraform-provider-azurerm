@@ -54,7 +54,7 @@ The following arguments are supported:
 
 ---
 
-* `data_access_auth_mode` - (Optional) The authentication mode used when exporting or uploading to the Managed Disk. Possible values are `AzureActiveDirectory` and `None`. Defaults to `None`.
+* `data_access_auth_mode` - (Optional) The authentication mode used when exporting or uploading to the Managed Disk. The only possible value is `AzureActiveDirectory`.
 
 * `disk_access_id` - (Optional) The ID of the Disk Access resource used to control the export of the Managed Disk.
 

@@ -228,10 +228,11 @@ func (r VirtualMachineScaleSetManagedDiskResource) Arguments() map[string]*plugi
 		},
 
 		"data_access_auth_mode": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Default:      string(disks.DataAccessAuthModeNone),
-			ValidateFunc: validation.StringInSlice(disks.PossibleValuesForDataAccessAuthMode(), false),
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(disks.DataAccessAuthModeAzureActiveDirectory),
+			}, false),
 		},
 
 		"disk_access_id": {
@@ -586,7 +587,11 @@ func (r VirtualMachineScaleSetManagedDiskResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			props.DataAccessAuthMode = pointer.ToEnum[disks.DataAccessAuthMode](config.DataAccessAuthMode)
+			dataAccessAuthMode := disks.DataAccessAuthModeNone
+			if config.DataAccessAuthMode != "" {
+				dataAccessAuthMode = disks.DataAccessAuthMode(config.DataAccessAuthMode)
+			}
+			props.DataAccessAuthMode = pointer.To(dataAccessAuthMode)
 
 			props.NetworkAccessPolicy = pointer.ToEnum[disks.NetworkAccessPolicy](config.NetworkAccessPolicy)
 			if config.DiskAccessId != "" {
@@ -730,8 +735,7 @@ func (r VirtualMachineScaleSetManagedDiskResource) flatten(metadata sdk.Resource
 			state.OptimizedFrequentAttachEnabled = pointer.From(props.OptimizedForFrequentAttach)
 			state.OsType = string(pointer.From(props.OsType))
 			state.HyperVGeneration = string(pointer.From(props.HyperVGeneration))
-			state.DataAccessAuthMode = string(disks.DataAccessAuthModeNone)
-			if v := pointer.From(props.DataAccessAuthMode); v != "" {
+			if v := pointer.From(props.DataAccessAuthMode); v != "" && v != disks.DataAccessAuthModeNone {
 				state.DataAccessAuthMode = string(v)
 			}
 			state.NetworkAccessPolicy = string(pointer.From(props.NetworkAccessPolicy))
@@ -869,7 +873,11 @@ func (r VirtualMachineScaleSetManagedDiskResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("data_access_auth_mode") {
-				props.DataAccessAuthMode = pointer.ToEnum[disks.DataAccessAuthMode](config.DataAccessAuthMode)
+				dataAccessAuthMode := disks.DataAccessAuthModeNone
+				if config.DataAccessAuthMode != "" {
+					dataAccessAuthMode = disks.DataAccessAuthMode(config.DataAccessAuthMode)
+				}
+				props.DataAccessAuthMode = pointer.To(dataAccessAuthMode)
 			}
 
 			if metadata.ResourceData.HasChange("network_access_policy") {
