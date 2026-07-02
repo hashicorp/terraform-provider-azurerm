@@ -730,6 +730,36 @@ func (r ExampleResource) CustomizeDiff() sdk.ResourceFunc {
 }
 ```
 
+- When the return type of a `flatten...` function is a slice, it should return an empty slice instead of `nil` when the input is `nil` or empty. The `nil` check for the `input` parameter should be handled within the `flatten...` function. Avoid performing this check prior to calling the function.
+
+:white_check_mark: **DO**
+
+```go
+func flattenModules(input *[]databases.Module) []ModuleModel {
+	results := make([]ModuleModel, 0)
+	if input == nil {
+		return results
+	}
+
+	...
+}
+```
+
+- When the return type of a `flatten...` function is a slice, it should return an empty slice instead of `nil` when the input is `nil` or empty. The `nil` check for the `input` parameter should be handled within the `flatten...` function. Avoid performing this check prior to calling the function.
+
+:white_check_mark: **DO**
+
+```go
+func flattenModules(input *[]databases.Module) []ModuleModel {
+	results := make([]ModuleModel, 0)
+	if input == nil {
+		return results
+	}
+
+	...
+}
+```
+
 ### Step 5: Adding Resource Identity (Required)
 
 All new resources **must** add support for Resource Identity. Please reference the [Resource Identity](guide-resource-identity.md) guide for detailed instructions.
@@ -810,6 +840,8 @@ func (Registration) Resources() []sdk.Resource {
     }
 }
 ```
+
+-> **Note:** When adding a new resource to the list, please ensure that the resources are sorted alphabetically.
 
 At this point the Resource is registered, as when the Azure Provider builds up a list of supported Resources during initialization, it parses each of the Service Registrations to put together a definitive list of the Resources that we support.
 
@@ -976,6 +1008,10 @@ resource "azurerm_resource_group_example" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 ```
+
+Things worth noting here:
+
+- The `name` argument within each resource definition should be prefixed with `acctest-` (unless this is disallowed by the API naming restrictions), avoid overly complex naming, and ensure any naming restrictions are followed. e.g. `name = "acctest-server"`.
 
 There's a more detailed breakdown of how this works [in the Acceptance Testing reference](reference-acceptance-testing.md) - but to summarize what's going on here:
 
