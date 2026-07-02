@@ -9,18 +9,18 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-04-15/afdcustomdomains"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afddomains"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 )
 
 var _ pollers.PollerType = &frontDoorCustomDomainDeletePoller{}
 
 type frontDoorCustomDomainDeletePoller struct {
-	client *afdcustomdomains.AFDCustomDomainsClient
-	id     afdcustomdomains.CustomDomainId
+	client *afddomains.AFDDomainsClient
+	id     afddomains.CustomDomainId
 }
 
-func NewFrontDoorCustomDomainDeletePoller(client *afdcustomdomains.AFDCustomDomainsClient, id afdcustomdomains.CustomDomainId) pollers.PollerType {
+func NewFrontDoorCustomDomainDeletePoller(client *afddomains.AFDDomainsClient, id afddomains.CustomDomainId) pollers.PollerType {
 	return &frontDoorCustomDomainDeletePoller{
 		client: client,
 		id:     id,
@@ -28,7 +28,7 @@ func NewFrontDoorCustomDomainDeletePoller(client *afdcustomdomains.AFDCustomDoma
 }
 
 func (p frontDoorCustomDomainDeletePoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
-	resp, err := p.client.Get(ctx, p.id)
+	resp, err := p.client.AFDCustomDomainsGet(ctx, p.id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return &pollers.PollResult{

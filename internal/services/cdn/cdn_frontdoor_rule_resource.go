@@ -10,8 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rulesets"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-09-01/rules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rulesets"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -322,7 +322,12 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         schemaCdnFrontDoorOperatorEqualOnly(),
+									"operator": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										Default:      string(rules.RequestMethodOperatorEqual),
+										ValidateFunc: validation.StringInSlice(rules.PossibleValuesForRequestMethodOperator(), false),
+									},
 									"negate_condition": schemaCdnFrontDoorNegateCondition(),
 									"match_values":     schemaCdnFrontDoorRequestMethodMatchValues(),
 								},
@@ -418,7 +423,12 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         schemaCdnFrontDoorOperatorEqualOnly(),
+									"operator": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										Default:      string(rules.RequestSchemeMatchConditionParametersOperatorEqual),
+										ValidateFunc: validation.StringInSlice(rules.PossibleValuesForRequestSchemeMatchConditionParametersOperator(), false),
+									},
 									"negate_condition": schemaCdnFrontDoorNegateCondition(),
 									"match_values":     schemaCdnFrontDoorProtocolMatchValues(),
 								},
@@ -474,7 +484,12 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         schemaCdnFrontDoorOperatorEqualOnly(),
+									"operator": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										Default:      string(rules.HTTPVersionOperatorEqual),
+										ValidateFunc: validation.StringInSlice(rules.PossibleValuesForHTTPVersionOperator(), false),
+									},
 									"negate_condition": schemaCdnFrontDoorNegateCondition(),
 									"match_values":     schemaCdnFrontDoorHttpVersionMatchValues(),
 								},
@@ -508,7 +523,12 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         schemaCdnFrontDoorOperatorEqualOnly(),
+									"operator": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										Default:      string(rules.IsDeviceOperatorEqual),
+										ValidateFunc: validation.StringInSlice(rules.PossibleValuesForIsDeviceOperator(), false),
+									},
 									"negate_condition": schemaCdnFrontDoorNegateCondition(),
 									"match_values":     schemaCdnFrontDoorIsDeviceMatchValues(),
 								},
@@ -574,7 +594,12 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         schemaCdnFrontDoorOperatorEqualOnly(),
+									"operator": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										Default:      string(rules.SslProtocolOperatorEqual),
+										ValidateFunc: validation.StringInSlice(rules.PossibleValuesForSslProtocolOperator(), false),
+									},
 									"negate_condition": schemaCdnFrontDoorNegateCondition(),
 									"match_values":     schemaCdnFrontDoorSslProtocolMatchValues(),
 								},
