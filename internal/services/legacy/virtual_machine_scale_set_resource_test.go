@@ -922,8 +922,6 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-
-
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -992,8 +990,6 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
-
-
 
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
@@ -1116,8 +1112,6 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-
-
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -1187,8 +1181,6 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
-
-
 
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
@@ -1263,8 +1255,6 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-
-
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                   = "acctvmss-%[1]d"
   location               = azurerm_resource_group.test.location
@@ -1334,8 +1324,6 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
-
-
 
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                   = "acctvmss-%[1]d"
@@ -1409,8 +1397,6 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
-
-
 
 resource "azurerm_proximity_placement_group" "test" {
   name                = "accPPG-%[1]d"
@@ -1489,8 +1475,6 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
-
-
 
 resource "azurerm_proximity_placement_group" "test" {
   name                = "accPPG-%[1]d"
@@ -1573,8 +1557,6 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-
-
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -1648,8 +1630,6 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
-
-
 
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
@@ -1728,8 +1708,6 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-
-
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -1807,8 +1785,6 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
-
-
 
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
@@ -1891,8 +1867,6 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-
-
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -1970,8 +1944,6 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
-
-
 
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
@@ -2054,8 +2026,6 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-
-
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -2134,8 +2104,6 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
-
-
 
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
@@ -2219,8 +2187,6 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-
-
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -2298,8 +2264,6 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
-
-
 
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
@@ -2388,8 +2352,6 @@ resource "azurerm_application_security_group" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-
-
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -2465,8 +2427,6 @@ resource "azurerm_application_security_group" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-
-
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -2539,8 +2499,6 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-
-
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -2609,8 +2567,6 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
-
-
 
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
@@ -2684,8 +2640,6 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-
-
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -2754,8 +2708,6 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
-
-
 
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
@@ -2829,8 +2781,6 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-
-
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -2902,8 +2852,6 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
-
-
 
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
@@ -3064,8 +3012,6 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-
-
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -3140,8 +3086,6 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
-
-
 
 resource "azurerm_network_security_group" "test" {
   name                = "acceptanceTestSecurityGroup-%[1]d"
@@ -3223,8 +3167,6 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
-
-
 
 resource "azurerm_network_security_group" "test" {
   name                = "acceptanceTestSecurityGroup-%[1]d"
@@ -3310,8 +3252,6 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-
-
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -3388,8 +3328,6 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
-
-
 
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
@@ -3471,8 +3409,6 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-
-
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                   = "acctvmss-%[1]d"
   location               = azurerm_resource_group.test.location
@@ -3542,8 +3478,6 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
-
-
 
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                   = "acctvmss-%[1]d"
@@ -3617,8 +3551,6 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.1.0/24"]
 }
-
-
 
 resource "azurerm_public_ip" "test" {
   name                = "acctestpip-%[1]d"
@@ -3721,8 +3653,6 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.1.0/24"]
 }
-
-
 
 resource "azurerm_public_ip" "test" {
   name                = "acctestpip-%[1]d"
@@ -3829,8 +3759,6 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.1.0/24"]
 }
 
-
-
 resource "azurerm_public_ip" "test" {
   name                = "acctestpip-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -3936,8 +3864,6 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.1.0/24"]
 }
-
-
 
 resource "azurerm_public_ip" "test" {
   name                = "acctestpip-%[1]d"
@@ -4048,8 +3974,6 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.1.0/24"]
 }
 
-
-
 resource "azurerm_public_ip" "test" {
   name                = "acctestpip-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -4151,8 +4075,6 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.1.0/24"]
 }
-
-
 
 resource "azurerm_public_ip" "test" {
   name                = "acctestpip-%[1]d"
@@ -4561,8 +4483,6 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-
-
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -4741,8 +4661,6 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
-
-
 
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
@@ -4926,8 +4844,6 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-
-
 resource "azurerm_lb" "test" {
   name                = "acctestlb-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -5025,8 +4941,6 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
-
-
 
 resource "azurerm_lb" "test" {
   name                = "acctestlb-%[1]d"
@@ -5129,8 +5043,6 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-
-
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -5199,8 +5111,6 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
-
-
 
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
@@ -5274,8 +5184,6 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-
-
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -5346,8 +5254,6 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
-
-
 
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
@@ -5422,8 +5328,6 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
-
-
 
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
@@ -5505,8 +5409,6 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
-
-
 
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
@@ -5591,8 +5493,6 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
-
-
 
 resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
@@ -5682,8 +5582,6 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
-
-
 
 resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
@@ -5853,7 +5751,6 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 				}
 		SETTINGS
 
-
     protected_settings = <<SETTINGS
 				{
 					"storageAccountName": "${azurerm_storage_account.test.name}",
@@ -5888,8 +5785,6 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
-
-
 
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
@@ -5954,7 +5849,6 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 				"commandToExecute": "echo $HOSTNAME"
 			}
 	SETTINGS
-
 
     protected_settings = <<SETTINGS
 			{
@@ -6071,7 +5965,6 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 				}
 		SETTINGS
 
-
     protected_settings = <<SETTINGS
 				{
 					"storageAccountName": "${azurerm_storage_account.test.name}",
@@ -6106,8 +5999,6 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
-
-
 
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
@@ -6173,7 +6064,6 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 				"timestamp": 12345679955
 			}
 	SETTINGS
-
 
     protected_settings = <<SETTINGS
 			{
@@ -6280,7 +6170,6 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 					"commandToExecute": "echo $HOSTNAME"
 				}
 		SETTINGS
-
 
     protected_settings = <<SETTINGS
 				{
@@ -6392,7 +6281,6 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 				"commandToExecute": "echo $HOSTNAME"
 			}
 	SETTINGS
-
 
     protected_settings = <<SETTINGS
 			{
@@ -6508,7 +6396,6 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 				}
 		SETTINGS
 
-
     protected_settings = <<SETTINGS
 				{
 					"storageAccountName": "${azurerm_storage_account.test.name}",
@@ -6552,8 +6439,6 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
-
-
 
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
@@ -6610,7 +6495,6 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 				"commandToExecute": "echo $HOSTNAME"
 			}
 	SETTINGS
-
 
     protected_settings = <<SETTINGS
 			{
@@ -6827,8 +6711,6 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-
-
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -6896,8 +6778,6 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
-
-
 
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
@@ -7046,8 +6926,6 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-
-
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -7126,8 +7004,6 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
-
-
 
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
@@ -7485,8 +7361,6 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-
-
 resource "azurerm_user_assigned_identity" "test" {
   name                = "acctest%[3]s"
   resource_group_name = azurerm_resource_group.test.name
@@ -7566,8 +7440,6 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
-
-
 
 resource "azurerm_user_assigned_identity" "test" {
   name                = "acctest%[3]s"
