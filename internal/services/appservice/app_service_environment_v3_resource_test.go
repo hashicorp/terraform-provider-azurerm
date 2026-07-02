@@ -168,6 +168,42 @@ func TestAccAppServiceEnvironmentV3_dedicatedHosts(t *testing.T) {
 	})
 }
 
+func TestAccAppServiceEnvironmentV3_upgradePreference(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_environment_v3", "test")
+	r := AppServiceEnvironmentV3Resource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.upgradePreference(data, "None"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.upgradePreference(data, "Early"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.upgradePreference(data, "Late"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.upgradePreference(data, "Manual"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (AppServiceEnvironmentV3Resource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseAppServiceEnvironmentID(state.ID)
 	if err != nil {
@@ -360,6 +396,25 @@ resource "azurerm_app_service_environment_v3" "test" {
   dedicated_host_count = 2
 }
 `, template, data.RandomInteger)
+}
+
+func (r AppServiceEnvironmentV3Resource) upgradePreference(data acceptance.TestData, upgradePreference string) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_app_service_environment_v3" "test" {
+  name                         = "acctest-ase-%d"
+  resource_group_name          = azurerm_resource_group.test.name
+  subnet_id                    = azurerm_subnet.test.id
+  internal_load_balancing_mode = "Web, Publishing"
+  upgrade_preference           = "%s"
+  zone_redundant               = false
+
+  tags = {
+    "tag1" = "test2",
+  }
+}
+`, template, data.RandomInteger, upgradePreference)
 }
 
 func (r AppServiceEnvironmentV3Resource) template(data acceptance.TestData) string {
