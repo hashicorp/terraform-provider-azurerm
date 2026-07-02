@@ -424,6 +424,7 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_container_registry`
 
 * The `encryption` block is no longer Computed. It now defaults to empty, meaning encryption will be disabled.
+* The deprecated `regional_endpoint_enabled` property in the `georeplications` block has been removed in favour of the `global_endpoint_routing_enabled` property.
 
 ### `azurerm_cosmosdb_account`
 
