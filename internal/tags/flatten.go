@@ -6,10 +6,14 @@ package tags
 import (
 	"fmt"
 
+	rmtags "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func Flatten(tagMap map[string]*string) map[string]interface{} {
+	// scrub any provider-level ignored tag keys before they reach state
+	tagMap = rmtags.Ignore().ApplyMap(tagMap)
+
 	// If tagsMap is nil, len(tagsMap) will be 0.
 	output := make(map[string]interface{}, len(tagMap))
 

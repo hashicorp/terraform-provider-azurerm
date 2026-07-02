@@ -250,6 +250,26 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 					},
 				},
 			},
+			"ignore_tags": schema.ListNestedBlock{
+				Description: "Globally ignore tag changes for the specified keys and key prefixes across all resources and data sources.",
+				Validators: []validator.List{
+					listvalidator.SizeAtMost(1),
+				},
+				NestedObject: schema.NestedBlockObject{
+					Attributes: map[string]schema.Attribute{
+						"keys": schema.SetAttribute{
+							ElementType: types.StringType,
+							Optional:    true,
+							Description: "A set of tag keys, matched exactly (case-sensitive), to ignore across all resources and data sources.",
+						},
+						"key_prefixes": schema.SetAttribute{
+							ElementType: types.StringType,
+							Optional:    true,
+							Description: "A set of tag key prefixes, matched case-sensitively, to ignore across all resources and data sources.",
+						},
+					},
+				},
+			},
 			"features": schema.ListNestedBlock{
 				Validators: []validator.List{
 					listvalidator.SizeBetween(1, 1),

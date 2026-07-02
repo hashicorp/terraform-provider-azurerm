@@ -3,6 +3,10 @@
 
 package tags
 
+import (
+	rmtags "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+)
+
 func Expand(tagsMap map[string]interface{}) map[string]*string {
 	output := make(map[string]*string, len(tagsMap))
 
@@ -12,5 +16,6 @@ func Expand(tagsMap map[string]interface{}) map[string]*string {
 		output[i] = &value
 	}
 
-	return output
+	// exclude any provider-level ignored tag keys from the desired set
+	return rmtags.Ignore().ApplyMap(output)
 }
