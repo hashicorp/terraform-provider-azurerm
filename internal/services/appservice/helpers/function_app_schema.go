@@ -19,8 +19,9 @@ import (
 )
 
 const (
-	StorageStringFmt   = "DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s"
-	StorageStringFmtKV = "@Microsoft.KeyVault(SecretUri=%s)"
+	StorageStringFmt         = "DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s"
+	StorageStringFmtKV       = "@Microsoft.KeyVault(SecretUri=%s)"
+	DeploymentStorageConnStr = "DEPLOYMENT_STORAGE_CONNECTION_STRING"
 )
 
 type SiteConfigLinuxFunctionApp struct {
@@ -2094,8 +2095,14 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 	return expanded, nil
 }
 
-func ExpandSiteConfigFunctionFlexConsumptionApp(siteConfigFlexConsumption []SiteConfigFunctionAppFlexConsumption, existing *webapps.SiteConfig, metadata sdk.ResourceMetaData, storageUsesMSI bool, storageStringFlex string, storageConnStringForFCApp string) (*webapps.SiteConfig, error) {
-	if len(siteConfigFlexConsumption) == 0 {
+func ExpandSiteConfigFunctionFlexConsumptionApp(input []SiteConfigFunctionAppFlexConsumption,
+	existing *webapps.SiteConfig,
+	metadata sdk.ResourceMetaData,
+	storageUsesMSI bool,
+	backendStorageString string,
+	deploymentStorageStringValue string,
+) (*webapps.SiteConfig, error) {
+	if len(input) == 0 {
 		return nil, nil
 	}
 
@@ -2110,14 +2117,19 @@ func ExpandSiteConfigFunctionFlexConsumptionApp(siteConfigFlexConsumption []Site
 		appSettings = *existing.AppSettings
 	}
 
-	if storageStringFlex != "" {
-		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage", storageStringFlex, false)
-		if storageConnStringForFCApp != "" {
-			appSettings = updateOrAppendAppSettings(appSettings, storageConnStringForFCApp, storageStringFlex, false)
-		}
+	if storageUsesMSI {
+		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage__accountName", backendStorageString, false)
+	} else {
+		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage", backendStorageString, false)
 	}
 
-	FlexConsumptionSiteConfig := siteConfigFlexConsumption[0]
+	if deploymentStorageStringValue != "" {
+		appSettings = updateOrAppendAppSettings(appSettings, DeploymentStorageConnStr, deploymentStorageStringValue, false)
+	} else {
+		appSettings = updateOrAppendAppSettings(appSettings, DeploymentStorageConnStr, deploymentStorageStringValue, true)
+	}
+
+	FlexConsumptionSiteConfig := input[0]
 
 	v := strconv.FormatInt(FlexConsumptionSiteConfig.HealthCheckEvictionTime, 10)
 	if v == "0" || FlexConsumptionSiteConfig.HealthCheckPath == "" {
