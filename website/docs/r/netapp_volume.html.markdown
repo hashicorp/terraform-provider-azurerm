@@ -318,7 +318,15 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the NetApp Volume.
 
-* `mount_ip_addresses` - A list of IPv4 Addresses which should be used to mount the volume.
+* `mount_targets` - One or more `mount_targets` blocks as defined below.
+
+---
+
+A `mount_targets` block exports the following:
+
+* `ip_address` - The IP address of the mount target.
+
+* `smb_server_fqdn` - The SMB server's Fully Qualified Domain Name (FQDN).
 
 ## Timeouts
 
