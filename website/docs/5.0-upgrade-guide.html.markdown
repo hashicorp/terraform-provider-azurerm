@@ -559,6 +559,11 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
 
+### `azurerm_linux_virtual_machine_scale_set`
+
+* The deprecated `data_disk.ultra_ssd_disk_iops_read_write` property has been removed in favour of the `data_disk.disk_iops_read_write` property.
+* The deprecated `data_disk.ultra_ssd_disk_mbps_read_write` property has been removed in favour of the `data_disk.disk_mbps_read_write` property.
+
 ### `azurerm_linux_web_app`
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
@@ -767,6 +772,11 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_windows_virtual_machine`
 
 * The `enable_automatic_updates` property has been removed in favour of the `automatic_updates_enabled` property.
+
+### `azurerm_windows_virtual_machine_scale_set`
+
+* The deprecated `data_disk.ultra_ssd_disk_iops_read_write` property has been removed in favour of the `data_disk.disk_iops_read_write` property.
+* The deprecated `data_disk.ultra_ssd_disk_mbps_read_write` property has been removed in favour of the `data_disk.disk_mbps_read_write` property.
 
 ### `azurerm_windows_web_app`
 

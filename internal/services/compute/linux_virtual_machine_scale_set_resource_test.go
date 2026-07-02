@@ -95,7 +95,7 @@ resource "azurerm_subnet" "test" {
 `, r.templatePublicKey(), data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) templateWithLocation(data acceptance.TestData, location string) string {
+func (r LinuxVirtualMachineScaleSetResource) templateWithLocation(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -121,5 +121,5 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
-`, r.templatePublicKey(), data.RandomInteger, location, data.RandomInteger)
+`, r.templatePublicKey(), data.RandomInteger, "eastus2", data.RandomInteger)
 }
