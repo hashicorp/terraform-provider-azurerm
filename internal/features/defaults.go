@@ -90,5 +90,8 @@ func Default() UserFeatures {
 		DatabricksWorkspace: DatabricksWorkspaceFeatures{
 			ForceDelete: false,
 		},
+		ServiceBus: ServiceBusFeatures{
+			AutoDeleteSubscriptionDefaultRule: false,
+		},
 	}
 }
