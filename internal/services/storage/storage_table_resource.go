@@ -126,7 +126,6 @@ func resourceStorageTable() *pluginsdk.Resource {
 		r.Schema["storage_account_name"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			ValidateFunc: validate.StorageAccountName,
 			ExactlyOneOf: []string{"storage_account_id", "storage_account_name"},
 			Deprecated:   "the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider.",
@@ -135,7 +134,6 @@ func resourceStorageTable() *pluginsdk.Resource {
 		r.Schema["storage_account_id"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			ValidateFunc: commonids.ValidateStorageAccountID,
 			ExactlyOneOf: []string{"storage_account_id", "storage_account_name"},
 		}
