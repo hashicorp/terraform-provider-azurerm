@@ -8,7 +8,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-04-15/afdcustomdomains"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afddomains"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -22,8 +22,8 @@ func importCdnFrontDoorCustomDomainAssociation() pluginsdk.ImporterFunc {
 		}
 
 		client := meta.(*clients.Client).Cdn.AFDCustomDomainsClient
-		customDomainId := afdcustomdomains.NewCustomDomainID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.AssociationName)
-		resp, err := client.Get(ctx, customDomainId)
+		customDomainId := afddomains.NewCustomDomainID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.AssociationName)
+		resp, err := client.AFDCustomDomainsGet(ctx, customDomainId)
 		if err != nil {
 			if response.WasNotFound(resp.HttpResponse) {
 				return []*pluginsdk.ResourceData{}, fmt.Errorf("%s was not found", id)

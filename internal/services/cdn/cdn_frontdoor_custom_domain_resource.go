@@ -12,8 +12,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-04-15/afdcustomdomains"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afddomains"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles"
 	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -33,10 +33,10 @@ import (
 // temporary workaround. We keep an explicit allowlist of the accepted ECDHE
 // values here.
 var frontDoorCustomDomainCustomizedCipherSuitesForTls12 = []string{
-	string(afdcustomdomains.AfdCustomizedCipherSuiteForTls12ECDHERSAAESOneTwoEightGCMSHATwoFiveSix),
-	string(afdcustomdomains.AfdCustomizedCipherSuiteForTls12ECDHERSAAESTwoFiveSixGCMSHAThreeEightFour),
-	string(afdcustomdomains.AfdCustomizedCipherSuiteForTls12ECDHERSAAESOneTwoEightSHATwoFiveSix),
-	string(afdcustomdomains.AfdCustomizedCipherSuiteForTls12ECDHERSAAESTwoFiveSixSHAThreeEightFour),
+	string(afddomains.AfdCustomizedCipherSuiteForTls12ECDHERSAAESOneTwoEightGCMSHATwoFiveSix),
+	string(afddomains.AfdCustomizedCipherSuiteForTls12ECDHERSAAESTwoFiveSixGCMSHAThreeEightFour),
+	string(afddomains.AfdCustomizedCipherSuiteForTls12ECDHERSAAESOneTwoEightSHATwoFiveSix),
+	string(afddomains.AfdCustomizedCipherSuiteForTls12ECDHERSAAESTwoFiveSixSHAThreeEightFour),
 }
 
 func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
@@ -103,19 +103,19 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 						"certificate_type": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  string(afdcustomdomains.AfdCertificateTypeManagedCertificate),
+							Default:  string(afddomains.AfdCertificateTypeManagedCertificate),
 							ValidateFunc: validation.StringInSlice([]string{
-								string(afdcustomdomains.AfdCertificateTypeCustomerCertificate),
-								string(afdcustomdomains.AfdCertificateTypeManagedCertificate),
+								string(afddomains.AfdCertificateTypeCustomerCertificate),
+								string(afddomains.AfdCertificateTypeManagedCertificate),
 							}, false),
 						},
 
 						"minimum_version": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  string(afdcustomdomains.AfdMinimumTlsVersionTLSOneTwo),
+							Default:  string(afddomains.AfdMinimumTlsVersionTLSOneTwo),
 							ValidateFunc: validation.StringInSlice([]string{
-								string(afdcustomdomains.AfdMinimumTlsVersionTLSOneTwo),
+								string(afddomains.AfdMinimumTlsVersionTLSOneTwo),
 							}, false),
 						},
 
@@ -137,9 +137,9 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(afdcustomdomains.AfdCipherSuiteSetTypeCustomized),
-											string(afdcustomdomains.AfdCipherSuiteSetTypeTLSOneTwoTwoZeroTwoThree),
-											string(afdcustomdomains.AfdCipherSuiteSetTypeTLSOneTwoTwoZeroTwoTwo),
+											string(afddomains.AfdCipherSuiteSetTypeCustomized),
+											string(afddomains.AfdCipherSuiteSetTypeTLSOneTwoTwoZeroTwoThree),
+											string(afddomains.AfdCipherSuiteSetTypeTLSOneTwoTwoZeroTwoTwo),
 											// Explicitly exclude TLS10_2019 - TLS 1.0/1.1 support retired March 1, 2025
 										}, false),
 									},
@@ -178,7 +178,7 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 													Elem: &pluginsdk.Schema{
 														Type: pluginsdk.TypeString,
 														ValidateFunc: validation.StringInSlice(
-															afdcustomdomains.PossibleValuesForAfdCustomizedCipherSuiteForTls13(),
+															afddomains.PossibleValuesForAfdCustomizedCipherSuiteForTls13(),
 															false,
 														),
 													},
@@ -214,8 +214,8 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 			Computed:   true,
 			Deprecated: "`minimum_tls_version` has been deprecated in favour of `minimum_version` and will be removed in v5.0 of the AzureRM provider",
 			ValidateFunc: validation.StringInSlice([]string{
-				string(afdcustomdomains.AfdMinimumTlsVersionTLSOneTwo),
-				string(afdcustomdomains.AfdMinimumTlsVersionTLSOneZero),
+				string(afddomains.AfdMinimumTlsVersionTLSOneTwo),
+				string(afddomains.AfdMinimumTlsVersionTLSOneZero),
 			}, false),
 		}
 
@@ -226,7 +226,7 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 			// NOTE: O+C so both `minimum_tls_version` and `minimum_version` appear in state during v4.x for backward compatibility
 			Computed: true,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(afdcustomdomains.AfdMinimumTlsVersionTLSOneTwo),
+				string(afddomains.AfdMinimumTlsVersionTLSOneTwo),
 			}, false),
 		}
 	}
@@ -245,10 +245,10 @@ func resourceCdnFrontDoorCustomDomainCreate(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
-	id := afdcustomdomains.NewCustomDomainID(subscriptionId, profileId.ResourceGroupName, profileId.ProfileName, d.Get("name").(string))
+	id := afddomains.NewCustomDomainID(subscriptionId, profileId.ResourceGroupName, profileId.ProfileName, d.Get("name").(string))
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-		existing, err := client.Get(ctx, id)
+		existing, err := client.AFDCustomDomainsGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -263,8 +263,8 @@ func resourceCdnFrontDoorCustomDomainCreate(d *pluginsdk.ResourceData, meta inte
 	dnsZone := d.Get("dns_zone_id").(string)
 	tls := d.Get("tls").([]interface{})
 
-	props := afdcustomdomains.AFDDomain{
-		Properties: &afdcustomdomains.AFDDomainProperties{
+	props := afddomains.AFDDomain{
+		Properties: &afddomains.AFDDomainProperties{
 			HostName: d.Get("host_name").(string),
 		},
 	}
@@ -280,7 +280,7 @@ func resourceCdnFrontDoorCustomDomainCreate(d *pluginsdk.ResourceData, meta inte
 
 	props.Properties.TlsSettings = tlsSettings
 
-	if err := client.CreateCallbackThenPoll(ctx, id, props, sdk.SetIDCallback(meta, &id, d)); err != nil {
+	if err := client.AFDCustomDomainsCreateCallbackThenPoll(ctx, id, props, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -294,12 +294,12 @@ func resourceCdnFrontDoorCustomDomainRead(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := afdcustomdomains.ParseCustomDomainID(d.Id())
+	id, err := afddomains.ParseCustomDomainID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.AFDCustomDomainsGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
@@ -342,13 +342,13 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := afdcustomdomains.ParseCustomDomainID(d.Id())
+	id, err := afddomains.ParseCustomDomainID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	props := afdcustomdomains.AFDDomainUpdateParameters{
-		Properties: &afdcustomdomains.AFDDomainUpdatePropertiesParameters{},
+	props := afddomains.AFDDomainUpdateParameters{
+		Properties: &afddomains.AFDDomainUpdatePropertiesParameters{},
 	}
 
 	if d.HasChange("dns_zone_id") {
@@ -376,13 +376,8 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("waiting for %s to be approved: %+v", *id, err)
 	}
 
-	resp, err := client.Update(ctx, *id, props)
-	if err != nil {
+	if err := client.AFDCustomDomainsUpdateThenPoll(ctx, *id, props); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
-	}
-
-	if err := resp.Poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("waiting for update of %s: %+v", *id, err)
 	}
 
 	return resourceCdnFrontDoorCustomDomainRead(d, meta)
@@ -393,12 +388,12 @@ func resourceCdnFrontDoorCustomDomainDelete(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := afdcustomdomains.ParseCustomDomainID(d.Id())
+	id, err := afddomains.ParseCustomDomainID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	result, err := client.Delete(ctx, *id)
+	result, err := client.AFDCustomDomainsDelete(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(result.HttpResponse) {
 			return nil
@@ -416,7 +411,7 @@ func resourceCdnFrontDoorCustomDomainDelete(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func expandAfdDomainTlsParameters(d *pluginsdk.ResourceData, input []interface{}) (*afdcustomdomains.AFDDomainHTTPSParameters, error) {
+func expandAfdDomainTlsParameters(d *pluginsdk.ResourceData, input []interface{}) (*afddomains.AFDDomainHTTPSParameters, error) {
 	// NOTE: With the Frontdoor service, they do not treat an empty object like an empty object
 	// if it is not nil they assume it is fully defined and then end up throwing errors when they
 	// attempt to get a value from one of the fields.
@@ -455,7 +450,7 @@ func expandAfdDomainTlsParameters(d *pluginsdk.ResourceData, input []interface{}
 		case minimumTlsVersionConfigured:
 			minTlsVersion = v["minimum_tls_version"].(string)
 		default:
-			minTlsVersion = string(afdcustomdomains.AfdMinimumTlsVersionTLSOneTwo)
+			minTlsVersion = string(afddomains.AfdMinimumTlsVersionTLSOneTwo)
 		}
 	} else {
 		minTlsVersion = v["minimum_version"].(string)
@@ -463,13 +458,13 @@ func expandAfdDomainTlsParameters(d *pluginsdk.ResourceData, input []interface{}
 
 	cipherSuiteRaw := v["cipher_suite"].([]interface{})
 
-	tls := afdcustomdomains.AFDDomainHTTPSParameters{
-		CertificateType: afdcustomdomains.AfdCertificateType(certType),
+	tls := afddomains.AFDDomainHTTPSParameters{
+		CertificateType: afddomains.AfdCertificateType(certType),
 	}
 
-	if certType == string(afdcustomdomains.AfdCertificateTypeCustomerCertificate) && secretRaw == "" {
+	if certType == string(afddomains.AfdCertificateTypeCustomerCertificate) && secretRaw == "" {
 		return nil, errors.New("the `cdn_frontdoor_secret_id` field must be set if the `certificate_type` is `CustomerCertificate`")
-	} else if certType == string(afdcustomdomains.AfdCertificateTypeManagedCertificate) {
+	} else if certType == string(afddomains.AfdCertificateTypeManagedCertificate) {
 		// Ignore computed `cdn_frontdoor_secret_id` for managed certs unless the
 		// user explicitly configured it.
 		if secretRaw != "" && secretWasConfigured {
@@ -492,7 +487,7 @@ func expandAfdDomainTlsParameters(d *pluginsdk.ResourceData, input []interface{}
 	}
 
 	if minTlsVersion != "" {
-		tlsVer := afdcustomdomains.AfdMinimumTlsVersion(minTlsVersion)
+		tlsVer := afddomains.AfdMinimumTlsVersion(minTlsVersion)
 		tls.MinimumTlsVersion = &tlsVer
 	}
 
@@ -500,7 +495,7 @@ func expandAfdDomainTlsParameters(d *pluginsdk.ResourceData, input []interface{}
 		cipherSuite := cipherSuiteRaw[0].(map[string]interface{})
 
 		if cipherSuiteType := cipherSuite["type"].(string); cipherSuiteType != "" {
-			cipherType := afdcustomdomains.AfdCipherSuiteSetType(cipherSuiteType)
+			cipherType := afddomains.AfdCipherSuiteSetType(cipherSuiteType)
 			tls.CipherSuiteSetType = &cipherType
 		}
 
@@ -512,27 +507,27 @@ func expandAfdDomainTlsParameters(d *pluginsdk.ResourceData, input []interface{}
 	return &tls, nil
 }
 
-func expandAfdCustomizedCipherSuiteSet(input []interface{}) *afdcustomdomains.AFDDomainHTTPSCustomizedCipherSuiteSet {
+func expandAfdCustomizedCipherSuiteSet(input []interface{}) *afddomains.AFDDomainHTTPSCustomizedCipherSuiteSet {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
 	v := input[0].(map[string]interface{})
 
-	result := &afdcustomdomains.AFDDomainHTTPSCustomizedCipherSuiteSet{}
+	result := &afddomains.AFDDomainHTTPSCustomizedCipherSuiteSet{}
 
 	if tls12Raw := v["tls12"].(*pluginsdk.Set); tls12Raw.Len() > 0 {
-		tls12Suites := make([]afdcustomdomains.AfdCustomizedCipherSuiteForTls12, 0)
+		tls12Suites := make([]afddomains.AfdCustomizedCipherSuiteForTls12, 0)
 		for _, suite := range tls12Raw.List() {
-			tls12Suites = append(tls12Suites, afdcustomdomains.AfdCustomizedCipherSuiteForTls12(suite.(string)))
+			tls12Suites = append(tls12Suites, afddomains.AfdCustomizedCipherSuiteForTls12(suite.(string)))
 		}
 		result.CipherSuiteSetForTls12 = &tls12Suites
 	}
 
 	if tls13Raw := v["tls13"].(*pluginsdk.Set); tls13Raw.Len() > 0 {
-		tls13Suites := make([]afdcustomdomains.AfdCustomizedCipherSuiteForTls13, 0)
+		tls13Suites := make([]afddomains.AfdCustomizedCipherSuiteForTls13, 0)
 		for _, suite := range tls13Raw.List() {
-			tls13Suites = append(tls13Suites, afdcustomdomains.AfdCustomizedCipherSuiteForTls13(suite.(string)))
+			tls13Suites = append(tls13Suites, afddomains.AfdCustomizedCipherSuiteForTls13(suite.(string)))
 		}
 		result.CipherSuiteSetForTls13 = &tls13Suites
 	}
@@ -540,8 +535,8 @@ func expandAfdCustomizedCipherSuiteSet(input []interface{}) *afdcustomdomains.AF
 	return result
 }
 
-func expandAfdResourceReference(id string) *afdcustomdomains.ResourceReference {
-	return &afdcustomdomains.ResourceReference{
+func expandAfdResourceReference(id string) *afddomains.ResourceReference {
+	return &afddomains.ResourceReference{
 		Id: pointer.To(id),
 	}
 }
@@ -571,7 +566,7 @@ func resourceCdnFrontDoorCustomDomainCipherSuiteConfigured(d *pluginsdk.Resource
 	return !cipherBlock.IsNull()
 }
 
-func flattenAfdDomainHttpsParameters(input *afdcustomdomains.AFDDomainHTTPSParameters, includeDefaultCipherSuite bool) []interface{} {
+func flattenAfdDomainHttpsParameters(input *afddomains.AFDDomainHTTPSParameters, includeDefaultCipherSuite bool) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -591,7 +586,7 @@ func flattenAfdDomainHttpsParameters(input *afdcustomdomains.AFDDomainHTTPSParam
 	// Azure omits `minimumTlsVersion` when the value is `TLS12`, so we default the field to
 	// that setting to avoid spurious diffs when the user explicitly configured nothing.
 	if minTlsVersion == "" {
-		minTlsVersion = string(afdcustomdomains.AfdMinimumTlsVersionTLSOneTwo)
+		minTlsVersion = string(afddomains.AfdMinimumTlsVersionTLSOneTwo)
 	}
 
 	customCiphers := flattenAfdCustomizedCipherSuiteSet(input.CustomizedCipherSuiteSet)
@@ -611,7 +606,7 @@ func flattenAfdDomainHttpsParameters(input *afdcustomdomains.AFDDomainHTTPSParam
 		if includeDefaultCipherSuite {
 			includeCipherSuite = true
 		}
-	case string(afdcustomdomains.AfdCipherSuiteSetTypeTLSOneTwoTwoZeroTwoTwo):
+	case string(afddomains.AfdCipherSuiteSetTypeTLSOneTwoTwoZeroTwoTwo):
 		if includeDefaultCipherSuite {
 			includeCipherSuite = true
 		}
@@ -643,7 +638,7 @@ func flattenAfdDomainHttpsParameters(input *afdcustomdomains.AFDDomainHTTPSParam
 	return []interface{}{result}
 }
 
-func flattenAfdCustomizedCipherSuiteSet(input *afdcustomdomains.AFDDomainHTTPSCustomizedCipherSuiteSet) []interface{} {
+func flattenAfdCustomizedCipherSuiteSet(input *afddomains.AFDDomainHTTPSCustomizedCipherSuiteSet) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -674,7 +669,7 @@ func flattenAfdCustomizedCipherSuiteSet(input *afdcustomdomains.AFDDomainHTTPSCu
 	}
 }
 
-func flattenAfdDNSZoneResourceReference(input *afdcustomdomains.ResourceReference) string {
+func flattenAfdDNSZoneResourceReference(input *afddomains.ResourceReference) string {
 	if input == nil || input.Id == nil {
 		return ""
 	}
@@ -701,7 +696,7 @@ func frontDoorCustomDomainHostNameCustomizeDiff(_ context.Context, diff *plugins
 		return errors.New("unexpected value for `tls`: expected object")
 	}
 
-	certificateType := string(afdcustomdomains.AfdCertificateTypeManagedCertificate)
+	certificateType := string(afddomains.AfdCertificateTypeManagedCertificate)
 	if raw, exists := tls["certificate_type"]; exists && raw != nil {
 		v, ok := raw.(string)
 		if !ok {
@@ -712,7 +707,7 @@ func frontDoorCustomDomainHostNameCustomizeDiff(_ context.Context, diff *plugins
 		}
 	}
 
-	if certificateType != string(afdcustomdomains.AfdCertificateTypeManagedCertificate) {
+	if certificateType != string(afddomains.AfdCertificateTypeManagedCertificate) {
 		return nil
 	}
 
@@ -782,7 +777,7 @@ func frontDoorCustomDomainTlsCustomizeDiff(_ context.Context, diff *pluginsdk.Re
 
 	if !features.FivePointOh() {
 		if minimumTlsVersionConfigured {
-			if minTlsVersion := tls["minimum_tls_version"].(string); strings.EqualFold(minTlsVersion, string(afdcustomdomains.AfdMinimumTlsVersionTLSOneZero)) {
+			if minTlsVersion := tls["minimum_tls_version"].(string); strings.EqualFold(minTlsVersion, string(afddomains.AfdMinimumTlsVersionTLSOneZero)) {
 				return errors.New("support for TLS 1.0 and 1.1 was retired on March 1, 2025. Please use `minimum_version = \"TLS12\"` instead")
 			}
 		}
@@ -825,7 +820,7 @@ func frontDoorCustomDomainTlsCustomizeDiff(_ context.Context, diff *pluginsdk.Re
 		customCiphersRaw = v
 	}
 
-	if cipherSuiteType == string(afdcustomdomains.AfdCipherSuiteSetTypeCustomized) {
+	if cipherSuiteType == string(afddomains.AfdCipherSuiteSetTypeCustomized) {
 		if len(customCiphersRaw) == 0 {
 			return errors.New("`custom_ciphers` is required when `type` is `Customized`")
 		}
@@ -900,7 +895,7 @@ func frontDoorCustomDomainTlsCustomizeDiff(_ context.Context, diff *pluginsdk.Re
 			case minimumTlsVersionConfigured:
 				minimumVersion = tls["minimum_tls_version"].(string)
 			default:
-				minimumVersion = string(afdcustomdomains.AfdMinimumTlsVersionTLSOneTwo)
+				minimumVersion = string(afddomains.AfdMinimumTlsVersionTLSOneTwo)
 			}
 		} else {
 			if rawMin := tls["minimum_version"]; rawMin != nil {
@@ -912,11 +907,11 @@ func frontDoorCustomDomainTlsCustomizeDiff(_ context.Context, diff *pluginsdk.Re
 			}
 		}
 
-		if minimumVersion == string(afdcustomdomains.AfdMinimumTlsVersionTLSOneTwo) && setLen(tls12Suites) == 0 {
+		if minimumVersion == string(afddomains.AfdMinimumTlsVersionTLSOneTwo) && setLen(tls12Suites) == 0 {
 			return errors.New("at least one TLS 1.2 cipher suite must be specified in `custom_ciphers.tls12` when `minimum_version` is set to `TLS12`")
 		}
 
-		if minimumVersion == string(afdcustomdomains.AfdMinimumTlsVersionTLSOneThree) && tls13Configured && setLen(tls13Suites) == 0 {
+		if minimumVersion == string(afddomains.AfdMinimumTlsVersionTLSOneThree) && tls13Configured && setLen(tls13Suites) == 0 {
 			return errors.New("at least one TLS 1.3 cipher suite must be specified in `custom_ciphers.tls13` when `minimum_version` is set to `TLS13`")
 		}
 	} else if len(customCiphersRaw) > 0 && customCiphersRaw[0] != nil {
