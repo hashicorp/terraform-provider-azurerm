@@ -164,6 +164,8 @@ The following arguments are supported:
 
 * `azure_files_authentication` - (Optional) A `azure_files_authentication` block as defined below.
 
+* `smb_oauth_enabled` - (Optional) Whether managed identities can access SMB Azure file shares using OAuth. Defaults to `false`.
+
 * `routing` - (Optional) A `routing` block as defined below.
 
 * `queue_encryption_key_type` - (Optional) The encryption type of the queue service. Possible values are `Service` and `Account`. Changing this forces a new resource to be created. Default value is `Service`.
