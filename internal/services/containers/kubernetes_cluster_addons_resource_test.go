@@ -135,6 +135,8 @@ func TestAccKubernetesCluster_addonProfileOMSToggle(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_addonProfileRoutingToggle(t *testing.T) {
+	t.Skip("HTTP Application Routing can no longer be enabled on new AKS clusters")
+
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
