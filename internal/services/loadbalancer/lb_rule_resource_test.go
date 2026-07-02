@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -221,7 +221,7 @@ func TestAccAzureRMLoadBalancerRule_gatewayLBRuleMultiple(t *testing.T) {
 }
 
 func (r LoadBalancerRule) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := loadbalancers.ParseLoadBalancingRuleID(state.ID)
+	id, err := loadbalancers.ParseLoadBalancerLoadBalancingRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
