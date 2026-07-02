@@ -60,20 +60,20 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_storage_blob":                         resourceStorageBlob(),
 		"azurerm_storage_blob_inventory_policy":        resourceStorageBlobInventoryPolicy(),
 		"azurerm_storage_container":                    resourceStorageContainer(),
-		"azurerm_storage_encryption_scope":             resourceStorageEncryptionScope(),
 		"azurerm_storage_data_lake_gen2_filesystem":    resourceStorageDataLakeGen2FileSystem(),
 		"azurerm_storage_data_lake_gen2_path":          resourceStorageDataLakeGen2Path(),
+		"azurerm_storage_encryption_scope":             resourceStorageEncryptionScope(),
 		"azurerm_storage_management_policy":            resourceStorageManagementPolicy(),
 		"azurerm_storage_object_replication":           resourceStorageObjectReplication(),
 		"azurerm_storage_queue":                        resourceStorageQueue(),
 		"azurerm_storage_share":                        resourceStorageShare(),
-		"azurerm_storage_share_file":                   resourceStorageShareFile(),
 		"azurerm_storage_share_directory":              resourceStorageShareDirectory(),
-		"azurerm_storage_table":                        resourceStorageTable(),
-		"azurerm_storage_table_entity":                 resourceStorageTableEntity(),
+		"azurerm_storage_share_file":                   resourceStorageShareFile(),
 		"azurerm_storage_sync":                         resourceStorageSync(),
 		"azurerm_storage_sync_cloud_endpoint":          resourceStorageSyncCloudEndpoint(),
 		"azurerm_storage_sync_group":                   resourceStorageSyncGroup(),
+		"azurerm_storage_table":                        resourceStorageTable(),
+		"azurerm_storage_table_entity":                 resourceStorageTableEntity(),
 	}
 }
 
@@ -91,6 +91,7 @@ func (r Registration) Resources() []sdk.Resource {
 		AccountStaticWebsiteResource{},
 		LocalUserResource{},
 		StorageContainerImmutabilityPolicyResource{},
+		StorageDiscoveryWorkspaceResource{},
 		SyncServerEndpointResource{},
 	}
 }
