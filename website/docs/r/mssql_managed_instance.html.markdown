@@ -259,6 +259,10 @@ The following arguments are supported:
 
 ~> **Note:** Azure Services will require TLS 1.2+ by August 2025, please see this [announcement](https://azure.microsoft.com/en-us/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more.
 
+* `pricing_model` - (Optional) Specifies the pricing model for the SQL Managed Instance. Possible values are `Freemium` and `Regular`. Defaults to `Regular`.
+
+~> **Note:** When `pricing_model` is set to `Freemium`, `sku_name` must be `GP_Gen5`, `vcores` must be `4` or `8`, `storage_size_in_gb` must be `64`, `storage_account_type` must be `LRS`, and `zone_redundant_enabled` must be `false`. Azure allows only one free SQL Managed Instance per subscription. Changing `pricing_model` from `Freemium` to `Regular` upgrades the instance to a paid offer, and the free offer can't be reapplied to the same instance.
+
 * `proxy_override` - (Optional) Specifies how the SQL Managed Instance will be accessed. Defaults to `Default`. Possible values are `Default`, `Proxy`, and `Redirect`.
 
 * `public_data_endpoint_enabled` - (Optional) Is the public data endpoint enabled? Defaults to `false`.

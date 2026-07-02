@@ -51,6 +51,7 @@ type MsSqlManagedInstanceModel struct {
 	MaintenanceConfigurationName      string                              `tfschema:"maintenance_configuration_name"`
 	MinimumTlsVersion                 string                              `tfschema:"minimum_tls_version"`
 	Name                              string                              `tfschema:"name"`
+	PricingModel                      string                              `tfschema:"pricing_model"`
 	ProxyOverride                     string                              `tfschema:"proxy_override"`
 	PublicDataEndpointEnabled         bool                                `tfschema:"public_data_endpoint_enabled"`
 	ResourceGroupName                 string                              `tfschema:"resource_group_name"`
@@ -286,6 +287,13 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 
+		"pricing_model": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			Default:      string(managedinstances.FreemiumTypeRegular),
+			ValidateFunc: validation.StringInSlice(managedinstances.PossibleValuesForFreemiumType(), false),
+		},
+
 		"proxy_override": {
 			Type:     schema.TypeString,
 			Optional: true,
@@ -447,6 +455,38 @@ func (r MsSqlManagedInstanceResource) CustomizeDiff() sdk.ResourceFunc {
 				return errors.New("`zone_redundant_enabled` cannot be set to `true` when `general_purpose_v2_enabled` is `true`")
 			}
 
+			oldPricingModel, newPricingModel := rd.GetChange("pricing_model")
+			if oldPricingModel.(string) == string(managedinstances.FreemiumTypeRegular) && newPricingModel.(string) == string(managedinstances.FreemiumTypeFreemium) {
+				if err := rd.ForceNew("pricing_model"); err != nil {
+					return err
+				}
+			}
+
+			if newPricingModel.(string) == string(managedinstances.FreemiumTypeFreemium) {
+				if sku := rd.Get("sku_name").(string); sku != "GP_Gen5" {
+					return fmt.Errorf("`pricing_model` can only be set to `Freemium` when `sku_name` is `GP_Gen5`, got `%s`", sku)
+				}
+
+				vcores := rd.Get("vcores").(int)
+				if vcores != 4 && vcores != 8 {
+					return fmt.Errorf("`pricing_model` can only be set to `Freemium` when `vcores` is `4` or `8`, got `%d`", vcores)
+				}
+
+				storageSizeInGb := rd.Get("storage_size_in_gb").(int)
+				if storageSizeInGb != 64 {
+					return fmt.Errorf("`pricing_model` can only be set to `Freemium` when `storage_size_in_gb` is `64`, got `%d`", storageSizeInGb)
+				}
+
+				storageAccountType := rd.Get("storage_account_type").(string)
+				if storageAccountType != StorageAccountTypeLRS {
+					return fmt.Errorf("`pricing_model` can only be set to `Freemium` when `storage_account_type` is `LRS`, got `%s`", storageAccountType)
+				}
+
+				if rd.Get("zone_redundant_enabled").(bool) {
+					return fmt.Errorf("`pricing_model` can only be set to `Freemium` when `zone_redundant_enabled` is `false`")
+				}
+			}
+
 			return nil
 		},
 	}
@@ -540,6 +580,10 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			if model.PricingModel != "" {
+				parameters.Properties.PricingModel = pointer.ToEnum[managedinstances.FreemiumType](model.PricingModel)
+			}
+
 			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -600,6 +644,10 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("license_type") {
 				props.LicenseType = pointer.ToEnum[managedinstances.ManagedInstanceLicenseType](state.LicenseType)
+			}
+
+			if metadata.ResourceData.HasChange("pricing_model") {
+				props.PricingModel = pointer.ToEnum[managedinstances.FreemiumType](state.PricingModel)
 			}
 
 			if metadata.ResourceData.HasChange("storage_size_in_gb") {
@@ -805,6 +853,7 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 
 				if props := existing.Model.Properties; props != nil {
 					model.LicenseType = string(pointer.From(props.LicenseType))
+					model.PricingModel = string(pointer.From(props.PricingModel))
 					model.ProxyOverride = string(pointer.From(props.ProxyOverride))
 					model.StorageAccountType = backupStorageRedundancyToStorageAccType(pointer.From(props.RequestedBackupStorageRedundancy))
 
