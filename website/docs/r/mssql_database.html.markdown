@@ -168,6 +168,8 @@ The following arguments are supported:
 
 * `auto_pause_delay_in_minutes` - (Optional) Time in minutes after which database is automatically paused. A value of `-1` means that automatic pause is disabled. This property is only settable for Serverless databases.
 
+~> **Note:** When `free_limit_enabled` is `true`, `auto_pause_delay_in_minutes` must be set to a value other than `0`.
+
 * `create_mode` - (Optional) The create mode of the database. Possible values are `Copy`, `Default`, `OnlineSecondary`, `PointInTimeRestore`, `Recovery`, `Restore`, `RestoreExternalBackup`, `RestoreExternalBackupSecondary`, `RestoreLongTermRetentionBackup` and `Secondary`. Mutually exclusive with `import`. Changing this forces a new resource to be created. Defaults to `Default`.
 
 * `import` - (Optional) A `import` block as documented below. Mutually exclusive with `create_mode`.
@@ -208,6 +210,8 @@ The following arguments are supported:
 
 * `min_capacity` - (Optional) Minimal capacity that database will always have allocated, if not paused. This property is only settable for Serverless databases.
 
+~> **Note:** When `free_limit_enabled` is `true`, `min_capacity` must be set to `0.5`.
+
 * `restore_point_in_time` - (Optional) Specifies the point in time (ISO8601 format) of the source database that will be restored to create the new database. This property is only settable for `create_mode`= `PointInTimeRestore` databases.
 
 * `recover_database_id` - (Optional) The ID of the database to be recovered. This property is only applicable when the `create_mode` is `Recovery`.
@@ -232,7 +236,21 @@ The following arguments are supported:
 
 -> **Note:** The default `sku_name` value may differ between Azure locations depending on local availability of Gen4/Gen5 capacity. When databases are replicated using the `creation_source_database_id` property, the source (primary) database cannot have a higher SKU service tier than any secondary databases. When changing the `sku_name` of a database having one or more secondary databases, this resource will first update any secondary databases as necessary. In such cases it's recommended to use the same `sku_name` in your configuration for all related databases, as not doing so may cause an unresolvable diff during subsequent plans.
 
+* `free_limit_enabled` - (Optional) Whether the Azure SQL Database free offer is enabled for this database. Defaults to `false`.
+
+~> **Note:** `free_limit_enabled` can only be set to `true` when `sku_name` is a serverless General Purpose SKU (for example `GP_S_Gen5_2`).
+
+-> **Note:** When enabled, the database receives a monthly free allocation of vCore-seconds and storage. Once the allocation is exhausted, the behavior is controlled by `free_limit_exhaustion_behavior`.
+
+* `free_limit_exhaustion_behavior` - (Optional) Specifies the behavior of the database when the monthly free offer allocation is exhausted. Possible values are `AutoPause` and `BillOverUsage`. Defaults to `AutoPause` when `free_limit_enabled` is set to `true`.
+
+~> **Note:** `free_limit_exhaustion_behavior` can only be configured when `free_limit_enabled` is set to `true`.
+
+~> **Note:** Once set to `BillOverUsage`, the Azure SQL free offer does not allow reverting to `AutoPause`. See the [Azure SQL free offer limitations](https://learn.microsoft.com/azure/azure-sql/database/free-offer?view=azuresql#offer-limitations) for more information.
+
 * `storage_account_type` - (Optional) Specifies the storage account type used to store backups for this database. Possible values are `Geo`, `GeoZone`, `Local` and `Zone`. Defaults to `Geo`.
+
+~> **Note:** When `free_limit_enabled` is `true`, `storage_account_type` must be `Local` if `free_limit_exhaustion_behavior` is `AutoPause` or omitted.
 
 * `threat_detection_policy` - (Optional) Threat detection policy configuration. The `threat_detection_policy` block supports fields documented below.
 
@@ -340,4 +358,4 @@ terraform import azurerm_mssql_database.example /subscriptions/00000000-0000-000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Sql` - 2023-08-01-preview
+* `Microsoft.Sql` - 2025-01-01
