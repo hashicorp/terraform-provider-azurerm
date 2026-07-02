@@ -32,6 +32,15 @@ func To[T any](input T) *T {
 	return &input
 }
 
+// ToOrNil is similar to To, but will return nil on zero value.
+func ToOrNil[T comparable](input T) *T {
+	var zero T
+	if zero == input {
+		return nil
+	}
+	return &input
+}
+
 // ToEnum is a helper function to cast strings as an Enum type where API objects expect a pointer to the Enum value
 // example code simplification:
 // APIModel.SomeValue = pointer.To(someservice.SomeEnumType(model.SomeVariable))
