@@ -753,13 +753,11 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 		storageMb = int(*storage.StorageSizeGB) * 1024
 	}
 
-	if d.Get("storage_type").(string) != string(servers.StorageTypePremiumVTwoLRS) {
-		if storage.Tier == nil || *storage.Tier == "" {
-			storageTierMappings := validate.InitializeFlexibleServerStorageTierDefaults()
-			storageTiers := storageTierMappings[storageMb]
-			storage.Tier = pointer.To(storageTiers.DefaultTier)
-			log.Printf("[DEBUG]: Default 'storage_tier' Set -> %q\n", storageTiers.DefaultTier)
-		}
+	if pointer.From(storage.Type) != servers.StorageTypePremiumVTwoLRS && pointer.From(storage.Tier) == "" {
+		storageTierMappings := validate.InitializeFlexibleServerStorageTierDefaults()
+		storageTiers := storageTierMappings[storageMb]
+		storage.Tier = pointer.To(storageTiers.DefaultTier)
+		log.Printf("[DEBUG]: Default 'storage_tier' Set -> %q\n", storageTiers.DefaultTier)
 	}
 
 	parameters := servers.Server{
@@ -1294,24 +1292,19 @@ func expandArmServerStorage(d *pluginsdk.ResourceData) *servers.Storage {
 		storage.StorageSizeGB = pointer.To(int64(v.(int) / 1024))
 	}
 
-	if v, ok := d.GetOk("storage_type"); ok {
-		storageType := servers.StorageType(v.(string))
-		storage.Type = pointer.To(storageType)
+	storageType := servers.StorageType(d.Get("storage_type").(string))
+	storage.Type = pointer.To(storageType)
 
-		if storageType != servers.StorageTypePremiumVTwoLRS {
-			if tier, tierOk := d.GetOk("storage_tier"); tierOk {
-				storage.Tier = pointer.ToEnum[servers.AzureManagedDiskPerformanceTier](tier.(string))
-			}
-		} else {
-			if iops, iopsOk := d.GetOk("storage_iops"); iopsOk {
-				storage.Iops = pointer.To(int64(iops.(int)))
-			}
-			if throughput, throughputOk := d.GetOk("storage_throughput"); throughputOk {
-				storage.Throughput = pointer.To(int64(throughput.(int)))
-			}
-		}
-	} else if v, ok := d.GetOk("storage_tier"); ok {
-		storage.Tier = pointer.To(servers.AzureManagedDiskPerformanceTier(v.(string)))
+	if tier := d.Get("storage_tier").(string); tier != "" {
+		storage.Tier = pointer.ToEnum[servers.AzureManagedDiskPerformanceTier](tier)
+	}
+
+	if iops := d.Get("storage_iops").(int); iops>0 {
+		storage.Iops = pointer.To(int64(iops))
+	}
+
+	if throughput := d.Get("storage_throughput").(int); throughput>0 {
+		storage.Throughput = pointer.To(int64(throughput))
 	}
 
 	return &storage
