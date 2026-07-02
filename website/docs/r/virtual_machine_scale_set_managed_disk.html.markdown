@@ -48,9 +48,9 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Managed Disk should exist. Changing this forces a new resource to be created.
 
-* `storage_account_type` - (Required) The type of storage to use for the Managed Disk. Possible values are `Standard_LRS`, `StandardSSD_LRS`, `StandardSSD_ZRS`, `Premium_LRS`, `Premium_ZRS`, `PremiumV2_LRS`, and `UltraSSD_LRS`.
-
 * `creation` - (Required) A `creation` block as defined below. Changing this forces a new resource to be created.
+
+* `storage_account_type` - (Required) The type of storage to use for the Managed Disk. Possible values are `Standard_LRS`, `StandardSSD_LRS`, `StandardSSD_ZRS`, `Premium_LRS`, `Premium_ZRS`, `PremiumV2_LRS`, and `UltraSSD_LRS`.
 
 ---
 

@@ -5,6 +5,7 @@ package compute
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -135,16 +136,6 @@ func (r VirtualMachineScaleSetManagedDiskResource) Arguments() map[string]*plugi
 
 		"location": commonschema.Location(),
 
-		"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
-
-		"zone": commonschema.ZoneSingleOptionalForceNew(),
-
-		"storage_account_type": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validation.StringInSlice(disks.PossibleValuesForDiskStorageAccountTypes(), false),
-		},
-
 		"creation": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
@@ -168,15 +159,17 @@ func (r VirtualMachineScaleSetManagedDiskResource) Arguments() map[string]*plugi
 					},
 
 					"source_resource_id": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"source_uri": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"storage_account_id": {
@@ -198,6 +191,7 @@ func (r VirtualMachineScaleSetManagedDiskResource) Arguments() map[string]*plugi
 						Type:          pluginsdk.TypeString,
 						Optional:      true,
 						ForceNew:      true,
+						ValidateFunc:  validation.StringIsNotEmpty,
 						ConflictsWith: []string{"creation.0.gallery_image_reference_id"},
 					},
 
@@ -209,9 +203,10 @@ func (r VirtualMachineScaleSetManagedDiskResource) Arguments() map[string]*plugi
 					},
 
 					"logical_sector_size": {
-						Type:         pluginsdk.TypeInt,
-						Optional:     true,
-						ForceNew:     true,
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+						ForceNew: true,
+						// NOTE: O+C Azure computes the logical sector size based on the storage account type when this is omitted
 						Computed:     true,
 						ValidateFunc: validation.IntInSlice([]int{512, 4096}),
 					},
@@ -226,38 +221,47 @@ func (r VirtualMachineScaleSetManagedDiskResource) Arguments() map[string]*plugi
 			},
 		},
 
-		"disk_size_gb": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
-			// NOTE: O+C when the disk is created from a source (`Copy`, `Restore`, `FromImage` or `Import`) the size is inherited from that source, so Azure computes this when it is omitted
-			Computed:     true,
-			ValidateFunc: validate.ManagedDiskSizeGB,
+		"storage_account_type": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(disks.PossibleValuesForDiskStorageAccountTypes(), false),
 		},
 
-		"tier": {
+		"data_access_auth_mode": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(disks.DataAccessAuthModeNone),
+			ValidateFunc: validation.StringInSlice(disks.PossibleValuesForDataAccessAuthMode(), false),
+		},
+
+		"disk_access_id": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			// NOTE: O+C Azure assigns a performance tier based on the disk size when this is omitted
-			Computed: true,
+			// TODO: make this case-sensitive once this bug in the Azure API has been fixed:
+			//       https://github.com/Azure/azure-rest-api-specs/issues/14192
+			DiffSuppressFunc: suppress.CaseDifference,
+			ValidateFunc:     diskaccesses.ValidateDiskAccessID,
 		},
 
-		"disk_iops_read_write": {
-			Type:     pluginsdk.TypeInt,
+		"disk_encryption_set_id": {
+			Type:     pluginsdk.TypeString,
 			Optional: true,
-			// NOTE: O+C Azure assigns a default based on the disk size and SKU when this is omitted
-			Computed:     true,
-			ValidateFunc: validation.IntAtLeast(1),
-		},
-
-		"disk_mbps_read_write": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
-			// NOTE: O+C Azure assigns a default based on the disk size and SKU when this is omitted
-			Computed:     true,
-			ValidateFunc: validation.IntAtLeast(1),
+			// TODO: make this case-sensitive once this bug in the Azure API has been fixed:
+			//       https://github.com/Azure/azure-rest-api-specs/issues/8132
+			DiffSuppressFunc: suppress.CaseDifference,
+			ValidateFunc:     validate.DiskEncryptionSetID,
+			ConflictsWith:    []string{"secure_vm_disk_encryption_set_id"},
 		},
 
 		"disk_iops_read_only": {
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			// NOTE: O+C Azure assigns a default based on the disk size and SKU when this is omitted
+			Computed:     true,
+			ValidateFunc: validation.IntAtLeast(1),
+		},
+
+		"disk_iops_read_write": {
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
 			// NOTE: O+C Azure assigns a default based on the disk size and SKU when this is omitted
@@ -273,10 +277,44 @@ func (r VirtualMachineScaleSetManagedDiskResource) Arguments() map[string]*plugi
 			ValidateFunc: validation.IntAtLeast(1),
 		},
 
+		"disk_mbps_read_write": {
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			// NOTE: O+C Azure assigns a default based on the disk size and SKU when this is omitted
+			Computed:     true,
+			ValidateFunc: validation.IntAtLeast(1),
+		},
+
+		"disk_size_gb": {
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			// NOTE: O+C when the disk is created from a source (`Copy`, `Restore`, `FromImage` or `Import`) the size is inherited from that source, so Azure computes this when it is omitted
+			Computed:     true,
+			ValidateFunc: validate.ManagedDiskSizeGB,
+		},
+
+		"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
+
+		"encryption_settings": encryptionSettingsSchema(),
+
+		"hyper_v_generation": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(disks.PossibleValuesForHyperVGeneration(), false),
+		},
+
 		"max_shares": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ValidateFunc: validation.IntBetween(2, 10),
+		},
+
+		"network_access_policy": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(disks.NetworkAccessPolicyAllowAll),
+			ValidateFunc: validation.StringInSlice(disks.PossibleValuesForNetworkAccessPolicy(), false),
 		},
 
 		"on_demand_bursting_enabled": {
@@ -292,28 +330,23 @@ func (r VirtualMachineScaleSetManagedDiskResource) Arguments() map[string]*plugi
 		},
 
 		"os_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(disks.OperatingSystemTypesWindows),
-				string(disks.OperatingSystemTypesLinux),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(disks.PossibleValuesForOperatingSystemTypes(), false),
 		},
 
-		"hyper_v_generation": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(disks.HyperVGenerationVOne),
-				string(disks.HyperVGenerationVTwo),
-			}, false),
-		},
-
-		"trusted_launch_enabled": {
+		"public_network_access_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			ForceNew: true,
+			Default:  true,
+		},
+
+		"secure_vm_disk_encryption_set_id": {
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ForceNew:      true,
+			ValidateFunc:  validate.DiskEncryptionSetID,
+			ConflictsWith: []string{"disk_encryption_set_id"},
 		},
 
 		"security_type": {
@@ -327,58 +360,21 @@ func (r VirtualMachineScaleSetManagedDiskResource) Arguments() map[string]*plugi
 			}, false),
 		},
 
-		"secure_vm_disk_encryption_set_id": {
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			ForceNew:      true,
-			ValidateFunc:  validate.DiskEncryptionSetID,
-			ConflictsWith: []string{"disk_encryption_set_id"},
-		},
-
-		"disk_encryption_set_id": {
+		"tier": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			// TODO: make this case-sensitive once this bug in the Azure API has been fixed:
-			//       https://github.com/Azure/azure-rest-api-specs/issues/8132
-			DiffSuppressFunc: suppress.CaseDifference,
-			ValidateFunc:     validate.DiskEncryptionSetID,
-			ConflictsWith:    []string{"secure_vm_disk_encryption_set_id"},
+			// NOTE: O+C Azure assigns a performance tier based on the disk size when this is omitted
+			Computed:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"encryption_settings": encryptionSettingsSchema(),
-
-		"data_access_auth_mode": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Default:      string(disks.DataAccessAuthModeNone),
-			ValidateFunc: validation.StringInSlice(disks.PossibleValuesForDataAccessAuthMode(), false),
-		},
-
-		"network_access_policy": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(disks.NetworkAccessPolicyAllowAll),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(disks.NetworkAccessPolicyAllowAll),
-				string(disks.NetworkAccessPolicyAllowPrivate),
-				string(disks.NetworkAccessPolicyDenyAll),
-			}, false),
-		},
-
-		"disk_access_id": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			// TODO: make this case-sensitive once this bug in the Azure API has been fixed:
-			//       https://github.com/Azure/azure-rest-api-specs/issues/14192
-			DiffSuppressFunc: suppress.CaseDifference,
-			ValidateFunc:     diskaccesses.ValidateDiskAccessID,
-		},
-
-		"public_network_access_enabled": {
+		"trusted_launch_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  true,
+			ForceNew: true,
 		},
+
+		"zone": commonschema.ZoneSingleOptionalForceNew(),
 
 		"tags": commonschema.Tags(),
 	}
@@ -428,33 +424,33 @@ func (r VirtualMachineScaleSetManagedDiskResource) CustomizeDiff() sdk.ResourceF
 					}
 				}
 				if isConfigured("disk_iops_read_write") || isConfigured("disk_mbps_read_write") || isConfigured("disk_iops_read_only") || isConfigured("disk_mbps_read_only") || logicalSectorSizeConfigured {
-					return fmt.Errorf("`disk_iops_read_write`, `disk_mbps_read_write`, `disk_iops_read_only`, `disk_mbps_read_only` and `creation.0.logical_sector_size` are only available for `UltraSSD_LRS` and `PremiumV2_LRS` disks")
+					return errors.New("`disk_iops_read_write`, `disk_mbps_read_write`, `disk_iops_read_only`, `disk_mbps_read_only` and `creation.0.logical_sector_size` are only available for `UltraSSD_LRS` and `PremiumV2_LRS` disks")
 				}
 			}
 
 			if (isConfigured("disk_iops_read_only") || isConfigured("disk_mbps_read_only")) && !isConfigured("max_shares") {
-				return fmt.Errorf("`disk_iops_read_only` and `disk_mbps_read_only` are only available for `UltraSSD_LRS` and `PremiumV2_LRS` disks with shared disk enabled (`max_shares` set)")
+				return errors.New("`disk_iops_read_only` and `disk_mbps_read_only` are only available for `UltraSSD_LRS` and `PremiumV2_LRS` disks with shared disk enabled (`max_shares` set)")
 			}
 
 			if isConfigured("tier") && !isPremium {
-				return fmt.Errorf("`tier` can only be specified when `storage_account_type` is set to `Premium_LRS` or `Premium_ZRS`")
+				return errors.New("`tier` can only be specified when `storage_account_type` is set to `Premium_LRS` or `Premium_ZRS`")
 			}
 
 			if rd.Get("on_demand_bursting_enabled").(bool) {
 				if !isPremium {
-					return fmt.Errorf("`on_demand_bursting_enabled` can only be set to `true` when `storage_account_type` is set to `Premium_LRS` or `Premium_ZRS`")
+					return errors.New("`on_demand_bursting_enabled` can only be set to `true` when `storage_account_type` is set to `Premium_LRS` or `Premium_ZRS`")
 				}
 				if diskSizeGb := rd.Get("disk_size_gb").(int); diskSizeGb != 0 && diskSizeGb <= 512 {
-					return fmt.Errorf("`on_demand_bursting_enabled` can only be set to `true` when `disk_size_gb` is larger than 512")
+					return errors.New("`on_demand_bursting_enabled` can only be set to `true` when `disk_size_gb` is larger than 512")
 				}
 			}
 
 			if diskAccessId := rd.Get("disk_access_id").(string); diskAccessId != "" && rd.Get("network_access_policy").(string) != string(disks.NetworkAccessPolicyAllowPrivate) {
-				return fmt.Errorf("`disk_access_id` is only available when `network_access_policy` is set to `AllowPrivate`")
+				return errors.New("`disk_access_id` is only available when `network_access_policy` is set to `AllowPrivate`")
 			}
 
 			if oldSize, newSize := rd.GetChange("disk_size_gb"); oldSize.(int) != 0 && newSize.(int) != 0 && newSize.(int) < oldSize.(int) {
-				return fmt.Errorf("`disk_size_gb` can only be increased - shrinking a Managed Disk is not supported by Azure")
+				return errors.New("`disk_size_gb` can only be increased - shrinking a Managed Disk is not supported by Azure")
 			}
 
 			// Azure Disk Encryption cannot be disabled once it has been enabled, so removing the block forces a new resource
@@ -509,7 +505,7 @@ func (r VirtualMachineScaleSetManagedDiskResource) Create() sdk.ResourceFunc {
 			}
 
 			if config.OsType != "" {
-				props.OsType = pointer.To(disks.OperatingSystemTypes(config.OsType))
+				props.OsType = pointer.ToEnum[disks.OperatingSystemTypes](config.OsType)
 			}
 
 			if config.DiskSizeGb != 0 {
@@ -539,20 +535,20 @@ func (r VirtualMachineScaleSetManagedDiskResource) Create() sdk.ResourceFunc {
 			switch createOption {
 			case disks.DiskCreateOptionEmpty:
 				if config.DiskSizeGb == 0 {
-					return fmt.Errorf("`disk_size_gb` must be specified when `creation.0.option` is set to `Empty`")
+					return errors.New("`disk_size_gb` must be specified when `creation.0.option` is set to `Empty`")
 				}
 			case disks.DiskCreateOptionImport, disks.DiskCreateOptionImportSecure:
 				if creation.SourceUri == "" {
-					return fmt.Errorf("`creation.0.source_uri` must be specified when `creation.0.option` is set to `Import` or `ImportSecure`")
+					return errors.New("`creation.0.source_uri` must be specified when `creation.0.option` is set to `Import` or `ImportSecure`")
 				}
 				if creation.StorageAccountId == "" {
-					return fmt.Errorf("`creation.0.storage_account_id` must be specified when `creation.0.option` is set to `Import` or `ImportSecure`")
+					return errors.New("`creation.0.storage_account_id` must be specified when `creation.0.option` is set to `Import` or `ImportSecure`")
 				}
 				props.CreationData.SourceUri = pointer.To(creation.SourceUri)
 				props.CreationData.StorageAccountId = pointer.To(creation.StorageAccountId)
 			case disks.DiskCreateOptionCopy, disks.DiskCreateOptionRestore:
 				if creation.SourceResourceId == "" {
-					return fmt.Errorf("`creation.0.source_resource_id` must be specified when `creation.0.option` is set to `Copy` or `Restore`")
+					return errors.New("`creation.0.source_resource_id` must be specified when `creation.0.option` is set to `Copy` or `Restore`")
 				}
 				props.CreationData.SourceResourceId = pointer.To(creation.SourceResourceId)
 			case disks.DiskCreateOptionFromImage:
@@ -566,11 +562,11 @@ func (r VirtualMachineScaleSetManagedDiskResource) Create() sdk.ResourceFunc {
 						Id: pointer.To(creation.ImageReferenceId),
 					}
 				default:
-					return fmt.Errorf("`creation.0.gallery_image_reference_id` or `creation.0.image_reference_id` must be specified when `creation.0.option` is set to `FromImage`")
+					return errors.New("`creation.0.gallery_image_reference_id` or `creation.0.image_reference_id` must be specified when `creation.0.option` is set to `FromImage`")
 				}
 			case disks.DiskCreateOptionUpload:
 				if creation.UploadSizeBytes == 0 {
-					return fmt.Errorf("`creation.0.upload_size_bytes` must be specified when `creation.0.option` is set to `Upload`")
+					return errors.New("`creation.0.upload_size_bytes` must be specified when `creation.0.option` is set to `Upload`")
 				}
 				props.CreationData.UploadSizeBytes = pointer.To(creation.UploadSizeBytes)
 			}
@@ -590,17 +586,16 @@ func (r VirtualMachineScaleSetManagedDiskResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			props.DataAccessAuthMode = pointer.To(disks.DataAccessAuthMode(config.DataAccessAuthMode))
+			props.DataAccessAuthMode = pointer.ToEnum[disks.DataAccessAuthMode](config.DataAccessAuthMode)
 
-			props.NetworkAccessPolicy = pointer.To(disks.NetworkAccessPolicy(config.NetworkAccessPolicy))
+			props.NetworkAccessPolicy = pointer.ToEnum[disks.NetworkAccessPolicy](config.NetworkAccessPolicy)
 			if config.DiskAccessId != "" {
 				props.DiskAccessId = pointer.To(config.DiskAccessId)
 			}
 
+			props.PublicNetworkAccess = pointer.To(disks.PublicNetworkAccessDisabled)
 			if config.PublicNetworkAccessEnabled {
 				props.PublicNetworkAccess = pointer.To(disks.PublicNetworkAccessEnabled)
-			} else {
-				props.PublicNetworkAccess = pointer.To(disks.PublicNetworkAccessDisabled)
 			}
 
 			if config.Tier != "" {
@@ -612,7 +607,7 @@ func (r VirtualMachineScaleSetManagedDiskResource) Create() sdk.ResourceFunc {
 			}
 
 			if config.HyperVGeneration != "" {
-				props.HyperVGeneration = pointer.To(disks.HyperVGeneration(config.HyperVGeneration))
+				props.HyperVGeneration = pointer.ToEnum[disks.HyperVGeneration](config.HyperVGeneration)
 			}
 
 			if config.TrustedLaunchEnabled {
@@ -628,27 +623,27 @@ func (r VirtualMachineScaleSetManagedDiskResource) Create() sdk.ResourceFunc {
 
 			if config.SecurityType != "" {
 				if config.TrustedLaunchEnabled {
-					return fmt.Errorf("`security_type` cannot be specified when `trusted_launch_enabled` is set to `true`")
+					return errors.New("`security_type` cannot be specified when `trusted_launch_enabled` is set to `true`")
 				}
 
 				switch createOption {
 				case disks.DiskCreateOptionFromImage, disks.DiskCreateOptionImport, disks.DiskCreateOptionImportSecure:
 				default:
-					return fmt.Errorf("`security_type` can only be specified when `creation.0.option` is set to `FromImage`, `Import` or `ImportSecure`")
+					return errors.New("`security_type` can only be specified when `creation.0.option` is set to `FromImage`, `Import` or `ImportSecure`")
 				}
 
 				if disks.DiskSecurityTypes(config.SecurityType) == disks.DiskSecurityTypesConfidentialVMDiskEncryptedWithCustomerKey && config.SecureVMDiskEncryptionSetId == "" {
-					return fmt.Errorf("`secure_vm_disk_encryption_set_id` must be specified when `security_type` is set to `ConfidentialVM_DiskEncryptedWithCustomerKey`")
+					return errors.New("`secure_vm_disk_encryption_set_id` must be specified when `security_type` is set to `ConfidentialVM_DiskEncryptedWithCustomerKey`")
 				}
 
 				props.SecurityProfile = &disks.DiskSecurityProfile{
-					SecurityType: pointer.To(disks.DiskSecurityTypes(config.SecurityType)),
+					SecurityType: pointer.ToEnum[disks.DiskSecurityTypes](config.SecurityType),
 				}
 			}
 
 			if config.SecureVMDiskEncryptionSetId != "" {
 				if disks.DiskSecurityTypes(config.SecurityType) != disks.DiskSecurityTypesConfidentialVMDiskEncryptedWithCustomerKey {
-					return fmt.Errorf("`secure_vm_disk_encryption_set_id` can only be specified when `security_type` is set to `ConfidentialVM_DiskEncryptedWithCustomerKey`")
+					return errors.New("`secure_vm_disk_encryption_set_id` can only be specified when `security_type` is set to `ConfidentialVM_DiskEncryptedWithCustomerKey`")
 				}
 				props.SecurityProfile.SecureVMDiskEncryptionSetId = pointer.To(config.SecureVMDiskEncryptionSetId)
 			}
@@ -806,8 +801,11 @@ func (r VirtualMachineScaleSetManagedDiskResource) Update() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
-			if existing.Model == nil || existing.Model.Properties == nil {
-				return fmt.Errorf("retrieving %s: `model` or `properties` was nil", *id)
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", *id)
+			}
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 			}
 
 			requiresDetach := r.updateRequiresDetach(metadata, existing.Model, config.DiskSizeGb)
@@ -860,10 +858,9 @@ func (r VirtualMachineScaleSetManagedDiskResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("os_type") {
+				props.OsType = nil
 				if config.OsType != "" {
-					props.OsType = pointer.To(disks.OperatingSystemTypes(config.OsType))
-				} else {
-					props.OsType = nil
+					props.OsType = pointer.ToEnum[disks.OperatingSystemTypes](config.OsType)
 				}
 			}
 
@@ -872,32 +869,30 @@ func (r VirtualMachineScaleSetManagedDiskResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("data_access_auth_mode") {
-				props.DataAccessAuthMode = pointer.To(disks.DataAccessAuthMode(config.DataAccessAuthMode))
+				props.DataAccessAuthMode = pointer.ToEnum[disks.DataAccessAuthMode](config.DataAccessAuthMode)
 			}
 
 			if metadata.ResourceData.HasChange("network_access_policy") {
-				props.NetworkAccessPolicy = pointer.To(disks.NetworkAccessPolicy(config.NetworkAccessPolicy))
+				props.NetworkAccessPolicy = pointer.ToEnum[disks.NetworkAccessPolicy](config.NetworkAccessPolicy)
 			}
 
 			if metadata.ResourceData.HasChange("disk_access_id") {
+				props.DiskAccessId = nil
 				if config.DiskAccessId != "" {
 					props.DiskAccessId = pointer.To(config.DiskAccessId)
-				} else {
-					props.DiskAccessId = nil
 				}
 			}
 
 			if metadata.ResourceData.HasChange("public_network_access_enabled") {
+				props.PublicNetworkAccess = pointer.To(disks.PublicNetworkAccessDisabled)
 				if config.PublicNetworkAccessEnabled {
 					props.PublicNetworkAccess = pointer.To(disks.PublicNetworkAccessEnabled)
-				} else {
-					props.PublicNetworkAccess = pointer.To(disks.PublicNetworkAccessDisabled)
 				}
 			}
 
 			if metadata.ResourceData.HasChange("disk_encryption_set_id") {
 				if config.DiskEncryptionSetId == "" {
-					return fmt.Errorf("once a customer-managed key is used, you cannot change the selection back to a platform-managed key")
+					return errors.New("once a customer-managed key is used, you cannot change the selection back to a platform-managed key")
 				}
 				encryptionType, err := retrieveDiskEncryptionSetEncryptionType(ctx, metadata.Client.Compute.DiskEncryptionSetsClient, config.DiskEncryptionSetId)
 				if err != nil {
