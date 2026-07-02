@@ -148,7 +148,7 @@ A judgement call should be made based off the behaviour of the API and expectati
 
 ## The `None` value or similar
 
-Many Azure APIs and services will accept the values like `None`, `Off`, or `Default` as a default value and expose it as a constant in the API specification. 
+Many Azure APIs and services will accept the values like `None`, `Off`, or `Default` as a default value and expose it as a constant in the API specification.
 
 ```
     "shutdownOnIdleMode": {
@@ -181,38 +181,38 @@ The resulting schema in Terraform would look as follows and also requires a conv
 
 // Normalising in the create or expand function
 func (r resource) Create() sdk.ResourceFunc {
-	
+
 	...
-	
+
 	var config resourceModel
 	if err := metadata.Decode(&config); err != nil {
         return fmt.Errorf("decoding: %+v", err)
     }
-	
+
 	// The resource property shutdown_on_idle maps to the attribute shutdownOnIdle in the defined model for a typed resource in this example
 	shutdownOnIdle := string(labplan.ShutdownOnIdleModeNone)
 	if v := model.ShutdownOnIdle; v != "" {
 		shutdownOnIdle = v
     }
-	
+
 	...
-	
+
 }
 
 // Normalising in the read or flatten function
 func (r resource) Read() sdk.ResourceFunc {
-	
+
 	...
-	
+
 	shutdownOnIdle := ""
 	if v := props.ShutdownOnIdle; v != nil && v != string(labplan.ShutdownOnIdleModeNone) {
 		shutdownOnIdle = string(*v)
     }
-	
+
 	state.ShutdownOnIdle = shutdownOnIdle
-	
+
 	...
-	
+
 }
 ```
 
@@ -222,7 +222,7 @@ func (r resource) Read() sdk.ResourceFunc {
 
 Because the Azure API implementation for SKU fields tends to vary we can't easily standardise on a single approach, however, we should try to stick to one of the following two implementations:
 
-1. When the SKU can be set using a single argument (e.g. only the SKU name), use a top-level `sku` argument. 
+1. When the SKU can be set using a single argument (e.g. only the SKU name), use a top-level `sku` argument.
 2. When the SKU requires multiple arguments (e.g. `name` and `capacity`), use a `sku` block.
 
 Example of a `sku` argument:
@@ -434,5 +434,53 @@ Numeric arguments should specify a valid range.
 	Type:         pluginsdk.TypeInt,
 	Optional:     true,
 	ValidateFunc: validation.IntBetween(32, 16384),
+},
+```
+
+## Password Fields
+
+Password fields must be validated against the contract of the specific Azure service or resource.
+
+This is important because password rules are not always the same across Azure. Some resources use VM guest OS password rules, some use database or application-specific rules, and some password fields are simply passed through to another system. Because of that, do not assume that every password field in the provider can use one universal validator.
+
+When adding or updating password validation, use the following approach:
+
+* First, check whether the same kind of password field already exists elsewhere in the provider. If it does, reuse that validator. For example, VM guest admin passwords should reuse the existing VM password validators rather than introducing a new variation. This helps to avoid logical drift between the resources validation functions.
+
+* If you find the same password rules being enforced in multiple resources, create or reuse one shared validator for that resource family instead of copying the same checks into each resource. This keeps similar resources consistent and makes future updates easier.
+
+* Put shared password validation near the resources that own those rules. In practice, shared validators should normally live in that service or resource family's `validate` package, for example `internal/services/<service>/validate`, and the schema fields for those resources should all call that validator rather than each resource having its own copy of the same validation logic.
+
+* If the password rules only apply to one service, keep that validation with that service. That usually means adding or reusing a validator in `internal/services/<service>/validate`. Only extract shared validation when you can show that multiple resources are enforcing the same backend rules.
+
+* If you make password validation stricter, treat that as a potential `breaking change` and review it accordingly.
+
+For example, a shared validator for Windows VM guest admin passwords should live in the compute service's `validate` package, and each compute resource that uses those same guest password rules should call that validator:
+
+```go
+// internal/services/compute/validate/windows_admin_password.go
+package validate
+
+func WindowsAdminPassword(i interface{}, k string) (warnings []string, errors []error) {
+    // shared password validation logic
+    return warnings, errors
+}
+
+// Used by azurerm_windows_virtual_machine
+// internal/services/compute/windows_virtual_machine_resource.go
+"admin_password": {
+    Type:         pluginsdk.TypeString,
+    Optional:     true,
+    Sensitive:    true,
+    ValidateFunc: computeValidate.WindowsAdminPassword,
+},
+
+// Used by azurerm_windows_virtual_machine_scale_set
+// internal/services/compute/windows_virtual_machine_scale_set_resource.go
+"admin_password": {
+    Type:         pluginsdk.TypeString,
+    Optional:     true,
+    Sensitive:    true,
+    ValidateFunc: computeValidate.WindowsAdminPassword,
 },
 ```
