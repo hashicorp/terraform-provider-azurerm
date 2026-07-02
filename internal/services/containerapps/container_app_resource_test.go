@@ -456,6 +456,25 @@ func TestAccContainerAppResource_secretRemove(t *testing.T) {
 	})
 }
 
+func TestAccContainerAppResource_envAndSecretStability(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
+	r := ContainerAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.envAndSecretOrderA(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:             r.envAndSecretOrderB(data),
+			PlanOnly:           true,
+			ExpectNonEmptyPlan: false,
+		},
+	})
+}
+
 func TestAccContainerAppResource_scaleRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
 	r := ContainerAppResource{}
@@ -3067,6 +3086,90 @@ resource "azurerm_container_app" "test" {
   secret {
     name  = "pickle"
     value = "morty"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ContainerAppResource) envAndSecretOrderA(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_app" "test" {
+  name                         = "acctest-capp-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  revision_mode                = "Single"
+
+  template {
+    container {
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+
+      env {
+        name  = "ALPHA"
+        value = "one"
+      }
+
+      env {
+        name  = "BETA"
+        value = "two"
+      }
+    }
+  }
+
+  secret {
+    name  = "first"
+    value = "one"
+  }
+
+  secret {
+    name  = "second"
+    value = "two"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ContainerAppResource) envAndSecretOrderB(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_app" "test" {
+  name                         = "acctest-capp-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  revision_mode                = "Single"
+
+  template {
+    container {
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+
+      env {
+        name  = "BETA"
+        value = "two"
+      }
+
+      env {
+        name  = "ALPHA"
+        value = "one"
+      }
+    }
+  }
+
+  secret {
+    name  = "second"
+    value = "two"
+  }
+
+  secret {
+    name  = "first"
+    value = "one"
   }
 }
 `, r.template(data), data.RandomInteger)
