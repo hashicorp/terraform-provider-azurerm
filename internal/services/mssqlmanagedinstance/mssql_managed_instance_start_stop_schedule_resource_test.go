@@ -126,10 +126,24 @@ resource "azurerm_mssql_managed_instance_start_stop_schedule" "test" {
   description         = "test description"
   timezone_id         = "Central European Standard Time"
   schedule {
+    start_day  = "Monday"
+    start_time = "08:00"
+    stop_day   = "Monday"
+    stop_time  = "20:00"
+  }
+
+  schedule {
     start_day  = "Wednesday"
     start_time = "11:00"
     stop_day   = "Wednesday"
     stop_time  = "23:00"
+  }
+
+  schedule {
+    start_day  = "Friday"
+    start_time = "09:00"
+    stop_day   = "Friday"
+    stop_time  = "21:00"
   }
 }
 `, r.template(data))
@@ -143,6 +157,12 @@ resource "azurerm_mssql_managed_instance_start_stop_schedule" "test" {
   description         = "updated test description"
   timezone_id         = "Central European Standard Time"
   schedule {
+    start_day  = "Monday"
+    start_time = "08:00"
+    stop_day   = "Monday"
+    stop_time  = "20:00"
+  }
+  schedule {
     start_day  = "Wednesday"
     start_time = "10:00"
     stop_day   = "Wednesday"
@@ -153,6 +173,12 @@ resource "azurerm_mssql_managed_instance_start_stop_schedule" "test" {
     start_time = "11:00"
     stop_day   = "Thursday"
     stop_time  = "23:00"
+  }
+  schedule {
+    start_day  = "Friday"
+    start_time = "09:00"
+    stop_day   = "Friday"
+    stop_time  = "21:00"
   }
 }
 `, r.template(data))
@@ -165,10 +191,10 @@ func (r sqlManagedInstanceStartStopScheduleResource) requiresImport(data accepta
 resource "azurerm_mssql_managed_instance_start_stop_schedule" "import" {
   managed_instance_id = azurerm_mssql_managed_instance_start_stop_schedule.test.managed_instance_id
   schedule {
-    start_day  = azurerm_mssql_managed_instance_start_stop_schedule.test.schedule.0.start_day
-    start_time = azurerm_mssql_managed_instance_start_stop_schedule.test.schedule.0.start_time
-    stop_day   = azurerm_mssql_managed_instance_start_stop_schedule.test.schedule.0.stop_day
-    stop_time  = azurerm_mssql_managed_instance_start_stop_schedule.test.schedule.0.stop_time
+    start_day  = "Wednesday"
+    start_time = "11:00"
+    stop_day   = "Wednesday"
+    stop_time  = "23:00"
   }
 }
 `, r.basic(data))
