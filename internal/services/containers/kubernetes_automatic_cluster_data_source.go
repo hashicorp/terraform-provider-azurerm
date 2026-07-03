@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-04-01/managedclusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/kubernetes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -972,17 +971,6 @@ func (KubernetesAutomaticClusterDataSource) Read() sdk.ResourceFunc {
 					state.ServicePrincipal = flattenKubernetesAutomaticClusterDataSourceServicePrincipalProfile(props.ServicePrincipalProfile)
 					state.AzureActiveDirectoryRoleBasedAccessControl = flattenKubernetesAutomaticClusterDataSourceAzureActiveDirectoryRoleBasedAccessControl(props)
 
-					// Flatten add-ons
-					if props.AddonProfiles != nil {
-						state.ACIConnectorLinux = flattenKubernetesAutomaticClusterDataSourceACIConnectorLinux(*props.AddonProfiles)
-						state.AzurePolicyEnabled = flattenKubernetesAutomaticClusterDataSourceAzurePolicy(*props.AddonProfiles)
-						state.HTTPApplicationRoutingEnabled, state.HTTPApplicationRoutingZoneName = flattenKubernetesAutomaticClusterDataSourceHTTPApplicationRouting(*props.AddonProfiles)
-						state.IngressApplicationGateway = flattenKubernetesAutomaticClusterDataSourceIngressApplicationGateway(*props.AddonProfiles)
-						state.KeyVaultSecretsProvider = flattenKubernetesAutomaticClusterDataSourceKeyVaultSecretsProvider(*props.AddonProfiles)
-						state.OMSAgent = flattenKubernetesAutomaticClusterDataSourceOMSAgent(*props.AddonProfiles)
-						state.OpenServiceMeshEnabled = flattenKubernetesAutomaticClusterDataSourceOpenServiceMesh(*props.AddonProfiles)
-					}
-
 					// Flatten security and other profiles
 					if props.SecurityProfile != nil {
 						state.MicrosoftDefender = flattenKubernetesAutomaticClusterDataSourceMicrosoftDefender(props.SecurityProfile)
@@ -1105,175 +1093,6 @@ func flattenKubernetesAutomaticClusterCredentials(model *managedclusters.Credent
 	}
 
 	return nil, []KubeConfigModel{}
-}
-
-func flattenKubernetesAutomaticClusterDataSourceACIConnectorLinux(profile map[string]managedclusters.ManagedClusterAddonProfile) []ACIConnectorLinuxDataSourceModel {
-	aciConnector := kubernetesAddonProfileLocateTyped(profile, aciConnectorKey)
-	if !aciConnector.Enabled {
-		return []ACIConnectorLinuxDataSourceModel{}
-	}
-
-	subnetName := ""
-	if v := aciConnector.Config; v != nil && (*v)["SubnetName"] != "" {
-		subnetName = (*v)["SubnetName"]
-	}
-
-	return []ACIConnectorLinuxDataSourceModel{{
-		SubnetName: subnetName,
-	}}
-}
-
-func flattenKubernetesAutomaticClusterDataSourceAzurePolicy(profile map[string]managedclusters.ManagedClusterAddonProfile) bool {
-	azurePolicy := kubernetesAddonProfileLocateTyped(profile, azurePolicyKey)
-	return azurePolicy.Enabled
-}
-
-func flattenKubernetesAutomaticClusterDataSourceHTTPApplicationRouting(profile map[string]managedclusters.ManagedClusterAddonProfile) (bool, string) {
-	httpApplicationRouting := kubernetesAddonProfileLocateTyped(profile, httpApplicationRoutingKey)
-	enabled := httpApplicationRouting.Enabled
-	zoneName := kubernetesAddonProfileLocateTypedInConfig(httpApplicationRouting.Config, "HTTPApplicationRoutingZoneName")
-	return enabled, zoneName
-}
-
-func flattenKubernetesAutomaticClusterDataSourceOMSAgent(profile map[string]managedclusters.ManagedClusterAddonProfile) []OMSAgentDataSourceModel {
-	omsAgent := kubernetesAddonProfileLocateTyped(profile, omsAgentKey)
-	if !omsAgent.Enabled {
-		return []OMSAgentDataSourceModel{}
-	}
-
-	workspaceID := ""
-	if v := kubernetesAddonProfileLocateTypedInConfig(omsAgent.Config, "logAnalyticsWorkspaceResourceID"); v != "" {
-		if lawid, err := workspaces.ParseWorkspaceID(v); err == nil {
-			workspaceID = lawid.ID()
-		}
-	}
-
-	useAADAuth := false
-	if v := kubernetesAddonProfileLocateTypedInConfig(omsAgent.Config, "useAADAuth"); v != "false" && v != "" {
-		useAADAuth = true
-	}
-
-	omsAgentIdentity := flattenKubernetesAutomaticClusterDataSourceAddOnIdentity(omsAgent.Identity)
-
-	return []OMSAgentDataSourceModel{{
-		LogAnalyticsWorkspaceID:     workspaceID,
-		MSIAuthForMonitoringEnabled: useAADAuth,
-		OMSAgentIdentity:            omsAgentIdentity,
-	}}
-}
-
-func flattenKubernetesAutomaticClusterDataSourceIngressApplicationGateway(profile map[string]managedclusters.ManagedClusterAddonProfile) []IngressApplicationGatewayDataSourceModel {
-	ingressApplicationGateway := kubernetesAddonProfileLocateTyped(profile, ingressApplicationGatewayKey)
-	if !ingressApplicationGateway.Enabled {
-		return []IngressApplicationGatewayDataSourceModel{}
-	}
-
-	gatewayId := kubernetesAddonProfileLocateTypedInConfig(ingressApplicationGateway.Config, "applicationGatewayId")
-	gatewayName := kubernetesAddonProfileLocateTypedInConfig(ingressApplicationGateway.Config, "applicationGatewayName")
-	effectiveGatewayId := kubernetesAddonProfileLocateTypedInConfig(ingressApplicationGateway.Config, "effectiveApplicationGatewayId")
-	subnetCIDR := kubernetesAddonProfileLocateTypedInConfig(ingressApplicationGateway.Config, "subnetCIDR")
-	subnetId := kubernetesAddonProfileLocateTypedInConfig(ingressApplicationGateway.Config, "subnetId")
-
-	ingressApplicationGatewayIdentity := flattenKubernetesAutomaticClusterDataSourceIngressAppGatewayIdentity(ingressApplicationGateway.Identity)
-
-	return []IngressApplicationGatewayDataSourceModel{{
-		GatewayID:                         gatewayId,
-		GatewayName:                       gatewayName,
-		EffectiveGatewayID:                effectiveGatewayId,
-		SubnetCIDR:                        subnetCIDR,
-		SubnetID:                          subnetId,
-		IngressApplicationGatewayIdentity: ingressApplicationGatewayIdentity,
-	}}
-}
-
-func flattenKubernetesAutomaticClusterDataSourceOpenServiceMesh(profile map[string]managedclusters.ManagedClusterAddonProfile) bool {
-	openServiceMesh := kubernetesAddonProfileLocateTyped(profile, openServiceMeshKey)
-	return openServiceMesh.Enabled
-}
-
-func flattenKubernetesAutomaticClusterDataSourceKeyVaultSecretsProvider(profile map[string]managedclusters.ManagedClusterAddonProfile) []KeyVaultSecretsProviderDataSourceModel {
-	azureKeyVaultSecretsProvider := kubernetesAddonProfileLocateTyped(profile, azureKeyvaultSecretsProviderKey)
-	if !azureKeyVaultSecretsProvider.Enabled {
-		return []KeyVaultSecretsProviderDataSourceModel{}
-	}
-
-	enableSecretRotation := false
-	if v := kubernetesAddonProfileLocateTypedInConfig(azureKeyVaultSecretsProvider.Config, "enableSecretRotation"); v != "false" && v != "" {
-		enableSecretRotation = true
-	}
-
-	rotationPollInterval := kubernetesAddonProfileLocateTypedInConfig(azureKeyVaultSecretsProvider.Config, "rotationPollInterval")
-
-	azureKeyvaultSecretsProviderIdentity := flattenKubernetesAutomaticClusterDataSourceSecretIdentity(azureKeyVaultSecretsProvider.Identity)
-
-	return []KeyVaultSecretsProviderDataSourceModel{{
-		SecretRotationEnabled:  enableSecretRotation,
-		SecretRotationInterval: rotationPollInterval,
-		SecretIdentity:         azureKeyvaultSecretsProviderIdentity,
-	}}
-}
-
-func flattenKubernetesAutomaticClusterDataSourceAddOnIdentity(input *managedclusters.UserAssignedIdentity) []OMSAgentIdentityDataSourceModel {
-	if input == nil {
-		return []OMSAgentIdentityDataSourceModel{}
-	}
-
-	clientId := pointer.From(input.ClientId)
-	objectId := pointer.From(input.ObjectId)
-	userAssignedIdentityId := ""
-	if resourceId := input.ResourceId; resourceId != nil {
-		if parsedId, err := commonids.ParseUserAssignedIdentityIDInsensitively(*resourceId); err == nil {
-			userAssignedIdentityId = parsedId.ID()
-		}
-	}
-
-	return []OMSAgentIdentityDataSourceModel{{
-		ClientID:               clientId,
-		ObjectID:               objectId,
-		UserAssignedIdentityID: userAssignedIdentityId,
-	}}
-}
-
-func flattenKubernetesAutomaticClusterDataSourceIngressAppGatewayIdentity(input *managedclusters.UserAssignedIdentity) []IngressApplicationGatewayIdentityDataSourceModel {
-	if input == nil {
-		return []IngressApplicationGatewayIdentityDataSourceModel{}
-	}
-
-	clientId := pointer.From(input.ClientId)
-	objectId := pointer.From(input.ObjectId)
-	userAssignedIdentityId := ""
-	if resourceId := input.ResourceId; resourceId != nil {
-		if parsedId, err := commonids.ParseUserAssignedIdentityIDInsensitively(*resourceId); err == nil {
-			userAssignedIdentityId = parsedId.ID()
-		}
-	}
-
-	return []IngressApplicationGatewayIdentityDataSourceModel{{
-		ClientID:               clientId,
-		ObjectID:               objectId,
-		UserAssignedIdentityID: userAssignedIdentityId,
-	}}
-}
-
-func flattenKubernetesAutomaticClusterDataSourceSecretIdentity(input *managedclusters.UserAssignedIdentity) []SecretIdentityDataSourceModel {
-	if input == nil {
-		return []SecretIdentityDataSourceModel{}
-	}
-
-	clientId := pointer.From(input.ClientId)
-	objectId := pointer.From(input.ObjectId)
-	userAssignedIdentityId := ""
-	if resourceId := input.ResourceId; resourceId != nil {
-		if parsedId, err := commonids.ParseUserAssignedIdentityIDInsensitively(*resourceId); err == nil {
-			userAssignedIdentityId = parsedId.ID()
-		}
-	}
-
-	return []SecretIdentityDataSourceModel{{
-		ClientID:               clientId,
-		ObjectID:               objectId,
-		UserAssignedIdentityID: userAssignedIdentityId,
-	}}
 }
 
 func flattenKubernetesAutomaticClusterDataSourceAgentPoolProfiles(input *[]managedclusters.ManagedClusterAgentPoolProfile) []AgentPoolProfileDataSourceModel {

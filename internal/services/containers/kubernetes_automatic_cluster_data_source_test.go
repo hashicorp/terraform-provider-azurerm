@@ -34,168 +34,6 @@ func TestAccDataSourceKubernetesAutomaticCluster_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceKubernetesAutomaticCluster_privateCluster(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-
-	data.DataSourceTest(t, []acceptance.TestStep{
-		{
-			Config: KubernetesAutomaticClusterResource{}.privateClusterConfig(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("private_fully_qualified_domain_name").Exists(),
-				check.That(data.ResourceName).Key("private_cluster.#").HasValue("1"),
-			),
-		},
-		data.ImportStep("service_principal.0.client_secret"),
-	})
-}
-
-func TestAccDataSourceKubernetesAutomaticCluster_roleBasedAccessControl(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterDataSource{}
-
-	data.DataSourceTest(t, []acceptance.TestStep{
-		{
-			Config: r.roleBasedAccessControlConfig(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("role_based_access_control_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("azure_active_directory_role_based_access_control.#").HasValue("1"),
-				check.That(data.ResourceName).Key("kube_admin_config.#").HasValue("0"),
-				check.That(data.ResourceName).Key("kube_admin_config_raw").HasValue(""),
-			),
-		},
-	})
-}
-
-func TestAccDataSourceKubernetesAutomaticCluster_roleBasedAccessControlAAD_OlderKubernetesVersion(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterDataSource{}
-
-	data.DataSourceTest(t, []acceptance.TestStep{
-		{
-			Config: r.roleBasedAccessControlAADManagedConfigOlderKubernetesVersion(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("kube_config.#").HasValue("1"),
-				check.That(data.ResourceName).Key("kube_config.0.host").IsSet(),
-			),
-		},
-	})
-}
-
-func TestAccDataSourceKubernetesAutomaticCluster_advancedNetworkingAzure(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterDataSource{}
-
-	data.DataSourceTest(t, []acceptance.TestStep{
-		{
-			Config: r.advancedNetworkingAzureConfig(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("network_profile.0.network_plugin").Exists(),
-				check.That(data.ResourceName).Key("network_profile.0.dns_service_ip").Exists(),
-				check.That(data.ResourceName).Key("network_profile.0.service_cidr").Exists(),
-			),
-		},
-	})
-}
-
-func TestAccDataSourceKubernetesAutomaticCluster_advancedNetworkingAzureComplete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterDataSource{}
-
-	data.DataSourceTest(t, []acceptance.TestStep{
-		{
-			Config: r.advancedNetworkingAzureCompleteConfig(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("network_profile.0.network_plugin").Exists(),
-				check.That(data.ResourceName).Key("network_profile.0.dns_service_ip").Exists(),
-				check.That(data.ResourceName).Key("network_profile.0.service_cidr").Exists(),
-			),
-		},
-	})
-}
-
-func TestAccDataSourceKubernetesAutomaticCluster_addOnProfileIngressApplicationGatewayAppGateway(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterDataSource{}
-
-	data.DataSourceTest(t, []acceptance.TestStep{
-		{
-			Config: r.addOnProfileIngressApplicationGatewayAppGatewayConfig(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("ingress_application_gateway.#").HasValue("1"),
-				check.That(data.ResourceName).Key("ingress_application_gateway.0.effective_gateway_id").MatchesOtherKey(
-					check.That(data.ResourceName).Key("ingress_application_gateway.0.gateway_id"),
-				),
-				check.That(data.ResourceName).Key("ingress_application_gateway.0.subnet_cidr").IsEmpty(),
-				check.That(data.ResourceName).Key("ingress_application_gateway.0.subnet_id").IsEmpty(),
-				check.That(data.ResourceName).Key("ingress_application_gateway.0.ingress_application_gateway_identity.0.client_id").Exists(),
-				check.That(data.ResourceName).Key("ingress_application_gateway.0.ingress_application_gateway_identity.0.object_id").Exists(),
-				check.That(data.ResourceName).Key("ingress_application_gateway.0.ingress_application_gateway_identity.0.user_assigned_identity_id").Exists(),
-			),
-		},
-	})
-}
-
-func TestAccDataSourceKubernetesAutomaticCluster_addOnProfileIngressApplicationGatewaySubnetCIDR(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterDataSource{}
-
-	data.DataSourceTest(t, []acceptance.TestStep{
-		{
-			Config: r.addOnProfileIngressApplicationGatewaySubnetCIDRConfig(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("ingress_application_gateway.#").HasValue("1"),
-				check.That(data.ResourceName).Key("ingress_application_gateway.0.gateway_id").IsEmpty(),
-				check.That(data.ResourceName).Key("ingress_application_gateway.0.subnet_cidr").HasValue(addOnAppGatewaySubnetCIDR),
-				check.That(data.ResourceName).Key("ingress_application_gateway.0.subnet_id").IsEmpty(),
-			),
-		},
-	})
-}
-
-func TestAccDataSourceKubernetesAutomaticCluster_addOnProfileIngressApplicationGatewaySubnetId(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterDataSource{}
-
-	data.DataSourceTest(t, []acceptance.TestStep{
-		{
-			Config: r.addOnProfileIngressApplicationGatewaySubnetIdConfig(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("ingress_application_gateway.#").HasValue("1"),
-				check.That(data.ResourceName).Key("ingress_application_gateway.0.gateway_id").IsEmpty(),
-				check.That(data.ResourceName).Key("ingress_application_gateway.0.subnet_cidr").IsEmpty(),
-			),
-		},
-	})
-}
-
-func TestAccDataSourceKubernetesAutomaticCluster_addOnProfileAzureKeyvaultSecretsProvider(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterDataSource{}
-
-	data.DataSourceTest(t, []acceptance.TestStep{
-		{
-			Config: r.addOnProfileAzureKeyvaultSecretsProviderConfig(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("key_vault_secrets_provider.0.secret_rotation_interval").HasValue("2m"),
-			),
-		},
-	})
-}
-
-func TestAccDataSourceKubernetesAutomaticCluster_microsoftDefender(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterDataSource{}
-
-	data.DataSourceTest(t, []acceptance.TestStep{
-		{
-			Config: r.microsoftDefender(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("microsoft_defender.0.log_analytics_workspace_id").Exists(),
-			),
-		},
-	})
-}
-
 func TestAccDataSourceKubernetesAutomaticCluster_serviceMesh(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterDataSource{}
@@ -207,87 +45,35 @@ func TestAccDataSourceKubernetesAutomaticCluster_serviceMesh(t *testing.T) {
 				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
 				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.0").HasValue("asm-1-28"),
 			),
 		},
 	})
 }
 
-func TestAccDataSourceKubernetesAutomaticCluster_serviceMeshCertificateAuthority(t *testing.T) {
+func TestAccDataSourceKubernetesAutomaticCluster_apiServerAuthorizedIPRanges(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.serviceMeshCertificateAuthority(data),
+			Config: r.apiServerAuthorizedIPRanges(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.certificate_authority.0.key_vault_id").Exists(),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.certificate_authority.0.root_cert_object_name").Exists(),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.certificate_authority.0.cert_chain_object_name").Exists(),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.certificate_authority.0.cert_object_name").Exists(),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.certificate_authority.0.key_object_name").Exists(),
+				check.That(data.ResourceName).Key("api_server_authorized_ip_ranges.#").HasValue("2"),
 			),
 		},
 	})
 }
 
-func TestAccDataSourceKubernetesAutomaticCluster_serviceMeshRevisions(t *testing.T) {
+func TestAccDataSourceKubernetesAutomaticCluster_privateClusterEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			// create a cluster with an istio revision with revision currently at asm-1-28
-			Config: r.serviceMeshRevisions(data, `["asm-1-28"]`),
+			Config: r.privateClusterEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.0").HasValue("asm-1-28"),
-			),
-		},
-		{
-			// start istio revision canary upgrade to asm-1-29
-			Config: r.serviceMeshRevisions(data, `["asm-1-28", "asm-1-29"]`),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.0").HasValue("asm-1-28"),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.1").HasValue("asm-1-29"),
-			),
-		},
-		{
-			// rollback the istio revision back to asm-1-28
-			Config: r.serviceMeshRevisions(data, `["asm-1-28"]`),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.0").HasValue("asm-1-28"),
-			),
-		},
-		{
-			// start istio revision canary upgrade to asm-1-29
-			Config: r.serviceMeshRevisions(data, `["asm-1-28", "asm-1-29"]`),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.0").HasValue("asm-1-28"),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.1").HasValue("asm-1-29"),
-			),
-		},
-		{
-			// complete the istio revision upgrade to asm-1-28
-			Config: r.serviceMeshRevisions(data, `["asm-1-28"]`),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.0").HasValue("asm-1-28"),
+				check.That(data.ResourceName).Key("private_cluster_enabled").HasValue("true"),
 			),
 		},
 	})
@@ -301,110 +87,13 @@ data "azurerm_kubernetes_automatic_cluster" "test" {
   name                = azurerm_kubernetes_automatic_cluster.test.name
   resource_group_name = azurerm_kubernetes_automatic_cluster.test.resource_group_name
 }
-`, KubernetesAutomaticClusterResource{}.basicVMSSConfig(data))
-}
-
-func (KubernetesAutomaticClusterDataSource) roleBasedAccessControlConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = azurerm_kubernetes_automatic_cluster.test.name
-  resource_group_name = azurerm_kubernetes_automatic_cluster.test.resource_group_name
-}
-`, KubernetesAutomaticClusterResource{}.roleBasedAccessControlConfig(data))
-}
-
-func (KubernetesAutomaticClusterDataSource) roleBasedAccessControlAADManagedConfigOlderKubernetesVersion(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = azurerm_kubernetes_automatic_cluster.test.name
-  resource_group_name = azurerm_kubernetes_automatic_cluster.test.resource_group_name
-}
-`, KubernetesAutomaticClusterResource{}.roleBasedAccessControlAADManagedConfigOlderKubernetesVersion(data, ""))
-}
-
-func (KubernetesAutomaticClusterDataSource) advancedNetworkingAzureConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = azurerm_kubernetes_automatic_cluster.test.name
-  resource_group_name = azurerm_kubernetes_automatic_cluster.test.resource_group_name
-}
-`, KubernetesAutomaticClusterResource{}.advancedNetworkingConfig(data))
-}
-
-func (KubernetesAutomaticClusterDataSource) advancedNetworkingAzureCompleteConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = azurerm_kubernetes_automatic_cluster.test.name
-  resource_group_name = azurerm_kubernetes_automatic_cluster.test.resource_group_name
-}
-`, KubernetesAutomaticClusterResource{}.advancedNetworkingCompleteConfig(data))
-}
-
-func (KubernetesAutomaticClusterDataSource) addOnProfileIngressApplicationGatewayAppGatewayConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = azurerm_kubernetes_automatic_cluster.test.name
-  resource_group_name = azurerm_kubernetes_automatic_cluster.test.resource_group_name
-}
-`, KubernetesAutomaticClusterResource{}.addonProfileIngressApplicationGatewayAppGatewayConfig(data))
-}
-
-func (KubernetesAutomaticClusterDataSource) addOnProfileIngressApplicationGatewaySubnetCIDRConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = azurerm_kubernetes_automatic_cluster.test.name
-  resource_group_name = azurerm_kubernetes_automatic_cluster.test.resource_group_name
-}
-`, KubernetesAutomaticClusterResource{}.addonProfileIngressApplicationGatewaySubnetCIDRConfig(data))
-}
-
-func (KubernetesAutomaticClusterDataSource) addOnProfileIngressApplicationGatewaySubnetIdConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = azurerm_kubernetes_automatic_cluster.test.name
-  resource_group_name = azurerm_kubernetes_automatic_cluster.test.resource_group_name
-}
-`, KubernetesAutomaticClusterResource{}.addonProfileIngressApplicationGatewaySubnetIdConfig(data))
-}
-
-func (KubernetesAutomaticClusterDataSource) addOnProfileAzureKeyvaultSecretsProviderConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = azurerm_kubernetes_automatic_cluster.test.name
-  resource_group_name = azurerm_kubernetes_automatic_cluster.test.resource_group_name
-}
-`, KubernetesAutomaticClusterResource{}.addonProfileAzureKeyVaultSecretsProviderConfig(data, "2m"))
-}
-
-func (KubernetesAutomaticClusterDataSource) microsoftDefender(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-data "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = azurerm_kubernetes_automatic_cluster.test.name
-  resource_group_name = azurerm_kubernetes_automatic_cluster.test.resource_group_name
-}
-`, KubernetesAutomaticClusterResource{}.microsoftDefender(data))
+`, KubernetesAutomaticClusterResource{}.basic(data))
 }
 
 func (KubernetesAutomaticClusterDataSource) serviceMesh(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
+
 data "azurerm_kubernetes_automatic_cluster" "test" {
   name                = azurerm_kubernetes_automatic_cluster.test.name
   resource_group_name = azurerm_kubernetes_automatic_cluster.test.resource_group_name
@@ -412,22 +101,24 @@ data "azurerm_kubernetes_automatic_cluster" "test" {
 `, KubernetesAutomaticClusterResource{}.serviceMeshProfile(data, true, true))
 }
 
-func (s KubernetesAutomaticClusterDataSource) serviceMeshCertificateAuthority(data acceptance.TestData) string {
+func (KubernetesAutomaticClusterDataSource) apiServerAuthorizedIPRanges(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
+
 data "azurerm_kubernetes_automatic_cluster" "test" {
   name                = azurerm_kubernetes_automatic_cluster.test.name
   resource_group_name = azurerm_kubernetes_automatic_cluster.test.resource_group_name
 }
-`, KubernetesAutomaticClusterResource{}.addonProfileServiceMeshProfileCertificateAuthorityConfig(data))
+`, KubernetesAutomaticClusterResource{}.apiServerAuthorizedIPRangesConfig(data))
 }
 
-func (KubernetesAutomaticClusterDataSource) serviceMeshRevisions(data acceptance.TestData, revisions string) string {
+func (KubernetesAutomaticClusterDataSource) privateClusterEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
+
 data "azurerm_kubernetes_automatic_cluster" "test" {
   name                = azurerm_kubernetes_automatic_cluster.test.name
   resource_group_name = azurerm_kubernetes_automatic_cluster.test.resource_group_name
 }
-`, KubernetesAutomaticClusterResource{}.addonProfileServiceMeshProfileRevisionsConfig(data, revisions))
+`, KubernetesAutomaticClusterResource{}.privateClusterWithPublicFQDNConfig(data))
 }
