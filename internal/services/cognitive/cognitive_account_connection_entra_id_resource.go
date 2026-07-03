@@ -22,11 +22,16 @@ import (
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name cognitive_account_connection_entra_id -properties "name" -compare-values "subscription_id:cognitive_account_id,resource_group_name:cognitive_account_id,account_name:cognitive_account_id" -test-name "basic" -test-expect-non-empty
 
 var (
-	_ sdk.ResourceWithUpdate   = CognitiveAccountConnectionEntraIDResource{}
-	_ sdk.ResourceWithIdentity = CognitiveAccountConnectionEntraIDResource{}
+	_ sdk.ResourceWithUpdate         = CognitiveAccountConnectionEntraIDResource{}
+	_ sdk.ResourceWithIdentity       = CognitiveAccountConnectionEntraIDResource{}
+	_ sdk.ResourceWithCustomImporter = CognitiveAccountConnectionEntraIDResource{}
 )
 
 type CognitiveAccountConnectionEntraIDResource struct{}
+
+func (r CognitiveAccountConnectionEntraIDResource) CustomImporter() sdk.ResourceRunFunc {
+	return cognitiveAccountConnectionImporter(accountconnectionresource.ConnectionAuthTypeAAD, r.ResourceType())
+}
 
 func (r CognitiveAccountConnectionEntraIDResource) Identity() resourceids.ResourceId {
 	return new(accountconnectionresource.ConnectionId)

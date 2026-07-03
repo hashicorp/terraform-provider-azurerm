@@ -6,10 +6,12 @@ package cognitive_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/accountconnectionresource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -326,6 +328,32 @@ func TestAccCognitiveAccountConnectionApiKey_pineconeCategory(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
+		},
+	})
+}
+
+func TestAccCognitiveAccountConnectionApiKey_importMismatchedAuthTypeFails(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection_api_key", "test")
+	r := CognitiveAccountConnectionApiKeyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.importMismatchedAuthType(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			ResourceName: data.ResourceName,
+			ImportState:  true,
+			ImportStateIdFunc: func(s *terraform.State) (string, error) {
+				rs, ok := s.RootModule().Resources["azurerm_cognitive_account_connection_entra_id.wrong"]
+				if !ok {
+					return "", fmt.Errorf("resource `%s` not found in state", "azurerm_cognitive_account_connection_entra_id.wrong")
+				}
+				return rs.Primary.ID, nil
+			},
+			ExpectError: regexp.MustCompile("cannot be managed by"),
 		},
 	})
 }
@@ -803,4 +831,17 @@ resource "azurerm_cognitive_account_connection_api_key" "test" {
   api_key              = "test-api-key"
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r CognitiveAccountConnectionApiKeyResource) importMismatchedAuthType(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cognitive_account_connection_entra_id" "wrong" {
+  name                 = "acctest-wrong-%[2]d"
+  cognitive_account_id = azurerm_cognitive_account.test.id
+  category             = "Databricks"
+  target               = "https://wrong-%[2]d.databricks.net/"
+}
+`, r.basic(data), data.RandomInteger)
 }

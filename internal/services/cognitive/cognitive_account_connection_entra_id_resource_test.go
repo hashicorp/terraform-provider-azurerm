@@ -6,10 +6,12 @@ package cognitive_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/accountconnectionresource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -241,6 +243,32 @@ func TestAccCognitiveAccountConnectionEntraID_sharepointCategory(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
+		},
+	})
+}
+
+func TestAccCognitiveAccountConnectionEntraID_importMismatchedAuthTypeFails(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection_entra_id", "test")
+	r := CognitiveAccountConnectionEntraIdResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.importMismatchedAuthType(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			ResourceName: data.ResourceName,
+			ImportState:  true,
+			ImportStateIdFunc: func(s *terraform.State) (string, error) {
+				rs, ok := s.RootModule().Resources["azurerm_cognitive_account_connection_api_key.wrong"]
+				if !ok {
+					return "", fmt.Errorf("resource `%s` not found in state", "azurerm_cognitive_account_connection_api_key.wrong")
+				}
+				return rs.Primary.ID, nil
+			},
+			ExpectError: regexp.MustCompile("cannot be managed by"),
 		},
 	})
 }
@@ -631,4 +659,18 @@ resource "azurerm_cognitive_account_connection_entra_id" "test" {
   target               = "https://contoso.sharepoint.com/"
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r CognitiveAccountConnectionEntraIdResource) importMismatchedAuthType(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cognitive_account_connection_api_key" "wrong" {
+  name                 = "acctest-wrong-%[2]d"
+  cognitive_account_id = azurerm_cognitive_account.test.id
+  category             = "ApiKey"
+  target               = "https://api.example.com/"
+  api_key              = "test-api-key"
+}
+`, r.basic(data), data.RandomInteger)
 }
