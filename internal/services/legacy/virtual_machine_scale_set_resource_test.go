@@ -3012,6 +3012,18 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
+resource "azurerm_storage_account" "test" {
+  name                     = "accsa%[1]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -5786,6 +5798,18 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
+resource "azurerm_storage_account" "test" {
+  name                     = "accsa%[1]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -5998,6 +6022,18 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "accsa%[1]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "staging"
+  }
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -6438,6 +6474,18 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "accsa%[1]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "staging"
+  }
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
