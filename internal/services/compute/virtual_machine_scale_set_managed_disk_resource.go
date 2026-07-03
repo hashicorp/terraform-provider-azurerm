@@ -777,6 +777,10 @@ func (r VirtualMachineScaleSetManagedDiskResource) flatten(metadata sdk.Resource
 		state.Tags = pointer.From(model.Tags)
 	}
 
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+		return err
+	}
+
 	return metadata.Encode(&state)
 }
 
