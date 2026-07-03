@@ -35,7 +35,6 @@ type LinkedServiceAzurePostgreSQLResourceModel struct {
 	DataFactoryID          string                   `tfschema:"data_factory_id"`
 	AuthenticationType     string                   `tfschema:"authentication_type"`
 	Database               string                   `tfschema:"database_name"`
-	Port                   int                      `tfschema:"port"`
 	Server                 string                   `tfschema:"server"`
 	Annotations            []string                 `tfschema:"annotations"`
 	CredentialName         string                   `tfschema:"credential_name"`
@@ -43,6 +42,7 @@ type LinkedServiceAzurePostgreSQLResourceModel struct {
 	IntegrationRuntimeName string                   `tfschema:"integration_runtime_name"`
 	KeyVaultPassword       []KeyVaultPasswordConfig `tfschema:"key_vault_password"`
 	Parameters             map[string]interface{}   `tfschema:"parameters"`
+	Port                   int64                    `tfschema:"port"`
 	SslMode                string                   `tfschema:"ssl_mode"`
 	Username               string                   `tfschema:"username"`
 }
@@ -63,28 +63,16 @@ func (LinkedServiceAzurePostgreSQLResource) Arguments() map[string]*pluginsdk.Sc
 			ValidateFunc: factories.ValidateFactoryID,
 		},
 
-		// authentication_type should be supported by sdk but hasn't due to bug
-		// TODO: support
 		"authentication_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				"Basic",
-				"SystemAssignedManagedIdentity",
-				"UserAssignedManagedIdentity",
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(supportedAzurePostgreSqlAuthTypes, false),
 		},
 
 		"database_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"port": {
-			Type:         pluginsdk.TypeInt,
-			Required:     true,
-			ValidateFunc: azValidate.PortNumberOrZero,
 		},
 
 		"server": {
@@ -154,6 +142,13 @@ func (LinkedServiceAzurePostgreSQLResource) Arguments() map[string]*pluginsdk.Sc
 			},
 		},
 
+		"port": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Default:      5432,
+			ValidateFunc: azValidate.PortNumberOrZero,
+		},
+
 		"ssl_mode": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
@@ -181,9 +176,9 @@ func (r LinkedServiceAzurePostgreSQLResource) CustomizeDiff() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			diff := metadata.ResourceDiff
 
-			authenticationType := diff.Get("authentication_type").(string)
+			authType := linkedservices.AzurePostgreSqlAuthenticationType(diff.Get("authentication_type").(string))
 
-			if authenticationType == "Basic" {
+			if authType == linkedservices.AzurePostgreSqlAuthenticationTypeBasic {
 				if _, ok := diff.GetOk("username"); !ok {
 					return errors.New("`username` must be specified when `authentication_type` is `Basic`")
 				}
@@ -192,7 +187,7 @@ func (r LinkedServiceAzurePostgreSQLResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 			}
 
-			if authenticationType == "UserAssignedManagedIdentity" {
+			if authType == linkedservices.AzurePostgreSqlAuthenticationTypeUserAssignedManagedIdentity {
 				if _, ok := diff.GetOk("credential_name"); !ok {
 					return errors.New("`credential_name` must be specified when `authentication_type` is `UserAssignedManagedIdentity`")
 				}
@@ -369,22 +364,31 @@ func (r LinkedServiceAzurePostgreSQLResource) Identity() resourceids.ResourceId 
 	return &linkedservices.LinkedServiceId{}
 }
 
+var supportedAzurePostgreSqlAuthTypes = []string{
+	string(linkedservices.AzurePostgreSqlAuthenticationTypeBasic),
+	string(linkedservices.AzurePostgreSqlAuthenticationTypeSystemAssignedManagedIdentity),
+	string(linkedservices.AzurePostgreSqlAuthenticationTypeUserAssignedManagedIdentity),
+}
+
 func expandLinkedServiceAzurePostgreSQLTypeProperties(config LinkedServiceAzurePostgreSQLResourceModel) linkedservices.AzurePostgreSqlLinkedServiceTypeProperties {
+	authType := linkedservices.AzurePostgreSqlAuthenticationType(config.AuthenticationType)
+
 	typeProperties := &linkedservices.AzurePostgreSqlLinkedServiceTypeProperties{
-		Database: pointer.To(interface{}(config.Database)),
-		Server:   pointer.To(interface{}(config.Server)),
-		Port:     pointer.To(interface{}(config.Port)),
+		Database:           pointer.To(interface{}(config.Database)),
+		Server:             pointer.To(interface{}(config.Server)),
+		Port:               pointer.To(interface{}(config.Port)),
+		AuthenticationType: pointer.To(authType),
 	}
 
 	if config.SslMode != "" {
 		typeProperties.SslMode = pointer.To(interface{}(config.SslMode))
 	}
-	if config.AuthenticationType == "Basic" {
+	if authType == linkedservices.AzurePostgreSqlAuthenticationTypeBasic {
 		typeProperties.Password = expandTypedLinkedServiceKeyVaultPassword(config.KeyVaultPassword)
 		typeProperties.Username = pointer.To(interface{}(config.Username))
 	}
 
-	if config.AuthenticationType == "UserAssignedManagedIdentity" {
+	if authType == linkedservices.AzurePostgreSqlAuthenticationTypeUserAssignedManagedIdentity {
 		typeProperties.Credential = &linkedservices.CredentialReference{
 			ReferenceName: config.CredentialName,
 		}
@@ -394,12 +398,6 @@ func expandLinkedServiceAzurePostgreSQLTypeProperties(config LinkedServiceAzureP
 }
 
 func (LinkedServiceAzurePostgreSQLResource) flatten(metadata sdk.ResourceMetaData, id *linkedservices.LinkedServiceId, model *linkedservices.LinkedServiceResource) error {
-	dataFactoryId := linkedservices.NewFactoryID(id.SubscriptionId, id.ResourceGroupName, id.FactoryName)
-	state := LinkedServiceAzurePostgreSQLResourceModel{
-		Name:          id.LinkedServiceName,
-		DataFactoryID: dataFactoryId.ID(),
-	}
-
 	if model.Properties == nil {
 		return fmt.Errorf("retrieving %s: `properties` was nil", id)
 	}
@@ -411,39 +409,57 @@ func (LinkedServiceAzurePostgreSQLResource) flatten(metadata sdk.ResourceMetaDat
 
 	props := linkedService.TypeProperties
 
-	if database, ok := pointer.From(props.Database).(string); ok {
-		state.Database = database
+	dataFactoryId := linkedservices.NewFactoryID(id.SubscriptionId, id.ResourceGroupName, id.FactoryName)
+	state := LinkedServiceAzurePostgreSQLResourceModel{
+		Name:                   id.LinkedServiceName,
+		DataFactoryID:          dataFactoryId.ID(),
+		Annotations:            flattenTypedLinkedServiceAnnotations(linkedService.Annotations),
+		Description:            pointer.From(linkedService.Description),
+		IntegrationRuntimeName: flattenTypedLinkedServiceIntegrationRuntimeName(linkedService.ConnectVia),
+		Parameters:             flattenTypedLinkedServiceParameters(linkedService.Parameters),
 	}
 
-	switch port := pointer.From(props.Port).(type) {
-	case int:
-		state.Port = port
-	case int64:
-		state.Port = int(port)
-	case float64:
-		state.Port = int(port)
+	state.AuthenticationType = string(pointer.FromEnum(props.AuthenticationType))
+	authType := linkedservices.AzurePostgreSqlAuthenticationType(state.AuthenticationType)
+	if authType == linkedservices.AzurePostgreSqlAuthenticationTypeUserAssignedManagedIdentity && props.Credential != nil {
+		state.CredentialName = props.Credential.ReferenceName
+	}
+	if authType == linkedservices.AzurePostgreSqlAuthenticationTypeBasic {
+		state.KeyVaultPassword = flattenTypedLinkedServiceKeyVaultPassword(props.Password)
+	}
+	if authType == linkedservices.AzurePostgreSqlAuthenticationTypeBasic && props.Username != nil {
+		if username, ok := pointer.From(props.Username).(string); ok {
+			state.Username = username
+		}
+	}
+
+	if database, ok := pointer.From(props.Database).(string); ok {
+		state.Database = database
 	}
 
 	if server, ok := pointer.From(props.Server).(string); ok {
 		state.Server = server
 	}
 
-	state.Annotations = flattenTypedLinkedServiceAnnotations(linkedService.Annotations)
-	if props.Credential != nil {
-		state.CredentialName = props.Credential.ReferenceName
+	switch port := pointer.From(props.Port).(type) {
+	case int:
+		state.Port = int64(port)
+	case int64:
+		state.Port = port
+	case float64:
+		state.Port = int64(port)
 	}
-	state.Description = pointer.From(linkedService.Description)
-	state.IntegrationRuntimeName = flattenTypedLinkedServiceIntegrationRuntimeName(linkedService.ConnectVia)
-	state.KeyVaultPassword = flattenTypedLinkedServiceKeyVaultPassword(props.Password)
-	state.Parameters = flattenTypedLinkedServiceParameters(linkedService.Parameters)
+
 	if props.SslMode != nil {
-		if sslMode, ok := pointer.From(props.SslMode).(string); ok {
+		switch sslMode := pointer.From(props.SslMode).(type) {
+		case string:
 			state.SslMode = sslMode
-		}
-	}
-	if props.Username != nil {
-		if username, ok := pointer.From(props.Username).(string); ok {
-			state.Username = username
+		case int:
+			state.SslMode = fmt.Sprintf("%d", sslMode)
+		case int64:
+			state.SslMode = fmt.Sprintf("%d", sslMode)
+		case float64:
+			state.SslMode = fmt.Sprintf("%.0f", sslMode)
 		}
 	}
 
