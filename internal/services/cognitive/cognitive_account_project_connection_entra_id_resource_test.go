@@ -486,12 +486,12 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_cosmosdb_account" "test" {
-  name                          = "acctestcdb%[3]s"
-  location                      = azurerm_resource_group.test.location
-  resource_group_name           = azurerm_resource_group.test.name
-  offer_type                    = "Standard"
-  kind                          = "GlobalDocumentDB"
-  local_authentication_disabled = true
+  name                         = "acctestcdb%[3]s"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
+  offer_type                   = "Standard"
+  kind                         = "GlobalDocumentDB"
+  local_authentication_enabled = false
 
   consistency_policy {
     consistency_level       = "BoundedStaleness"
