@@ -37,9 +37,9 @@ func (s BaseConnectionPropertiesV2Impl) ConnectionPropertiesV2() BaseConnectionP
 
 var _ ConnectionPropertiesV2 = RawConnectionPropertiesV2Impl{}
 
-// RawConnectionPropertiesV2Impl is returned when the Discriminated Value doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+// RawConnectionPropertiesV2Impl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawConnectionPropertiesV2Impl struct {
 	connectionPropertiesV2 BaseConnectionPropertiesV2Impl
 	Type                   string
@@ -48,6 +48,10 @@ type RawConnectionPropertiesV2Impl struct {
 
 func (s RawConnectionPropertiesV2Impl) ConnectionPropertiesV2() BaseConnectionPropertiesV2Impl {
 	return s.connectionPropertiesV2
+}
+
+func (s RawConnectionPropertiesV2Impl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
 }
 
 func UnmarshalConnectionPropertiesV2Implementation(input []byte) (ConnectionPropertiesV2, error) {
