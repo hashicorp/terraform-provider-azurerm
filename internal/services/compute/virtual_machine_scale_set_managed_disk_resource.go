@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -105,6 +106,15 @@ type DiskEncryptionKeyModel struct {
 type KeyEncryptionKeyModel struct {
 	KeyUrl        string `tfschema:"key_url"`
 	SourceVaultId string `tfschema:"source_vault_id"`
+}
+
+type virtualMachineScaleSetManagedDiskAttachment struct {
+	instanceId              virtualmachinescalesetvms.VirtualMachineScaleSetVirtualMachineId
+	lun                     *int64
+	caching                 *virtualmachinescalesetvms.CachingTypes
+	deleteOption            *virtualmachinescalesetvms.DiskDeleteOptionTypes
+	diskEncryptionSet       *virtualmachinescalesetvms.SubResource
+	writeAcceleratorEnabled *bool
 }
 
 func (r VirtualMachineScaleSetManagedDiskResource) ResourceType() string {
@@ -928,97 +938,159 @@ func (r VirtualMachineScaleSetManagedDiskResource) Update() sdk.ResourceFunc {
 				return nil
 			}
 
-			return r.updateWithDetach(ctx, metadata, *id, existing.Model.ManagedBy, payload)
+			return r.updateWithDetach(ctx, metadata, *id, existing.Model, payload)
 		},
 	}
 }
 
-func (r VirtualMachineScaleSetManagedDiskResource) updateWithDetach(ctx context.Context, metadata sdk.ResourceMetaData, id commonids.ManagedDiskId, managedBy *string, payload disks.Disk) error {
+func (r VirtualMachineScaleSetManagedDiskResource) updateWithDetach(ctx context.Context, metadata sdk.ResourceMetaData, id commonids.ManagedDiskId, existing *disks.Disk, payload disks.Disk) error {
 	client := metadata.Client.Compute.DisksClient
+	attachedResourceIds := virtualMachineScaleSetManagedDiskAttachedResourceIds(existing)
 
-	if managedBy == nil || *managedBy == "" {
+	if len(attachedResourceIds) == 0 {
 		if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
 		}
 		return nil
 	}
 
-	instanceId, err := virtualmachinescalesetvms.ParseVirtualMachineScaleSetVirtualMachineIDInsensitively(*managedBy)
-	if err != nil {
-		if _, vmErr := virtualmachines.ParseVirtualMachineIDInsensitively(*managedBy); vmErr == nil {
-			return fmt.Errorf("%s is attached to the standalone Virtual Machine %q - this change requires the disk to be taken offline, which is only supported for disks attached to a Virtual Machine Scale Set instance by this resource; please manage this disk with `azurerm_managed_disk` instead", id, *managedBy)
+	attachments := make([]virtualMachineScaleSetManagedDiskAttachment, 0, len(attachedResourceIds))
+	lockNames := make(map[string]struct{})
+	for _, attachedResourceId := range attachedResourceIds {
+		instanceId, err := virtualmachinescalesetvms.ParseVirtualMachineScaleSetVirtualMachineIDInsensitively(attachedResourceId)
+		if err != nil {
+			if _, vmErr := virtualmachines.ParseVirtualMachineIDInsensitively(attachedResourceId); vmErr == nil {
+				return fmt.Errorf("%s is attached to the standalone Virtual Machine %q - this change requires the disk to be taken offline, which is only supported for disks attached to a Virtual Machine Scale Set instance by this resource; please manage this disk with `azurerm_managed_disk` instead", id, attachedResourceId)
+			}
+			return fmt.Errorf("%s is attached to %q - this change requires the disk to be taken offline, which is only supported for disks attached to Virtual Machine Scale Set instances by this resource", id, attachedResourceId)
 		}
-		if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
-			return fmt.Errorf("updating %s: %+v", id, err)
-		}
-		return nil
+
+		attachments = append(attachments, virtualMachineScaleSetManagedDiskAttachment{
+			instanceId: *instanceId,
+		})
+		lockNames[instanceId.VirtualMachineScaleSetName] = struct{}{}
 	}
+
+	if metadata.ResourceData.HasChange("max_shares") && payload.Properties != nil && payload.Properties.MaxShares != nil && *payload.Properties.MaxShares > 0 && int(*payload.Properties.MaxShares) < len(attachments) {
+		return fmt.Errorf("`max_shares` must be at least the number of Virtual Machine Scale Set instances the disk is attached to, got `%d` for `%d` attachments", *payload.Properties.MaxShares, len(attachments))
+	}
+
+	lockNamesList := make([]string, 0, len(lockNames))
+	for name := range lockNames {
+		lockNamesList = append(lockNamesList, name)
+	}
+	sort.Strings(lockNamesList)
+
+	for _, name := range lockNamesList {
+		locks.ByName(name, VirtualMachineScaleSetResourceName)
+	}
+	defer func() {
+		for i := len(lockNamesList) - 1; i >= 0; i-- {
+			locks.UnlockByName(lockNamesList[i], VirtualMachineScaleSetResourceName)
+		}
+	}()
 
 	vmClient := metadata.Client.Compute.VirtualMachineScaleSetVMsClient
 
-	locks.ByName(instanceId.VirtualMachineScaleSetName, VirtualMachineScaleSetResourceName)
-	defer locks.UnlockByName(instanceId.VirtualMachineScaleSetName, VirtualMachineScaleSetResourceName)
+	for index, attachment := range attachments {
+		instance, err := vmClient.Get(ctx, attachment.instanceId, virtualmachinescalesetvms.DefaultGetOperationOptions())
+		if err != nil {
+			return fmt.Errorf("retrieving %s: %+v", attachment.instanceId, err)
+		}
 
-	instance, err := vmClient.Get(ctx, *instanceId, virtualmachinescalesetvms.DefaultGetOperationOptions())
-	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", *instanceId, err)
-	}
-
-	var lun *int64
-	var caching *virtualmachinescalesetvms.CachingTypes
-	var writeAcceleratorEnabled *bool
-	if model := instance.Model; model != nil && model.Properties != nil && model.Properties.StorageProfile != nil && model.Properties.StorageProfile.DataDisks != nil {
-		for _, dataDisk := range *model.Properties.StorageProfile.DataDisks {
-			if dataDisk.ManagedDisk == nil || dataDisk.ManagedDisk.Id == nil {
-				continue
-			}
-			dataDiskId, err := commonids.ParseManagedDiskIDInsensitively(*dataDisk.ManagedDisk.Id)
-			if err != nil {
-				continue
-			}
-			if strings.EqualFold(dataDiskId.ID(), id.ID()) {
-				lun = pointer.To(dataDisk.Lun)
-				caching = dataDisk.Caching
-				writeAcceleratorEnabled = dataDisk.WriteAcceleratorEnabled
-				break
+		if model := instance.Model; model != nil && model.Properties != nil && model.Properties.StorageProfile != nil && model.Properties.StorageProfile.DataDisks != nil {
+			for _, dataDisk := range *model.Properties.StorageProfile.DataDisks {
+				if dataDisk.ManagedDisk == nil || dataDisk.ManagedDisk.Id == nil {
+					continue
+				}
+				dataDiskId, err := commonids.ParseManagedDiskIDInsensitively(*dataDisk.ManagedDisk.Id)
+				if err != nil {
+					continue
+				}
+				if strings.EqualFold(dataDiskId.ID(), id.ID()) {
+					attachment.lun = pointer.To(dataDisk.Lun)
+					attachment.caching = dataDisk.Caching
+					attachment.deleteOption = dataDisk.DeleteOption
+					attachment.diskEncryptionSet = dataDisk.ManagedDisk.DiskEncryptionSet
+					attachment.writeAcceleratorEnabled = dataDisk.WriteAcceleratorEnabled
+					break
+				}
 			}
 		}
+
+		if attachment.lun == nil {
+			return fmt.Errorf("locating %s as a data disk on %s", id, attachment.instanceId)
+		}
+		attachments[index] = attachment
 	}
 
-	if lun == nil {
-		return fmt.Errorf("locating %s as a data disk on %s", id, *instanceId)
-	}
-
-	detach := virtualmachinescalesetvms.AttachDetachDataDisksRequest{
-		DataDisksToDetach: &[]virtualmachinescalesetvms.DataDisksToDetach{
-			{
-				DiskId: id.ID(),
+	for _, attachment := range attachments {
+		detach := virtualmachinescalesetvms.AttachDetachDataDisksRequest{
+			DataDisksToDetach: &[]virtualmachinescalesetvms.DataDisksToDetach{
+				{
+					DiskId: id.ID(),
+				},
 			},
-		},
-	}
-	if err := vmClient.AttachDetachDataDisksThenPoll(ctx, *instanceId, detach); err != nil {
-		return fmt.Errorf("detaching %s from %s: %+v", id, *instanceId, err)
+		}
+		if err := vmClient.AttachDetachDataDisksThenPoll(ctx, attachment.instanceId, detach); err != nil {
+			return fmt.Errorf("detaching %s from %s: %+v", id, attachment.instanceId, err)
+		}
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
-	attach := virtualmachinescalesetvms.AttachDetachDataDisksRequest{
-		DataDisksToAttach: &[]virtualmachinescalesetvms.DataDisksToAttach{
-			{
-				DiskId:                  id.ID(),
-				Lun:                     lun,
-				Caching:                 caching,
-				WriteAcceleratorEnabled: writeAcceleratorEnabled,
+	for _, attachment := range attachments {
+		attach := virtualmachinescalesetvms.AttachDetachDataDisksRequest{
+			DataDisksToAttach: &[]virtualmachinescalesetvms.DataDisksToAttach{
+				{
+					DiskId:                  id.ID(),
+					Lun:                     attachment.lun,
+					Caching:                 attachment.caching,
+					DeleteOption:            attachment.deleteOption,
+					DiskEncryptionSet:       attachment.diskEncryptionSet,
+					WriteAcceleratorEnabled: attachment.writeAcceleratorEnabled,
+				},
 			},
-		},
-	}
-	if err := vmClient.AttachDetachDataDisksThenPoll(ctx, *instanceId, attach); err != nil {
-		return fmt.Errorf("re-attaching %s to %s: %+v", id, *instanceId, err)
+		}
+		if err := vmClient.AttachDetachDataDisksThenPoll(ctx, attachment.instanceId, attach); err != nil {
+			return fmt.Errorf("re-attaching %s to %s: %+v", id, attachment.instanceId, err)
+		}
 	}
 
 	return nil
+}
+
+func virtualMachineScaleSetManagedDiskAttachedResourceIds(existing *disks.Disk) []string {
+	if existing == nil {
+		return nil
+	}
+
+	seen := make(map[string]struct{})
+	out := make([]string, 0)
+	add := func(input string) {
+		if input == "" {
+			return
+		}
+		key := strings.ToLower(input)
+		if _, ok := seen[key]; ok {
+			return
+		}
+		seen[key] = struct{}{}
+		out = append(out, input)
+	}
+
+	if existing.ManagedBy != nil {
+		add(*existing.ManagedBy)
+	}
+	if existing.ManagedByExtended != nil {
+		for _, managedBy := range *existing.ManagedByExtended {
+			add(managedBy)
+		}
+	}
+
+	return out
 }
 
 func (r VirtualMachineScaleSetManagedDiskResource) updateRequiresDetach(metadata sdk.ResourceMetaData, existing *disks.Disk, newSizeGb int64) bool {
