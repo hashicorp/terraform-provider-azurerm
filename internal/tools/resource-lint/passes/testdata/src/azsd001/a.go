@@ -9,8 +9,8 @@ import (
 
 func validCases() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-		// Valid: MaxItems:1 with multiple properties (no need to flatten)
-		"config_multi": {
+		// Valid: Has a required field, so AtLeastOneOf not needed
+		"config_with_required": {
 			Type:     schema.TypeList,
 			Optional: true,
 			MaxItems: 1,
@@ -28,42 +28,67 @@ func validCases() map[string]*schema.Schema {
 			},
 		},
 
-		// Valid: MaxItems:1 with single property but has explanatory comment
-		"config_with_comment": {
+		// Valid: Has AtLeastOneOf set on optional fields
+		"config_with_atleastone": {
 			Type:     schema.TypeList,
 			Optional: true,
 			MaxItems: 1,
-			Elem: &schema.Resource{ // Additional properties will be added per service team confirmation
+			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
-					"value": {
-						Type:     schema.TypeString,
-						Required: true,
+					"linux": {
+						Type:         schema.TypeList,
+						Optional:     true,
+						AtLeastOneOf: []string{"config_with_atleastone.0.linux", "config_with_atleastone.0.windows"},
+					},
+					"windows": {
+						Type:         schema.TypeList,
+						Optional:     true,
+						AtLeastOneOf: []string{"config_with_atleastone.0.linux", "config_with_atleastone.0.windows"},
 					},
 				},
 			},
 		},
 
-		// Valid: Not MaxItems:1 (so no rule applies)
-		"config_list": {
+		// Valid: Only one optional field, no need for AtLeastOneOf
+		"config_single_optional": {
 			Type:     schema.TypeList,
 			Optional: true,
+			MaxItems: 1,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"value": {
 						Type:     schema.TypeString,
-						Required: true,
+						Optional: true,
 					},
 				},
 			},
 		},
 
-		// Valid: Simple string field (not a block)
+		// Valid: Not a TypeList
 		"simple_field": {
 			Type:     schema.TypeString,
 			Optional: true,
 		},
 
-		// Valid: MaxItems:1 with single property that has a default value
+		// Valid: Computed field, should be skipped
+		"computed_field": {
+			Type:     schema.TypeList,
+			Computed: true,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"property1": {
+						Type:     schema.TypeString,
+						Optional: true,
+					},
+					"property2": {
+						Type:     schema.TypeInt,
+						Optional: true,
+					},
+				},
+			},
+		},
+
+		// Valid: Nested field has a default value, should be skipped
 		"config_with_default": {
 			Type:     schema.TypeList,
 			Optional: true,
@@ -75,6 +100,10 @@ func validCases() map[string]*schema.Schema {
 						Optional: true,
 						Default:  false,
 					},
+					"mode": {
+						Type:     schema.TypeString,
+						Optional: true,
+					},
 				},
 			},
 		},
@@ -83,30 +112,42 @@ func validCases() map[string]*schema.Schema {
 
 func invalidCases() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-		// Invalid: MaxItems:1 with only one property and no comment
-		"config_single": { // want `AZSD001`
+		// Invalid: Multiple optional fields without AtLeastOneOf
+		"setting": { // want `AZSD001`
 			Type:     schema.TypeList,
 			Optional: true,
 			MaxItems: 1,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
-					"value": {
-						Type:     schema.TypeString,
-						Required: true,
+					"linux": {
+						Type:     schema.TypeList,
+						Optional: true,
+					},
+					"windows": {
+						Type:     schema.TypeList,
+						Optional: true,
 					},
 				},
 			},
 		},
 
-		// Invalid: Another case of MaxItems:1 with single property, no justification
-		"settings": { // want `AZSD001`
+		// Invalid: Three optional fields without AtLeastOneOf
+		"platform": { // want `AZSD001`
 			Type:     schema.TypeList,
 			Optional: true,
 			MaxItems: 1,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
-					"enabled": {
-						Type:     schema.TypeBool,
+					"linux": {
+						Type:     schema.TypeString,
+						Optional: true,
+					},
+					"windows": {
+						Type:     schema.TypeString,
+						Optional: true,
+					},
+					"macos": {
+						Type:     schema.TypeString,
 						Optional: true,
 					},
 				},
@@ -122,9 +163,13 @@ func invalidStandaloneCases() *schema.Schema {
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				"value": {
-					Type:     schema.TypeString,
-					Required: true,
+				"linux": {
+					Type:     schema.TypeList,
+					Optional: true,
+				},
+				"windows": {
+					Type:     schema.TypeList,
+					Optional: true,
 				},
 			},
 		},

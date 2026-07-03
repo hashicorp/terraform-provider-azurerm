@@ -15,33 +15,49 @@ import (
 	"golang.org/x/tools/go/analysis"
 )
 
-const AZSD001Doc = `check MaxItems:1 blocks with single property should be flattened
+const AZSD001Doc = `check AtLeastOneOf validation for TypeList fields with all optional nested fields
 
-The AZSD001 analyzer checks that blocks with MaxItems: 1 containing only a single
-nested property should be flattened unless there's a comment explaining why.
+The AZSD001 analyzer checks that when a pluginsdk.TypeList block has no required nested
+fields, AtLeastOneOf or ExactlyOneOf must be set on the optional fields to ensure at least one is specified.
 
 Example violation:
-  "config": {
-      Type:     schema.TypeList,
+  "setting": {
+      Type:     pluginsdk.TypeList,
+      Optional: true,
       MaxItems: 1,
-      Elem: &schema.Resource{
-          Schema: map[string]*schema.Schema{
-              "value": {...},  // Only one property - should be flattened
+      Elem: &pluginsdk.Resource{
+          Schema: map[string]*pluginsdk.Schema{
+              "linux": {
+                  Type:     pluginsdk.TypeList,
+                  Optional: true,
+                  // Missing AtLeastOneOf!
+              },
+              "windows": {
+                  Type:     pluginsdk.TypeList,
+                  Optional: true,
+                  // Missing AtLeastOneOf!
+              },
           },
       },
   }
 
-Valid usage (flattened):
-  "config_value": {...}
-
-Valid usage (with explanation):
-  "config": {
-      Type:     schema.TypeList,
+Valid usage:
+  "setting": {
+      Type:     pluginsdk.TypeList,
+      Optional: true,
       MaxItems: 1,
-      // Additional properties will be added per service team confirmation
-      Elem: &schema.Resource{
-          Schema: map[string]*schema.Schema{
-              "value": {...},
+      Elem: &pluginsdk.Resource{
+          Schema: map[string]*pluginsdk.Schema{
+              "linux": {
+                  Type:         pluginsdk.TypeList,
+                  Optional:     true,
+                  AtLeastOneOf: []string{"setting.0.linux", "setting.0.windows"},
+              },
+              "windows": {
+                  Type:         pluginsdk.TypeList,
+                  Optional:     true,
+                  AtLeastOneOf: []string{"setting.0.linux", "setting.0.windows"},
+              },
           },
       },
   }`
@@ -49,10 +65,13 @@ Valid usage (with explanation):
 const azsd001Name = "AZSD001"
 
 var AZSD001Analyzer = &analysis.Analyzer{
-	Name:     azsd001Name,
-	Doc:      AZSD001Doc,
-	Run:      runAZSD001,
-	Requires: []*analysis.Analyzer{localschema.LocalAnalyzer, commentignore.Analyzer},
+	Name: azsd001Name,
+	Doc:  AZSD001Doc,
+	Run:  runAZSD001,
+	Requires: []*analysis.Analyzer{
+		localschema.LocalAnalyzer,
+		commentignore.Analyzer,
+	},
 }
 
 func runAZSD001(pass *analysis.Pass) (interface{}, error) {
@@ -65,20 +84,12 @@ func runAZSD001(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
-	// Build file comments map for all files
-	fileCommentsMap := make(map[string][]*ast.CommentGroup)
-	for _, f := range pass.Files {
-		filename := pass.Fset.Position(f.Pos()).Filename
-		fileCommentsMap[filename] = f.Comments
-	}
-
 	// Build a lookup map for nested schema lookups
 	schemaInfoByLit := make(map[*ast.CompositeLit]*localschema.LocalSchemaInfoWithName)
 	for _, cached := range schemaInfoList {
 		schemaInfoByLit[cached.Info.AstCompositeLit] = cached
 	}
 
-	// Iterate over cached schema infos
 	for _, cached := range schemaInfoList {
 		schemaInfo := cached.Info
 		schemaLit := schemaInfo.AstCompositeLit
@@ -87,8 +98,13 @@ func runAZSD001(pass *analysis.Pass) (interface{}, error) {
 			continue
 		}
 
-		// Check if MaxItems is 1
-		if schemaInfo.Schema.MaxItems != 1 {
+		// Skip Computed fields
+		if cached.Info.Schema.Computed {
+			continue
+		}
+
+		// Only check TypeList fields with max items == 1
+		if !schemaInfo.IsType(schema.SchemaValueTypeList) || schemaInfo.Schema.MaxItems != 1 {
 			continue
 		}
 
@@ -110,82 +126,76 @@ func runAZSD001(pass *analysis.Pass) (interface{}, error) {
 			continue
 		}
 
-		// Count properties in the nested schema and check for defaults
-		propertyCount := 0
+		// Collect nested fields
+		optionalFieldsCount := 0
+		hasRequiredField := false
+		hasAtLeastOneOfOrExactlyOneOf := false
 		hasDefaultValue := false
 		for _, elt := range nestedSchemaMap.Elts {
 			kv, ok := elt.(*ast.KeyValueExpr)
 			if !ok {
 				continue
 			}
-			propertyCount++
 
-			// Check if nested field has a default value
-			if nestedSchemaLit, ok := kv.Value.(*ast.CompositeLit); ok {
-				if nestedCached, exists := schemaInfoByLit[nestedSchemaLit]; exists {
-					if nestedCached.Info.DeclaresField(schema.SchemaFieldDefault) {
-						hasDefaultValue = true
-					}
-				}
+			nestedSchemaLit, ok := kv.Value.(*ast.CompositeLit)
+			if !ok {
+				continue
 			}
-		}
 
-		// Skip if any nested field has a default value
-		if hasDefaultValue {
-			continue
-		}
+			nestedCached, exists := schemaInfoByLit[nestedSchemaLit]
+			if !exists {
+				continue
+			}
 
-		// If only one property, check for any explanatory comment
-		if propertyCount == 1 {
-			filename := pass.Fset.Position(schemaLit.Pos()).Filename
-			elemLine := pass.Fset.Position(elemKV.Value.Pos()).Line
+			nestedInfo := nestedCached.Info
+			if nestedInfo.Schema.Required {
+				hasRequiredField = true
+				break
+			}
 
-			hasComment := false
-			comments := fileCommentsMap[filename]
-			for _, cg := range comments {
-				for _, c := range cg.List {
-					commentLine := pass.Fset.Position(c.Pos()).Line
-					// Check if comment is on the same line as Elem (inline comment)
-					if commentLine == elemLine {
-						hasComment = true
-						break
-					}
-				}
-				if hasComment {
+			// Skip if any nested field has a default value
+			if nestedInfo.DeclaresField(schema.SchemaFieldDefault) {
+				hasDefaultValue = true
+				break
+			}
+
+			if nestedInfo.Schema.Optional {
+				// Check if at least one optional field has AtLeastOneOf
+				atLeastOneOfKV := nestedInfo.Fields[schema.SchemaFieldAtLeastOneOf]
+				exactlyOneOfKV := nestedInfo.Fields[schema.SchemaFieldExactlyOneOf]
+				if atLeastOneOfKV != nil || exactlyOneOfKV != nil {
+					hasAtLeastOneOfOrExactlyOneOf = true
 					break
 				}
+				optionalFieldsCount++
 			}
+		}
 
-			if !hasComment {
-				pos := pass.Fset.Position(schemaLit.Pos())
-				if !loader.IsFileChanged(pos.Filename) {
-					continue
-				}
-				if propertyName := cached.PropertyName; propertyName != "" {
-					reporting.Reportf(pass, reporting.ReportOptions{
-						Rule:          azsd001Name,
-						ReportPos:     schemaLit.Pos(),
-						EvidenceFile:  pos.Filename,
-						EvidenceLines: []int{pos.Line},
-						MatchMode:     reporting.MatchModeExactAdded,
-					}, "%s: field `%s` has %s with only one nested property - consider %s or add inline comment explaining why (e.g., %s)\n",
-						azsd001Name, propertyName,
-						helper.IssueLine("MaxItems: 1"),
-						helper.FixedCode("flattening"),
-						helper.FixedCode("'// Additional properties will be added per service team confirmation'"))
-				} else {
-					reporting.Reportf(pass, reporting.ReportOptions{
-						Rule:          azsd001Name,
-						ReportPos:     schemaLit.Pos(),
-						EvidenceFile:  pos.Filename,
-						EvidenceLines: []int{pos.Line},
-						MatchMode:     reporting.MatchModeExactAdded,
-					}, "%s: field has %s with only one nested property - consider %s or add inline comment explaining why (e.g., %s)\n",
-						azsd001Name,
-						helper.IssueLine("MaxItems: 1"),
-						helper.FixedCode("flattening"),
-						helper.FixedCode("'// Additional properties will be added per service team confirmation'"))
-				}
+		// Only report if there are no required fields, no default values, multiple optional fields,
+		// and none of them have AtLeastOneOf set
+		if !hasRequiredField && !hasDefaultValue && !hasAtLeastOneOfOrExactlyOneOf && optionalFieldsCount >= 2 {
+			pos := pass.Fset.Position(schemaLit.Pos())
+			if !loader.IsFileChanged(pos.Filename) {
+				continue
+			}
+			if propertyName := cached.PropertyName; propertyName != "" {
+				reporting.Reportf(pass, reporting.ReportOptions{
+					Rule:          azsd001Name,
+					ReportPos:     schemaLit.Pos(),
+					EvidenceFile:  pos.Filename,
+					EvidenceLines: []int{pos.Line},
+					MatchMode:     reporting.MatchModeExactAdded,
+				}, "%s: TypeList field `%s` has %s, %s must be set on the optional fields to ensure at least one is specified.\n",
+					azsd001Name, propertyName, helper.IssueLine("all optional nested fields"), helper.FixedCode("`AtLeastOneOf` or `ExactlyOneOf`"))
+			} else {
+				reporting.Reportf(pass, reporting.ReportOptions{
+					Rule:          azsd001Name,
+					ReportPos:     schemaLit.Pos(),
+					EvidenceFile:  pos.Filename,
+					EvidenceLines: []int{pos.Line},
+					MatchMode:     reporting.MatchModeExactAdded,
+				}, "%s: TypeList field has %s, %s must be set on the optional fields to ensure at least one is specified.\n",
+					azsd001Name, helper.IssueLine("all optional nested fields"), helper.FixedCode("`AtLeastOneOf` or `ExactlyOneOf`"))
 			}
 		}
 	}

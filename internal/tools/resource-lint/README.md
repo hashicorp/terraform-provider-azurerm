@@ -39,8 +39,7 @@ For additional information about each check, see the documentation in the passes
 
 | Check | Description |
 |-------|-------------|
-| AZSD001 | check for `MaxItems:1` blocks with single property should be flattened |
-| AZSD002 | check for `AtLeastOneOf` or `ExactlyOneOf` validation on TypeList fields with all optional nested fields |
+| AZSD001 | check for `AtLeastOneOf` or `ExactlyOneOf` validation on TypeList fields with all optional nested fields |
 
 ## Usage
 
@@ -107,7 +106,7 @@ internal/services/policy/policy_resource.go:162:19: AZBP003: use `pointer.ToEnum
 
 ## Limitations
 
-Schema-related checks (e.g., AZNR002, AZSD001, AZSD002) analyze schemas defined as `map[string]*pluginsdk.Schema` or `map[string]*schema.Schema` composite literals returned from functions. This includes:
+Schema-related checks (e.g., AZNR002, AZSD001) analyze schemas defined as `map[string]*pluginsdk.Schema` or `map[string]*schema.Schema` composite literals returned from functions. This includes:
 
 - **Direct returns**: `return &map[string]*pluginsdk.Schema{...}`
 - **Variable returns**: `output := map[string]*pluginsdk.Schema{...}; return output` (captures initial `:=` definition only)
