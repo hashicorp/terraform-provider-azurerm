@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/kubernetes"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -745,18 +746,7 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 
 		kubeConfigRaw, kubeConfig := flattenKubernetesClusterCredentialsTyped(credentials.Model, "clusterUser")
 		state.KubeConfigRaw = pointer.From(kubeConfigRaw)
-		for _, item := range kubeConfig {
-			if config, ok := item.(map[string]interface{}); ok {
-				state.KubeConfig = append(state.KubeConfig, KubeConfigModel{
-					Host:                 config["host"].(string),
-					Username:             config["username"].(string),
-					Password:             config["password"].(string),
-					ClientCertificate:    config["client_certificate"].(string),
-					ClientKey:            config["client_key"].(string),
-					ClusterCACertificate: config["cluster_ca_certificate"].(string),
-				})
-			}
-		}
+		state.KubeConfig = kubeConfig
 	}
 
 	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
@@ -1235,4 +1225,74 @@ func flattenKubernetesAutomaticClusterServiceMeshProfileCertificateAuthority(cer
 		CertObjectName:      pointer.From(plugin.CertObjectName),
 		KeyObjectName:       pointer.From(plugin.KeyObjectName),
 	}}
+}
+
+func flattenKubernetesClusterCredentialsTyped(model *managedclusters.CredentialResults, configName string) (*string, []KubeConfigModel) {
+	if model == nil || model.Kubeconfigs == nil || len(*model.Kubeconfigs) < 1 {
+		return nil, []KubeConfigModel{}
+	}
+
+	for _, c := range *model.Kubeconfigs {
+		if c.Name == nil || *c.Name != configName {
+			continue
+		}
+		if kubeConfigRaw := c.Value; kubeConfigRaw != nil {
+			rawConfig := *kubeConfigRaw
+			if base64IsEncoded(*kubeConfigRaw) {
+				rawConfig = base64Decode(*kubeConfigRaw)
+			}
+
+			var flattenedKubeConfig []KubeConfigModel
+
+			if strings.Contains(rawConfig, "apiserver-id:") || strings.Contains(rawConfig, "exec") {
+				kubeConfigAAD, err := kubernetes.ParseKubeConfigAAD(rawConfig)
+				if err != nil {
+					return pointer.To(rawConfig), []KubeConfigModel{}
+				}
+
+				flattenedKubeConfig = flattenKubernetesAutomaticClusterKubeConfigAAD(*kubeConfigAAD)
+			} else {
+				kubeConfig, err := kubernetes.ParseKubeConfig(rawConfig)
+				if err != nil {
+					return pointer.To(rawConfig), []KubeConfigModel{}
+				}
+
+				flattenedKubeConfig = flattenKubernetesAutomaticClusterKubeConfig(*kubeConfig)
+			}
+
+			return pointer.To(rawConfig), flattenedKubeConfig
+		}
+	}
+
+	return nil, []KubeConfigModel{}
+}
+
+func flattenKubernetesAutomaticClusterKubeConfig(config kubernetes.KubeConfig) []KubeConfigModel {
+	cluster := config.Clusters[0].Cluster
+	user := config.Users[0].User
+	name := config.Users[0].Name
+
+	return []KubeConfigModel{
+		{
+			Host:                 cluster.Server,
+			Username:             name,
+			Password:             user.Token,
+			ClientCertificate:    user.ClientCertificteData,
+			ClientKey:            user.ClientKeyData,
+			ClusterCACertificate: cluster.ClusterAuthorityData,
+		},
+	}
+}
+
+func flattenKubernetesAutomaticClusterKubeConfigAAD(config kubernetes.KubeConfigAAD) []KubeConfigModel {
+	cluster := config.Clusters[0].Cluster
+	name := config.Users[0].Name
+
+	return []KubeConfigModel{
+		{
+			Host:                 cluster.Server,
+			Username:             name,
+			ClusterCACertificate: cluster.ClusterAuthorityData,
+		},
+	}
 }
