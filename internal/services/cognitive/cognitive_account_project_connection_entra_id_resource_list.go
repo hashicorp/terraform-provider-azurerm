@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -152,20 +151,16 @@ func (CognitiveAccountProjectConnectionEntraIDListResource) List(ctx context.Con
 				result := request.NewListResult(listCtx)
 				result.DisplayName = pointer.From(connection.Name)
 
-				rd := sdk.WrappedResource(CognitiveAccountProjectConnectionEntraIDResource{}).Data(&terraform.InstanceState{})
-				rd.SetId(connectionId.ID())
-				if err := pluginsdk.SetResourceIdentityData(rd, connectionId); err != nil {
-					sdk.SetErrorDiagnosticAndPushListResult(result, push, "setting Cognitive Account Project Connection identity", err)
+				r := CognitiveAccountProjectConnectionEntraIDResource{}
+				meta := sdk.NewResourceMetaData(metadata.Client, r)
+				meta.SetID(connectionId)
+
+				if err := r.flatten(meta, connectionId, &connection, nil); err != nil {
+					sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", r.ResourceType()), err)
 					return
 				}
-				_ = rd.Set("name", connectionId.ConnectionName)
-				_ = rd.Set("cognitive_account_project_id", projectconnectionresource.NewProjectID(connectionId.SubscriptionId, connectionId.ResourceGroupName, connectionId.AccountName, connectionId.ProjectName).ID())
-				_ = rd.Set("authentication_type", string(base.AuthType))
-				_ = rd.Set("category", pointer.FromEnum(base.Category))
-				_ = rd.Set("target", pointer.From(base.Target))
-				_ = rd.Set("metadata", pointer.From(base.Metadata))
 
-				sdk.EncodeListResult(listCtx, rd, &result)
+				sdk.EncodeListResult(listCtx, meta.ResourceData, &result)
 				if result.Diagnostics.HasError() {
 					push(result)
 					return
