@@ -186,10 +186,6 @@ func (r CognitiveAccountConnectionAccountKeyResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
-				return err
-			}
-
 			return r.flatten(metadata, id, resp.Model, currentState.Metadata, currentState.AccountKey)
 		},
 	}
