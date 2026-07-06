@@ -230,7 +230,7 @@ resource "azurerm_nginx_deployment" "test" {
   location            = azurerm_resource_group.test.location
 
   identity {
-    type         = "UserAssigned"
+    type         = "SystemAssigned, UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
