@@ -645,7 +645,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   web_app_routing_ingress {
-    istio_enabled            = false
+    istio_enabled = false
 
   }
   service_mesh {
@@ -778,7 +778,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   web_app_routing_ingress {
-    dns_zone_ids = [azurerm_dns_zone.test.id, azurerm_dns_zone.test2.id]
+    dns_zone_ids             = [azurerm_dns_zone.test.id, azurerm_dns_zone.test2.id]
     default_nginx_controller = "External"
   }
 }
