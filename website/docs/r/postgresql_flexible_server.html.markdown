@@ -163,6 +163,8 @@ The following arguments are supported:
 
 ~> **Note:** When `storage_type` is set to `PremiumV2_LRS`, the following constraints apply: PostgreSQL versions `11`, `12` and `13` are not supported; `geo_redundant_backup_enabled` with `customer_managed_key` is not supported. Please refer to [Azure Documentation](https://learn.microsoft.com/en-us/azure/postgresql/compute-storage/concepts-storage-premium-ssd-v2#limitations-and-considerations) for more details.
 
+~> **Note:** When `storage_type` is `Premium_LRS`, servers created with a `create_mode` other than `Default` (such as a `Replica` or a restored server) are provisioned with `storage_tier` set to the basic tier for the corresponding `storage_mb`. Setting `storage_tier` to the required value must be performed in a separate update after creation.
+
 * `storage_iops` - (Optional) The maximum IOPS supported for storage. Possible values range between `3000` and `80000`.
 
 ~> **Note:** `storage_iops` is required when `storage_type` is `PremiumV2_LRS` and is not supported when `storage_type` is `Premium_LRS`.
