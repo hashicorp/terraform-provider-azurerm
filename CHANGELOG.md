@@ -4,6 +4,7 @@ ENHANCEMENTS:
 * dependencies: `keyvault` update to API version `2026-02-01` [GH-32320]
 
 FEATURES:
+* **New Resource**: `azurerm_storage_account_table_properties` [GH-32282]
 * **New List Resource**: `azurerm_monitor_scheduled_query_rules_alert`  [GH-32701]
 
 BUG FIXES:
