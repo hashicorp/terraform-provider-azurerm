@@ -11,6 +11,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/iancoleman/strcase"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
@@ -20,7 +21,7 @@ var TplFuncMap = template.FuncMap{
 	"ToLower":                        strings.ToLower,
 	"ToTitle":                        ToTitle,
 	"ToCamel":                        strcase.ToCamel,
-	"ToSnake":                        strcase.ToSnake,
+	"ToSnake":                        pluginsdk.ToSnakeCase,
 	"TfName":                         TerraformResourceName,
 	"ToString":                       ToString,
 	"ToDelim":                        strcase.ToDelimited,
