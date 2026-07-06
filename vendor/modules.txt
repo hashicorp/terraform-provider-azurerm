@@ -374,6 +374,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview
 github.com/hashicorp/go-azure-sdk/resource-manager/botservice/2022-09-15/channel
 github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afddomains
 github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdendpoints
+github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdorigingroups
+github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdorigins
 github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/endpoints
 github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles
 github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rules
