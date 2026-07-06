@@ -24,21 +24,22 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/kubernetes"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type KubernetesAutomaticClusterModel struct {
-	Name                   string                              `tfschema:"name"`
-	Location               string                              `tfschema:"location"`
-	ResourceGroupName      string                              `tfschema:"resource_group_name"`
-	APIServerAccessProfile []APIServerAccessProfileModel       `tfschema:"api_server_access"`
-	HostedSystemProfile    []HostedSystemProfile               `tfschema:"hosted_system"`
-	Identity               []identity.SystemOrUserAssignedList `tfschema:"identity"`
-	PrivateCluster         []PrivateClusterModel               `tfschema:"private_cluster"`
-	ServiceMeshProfile     []ServiceMeshProfileModel           `tfschema:"service_mesh"`
-	WebAppRoutingIngress   []WebAppRoutingIngressModel         `tfschema:"web_app_routing_ingress"`
-	Tags                   map[string]interface{}              `tfschema:"tags"`
+	Name                   string                                     `tfschema:"name"`
+	Location               string                                     `tfschema:"location"`
+	ResourceGroupName      string                                     `tfschema:"resource_group_name"`
+	APIServerAccessProfile []APIServerAccessProfileModel              `tfschema:"api_server_access"`
+	HostedSystemProfile    []HostedSystemProfile                      `tfschema:"hosted_system"`
+	Identity               []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	PrivateCluster         []PrivateClusterModel                      `tfschema:"private_cluster"`
+	ServiceMeshProfile     []ServiceMeshProfileModel                  `tfschema:"service_mesh"`
+	WebAppRoutingIngress   []WebAppRoutingIngressModel                `tfschema:"web_app_routing_ingress"`
+	Tags                   map[string]interface{}                     `tfschema:"tags"`
 	// Computed fields
 	CurrentKubernetesVersion string            `tfschema:"current_kubernetes_version"`
 	FQDN                     string            `tfschema:"fully_qualified_domain_name"`
@@ -129,7 +130,7 @@ func (r KubernetesAutomaticClusterResource) CustomImporter() sdk.ResourceRunFunc
 			return err
 		}
 
-		client := metadata.Client.Containers_v2026_04_01.KubernetesClustersClient
+		client := metadata.Client.Containers.KubernetesClustersClient_v2026_04_01
 		resp, err := client.Get(ctx, *id)
 		if err != nil || resp.Model == nil {
 			return fmt.Errorf("retrieving %s: %+v", *id, err)
@@ -158,7 +159,6 @@ func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
 			rd := metadata.ResourceDiff
 
 			if rd.Id() != "" {
-				// Check api_server_access subnet_id changes
 				if rd.HasChange("api_server_access.0.subnet_id") {
 					old, new := rd.GetChange("api_server_access.0.subnet_id")
 					if old.(string) != "" && new.(string) == "" {
@@ -179,9 +179,7 @@ func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
 			apiServerSubnetIDIsSet := false
 
 			if rawAPIServerAccess := rd.GetRawConfig().AsValueMap()["api_server_access"]; !rawAPIServerAccess.IsNull() {
-				if !rawAPIServerAccess.IsKnown() {
-					apiServerSubnetIDIsSet = true
-				} else if len(rawAPIServerAccess.AsValueSlice()) > 0 {
+				if rawAPIServerAccess.IsKnown() && len(rawAPIServerAccess.AsValueSlice()) > 0 {
 					rawAPIServerAccessConfig := rawAPIServerAccess.AsValueSlice()[0]
 					if !rawAPIServerAccessConfig.IsNull() {
 						rawSubnetID := rawAPIServerAccessConfig.AsValueMap()["subnet_id"]
@@ -190,11 +188,11 @@ func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 			}
 
-			hostedSystem := make([]interface{}, 0)
-			if v, ok := rd.Get("hosted_system").([]interface{}); ok {
-				hostedSystem = v
-			}
 			if rd.Id() == "" {
+				hostedSystem := make([]interface{}, 0)
+				if v, ok := rd.Get("hosted_system").([]interface{}); ok {
+					hostedSystem = v
+				}
 				if len(hostedSystem) == 0 {
 					if !strings.EqualFold(identityType, string(identity.TypeSystemAssigned)) {
 						return fmt.Errorf("when `hosted_system` is not configured, `identity.type` must be `SystemAssigned`")
@@ -225,10 +223,6 @@ func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
 						return fmt.Errorf("a user assigned identity must be used when using a custom private dns zone")
 					}
 				}
-
-				if authorizedIPRanges, ok := rd.Get("api_server_access.0.authorized_ip_ranges").(*pluginsdk.Set); ok && authorizedIPRanges.Len() > 0 {
-					return fmt.Errorf("`private_cluster` cannot be enabled with `api_server_access.authorized_ip_ranges`")
-				}
 			}
 
 			return nil
@@ -237,7 +231,7 @@ func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
 }
 
 func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Schema {
-	arguments := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -268,12 +262,12 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validate.CIDR,
 						},
+						ConflictsWith: []string{"private_cluster"},
 					},
 
 					"subnet_id": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						ForceNew: true,
 						AtLeastOneOf: []string{
 							"api_server_access.0.authorized_ip_ranges",
 							"api_server_access.0.subnet_id",
@@ -477,8 +471,6 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 
 		"tags": commonschema.Tags(),
 	}
-
-	return arguments
 }
 
 func (r KubernetesAutomaticClusterResource) Attributes() map[string]*pluginsdk.Schema {
@@ -611,7 +603,7 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers_v2026_04_01.KubernetesClustersClient
+			client := metadata.Client.Containers.KubernetesClustersClient_v2026_04_01
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var model KubernetesAutomaticClusterModel
@@ -631,24 +623,28 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			clusterIdentity, err := identity.ExpandSystemOrUserAssignedMapFromModel(model.Identity)
+			if err != nil {
+				return fmt.Errorf("expanding identity: %+v", err)
+			}
+
 			parameters := managedclusters.ManagedCluster{
 				Location: location.Normalize(model.Location),
 				Sku: &managedclusters.ManagedClusterSKU{
-					Name: pointer.To(managedclusters.ManagedClusterSKUName("automatic")),
-					Tier: pointer.To(managedclusters.ManagedClusterSKUTier("standard")),
+					Name: pointer.To(managedclusters.ManagedClusterSKUNameAutomatic),
+					Tier: pointer.To(managedclusters.ManagedClusterSKUTierStandard),
 				},
 				Properties: &managedclusters.ManagedClusterProperties{
 					ApiServerAccessProfile: expandKubernetesAutomaticClusterAPIAccessProfile(model),
 					HostedSystemProfile:    expandKubernetesAutomaticClusterHostedSystemProfile(model.HostedSystemProfile),
-					IngressProfile:         expandKubernetesAutomaticClusterWebAppRoutingIngress(model.WebAppRoutingIngress, false),
+					IngressProfile:         expandKubernetesAutomaticClusterWebAppRoutingIngress(model.WebAppRoutingIngress),
 					ServiceMeshProfile:     expandKubernetesAutomaticClusterServiceMeshProfile(model.ServiceMeshProfile, nil),
 				},
-				Identity: expandIdentityModel(model.Identity),
+				Identity: clusterIdentity,
 				Tags:     tags.Expand(model.Tags),
 			}
 
-			err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, managedclusters.DefaultCreateOrUpdateOperationOptions(), metadata.SetIDAndIdentityCallback(&id))
-			if err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, managedclusters.DefaultCreateOrUpdateOperationOptions(), metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -657,7 +653,7 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			return metadata.Encode(&model)
+			return nil
 		},
 	}
 }
@@ -666,7 +662,7 @@ func (r KubernetesAutomaticClusterResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers_v2026_04_01.KubernetesClustersClient
+			client := metadata.Client.Containers.KubernetesClustersClient_v2026_04_01
 
 			id, err := commonids.ParseKubernetesClusterID(metadata.ResourceData.Id())
 			if err != nil {
@@ -681,30 +677,13 @@ func (r KubernetesAutomaticClusterResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			if resp.Model == nil {
-				return fmt.Errorf("retrieving %s: `model` was nil", *id)
-			}
-
-			return r.flatten(ctx, metadata, id, resp.Model)
+			return r.flatten(ctx, metadata, id, resp.Model, true)
 		},
 	}
 }
 
-func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadata sdk.ResourceMetaData, id *commonids.KubernetesClusterId, model *managedclusters.ManagedCluster) error {
-	client := metadata.Client.Containers_v2026_04_01.KubernetesClustersClient
-
-	credentials, err := client.ListClusterUserCredentials(ctx, *id, managedclusters.ListClusterUserCredentialsOperationOptions{})
-	if err != nil {
-		return fmt.Errorf("retrieving User Credentials for %s: %+v", id, err)
-	}
-	if credentials.Model == nil {
-		return fmt.Errorf("retrieving User Credentials for %s: payload is empty", id)
-	}
-
-	var config KubernetesAutomaticClusterModel
-	if err := metadata.Decode(pointer.To(config)); err != nil {
-		return fmt.Errorf("decoding: %+v", err)
-	}
+func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadata sdk.ResourceMetaData, id *commonids.KubernetesClusterId, model *managedclusters.ManagedCluster, includeResource bool) error {
+	client := metadata.Client.Containers.KubernetesClustersClient_v2026_04_01
 
 	state := KubernetesAutomaticClusterModel{
 		Name:              id.ManagedClusterName,
@@ -725,23 +704,43 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 			if nodeResourceGroup := pointer.From(props.NodeResourceGroup); nodeResourceGroup != "" {
 				state.NodeResourceGroupID = commonids.NewResourceGroupID(id.SubscriptionId, nodeResourceGroup).ID()
 			}
+			var err error
 
-			apiServerAccessProfile, privateCluster := flattenKubernetesAutomaticClusterAPIAccessProfile(props.ApiServerAccessProfile)
-			state.APIServerAccessProfile = apiServerAccessProfile
-			state.PrivateCluster = privateCluster
+			state.APIServerAccessProfile, state.PrivateCluster, err = flattenKubernetesAutomaticClusterAPIAccessProfile(props.ApiServerAccessProfile)
+			if err != nil {
+				return fmt.Errorf("flattening API access profile: %w", err)
+			}
 
 			state.HostedSystemProfile = flattenKubernetesAutomaticClusterHostedSystemProfile(props.HostedSystemProfile)
 
-			state.Identity = flattenIdentityModel(model.Identity)
+			flattenedIdentity, err := identity.FlattenSystemOrUserAssignedMapToModel(model.Identity)
+			if err != nil {
+				return fmt.Errorf("flattening identity: %w", err)
+			}
+			state.Identity = pointer.From(flattenedIdentity)
 
 			state.ServiceMeshProfile = flattenKubernetesAutomaticClusterServiceMeshProfile(props.ServiceMeshProfile)
 
-			state.WebAppRoutingIngress = flattenKubernetesAutomaticClusterWebAppRoutingIngress(props.IngressProfile)
+			webAppRoutingIngress, err := flattenKubernetesAutomaticClusterWebAppRoutingIngress(props.IngressProfile)
+			if err != nil {
+				return fmt.Errorf("flattening Web App Routing Ingress: %w", err)
+			}
+			state.WebAppRoutingIngress = webAppRoutingIngress
 		}
 
-		kubeConfigRaw, kubeConfig := flattenKubernetesClusterCredentialsTyped(credentials.Model, "clusterUser")
-		state.KubeConfigRaw = pointer.From(kubeConfigRaw)
-		state.KubeConfig = kubeConfig
+		if includeResource {
+			credentials, err := client.ListClusterUserCredentials(ctx, *id, managedclusters.ListClusterUserCredentialsOperationOptions{})
+			if err != nil {
+				return fmt.Errorf("retrieving User Credentials for %s: %+v", id, err)
+			}
+			if credentials.Model == nil {
+				return fmt.Errorf("retrieving User Credentials for %s: payload is empty", id)
+			}
+
+			kubeConfigRaw, kubeConfig := flattenKubernetesClusterCredentialsTyped(credentials.Model, "clusterUser")
+			state.KubeConfigRaw = pointer.From(kubeConfigRaw)
+			state.KubeConfig = kubeConfig
+		}
 	}
 
 	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
@@ -755,17 +754,12 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers_v2026_04_01
-			clusterClient := client.KubernetesClustersClient
+			client := metadata.Client.Containers
+			clusterClient := client.KubernetesClustersClient_v2026_04_01
 
 			id, err := commonids.ParseKubernetesClusterID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
-			}
-
-			var model KubernetesAutomaticClusterModel
-			if err := metadata.Decode(&model); err != nil {
-				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			existing, err := clusterClient.Get(ctx, *id)
@@ -786,6 +780,11 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 				}
 			}
 
+			var model KubernetesAutomaticClusterModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %w", err)
+			}
+
 			updateCluster := false
 			props := existing.Model.Properties
 
@@ -799,13 +798,21 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 				updateCluster = true
 			}
 
+			if metadata.ResourceData.HasChange("identity") {
+				existing.Model.Identity, err = identity.ExpandSystemOrUserAssignedMapFromModel(model.Identity)
+				if err != nil {
+					return fmt.Errorf("expanding identity: %+v", err)
+				}
+				updateCluster = true
+			}
+
 			if metadata.ResourceData.HasChange("service_mesh") {
 				props.ServiceMeshProfile = expandKubernetesAutomaticClusterServiceMeshProfile(model.ServiceMeshProfile, props.ServiceMeshProfile)
 				updateCluster = true
 			}
 
 			if metadata.ResourceData.HasChange("web_app_routing_ingress") {
-				props.IngressProfile = expandKubernetesAutomaticClusterWebAppRoutingIngress(model.WebAppRoutingIngress, metadata.ResourceData.HasChange("web_app_routing_ingress"))
+				props.IngressProfile = expandKubernetesAutomaticClusterWebAppRoutingIngress(model.WebAppRoutingIngress)
 				updateCluster = true
 			}
 
@@ -824,7 +831,7 @@ func (r KubernetesAutomaticClusterResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers_v2026_04_01.KubernetesClustersClient
+			client := metadata.Client.Containers.KubernetesClustersClient_v2026_04_01
 
 			id, err := commonids.ParseKubernetesClusterID(metadata.ResourceData.Id())
 			if err != nil {
@@ -904,43 +911,41 @@ func expandKubernetesAutomaticClusterAPIAccessProfile(model KubernetesAutomaticC
 	return apiAccessProfile
 }
 
-func flattenKubernetesAutomaticClusterAPIAccessProfile(profile *managedclusters.ManagedClusterAPIServerAccessProfile) ([]APIServerAccessProfileModel, []PrivateClusterModel) {
+func flattenKubernetesAutomaticClusterAPIAccessProfile(profile *managedclusters.ManagedClusterAPIServerAccessProfile) ([]APIServerAccessProfileModel, []PrivateClusterModel, error) {
 	apiServerAccessProfile := make([]APIServerAccessProfileModel, 0, 1)
 
 	if profile == nil {
-		return apiServerAccessProfile, []PrivateClusterModel{}
+		return apiServerAccessProfile, []PrivateClusterModel{}, nil
 	}
 
-	// Extract private cluster settings
-	enablePrivateCluster := pointer.From(profile.EnablePrivateCluster)
-
-	enablePrivateClusterPublicFQDN := pointer.From(profile.EnablePrivateClusterPublicFQDN)
-
-	// Handle PrivateDNSZone normalization
-	privateDNSZoneID := pointer.From(profile.PrivateDNSZone)
-	switch {
-	case profile.PrivateDNSZone != nil && strings.EqualFold("System", *profile.PrivateDNSZone):
-		privateDNSZoneID = "System"
-	case profile.PrivateDNSZone != nil && strings.EqualFold("None", *profile.PrivateDNSZone):
-		privateDNSZoneID = "None"
+	privateCluster, err := flattenKubernetesAutomaticClusterPrivateCluster(pointer.From(profile.EnablePrivateCluster), pointer.From(profile.EnablePrivateClusterPublicFQDN), pointer.From(profile.PrivateDNSZone))
+	if err != nil {
+		return nil, nil, err
 	}
-
-	privateCluster := flattenKubernetesAutomaticClusterPrivateCluster(enablePrivateCluster, enablePrivateClusterPublicFQDN, privateDNSZoneID)
 
 	// API access profile can be managed by other properties, only return it if one of the properties has been set
 	hasAuthorizedIPRanges := profile.AuthorizedIPRanges != nil && len(*profile.AuthorizedIPRanges) > 0
 	hasSubnetId := profile.SubnetId != nil && *profile.SubnetId != ""
 
 	if !hasAuthorizedIPRanges && !hasSubnetId {
-		return apiServerAccessProfile, privateCluster
+		return apiServerAccessProfile, privateCluster, nil
+	}
+
+	subnetId := ""
+	if hasSubnetId {
+		parsedSubnetId, err := parse.SubnetID(pointer.From(profile.SubnetId))
+		if err != nil {
+			return nil, nil, fmt.Errorf("parsing `api_server_access.0.subnet_id`: %+v", err)
+		}
+		subnetId = parsedSubnetId.ID()
 	}
 
 	apiServerAccessProfile = append(apiServerAccessProfile, APIServerAccessProfileModel{
 		AuthorizedIPRanges: pointer.From(profile.AuthorizedIPRanges),
-		SubnetID:           pointer.From(profile.SubnetId),
+		SubnetID:           subnetId,
 	})
 
-	return apiServerAccessProfile, privateCluster
+	return apiServerAccessProfile, privateCluster, nil
 }
 
 func expandKubernetesAutomaticClusterPrivateCluster(model []PrivateClusterModel) (bool, bool, string) {
@@ -952,70 +957,27 @@ func expandKubernetesAutomaticClusterPrivateCluster(model []PrivateClusterModel)
 	return true, config.PrivateClusterPublicFQDNEnabled, config.PrivateDNSZoneID
 }
 
-func flattenKubernetesAutomaticClusterPrivateCluster(enablePrivateCluster bool, enablePrivateClusterPublicFQDN bool, privateDNSZoneID string) []PrivateClusterModel {
+func flattenKubernetesAutomaticClusterPrivateCluster(enablePrivateCluster bool, enablePrivateClusterPublicFQDN bool, privateDNSZoneID string) ([]PrivateClusterModel, error) {
 	if !enablePrivateCluster {
-		return []PrivateClusterModel{}
+		return []PrivateClusterModel{}, nil
 	}
+
+	parsedPrivateDNSZoneID, err := privatezones.ParsePrivateDnsZoneIDInsensitively(privateDNSZoneID)
+	if err != nil {
+		return nil, fmt.Errorf("parsing `private_cluster.0.private_dns_zone_id`: %+v", err)
+	}
+	privateDNSZoneID = parsedPrivateDNSZoneID.ID()
 
 	return []PrivateClusterModel{
 		{
 			PrivateClusterPublicFQDNEnabled: enablePrivateClusterPublicFQDN,
 			PrivateDNSZoneID:                privateDNSZoneID,
 		},
-	}
+	}, nil
 }
 
-func expandIdentityModel(input []identity.SystemOrUserAssignedList) *identity.SystemOrUserAssignedMap {
+func expandKubernetesAutomaticClusterWebAppRoutingIngress(input []WebAppRoutingIngressModel) *managedclusters.ManagedClusterIngressProfile {
 	if len(input) == 0 {
-		return nil
-	}
-
-	config := input[0]
-	identityType := config.Type
-
-	identityIds := make(map[string]identity.UserAssignedIdentityDetails)
-	for _, id := range config.IdentityIds {
-		identityIds[id] = identity.UserAssignedIdentityDetails{}
-	}
-
-	return &identity.SystemOrUserAssignedMap{
-		Type:        identityType,
-		IdentityIds: identityIds,
-	}
-}
-
-func flattenIdentityModel(input *identity.SystemOrUserAssignedMap) []identity.SystemOrUserAssignedList {
-	if input == nil {
-		return []identity.SystemOrUserAssignedList{}
-	}
-
-	// Only set IdentityIds for UserAssigned type to avoid empty array in plan
-	var identityIds []string
-	if input.Type == identity.TypeUserAssigned || input.Type == identity.TypeSystemAssignedUserAssigned {
-		if len(input.IdentityIds) > 0 {
-			identityIds = make([]string, 0, len(input.IdentityIds))
-			for id := range input.IdentityIds {
-				identityIds = append(identityIds, id)
-			}
-		}
-	}
-
-	return []identity.SystemOrUserAssignedList{{
-		Type:        input.Type,
-		IdentityIds: identityIds,
-		PrincipalId: input.PrincipalId,
-		TenantId:    input.TenantId,
-	}}
-}
-
-func expandKubernetesAutomaticClusterWebAppRoutingIngress(input []WebAppRoutingIngressModel, hasChange bool) *managedclusters.ManagedClusterIngressProfile {
-	if len(input) == 0 && hasChange {
-		return &managedclusters.ManagedClusterIngressProfile{
-			WebAppRouting: &managedclusters.ManagedClusterIngressProfileWebAppRouting{
-				Enabled: pointer.To(false),
-			},
-		}
-	} else if len(input) == 0 {
 		return nil
 	}
 
@@ -1052,9 +1014,9 @@ func expandKubernetesAutomaticClusterWebAppRoutingIngress(input []WebAppRoutingI
 	return &ingress
 }
 
-func flattenKubernetesAutomaticClusterWebAppRoutingIngress(input *managedclusters.ManagedClusterIngressProfile) []WebAppRoutingIngressModel {
+func flattenKubernetesAutomaticClusterWebAppRoutingIngress(input *managedclusters.ManagedClusterIngressProfile) ([]WebAppRoutingIngressModel, error) {
 	if input == nil || input.WebAppRouting == nil || input.WebAppRouting.Enabled == nil || !*input.WebAppRouting.Enabled {
-		return []WebAppRoutingIngressModel{}
+		return []WebAppRoutingIngressModel{}, nil
 	}
 
 	dnsZoneIDs := make([]string, 0)
@@ -1073,23 +1035,17 @@ func flattenKubernetesAutomaticClusterWebAppRoutingIngress(input *managedcluster
 
 	webAppRoutingIdentity := make([]WebAppRoutingIdentityModel, 0)
 	if input.WebAppRouting.Identity != nil {
-		clientID := ""
-		if input.WebAppRouting.Identity.ClientId != nil {
-			clientID = pointer.From(input.WebAppRouting.Identity.ClientId)
-		}
-		objectID := ""
-		if input.WebAppRouting.Identity.ObjectId != nil {
-			objectID = pointer.From(input.WebAppRouting.Identity.ObjectId)
-		}
-		userAssignedIdentityID := ""
-		if input.WebAppRouting.Identity.ResourceId != nil {
-			userAssignedIdentityID = pointer.From(input.WebAppRouting.Identity.ResourceId)
+
+		commonids.ParseUserAssignedIdentityID(pointer.From(input.WebAppRouting.Identity.ResourceId))
+		parsedResourceId, err := commonids.ParseUserAssignedIdentityID(pointer.From(input.WebAppRouting.Identity.ResourceId))
+		if err != nil {
+			return nil, fmt.Errorf("parsing `private_cluster.0.private_dns_zone_id`: %+v", err)
 		}
 
 		webAppRoutingIdentity = append(webAppRoutingIdentity, WebAppRoutingIdentityModel{
-			ClientID:               clientID,
-			ObjectID:               objectID,
-			UserAssignedIdentityID: userAssignedIdentityID,
+			ClientID:               pointer.From(input.WebAppRouting.Identity.ClientId),
+			ObjectID:               pointer.From(input.WebAppRouting.Identity.ObjectId),
+			UserAssignedIdentityID: parsedResourceId.ID(),
 		})
 	}
 
@@ -1098,7 +1054,7 @@ func flattenKubernetesAutomaticClusterWebAppRoutingIngress(input *managedcluster
 		IstioEnabled:           istioEnabled,
 		DefaultNginxController: string(defaultNginxController),
 		WebAppRoutingIdentity:  webAppRoutingIdentity,
-	}}
+	}}, nil
 }
 
 func expandKubernetesAutomaticClusterServiceMeshProfile(input []ServiceMeshProfileModel, existing *managedclusters.ServiceMeshProfile) *managedclusters.ServiceMeshProfile {
@@ -1114,35 +1070,26 @@ func expandKubernetesAutomaticClusterServiceMeshProfile(input []ServiceMeshProfi
 
 	config := input[0]
 
-	profile := managedclusters.ServiceMeshProfile{}
-
-	profile.Mode = managedclusters.ServiceMeshModeIstio
-	profile.Istio = &managedclusters.IstioServiceMesh{}
-	profile.Istio.Components = &managedclusters.IstioComponents{}
-
-	istioIngressGatewaysList := make([]managedclusters.IstioIngressGateway, 0, 2)
-
-	ingressGatewayElementInternal := managedclusters.IstioIngressGateway{
-		Enabled: config.InternalIngressGatewayEnabled,
-		Mode:    managedclusters.IstioIngressGatewayModeInternal,
-	}
-	istioIngressGatewaysList = append(istioIngressGatewaysList, ingressGatewayElementInternal)
-
-	ingressGatewayElementExternal := managedclusters.IstioIngressGateway{
-		Enabled: config.ExternalIngressGatewayEnabled,
-		Mode:    managedclusters.IstioIngressGatewayModeExternal,
-	}
-	istioIngressGatewaysList = append(istioIngressGatewaysList, ingressGatewayElementExternal)
-
-	profile.Istio.Components.IngressGateways = &istioIngressGatewaysList
-
-	if config.ProxyRedirectMechanism != "" {
-		profile.Istio.Components.ProxyRedirectionMechanism = pointer.To(managedclusters.ProxyRedirectionMechanism(config.ProxyRedirectMechanism))
+	profile := managedclusters.ServiceMeshProfile{
+		Mode: managedclusters.ServiceMeshModeIstio,
+		Istio: &managedclusters.IstioServiceMesh{
+			Components: &managedclusters.IstioComponents{
+				IngressGateways: &[]managedclusters.IstioIngressGateway{
+					{
+						Enabled: config.InternalIngressGatewayEnabled,
+						Mode:    managedclusters.IstioIngressGatewayModeInternal,
+					}, {
+						Enabled: config.ExternalIngressGatewayEnabled,
+						Mode:    managedclusters.IstioIngressGatewayModeExternal,
+					},
+				},
+				ProxyRedirectionMechanism: pointer.To(managedclusters.ProxyRedirectionMechanism(config.ProxyRedirectMechanism)),
+			},
+		},
 	}
 
 	if len(config.CertificateAuthority) > 0 {
-		certificateAuthority := expandKubernetesAutomaticClusterServiceMeshProfileCertificateAuthority(config.CertificateAuthority)
-		profile.Istio.CertificateAuthority = certificateAuthority
+		profile.Istio.CertificateAuthority = expandKubernetesAutomaticClusterServiceMeshProfileCertificateAuthority(config.CertificateAuthority)
 	}
 
 	if len(config.Revisions) > 0 {
@@ -1265,6 +1212,9 @@ func flattenKubernetesClusterCredentialsTyped(model *managedclusters.CredentialR
 }
 
 func flattenKubernetesAutomaticClusterKubeConfig(config kubernetes.KubeConfig) []KubeConfigModel {
+	if len(config.Clusters) == 0 || len(config.Users) == 0 {
+		return []KubeConfigModel{}
+	}
 	cluster := config.Clusters[0].Cluster
 	user := config.Users[0].User
 	name := config.Users[0].Name
@@ -1282,6 +1232,9 @@ func flattenKubernetesAutomaticClusterKubeConfig(config kubernetes.KubeConfig) [
 }
 
 func flattenKubernetesAutomaticClusterKubeConfigAAD(config kubernetes.KubeConfigAAD) []KubeConfigModel {
+	if len(config.Clusters) == 0 || len(config.Users) == 0 {
+		return []KubeConfigModel{}
+	}
 	cluster := config.Clusters[0].Cluster
 	name := config.Users[0].Name
 

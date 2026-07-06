@@ -60,18 +60,17 @@ The following arguments are supported:
 
 * `identity` - (Required) An `identity` block as defined below.
 
-
 ---
 
 * `api_server_access` - (Optional) An `api_server_access` block as defined below.
 
-* `hosted_system` - (Optional) An `hosted_system` block as defined below.
- 
-* `private_cluster` - (Optional) An `private_cluster` block as defined below.
+* `hosted_system` - (Optional) A `hosted_system` block as defined below.
 
-* `web_app_routing_ingress` - (Optional) An `web_app_routing_ingress` block as defined below.
+* `private_cluster` - (Optional) A `private_cluster` block as defined below.
 
-* `service_mesh` - (Optional) An `service_mesh` block as defined below.
+* `web_app_routing_ingress` - (Optional) A `web_app_routing_ingress` block as defined below.
+
+* `service_mesh` - (Optional) A `service_mesh` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -101,9 +100,9 @@ A `service_mesh` block supports the following:
 
 -> **Note:** Upgrading to a new (canary) revision does not affect existing sidecar proxies. You need to apply the canary revision label to selected namespaces and restart pods with kubectl to inject the new sidecar proxy. [Learn more](https://istio.io/latest/docs/setup/upgrade/canary/#data-plane).
 
-* `internal_ingress_gateway_enabled` - (Optional) Is Istio Internal Ingress Gateway enabled? Defaults to `false`.
+* `internal_ingress_gateway_enabled` - (Optional) Enables Istio Internal Ingress Gateway. Defaults to `false`.
 
-* `external_ingress_gateway_enabled` - (Optional) Is Istio External Ingress Gateway enabled? Defaults to `false`.
+* `external_ingress_gateway_enabled` - (Optional) Enables Istio External Ingress Gateway. Defaults to `false`.
 
 -> **Note:** Currently only one Internal Ingress Gateway and one External Ingress Gateway are allowed per cluster
 
@@ -133,15 +132,15 @@ A `web_app_routing_ingress` block supports the following:
 
 * `dns_zone_ids` - (Optional) Specifies the list of the DNS Zone IDs in which DNS entries are created for applications deployed to the cluster when Web App Routing is enabled. If not using Bring-Your-Own DNS zones this property should be set to an empty list.
 
-* `default_nginx_controller` - (Optional) Specifies the ingress type for the default `NginxIngressController` custom resource. The allowed values are `None`, `Internal`, `External` and `AnnotationControlled`. Defaults to `None`. Exactly one of `default_nginx_controller` or `istio_enabled` must be specified.
+* `default_nginx_controller` - (Optional) Specifies the ingress type for the default `NginxIngressController` custom resource. The allowed values are `Internal`, `External` and `AnnotationControlled`. At least one of `default_nginx_controller` or `istio_enabled` must be specified.
 
-* `istio_enabled` - (Optional) Should the Istio-based ingress be enabled for Web App Routing? Defaults to `false`. Exactly one of `default_nginx_controller` or `istio_enabled` must be specified.
+* `istio_enabled` - (Optional) Provisions the Istio-based ingress be enabled for Web App Routing. Defaults to `false`. At least one of `default_nginx_controller` or `istio_enabled` must be specified.
 
 ---
 
 A `hosted_system` block supports the following:
 
-* `node_subnet_id` - (Required) The ID of the Subnet where the user nodes are hosted. Changing this forces a new resource to be created.
+* `node_subnet_id` - (Required) The ID of the Subnet where the user nodes are hosted.
 
 * `system_node_subnet_id` - (Required) The ID of the Subnet where the system nodes are hosted. Changing this forces a new resource to be created.
 
@@ -149,7 +148,7 @@ A `hosted_system` block supports the following:
 
 A `private_cluster` block supports the following:
 
-* `public_fully_qualified_domain_name_enabled` - (Optional) Should a Public FQDN be provisioned for the private cluster? Defaults to `false`.
+* `public_fully_qualified_domain_name_enabled` - (Optional) Provisions a Public FQDN for the private cluster. Defaults to `false`.
 
 * `private_dns_zone_id` - (Optional) The ID of the Private DNS Zone which should be used for this Kubernetes Cluster. Possible values are `System`, `None` or the ID of a Private DNS Zone. Defaults to `System`. Changing this forces a new resource to be created.
 

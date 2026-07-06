@@ -47,7 +47,7 @@ func KubernetesClusterName(i interface{}, k string) (warnings []string, errors [
 
 	re := regexp.MustCompile(`^[a-zA-Z0-9]$|^[a-zA-Z0-9][-_a-zA-Z0-9]{0,61}[a-zA-Z0-9]$`)
 	if re != nil && !re.MatchString(clusterName) {
-		errors = append(errors, fmt.Errorf("the %q  name must start and end with a letter or number, and can only contain letters, numbers, hyphens, and underscores, and be between 1 and 63 characters in length, got %q", k, clusterName))
+		errors = append(errors, fmt.Errorf("the %q name must start and end with a letter or number, and can only contain letters, numbers, hyphens, and underscores, and be between 1 and 63 characters in length, got %q", k, clusterName))
 	}
 
 	return warnings, errors

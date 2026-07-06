@@ -29,6 +29,7 @@ func TestAccKubernetesAutomaticCluster_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -78,7 +79,7 @@ func (t KubernetesAutomaticClusterResource) Exists(ctx context.Context, clients 
 		return nil, err
 	}
 
-	resp, err := clients.Containers_v2026_04_01.KubernetesClustersClient.Get(ctx, *id)
+	resp, err := clients.Containers.KubernetesClustersClient_v2026_04_01.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Kubernetes Cluster (%s): %+v", id.String(), err)
 	}

@@ -37,7 +37,7 @@ func (KubernetesAutomaticClusterListResource) List(ctx context.Context, request 
 		return
 	}
 
-	client := metadata.Client.Containers_v2026_04_01.KubernetesClustersClient
+	client := metadata.Client.Containers.KubernetesClustersClient_v2026_04_01
 	var data sdk.DefaultListModel
 	diags := request.Config.Get(ctx, &data)
 	if diags.HasError() {
@@ -89,7 +89,7 @@ func (KubernetesAutomaticClusterListResource) List(ctx context.Context, request 
 			rmd := sdk.NewResourceMetaData(metadata.Client, r)
 			rmd.SetID(id)
 
-			if err := r.flatten(ctx, rmd, id, &item); err != nil {
+			if err := r.flatten(ctx, rmd, id, &item, false); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", r.ResourceType()), err)
 				return
 			}
