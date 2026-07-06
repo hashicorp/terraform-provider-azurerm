@@ -385,7 +385,7 @@ func (s AccountTablePropertiesResource) Read() sdk.ResourceFunc {
 			}
 
 			if props != nil {
-				if props.Cors != nil && !reflect.DeepEqual(*props.Cors, defaultTableCorsProperties) {
+				if props.Cors != nil && !reflect.DeepEqual(*props.Cors, &defaultTableCorsProperties) {
 					corsRules := make([]AccountTablePropertiesCorsRule, 0)
 					for _, rule := range props.Cors.CorsRule {
 						corsRule := AccountTablePropertiesCorsRule{
