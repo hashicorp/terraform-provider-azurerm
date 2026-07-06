@@ -526,7 +526,6 @@ func resourceWebApplicationFirewallPolicyCustomizeDiff(_ context.Context, d *plu
 		}
 
 		for _, managedRuleSet := range managedRuleSets.AsValueSlice() {
-			// A known-after-apply `type` cannot be evaluated yet, so defer to the apply-time diff to avoid a false positive
 			ruleSetType := managedRuleSet.GetAttr("type")
 			if !ruleSetType.IsKnown() {
 				continue
