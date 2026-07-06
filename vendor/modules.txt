@@ -49,8 +49,8 @@ github.com/Masterminds/semver/v3
 # github.com/Masterminds/sprig/v3 v3.3.0
 ## explicit; go 1.21
 github.com/Masterminds/sprig/v3
-# github.com/ProtonMail/go-crypto v1.1.6
-## explicit; go 1.17
+# github.com/ProtonMail/go-crypto v1.4.1
+## explicit; go 1.23.0
 github.com/ProtonMail/go-crypto/bitcurves
 github.com/ProtonMail/go-crypto/brainpool
 github.com/ProtonMail/go-crypto/eax
@@ -139,13 +139,16 @@ github.com/google/uuid
 # github.com/hashicorp/errwrap v1.1.0
 ## explicit
 github.com/hashicorp/errwrap
-# github.com/hashicorp/go-azure-helpers v0.80.0
-## explicit; go 1.25.5
+# github.com/hashicorp/go-azure-helpers v0.81.1
+## explicit; go 1.26.4
 github.com/hashicorp/go-azure-helpers/eventhub
 github.com/hashicorp/go-azure-helpers/framework/commonschema
 github.com/hashicorp/go-azure-helpers/framework/convert
 github.com/hashicorp/go-azure-helpers/framework/fwdiag
+github.com/hashicorp/go-azure-helpers/framework/location
+github.com/hashicorp/go-azure-helpers/framework/planmodifiers/casing
 github.com/hashicorp/go-azure-helpers/framework/typehelpers
+github.com/hashicorp/go-azure-helpers/framework/validators
 github.com/hashicorp/go-azure-helpers/lang/dates
 github.com/hashicorp/go-azure-helpers/lang/pointer
 github.com/hashicorp/go-azure-helpers/lang/response
@@ -1329,11 +1332,11 @@ github.com/hashicorp/go-set/v3
 # github.com/hashicorp/go-uuid v1.0.3
 ## explicit
 github.com/hashicorp/go-uuid
-# github.com/hashicorp/go-version v1.7.0
+# github.com/hashicorp/go-version v1.9.0
 ## explicit
 github.com/hashicorp/go-version
-# github.com/hashicorp/hc-install v0.9.2
-## explicit; go 1.23.0
+# github.com/hashicorp/hc-install v0.9.4
+## explicit; go 1.25.8
 github.com/hashicorp/hc-install
 github.com/hashicorp/hc-install/checkpoint
 github.com/hashicorp/hc-install/errors
@@ -1357,15 +1360,15 @@ github.com/hashicorp/hcl/v2/hclwrite
 # github.com/hashicorp/logutils v1.0.0
 ## explicit
 github.com/hashicorp/logutils
-# github.com/hashicorp/terraform-exec v0.24.0
-## explicit; go 1.23.0
+# github.com/hashicorp/terraform-exec v0.25.1
+## explicit; go 1.25.8
 github.com/hashicorp/terraform-exec/internal/version
 github.com/hashicorp/terraform-exec/tfexec
 # github.com/hashicorp/terraform-json v0.27.2
 ## explicit; go 1.21
 github.com/hashicorp/terraform-json
-# github.com/hashicorp/terraform-plugin-framework v1.16.1
-## explicit; go 1.24.0
+# github.com/hashicorp/terraform-plugin-framework v1.19.0
+## explicit; go 1.25.0
 github.com/hashicorp/terraform-plugin-framework/action
 github.com/hashicorp/terraform-plugin-framework/action/schema
 github.com/hashicorp/terraform-plugin-framework/attr
@@ -1405,8 +1408,11 @@ github.com/hashicorp/terraform-plugin-framework/resource/identityschema
 github.com/hashicorp/terraform-plugin-framework/resource/schema
 github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults
 github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier
+github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier
 github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier
 github.com/hashicorp/terraform-plugin-framework/schema/validator
+github.com/hashicorp/terraform-plugin-framework/statestore
+github.com/hashicorp/terraform-plugin-framework/statestore/schema
 github.com/hashicorp/terraform-plugin-framework/tfsdk
 github.com/hashicorp/terraform-plugin-framework/types
 github.com/hashicorp/terraform-plugin-framework/types/basetypes
@@ -1422,9 +1428,10 @@ github.com/hashicorp/terraform-plugin-framework-validators/helpers/validatorfunc
 github.com/hashicorp/terraform-plugin-framework-validators/internal/schemavalidator
 github.com/hashicorp/terraform-plugin-framework-validators/listvalidator
 github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator
+github.com/hashicorp/terraform-plugin-framework-validators/setvalidator
 github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator
-# github.com/hashicorp/terraform-plugin-go v0.29.0
-## explicit; go 1.24.0
+# github.com/hashicorp/terraform-plugin-go v0.31.0
+## explicit; go 1.25.0
 github.com/hashicorp/terraform-plugin-go/internal/logging
 github.com/hashicorp/terraform-plugin-go/tfprotov5
 github.com/hashicorp/terraform-plugin-go/tfprotov5/internal/diag
@@ -1454,8 +1461,8 @@ github.com/hashicorp/terraform-plugin-log/tfsdklog
 ## explicit; go 1.24.0
 github.com/hashicorp/terraform-plugin-mux/internal/logging
 github.com/hashicorp/terraform-plugin-mux/tf5muxserver
-# github.com/hashicorp/terraform-plugin-sdk/v2 v2.38.1
-## explicit; go 1.24.0
+# github.com/hashicorp/terraform-plugin-sdk/v2 v2.40.1
+## explicit; go 1.25.8
 github.com/hashicorp/terraform-plugin-sdk/v2/diag
 github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff
 github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging
@@ -1622,8 +1629,8 @@ github.com/vmihailenco/msgpack/v5/msgpcode
 github.com/vmihailenco/tagparser/v2
 github.com/vmihailenco/tagparser/v2/internal
 github.com/vmihailenco/tagparser/v2/internal/parser
-# github.com/zclconf/go-cty v1.17.0
-## explicit; go 1.23
+# github.com/zclconf/go-cty v1.18.1
+## explicit; go 1.25
 github.com/zclconf/go-cty/cty
 github.com/zclconf/go-cty/cty/convert
 github.com/zclconf/go-cty/cty/ctymarks
@@ -1815,7 +1822,7 @@ google.golang.org/grpc/serviceconfig
 google.golang.org/grpc/stats
 google.golang.org/grpc/status
 google.golang.org/grpc/tap
-# google.golang.org/protobuf v1.36.10
+# google.golang.org/protobuf v1.36.11
 ## explicit; go 1.23
 google.golang.org/protobuf/encoding/protojson
 google.golang.org/protobuf/encoding/prototext
