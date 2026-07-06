@@ -360,7 +360,6 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      managedclusters.ProxyRedirectionMechanismInitContainers,
-						ForceNew:     true,
 						ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForProxyRedirectionMechanism(), false),
 					},
 
@@ -442,14 +441,14 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 							string(managedclusters.NginxIngressControllerTypeExternal),
 							string(managedclusters.NginxIngressControllerTypeNone),
 						}, false),
-						ExactlyOneOf: []string{"web_app_routing_ingress.0.default_nginx_controller", "web_app_routing_ingress.0.istio_enabled"},
+						AtLeastOneOf: []string{"web_app_routing_ingress.0.default_nginx_controller", "web_app_routing_ingress.0.istio_enabled"},
 					},
 
 					"istio_enabled": {
 						Type:         pluginsdk.TypeBool,
 						Optional:     true,
 						Default:      false,
-						ExactlyOneOf: []string{"web_app_routing_ingress.0.default_nginx_controller", "web_app_routing_ingress.0.istio_enabled"},
+						AtLeastOneOf: []string{"web_app_routing_ingress.0.default_nginx_controller", "web_app_routing_ingress.0.istio_enabled"},
 					},
 
 					"web_app_routing_identity": {
@@ -741,7 +740,6 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 			state.ServiceMeshProfile = flattenKubernetesAutomaticClusterServiceMeshProfile(props.ServiceMeshProfile)
 
 			state.WebAppRoutingIngress = flattenKubernetesAutomaticClusterWebAppRoutingIngress(props.IngressProfile)
-
 		}
 
 		kubeConfigRaw, kubeConfig := flattenKubernetesClusterCredentialsTyped(credentials.Model, "clusterUser")
@@ -1067,12 +1065,9 @@ func flattenKubernetesAutomaticClusterWebAppRoutingIngress(input *managedcluster
 		defaultNginxController = pointer.From(input.WebAppRouting.Nginx.DefaultIngressControllerType)
 	}
 
-	istioEnabled := false
-	if input.WebAppRouting.GatewayAPIImplementations != nil &&
+	istioEnabled := input.WebAppRouting.GatewayAPIImplementations != nil &&
 		input.WebAppRouting.GatewayAPIImplementations.AppRoutingIstio != nil &&
-		pointer.From(input.WebAppRouting.GatewayAPIImplementations.AppRoutingIstio.Mode) == managedclusters.GatewayAPIIstioEnabledEnabled {
-		istioEnabled = true
-	}
+		pointer.From(input.WebAppRouting.GatewayAPIImplementations.AppRoutingIstio.Mode) == managedclusters.GatewayAPIIstioEnabledEnabled
 
 	webAppRoutingIdentity := make([]WebAppRoutingIdentityModel, 0)
 	if input.WebAppRouting.Identity != nil {
