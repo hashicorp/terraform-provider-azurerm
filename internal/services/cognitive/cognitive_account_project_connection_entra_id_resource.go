@@ -22,11 +22,16 @@ import (
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name cognitive_account_project_connection_entra_id -properties "name" -compare-values "subscription_id:cognitive_account_project_id,resource_group_name:cognitive_account_project_id,account_name:cognitive_account_project_id,project_name:cognitive_account_project_id" -test-name "basic" -test-expect-non-empty
 
 var (
-	_ sdk.ResourceWithUpdate   = CognitiveAccountProjectConnectionEntraIDResource{}
-	_ sdk.ResourceWithIdentity = CognitiveAccountProjectConnectionEntraIDResource{}
+	_ sdk.ResourceWithUpdate         = CognitiveAccountProjectConnectionEntraIDResource{}
+	_ sdk.ResourceWithIdentity       = CognitiveAccountProjectConnectionEntraIDResource{}
+	_ sdk.ResourceWithCustomImporter = CognitiveAccountProjectConnectionEntraIDResource{}
 )
 
 type CognitiveAccountProjectConnectionEntraIDResource struct{}
+
+func (r CognitiveAccountProjectConnectionEntraIDResource) CustomImporter() sdk.ResourceRunFunc {
+	return cognitiveAccountProjectConnectionImporter(projectconnectionresource.ConnectionAuthTypeAAD, r.ResourceType())
+}
 
 func (r CognitiveAccountProjectConnectionEntraIDResource) Identity() resourceids.ResourceId {
 	return new(projectconnectionresource.ProjectConnectionId)
@@ -181,12 +186,6 @@ func (r CognitiveAccountProjectConnectionEntraIDResource) Read() sdk.ResourceFun
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
-			}
-
-			if model := resp.Model; model != nil && model.Properties != nil {
-				if authType := model.Properties.ConnectionPropertiesV2().AuthType; authType != projectconnectionresource.ConnectionAuthTypeAAD {
-					return fmt.Errorf("connection %s has auth type `%s` and cannot be managed by `%s`", *id, authType, r.ResourceType())
-				}
 			}
 
 			var currentState CognitiveAccountProjectConnectionEntraIDModel
