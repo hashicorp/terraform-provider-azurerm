@@ -607,7 +607,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (KubernetesAutomaticClusterResource) serviceMeshIngressConfig(data acceptance.TestData) string {
+func (r KubernetesAutomaticClusterResource) serviceMeshIngressConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -617,6 +617,8 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-aks-%d"
   location = "%s"
 }
+
+%s
 
 resource "azurerm_dns_zone" "test" {
   name                = "acctest%d.example.com"
@@ -628,12 +630,21 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
+  hosted_system {
+    node_subnet_id        = azurerm_subnet.node.id
+    system_node_subnet_id = azurerm_subnet.systemnode.id
+  }
+
   identity {
-    type = "SystemAssigned"
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  api_server_access {
+    subnet_id = azurerm_subnet.api.id
   }
 
   web_app_routing_ingress {
-    default_nginx_controller = "None"
     istio_enabled            = false
 
   }
@@ -645,7 +656,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (KubernetesAutomaticClusterResource) webAppRoutingIngressIstioEnabledConfig(data acceptance.TestData) string {
@@ -768,6 +779,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
   web_app_routing_ingress {
     dns_zone_ids = [azurerm_dns_zone.test.id, azurerm_dns_zone.test2.id]
+    default_nginx_controller = "External"
   }
 }
  `, data.Locations.Primary, data.RandomInteger)
