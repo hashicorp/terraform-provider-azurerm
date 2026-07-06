@@ -662,6 +662,10 @@ func (r ScheduledQueryRulesAlertV2Resource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
+			if resp.Model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", *id)
+			}
+
 			return r.flatten(metadata, id, resp.Model)
 		},
 	}
