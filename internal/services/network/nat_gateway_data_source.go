@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -52,6 +53,14 @@ func dataSourceNatGateway() *pluginsdk.Resource {
 				},
 			},
 
+			"public_ip_address_ids_v6": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
 			"public_ip_prefix_ids": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -62,6 +71,11 @@ func dataSourceNatGateway() *pluginsdk.Resource {
 			},
 
 			"resource_guid": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"source_virtual_network_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -109,9 +123,22 @@ func dataSourceNatGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error
 		if props := model.Properties; props != nil {
 			d.Set("idle_timeout_in_minutes", props.IdleTimeoutInMinutes)
 			d.Set("resource_guid", props.ResourceGuid)
+			sourceVirtualNetworkId := ""
+			if props.SourceVirtualNetwork != nil && props.SourceVirtualNetwork.Id != nil {
+				vnetId, err := commonids.ParseVirtualNetworkIDInsensitively(*props.SourceVirtualNetwork.Id)
+				if err != nil {
+					return err
+				}
+				sourceVirtualNetworkId = vnetId.ID()
+			}
+			d.Set("source_virtual_network_id", sourceVirtualNetworkId)
 
 			if err := d.Set("public_ip_address_ids", flattenNetworkSubResourceID(props.PublicIPAddresses)); err != nil {
 				return fmt.Errorf("setting `public_ip_address_ids`: %+v", err)
+			}
+
+			if err := d.Set("public_ip_address_ids_v6", flattenNetworkSubResourceID(props.PublicIPAddressesV6)); err != nil {
+				return fmt.Errorf("setting `public_ip_address_ids_v6`: %+v", err)
 			}
 
 			if err := d.Set("public_ip_prefix_ids", flattenNetworkSubResourceID(props.PublicIPPrefixes)); err != nil {
