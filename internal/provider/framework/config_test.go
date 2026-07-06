@@ -191,6 +191,14 @@ func TestProviderConfig_LoadDefault(t *testing.T) {
 		t.Errorf("expected managed_disk.expand_without_downtime to be true")
 	}
 
+	if features.ManagedDisk.StopVMBeforeDetaching {
+		t.Errorf("expected managed_disk.stop_vm_before_detaching to be false")
+	}
+
+	if features.ManagedDisk.SkipAttachmentDestroy {
+		t.Errorf("expected managed_disk.skip_attachment_destroy to be false")
+	}
+
 	if features.Subscription.PreventCancellationOnDestroy {
 		t.Errorf("expected subscription.prevent_cancellation_on_destroy to be false")
 	}
@@ -300,7 +308,9 @@ func defaultFeaturesList() types.List {
 	resourceGroupList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(ResourceGroupAttributes), []attr.Value{resourceGroup})
 
 	managedDisk, _ := basetypes.NewObjectValueFrom(context.Background(), ManagedDiskAttributes, map[string]attr.Value{
-		"expand_without_downtime": basetypes.NewBoolNull(),
+		"expand_without_downtime":  basetypes.NewBoolNull(),
+		"stop_vm_before_detaching": basetypes.NewBoolNull(),
+		"skip_attachment_destroy":  basetypes.NewBoolNull(),
 	})
 	managedDiskList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(ManagedDiskAttributes), []attr.Value{managedDisk})
 
