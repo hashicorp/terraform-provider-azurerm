@@ -336,6 +336,7 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 																}, false),
 															},
 
+															// Although "None" is in the api list, it will be omitted.
 															"sensitivity_level": {
 																Type:     pluginsdk.TypeString,
 																Optional: true,
@@ -513,32 +514,40 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 }
 
 func resourceWebApplicationFirewallPolicyCustomizeDiff(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
-	for _, managedRulesRaw := range d.Get("managed_rules").([]interface{}) {
-		if managedRulesRaw == nil {
+	managedRules := d.GetRawConfig().GetAttr("managed_rules")
+	if !managedRules.IsKnown() || managedRules.IsNull() {
+		return nil
+	}
+
+	for _, managedRule := range managedRules.AsValueSlice() {
+		managedRuleSets := managedRule.GetAttr("managed_rule_set")
+		if !managedRuleSets.IsKnown() || managedRuleSets.IsNull() {
 			continue
 		}
-		managedRules := managedRulesRaw.(map[string]interface{})
 
-		for _, managedRuleSetRaw := range managedRules["managed_rule_set"].([]interface{}) {
-			if managedRuleSetRaw == nil {
+		for _, managedRuleSet := range managedRuleSets.AsValueSlice() {
+			// A known-after-apply `type` cannot be evaluated yet, so defer to the apply-time diff to avoid a false positive
+			ruleSetType := managedRuleSet.GetAttr("type")
+			if !ruleSetType.IsKnown() {
 				continue
 			}
-			managedRuleSet := managedRuleSetRaw.(map[string]interface{})
-			ruleSetType := managedRuleSet["type"].(string)
+			if !ruleSetType.IsNull() && ruleSetType.AsString() == "Microsoft_HTTPDDoSRuleSet" {
+				continue
+			}
 
-			for _, ruleGroupOverrideRaw := range managedRuleSet["rule_group_override"].([]interface{}) {
-				if ruleGroupOverrideRaw == nil {
+			ruleGroupOverrides := managedRuleSet.GetAttr("rule_group_override")
+			if !ruleGroupOverrides.IsKnown() || ruleGroupOverrides.IsNull() {
+				continue
+			}
+
+			for _, ruleGroupOverride := range ruleGroupOverrides.AsValueSlice() {
+				rules := ruleGroupOverride.GetAttr("rule")
+				if !rules.IsKnown() || rules.IsNull() {
 					continue
 				}
-				ruleGroupOverride := ruleGroupOverrideRaw.(map[string]interface{})
 
-				for _, ruleRaw := range ruleGroupOverride["rule"].([]interface{}) {
-					if ruleRaw == nil {
-						continue
-					}
-					rule := ruleRaw.(map[string]interface{})
-
-					if rule["sensitivity_level"].(string) != "" && ruleSetType != "Microsoft_HTTPDDoSRuleSet" {
+				for _, rule := range rules.AsValueSlice() {
+					if !rule.GetAttr("sensitivity_level").IsNull() {
 						return fmt.Errorf("`sensitivity_level` can only be set when `type` of the `managed_rule_set` is `Microsoft_HTTPDDoSRuleSet`")
 					}
 				}
