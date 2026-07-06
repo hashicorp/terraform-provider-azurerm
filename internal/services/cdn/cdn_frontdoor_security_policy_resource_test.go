@@ -159,7 +159,7 @@ func (r CdnFrontDoorSecurityPolicyResource) preCheck(t *testing.T) {
 func (r CdnFrontDoorSecurityPolicyResource) template(data acceptance.TestData) string {
 	dnsZoneName := os.Getenv("ARM_TEST_DNS_ZONE")
 	dnsZoneRG := os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP")
-	childZoneSuffix := data.RandomIntOfLength(8)
+	childZoneSuffix := data.RandomString
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cdn-afdx-%[1]d"
@@ -174,7 +174,7 @@ data "azurerm_dns_zone" "test" {
 locals {
   # Create a delegated child zone inside the test RG.
   # NOTE: ARM_TEST_DNS_ZONE / ARM_TEST_DATA_RESOURCE_GROUP must refer to a real, delegated parent zone.
-  child_zone_label = "acctest%[5]d"
+  child_zone_label = "%[5]s"
   child_zone_name  = join(".", [local.child_zone_label, data.azurerm_dns_zone.test.name])
 }
 
@@ -255,11 +255,11 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
   depends_on = [azurerm_dns_ns_record.delegation]
 
   dns_zone_id = azurerm_dns_zone.child.id
-  host_name   = join(".", ["fabrikam", azurerm_dns_zone.child.name])
+  host_name   = join(".", ["fd", azurerm_dns_zone.child.name])
 
   tls {
-    certificate_type    = "ManagedCertificate"
-    minimum_tls_version = "TLS12"
+    certificate_type = "ManagedCertificate"
+    minimum_version  = "TLS12"
   }
 }
 
@@ -349,7 +349,6 @@ resource "azurerm_cdn_frontdoor_endpoint" "test" {
 }
 
 func (r CdnFrontDoorSecurityPolicyResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -377,7 +376,7 @@ resource "azurerm_cdn_frontdoor_security_policy" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorSecurityPolicyResource) basicEndpoint(data acceptance.TestData) string {
@@ -480,7 +479,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "update_test" {
   depends_on = [azurerm_dns_ns_record.delegation]
 
   dns_zone_id = azurerm_dns_zone.child.id
-  host_name   = join(".", ["fabrikam${count.index}", azurerm_dns_zone.child.name])
+  host_name   = join(".", ["fd${count.index}", azurerm_dns_zone.child.name])
 
   tls { certificate_type = "ManagedCertificate" }
 }
@@ -521,7 +520,6 @@ resource "azurerm_cdn_frontdoor_security_policy" "test" {
 }
 
 func (r CdnFrontDoorSecurityPolicyResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -549,7 +547,7 @@ resource "azurerm_cdn_frontdoor_security_policy" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorSecurityPolicyResource) completeEndpoint(data acceptance.TestData) string {

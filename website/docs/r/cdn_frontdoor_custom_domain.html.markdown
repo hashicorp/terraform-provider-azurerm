@@ -168,13 +168,15 @@ The following arguments are supported:
 
 A `tls` block supports the following:
 
+* `cdn_frontdoor_secret_id` - (Optional) Resource ID of the Front Door Secret.
+
+~> **Note:** `cdn_frontdoor_secret_id` must be specified when `certificate_type` is `CustomerCertificate` and must not be specified when `certificate_type` is `ManagedCertificate`.
+
 * `certificate_type` - (Optional) Defines the source of the SSL certificate. Possible values are `CustomerCertificate` and `ManagedCertificate`. Defaults to `ManagedCertificate`.
 
 -> **Note:** It may take up to 15 minutes for the Front Door Service to validate the state and domain ownership of the Custom Domain.
 
-* `cdn_frontdoor_secret_id` - (Optional) Resource ID of the Front Door Secret.
-
-~> **Note:** `cdn_frontdoor_secret_id` must be specified when `certificate_type` is `CustomerCertificate` and must not be specified when `certificate_type` is `ManagedCertificate`.
+~> **Note:** When `certificate_type` is `ManagedCertificate`, `host_name` must not exceed 64 characters. Azure Front Door supports managed certificates for apex domains, but apex-domain certificate rotation can require revalidation of domain ownership. Wildcard domains require `CustomerCertificate`. Use `CustomerCertificate` for wildcard domains or host names longer than 64 characters.
 
 * `cipher_suite` - (Optional) A `cipher_suite` block as defined below.
 
@@ -194,7 +196,7 @@ A `cipher_suite` block supports the following:
 
 A `custom_ciphers` block supports the following:
 
-* `tls12` - (Optional) A set of TLS 1.2 cipher suites. Possible values are `DHE_RSA_AES128_GCM_SHA256`, `DHE_RSA_AES256_GCM_SHA384`, `ECDHE_RSA_AES128_GCM_SHA256`, `ECDHE_RSA_AES128_SHA256`, `ECDHE_RSA_AES256_GCM_SHA384`, and `ECDHE_RSA_AES256_SHA384`.
+* `tls12` - (Optional) A set of TLS 1.2 cipher suites. Possible values are `ECDHE_RSA_AES128_GCM_SHA256`, `ECDHE_RSA_AES128_SHA256`, `ECDHE_RSA_AES256_GCM_SHA384`, and `ECDHE_RSA_AES256_SHA384`.
 
 ~> **Note:** At least one TLS 1.2 cipher suite must be specified in `tls12` when `minimum_version` is `TLS12` and `type` is `Customized`.
 

@@ -19,7 +19,6 @@ linters:
     - ineffassign
     - misspell
     - nilerr
-    - prealloc
     - predeclared
     - reassign
     - staticcheck
@@ -62,6 +61,7 @@ linters:
       - legacy
       - std-error-handling
     paths:
+      - vendor$
       - internal/services/.*/.*_gen.go$
       - /sdk/
       - third_party$
@@ -78,6 +78,7 @@ formatters:
   exclusions:
     generated: lax
     paths:
+      - vendor$
       - internal/services/.*/.*_gen.go$
       - /sdk/
       - third_party$

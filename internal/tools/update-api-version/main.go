@@ -11,15 +11,15 @@ import (
 	"go/format"
 	"go/parser"
 	"go/token"
-	"io/fs"
 	"log"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
 
-	"github.com/hashicorp/go-hclog"
 	"golang.org/x/tools/go/ast/astutil"
+
+	"github.com/hashicorp/go-hclog"
 )
 
 var logger hclog.Logger
@@ -97,24 +97,30 @@ func run(serviceName string, oldApiVersion string, newApiVersion string, working
 
 func updateImportsWithinDirectory(serviceName string, oldApiVersion string, newApiVersion string, workingDirectory string) error {
 	fileSet := token.NewFileSet()
-	files, err := parser.ParseDir(fileSet, workingDirectory, func(info fs.FileInfo) bool {
-		return true
-	}, parser.ParseComments)
+	entries, err := os.ReadDir(workingDirectory)
 	if err != nil {
-		return fmt.Errorf("parsing files within %q: %+v", workingDirectory, err)
+		return fmt.Errorf("reading directory %q: %+v", workingDirectory, err)
 	}
-	for pkgName, pkg := range files {
-		logger.Debug("Processing Go Package %q", pkgName)
-		for fileName, file := range pkg.Files {
-			logger.Info(fmt.Sprintf("Updating imports for File %q..", fileName))
-			updateImportsForFile(fileSet, file, serviceName, oldApiVersion, newApiVersion)
 
-			var buf bytes.Buffer
-			if err = format.Node(&buf, fileSet, file); err != nil {
-				return fmt.Errorf("error formatting new code: %w", err)
-			}
-			_ = os.WriteFile(fileName, buf.Bytes(), 0o600)
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".go") {
+			continue
 		}
+
+		fileName := filepath.Join(workingDirectory, entry.Name())
+		file, err := parser.ParseFile(fileSet, fileName, nil, parser.ParseComments)
+		if err != nil {
+			return fmt.Errorf("parsing file %q: %+v", fileName, err)
+		}
+
+		logger.Info(fmt.Sprintf("Updating imports for File %q..", fileName))
+		updateImportsForFile(fileSet, file, serviceName, oldApiVersion, newApiVersion)
+
+		var buf bytes.Buffer
+		if err = format.Node(&buf, fileSet, file); err != nil {
+			return fmt.Errorf("error formatting new code: %w", err)
+		}
+		_ = os.WriteFile(fileName, buf.Bytes(), 0o600)
 	}
 	return nil
 }

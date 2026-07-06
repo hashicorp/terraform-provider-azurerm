@@ -11,8 +11,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	validate2 "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -190,8 +192,20 @@ func (r KeyVaultMHSMKeyRotationPolicyResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			if _, err := client.UpdateKeyRotationPolicy(ctx, id.BaseUri(), id.KeyName, expandKeyRotationPolicy(config)); err != nil {
+			resp, err := client.UpdateKeyRotationPolicy(ctx, id.BaseUri(), id.KeyName, expandKeyRotationPolicy(config))
+			if err != nil {
 				return fmt.Errorf("updating HSM Key Rotation Policy for Key %q: %v", id, err)
+			}
+
+			// Managed HSM serves the data plane from multiple partitions; a read immediately after an update
+			// may be routed to a stale replica, so we poll until the read-back `updated` timestamp matches
+			// the write response to ensure consistency before the framework performs its read
+			if resp.Attributes != nil && resp.Attributes.Updated != nil {
+				pollerType := custompollers.NewKeyRotationPolicyUpdatePoller(metadata.Client.ManagedHSMs.DataPlaneKeysClient, id.BaseUri(), id.KeyName, *resp.Attributes.Updated)
+				poller := pollers.NewPoller(pollerType, 5*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+				if err := poller.PollUntilDone(ctx); err != nil {
+					return fmt.Errorf("waiting for key rotation policy for %q to propagate: %+v", id, err)
+				}
 			}
 
 			return nil

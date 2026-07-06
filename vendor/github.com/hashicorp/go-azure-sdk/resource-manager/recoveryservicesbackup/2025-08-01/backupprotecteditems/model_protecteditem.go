@@ -43,9 +43,9 @@ func (s BaseProtectedItemImpl) ProtectedItem() BaseProtectedItemImpl {
 
 var _ ProtectedItem = RawProtectedItemImpl{}
 
-// RawProtectedItemImpl is returned when the Discriminated Value doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+// RawProtectedItemImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawProtectedItemImpl struct {
 	protectedItem BaseProtectedItemImpl
 	Type          string
@@ -54,6 +54,10 @@ type RawProtectedItemImpl struct {
 
 func (s RawProtectedItemImpl) ProtectedItem() BaseProtectedItemImpl {
 	return s.protectedItem
+}
+
+func (s RawProtectedItemImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
 }
 
 func UnmarshalProtectedItemImplementation(input []byte) (ProtectedItem, error) {
