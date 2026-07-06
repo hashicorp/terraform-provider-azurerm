@@ -434,12 +434,10 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 					"default_nginx_controller": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						Default:  managedclusters.NginxIngressControllerTypeNone,
 						ValidateFunc: validation.StringInSlice([]string{
 							string(managedclusters.NginxIngressControllerTypeAnnotationControlled),
 							string(managedclusters.NginxIngressControllerTypeInternal),
 							string(managedclusters.NginxIngressControllerTypeExternal),
-							string(managedclusters.NginxIngressControllerTypeNone),
 						}, false),
 						AtLeastOneOf: []string{"web_app_routing_ingress.0.default_nginx_controller", "web_app_routing_ingress.0.istio_enabled"},
 					},
@@ -642,9 +640,8 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 				Properties: &managedclusters.ManagedClusterProperties{
 					ApiServerAccessProfile: expandKubernetesAutomaticClusterAPIAccessProfile(model),
 					HostedSystemProfile:    expandKubernetesAutomaticClusterHostedSystemProfile(model.HostedSystemProfile),
-
-					IngressProfile:     expandKubernetesAutomaticClusterWebAppRoutingIngress(model.WebAppRoutingIngress, false),
-					ServiceMeshProfile: expandKubernetesAutomaticClusterServiceMeshProfile(model.ServiceMeshProfile, nil),
+					IngressProfile:         expandKubernetesAutomaticClusterWebAppRoutingIngress(model.WebAppRoutingIngress, false),
+					ServiceMeshProfile:     expandKubernetesAutomaticClusterServiceMeshProfile(model.ServiceMeshProfile, nil),
 				},
 				Identity: expandIdentityModel(model.Identity),
 				Tags:     tags.Expand(model.Tags),
@@ -1029,11 +1026,16 @@ func expandKubernetesAutomaticClusterWebAppRoutingIngress(input []WebAppRoutingI
 		istioEnabled = managedclusters.GatewayAPIIstioEnabledEnabled
 	}
 
-	out := managedclusters.ManagedClusterIngressProfile{
+	nginxControllerType := managedclusters.NginxIngressControllerTypeNone
+	if config.DefaultNginxController != "" {
+		nginxControllerType = managedclusters.NginxIngressControllerType(config.DefaultNginxController)
+	}
+
+	ingress := managedclusters.ManagedClusterIngressProfile{
 		WebAppRouting: &managedclusters.ManagedClusterIngressProfileWebAppRouting{
 			Enabled: pointer.To(true),
 			Nginx: &managedclusters.ManagedClusterIngressProfileNginx{
-				DefaultIngressControllerType: (*managedclusters.NginxIngressControllerType)(pointer.To(config.DefaultNginxController)),
+				DefaultIngressControllerType: pointer.To(nginxControllerType),
 			},
 			GatewayAPIImplementations: &managedclusters.ManagedClusterWebAppRoutingGatewayAPIImplementations{
 				AppRoutingIstio: &managedclusters.ManagedClusterAppRoutingIstio{
@@ -1044,10 +1046,10 @@ func expandKubernetesAutomaticClusterWebAppRoutingIngress(input []WebAppRoutingI
 	}
 
 	if len(config.DNSZoneIDs) > 0 {
-		out.WebAppRouting.DnsZoneResourceIds = pointer.To(config.DNSZoneIDs)
+		ingress.WebAppRouting.DnsZoneResourceIds = pointer.To(config.DNSZoneIDs)
 	}
 
-	return &out
+	return &ingress
 }
 
 func flattenKubernetesAutomaticClusterWebAppRoutingIngress(input *managedclusters.ManagedClusterIngressProfile) []WebAppRoutingIngressModel {
