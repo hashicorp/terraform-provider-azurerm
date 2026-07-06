@@ -95,6 +95,7 @@ func (CognitiveAccountConnectionAccountKeyListResource) List(ctx context.Context
 
 				r := CognitiveAccountConnectionAccountKeyResource{}
 				meta := sdk.NewResourceMetaData(metadata.Client, r)
+				meta.SetID(connectionId)
 
 				if err := r.flatten(meta, connectionId, &connection, nil, ""); err != nil {
 					sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", r.ResourceType()), err)
