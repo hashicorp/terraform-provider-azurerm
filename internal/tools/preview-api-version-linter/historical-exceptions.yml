@@ -1,3 +1,6 @@
+# Copyright IBM Corp. 2023, 2026
+# SPDX-License-Identifier: MPL-2.0
+
 # Exceptions for historical uses of preview API before the linter tool is setup
 # DO NOT ADD NEW ENTRY
 

@@ -335,7 +335,7 @@ However if the logic depends on the known-after-apply value itself, then Customi
 When adding or updating the licensing header at the top of a Go source file, always use the exact format below and place it at the very beginning of the file with no preceding blank lines:
 
 ```go
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2023, 2026
 // SPDX-License-Identifier: MPL-2.0
 ```
 

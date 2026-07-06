@@ -1,4 +1,4 @@
-# Copyright IBM Corp. 2014, 2025
+# Copyright IBM Corp. 2023, 2026
 # SPDX-License-Identifier: MPL-2.0
 
 # The IP address that backs the bucket S3 endpoint. Combine this with the

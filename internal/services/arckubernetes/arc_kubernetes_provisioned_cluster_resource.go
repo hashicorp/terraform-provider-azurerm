@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2023, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name arc_kubernetes_provisioned_cluster -properties "name,resource_group_name" -service-package-name arckubernetes -known-values "subscription_id:data.Subscriptions.Primary"
