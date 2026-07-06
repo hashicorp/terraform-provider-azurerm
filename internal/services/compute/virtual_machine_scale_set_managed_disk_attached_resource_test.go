@@ -62,6 +62,29 @@ func TestAccVirtualMachineScaleSetManagedDisk_attachedToScaleSetInstanceResize(t
 			Config: r.attached(data, "StandardSSD_LRS"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClientForResource(func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+					diskId, err := commonids.ParseManagedDiskID(state.Attributes["id"])
+					if err != nil {
+						return err
+					}
+
+					instanceId := virtualmachinescalesetvms.NewVirtualMachineScaleSetVirtualMachineID(diskId.SubscriptionId, diskId.ResourceGroupName, fmt.Sprintf("acctestvmss-%d", data.RandomInteger), "0")
+					input := virtualmachinescalesetvms.AttachDetachDataDisksRequest{
+						DataDisksToDetach: &[]virtualmachinescalesetvms.DataDisksToDetach{
+							{
+								DiskId: diskId.ID(),
+							},
+						},
+					}
+
+					ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
+					defer cancel()
+					if err := clients.Compute.VirtualMachineScaleSetVMsClient.AttachDetachDataDisksThenPoll(ctx2, instanceId, input); err != nil {
+						return fmt.Errorf("detaching %s from %s: %+v", diskId, instanceId, err)
+					}
+
+					return nil
+				}, "azurerm_virtual_machine_scale_set_managed_disk.test"),
 				check.That(data.ResourceName).Key("storage_account_type").HasValue("StandardSSD_LRS"),
 			),
 		},

@@ -960,6 +960,7 @@ func (r VirtualMachineScaleSetManagedDiskResource) updateWithDetach(ctx context.
 
 	attachments := make([]virtualMachineScaleSetManagedDiskAttachment, 0, len(attachedResourceIds))
 	lockNames := make(map[string]struct{})
+	vmClient := metadata.Client.Compute.VirtualMachineScaleSetVMsClient
 	for _, attachedResourceId := range attachedResourceIds {
 		instanceId, err := virtualmachinescalesetvms.ParseVirtualMachineScaleSetVirtualMachineIDInsensitively(attachedResourceId)
 		if err != nil {
@@ -968,11 +969,15 @@ func (r VirtualMachineScaleSetManagedDiskResource) updateWithDetach(ctx context.
 			}
 			return fmt.Errorf("%s is attached to %q - this change requires the disk to be taken offline, which is only supported for disks attached to Virtual Machine Scale Set instances by this resource", id, attachedResourceId)
 		}
+		resolvedInstanceId, err := virtualMachineScaleSetManagedDiskResolveInstanceId(ctx, vmClient, *instanceId)
+		if err != nil {
+			return err
+		}
 
 		attachments = append(attachments, virtualMachineScaleSetManagedDiskAttachment{
-			instanceId: *instanceId,
+			instanceId: resolvedInstanceId,
 		})
-		lockNames[instanceId.VirtualMachineScaleSetName] = struct{}{}
+		lockNames[resolvedInstanceId.VirtualMachineScaleSetName] = struct{}{}
 	}
 
 	if metadata.ResourceData.HasChange("max_shares") && payload.Properties != nil && payload.Properties.MaxShares != nil && *payload.Properties.MaxShares > 0 && int(*payload.Properties.MaxShares) < len(attachments) {
@@ -993,8 +998,6 @@ func (r VirtualMachineScaleSetManagedDiskResource) updateWithDetach(ctx context.
 			locks.UnlockByName(lockNamesList[i], VirtualMachineScaleSetResourceName)
 		}
 	}()
-
-	vmClient := metadata.Client.Compute.VirtualMachineScaleSetVMsClient
 
 	for index, attachment := range attachments {
 		instance, err := vmClient.Get(ctx, attachment.instanceId, virtualmachinescalesetvms.DefaultGetOperationOptions())
@@ -1064,6 +1067,27 @@ func (r VirtualMachineScaleSetManagedDiskResource) updateWithDetach(ctx context.
 	}
 
 	return nil
+}
+
+func virtualMachineScaleSetManagedDiskResolveInstanceId(ctx context.Context, client *virtualmachinescalesetvms.VirtualMachineScaleSetVMsClient, id virtualmachinescalesetvms.VirtualMachineScaleSetVirtualMachineId) (virtualmachinescalesetvms.VirtualMachineScaleSetVirtualMachineId, error) {
+	virtualMachineScaleSetId := virtualmachinescalesetvms.NewVirtualMachineScaleSetID(id.SubscriptionId, id.ResourceGroupName, id.VirtualMachineScaleSetName)
+	instances, err := client.ListComplete(ctx, virtualMachineScaleSetId, virtualmachinescalesetvms.DefaultListOperationOptions())
+	if err != nil {
+		return id, fmt.Errorf("listing virtual machine scale set instances for %s: %+v", virtualMachineScaleSetId, err)
+	}
+
+	for _, instance := range instances.Items {
+		if instance.InstanceId == nil {
+			continue
+		}
+
+		if strings.EqualFold(pointer.From(instance.InstanceId), id.InstanceId) || strings.EqualFold(pointer.From(instance.Name), id.InstanceId) || strings.EqualFold(pointer.From(instance.Id), id.ID()) {
+			id.InstanceId = *instance.InstanceId
+			return id, nil
+		}
+	}
+
+	return id, fmt.Errorf("locating virtual machine scale set instance `%s` in %s", id.InstanceId, virtualMachineScaleSetId)
 }
 
 func virtualMachineScaleSetManagedDiskAttachedResourceIds(existing *disks.Disk) []string {
