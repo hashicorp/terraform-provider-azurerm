@@ -170,7 +170,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   zone                          = "1"
   storage_type                  = "PremiumV2_LRS"
   storage_iops                  = 3000
-  storage_throughput              = 125
+  storage_throughput            = 125
   sku_name                      = "GP_Standard_D2ads_v5"
 }
 
@@ -185,7 +185,7 @@ resource "azurerm_postgresql_flexible_server" "test_replica" {
   zone                          = "1"
   storage_type                  = "PremiumV2_LRS"
   storage_iops                  = 3000
-  storage_throughput              = 125
+  storage_throughput            = 125
 }
 
 resource "azurerm_postgresql_flexible_server_virtual_endpoint" "test" {
@@ -219,7 +219,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   zone                          = "1"
   storage_type                  = "PremiumV2_LRS"
   storage_iops                  = 3000
-  storage_throughput              = 125
+  storage_throughput            = 125
   sku_name                      = "GP_Standard_D2ads_v5"
 }
 
@@ -234,7 +234,7 @@ resource "azurerm_postgresql_flexible_server" "test_replica_0" {
   zone                          = azurerm_postgresql_flexible_server.test.zone
   storage_type                  = "PremiumV2_LRS"
   storage_iops                  = 3000
-  storage_throughput              = 125
+  storage_throughput            = 125
 }
 
 resource "azurerm_postgresql_flexible_server" "test_replica_1" {
@@ -248,7 +248,7 @@ resource "azurerm_postgresql_flexible_server" "test_replica_1" {
   zone                          = azurerm_postgresql_flexible_server.test.zone
   storage_type                  = "PremiumV2_LRS"
   storage_iops                  = 3000
-  storage_throughput              = 125
+  storage_throughput            = 125
 
   ## this prevents a race condition that can occur when 2 replicas are created simultaneously
   depends_on = [azurerm_postgresql_flexible_server.test_replica_0]
