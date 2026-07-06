@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	vaults20230701 "github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/vaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/vaults"
 	resources20151101 "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2015-11-01/resources"
 )
 
@@ -42,8 +42,8 @@ func (c *Client) populateCache(ctx context.Context, subscriptionId commonids.Sub
 	// https://github.com/hashicorp/terraform-provider-azurerm/blob/3e88e5e74e12577d785f10298281b1b3c172254f/internal/services/keyvault/client/helpers.go#L133-L173
 	// and the `ListBySubscription` endpoint:
 	// https://github.com/hashicorp/terraform-provider-azurerm/blob/a5e728dc62e832e74d7bb0f40a79af0ae5a79e1e/azurerm/helpers/azure/key_vault.go#L42-L89
-	opts := vaults20230701.DefaultListBySubscriptionOperationOptions()
-	results, err := c.vaults20230701Client.ListBySubscriptionComplete(ctx, subscriptionId, opts)
+	opts := vaults.DefaultListBySubscriptionOperationOptions()
+	results, err := c.VaultsClient.ListBySubscriptionComplete(ctx, subscriptionId, opts)
 	if err != nil {
 		return fmt.Errorf("listing the Key Vaults within %s: %+v", subscriptionId, err)
 	}
@@ -89,7 +89,7 @@ func (c *Client) populateCache(ctx context.Context, subscriptionId commonids.Sub
 			continue
 		}
 
-		keyVault, err := c.vaults20230701Client.Get(ctx, *id)
+		keyVault, err := c.VaultsClient.Get(ctx, *id)
 		if err != nil {
 			if response.WasNotFound(keyVault.HttpResponse) {
 				log.Printf("[DEBUG] The %s appears to be gone, this is likely an ARM Caching bug - ignoring caching it", *id)
