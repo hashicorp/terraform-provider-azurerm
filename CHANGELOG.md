@@ -1,6 +1,7 @@
 ## 4.81.0 (Unreleased)
 
 ENHANCEMENTS:
+* dependencies: `cdn` - update to API version `2025-12-01` [GH-32719]
 * dependencies: `keyvault` update to API version `2026-02-01` [GH-32320]
 
 FEATURES:
