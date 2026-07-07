@@ -28,9 +28,11 @@ The following attributes are exported:
 
 * `public_ip_address_ids` - A list of existing Public IP Address resource IDs which the NAT Gateway is using.
 
-* `public_ip_address_ids_v6` - A list of existing IPv6 Public IP Address resource IDs which the NAT Gateway is using.
-
 * `public_ip_prefix_ids` - A list of existing Public IP Prefix resource IDs which the NAT Gateway is using.
+
+* `public_ipv6_address_ids` - A list of existing IPv6 Public IP Address resource IDs which the NAT Gateway is using.
+
+* `public_ipv6_prefix_ids` - A list of existing IPv6 Public IP Prefix resource IDs which the NAT Gateway is using.
 
 * `resource_guid` - The Resource GUID of the NAT Gateway.
 

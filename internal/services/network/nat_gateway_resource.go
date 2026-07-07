@@ -60,6 +60,12 @@ func resourceNatGateway() *pluginsdk.Resource {
 				}
 			}
 
+			if !diff.GetRawConfig().AsValueMap()["source_virtual_network_id"].IsNull() {
+				if diff.Get("sku_name").(string) != string(natgateways.NatGatewaySkuNameStandardVTwo) {
+					return fmt.Errorf("`source_virtual_network_id` can only be set when `sku_name` is set to `%s`", natgateways.NatGatewaySkuNameStandardVTwo)
+				}
+			}
+
 			return nil
 		},
 
@@ -109,16 +115,16 @@ func resourceNatGatewaySchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"resource_guid": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
 		"source_virtual_network_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: commonids.ValidateVirtualNetworkID,
+		},
+
+		"resource_guid": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 
 		"tags": commonschema.Tags(),

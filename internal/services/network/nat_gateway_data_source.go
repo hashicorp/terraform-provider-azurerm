@@ -53,7 +53,16 @@ func dataSourceNatGateway() *pluginsdk.Resource {
 				},
 			},
 
-			"public_ip_address_ids_v6": {
+			"public_ip_prefix_ids": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
+			"public_ipv6_address_ids": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Schema{
@@ -61,9 +70,8 @@ func dataSourceNatGateway() *pluginsdk.Resource {
 				},
 			},
 
-			"public_ip_prefix_ids": {
+			"public_ipv6_prefix_ids": {
 				Type:     pluginsdk.TypeList,
-				Optional: true,
 				Computed: true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
@@ -75,12 +83,12 @@ func dataSourceNatGateway() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"source_virtual_network_id": {
+			"sku_name": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
-			"sku_name": {
+			"source_virtual_network_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -137,12 +145,16 @@ func dataSourceNatGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error
 				return fmt.Errorf("setting `public_ip_address_ids`: %+v", err)
 			}
 
-			if err := d.Set("public_ip_address_ids_v6", flattenNetworkSubResourceID(props.PublicIPAddressesV6)); err != nil {
-				return fmt.Errorf("setting `public_ip_address_ids_v6`: %+v", err)
+			if err := d.Set("public_ipv6_address_ids", flattenNetworkSubResourceID(props.PublicIPAddressesV6)); err != nil {
+				return fmt.Errorf("setting `public_ipv6_address_ids`: %+v", err)
 			}
 
 			if err := d.Set("public_ip_prefix_ids", flattenNetworkSubResourceID(props.PublicIPPrefixes)); err != nil {
 				return fmt.Errorf("setting `public_ip_prefix_ids`: %+v", err)
+			}
+
+			if err := d.Set("public_ipv6_prefix_ids", flattenNetworkSubResourceID(props.PublicIPPrefixesV6)); err != nil {
+				return fmt.Errorf("setting `public_ipv6_prefix_ids`: %+v", err)
 			}
 		}
 		return tags.FlattenAndSet(d, model.Tags)
