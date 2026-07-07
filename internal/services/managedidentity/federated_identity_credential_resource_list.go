@@ -89,7 +89,7 @@ func (FederatedIdentityCredentialListResource) List(ctx context.Context, request
 			rmd.SetID(id)
 
 			if err := r.flatten(rmd, id, &item); err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", pointer.From(item.Name)), err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", r.ResourceType()), err)
 				return
 			}
 
