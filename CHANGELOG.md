@@ -4,6 +4,8 @@ ENHANCEMENTS:
 * `dependencies` - update `go-azure-helpers` to `v0.81.1` [GH-32732]
 * dependencies: `cdn` - update to API version `2025-12-01` [GH-32719]
 * dependencies: `keyvault` update to API version `2026-02-01` [GH-32320]
+* `azurerm_logic_app_standard` - add attribute `storage_key_vault_secret_id` which can be used in place of `storage_account_name` and `storage_account_key`, allowing the app service property "AzureWebJobsStorage" to reference a key vault secret in the format "@Microsoft.KeyVault(SecretUri=...)" [GH-32571]
+* Data Source: `azurerm_logic_app_standard` - add new return attribute `storage_key_vault_secret_id` which will be set if the app service "AzureWebJobsStorage" property had a KeyVault reference format [GH-32571]
 
 FEATURES:
 * **New Resource**: `azurerm_storage_account_table_properties` [GH-32282]
