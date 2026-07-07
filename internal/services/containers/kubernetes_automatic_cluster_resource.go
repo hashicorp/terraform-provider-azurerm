@@ -158,19 +158,17 @@ func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			rd := metadata.ResourceDiff
 
-			if rd.Id() != "" {
-				if rd.HasChange("api_server_access.0.subnet_id") {
-					old, new := rd.GetChange("api_server_access.0.subnet_id")
-					if old.(string) != "" && new.(string) == "" {
-						if err := metadata.ResourceDiff.ForceNew("api_server_access.0.subnet_id"); err != nil {
-							return err
-						}
+			if rd.Id() != "" && rd.HasChange("api_server_access.0.subnet_id") {
+				oldValue, newValue := rd.GetChange("api_server_access.0.subnet_id")
+				if oldValue.(string) != "" && newValue.(string) == "" {
+					if err := rd.ForceNew("api_server_access.0.subnet_id"); err != nil {
+						return err
 					}
 				}
 			}
 
 			if rd.HasChange("identity.0.type") {
-				if err := metadata.ResourceDiff.ForceNew("identity.0.type"); err != nil {
+				if err := rd.ForceNew("identity.0.type"); err != nil {
 					return err
 				}
 			}
