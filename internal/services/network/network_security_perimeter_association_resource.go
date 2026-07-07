@@ -122,7 +122,9 @@ func (r NetworkSecurityPerimeterAssociationResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, id, param); err != nil {
+			// NSP association validation continues after Azure accepts the initial PUT,
+			// so wait for the terminal provisioning state before recording the resource.
+			if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -165,7 +167,9 @@ func (r NetworkSecurityPerimeterAssociationResource) Update() sdk.ResourceFunc {
 				existing.Model.Properties.AccessMode = pointer.To(networksecurityperimeterassociations.AssociationAccessMode(config.AccessMode))
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil {
+			// Updates use the same asynchronous validation path as creates and must not
+			// return success while Azure can still move the association to Failed.
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
