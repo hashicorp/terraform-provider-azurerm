@@ -18,6 +18,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name kubernetes_fleet_auto_upgrade_profile -service-package-name containers -properties "name" -compare-values "subscription_id:kubernetes_fleet_manager_id,resource_group_name:kubernetes_fleet_manager_id,fleet_name:kubernetes_fleet_manager_id"
+
 var (
 	_ sdk.ResourceWithIdentity = KubernetesFleetAutoUpgradeProfileResource{}
 	_ sdk.ResourceWithUpdate   = KubernetesFleetAutoUpgradeProfileResource{}
