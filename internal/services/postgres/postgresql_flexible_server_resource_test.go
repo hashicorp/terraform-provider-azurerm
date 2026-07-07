@@ -721,6 +721,13 @@ func TestAccPostgresqlFlexibleServer_withPremiumV2Storage(t *testing.T) {
 			),
 		},
 		data.ImportStep("administrator_password", "create_mode"),
+		{
+			Config: r.withPremiumVTWOUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
 	})
 }
 
@@ -977,8 +984,28 @@ resource "azurerm_postgresql_flexible_server" "test" {
   version                = "17"
   sku_name               = "GP_Standard_D2s_v3"
   storage_type           = "PremiumV2_LRS"
-  storage_iops           = 8000
-  storage_throughput     = 300
+  storage_iops           = 3000
+  storage_throughput     = 125
+  zone                   = "2"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r PostgresqlFlexibleServerResource) withPremiumVTWOUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_postgresql_flexible_server" "test" {
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  version                = "17"
+  sku_name               = "GP_Standard_D2s_v3"
+  storage_type           = "PremiumV2_LRS"
+  storage_iops           = 3001
+  storage_throughput     = 126
   zone                   = "2"
 }
 `, r.template(data), data.RandomInteger)
