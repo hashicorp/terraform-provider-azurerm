@@ -44,8 +44,6 @@ type KubernetesAutomaticClusterModel struct {
 	CurrentKubernetesVersion string            `tfschema:"current_kubernetes_version"`
 	FQDN                     string            `tfschema:"fully_qualified_domain_name"`
 	PortalFQDN               string            `tfschema:"portal_fully_qualified_domain_name"`
-	KubeAdminConfig          []KubeConfigModel `tfschema:"kube_admin_config"`
-	KubeAdminConfigRaw       string            `tfschema:"kube_admin_config_raw"`
 	KubeConfig               []KubeConfigModel `tfschema:"kube_config"`
 	KubeConfigRaw            string            `tfschema:"kube_config_raw"`
 	NodeResourceGroupID      string            `tfschema:"node_resource_group_id"`
@@ -484,52 +482,6 @@ func (r KubernetesAutomaticClusterResource) Attributes() map[string]*pluginsdk.S
 			Computed: true,
 		},
 
-		"kube_admin_config": {
-			Type:      pluginsdk.TypeList,
-			Computed:  true,
-			Sensitive: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"host": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
-					},
-					"username": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
-					},
-					"password": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
-					},
-					"client_certificate": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
-					},
-					"client_key": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
-					},
-					"cluster_ca_certificate": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
-					},
-				},
-			},
-		},
-
-		"kube_admin_config_raw": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
-		},
-
 		"kube_config": {
 			Type:      pluginsdk.TypeList,
 			Computed:  true,
@@ -743,18 +695,6 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 			kubeConfigRaw, kubeConfig := flattenKubernetesClusterCredentialsTyped(credentials.Model, "clusterUser")
 			state.KubeConfigRaw = pointer.From(kubeConfigRaw)
 			state.KubeConfig = kubeConfig
-
-			adminCredentials, err := client.ListClusterAdminCredentials(ctx, *id, managedclusters.ListClusterAdminCredentialsOperationOptions{})
-			if err != nil {
-				return fmt.Errorf("retrieving Admin Credentials for %s: %+v", id, err)
-			}
-			if adminCredentials.Model == nil {
-				return fmt.Errorf("retrieving Admin Credentials for %s: payload is empty", id)
-			}
-
-			adminKubeConfigRaw, adminKubeConfig := flattenKubernetesClusterCredentialsTyped(adminCredentials.Model, "clusterAdmin")
-			state.KubeAdminConfigRaw = pointer.From(adminKubeConfigRaw)
-			state.KubeAdminConfig = adminKubeConfig
 		}
 	}
 
