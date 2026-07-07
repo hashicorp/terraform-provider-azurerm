@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type KubernetesFleetAutoUpgradeProfileTestResource struct{}
+type KubernetesFleetAutoUpgradeProfileResource struct{}
 
 func TestAccKubernetesFleetAutoUpgradeProfile_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_fleet_auto_upgrade_profile", "test")
-	r := KubernetesFleetAutoUpgradeProfileTestResource{}
+	r := KubernetesFleetAutoUpgradeProfileResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -32,7 +32,7 @@ func TestAccKubernetesFleetAutoUpgradeProfile_basic(t *testing.T) {
 
 func TestAccKubernetesFleetAutoUpgradeProfile_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_fleet_auto_upgrade_profile", "test")
-	r := KubernetesFleetAutoUpgradeProfileTestResource{}
+	r := KubernetesFleetAutoUpgradeProfileResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -47,7 +47,7 @@ func TestAccKubernetesFleetAutoUpgradeProfile_requiresImport(t *testing.T) {
 
 func TestAccKubernetesFleetAutoUpgradeProfile_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_fleet_auto_upgrade_profile", "test")
-	r := KubernetesFleetAutoUpgradeProfileTestResource{}
+	r := KubernetesFleetAutoUpgradeProfileResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -62,7 +62,7 @@ func TestAccKubernetesFleetAutoUpgradeProfile_complete(t *testing.T) {
 
 func TestAccKubernetesFleetAutoUpgradeProfile_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_fleet_auto_upgrade_profile", "test")
-	r := KubernetesFleetAutoUpgradeProfileTestResource{}
+	r := KubernetesFleetAutoUpgradeProfileResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -82,7 +82,7 @@ func TestAccKubernetesFleetAutoUpgradeProfile_update(t *testing.T) {
 	})
 }
 
-func (r KubernetesFleetAutoUpgradeProfileTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r KubernetesFleetAutoUpgradeProfileResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := autoupgradeprofiles.ParseAutoUpgradeProfileID(state.ID)
 	if err != nil {
 		return nil, err
@@ -96,7 +96,7 @@ func (r KubernetesFleetAutoUpgradeProfileTestResource) Exists(ctx context.Contex
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r KubernetesFleetAutoUpgradeProfileTestResource) basic(data acceptance.TestData) string {
+func (r KubernetesFleetAutoUpgradeProfileResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -112,7 +112,7 @@ resource "azurerm_kubernetes_fleet_auto_upgrade_profile" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r KubernetesFleetAutoUpgradeProfileTestResource) requiresImport(data acceptance.TestData) string {
+func (r KubernetesFleetAutoUpgradeProfileResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -124,7 +124,7 @@ resource "azurerm_kubernetes_fleet_auto_upgrade_profile" "import" {
 `, r.basic(data))
 }
 
-func (r KubernetesFleetAutoUpgradeProfileTestResource) complete(data acceptance.TestData) string {
+func (r KubernetesFleetAutoUpgradeProfileResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -154,7 +154,7 @@ resource "azurerm_kubernetes_fleet_auto_upgrade_profile" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r KubernetesFleetAutoUpgradeProfileTestResource) update(data acceptance.TestData) string {
+func (r KubernetesFleetAutoUpgradeProfileResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -195,7 +195,7 @@ resource "azurerm_kubernetes_fleet_auto_upgrade_profile" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r KubernetesFleetAutoUpgradeProfileTestResource) template(data acceptance.TestData) string {
+func (r KubernetesFleetAutoUpgradeProfileResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctest-rg-%[2]d"
