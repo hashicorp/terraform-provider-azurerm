@@ -41,7 +41,7 @@ func TestAccCdnFrontDoorBatchRuleSet_listByProfileID(t *testing.T) {
 						map[string]knownvalue.Check{
 							"resource_group_name": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
 							"profile_name":        knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
-							"name":                knownvalue.StringExact(fmt.Sprintf("accTestBatchRuleSet%d", data.RandomInteger)),
+							"name":                knownvalue.StringExact(fmt.Sprintf("acctestBatchRuleSet%d", data.RandomInteger)),
 							"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary),
 						},
 					),

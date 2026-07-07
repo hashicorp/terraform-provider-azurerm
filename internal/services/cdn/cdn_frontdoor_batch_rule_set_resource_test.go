@@ -619,7 +619,7 @@ func TestAccCdnFrontDoorBatchRuleSet_diffQuotaValidation(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config:      r.diffQuotaExceeded(data),
-			ExpectError: regexp.MustCompile("the number of `rule` blocks exceeds the service-side quota"),
+			ExpectError: regexp.MustCompile("the number of changed `rule` blocks exceeds the service-side quota"),
 		},
 	})
 }
@@ -695,6 +695,13 @@ func TestAccCdnFrontDoorBatchRuleSet_allActions(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.originGroupIdOptionalWithoutOrigin(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -719,6 +726,13 @@ func TestAccCdnFrontDoorBatchRuleSet_allActionsUpdate(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.allActions(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.originGroupIdOptionalWithoutOrigin(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
