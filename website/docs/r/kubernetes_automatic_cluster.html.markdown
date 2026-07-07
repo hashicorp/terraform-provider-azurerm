@@ -48,6 +48,91 @@ output "kube_config" {
 }
 ```
 
+## Bring your own networking example
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_virtual_network" "example" {
+  name                = "example-vnet"
+  address_space       = ["10.1.0.0/16"]
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_subnet" "node" {
+  name                 = "example-node-subnet"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
+  address_prefixes     = ["10.1.0.0/24"]
+}
+
+resource "azurerm_subnet" "api" {
+  name                 = "example-api-subnet"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
+  address_prefixes     = ["10.1.1.0/24"]
+
+  delegation {
+    name = "aks-delegation"
+
+    service_delegation {
+      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
+      name    = "Microsoft.ContainerService/managedClusters"
+    }
+  }
+}
+
+resource "azurerm_subnet" "systemnode" {
+  name                 = "example-systemnode-subnet"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
+  address_prefixes     = ["10.1.2.0/24"]
+
+  lifecycle {
+    ignore_changes = [
+      delegation
+    ]
+  }
+}
+
+resource "azurerm_user_assigned_identity" "example" {
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  name                = "example_identity"
+}
+
+resource "azurerm_role_assignment" "network" {
+  scope                = azurerm_virtual_network.example.id
+  role_definition_name = "Network Contributor"
+  principal_id         = azurerm_user_assigned_identity.example.principal_id
+}
+
+resource "azurerm_kubernetes_automatic_cluster" "example" {
+  name                = "example-aks"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+
+
+  hosted_system {
+    node_subnet_id        = azurerm_subnet.node.id
+    system_node_subnet_id = azurerm_subnet.systemnode.id
+  }
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.example.id]
+  }
+
+  api_server_access {
+    subnet_id = azurerm_subnet.api.id
+  }
+}
+```
+
 ## Arguments Reference
 
 The following arguments are supported:
@@ -80,13 +165,13 @@ An `api_server_access` block supports the following:
 
 * `authorized_ip_ranges` - (Optional) Set of authorized IP ranges to allow access to API server, e.g. ["198.51.100.0/24"].
 
-* `subnet_id` - (Optional) The ID of the Subnet where the API server endpoint is delegated to.
+* `subnet_id` - (Optional) The ID of the Subnet where the API server endpoint is delegated to. Is required for bring your own networking.
 
 ---
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Kubernetes Cluster. Possible values are `SystemAssigned` or `UserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Kubernetes Cluster. Possible values are `SystemAssigned` or `UserAssigned`.  `UserAssigned` is required for bring your own networking
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Kubernetes Cluster.
 
@@ -140,9 +225,9 @@ A `web_app_routing_ingress` block supports the following:
 
 A `hosted_system` block supports the following:
 
-* `node_subnet_id` - (Required) The ID of the Subnet where the user nodes are hosted.
+* `node_subnet_id` - (Required) The ID of the Subnet where the user nodes are hosted. Is required for bring your own networking
 
-* `system_node_subnet_id` - (Required) The ID of the Subnet where the system nodes are hosted. Changing this forces a new resource to be created.
+* `system_node_subnet_id` - (Required) The ID of the Subnet where the system nodes are hosted. Changing this forces a new resource to be created. Is required for bring your own networking
 
 ---
 

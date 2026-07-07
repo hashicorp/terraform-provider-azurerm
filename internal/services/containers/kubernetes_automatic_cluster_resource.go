@@ -1019,8 +1019,11 @@ func flattenKubernetesAutomaticClusterWebAppRoutingIngress(input *managedcluster
 	}
 
 	defaultNginxController := ""
-	if input.WebAppRouting.Nginx != nil && input.WebAppRouting.Nginx.DefaultIngressControllerType != pointer.To(managedclusters.NginxIngressControllerTypeNone) {
-		defaultNginxController = string(pointer.From(input.WebAppRouting.Nginx.DefaultIngressControllerType))
+	if input.WebAppRouting.Nginx != nil {
+		ingressControllerType := pointer.From(input.WebAppRouting.Nginx.DefaultIngressControllerType)
+		if ingressControllerType != managedclusters.NginxIngressControllerTypeNone {
+			defaultNginxController = string(ingressControllerType)
+		}
 	}
 
 	istioEnabled := input.WebAppRouting.GatewayAPIImplementations != nil &&
