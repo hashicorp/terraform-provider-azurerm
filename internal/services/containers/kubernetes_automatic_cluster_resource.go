@@ -601,18 +601,18 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers.KubernetesClustersClient_v2026_04_01
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			clusterClient := metadata.Client.Containers.KubernetesClustersClient_v2026_04_01
+			subscriptionID := metadata.Client.Account.SubscriptionId
 
 			var model KubernetesAutomaticClusterModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			id := commonids.NewKubernetesClusterID(subscriptionId, model.ResourceGroupName, model.Name)
+			id := commonids.NewKubernetesClusterID(subscriptionID, model.ResourceGroupName, model.Name)
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-				existing, err := client.Get(ctx, id)
+				existing, err := clusterClient.Get(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
@@ -642,7 +642,7 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 				Tags:     tags.Expand(model.Tags),
 			}
 
-			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, managedclusters.DefaultCreateOrUpdateOperationOptions(), metadata.SetIDAndIdentityCallback(&id)); err != nil {
+			if err := clusterClient.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, managedclusters.DefaultCreateOrUpdateOperationOptions(), metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -660,14 +660,14 @@ func (r KubernetesAutomaticClusterResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers.KubernetesClustersClient_v2026_04_01
+			clusterClient := metadata.Client.Containers.KubernetesClustersClient_v2026_04_01
 
 			id, err := commonids.ParseKubernetesClusterID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			resp, err := client.Get(ctx, *id)
+			resp, err := clusterClient.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -752,8 +752,7 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers
-			clusterClient := client.KubernetesClustersClient_v2026_04_01
+			clusterClient := metadata.Client.Containers.KubernetesClustersClient_v2026_04_01
 
 			id, err := commonids.ParseKubernetesClusterID(metadata.ResourceData.Id())
 			if err != nil {
@@ -829,19 +828,14 @@ func (r KubernetesAutomaticClusterResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers.KubernetesClustersClient_v2026_04_01
+			clusterClient := metadata.Client.Containers.KubernetesClustersClient_v2026_04_01
 
 			id, err := commonids.ParseKubernetesClusterID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			var model KubernetesAutomaticClusterModel
-			if err := metadata.Decode(&model); err != nil {
-				return fmt.Errorf("decoding: %w", err)
-			}
-
-			if err := client.DeleteThenPoll(ctx, *id, managedclusters.DefaultDeleteOperationOptions()); err != nil {
+			if err := clusterClient.DeleteThenPoll(ctx, *id, managedclusters.DefaultDeleteOperationOptions()); err != nil {
 				return fmt.Errorf("deleting %s: %w", *id, err)
 			}
 
