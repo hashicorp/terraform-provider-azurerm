@@ -67,7 +67,7 @@ func (UserAssignedIdentityListResource) List(ctx context.Context, request list.L
 				meta.SetID(id)
 
 				if err := r.flatten(meta, id, &item); err != nil {
-					sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", pointer.From(item.Name)), err)
+					sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", r.ResourceType()), err)
 					return
 				}
 
@@ -104,7 +104,7 @@ func (UserAssignedIdentityListResource) List(ctx context.Context, request list.L
 				meta.SetID(id)
 
 				if err := r.flatten(meta, id, &item); err != nil {
-					sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", pointer.From(item.Name)), err)
+					sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", r.ResourceType()), err)
 					return
 				}
 
