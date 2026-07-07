@@ -354,30 +354,6 @@ func resourceLogAnalyticsWorkspaceCreate(d *pluginsdk.ResourceData, meta interfa
 		sku.Name = workspaces.WorkspaceSkuNameEnumPerGBTwoZeroOneEight
 	}
 
-	var internetIngestionEnabled workspaces.PublicNetworkAccessType
-	var internetQueryEnabled workspaces.PublicNetworkAccessType
-
-	if !features.FivePointOh() {
-		if v, ok := d.GetOk("internet_ingestion_access_type"); ok {
-			internetIngestionEnabled = workspaces.PublicNetworkAccessType(v.(string))
-		} else if d.Get("internet_ingestion_enabled").(bool) {
-			internetIngestionEnabled = workspaces.PublicNetworkAccessTypeEnabled
-		} else {
-			internetIngestionEnabled = workspaces.PublicNetworkAccessTypeDisabled
-		}
-
-		if v, ok := d.GetOk("internet_query_access_type"); ok {
-			internetQueryEnabled = workspaces.PublicNetworkAccessType(v.(string))
-		} else if d.Get("internet_query_enabled").(bool) {
-			internetQueryEnabled = workspaces.PublicNetworkAccessTypeEnabled
-		} else {
-			internetQueryEnabled = workspaces.PublicNetworkAccessTypeDisabled
-		}
-	} else {
-		internetIngestionEnabled = workspaces.PublicNetworkAccessType(d.Get("internet_ingestion_access_type").(string))
-		internetQueryEnabled = workspaces.PublicNetworkAccessType(d.Get("internet_query_access_type").(string))
-	}
-
 	allowResourceOnlyPermission := d.Get("allow_resource_only_permissions").(bool)
 
 	parameters := workspaces.Workspace{
@@ -386,8 +362,8 @@ func resourceLogAnalyticsWorkspaceCreate(d *pluginsdk.ResourceData, meta interfa
 		Tags:     expandTags(d.Get("tags").(map[string]interface{})),
 		Properties: &workspaces.WorkspaceProperties{
 			Sku:                             sku,
-			PublicNetworkAccessForIngestion: &internetIngestionEnabled,
-			PublicNetworkAccessForQuery:     &internetQueryEnabled,
+			PublicNetworkAccessForIngestion: pointer.To(workspaces.PublicNetworkAccessType(d.Get("internet_ingestion_access_type").(string))),
+			PublicNetworkAccessForQuery:     pointer.To(workspaces.PublicNetworkAccessType(d.Get("internet_query_access_type").(string))),
 			RetentionInDays:                 pointer.To(int64(d.Get("retention_in_days").(int))),
 			Features: &workspaces.WorkspaceFeatures{
 				EnableLogAccessUsingOnlyResourcePermissions: pointer.To(allowResourceOnlyPermission),
@@ -397,6 +373,24 @@ func resourceLogAnalyticsWorkspaceCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if !features.FivePointOh() {
+		// When the new `internet_*_access_type` properties are not set in the config, fall back to the
+		// deprecated boolean properties which map `true` -> `Enabled` and `false`/unset -> `Disabled`.
+		if _, ok := d.GetOk("internet_ingestion_access_type"); !ok {
+			ingestionAccessType := workspaces.PublicNetworkAccessTypeDisabled
+			if d.Get("internet_ingestion_enabled").(bool) {
+				ingestionAccessType = workspaces.PublicNetworkAccessTypeEnabled
+			}
+			parameters.Properties.PublicNetworkAccessForIngestion = pointer.To(ingestionAccessType)
+		}
+
+		if _, ok := d.GetOk("internet_query_access_type"); !ok {
+			queryAccessType := workspaces.PublicNetworkAccessTypeDisabled
+			if d.Get("internet_query_enabled").(bool) {
+				queryAccessType = workspaces.PublicNetworkAccessTypeEnabled
+			}
+			parameters.Properties.PublicNetworkAccessForQuery = pointer.To(queryAccessType)
+		}
+
 		// In v4.0, we can not set default values for those O+C properties, we can only set the values manually.
 		// `GetOk()` can not determine if the it's just zero-value (false) or the user specified `false`
 		if pluginsdk.IsExplicitlyNullInConfig(d, "local_authentication_enabled") {

@@ -65,12 +65,6 @@ The following arguments are supported:
 
 ~> **Note:** `SecuredByPerimeter` indicates that access is governed by an [Azure Network Security Perimeter](https://learn.microsoft.com/en-us/azure/private-link/network-security-perimeter-concepts) associated with this workspace via an `azurerm_network_security_perimeter_association` resource with `access_mode` set to `Enforced`. Azure will also set this value automatically when such an association is created.
 
-* `internet_ingestion_enabled` - (Optional / **Deprecated**) Should the Log Analytics Workspace support ingestion over the Public Internet? Defaults to `true`. This property has been superseded by `internet_ingestion_access_type` and will be removed in a future major version of the provider.
-
-* `internet_query_enabled` - (Optional / **Deprecated**) Should the Log Analytics Workspace support querying over the Public Internet? Defaults to `true`. This property has been superseded by `internet_query_access_type` and will be removed in a future major version of the provider.
-
-~> **Note:** `internet_ingestion_enabled` cannot be used together with `internet_ingestion_access_type`, and `internet_query_enabled` cannot be used together with `internet_query_access_type`.
-
 * `reservation_capacity_in_gb_per_day` - (Optional) The capacity reservation level in GB for this workspace. Possible values are `100`, `200`, `300`, `400`, `500`, `1000`, `2000`, `5000`, `10000`, `25000`, and `50000`.
 
 ~> **Note:** `reservation_capacity_in_gb_per_day` can only be used when the `sku` is set to `CapacityReservation`.
