@@ -47,37 +47,19 @@ func TestAccCognitiveAccountConnectionEntraID_list(t *testing.T) {
 					),
 				},
 			},
-			{
-				Query:  true,
-				Config: r.basicListSubscriptionQuery(),
-				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLengthAtLeast("azurerm_cognitive_account_connection_entra_id.list", 2),
-				},
-			},
 		},
 	})
 }
 
-func (r CognitiveAccountConnectionEntraIdResource) basicListSubscriptionQuery() string {
+func (r CognitiveAccountConnectionEntraIdResource) basicListQuery(data acceptance.TestData) string {
 	return `
 list "azurerm_cognitive_account_connection_entra_id" "list" {
   provider = azurerm
-  config {}
-}
-`
-}
-
-func (r CognitiveAccountConnectionEntraIdResource) basicListQuery(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-list "azurerm_cognitive_account_connection_entra_id" "list" {
-  provider = azurerm
   config {
-    cognitive_account_name = azurerm_cognitive_account.test.name
-    resource_group_name    = azurerm_resource_group.test.name
-    subscription_id        = "%[1]s"
+    cognitive_account_id = azurerm_cognitive_account.test.id
   }
 }
-`, data.Subscriptions.Primary)
+`
 }
 
 func (r CognitiveAccountConnectionEntraIdResource) basicList(data acceptance.TestData) string {

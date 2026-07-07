@@ -9,7 +9,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/accountconnectionresource"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/cognitiveservicesaccounts"
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -48,9 +47,9 @@ func (CognitiveAccountConnectionApiKeyListResource) List(ctx context.Context, re
 		return
 	}
 
-	accounts, err := cognitiveAccountConnectionListAccounts(ctx, metadata, data)
+	accountId, err := accountconnectionresource.ParseAccountID(data.CognitiveAccountId.ValueString())
 	if err != nil {
-		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", CognitiveAccountConnectionApiKeyResource{}.ResourceType()), err)
+		sdk.SetResponseErrorDiagnostic(stream, "parsing Cognitive Account ID", err)
 		return
 	}
 
@@ -58,59 +57,50 @@ func (CognitiveAccountConnectionApiKeyListResource) List(ctx context.Context, re
 		listCtx, cancel := context.WithDeadline(context.Background(), deadline)
 		defer cancel()
 
-		for _, account := range accounts {
-			accountId, err := cognitiveservicesaccounts.ParseAccountID(pointer.From(account.Id))
+		connectionsResp, err := client.AccountConnectionsListComplete(listCtx, accountconnectionresource.NewAccountID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.AccountName), accountconnectionresource.DefaultAccountConnectionsListOperationOptions())
+		if err != nil {
+			result := request.NewListResult(listCtx)
+			sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("listing connections for `%s`", accountId.AccountName), err)
+			return
+		}
+
+		for _, connection := range connectionsResp.Items {
+			if connection.Properties == nil {
+				continue
+			}
+
+			base := connection.Properties.ConnectionPropertiesV2()
+			if string(base.AuthType) != string(accountconnectionresource.ConnectionAuthTypeApiKey) {
+				continue
+			}
+
+			connectionId, err := accountconnectionresource.ParseConnectionID(pointer.From(connection.Id))
 			if err != nil {
 				result := request.NewListResult(listCtx)
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Cognitive Account ID", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Cognitive Account Connection ID", err)
 				return
 			}
 
-			connectionsResp, err := client.AccountConnectionsListComplete(listCtx, accountconnectionresource.NewAccountID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.AccountName), accountconnectionresource.DefaultAccountConnectionsListOperationOptions())
-			if err != nil {
-				result := request.NewListResult(listCtx)
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("listing connections for `%s`", accountId.AccountName), err)
+			result := request.NewListResult(listCtx)
+			result.DisplayName = pointer.From(connection.Name)
+
+			r := CognitiveAccountConnectionApiKeyResource{}
+			meta := sdk.NewResourceMetaData(metadata.Client, r)
+			meta.SetID(connectionId)
+
+			if err := r.flatten(meta, connectionId, &connection, nil, ""); err != nil {
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", CognitiveAccountConnectionApiKeyResource{}.ResourceType()), err)
 				return
 			}
 
-			for _, connection := range connectionsResp.Items {
-				if connection.Properties == nil {
-					continue
-				}
+			sdk.EncodeListResult(listCtx, meta.ResourceData, &result)
+			if result.Diagnostics.HasError() {
+				push(result)
+				return
+			}
 
-				base := connection.Properties.ConnectionPropertiesV2()
-				if string(base.AuthType) != string(accountconnectionresource.ConnectionAuthTypeApiKey) {
-					continue
-				}
-
-				connectionId, err := accountconnectionresource.ParseConnectionID(pointer.From(connection.Id))
-				if err != nil {
-					result := request.NewListResult(listCtx)
-					sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Cognitive Account Connection ID", err)
-					return
-				}
-
-				result := request.NewListResult(listCtx)
-				result.DisplayName = pointer.From(connection.Name)
-
-				r := CognitiveAccountConnectionApiKeyResource{}
-				meta := sdk.NewResourceMetaData(metadata.Client, r)
-				meta.SetID(connectionId)
-
-				if err := r.flatten(meta, connectionId, &connection, nil, ""); err != nil {
-					sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", r.ResourceType()), err)
-					return
-				}
-
-				sdk.EncodeListResult(listCtx, meta.ResourceData, &result)
-				if result.Diagnostics.HasError() {
-					push(result)
-					return
-				}
-
-				if !push(result) {
-					return
-				}
+			if !push(result) {
+				return
 			}
 		}
 	}

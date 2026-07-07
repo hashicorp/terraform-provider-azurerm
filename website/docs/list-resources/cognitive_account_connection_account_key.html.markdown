@@ -11,34 +11,19 @@ description: |-
 Lists Cognitive Services Account Connection with Account Key authentication resources.
 
 ## Example Usage
-
-### List all Cognitive Services Account Connection with Account Key authentication resources in the subscription
-
 ```hcl
-list "azurerm_cognitive_account_connection_account_key" "example" {
-  provider = azurerm
-  config {}
+data "azurerm_cognitive_account" "example" {
+  name                = "example-account"
+  resource_group_name = "example-resources"
 }
-```
 
-### List all Cognitive Services Account Connection with Account Key authentication resources in a specific Cognitive Account
-
-```hcl
-list "azurerm_cognitive_account_connection_account_key" "example" {
+list "cognitive_account_connection_account_key" "example" {
   provider = azurerm
   config {
-    cognitive_account_name = "example-cognitive-account"
-    resource_group_name    = "example-resources"
+    cognitive_account_id = data.azurerm_cognitive_account.example.id
   }
 }
 ```
-
 ## Argument Reference
-
 This list resource supports the following arguments:
-
-* `cognitive_account_name` - (Optional) The name of the Cognitive Account to query. When specified, `resource_group_name` must also be specified.
-
-* `resource_group_name` - (Optional) The name of the Resource Group to query.
-
-* `subscription_id` - (Optional) The Subscription ID to query. Defaults to the value specified in the Provider Configuration.
+* `cognitive_account_id` - (Required) The ID of the Cognitive Account to query.
