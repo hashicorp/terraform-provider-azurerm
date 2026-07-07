@@ -7,6 +7,9 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
+	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/go-version"
@@ -192,6 +195,60 @@ func (td TestData) runAcceptanceSequentialTest(t *testing.T, testCase resource.T
 	testCase.ProtoV5ProviderFactories = framework.ProtoV5ProviderFactoriesInitWithTestName(context.Background(), t.Name(), "azurerm")
 
 	resource.Test(t, testCase)
+}
+
+// getPreviousProviderVersion reads the most recent release version from the repo's version/VERSION file
+func getPreviousProviderVersion() string {
+	_, b, _, _ := runtime.Caller(0)
+	// b is .../terraform-provider-azurerm/internal/acceptance/testcase.go
+	repoRoot := filepath.Join(filepath.Dir(b), "..", "..")
+	versionFile := filepath.Join(repoRoot, "version", "VERSION")
+
+	data, err := os.ReadFile(versionFile)
+	if err != nil {
+		panic(fmt.Sprintf("Failed to read version file at %s: %s", versionFile, err))
+	}
+
+	return strings.TrimSpace(string(data))
+}
+
+// ResourceUpgradeTest executes a 2-stage upgrade test. Stage 1 provisions the resource natively using the
+// preceding released version downloaded cleanly from the registry. Stage 2 hands over the state cleanly to
+// the locally built test daemons.
+func (td TestData) ResourceUpgradeTest(t *testing.T, testResource types.TestResource, steps []TestStep) {
+	os.Setenv("TF_ACC_REFRESH_AFTER_APPLY", "true")
+
+	v2TestCase := resource.TestCase{
+		PreCheck: func() { PreCheck(t) },
+		CheckDestroy: func(s *terraform.State) error {
+			client, err := testclient.BuildWithTestName(t.Name())
+			if err != nil {
+				return fmt.Errorf("building client: %+v", err)
+			}
+			return helpers.CheckDestroyedFunc(client, testResource, td.ResourceType, td.ResourceName)(s)
+		},
+		Steps:                    steps,
+		ExternalProviders:        td.externalProviders(),
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInitWithTestName(context.Background(), t.Name(), "azurerm", "azurerm-alt"),
+	}
+
+	upgradeCase := resource.ProviderUpgradeTestCase{
+		V1ProviderName:    "azurerm",
+		V1ProviderSource:  "registry.terraform.io/hashicorp/azurerm",
+		V1ProviderVersion: getPreviousProviderVersion(),
+		V2TestCase:        v2TestCase, // Hand execution over to local factories
+	}
+
+	testclient.RegisterTestT(t)
+	defer testclient.UnregisterTestT()
+
+	if os.Getenv("TC_TEST_VIA_VCR") != "" {
+		defer func(testName string) {
+			_ = vcr.StopRecorder(testName)
+		}(t.Name())
+	}
+
+	resource.TestProviderUpgrade(t, upgradeCase)
 }
 
 func (td TestData) externalProviders() map[string]resource.ExternalProvider {

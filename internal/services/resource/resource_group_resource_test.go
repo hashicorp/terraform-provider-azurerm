@@ -95,6 +95,30 @@ func TestAccResourceGroup_withManagedBy(t *testing.T) {
 	})
 }
 
+func TestAccResourceGroup_upgrade(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
+	r := ResourceGroupResource{}
+
+	data.ResourceUpgradeTest(t, r, []acceptance.TestStep{
+		{
+			// V2 config applies using the locally built Test binaries against the pre-provisioned state.
+			// We check to ensure the new binary safely manages the existing RG with an empty diff.
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccResourceGroup_withNestedItemsAndFeatureFlag(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 	r := ResourceGroupResource{}

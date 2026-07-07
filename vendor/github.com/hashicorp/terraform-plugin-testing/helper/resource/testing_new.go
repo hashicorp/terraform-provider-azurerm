@@ -56,6 +56,12 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 	ctx = logging.TestTerraformPathContext(ctx, wd.GetHelper().TerraformExecPath())
 	ctx = logging.TestWorkingDirectoryContext(ctx, wd.GetHelper().WorkingDirectory())
 
+	executeTestCaseSteps(ctx, t, c, wd, helper)
+}
+
+func executeTestCaseSteps(ctx context.Context, t testing.T, c TestCase, wd *plugintest.WorkingDir, helper *plugintest.Helper) {
+	t.Helper()
+
 	providers := &providerFactories{
 		legacy:  c.ProviderFactories,
 		protov5: c.ProtoV5ProviderFactories,
