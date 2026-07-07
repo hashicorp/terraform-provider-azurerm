@@ -1052,7 +1052,7 @@ func flattenKubernetesAutomaticClusterWebAppRoutingIngress(input *managedcluster
 	return []WebAppRoutingIngressModel{{
 		DNSZoneIDs:             dnsZoneIDs,
 		IstioEnabled:           istioEnabled,
-		DefaultNginxController: string(defaultNginxController),
+		DefaultNginxController: defaultNginxController,
 		WebAppRoutingIdentity:  webAppRoutingIdentity,
 	}}, nil
 }
