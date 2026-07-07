@@ -43,6 +43,7 @@ type KubernetesAutomaticClusterModel struct {
 	// Computed fields
 	CurrentKubernetesVersion string            `tfschema:"current_kubernetes_version"`
 	FQDN                     string            `tfschema:"fully_qualified_domain_name"`
+	PortalFQDN               string            `tfschema:"portal_fully_qualified_domain_name"`
 	KubeAdminConfig          []KubeConfigModel `tfschema:"kube_admin_config"`
 	KubeAdminConfigRaw       string            `tfschema:"kube_admin_config_raw"`
 	KubeConfig               []KubeConfigModel `tfschema:"kube_config"`
@@ -695,9 +696,13 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 
 		if props := model.Properties; props != nil {
 			state.FQDN = pointer.From(props.Fqdn)
+			state.PortalFQDN = pointer.From(props.AzurePortalFQDN)
 			state.PrivateFQDN = pointer.From(props.PrivateFQDN)
 
 			state.CurrentKubernetesVersion = pointer.From(props.CurrentKubernetesVersion)
+			if props.OidcIssuerProfile != nil {
+				state.OIDCIssuerURL = pointer.From(props.OidcIssuerProfile.IssuerURL)
+			}
 
 			if nodeResourceGroup := pointer.From(props.NodeResourceGroup); nodeResourceGroup != "" {
 				state.NodeResourceGroupID = commonids.NewResourceGroupID(id.SubscriptionId, nodeResourceGroup).ID()
@@ -738,6 +743,18 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 			kubeConfigRaw, kubeConfig := flattenKubernetesClusterCredentialsTyped(credentials.Model, "clusterUser")
 			state.KubeConfigRaw = pointer.From(kubeConfigRaw)
 			state.KubeConfig = kubeConfig
+
+			adminCredentials, err := client.ListClusterAdminCredentials(ctx, *id, managedclusters.ListClusterAdminCredentialsOperationOptions{})
+			if err != nil {
+				return fmt.Errorf("retrieving Admin Credentials for %s: %+v", id, err)
+			}
+			if adminCredentials.Model == nil {
+				return fmt.Errorf("retrieving Admin Credentials for %s: payload is empty", id)
+			}
+
+			adminKubeConfigRaw, adminKubeConfig := flattenKubernetesClusterCredentialsTyped(adminCredentials.Model, "clusterAdmin")
+			state.KubeAdminConfigRaw = pointer.From(adminKubeConfigRaw)
+			state.KubeAdminConfig = adminKubeConfig
 		}
 	}
 
