@@ -402,7 +402,20 @@ func resourceSynapseSparkPoolUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("reading Synapse workspace %q (Workspace %q / Resource Group %q): %+v", id.WorkspaceName, id.WorkspaceName, id.ResourceGroup, err)
 	}
 
+	current, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.BigDataPoolName)
+	if err != nil {
+		return fmt.Errorf("retrieving current %s: %+v", *id, err)
+	}
+
 	autoScale := expandArmSparkPoolAutoScaleProperties(d.Get("auto_scale").([]interface{}))
+	sparkConfigProperties := expandSparkPoolSparkConfig(d.Get("spark_config").([]interface{}))
+	if current.BigDataPoolResourceProperties != nil {
+		sparkConfigProperties = current.BigDataPoolResourceProperties.SparkConfigProperties
+	}
+	if d.HasChange("spark_config") {
+		sparkConfigProperties = expandSparkPoolSparkConfig(d.Get("spark_config").([]interface{}))
+	}
+
 	bigDataPoolInfo := synapse.BigDataPoolResourceInfo{
 		Location: workspace.Location,
 		BigDataPoolResourceProperties: &synapse.BigDataPoolResourceProperties{
@@ -420,7 +433,7 @@ func resourceSynapseSparkPoolUpdate(d *pluginsdk.ResourceData, meta interface{})
 			NodeSize:                    synapse.NodeSize(d.Get("node_size").(string)),
 			NodeSizeFamily:              synapse.NodeSizeFamily(d.Get("node_size_family").(string)),
 			SessionLevelPackagesEnabled: pointer.To(d.Get("session_level_packages_enabled").(bool)),
-			SparkConfigProperties:       expandSparkPoolSparkConfig(d.Get("spark_config").([]interface{})),
+			SparkConfigProperties:       sparkConfigProperties,
 			SparkEventsFolder:           pointer.To(d.Get("spark_events_folder").(string)),
 			SparkVersion:                pointer.To(d.Get("spark_version").(string)),
 		},
