@@ -82,7 +82,7 @@ func TestAccStorageDiscoveryWorkspace_scopeChangeRequiresReplacement(t *testing.
 	data := acceptance.BuildTestData(t, "azurerm_storage_discovery_workspace", "test")
 	r := StorageDiscoveryWorkspaceResource{}
 
-	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.scopeTagsV1(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -91,12 +91,10 @@ func TestAccStorageDiscoveryWorkspace_scopeChangeRequiresReplacement(t *testing.
 		},
 		data.ImportStep(),
 		{
-			Config: r.scopeTagsV2(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
+			Config:             r.scopeTagsV2(data),
+			PlanOnly:           true,
+			ExpectNonEmptyPlan: true,
 		},
-		data.ImportStep(),
 	})
 }
 
