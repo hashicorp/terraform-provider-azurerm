@@ -962,11 +962,13 @@ func flattenKubernetesAutomaticClusterPrivateCluster(enablePrivateCluster bool, 
 		return []PrivateClusterModel{}, nil
 	}
 
-	parsedPrivateDNSZoneID, err := privatezones.ParsePrivateDnsZoneIDInsensitively(privateDNSZoneID)
-	if err != nil {
-		return nil, fmt.Errorf("parsing `private_cluster.0.private_dns_zone_id`: %+v", err)
+	if privateDNSZoneID != "None" && privateDNSZoneID != "System" && privateDNSZoneID != "" {
+		parsedPrivateDNSZoneID, err := privatezones.ParsePrivateDnsZoneIDInsensitively(privateDNSZoneID)
+		if err != nil {
+			return nil, fmt.Errorf("parsing `private_cluster.0.private_dns_zone_id`: %+v", err)
+		}
+		privateDNSZoneID = parsedPrivateDNSZoneID.ID()
 	}
-	privateDNSZoneID = parsedPrivateDNSZoneID.ID()
 
 	return []PrivateClusterModel{
 		{
@@ -1024,9 +1026,9 @@ func flattenKubernetesAutomaticClusterWebAppRoutingIngress(input *managedcluster
 		dnsZoneIDs = pointer.From(input.WebAppRouting.DnsZoneResourceIds)
 	}
 
-	defaultNginxController := managedclusters.NginxIngressControllerTypeNone
-	if input.WebAppRouting.Nginx != nil {
-		defaultNginxController = pointer.From(input.WebAppRouting.Nginx.DefaultIngressControllerType)
+	defaultNginxController := ""
+	if input.WebAppRouting.Nginx != nil && input.WebAppRouting.Nginx.DefaultIngressControllerType != pointer.To(managedclusters.NginxIngressControllerTypeNone) {
+		defaultNginxController = string(pointer.From(input.WebAppRouting.Nginx.DefaultIngressControllerType))
 	}
 
 	istioEnabled := input.WebAppRouting.GatewayAPIImplementations != nil &&
@@ -1035,11 +1037,9 @@ func flattenKubernetesAutomaticClusterWebAppRoutingIngress(input *managedcluster
 
 	webAppRoutingIdentity := make([]WebAppRoutingIdentityModel, 0)
 	if input.WebAppRouting.Identity != nil {
-
-		commonids.ParseUserAssignedIdentityID(pointer.From(input.WebAppRouting.Identity.ResourceId))
-		parsedResourceId, err := commonids.ParseUserAssignedIdentityID(pointer.From(input.WebAppRouting.Identity.ResourceId))
+		parsedResourceId, err := commonids.ParseUserAssignedIdentityIDInsensitively(pointer.From(input.WebAppRouting.Identity.ResourceId))
 		if err != nil {
-			return nil, fmt.Errorf("parsing `private_cluster.0.private_dns_zone_id`: %+v", err)
+			return nil, fmt.Errorf("parsing `web_app_routing_ingress.0.web_app_routing_identity.0.user_assigned_identity_id`: %+v", err)
 		}
 
 		webAppRoutingIdentity = append(webAppRoutingIdentity, WebAppRoutingIdentityModel{
