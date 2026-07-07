@@ -157,7 +157,7 @@ func TestAccCdnFrontDoorCustomDomain_cipherSuites_validation(t *testing.T) {
 	data.ResourceTest(t, r, testSteps)
 }
 
-func TestAccCdnFrontDoorCustomDomain_managedCertificate_validation(t *testing.T) {
+func TestAccCdnFrontDoorCustomDomain_managedCertificate_hostNameConstraints(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
 	r := CdnFrontDoorCustomDomainResource{}
 	r.preCheck(t)
@@ -168,9 +168,12 @@ func TestAccCdnFrontDoorCustomDomain_managedCertificate_validation(t *testing.T)
 			ExpectError: regexp.MustCompile("`host_name` cannot be longer than 64 characters when `tls\\.certificate_type` is `ManagedCertificate`"),
 		},
 		{
-			Config:      r.managedCertificateWildcardDomain(data),
-			ExpectError: regexp.MustCompile("`host_name` cannot be a wildcard domain when `tls\\.certificate_type` is `ManagedCertificate`"),
+			Config: r.managedCertificateWildcardDomain(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -880,5 +883,5 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
     minimum_version  = "TLS12"
   }
 }
-`, r.validationTemplate(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
