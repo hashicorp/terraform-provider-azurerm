@@ -106,16 +106,20 @@ func (r BackupProtectionPolicyVMListResource) List(ctx context.Context, request 
 				return
 			}
 
-			read, err := protectionPoliciesClient.Get(ctx, *id)
-			if err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("retrieving %s", id), err)
-				return
-			}
-
 			rd := resourceBackupProtectionPolicyVM().Data(&terraform.InstanceState{})
 			rd.SetId(id.ID())
 
-			if err := resourceBackupProtectionPolicyVMFlatten(rd, id, read.Model); err != nil {
+			var model *protectionpolicies.ProtectionPolicyResource
+			if request.IncludeResource {
+				read, err := protectionPoliciesClient.Get(ctx, *id)
+				if err != nil {
+					sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("retrieving %s", id), err)
+					return
+				}
+				model = read.Model
+			}
+
+			if err := resourceBackupProtectionPolicyVMFlatten(rd, id, model); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", "azurerm_backup_policy_vm"), err)
 				return
 			}
