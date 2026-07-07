@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type StorageMoverSmbMountEndpointTestResource struct{}
+type StorageMoverSmbMountEndpointResource struct{}
 
 func TestAccStorageMoverSmbMountEndpoint_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_mover_smb_mount_endpoint", "test")
-	r := StorageMoverSmbMountEndpointTestResource{}
+	r := StorageMoverSmbMountEndpointResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -35,7 +35,7 @@ func TestAccStorageMoverSmbMountEndpoint_basic(t *testing.T) {
 
 func TestAccStorageMoverSmbMountEndpoint_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_mover_smb_mount_endpoint", "test")
-	r := StorageMoverSmbMountEndpointTestResource{}
+	r := StorageMoverSmbMountEndpointResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -49,7 +49,7 @@ func TestAccStorageMoverSmbMountEndpoint_requiresImport(t *testing.T) {
 
 func TestAccStorageMoverSmbMountEndpoint_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_mover_smb_mount_endpoint", "test")
-	r := StorageMoverSmbMountEndpointTestResource{}
+	r := StorageMoverSmbMountEndpointResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -63,7 +63,7 @@ func TestAccStorageMoverSmbMountEndpoint_complete(t *testing.T) {
 
 func TestAccStorageMoverSmbMountEndpoint_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_mover_smb_mount_endpoint", "test")
-	r := StorageMoverSmbMountEndpointTestResource{}
+	r := StorageMoverSmbMountEndpointResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -82,7 +82,7 @@ func TestAccStorageMoverSmbMountEndpoint_update(t *testing.T) {
 	})
 }
 
-func (r StorageMoverSmbMountEndpointTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r StorageMoverSmbMountEndpointResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := endpoints.ParseEndpointID(state.ID)
 	if err != nil {
 		return nil, err
@@ -99,7 +99,7 @@ func (r StorageMoverSmbMountEndpointTestResource) Exists(ctx context.Context, cl
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r StorageMoverSmbMountEndpointTestResource) template(data acceptance.TestData) string {
+func (r StorageMoverSmbMountEndpointResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctest-rg-%d"
@@ -114,7 +114,7 @@ resource "azurerm_storage_mover" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r StorageMoverSmbMountEndpointTestResource) basic(data acceptance.TestData) string {
+func (r StorageMoverSmbMountEndpointResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -132,7 +132,7 @@ resource "azurerm_storage_mover_smb_mount_endpoint" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r StorageMoverSmbMountEndpointTestResource) requiresImport(data acceptance.TestData) string {
+func (r StorageMoverSmbMountEndpointResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -146,7 +146,7 @@ resource "azurerm_storage_mover_smb_mount_endpoint" "import" {
 `, config)
 }
 
-func (r StorageMoverSmbMountEndpointTestResource) complete(data acceptance.TestData) string {
+func (r StorageMoverSmbMountEndpointResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -202,7 +202,7 @@ resource "azurerm_storage_mover_smb_mount_endpoint" "test" {
 `, template, data.RandomString, data.RandomInteger)
 }
 
-func (r StorageMoverSmbMountEndpointTestResource) update(data acceptance.TestData) string {
+func (r StorageMoverSmbMountEndpointResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
