@@ -11,7 +11,6 @@ import (
 
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/helpers"
@@ -64,31 +63,7 @@ func (td TestData) ResourceIdentityTest(t *testing.T, steps []TestStep, sequenti
 }
 
 func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, steps []TestStep) {
-	// Testing framework as of 1.6.0 no longer auto-refreshes state, so adding it back in here for all steps that update
-	// the config rather than having to modify 1000's of tests individually to add a refresh-only step
-	refreshStep := TestStep{
-		RefreshState: true,
-	}
-
-	newSteps := make([]TestStep, 0)
-	for _, step := range steps {
-		// This block adds a check to make sure tests aren't recreating a resource
-		if (step.Config != "" || step.ConfigDirectory != nil || step.ConfigFile != nil) && !step.PlanOnly {
-			step.ConfigPlanChecks = resource.ConfigPlanChecks{
-				PreApply: []plancheck.PlanCheck{
-					helpers.IsNotResourceAction(td.ResourceName, plancheck.ResourceActionReplace),
-				},
-			}
-		}
-
-		if !step.ImportState {
-			newSteps = append(newSteps, step)
-		} else {
-			newSteps = append(newSteps, refreshStep)
-			newSteps = append(newSteps, step)
-		}
-	}
-	steps = newSteps
+	os.Setenv("TF_ACC_REFRESH_AFTER_APPLY", "true")
 
 	testCase := resource.TestCase{
 		PreCheck: func() { PreCheck(t) },
@@ -106,22 +81,7 @@ func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, s
 
 // ResourceTestIgnoreRecreate should be used when checking that a resource should be recreated during a test.
 func (td TestData) ResourceTestIgnoreRecreate(t *testing.T, testResource types.TestResource, steps []TestStep) {
-	// Testing framework as of 1.6.0 no longer auto-refreshes state, so adding it back in here for all steps that update
-	// the config rather than having to modify 1000's of tests individually to add a refresh-only step
-	refreshStep := TestStep{
-		RefreshState: true,
-	}
-
-	newSteps := make([]TestStep, 0)
-	for _, step := range steps {
-		if !step.ImportState {
-			newSteps = append(newSteps, step)
-		} else {
-			newSteps = append(newSteps, refreshStep)
-			newSteps = append(newSteps, step)
-		}
-	}
-	steps = newSteps
+	os.Setenv("TF_ACC_REFRESH_AFTER_APPLY", "true")
 
 	testCase := resource.TestCase{
 		PreCheck: func() { PreCheck(t) },

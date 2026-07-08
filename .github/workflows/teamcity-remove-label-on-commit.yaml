@@ -2,12 +2,13 @@
 name: TeamCity Remove Label on Commit
 
 on:
-  pull_request:
+  pull_request_target:
     types: [synchronize]
 
 permissions:
   contents: read
   pull-requests: write
+  issues: write
 
 jobs:
   apply-outdated-label:
