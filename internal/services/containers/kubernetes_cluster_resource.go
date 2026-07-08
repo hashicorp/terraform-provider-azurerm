@@ -53,7 +53,11 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 		Update: resourceKubernetesClusterUpdate,
 		Delete: resourceKubernetesClusterDelete,
 
-		Importer: pluginsdk.ImporterValidatingIdentityThen(&commonids.KubernetesClusterId{}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
+			_, err := commonids.ParseKubernetesClusterID(id)
+			return err
+
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
 			resourceId, err := commonids.ParseKubernetesClusterID(d.Id())
 			if err != nil {
 				return []*pluginsdk.ResourceData{d}, err
@@ -70,7 +74,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			}
 
 			if pointer.From(resp.Model.Sku.Name) == managedclusters.ManagedClusterSKUNameAutomatic {
-				return []*pluginsdk.ResourceData{d}, fmt.Errorf("importing Automatic Cluster %s: use kubernetes_automatic_cluster resource for SKU `Automatic`", d.Id())
+				return []*pluginsdk.ResourceData{d}, fmt.Errorf("importing %s: use the `azurerm_kubernetes_automatic_cluster` resource for clusters using the `Automatic` SKU", d.Id())
 			}
 
 			return []*pluginsdk.ResourceData{d}, nil
