@@ -151,7 +151,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctsa%[3]s"
+  name                     = "acctesta%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -203,7 +203,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_storage_account" "test2" {
-  name                     = "acctsb%[3]s"
+  name                     = "acctestb%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"

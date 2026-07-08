@@ -70,7 +70,7 @@ func (CognitiveAccountConnectionCustomKeysListResource) List(ctx context.Context
 			}
 
 			base := connection.Properties.ConnectionPropertiesV2()
-			if string(base.AuthType) != string(accountconnectionresource.ConnectionAuthTypeCustomKeys) {
+			if base.AuthType != accountconnectionresource.ConnectionAuthTypeCustomKeys {
 				continue
 			}
 

@@ -70,7 +70,7 @@ func (CognitiveAccountConnectionEntraIDListResource) List(ctx context.Context, r
 			}
 
 			base := connection.Properties.ConnectionPropertiesV2()
-			if string(base.AuthType) != string(accountconnectionresource.ConnectionAuthTypeAAD) {
+			if base.AuthType != accountconnectionresource.ConnectionAuthTypeAAD {
 				continue
 			}
 
