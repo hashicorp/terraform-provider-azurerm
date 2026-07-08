@@ -768,11 +768,11 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 	d.SetId(id.ID())
 	if model := resp.Model; model != nil {
 		if resp.Model.Sku == nil || resp.Model.Sku.Name == nil {
-			return fmt.Errorf("failed to read %s: SKU information is missing", d.Id())
+			return fmt.Errorf("reading %s: SKU information is missing", d.Id())
 		}
 
 		if pointer.From(resp.Model.Sku.Name) == managedclusters.ManagedClusterSKUNameAutomatic {
-			return fmt.Errorf("failed to read Automatic Cluster %s: kubernetes_cluster datasource does not support SKU `Automatic`", d.Id())
+			return fmt.Errorf("reading Automatic Cluster %s: kubernetes_cluster datasource does not support SKU `Automatic`", d.Id())
 		}
 
 		d.Set("name", id.ManagedClusterName)

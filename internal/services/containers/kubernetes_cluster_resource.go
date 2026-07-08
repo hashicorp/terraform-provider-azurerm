@@ -70,7 +70,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			}
 
 			if pointer.From(resp.Model.Sku.Name) == managedclusters.ManagedClusterSKUNameAutomatic {
-				return []*pluginsdk.ResourceData{d}, fmt.Errorf("failed to import Automatic Cluster %s: use kubernetes_automatic_cluster resource for SKU `Automatic`", d.Id())
+				return []*pluginsdk.ResourceData{d}, fmt.Errorf("importing Automatic Cluster %s: use kubernetes_automatic_cluster resource for SKU `Automatic`", d.Id())
 			}
 
 			return []*pluginsdk.ResourceData{d}, nil
