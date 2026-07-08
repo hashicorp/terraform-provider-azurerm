@@ -67,7 +67,7 @@ func TestAccCdnFrontDoorRuleSet_importBatchRuleSet(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: CdnFrontdoorBatchRuleSetResource{}.disableCacheAndNoOriginGroupWithTemplate(data),
+			Config: CdnFrontdoorBatchRuleSetResource{}.disableCacheAndNoOriginGroup(data),
 		},
 		{
 			Config:      r.batchRuleSetImport(data),

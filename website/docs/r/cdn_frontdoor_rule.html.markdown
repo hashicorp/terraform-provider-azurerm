@@ -152,7 +152,7 @@ The following arguments are supported:
 
 * `cdn_frontdoor_rule_set_id` - (Required) The resource ID of the Front Door Rule Set for this Front Door Rule. Changing this forces a new Front Door Rule to be created.
 
-~> **Note:** The `cdn_frontdoor_rule_set_id` must reference a non-batch mode rule set, individual rules for batch mode rule sets cannot be managed by this resource. 
+~> **Note:** The `cdn_frontdoor_rule_set_id` must reference a non-batch mode rule set, individual rules for batch mode rule sets cannot be managed by this resource.
 
 * `order` - (Required) The order in which the rules will be applied for the Front Door Endpoint. The order value should be sequential and begin at `1`(e.g. `1`, `2`, `3`...). A Front Door Rule with a lesser order value will be applied before a rule with a greater order value.
 
