@@ -4,7 +4,7 @@
 package cdn
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-09-01/rules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -28,16 +28,6 @@ func schemaCdnFrontDoorUrlPathOperator() *pluginsdk.Schema {
 		Type:     pluginsdk.TypeString,
 		Required: true,
 		ValidateFunc: validation.StringInSlice(rules.PossibleValuesForURLPathOperator(),
-			false),
-	}
-}
-
-func schemaCdnFrontDoorOperatorEqualOnly() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeString,
-		Optional: true,
-		Default:  string(rules.OperatorEqual),
-		ValidateFunc: validation.StringInSlice(rules.PossibleValuesForOperator(),
 			false),
 	}
 }

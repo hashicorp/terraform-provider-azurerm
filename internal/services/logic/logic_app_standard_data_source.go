@@ -136,6 +136,12 @@ func dataSourceLogicAppStandard() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 
+			"storage_key_vault_secret_id": {
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Description: "The Key Vault Secret ID, optionally including version, that contains the connection string to the backend storage account for the Logic App.",
+			},
+
 			"storage_account_share_name": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -270,21 +276,12 @@ func dataSourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{})
 
 		connectionString := appSettings["AzureWebJobsStorage"]
 
-		// This teases out the necessary attributes from the storage connection string
-		connectionStringParts := strings.Split(connectionString, ";")
-		for _, part := range connectionStringParts {
-			if strings.HasPrefix(part, "AccountName") {
-				accountNameParts := strings.Split(part, "AccountName=")
-				if len(accountNameParts) > 1 {
-					d.Set("storage_account_name", accountNameParts[1])
-				}
-			}
-			if strings.HasPrefix(part, "AccountKey") {
-				accountKeyParts := strings.Split(part, "AccountKey=")
-				if len(accountKeyParts) > 1 {
-					d.Set("storage_account_access_key", accountKeyParts[1])
-				}
-			}
+		if strings.HasPrefix(connectionString, "@Microsoft.KeyVault") {
+			d.Set("storage_key_vault_secret_id", strings.TrimPrefix(strings.TrimSuffix(connectionString, ")"), "@Microsoft.KeyVault(SecretUri="))
+		} else {
+			name, key := helpers.ParseWebJobsStorageString(connectionString)
+			d.Set("storage_account_name", name)
+			d.Set("storage_account_access_key", key)
 		}
 
 		d.Set("version", appSettings["FUNCTIONS_EXTENSION_VERSION"])

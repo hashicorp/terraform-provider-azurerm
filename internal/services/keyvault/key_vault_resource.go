@@ -18,7 +18,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-02-01/vaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/deletedvaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/vaults"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -79,6 +80,11 @@ func resourceKeyVault() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
+			"rbac_authorization_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Required: true,
+			},
+
 			"sku_name": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
@@ -136,11 +142,6 @@ func resourceKeyVault() *pluginsdk.Resource {
 			},
 
 			"enabled_for_template_deployment": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-			},
-
-			"rbac_authorization_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
@@ -271,6 +272,7 @@ func resourceKeyVault() *pluginsdk.Resource {
 func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).KeyVault.VaultsClient
+	deletedVaultsClient := meta.(*clients.Client).KeyVault.DeletedVaultsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -306,8 +308,8 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	// before creating check to see if the key vault exists in the soft delete state
-	deletedVaultId := vaults.NewDeletedVaultID(id.SubscriptionId, location, id.VaultName)
-	softDeletedKeyVault, err := client.GetDeleted(ctx, deletedVaultId)
+	deletedVaultId := deletedvaults.NewDeletedVaultID(id.SubscriptionId, location, id.VaultName)
+	softDeletedKeyVault, err := deletedVaultsClient.VaultsGetDeleted(ctx, deletedVaultId)
 	if err != nil {
 		// If Terraform lacks permission to read at the Subscription we'll get 409, not 404
 		if !response.WasNotFound(softDeletedKeyVault.HttpResponse) && !response.WasStatusCode(softDeletedKeyVault.HttpResponse, http.StatusForbidden) {
@@ -330,7 +332,7 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	enabledForDeployment := d.Get("enabled_for_deployment").(bool)
 	enabledForDiskEncryption := d.Get("enabled_for_disk_encryption").(bool)
 	enabledForTemplateDeployment := d.Get("enabled_for_template_deployment").(bool)
-	enabledRbacAuthorization := d.Get("rbac_authorization_enabled").(bool)
+	rbacAuthorizationEnabled := d.Get("rbac_authorization_enabled").(bool)
 	t := d.Get("tags").(map[string]interface{})
 
 	policies := d.Get("access_policy").([]interface{})
@@ -353,7 +355,7 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 			EnabledForDeployment:         &enabledForDeployment,
 			EnabledForDiskEncryption:     &enabledForDiskEncryption,
 			EnabledForTemplateDeployment: &enabledForTemplateDeployment,
-			EnableRbacAuthorization:      pointer.To(enabledRbacAuthorization),
+			EnableRbacAuthorization:      pointer.To(rbacAuthorizationEnabled),
 			NetworkAcls:                  networkAcls,
 
 			// @tombuildsstuff: as of 2020-12-15 this is now defaulted on, and appears to be so in all regions
@@ -814,6 +816,7 @@ func resourceKeyVaultFlatten(ctx context.Context, managementClient *dataplane.Ba
 
 func resourceKeyVaultDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
+	deletedVaultsClient := meta.(*clients.Client).KeyVault.DeletedVaultsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -873,11 +876,11 @@ func resourceKeyVaultDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	// Purge the soft deleted key vault permanently if the feature flag is enabled
 	if meta.(*clients.Client).Features.KeyVault.PurgeSoftDeleteOnDestroy && softDeleteEnabled {
-		deletedVaultId := vaults.NewDeletedVaultID(id.SubscriptionId, location, id.VaultName)
+		deletedVaultId := deletedvaults.NewDeletedVaultID(id.SubscriptionId, location, id.VaultName)
 
 		// KeyVaults with Purge Protection Enabled cannot be deleted unless done by Azure
 		if purgeProtectionEnabled {
-			deletedInfo, err := getSoftDeletedStateForKeyVault(ctx, client, deletedVaultId)
+			deletedInfo, err := getSoftDeletedStateForKeyVault(ctx, deletedVaultsClient, deletedVaultId)
 			if err != nil {
 				return fmt.Errorf("retrieving the Deletion Details for %s: %+v", *id, err)
 			}
@@ -892,7 +895,7 @@ func resourceKeyVaultDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 
 		log.Printf("[DEBUG] KeyVault %q marked for purge - executing purge", id.VaultName)
-		if err := client.PurgeDeletedThenPoll(ctx, deletedVaultId); err != nil {
+		if err := deletedVaultsClient.VaultsPurgeDeletedThenPoll(ctx, deletedVaultId); err != nil {
 			return fmt.Errorf("purging %s: %+v", *id, err)
 		}
 		log.Printf("[DEBUG] Purged KeyVault %q.", id.VaultName)
@@ -1060,8 +1063,8 @@ type keyVaultDeletionStatus struct {
 	purgeDate  string
 }
 
-func getSoftDeletedStateForKeyVault(ctx context.Context, client *vaults.VaultsClient, deletedVaultId vaults.DeletedVaultId) (*keyVaultDeletionStatus, error) {
-	resp, err := client.GetDeleted(ctx, deletedVaultId)
+func getSoftDeletedStateForKeyVault(ctx context.Context, deletedVaultsClient *deletedvaults.DeletedVaultsClient, deletedVaultId deletedvaults.DeletedVaultId) (*keyVaultDeletionStatus, error) {
+	resp, err := deletedVaultsClient.VaultsGetDeleted(ctx, deletedVaultId)
 	if err != nil {
 		return nil, err
 	}
