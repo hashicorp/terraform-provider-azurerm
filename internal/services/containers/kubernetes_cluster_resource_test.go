@@ -56,7 +56,7 @@ func TestAccKubernetesCluster_defaultNodePoolSecurityProfile(t *testing.T) {
 		},
 		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
 		{
-			Config: r.defaultNodePoolSecurityProfile(data, true, false),
+			Config: r.defaultNodePoolSecurityProfile(data, false, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -493,6 +493,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   identity {
