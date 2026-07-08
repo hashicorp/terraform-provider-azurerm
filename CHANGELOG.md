@@ -24,6 +24,7 @@ FEATURES:
 * **New List Resource:** `azurerm_cognitive_account_connection_entra_id` [GH-30981]
 
 BUG FIXES:
+* `azurerm_virtual_hub_connection` - `remote_virtual_network_id` value will now be parsed case insensitive [GH-32734]
 
 ## 4.80.0 (July 02, 2026)
 
