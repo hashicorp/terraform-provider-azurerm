@@ -40,7 +40,7 @@ func TestAccStorageTable_basicAzureADAuth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_table", "test")
 	r := StorageTableResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicAzureADAuth(data),
 			Check: acceptance.ComposeTestCheckFunc(
