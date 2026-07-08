@@ -135,7 +135,7 @@ func TestAccCdnFrontDoorBatchRuleSet_disableCache_attachedRoute(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.disableCacheAndNoOriginGroupWithTemplate(data),
+			Config: r.disableCacheAndNoOriginGroup(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1139,7 +1139,7 @@ resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontdoorBatchRuleSetResource) disableCacheAndNoOriginGroupWithTemplate(data acceptance.TestData) string {
+func (r CdnFrontdoorBatchRuleSetResource) disableCacheAndNoOriginGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -12,8 +12,6 @@ Manages a Front Door (standard/premium) Batch Rule Set.
 
 ~> **Note:** This resource creates the Front Door Rule Set in batch mode and manages the full ordered batch rule collection for it. Any change to the configured `rule` blocks sends the desired final ordered rule list to the Resource Provider in a single request.
 
-~> **Note:** Use `azurerm_cdn_frontdoor_rule_set` together with `azurerm_cdn_frontdoor_rule` for the normal non-batch Rule Set path.
-
 ## Example Usage
 
 ```hcl
