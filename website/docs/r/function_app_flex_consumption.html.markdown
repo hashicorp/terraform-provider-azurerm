@@ -77,7 +77,7 @@ The following arguments are supported:
 
 * `site_config` - (Required) A `site_config` block as defined below.
 
-* `site_update_strategy` - (Optional) The strategy used to apply site updates to the Function App. Possible values are `Recreate` and `RollingUpdate`. Defaults to Recreate.
+* `site_update_strategy` - (Optional) The strategy used to apply site updates to the Function App. Possible values are `Recreate` and `RollingUpdate`. Defaults to `Recreate`.
 
 ~> **Note:** `RollingUpdate` will create a temporary deployment slot, apply the configuration changes to the slot, and then swap it with the production slot. This allows for zero downtime updates but may cause issues with certain configuration changes while `Recreate` which applies the configuration changes directly to the production slot and may cause downtime.
 
