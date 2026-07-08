@@ -777,7 +777,6 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 
 	d.SetId(id.ID())
 	if model := resp.Model; model != nil {
-
 		d.Set("name", id.ManagedClusterName)
 		d.Set("resource_group_name", id.ResourceGroupName)
 		d.Set("location", location.Normalize(model.Location))
