@@ -25,9 +25,9 @@ func (s BaseBackupParametersImpl) BackupParameters() BaseBackupParametersImpl {
 
 var _ BackupParameters = RawBackupParametersImpl{}
 
-// RawBackupParametersImpl is returned when the Discriminated Value doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+// RawBackupParametersImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawBackupParametersImpl struct {
 	backupParameters BaseBackupParametersImpl
 	Type             string
@@ -36,6 +36,10 @@ type RawBackupParametersImpl struct {
 
 func (s RawBackupParametersImpl) BackupParameters() BaseBackupParametersImpl {
 	return s.backupParameters
+}
+
+func (s RawBackupParametersImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
 }
 
 func UnmarshalBackupParametersImplementation(input []byte) (BackupParameters, error) {

@@ -168,19 +168,19 @@ func TestTypedResourcesUsePointersForOptionalProperties(t *testing.T) {
 					if !ok {
 						continue
 					} else {
-						if v.Optional && field.Type.Kind() != reflect.Ptr {
+						if v.Optional && field.Type.Kind() != reflect.Pointer {
 							t.Logf("Optional field `%s` in model `%s` in resource `%s` should be a pointer!", property, modelType.Name(), resource.ResourceType())
 							fails = true
 							continue
 						}
 
-						if v.Required && field.Type.Kind() == reflect.Ptr {
+						if v.Required && field.Type.Kind() == reflect.Pointer {
 							t.Logf("Required field `%s` in model `%s` in resource `%s` should not be a pointer!", property, modelType.Name(), resource.ResourceType())
 							fails = true
 							continue
 						}
 
-						if v.Computed && !v.Required && !v.Optional && field.Type.Kind() == reflect.Ptr {
+						if v.Computed && !v.Required && !v.Optional && field.Type.Kind() == reflect.Pointer {
 							t.Logf("Computed Only field `%s` in model `%s` in resource `%s` should not be a pointer!", property, modelType.Name(), resource.ResourceType())
 						}
 

@@ -177,6 +177,10 @@ resource "azurerm_nginx_deployment" "test" {
   location                  = azurerm_resource_group.test.location
   automatic_upgrade_channel = "stable"
 
+  identity {
+    type = "SystemAssigned"
+  }
+
   frontend_public {
     ip_address = [azurerm_public_ip.test.id]
   }
@@ -208,6 +212,10 @@ resource "azurerm_nginx_deployment" "test" {
   sku                       = "standardv3_Monthly"
   location                  = azurerm_resource_group.test.location
   automatic_upgrade_channel = "stable"
+
+  identity {
+    type = "SystemAssigned"
+  }
 
   frontend_private {
     allocation_method = "Static"
@@ -242,6 +250,10 @@ resource "azurerm_nginx_deployment" "test" {
   sku                       = "standardv3_Monthly"
   location                  = azurerm_resource_group.test.location
   automatic_upgrade_channel = "stable"
+
+  identity {
+    type = "SystemAssigned"
+  }
 
   frontend_public {
     ip_address = [azurerm_public_ip.test.id]
@@ -285,6 +297,10 @@ resource "azurerm_nginx_deployment" "test" {
   location                  = azurerm_resource_group.test.location
   automatic_upgrade_channel = "stable"
 
+  identity {
+    type = "SystemAssigned"
+  }
+
   frontend_public {
     ip_address = [azurerm_public_ip.test.id]
   }
@@ -326,6 +342,10 @@ resource "azurerm_nginx_deployment" "test" {
   sku                 = "standardv3_Monthly"
   location            = azurerm_resource_group.test.location
 
+  identity {
+    type = "SystemAssigned"
+  }
+
   frontend_public {
     ip_address = [azurerm_public_ip.test.id]
   }
@@ -357,6 +377,10 @@ resource "azurerm_nginx_deployment" "test" {
   sku                       = "standardv3_Monthly"
   location                  = azurerm_resource_group.test.location
   automatic_upgrade_channel = "stable"
+
+  identity {
+    type = "SystemAssigned"
+  }
 
   frontend_private {
     allocation_method = "Static"
@@ -392,6 +416,10 @@ resource "azurerm_nginx_deployment" "test" {
   location                  = azurerm_resource_group.test.location
   automatic_upgrade_channel = "stable"
 
+  identity {
+    type = "SystemAssigned"
+  }
+
   frontend_private {
     allocation_method = "Static"
     ip_address        = "10.0.2.11"
@@ -425,6 +453,10 @@ resource "azurerm_nginx_deployment" "test" {
   sku                       = "standardv3_Monthly"
   location                  = azurerm_resource_group.test.location
   automatic_upgrade_channel = "stable"
+
+  identity {
+    type = "SystemAssigned"
+  }
 
   frontend_public {
     ip_address = [azurerm_public_ip.test2.id]
@@ -495,7 +527,7 @@ resource "azurerm_nginx_deployment" "test" {
   location            = azurerm_resource_group.test.location
 
   identity {
-    type         = "UserAssigned"
+    type         = "SystemAssigned, UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
@@ -523,6 +555,10 @@ resource "azurerm_nginx_deployment" "test" {
   sku                       = "standardv3_Monthly"
   location                  = azurerm_resource_group.test.location
   automatic_upgrade_channel = "stable"
+
+  identity {
+    type = "SystemAssigned"
+  }
 
   frontend_public {
     ip_address = [azurerm_public_ip.test.id]
