@@ -173,23 +173,12 @@ resource "azurerm_kubernetes_fleet_update_strategy" "test" {
   }
 }
 
-resource "azurerm_kubernetes_fleet_update_strategy" "update" {
-  name                        = "acctestupu-%[2]d"
-  kubernetes_fleet_manager_id = azurerm_kubernetes_fleet_manager.test.id
-  stage {
-    name = "acctestupu-%[2]d"
-    group {
-      name = "acctestupu-%[2]d"
-    }
-  }
-}
-
 resource "azurerm_kubernetes_fleet_auto_upgrade_profile" "test" {
   name                        = "acctestfaup-%[2]d"
   kubernetes_fleet_manager_id = azurerm_kubernetes_fleet_manager.test.id
   channel                     = "Stable"
   node_image_selection_type   = "Consistent"
-  update_strategy_id          = azurerm_kubernetes_fleet_update_strategy.update.id
+  update_strategy_id          = azurerm_kubernetes_fleet_update_strategy.test.id
   enabled                     = false
 }
 `, r.template(data), data.RandomInteger)
