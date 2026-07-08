@@ -1202,11 +1202,11 @@ func validateCdnFrontDoorBatchRuleActionCounts(urlRewriteCount, urlRedirectCount
 	}
 
 	if urlRedirectCount > 0 && urlRewriteCount > 0 {
-		return errors.New("the `url_redirect` and the `url_rewrite` are both present in the `actions` block which is invalid")
+		return errors.New("cannot specify both `url_redirect` and the `url_rewrite` in the `actions` block")
 	}
 
 	if urlRedirectCount > 0 && routeConfigurationOverrideCount > 0 {
-		return errors.New("the `url_redirect` and the `route_configuration_override` are both present in the `actions` block which is invalid")
+		return errors.New("cannot specify both `url_redirect` and the `route_configuration_override` in the `actions` block")
 	}
 
 	if totalCount > 5 {
