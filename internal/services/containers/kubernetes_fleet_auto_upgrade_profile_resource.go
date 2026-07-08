@@ -87,7 +87,7 @@ func (r KubernetesFleetAutoUpgradeProfileResource) Arguments() map[string]*plugi
 			ValidateFunc: validation.StringInSlice(autoupgradeprofiles.PossibleValuesForAutoUpgradeNodeImageSelectionType(), false),
 		},
 
-		"update_strategy_id": commonschema.ResourceIDReferenceOptional(&fleetupdatestrategies.UpdateStrategyId{}),
+		"update_strategy_id": commonschema.ResourceIDReferenceOptionalForceNew(&fleetupdatestrategies.UpdateStrategyId{}),
 	}
 }
 
