@@ -253,8 +253,7 @@ func (r WorkspaceTableMicrosoftResource) Create() sdk.ResourceFunc {
 			}
 
 			id := tables.NewTableID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, tableName)
-			_, err = client.Get(ctx, id)
-			if err != nil {
+			if _, err = client.Get(ctx, id); err != nil {
 				return fmt.Errorf("checking for presence of existing %s: %+v", tableName, err)
 			}
 			// Microsoft tables are always automatically provisioned whenever log analytics workspaces are provisioned, so there's no point in returning a 'resource already exists' error
