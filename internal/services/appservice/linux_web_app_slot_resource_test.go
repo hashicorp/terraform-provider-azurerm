@@ -3109,8 +3109,8 @@ resource "azurerm_linux_web_app_slot" "test" {
   app_service_id = azurerm_linux_web_app.test.id
 
   vnet_image_pull_enabled                     = true
-  virtual_network_application_traffic_enabled = true
   virtual_network_backup_restore_enabled      = true
+  virtual_network_application_traffic_enabled = true
 
   site_config {}
 }

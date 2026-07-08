@@ -4042,9 +4042,9 @@ resource "azurerm_windows_web_app" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
-  virtual_network_application_traffic_enabled = true
   virtual_network_backup_restore_enabled      = true
   virtual_network_image_pull_enabled          = true
+  virtual_network_application_traffic_enabled = true
 
   site_config {}
 }
