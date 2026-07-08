@@ -191,7 +191,7 @@ A `service_mesh` block supports the following:
 
 -> **Note:** Currently only one Internal Ingress Gateway and one External Ingress Gateway are allowed per cluster
 
-* `proxy_redirect_mechanism` - (Optional) The mechanism used to redirect application traffic to the Istio sidecar proxy. Possible values are `CNIChaining` and `InitContainers`. Defaults to `InitContainers`. Changing this forces a new resource to be created.
+* `proxy_redirect_mechanism` - (Optional) The mechanism used to redirect application traffic to the Istio sidecar proxy. Possible values are `CNIChaining` and `InitContainers`. Defaults to `InitContainers`.
 
 * `certificate_authority` - (Optional) A `certificate_authority` block as defined below. This configuration allows you to bring your own root certificate and keys for Istio CA in the Istio-based service mesh add-on for Azure Kubernetes Service.
 
@@ -215,11 +215,11 @@ A `certificate_authority` block supports the following:
 
 A `web_app_routing_ingress` block supports the following:
 
-* `dns_zone_ids` - (Optional) Specifies the list of the DNS Zone IDs in which DNS entries are created for applications deployed to the cluster when Web App Routing is enabled. If not using Bring-Your-Own DNS zones this property should be set to an empty list.
+* `dns_zone_ids` - (Optional) Resource IDs of the DNS zones to be associated with the Application Routing add-on. Public and private DNS zones can be in different resource groups, but all public DNS zones must be in the same resource group and all private DNS zones must be in the same resource group.
 
 * `default_nginx_controller` - (Optional) Specifies the ingress type for the default `NginxIngressController` custom resource. The allowed values are `Internal`, `External` and `AnnotationControlled`. At least one of `default_nginx_controller` or `istio_enabled` must be specified.
 
-* `istio_enabled` - (Optional) Provisions the Istio-based ingress be enabled for Web App Routing. Defaults to `false`. At least one of `default_nginx_controller` or `istio_enabled` must be specified.
+* `istio_enabled` - (Optional) Enables Istio as a Gateway API implementation. Defaults to `false`. At least one of `default_nginx_controller` or `istio_enabled` must be specified.
 
 ---
 
@@ -253,10 +253,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `portal_fully_qualified_domain_name` - The FQDN for the Azure Portal resources when private link has been enabled, which is only resolvable inside the Virtual Network used by the Kubernetes Cluster.
 
-* `kube_admin_config` - A `kube_admin_config` block as defined below. This is only available when Role Based Access Control with Azure Active Directory is enabled and local accounts enabled.
-
-* `kube_admin_config_raw` - Raw Kubernetes config for the admin account to be used by [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) and other compatible tools. This is only available when Role Based Access Control with Azure Active Directory is enabled and local accounts enabled.
-
 * `kube_config` - A `kube_config` block as defined below.
 
 * `kube_config_raw` - Raw Kubernetes config to be used by [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) and other compatible tools.
@@ -275,7 +271,7 @@ An `identity` block exports the following:
 
 ---
 
-The `kube_admin_config` and `kube_config` blocks export the following:
+A `kube_config` blocks export the following:
 
 * `client_key` - Base64 encoded private key used by clients to authenticate to the Kubernetes cluster.
 

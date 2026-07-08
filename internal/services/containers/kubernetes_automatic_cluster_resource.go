@@ -739,17 +739,14 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %w", err)
 			}
 
-			updateCluster := false
 			props := existing.Model.Properties
 
 			if metadata.ResourceData.HasChange("tags") {
 				existing.Model.Tags = tags.Expand(model.Tags)
-				updateCluster = true
 			}
 
 			if metadata.ResourceData.HasChanges("api_server_access", "private_cluster") {
 				props.ApiServerAccessProfile = expandKubernetesAutomaticClusterAPIAccessProfile(model)
-				updateCluster = true
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
@@ -757,23 +754,18 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 				if err != nil {
 					return fmt.Errorf("expanding identity: %+v", err)
 				}
-				updateCluster = true
 			}
 
 			if metadata.ResourceData.HasChange("service_mesh") {
 				props.ServiceMeshProfile = expandKubernetesAutomaticClusterServiceMeshProfile(model.ServiceMeshProfile, props.ServiceMeshProfile)
-				updateCluster = true
 			}
 
 			if metadata.ResourceData.HasChange("web_app_routing_ingress") {
 				props.IngressProfile = expandKubernetesAutomaticClusterWebAppRoutingIngress(model.WebAppRoutingIngress)
-				updateCluster = true
 			}
 
-			if updateCluster {
-				if err := clusterClient.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, managedclusters.DefaultCreateOrUpdateOperationOptions()); err != nil {
-					return fmt.Errorf("updating %s: %w", *id, err)
-				}
+			if err := clusterClient.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, managedclusters.DefaultCreateOrUpdateOperationOptions()); err != nil {
+				return fmt.Errorf("updating %s: %w", *id, err)
 			}
 
 			return nil
