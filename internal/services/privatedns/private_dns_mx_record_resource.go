@@ -257,8 +257,8 @@ func resourcePrivateDnsMxRecordHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%d-", m["preference"].(int)))
-		buf.WriteString(fmt.Sprintf("%s-", m["exchange"].(string)))
+		fmt.Fprintf(&buf, "%d-", m["preference"].(int))
+		fmt.Fprintf(&buf, "%s-", m["exchange"].(string))
 	}
 
 	return pluginsdk.HashString(buf.String())

@@ -1987,18 +1987,18 @@ func virtualMachineScaleSetExtensionHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["publisher"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["type"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["type_handler_version"].(string)))
-		buf.WriteString(fmt.Sprintf("%t-", m["auto_upgrade_minor_version"].(bool)))
+		fmt.Fprintf(&buf, "%s-", m["name"].(string))
+		fmt.Fprintf(&buf, "%s-", m["publisher"].(string))
+		fmt.Fprintf(&buf, "%s-", m["type"].(string))
+		fmt.Fprintf(&buf, "%s-", m["type_handler_version"].(string))
+		fmt.Fprintf(&buf, "%t-", m["auto_upgrade_minor_version"].(bool))
 
 		if v, ok = m["force_update_tag"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v))
+			fmt.Fprintf(&buf, "%s-", v)
 		}
 
 		if v, ok := m["provision_after_extensions"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v))
+			fmt.Fprintf(&buf, "%s-", v)
 		}
 
 		// we need to ensure the whitespace is consistent
@@ -2008,7 +2008,7 @@ func virtualMachineScaleSetExtensionHash(v interface{}) int {
 			if err == nil {
 				serializedSettings, err := pluginsdk.FlattenJsonToString(expandedSettings)
 				if err == nil {
-					buf.WriteString(fmt.Sprintf("%s-", serializedSettings))
+					fmt.Fprintf(&buf, "%s-", serializedSettings)
 				}
 			}
 		}
@@ -2020,7 +2020,7 @@ func virtualMachineScaleSetExtensionHash(v interface{}) int {
 				if err == nil {
 					serializedSettings, err := pluginsdk.FlattenJsonToString(expandedSettings)
 					if err == nil {
-						buf.WriteString(fmt.Sprintf("%s-", serializedSettings))
+						fmt.Fprintf(&buf, "%s-", serializedSettings)
 					}
 				}
 			}
@@ -2029,8 +2029,8 @@ func virtualMachineScaleSetExtensionHash(v interface{}) int {
 		if v, ok := m["protected_settings_from_key_vault"]; ok {
 			protectedSettingsFromKeyVault := v.([]interface{})
 			if len(protectedSettingsFromKeyVault) > 0 {
-				buf.WriteString(fmt.Sprintf("%s-", protectedSettingsFromKeyVault[0].(map[string]interface{})["secret_url"].(string)))
-				buf.WriteString(fmt.Sprintf("%s-", protectedSettingsFromKeyVault[0].(map[string]interface{})["source_vault_id"].(string)))
+				fmt.Fprintf(&buf, "%s-", protectedSettingsFromKeyVault[0].(map[string]interface{})["secret_url"].(string))
+				fmt.Fprintf(&buf, "%s-", protectedSettingsFromKeyVault[0].(map[string]interface{})["source_vault_id"].(string))
 			}
 		}
 	}

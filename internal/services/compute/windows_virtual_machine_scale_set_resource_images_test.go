@@ -410,7 +410,6 @@ resource "azurerm_storage_container" "test" {
 	}
 	return fmt.Sprintf(`
 %s
-
 resource "azurerm_public_ip" "source" {
   name                = "source-%d"
   location            = azurerm_resource_group.test.location

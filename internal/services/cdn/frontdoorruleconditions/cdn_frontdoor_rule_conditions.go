@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-09-01/rules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rules"
 	helperValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -507,7 +507,7 @@ func ExpandCdnFrontDoorRequestSchemeCondition(input []interface{}) (*[]rules.Del
 			Name: conditionMapping.Name,
 			Parameters: rules.RequestSchemeMatchConditionParameters{
 				TypeName:        conditionMapping.TypeName,
-				Operator:        rules.Operator(item["operator"].(string)),
+				Operator:        rules.RequestSchemeMatchConditionParametersOperator(item["operator"].(string)),
 				NegateCondition: pointer.To(item["negate_condition"].(bool)),
 				MatchValues:     expandRequestSchemeMatchValues(matchValuesRaw),
 			},

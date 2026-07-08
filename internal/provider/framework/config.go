@@ -133,28 +133,8 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 			return
 		}
 	} else if os.Getenv("ARM_PROVIDER_ENHANCED_VALIDATION") != "" {
-		diags.Append(diag.NewErrorDiagnostic("unsupported environment variable", "the environment variable `ARM_PROVIDER_ENHANCED_VALIDATION` has been removed in v5.0 of the AzureRM Provider - please use the `enhanced_validation` provider block or the replacement environment variables `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` and `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS` instead"))
+		diags.Append(diag.NewErrorDiagnostic("unsupported environment variable", "the environment variable `ARM_PROVIDER_ENHANCED_VALIDATION` has been removed in v5.0 of the AzureRM Provider - please use the `enhanced_validation` block inside the `features` block or the replacement environment variables `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` and `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS` instead"))
 		return
-	}
-
-	// Read enhanced_validation block
-	enhancedValidationLocations := providerfeatures.EnhancedValidationLocationsEnabled()
-	enhancedValidationResourceProviders := providerfeatures.EnhancedValidationResourceProvidersEnabled()
-	if !data.EnhancedValidation.IsNull() && !data.EnhancedValidation.IsUnknown() {
-		var evList []EnhancedValidationModel
-		d := data.EnhancedValidation.ElementsAs(ctx, &evList, true)
-		diags.Append(d...)
-		if diags.HasError() {
-			return
-		}
-		if len(evList) > 0 {
-			if !evList[0].Locations.IsNull() && !evList[0].Locations.IsUnknown() {
-				enhancedValidationLocations = evList[0].Locations.ValueBool()
-			}
-			if !evList[0].ResourceProviders.IsNull() && !evList[0].ResourceProviders.IsUnknown() {
-				enhancedValidationResourceProviders = evList[0].ResourceProviders.ValueBool()
-			}
-		}
 	}
 
 	f := providerfeatures.UserFeatures{}
@@ -549,10 +529,56 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 		} else {
 			f.DatabricksWorkspace.ForceDelete = false
 		}
-	}
 
-	f.EnhancedValidation.Locations = enhancedValidationLocations
-	f.EnhancedValidation.ResourceProviders = enhancedValidationResourceProviders
+		f.EnhancedValidation.Locations = providerfeatures.EnhancedValidationLocationsEnabled()
+		f.EnhancedValidation.ResourceProviders = providerfeatures.EnhancedValidationResourceProvidersEnabled()
+		f.EnhancedValidation.PreflightEnabled = providerfeatures.EnhancedValidationPreflightEnabled()
+		f.EnhancedValidation.LocationFallback = providerfeatures.EnhancedValidationLocationFallback()
+
+		if !providerfeatures.FivePointOh() && !data.EnhancedValidation.IsNull() && !data.EnhancedValidation.IsUnknown() {
+			if !features.EnhancedValidation.IsNull() && !features.EnhancedValidation.IsUnknown() {
+				diags.Append(diag.NewErrorDiagnostic("conflicting configuration", "the `enhanced_validation` block is defined at both the provider root and inside the `features` block. Please remove the block at the provider root as it is deprecated."))
+				return
+			}
+
+			var rootEvList []EnhancedValidationModel
+			d := data.EnhancedValidation.ElementsAs(ctx, &rootEvList, true)
+			diags.Append(d...)
+			if diags.HasError() {
+				return
+			}
+
+			if len(rootEvList) > 0 {
+				if !rootEvList[0].Locations.IsNull() && !rootEvList[0].Locations.IsUnknown() {
+					f.EnhancedValidation.Locations = rootEvList[0].Locations.ValueBool()
+				}
+				if !rootEvList[0].ResourceProviders.IsNull() && !rootEvList[0].ResourceProviders.IsUnknown() {
+					f.EnhancedValidation.ResourceProviders = rootEvList[0].ResourceProviders.ValueBool()
+				}
+			}
+		} else if !features.EnhancedValidation.IsNull() && !features.EnhancedValidation.IsUnknown() {
+			var evList []EnhancedValidationModel
+			d := features.EnhancedValidation.ElementsAs(ctx, &evList, true)
+			diags.Append(d...)
+			if diags.HasError() {
+				return
+			}
+			if len(evList) > 0 {
+				if !evList[0].Locations.IsNull() && !evList[0].Locations.IsUnknown() {
+					f.EnhancedValidation.Locations = evList[0].Locations.ValueBool()
+				}
+				if !evList[0].ResourceProviders.IsNull() && !evList[0].ResourceProviders.IsUnknown() {
+					f.EnhancedValidation.ResourceProviders = evList[0].ResourceProviders.ValueBool()
+				}
+				if !evList[0].PreflightEnabled.IsNull() && !evList[0].PreflightEnabled.IsUnknown() {
+					f.EnhancedValidation.PreflightEnabled = evList[0].PreflightEnabled.ValueBool() && providerfeatures.FivePointOh()
+				}
+				if !evList[0].LocationFallback.IsNull() && !evList[0].LocationFallback.IsUnknown() {
+					f.EnhancedValidation.LocationFallback = evList[0].LocationFallback.ValueStringPointer()
+				}
+			}
+		}
+	}
 
 	p.clientBuilder.Features = f
 	p.clientBuilder.AuthConfig = authConfig
@@ -605,13 +631,11 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 	ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
 	defer cancel()
 
-	if f.EnhancedValidation.ResourceProviders {
-		// Ensure that we do not trigger the RP cache when running in VCR mode or the cassettes have a base size of 3.5MiB!
-		if os.Getenv("TC_TEST_VIA_VCR") == "" {
-			if err = resourceproviders.EnsureRegistered(ctx2, client.Resource.ResourceProvidersClient, subId, requiredResourceProviders); err != nil {
-				diags.AddError("registering resource providers", err.Error())
-				return
-			}
+	// Ensure that we do not trigger the RP cache when running in VCR mode or the cassettes have a base size of 3.5MiB!
+	if os.Getenv("TC_TEST_VIA_VCR") == "" {
+		if err = resourceproviders.EnsureRegistered(ctx2, client.Resource.ResourceProvidersClient, subId, requiredResourceProviders, f.EnhancedValidation.ResourceProviders); err != nil {
+			diags.AddError("registering resource providers", err.Error())
+			return
 		}
 	}
 

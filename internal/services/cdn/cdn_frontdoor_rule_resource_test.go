@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-09-01/rules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -19,11 +19,7 @@ import (
 
 type CdnFrontDoorRuleResource struct{}
 
-const unattachedFrontDoorRuleSetRegressionSkipMessage = "temporarily skipped due to confirmed service regression for unattached Front Door rulesets; expected service fix 2026-04-17"
-
 func TestAccCdnFrontDoorRule_basic_unattachedRoute(t *testing.T) {
-	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
-
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -53,8 +49,6 @@ func TestAccCdnFrontDoorRule_basic_attachedRoute(t *testing.T) {
 
 func TestAccCdnFrontDoorRule_cacheDuration_unattachedRoute(t *testing.T) {
 	// NOTE: Regression test case for issue #22668
-	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
-
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -85,8 +79,6 @@ func TestAccCdnFrontDoorRule_cacheDuration_attachedRoute(t *testing.T) {
 
 func TestAccCdnFrontDoorRule_cacheDurationZero_unattachedRoute(t *testing.T) {
 	// NOTE: Regression test case for issue #23376
-	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
-
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -117,8 +109,6 @@ func TestAccCdnFrontDoorRule_cacheDurationZero_attachedRoute(t *testing.T) {
 
 func TestAccCdnFrontDoorRule_urlRedirectAction_unattachedRoute(t *testing.T) {
 	// NOTE: Regression test case for issue #18249
-	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
-
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -149,8 +139,6 @@ func TestAccCdnFrontDoorRule_urlRedirectAction_attachedRoute(t *testing.T) {
 
 func TestAccCdnFrontDoorRule_originGroupIdOptional_unattachedRoute(t *testing.T) {
 	// NOTE: Regression test case for issue #18889
-	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
-
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -181,8 +169,6 @@ func TestAccCdnFrontDoorRule_originGroupIdOptional_attachedRoute(t *testing.T) {
 
 func TestAccCdnFrontDoorRule_originGroupIdOptionalUpdate_unattachedRoute(t *testing.T) {
 	// NOTE: Regression test case for issue #18889
-	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
-
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -256,8 +242,6 @@ func TestAccCdnFrontDoorRule_originGroupIdOptionalError(t *testing.T) {
 
 func TestAccCdnFrontDoorRule_disableCache_unattachedRoute(t *testing.T) {
 	// NOTE: Regression test case for issue #19008
-	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
-
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -288,8 +272,6 @@ func TestAccCdnFrontDoorRule_disableCache_attachedRoute(t *testing.T) {
 
 func TestAccCdnFrontDoorRule_disableCacheOriginGroupId_unattachedRoute(t *testing.T) {
 	// NOTE: Regression test case for issue #19008
-	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
-
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -320,8 +302,6 @@ func TestAccCdnFrontDoorRule_disableCacheOriginGroupId_attachedRoute(t *testing.
 
 func TestAccCdnFrontDoorRule_disableCacheOriginGroupIdUpdate_unattachedRoute(t *testing.T) {
 	// NOTE: Regression test case for issue #19008
-	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
-
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -380,8 +360,6 @@ func TestAccCdnFrontDoorRule_disableCacheOriginGroupIdUpdate_attachedRoute(t *te
 
 func TestAccCdnFrontDoorRule_disableCacheUpdate_unattachedRoute(t *testing.T) {
 	// NOTE: Regression test case for issue #19008
-	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
-
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -454,8 +432,6 @@ func TestAccCdnFrontDoorRule_disableCacheError(t *testing.T) {
 }
 
 func TestAccCdnFrontDoorRule_actionOnly_unattachedRoute(t *testing.T) {
-	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
-
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -498,8 +474,6 @@ func TestAccCdnFrontDoorRule_requiresImport(t *testing.T) {
 }
 
 func TestAccCdnFrontDoorRule_complete_unattachedRoute(t *testing.T) {
-	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
-
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -528,8 +502,6 @@ func TestAccCdnFrontDoorRule_complete_attachedRoute(t *testing.T) {
 }
 
 func TestAccCdnFrontDoorRule_update_unattachedRoute(t *testing.T) {
-	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
-
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -598,8 +570,6 @@ func TestAccCdnFrontDoorRule_invalidCacheDuration(t *testing.T) {
 
 func TestAccCdnFrontDoorRule_multipleQueryStringParameters_unattachedRoute(t *testing.T) {
 	// NOTE: Regression test case for issue #19097
-	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
-
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -642,8 +612,6 @@ func TestAccCdnFrontDoorRule_multipleQueryStringParametersError(t *testing.T) {
 
 func TestAccCdnFrontDoorRule_honorOrigin_unattachedRoute(t *testing.T) {
 	// NOTE: Regression test case for issue #19311
-	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
-
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -674,8 +642,6 @@ func TestAccCdnFrontDoorRule_honorOrigin_attachedRoute(t *testing.T) {
 
 func TestAccCdnFrontDoorRule_allowEmptyQueryString_unattachedRoute(t *testing.T) {
 	// NOTE: Regression test case for issue #19682
-	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
-
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -705,8 +671,6 @@ func TestAccCdnFrontDoorRule_allowEmptyQueryString_attachedRoute(t *testing.T) {
 }
 
 func TestAccCdnFrontDoorRule_allowForwardSlashUrlConditionMatchValue_unattachedRoute(t *testing.T) {
-	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
-
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -735,8 +699,6 @@ func TestAccCdnFrontDoorRule_allowForwardSlashUrlConditionMatchValue_attachedRou
 }
 
 func TestAccCdnFrontDoorRule_allowForwardSlashUrl2ConditionMatchValue_unattachedRoute(t *testing.T) {
-	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
-
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -766,8 +728,6 @@ func TestAccCdnFrontDoorRule_allowForwardSlashUrl2ConditionMatchValue_attachedRo
 
 func TestAccCdnFrontDoorRule_urlFilenameConditionOperatorAny_unattachedRoute(t *testing.T) {
 	// NOTE: Regression test case for issue #23504
-	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
-
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -814,8 +774,6 @@ func TestAccCdnFrontDoorRule_urlFilenameConditionOperatorError(t *testing.T) {
 
 func TestAccCdnFrontDoorRule_urlPathConditionOperatorWildcard_unattachedRoute(t *testing.T) {
 	// NOTE: Regression test case for issue #29415
-	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
-
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{

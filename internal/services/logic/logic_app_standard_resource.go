@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
@@ -52,6 +53,7 @@ type LogicAppResourceModel struct {
 	ConnectionStrings           []helpers.ConnectionString                 `tfschema:"connection_string"`
 	StorageAccountName          string                                     `tfschema:"storage_account_name"`
 	StorageAccountAccessKey     string                                     `tfschema:"storage_account_access_key"`
+	StorageKeyVaultSecretID     string                                     `tfschema:"storage_key_vault_secret_id"`
 	PublicNetworkAccess         string                                     `tfschema:"public_network_access"`
 	StorageAccountShareName     string                                     `tfschema:"storage_account_share_name"`
 	Version                     string                                     `tfschema:"version"`
@@ -71,7 +73,6 @@ var (
 	logicAppStdKind   = "functionapp,workflowapp"
 	logicAppLinuxKind = "functionapp,linux,container,workflowapp"
 
-	storageConnectionStringFmt           = "DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s"
 	storageAppSettingName                = "AzureWebJobsStorage"
 	contentShareAppSettingName           = "WEBSITE_CONTENTSHARE"
 	contentFileConnStringAppSettingName  = "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"
@@ -202,16 +203,38 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"storage_account_name": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
+			Optional:     true,
 			ValidateFunc: storageValidate.StorageAccountName,
+			RequiredWith: []string{
+				"storage_account_access_key",
+			},
+			ExactlyOneOf: []string{
+				"storage_account_name",
+				"storage_key_vault_secret_id",
+			},
 		},
 
 		"storage_account_access_key": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
 			Sensitive:    true,
 			ValidateFunc: validation.NoZeroValues,
+			RequiredWith: []string{
+				"storage_account_name",
+			},
+			ConflictsWith: []string{
+				"storage_key_vault_secret_id",
+			},
+		},
+
+		"storage_key_vault_secret_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret),
+			ExactlyOneOf: []string{
+				"storage_account_name",
+				"storage_key_vault_secret_id",
+			},
 		},
 
 		// Once this property is set, it can not be removed while identity is UserAssigned.
@@ -651,19 +674,10 @@ func (r LogicAppResource) Read() sdk.ResourceFunc {
 
 				connectionString := appSettings[storageAppSettingName]
 
-				for _, part := range strings.Split(connectionString, ";") {
-					if strings.HasPrefix(part, "AccountName") {
-						accountNameParts := strings.Split(part, "AccountName=")
-						if len(accountNameParts) > 1 {
-							state.StorageAccountName = accountNameParts[1]
-						}
-					}
-					if strings.HasPrefix(part, "AccountKey") {
-						accountKeyParts := strings.Split(part, "AccountKey=")
-						if len(accountKeyParts) > 1 {
-							state.StorageAccountAccessKey = accountKeyParts[1]
-						}
-					}
+				if strings.HasPrefix(connectionString, "@Microsoft.KeyVault") {
+					state.StorageKeyVaultSecretID = strings.TrimPrefix(strings.TrimSuffix(connectionString, ")"), "@Microsoft.KeyVault(SecretUri=")
+				} else {
+					state.StorageAccountName, state.StorageAccountAccessKey = helpers.ParseWebJobsStorageString(connectionString)
 				}
 
 				if v, ok := appSettings[functionVersionAppSettingName]; ok {
@@ -815,7 +829,7 @@ func (r LogicAppResource) Update() sdk.ResourceFunc {
 			}
 			existingSiteConfig.AppSettings = pointer.To(currentAppSettings)
 
-			if metadata.ResourceData.HasChanges("site_config", "app_settings", "version", "storage_account_name", "storage_account_access_key") {
+			if metadata.ResourceData.HasChanges("site_config", "app_settings", "version", "storage_account_name", "storage_account_access_key", "storage_key_vault_secret_id") {
 				existingSiteConfig, err = expandLogicAppStandardSiteConfigForUpdate(data.SiteConfig, metadata, existingSiteConfig)
 				if err != nil {
 					return fmt.Errorf("expanding site_config update for %s: %v", *id, err)
@@ -954,14 +968,13 @@ func getBasicLogicAppSettings(d LogicAppResourceModel, endpointSuffix string) ([
 	appKindPropName := "APP_KIND"
 	appKindPropValue := "workflowApp"
 
-	storageAccount := d.StorageAccountName
-	accountKey := d.StorageAccountAccessKey
-	storageConnection := fmt.Sprintf(
-		"DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s",
-		storageAccount,
-		accountKey,
-		endpointSuffix,
-	)
+	var storageConnection string
+	if d.StorageKeyVaultSecretID != "" {
+		storageConnection = fmt.Sprintf(helpers.StorageStringFmtKV, d.StorageKeyVaultSecretID)
+	} else {
+		storageConnection = fmt.Sprintf(helpers.StorageStringFmt, d.StorageAccountName, d.StorageAccountAccessKey, endpointSuffix)
+	}
+
 	functionVersion := d.Version
 
 	contentShare := strings.ToLower(d.Name) + "-content"
@@ -1270,7 +1283,7 @@ func expandLogicAppStandardSiteConfigForUpdate(d []helpers.LogicAppSiteConfig, m
 		siteConfig.PublicNetworkAccess = pointer.To(reconcilePNA(metadata))
 	}
 
-	if metadata.ResourceData.HasChanges("app_settings", "storage_account_name", "storage_account_share_name", "storage_account_access_key", "version") {
+	if metadata.ResourceData.HasChanges("app_settings", "storage_account_name", "storage_account_share_name", "storage_account_access_key", "version", "storage_key_vault_secret_id") {
 		o, n := metadata.ResourceData.GetChange("app_settings")
 
 		appSettings := make([]webapps.NameValuePair, 0)
@@ -1321,13 +1334,18 @@ func mergeAppSettings(existing []webapps.NameValuePair, old, new map[string]inte
 	oMap := f(old)
 	cMap := f(new)
 
-	if metadata.ResourceData.HasChanges("storage_account_name", "storage_account_access_key") {
+	if metadata.ResourceData.HasChange("storage_key_vault_secret_id") && metadata.ResourceData.Get("storage_key_vault_secret_id").(string) != "" {
+		kvRef := fmt.Sprintf(helpers.StorageStringFmtKV, metadata.ResourceData.Get("storage_key_vault_secret_id").(string))
+		eMap[storageAppSettingName] = kvRef
+		eMap[contentFileConnStringAppSettingName] = kvRef
+	} else if metadata.ResourceData.HasChanges("storage_account_name", "storage_account_access_key") {
 		accountName := metadata.ResourceData.Get("storage_account_name").(string)
 		accountAccessKey := metadata.ResourceData.Get("storage_account_access_key").(string)
 		suffix, _ := metadata.Client.Account.Environment.Storage.DomainSuffix()
 
-		eMap[storageAppSettingName] = fmt.Sprintf(storageConnectionStringFmt, accountName, accountAccessKey, *suffix)
-		eMap[contentFileConnStringAppSettingName] = fmt.Sprintf(storageConnectionStringFmt, accountName, accountAccessKey, *suffix)
+		conn := fmt.Sprintf(helpers.StorageStringFmt, accountName, accountAccessKey, *suffix)
+		eMap[storageAppSettingName] = conn
+		eMap[contentFileConnStringAppSettingName] = conn
 	}
 
 	if metadata.ResourceData.HasChange("storage_account_share_name") {

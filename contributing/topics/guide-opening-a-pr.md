@@ -14,6 +14,8 @@ As a general rule, the smaller the PR the quicker it's merged - as such when upg
 2. Add the new property `new_feature` to the `azurerm_cosmosdb_*` resources.
 3. Introduce the New Resource `azurerm_cosmosdb_resource`.
 
+In the same vein, please do not reorder existing properties in the same PR, as doing so degrades diff readability. Make any reordering changes in a separate follow-up PR instead.
+
 We also recommend not opening a PR based on your `main` branch. By doing this any changed pushed to the PR may inadvertently be also pushed to your `main` branch without warning.
 
 Due to the high volume of PRs on the project and to ensure maintainers are able to focus on changes which are ready to review, please do not open Draft PRs or work that is not yet ready to be reviewed.

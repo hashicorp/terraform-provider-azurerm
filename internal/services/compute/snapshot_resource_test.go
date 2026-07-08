@@ -334,11 +334,12 @@ resource "azurerm_managed_disk" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                     = "acctestkv%s"
-  location                 = "${azurerm_resource_group.test.location}"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  tenant_id                = "${data.azurerm_client_config.current.tenant_id}"
-  purge_protection_enabled = true
+  name                       = "acctestkv%s"
+  location                   = "${azurerm_resource_group.test.location}"
+  resource_group_name        = "${azurerm_resource_group.test.name}"
+  rbac_authorization_enabled = false
+  tenant_id                  = "${data.azurerm_client_config.current.tenant_id}"
+  purge_protection_enabled   = true
 
   sku_name = "standard"
 
@@ -420,11 +421,12 @@ func (r SnapshotResource) encryptionUpdated(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_key_vault" "test2" {
-  name                     = "acctestkv2%[2]s"
-  location                 = "${azurerm_resource_group.test.location}"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  tenant_id                = "${data.azurerm_client_config.current.tenant_id}"
-  purge_protection_enabled = true
+  name                       = "acctestkv2%[2]s"
+  location                   = "${azurerm_resource_group.test.location}"
+  resource_group_name        = "${azurerm_resource_group.test.name}"
+  rbac_authorization_enabled = false
+  tenant_id                  = "${data.azurerm_client_config.current.tenant_id}"
+  purge_protection_enabled   = true
 
   sku_name = "standard"
 
@@ -716,8 +718,6 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  allow_nested_items_to_be_public = true
-
   tags = {
     environment = "staging"
   }
@@ -777,7 +777,7 @@ resource "azurerm_snapshot" "test" {
     azurerm_virtual_machine.test,
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (SnapshotResource) incrementalEnabled(data acceptance.TestData) string {
