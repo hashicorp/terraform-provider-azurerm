@@ -10,7 +10,7 @@ description: |-
 
 Gets information about an existing Front Door (standard/premium) Batch Rule Set.
 
--> **Note:** This data source can only read Rule Sets that were provisioned in batch mode. Use the `azurerm_cdn_frontdoor_rule_set` data source for Rule Sets that were not provisioned in batch mode.
+~> **Note:** This data source can only read Rule Sets that were provisioned in batch mode. Use the `azurerm_cdn_frontdoor_rule_set` data source for Rule Sets that were not provisioned in batch mode.
 
 ## Example Usage
 
