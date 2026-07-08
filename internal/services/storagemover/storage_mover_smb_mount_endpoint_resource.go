@@ -272,30 +272,35 @@ func (r StorageMoverSmbMountEndpointResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			state := StorageMoverSmbMountEndpointModel{
-				Name:           id.EndpointName,
-				StorageMoverId: storagemovers.NewStorageMoverID(id.SubscriptionId, id.ResourceGroupName, id.StorageMoverName).ID(),
-			}
-
-			if model := resp.Model; model != nil {
-				if v, ok := model.Properties.(endpoints.SmbMountEndpointProperties); ok {
-					state.Host = v.Host
-					state.ShareName = v.ShareName
-
-					if v.Credentials != nil {
-						state.UsernameKeyVaultSecretId = pointer.From(v.Credentials.UsernameUri)
-						state.PasswordKeyVaultSecretId = pointer.From(v.Credentials.PasswordUri)
-					}
-					state.Description = pointer.From(v.Description)
-				}
-			}
-
-			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
-				return err
-			}
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
+}
+
+func (r StorageMoverSmbMountEndpointResource) flatten(metadata sdk.ResourceMetaData, id *endpoints.EndpointId, model *endpoints.Endpoint) error {
+	state := StorageMoverSmbMountEndpointModel{
+		Name:           id.EndpointName,
+		StorageMoverId: storagemovers.NewStorageMoverID(id.SubscriptionId, id.ResourceGroupName, id.StorageMoverName).ID(),
+	}
+
+	if model != nil {
+		if v, ok := model.Properties.(endpoints.SmbMountEndpointProperties); ok {
+			state.Host = v.Host
+			state.ShareName = v.ShareName
+
+			if v.Credentials != nil {
+				state.UsernameKeyVaultSecretId = pointer.From(v.Credentials.UsernameUri)
+				state.PasswordKeyVaultSecretId = pointer.From(v.Credentials.PasswordUri)
+			}
+			state.Description = pointer.From(v.Description)
+		}
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }
 
 func (r StorageMoverSmbMountEndpointResource) Delete() sdk.ResourceFunc {
