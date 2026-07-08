@@ -64,67 +64,16 @@ func TestAccCognitiveAccountProjectConnectionEntraID_list(t *testing.T) {
 	})
 }
 
-func TestAccCognitiveAccountProjectConnectionEntraID_listAccountScope(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_project_connection_entra_id", "test")
-	r := CognitiveAccountProjectConnectionEntraIdResource{}
-
-	resource.Test(t, resource.TestCase{
-		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
-			tfversion.SkipBelow(tfversion.Version1_14_0),
-		},
-		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
-		Steps: []resource.TestStep{
-			{
-				Config: r.basicList(data),
-			},
-			{
-				Query:  true,
-				Config: r.listQueryAccountScope(data),
-				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLengthAtLeast("azurerm_cognitive_account_project_connection_entra_id.list", 2),
-					querycheck.ExpectResourceKnownValues(
-						"azurerm_cognitive_account_project_connection_entra_id.list",
-						queryfilter.ByDisplayName(knownvalue.StringRegexp(regexp.MustCompile("acctest-conn2-"))),
-						[]querycheck.KnownValueCheck{
-							{
-								Path:       tfjsonpath.New("authentication_type"),
-								KnownValue: knownvalue.StringExact("AAD"),
-							},
-						},
-					),
-				},
-			},
-		},
-	})
-}
-
 func (r CognitiveAccountProjectConnectionEntraIdResource) listQueryNoFilter(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	return `
 list "azurerm_cognitive_account_project_connection_entra_id" "list" {
   provider = azurerm
   config {
-    cognitive_account_name = azurerm_cognitive_account.test.name
-    project_name           = azurerm_cognitive_account_project.test.name
-    resource_group_name    = azurerm_resource_group.test.name
-    subscription_id        = "%[1]s"
+    cognitive_account_project_id = azurerm_cognitive_account_project.test.id
   }
   include_resource = true
 }
-`, data.Subscriptions.Primary)
-}
-
-func (r CognitiveAccountProjectConnectionEntraIdResource) listQueryAccountScope(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-list "azurerm_cognitive_account_project_connection_entra_id" "list" {
-  provider = azurerm
-  config {
-    cognitive_account_name = azurerm_cognitive_account.test.name
-    resource_group_name    = azurerm_resource_group.test.name
-    subscription_id        = "%[1]s"
-  }
-  include_resource = true
-}
-`, data.Subscriptions.Primary)
+`
 }
 
 func (r CognitiveAccountProjectConnectionEntraIdResource) basicList(data acceptance.TestData) string {
