@@ -11,6 +11,11 @@ FEATURES:
 * **New Resource**: `azurerm_log_analytics_workspace_table_microsoft` [GH-31754]
 * **New Resource**: `azurerm_storage_account_table_properties` [GH-32282]
 * **New List Resource**: `azurerm_monitor_scheduled_query_rules_alert`  [GH-32701]
+* **New Resource:** `azurerm_cognitive_account_connection_account_key` [GH-30981]
+* **New Resource:** `azurerm_cognitive_account_connection_account_managed_identity` [GH-30981]
+* **New Resource:** `azurerm_cognitive_account_connection_api_key` ([GH-30981]
+* **New Resource:** `azurerm_cognitive_account_connection_custom_keys` [GH-30981]
+* **New Resource:** `azurerm_cognitive_account_connection_entra_id` [GH-30981]
 
 BUG FIXES:
 
