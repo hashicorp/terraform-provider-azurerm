@@ -164,6 +164,7 @@ resource "azurerm_key_vault" "test" {
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
+  rbac_authorization_enabled = false
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
@@ -220,6 +221,7 @@ resource "azurerm_key_vault" "test" {
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
+  rbac_authorization_enabled = false
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
