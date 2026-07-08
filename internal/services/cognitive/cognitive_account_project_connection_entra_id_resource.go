@@ -188,6 +188,10 @@ func (r CognitiveAccountProjectConnectionEntraIDResource) Read() sdk.ResourceFun
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
+			if authType, ok := cognitiveAccountProjectConnectionAuthType(resp.Model); ok && authType != projectconnectionresource.ConnectionAuthTypeAAD {
+				return metadata.MarkAsGone(id)
+			}
+
 			var currentState CognitiveAccountProjectConnectionEntraIDModel
 			if err := metadata.Decode(&currentState); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
@@ -216,6 +220,14 @@ func (r CognitiveAccountProjectConnectionEntraIDResource) Update() sdk.ResourceF
 
 			if resp.Model == nil {
 				return fmt.Errorf("retrieving %s: model was nil", *id)
+			}
+
+			if resp.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: properties were nil", *id)
+			}
+
+			if !cognitiveAccountProjectConnectionHasExpectedAuthType(resp.Model, projectconnectionresource.ConnectionAuthTypeAAD) {
+				return metadata.MarkAsGone(id)
 			}
 
 			var model CognitiveAccountProjectConnectionEntraIDModel
@@ -258,6 +270,18 @@ func (r CognitiveAccountProjectConnectionEntraIDResource) Delete() sdk.ResourceF
 			id, err := projectconnectionresource.ParseProjectConnectionID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
+			}
+
+			resp, err := client.ProjectConnectionsGet(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					return metadata.MarkAsGone(id)
+				}
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+
+			if authType, ok := cognitiveAccountProjectConnectionAuthType(resp.Model); ok && authType != projectconnectionresource.ConnectionAuthTypeAAD {
+				return metadata.MarkAsGone(id)
 			}
 
 			if _, err := client.ProjectConnectionsDelete(ctx, *id); err != nil {

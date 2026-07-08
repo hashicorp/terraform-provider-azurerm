@@ -93,8 +93,7 @@ func (CognitiveAccountProjectConnectionEntraIDListResource) List(ctx context.Con
 				continue
 			}
 
-			base := connection.Properties.ConnectionPropertiesV2()
-			if base.AuthType != projectconnectionresource.ConnectionAuthTypeAAD {
+			if !cognitiveAccountProjectConnectionHasExpectedAuthType(&connection, projectconnectionresource.ConnectionAuthTypeAAD) {
 				continue
 			}
 
