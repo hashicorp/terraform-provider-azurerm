@@ -95,16 +95,59 @@ For more information, see the [Resource Provider Registrations](index.html#resou
 
 The enhanced validation feature, which caches supported Azure regions and Resource Providers from the Azure MetaData Service to validate `location` and Resource Provider arguments, now defaults to disabled in version 5.0.
 
-This is now controlled through the new `enhanced_validation` provider block:
+This is now controlled through the `enhanced_validation` block **inside** the `features` block:
 
 ```hcl
 provider "azurerm" {
-  enhanced_validation {
-    locations          = true # Re-enable location validation at plan time
-    resource_providers = true # Re-enable resource provider validation at plan time
+  features {
+    enhanced_validation {
+      locations          = true # Re-enable location validation at plan time
+      resource_providers = true # Re-enable resource provider validation at plan time
+    }
   }
 }
 ```
+
+#### Preflight Validation
+
+When `preflight_enabled` is set within the `enhanced_validation` block in the `features`
+configuration, the AzureRM Provider will call the Azure Preflight Validation API at
+`terraform plan` time for supported resources. This allows certain classes of configuration
+errors — such as policy violations, quota breaches, and invalid property values — to be
+surfaced before `terraform apply` is run.
+
+```hcl
+provider "azurerm" {
+  features {
+    enhanced_validation {
+      preflight_enabled           = false # Opt-in: validate supported resource payloads via Azure Preflight API
+      preflight_location_fallback = "eastus2"
+    }
+  }
+}
+```
+
+This can also be enabled via the `ARM_PROVIDER_ENHANCED_VALIDATION_PREFLIGHT_ENABLED`
+environment variable.
+
+~> **Note:** Preflight validation requires valid Azure credentials to be available at
+`terraform plan` time, as it makes live API calls to Azure. Preflight is only supported for
+a subset of resource types; unsupported resources are silently skipped.
+
+~> **Note:** When resource arguments reference values that are `(known after apply)` — such
+as the output of another resource being created in the same plan — those values will be absent
+from the preflight validation request. Validation for those fields is deferred to
+`terraform apply` time. This means preflight may not catch all errors in configurations that
+use computed cross-resource references for key arguments.
+
+##### Currently Supported Resources
+
+- `azurerm_app_service_environment_v3`
+- `azurerm_service_plan`
+- `azurerm_dashboard_grafana`
+- `azurerm_eventgrid_namespace`
+- `azurerm_managed_redis`
+- `azurerm_nginx_deployment`
 
 **Timing Impact:** With enhanced validation enabled, invalid locations or resource providers are caught at `terraform plan` time. With it disabled (the new default in 5.0), these errors are caught at `terraform apply` time when Azure rejects the request.
 
@@ -112,7 +155,12 @@ This change was made because:
 * A region may be functional even if not present in the ARM region list
 * The MetaData Service call adds latency to provider initialization
 
-The legacy `ARM_PROVIDER_ENHANCED_VALIDATION` environment variable, which previously controlled both location and resource provider validation, has been removed in version 5.0. Please migrate to either the `enhanced_validation` provider block or the specific environment variables: `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` and `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS`.
+A new `preflight_enabled` property is also available within the `enhanced_validation` block. When set to `true`, the provider will call the Azure Preflight Validation API at plan time to detect invalid resource configurations before apply. This requires valid Azure credentials to be available at plan time and defaults to `false`. It can also be sourced from the `ARM_PROVIDER_ENHANCED_VALIDATION_PREFLIGHT_ENABLED` environment variable.
+
+The legacy `ARM_PROVIDER_ENHANCED_VALIDATION` environment variable, which previously controlled both location and resource provider validation, has been removed in version 5.0. Please migrate to either the `enhanced_validation` block inside the `features` block, or the specific environment variables: `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` and `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS`.
+
+Additionally, the legacy top-level `enhanced_validation` provider block has been moved in version 5.0. Any configurations using this top-level block must migrate to the `enhanced_validation` block inside the `features` block instead.
+
 
 ## Removed Resources
 

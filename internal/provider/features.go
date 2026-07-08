@@ -6,6 +6,7 @@ package provider
 import (
 	"os"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -27,6 +28,41 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			Optional:    true,
 			Default:     false,
 			Description: "Whether to skip the import check and allow the provider to overwrite existing remote resources if present. Defaults to `false`.",
+		},
+
+		// lintignore:XS003
+		"enhanced_validation": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"locations": {
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						DefaultFunc: schema.EnvDefaultFunc("ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS", features.EnhancedValidationLocationsEnabled()),
+						Description: "Should the AzureRM Provider validate location arguments against the list of supported Azure Locations? When enabled, invalid locations are caught at plan time; when disabled, they are caught at apply time.",
+					},
+					"resource_providers": {
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						DefaultFunc: schema.EnvDefaultFunc("ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS", features.EnhancedValidationResourceProvidersEnabled()),
+						Description: "Should the AzureRM Provider validate Resource Provider arguments against the list of supported Resource Providers? When enabled, invalid resource providers are caught at plan time; when disabled, they are caught at apply time.",
+					},
+					"preflight_enabled": {
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						DefaultFunc: schema.EnvDefaultFunc("ARM_PROVIDER_ENHANCED_VALIDATION_PREFLIGHT_ENABLED", nil),
+						Description: "Should the AzureRM Provider call the Azure Preflight Validation API at plan time to check the request payload for each Preflight-supported resource is valid. Note: requires valid credentials and external Azure API access at plan-time.",
+					},
+					"preflight_location_fallback": {
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						DefaultFunc: schema.EnvDefaultFunc("ARM_PROVIDER_ENHANCED_VALIDATION_preflight_location_fallback", nil),
+						Description: "The Azure location to use as a fallback when Preflight Validation is enabled and a resource does not specify a location. This is typically used for resources that derive their location from a dependency that has not yet been created.",
+					},
+				},
+			},
 		},
 
 		// lintignore:XS003
@@ -362,6 +398,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 				},
 			},
 		},
+
 		"machine_learning": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -452,6 +489,8 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 		}
 	}
 
+	featuresMap["enhanced_validation"].ConflictsWith = []string{"enhanced_validation"}
+
 	// this is a temporary hack to enable us to gradually add provider blocks to test configurations
 	// rather than doing it as a big-bang and breaking all open PR's
 	if supportLegacyTestSuite {
@@ -480,6 +519,12 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 func expandFeatures(input []interface{}) features.UserFeatures {
 	// these are the defaults if omitted from the config
 	featuresMap := features.Default()
+
+	// populate settings that can be set by env vars _before_ we take the escape hatch for an empty `features` block
+	featuresMap.EnhancedValidation.Locations = features.EnhancedValidationLocationsEnabled()
+	featuresMap.EnhancedValidation.ResourceProviders = features.EnhancedValidationResourceProvidersEnabled()
+	featuresMap.EnhancedValidation.PreflightEnabled = features.EnhancedValidationPreflightEnabled()
+	featuresMap.EnhancedValidation.LocationFallback = features.EnhancedValidationLocationFallback()
 
 	if len(input) == 0 || input[0] == nil {
 		return featuresMap
@@ -740,6 +785,27 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			databricksRaw := items[0].(map[string]interface{})
 			if v, ok := databricksRaw["force_delete"]; ok {
 				featuresMap.DatabricksWorkspace.ForceDelete = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["enhanced_validation"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 && items[0] != nil {
+			evRaw := items[0].(map[string]interface{})
+			if v, ok := evRaw["locations"]; ok {
+				featuresMap.EnhancedValidation.Locations = v.(bool)
+			}
+			if v, ok := evRaw["resource_providers"]; ok {
+				featuresMap.EnhancedValidation.ResourceProviders = v.(bool)
+			}
+			if v, ok := evRaw["preflight_enabled"]; ok {
+				featuresMap.EnhancedValidation.PreflightEnabled = v.(bool) && features.FivePointOh() // If we're not in 5.0 mode, ignore setting this to true.
+			}
+			if v, ok := evRaw["preflight_location_fallback"]; ok {
+				if vStr, ok := v.(string); ok && vStr != "" {
+					featuresMap.EnhancedValidation.LocationFallback = pointer.To(vStr)
+				}
 			}
 		}
 	}
