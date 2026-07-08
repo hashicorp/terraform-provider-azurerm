@@ -234,9 +234,5 @@ func (td TestData) externalProviders() map[string]resource.ExternalProvider {
 			VersionConstraint: "=4.1.0",
 			Source:            "registry.terraform.io/hashicorp/tls",
 		},
-		"azapi": {
-			VersionConstraint: "=2.8.0",
-			Source:            "azure/azapi",
-		},
 	}
 }
