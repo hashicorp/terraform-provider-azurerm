@@ -43,33 +43,33 @@ type WindowsFunctionAppModel struct {
 	StorageUsesMSI          bool   `tfschema:"storage_uses_managed_identity"` // Storage uses MSI not account key
 	StorageKeyVaultSecretID string `tfschema:"storage_key_vault_secret_id"`
 
-	AppSettings                        map[string]string                      `tfschema:"app_settings"`
-	StickySettings                     []helpers.StickySettings               `tfschema:"sticky_settings"`
-	AuthSettings                       []helpers.AuthSettings                 `tfschema:"auth_settings"`
-	AuthV2Settings                     []helpers.AuthV2Settings               `tfschema:"auth_settings_v2"`
-	Backup                             []helpers.Backup                       `tfschema:"backup"` // Not supported on Dynamic or Basic plans
-	BuiltinLogging                     bool                                   `tfschema:"builtin_logging_enabled"`
-	ClientCertEnabled                  bool                                   `tfschema:"client_certificate_enabled"`
-	ClientCertMode                     string                                 `tfschema:"client_certificate_mode"`
-	ClientCertExclusionPaths           string                                 `tfschema:"client_certificate_exclusion_paths"`
-	ConnectionStrings                  []helpers.ConnectionString             `tfschema:"connection_string"`
-	DailyMemoryTimeQuota               int64                                  `tfschema:"daily_memory_time_quota"`
-	Enabled                            bool                                   `tfschema:"enabled"`
-	FunctionExtensionsVersion          string                                 `tfschema:"functions_extension_version"`
-	ForceDisableContentShare           bool                                   `tfschema:"content_share_force_disabled"`
-	HttpsOnly                          bool                                   `tfschema:"https_only"`
-	KeyVaultReferenceIdentityID        string                                 `tfschema:"key_vault_reference_identity_id"`
-	PublicNetworkAccess                bool                                   `tfschema:"public_network_access_enabled"`
-	SiteConfig                         []helpers.SiteConfigWindowsFunctionApp `tfschema:"site_config"`
-	StorageAccounts                    []helpers.StorageAccount               `tfschema:"storage_account"`
-	Tags                               map[string]string                      `tfschema:"tags"`
-	VirtualNetworkBackupRestoreEnabled bool                                   `tfschema:"virtual_network_backup_restore_enabled"`
-	VirtualNetworkSubnetID             string                                 `tfschema:"virtual_network_subnet_id"`
-	ZipDeployFile                      string                                 `tfschema:"zip_deploy_file"`
-	PublishingDeployBasicAuthEnabled   bool                                   `tfschema:"webdeploy_publish_basic_authentication_enabled"`
-	PublishingFTPBasicAuthEnabled      bool                                   `tfschema:"ftp_publish_basic_authentication_enabled"`
-	VnetImagePullEnabled               bool                                   `tfschema:"vnet_image_pull_enabled"`
-	VnetApplicationTrafficEnabled      bool                                   `tfschema:"vnet_application_traffic_enabled"`
+	AppSettings                             map[string]string                      `tfschema:"app_settings"`
+	StickySettings                          []helpers.StickySettings               `tfschema:"sticky_settings"`
+	AuthSettings                            []helpers.AuthSettings                 `tfschema:"auth_settings"`
+	AuthV2Settings                          []helpers.AuthV2Settings               `tfschema:"auth_settings_v2"`
+	Backup                                  []helpers.Backup                       `tfschema:"backup"` // Not supported on Dynamic or Basic plans
+	BuiltinLogging                          bool                                   `tfschema:"builtin_logging_enabled"`
+	ClientCertEnabled                       bool                                   `tfschema:"client_certificate_enabled"`
+	ClientCertMode                          string                                 `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths                string                                 `tfschema:"client_certificate_exclusion_paths"`
+	ConnectionStrings                       []helpers.ConnectionString             `tfschema:"connection_string"`
+	DailyMemoryTimeQuota                    int64                                  `tfschema:"daily_memory_time_quota"`
+	Enabled                                 bool                                   `tfschema:"enabled"`
+	FunctionExtensionsVersion               string                                 `tfschema:"functions_extension_version"`
+	ForceDisableContentShare                bool                                   `tfschema:"content_share_force_disabled"`
+	HttpsOnly                               bool                                   `tfschema:"https_only"`
+	KeyVaultReferenceIdentityID             string                                 `tfschema:"key_vault_reference_identity_id"`
+	PublicNetworkAccess                     bool                                   `tfschema:"public_network_access_enabled"`
+	SiteConfig                              []helpers.SiteConfigWindowsFunctionApp `tfschema:"site_config"`
+	StorageAccounts                         []helpers.StorageAccount               `tfschema:"storage_account"`
+	Tags                                    map[string]string                      `tfschema:"tags"`
+	VirtualNetworkBackupRestoreEnabled      bool                                   `tfschema:"virtual_network_backup_restore_enabled"`
+	VirtualNetworkSubnetID                  string                                 `tfschema:"virtual_network_subnet_id"`
+	ZipDeployFile                           string                                 `tfschema:"zip_deploy_file"`
+	PublishingDeployBasicAuthEnabled        bool                                   `tfschema:"webdeploy_publish_basic_authentication_enabled"`
+	PublishingFTPBasicAuthEnabled           bool                                   `tfschema:"ftp_publish_basic_authentication_enabled"`
+	VnetImagePullEnabled                    bool                                   `tfschema:"vnet_image_pull_enabled"`
+	VirtualNetworkApplicationTrafficEnabled bool                                   `tfschema:"virtual_network_application_traffic_enabled"`
 
 	// Computed
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
@@ -310,11 +310,10 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Description: "Is container image pull over virtual network enabled? Defaults to `false`.",
 		},
 
-		"vnet_application_traffic_enabled": {
-			Type:        pluginsdk.TypeBool,
-			Optional:    true,
-			Default:     false,
-			Description: "Should the application traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
+		"virtual_network_application_traffic_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
 		},
 
 		"zip_deploy_file": {
@@ -328,9 +327,9 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 	if !features.FivePointOh() {
 		args["storage_key_vault_secret_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
-		args["vnet_application_traffic_enabled"].Computed = true
-		args["vnet_application_traffic_enabled"].Default = nil
-		args["vnet_application_traffic_enabled"].ConflictsWith = []string{"site_config.0.vnet_route_all_enabled"}
+		args["virtual_network_application_traffic_enabled"].Computed = true
+		args["virtual_network_application_traffic_enabled"].Default = nil
+		args["virtual_network_application_traffic_enabled"].ConflictsWith = []string{"site_config.0.vnet_route_all_enabled"}
 	}
 
 	return args
@@ -562,7 +561,7 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 					OutboundVnetRouting: &webapps.OutboundVnetRouting{
 						BackupRestoreTraffic: pointer.To(functionApp.VirtualNetworkBackupRestoreEnabled),
 						ImagePullTraffic:     pointer.To(functionApp.VnetImagePullEnabled),
-						ApplicationTraffic:   pointer.To(functionApp.VnetApplicationTrafficEnabled),
+						ApplicationTraffic:   pointer.To(functionApp.VirtualNetworkApplicationTrafficEnabled),
 					},
 				},
 			}
@@ -807,7 +806,7 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 					if props.OutboundVnetRouting != nil {
 						state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.OutboundVnetRouting.BackupRestoreTraffic)
 						state.VnetImagePullEnabled = pointer.From(props.OutboundVnetRouting.ImagePullTraffic)
-						state.VnetApplicationTrafficEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
+						state.VirtualNetworkApplicationTrafficEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
 						if !features.FivePointOh() {
 							siteConfig.VnetRouteAllEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
 						}
@@ -994,8 +993,8 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 				vnetRoutingProps.ImagePullTraffic = pointer.To(state.VnetImagePullEnabled)
 			}
 
-			if metadata.ResourceData.HasChange("vnet_application_traffic_enabled") {
-				vnetRoutingProps.ApplicationTraffic = pointer.To(state.VnetApplicationTrafficEnabled)
+			if metadata.ResourceData.HasChange("virtual_network_application_traffic_enabled") {
+				vnetRoutingProps.ApplicationTraffic = pointer.To(state.VirtualNetworkApplicationTrafficEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("client_certificate_enabled") {

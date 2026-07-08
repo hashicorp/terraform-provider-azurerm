@@ -3971,7 +3971,7 @@ resource "azurerm_linux_function_app_slot" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   vnet_image_pull_enabled          = true
-  vnet_application_traffic_enabled = true
+  virtual_network_application_traffic_enabled = true
 
   site_config {}
 }

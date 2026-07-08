@@ -117,7 +117,7 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Should public network access be enabled for the Function App. Defaults to `true`.
 
-* `vnet_application_traffic_enabled` - (Optional) Should the traffic for the application be routed over virtual network enabled. Defaults to `false`.
+* `virtual_network_application_traffic_enabled` - (Optional) Should the traffic for the application be routed over virtual network enabled. Defaults to `false`.
 
 
 * `https_only` - (Optional) Is Https Connection enforced to the function app. Defaults to `false`
@@ -673,6 +673,8 @@ A `site_config` block supports the following:
 * `worker_count` - (Optional) The number of Workers for this Linux Function App.
 
 * `site_update_strategy` - (Optional) The strategy used to apply site updates to the Function App. Possible Values are `Recreate` and `RollingUpdate`. Defaults to `Recreate`
+
+~> **Note:** `RollingUpdate` will create a temporary deployment slot, apply the configuration changes to the slot, and then swap it with the production slot. This allows for zero downtime updates but may cause issues with certain configuration changes while `Recreate` which applies the configuration changes directly to the production slot and may cause downtime.
 
 ---
 

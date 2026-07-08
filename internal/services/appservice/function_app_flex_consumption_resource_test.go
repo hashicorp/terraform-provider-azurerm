@@ -1854,10 +1854,9 @@ resource "azurerm_function_app_flex_consumption" "test" {
   maximum_instance_count      = 100
   instance_memory_in_mb       = 2048
 
-  vnet_application_traffic_enabled = true
+  virtual_network_application_traffic_enabled = true
 
   site_config {
-    vnet_route_all_enabled = true
   }
 }
 `, r.template(data), data.RandomInteger)

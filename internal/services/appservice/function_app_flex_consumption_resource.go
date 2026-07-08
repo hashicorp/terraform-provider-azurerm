@@ -71,15 +71,15 @@ type FunctionAppFlexConsumptionModel struct {
 	Identity                      []identity.ModelSystemAssignedUserAssigned     `tfschema:"identity"`
 	Tags                          map[string]string                              `tfschema:"tags"`
 
-	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
-	DefaultHostname               string   `tfschema:"default_hostname"`
-	HostingEnvId                  string   `tfschema:"hosting_environment_id"`
-	Kind                          string   `tfschema:"kind"`
-	OutboundIPAddresses           string   `tfschema:"outbound_ip_addresses"`
-	OutboundIPAddressList         []string `tfschema:"outbound_ip_address_list"`
-	PossibleOutboundIPAddresses   string   `tfschema:"possible_outbound_ip_addresses"`
-	PossibleOutboundIPAddressList []string `tfschema:"possible_outbound_ip_address_list"`
-	VnetApplicationTrafficEnabled bool     `tfschema:"vnet_application_traffic_enabled"`
+	CustomDomainVerificationId              string   `tfschema:"custom_domain_verification_id"`
+	DefaultHostname                         string   `tfschema:"default_hostname"`
+	HostingEnvId                            string   `tfschema:"hosting_environment_id"`
+	Kind                                    string   `tfschema:"kind"`
+	OutboundIPAddresses                     string   `tfschema:"outbound_ip_addresses"`
+	OutboundIPAddressList                   []string `tfschema:"outbound_ip_address_list"`
+	PossibleOutboundIPAddresses             string   `tfschema:"possible_outbound_ip_addresses"`
+	PossibleOutboundIPAddressList           []string `tfschema:"possible_outbound_ip_address_list"`
+	VirtualNetworkApplicationTrafficEnabled bool     `tfschema:"virtual_network_application_traffic_enabled"`
 
 	SiteCredentials []helpers.SiteCredential `tfschema:"site_credential"`
 }
@@ -229,7 +229,6 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 			Optional:     true,
 			Default:      string(webapps.SiteUpdateStrategyTypeRecreate),
 			ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForSiteUpdateStrategyType(), false),
-			Description:  "The update strategy to use when updating the site configuration. Possible values are `Recreate` and `RollingUpdate`. `RollingUpdate` will create a temporary deployment slot, apply the configuration changes to the slot, and then swap it with the production slot. This allows for zero downtime updates but may cause issues with certain configuration changes. The default is `Recreate` which applies the configuration changes directly to the production slot and may cause downtime.",
 		},
 
 		"sticky_settings": helpers.StickySettingsSchema(),
@@ -316,20 +315,19 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 			Description:  "The local path and filename of the Zip packaged application to deploy to this Function App. **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`.",
 		},
 
-		"vnet_application_traffic_enabled": {
-			Type:        pluginsdk.TypeBool,
-			Optional:    true,
-			Default:     false,
-			Description: "Should the application traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
+		"virtual_network_application_traffic_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
 		},
 
 		"tags": commonschema.Tags(),
 	}
 
 	if !features.FivePointOh() {
-		s["vnet_application_traffic_enabled"].Computed = true
-		s["vnet_application_traffic_enabled"].Default = nil
-		s["vnet_application_traffic_enabled"].ConflictsWith = []string{"site_config.0.vnet_route_all_enabled"}
+		s["virtual_network_application_traffic_enabled"].Computed = true
+		s["virtual_network_application_traffic_enabled"].Default = nil
+		s["virtual_network_application_traffic_enabled"].ConflictsWith = []string{"site_config.0.vnet_route_all_enabled"}
 	}
 
 	return s
@@ -553,7 +551,7 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 					ClientCertEnabled: pointer.To(functionAppFlexConsumption.ClientCertEnabled),
 					ClientCertMode:    pointer.To(webapps.ClientCertMode(functionAppFlexConsumption.ClientCertMode)),
 					OutboundVnetRouting: &webapps.OutboundVnetRouting{
-						ApplicationTraffic: pointer.To(functionAppFlexConsumption.VnetApplicationTrafficEnabled),
+						ApplicationTraffic: pointer.To(functionAppFlexConsumption.VirtualNetworkApplicationTrafficEnabled),
 					},
 				},
 			}
@@ -761,9 +759,9 @@ func (r FunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 					return fmt.Errorf("retrieving Site Config for %s: %+v", id, err)
 				}
 				if model.Properties.OutboundVnetRouting != nil {
-					state.VnetApplicationTrafficEnabled = pointer.From(model.Properties.OutboundVnetRouting.ApplicationTraffic)
+					state.VirtualNetworkApplicationTrafficEnabled = pointer.From(model.Properties.OutboundVnetRouting.ApplicationTraffic)
 					if !features.FivePointOh() {
-						siteConfig.VnetRouteAllEnabled = state.VnetApplicationTrafficEnabled
+						siteConfig.VnetRouteAllEnabled = state.VirtualNetworkApplicationTrafficEnabled
 					}
 				}
 				state.SiteConfig = []helpers.SiteConfigFunctionAppFlexConsumption{*siteConfig}
@@ -977,8 +975,8 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 			if model.Properties.OutboundVnetRouting != nil {
 				vnetRoutingProps = model.Properties.OutboundVnetRouting
 			}
-			if metadata.ResourceData.HasChange("vnet_application_traffic_enabled") {
-				vnetRoutingProps.ApplicationTraffic = pointer.To(state.VnetApplicationTrafficEnabled)
+			if metadata.ResourceData.HasChange("virtual_network_application_traffic_enabled") {
+				vnetRoutingProps.ApplicationTraffic = pointer.To(state.VirtualNetworkApplicationTrafficEnabled)
 			}
 
 			if !features.FivePointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {

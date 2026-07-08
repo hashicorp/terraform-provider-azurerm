@@ -3802,7 +3802,7 @@ resource "azurerm_linux_web_app" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   vnet_image_pull_enabled                = true
-  vnet_application_traffic_enabled       = true
+  virtual_network_application_traffic_enabled = true
   virtual_network_backup_restore_enabled = true
 
   site_config {}
