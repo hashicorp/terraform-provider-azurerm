@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storagemover
@@ -211,25 +211,29 @@ func (r StorageMoverMultiCloudConnectorEndpointResource) Read() sdk.ResourceFunc
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			state := StorageMoverMultiCloudConnectorEndpointModel{
-				Name:           id.EndpointName,
-				StorageMoverId: storagemovers.NewStorageMoverID(id.SubscriptionId, id.ResourceGroupName, id.StorageMoverName).ID(),
-			}
-
-			if model := resp.Model; model != nil {
-				if v, ok := model.Properties.(endpoints.AzureMultiCloudConnectorEndpointProperties); ok {
-					state.MultiCloudConnectorId = v.MultiCloudConnectorId
-					state.AwsS3BucketId = v.AwsS3BucketId
-					state.Description = pointer.From(v.Description)
-				}
-			}
-
-			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
-				return err
-			}
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
+}
+
+func (r StorageMoverMultiCloudConnectorEndpointResource) flatten(metadata sdk.ResourceMetaData, id *endpoints.EndpointId, model *endpoints.Endpoint) error {
+	state := StorageMoverMultiCloudConnectorEndpointModel{
+		Name:           id.EndpointName,
+		StorageMoverId: storagemovers.NewStorageMoverID(id.SubscriptionId, id.ResourceGroupName, id.StorageMoverName).ID(),
+	}
+
+	if model != nil {
+		if v, ok := model.Properties.(endpoints.AzureMultiCloudConnectorEndpointProperties); ok {
+			state.MultiCloudConnectorId = v.MultiCloudConnectorId
+			state.AwsS3BucketId = v.AwsS3BucketId
+			state.Description = pointer.From(v.Description)
+		}
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+	return metadata.Encode(&state)
 }
 
 func (r StorageMoverMultiCloudConnectorEndpointResource) Delete() sdk.ResourceFunc {

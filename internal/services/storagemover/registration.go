@@ -40,13 +40,13 @@ func (r Registration) DataSources() []sdk.DataSource {
 // Resources returns a list of Resources supported by this Service
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		StorageMoverResource{},
 		StorageMoverAgentResource{},
-		StorageMoverSourceEndpointResource{},
-		StorageMoverTargetEndpointResource{},
-		StorageMoverProjectResource{},
 		StorageMoverJobDefinitionResource{},
 		StorageMoverMultiCloudConnectorEndpointResource{},
+		StorageMoverProjectResource{},
+		StorageMoverResource{},
+		StorageMoverSourceEndpointResource{},
+		StorageMoverTargetEndpointResource{},
 	}
 }
 
@@ -71,6 +71,7 @@ func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 		StorageMoverAgentListResource{},
 		StorageMoverJobDefinitionListResource{},
 		StorageMoverListResource{},
+		StorageMoverMultiCloudConnectorEndpointListResource{},
 		StorageMoverProjectListResource{},
 		StorageMoverSourceEndpointListResource{},
 	}

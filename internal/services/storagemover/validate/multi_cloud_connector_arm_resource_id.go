@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -10,8 +10,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 )
 
-// MultiCloudConnectorARMResourceID validates a full ARM resource ID for a Hybrid Connectivity public cloud connector.
-// See https://learn.microsoft.com/rest/api/storagemover/endpoints/create-or-update
 func MultiCloudConnectorARMResourceID(i interface{}, k string) (warnings []string, errors []error) {
 	warnings, errors = azure.ValidateResourceID(i, k)
 	if len(errors) > 0 {
@@ -25,7 +23,6 @@ func MultiCloudConnectorARMResourceID(i interface{}, k string) (warnings []strin
 	return warnings, errors
 }
 
-// AwsS3BucketARMResourceID validates a full ARM resource ID for an AWS S3 bucket resource exposed through Microsoft.AwsConnector.
 func AwsS3BucketARMResourceID(i interface{}, k string) (warnings []string, errors []error) {
 	warnings, errors = azure.ValidateResourceID(i, k)
 	if len(errors) > 0 {
