@@ -1,6 +1,7 @@
 ## 4.81.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_container_registry` Add support for `azuread_authentication_as_arm_policy_enabled`, `role_assignment_mode` and `network_rule_bypass_allowed_for_tasks` properties [GH-31667]
 * `dependencies` - update `go-azure-helpers` to `v0.81.1` [GH-32732]
 * dependencies: `cdn` - update to API version `2025-12-01` [GH-32719]
 * dependencies: `keyvault` update to API version `2026-02-01` [GH-32320]
