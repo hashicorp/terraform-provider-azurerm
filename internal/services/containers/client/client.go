@@ -20,9 +20,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/snapshots"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/trustedaccess"
-	agentpools20260401Client "github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-04-01/agentpools"
 	managedclusters20260401Client "github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-04-01/managedclusters"
-	snapshots20260401Client "github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-04-01/snapshots"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2024-11-01/extensions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2025-04-01/fluxconfiguration"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
@@ -31,12 +29,11 @@ import (
 )
 
 type Client struct {
-	AgentPoolsClient             *agentpools.AgentPoolsClient
-	AgentPoolsClient_v2026_04_01 *agentpools20260401Client.AgentPoolsClient
-	ContainerInstanceClient      *containerinstance.ContainerInstanceClient
-	CacheRulesClient             *cacherules.CacheRulesClient
-	CredentialSetsClient         *credentialsets.CredentialSetsClient
-	ContainerRegistryClient      *containerregistry.Client
+	AgentPoolsClient        *agentpools.AgentPoolsClient
+	ContainerInstanceClient *containerinstance.ContainerInstanceClient
+	CacheRulesClient        *cacherules.CacheRulesClient
+	CredentialSetsClient    *credentialsets.CredentialSetsClient
+	ContainerRegistryClient *containerregistry.Client
 	// v2019_06_01_preview is needed for container registry agent pools and tasks
 	ContainerRegistryClient_v2019_06_01_preview *containerregistry_v2019_06_01_preview.Client
 	DeploymentSafeguardsClient                  *deploymentsafeguards.DeploymentSafeguardsClient
@@ -49,7 +46,6 @@ type Client struct {
 	MaintenanceConfigurationsClient             *maintenanceconfigurations.MaintenanceConfigurationsClient
 	ServicesClient                              *containerservices.ContainerServicesClient
 	SnapshotClient                              *snapshots.SnapshotsClient
-	SnapshotsClient_v2026_04_01                 *snapshots20260401Client.SnapshotsClient
 	TrustedAccessClient                         *trustedaccess.TrustedAccessClient
 	Environment                                 environments.Environment
 }
@@ -136,12 +132,6 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(agentPoolsClient.Client, o.Authorizers.ResourceManager)
 
-	agentPoolsClient_v2026_04_01, err := agentpools20260401Client.NewAgentPoolsClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building Agent Pools Client: %+v", err)
-	}
-	o.Configure(agentPoolsClient_v2026_04_01.Client, o.Authorizers.ResourceManager)
-
 	maintenanceConfigurationsClient, err := maintenanceconfigurations.NewMaintenanceConfigurationsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Maintenance Configurations Client: %+v", err)
@@ -160,12 +150,6 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(snapshotClient.Client, o.Authorizers.ResourceManager)
 
-	snapshotClient_v2026_04_01, err := snapshots20260401Client.NewSnapshotsClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building Snapshot Client: %+v", err)
-	}
-	o.Configure(snapshotClient_v2026_04_01.Client, o.Authorizers.ResourceManager)
-
 	trustedAccessClient, err := trustedaccess.NewTrustedAccessClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Trusted Access Client: %+v", err)
@@ -174,7 +158,6 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 
 	return &Client{
 		AgentPoolsClient:                            agentPoolsClient,
-		AgentPoolsClient_v2026_04_01:                agentPoolsClient_v2026_04_01,
 		ContainerInstanceClient:                     containerInstanceClient,
 		CacheRulesClient:                            cacheRulesClient,
 		CredentialSetsClient:                        credentialSetsClient,
@@ -190,7 +173,6 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 		MaintenanceConfigurationsClient:             maintenanceConfigurationsClient,
 		ServicesClient:                              servicesClient,
 		SnapshotClient:                              snapshotClient,
-		SnapshotsClient_v2026_04_01:                 snapshotClient_v2026_04_01,
 		TrustedAccessClient:                         trustedAccessClient,
 		Environment:                                 o.Environment,
 	}, nil
