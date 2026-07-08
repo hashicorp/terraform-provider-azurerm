@@ -117,8 +117,7 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Should public network access be enabled for the Function App. Defaults to `true`.
 
-* `virtual_network_application_traffic_enabled` - (Optional) Should the traffic for the application be routed over virtual network enabled. Defaults to `false`.
-
+* `virtual_network_application_traffic_enabled` - (Optional) Should application traffic be routed through the virtual network. Defaults to `false`.
 
 * `https_only` - (Optional) Is Https Connection enforced to the function app. Defaults to `false`
 
