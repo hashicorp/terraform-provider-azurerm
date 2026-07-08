@@ -138,6 +138,8 @@ func (r VmwareNetappFileVolumeAttachmentResource) templateNetappFile(data accept
 	return fmt.Sprintf(`
 
 
+
+
 resource "azurerm_subnet" "netappSubnet" {
   name                 = "acctest-Subnet-%d"
   resource_group_name  = azurerm_resource_group.test.name
@@ -194,7 +196,7 @@ resource "azurerm_netapp_volume" "test" {
   export_policy_rule {
     rule_index          = 1
     allowed_clients     = ["0.0.0.0/0"]
-    protocols_enabled   = ["NFSv3"]
+    protocol            = ["NFSv3"]
     unix_read_only      = false
     unix_read_write     = true
     root_access_enabled = true
