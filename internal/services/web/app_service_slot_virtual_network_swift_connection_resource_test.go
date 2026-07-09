@@ -391,7 +391,7 @@ resource "azurerm_windows_function_app" "test" {
 }
 
 resource "azurerm_windows_function_app_slot" "test-staging" {
-  name                       = "acctest-FA-%[1]d-staging"
+  name                       = "acctest-slot-%[1]d"
   function_app_id            = azurerm_windows_function_app.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
