@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/rbacs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -38,7 +38,7 @@ func resourceCosmosDbSQLRoleDefinition() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := rbacs.ParseSqlRoleDefinitionID(id)
+			_, err := openapis.ParseSqlRoleDefinitionID(id)
 			return err
 		}),
 
@@ -64,10 +64,10 @@ func resourceCosmosDbSQLRoleDefinition() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  string(rbacs.RoleDefinitionTypeCustomRole),
+				Default:  string(openapis.RoleDefinitionTypeCustomRole),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(rbacs.RoleDefinitionTypeBuiltInRole),
-					string(rbacs.RoleDefinitionTypeCustomRole),
+					string(openapis.RoleDefinitionTypeBuiltInRole),
+					string(openapis.RoleDefinitionTypeCustomRole),
 				}, false),
 			},
 
@@ -107,7 +107,7 @@ func resourceCosmosDbSQLRoleDefinition() *pluginsdk.Resource {
 }
 
 func resourceCosmosDbSQLRoleDefinitionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.RbacsClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -122,7 +122,7 @@ func resourceCosmosDbSQLRoleDefinitionCreate(d *pluginsdk.ResourceData, meta int
 		roleDefinitionId = uuid
 	}
 
-	id := rbacs.NewSqlRoleDefinitionID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), roleDefinitionId)
+	id := openapis.NewSqlRoleDefinitionID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), roleDefinitionId)
 
 	locks.ByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
 	defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
@@ -137,12 +137,12 @@ func resourceCosmosDbSQLRoleDefinitionCreate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	parameters := rbacs.SqlRoleDefinitionCreateUpdateParameters{
-		Properties: &rbacs.SqlRoleDefinitionResource{
+	parameters := openapis.SqlRoleDefinitionCreateUpdateParameters{
+		Properties: &openapis.SqlRoleDefinitionResource{
 			RoleName:         pointer.To(d.Get("name").(string)),
 			AssignableScopes: utils.ExpandStringSlice(d.Get("assignable_scopes").(*pluginsdk.Set).List()),
 			Permissions:      expandSqlRoleDefinitionPermissions(d.Get("permissions").(*pluginsdk.Set).List()),
-			Type:             pointer.ToEnum[rbacs.RoleDefinitionType](d.Get("type").(string)),
+			Type:             pointer.ToEnum[openapis.RoleDefinitionType](d.Get("type").(string)),
 		},
 	}
 
@@ -156,12 +156,12 @@ func resourceCosmosDbSQLRoleDefinitionCreate(d *pluginsdk.ResourceData, meta int
 }
 
 func resourceCosmosDbSQLRoleDefinitionRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.RbacsClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := rbacs.ParseSqlRoleDefinitionID(d.Id())
+	id, err := openapis.ParseSqlRoleDefinitionID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -195,12 +195,12 @@ func resourceCosmosDbSQLRoleDefinitionRead(d *pluginsdk.ResourceData, meta inter
 }
 
 func resourceCosmosDbSQLRoleDefinitionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.RbacsClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := rbacs.ParseSqlRoleDefinitionID(d.Id())
+	id, err := openapis.ParseSqlRoleDefinitionID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -221,7 +221,7 @@ func resourceCosmosDbSQLRoleDefinitionUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("retrieving %s: properties was nil", id)
 	}
 
-	parameters := rbacs.SqlRoleDefinitionCreateUpdateParameters{
+	parameters := openapis.SqlRoleDefinitionCreateUpdateParameters{
 		Properties: existing.Model.Properties,
 	}
 
@@ -245,12 +245,12 @@ func resourceCosmosDbSQLRoleDefinitionUpdate(d *pluginsdk.ResourceData, meta int
 }
 
 func resourceCosmosDbSQLRoleDefinitionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.RbacsClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := rbacs.ParseSqlRoleDefinitionID(d.Id())
+	id, err := openapis.ParseSqlRoleDefinitionID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -265,13 +265,13 @@ func resourceCosmosDbSQLRoleDefinitionDelete(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func expandSqlRoleDefinitionPermissions(input []interface{}) *[]rbacs.Permission {
-	results := make([]rbacs.Permission, 0)
+func expandSqlRoleDefinitionPermissions(input []interface{}) *[]openapis.Permission {
+	results := make([]openapis.Permission, 0)
 
 	for _, item := range input {
 		v := item.(map[string]interface{})
 
-		results = append(results, rbacs.Permission{
+		results = append(results, openapis.Permission{
 			DataActions: utils.ExpandStringSlice(v["data_actions"].(*pluginsdk.Set).List()),
 		})
 	}
@@ -279,7 +279,7 @@ func expandSqlRoleDefinitionPermissions(input []interface{}) *[]rbacs.Permission
 	return &results
 }
 
-func flattenSqlRoleDefinitionPermissions(input *[]rbacs.Permission) []interface{} {
+func flattenSqlRoleDefinitionPermissions(input *[]openapis.Permission) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results

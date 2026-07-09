@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -29,7 +29,7 @@ func resourceCosmosDbCassandraKeyspace() *pluginsdk.Resource {
 		Delete: resourceCosmosDbCassandraKeyspaceDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := cosmosdb.ParseCassandraKeyspaceID(id)
+			_, err := openapis.ParseCassandraKeyspaceID(id)
 			return err
 		}),
 
@@ -75,12 +75,12 @@ func resourceCosmosDbCassandraKeyspace() *pluginsdk.Resource {
 }
 
 func resourceCosmosDbCassandraKeyspaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := cosmosdb.NewCassandraKeyspaceID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
+	id := openapis.NewCassandraKeyspaceID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.CassandraResourcesGetCassandraKeyspace(ctx, id)
@@ -92,10 +92,10 @@ func resourceCosmosDbCassandraKeyspaceCreate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	db := cosmosdb.CassandraKeyspaceCreateUpdateParameters{
-		Properties: cosmosdb.CassandraKeyspaceCreateUpdateProperties{
-			Options: &cosmosdb.CreateUpdateOptions{},
-			Resource: cosmosdb.CassandraKeyspaceResource{
+	db := openapis.CassandraKeyspaceCreateUpdateParameters{
+		Properties: openapis.CassandraKeyspaceCreateUpdateProperties{
+			Options: &openapis.CreateUpdateOptions{},
+			Resource: openapis.CassandraKeyspaceResource{
 				Id: id.CassandraKeyspaceName,
 			},
 		},
@@ -121,12 +121,12 @@ func resourceCosmosDbCassandraKeyspaceCreate(d *pluginsdk.ResourceData, meta int
 }
 
 func resourceCosmosDbCassandraKeyspaceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := cosmosdb.ParseCassandraKeyspaceID(d.Id())
+	id, err := openapis.ParseCassandraKeyspaceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -149,12 +149,12 @@ func resourceCosmosDbCassandraKeyspaceUpdate(d *pluginsdk.ResourceData, meta int
 }
 
 func resourceCosmosDbCassandraKeyspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := cosmosdb.ParseCassandraKeyspaceID(d.Id())
+	id, err := openapis.ParseCassandraKeyspaceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -180,7 +180,7 @@ func resourceCosmosDbCassandraKeyspaceRead(d *pluginsdk.ResourceData, meta inter
 		}
 	}
 
-	databaseAccountID := cosmosdb.NewDatabaseAccountID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName)
+	databaseAccountID := openapis.NewDatabaseAccountID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName)
 	accResp, err := client.DatabaseAccountsGet(ctx, databaseAccountID)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", databaseAccountID, err)
@@ -204,12 +204,12 @@ func resourceCosmosDbCassandraKeyspaceRead(d *pluginsdk.ResourceData, meta inter
 }
 
 func resourceCosmosDbCassandraKeyspaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := cosmosdb.ParseCassandraKeyspaceID(d.Id())
+	id, err := openapis.ParseCassandraKeyspaceID(d.Id())
 	if err != nil {
 		return err
 	}

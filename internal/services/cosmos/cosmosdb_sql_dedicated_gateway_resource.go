@@ -14,8 +14,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/cosmosdb"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/sqldedicatedgateway"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/sqldedicatedgateway"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -49,7 +48,7 @@ func (r CosmosDbSqlDedicatedGatewayResource) Arguments() map[string]*pluginsdk.S
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: cosmosdb.ValidateDatabaseAccountID,
+			ValidateFunc: sqldedicatedgateway.ValidateDatabaseAccountID,
 		},
 
 		"instance_size": {
@@ -85,7 +84,7 @@ func (r CosmosDbSqlDedicatedGatewayResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.Cosmos.SqlDedicatedGatewayClient
-			cosmosdbAccountId, err := cosmosdb.ParseDatabaseAccountID(model.CosmosDbAccountId)
+			cosmosdbAccountId, err := sqldedicatedgateway.ParseDatabaseAccountID(model.CosmosDbAccountId)
 			if err != nil {
 				return err
 			}
@@ -194,7 +193,7 @@ func (r CosmosDbSqlDedicatedGatewayResource) Read() sdk.ResourceFunc {
 			}
 
 			state := CosmosDbSqlDedicatedGatewayModel{
-				CosmosDbAccountId: cosmosdb.NewDatabaseAccountID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName).ID(),
+				CosmosDbAccountId: sqldedicatedgateway.NewDatabaseAccountID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName).ID(),
 			}
 
 			if props := model.Properties; props != nil {

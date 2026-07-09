@@ -244,31 +244,31 @@ func resourceDataFactoryLinkedServiceCosmosDbRead(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("classifying Data Factory CosmosDb %s: Expected: %q Received: %q", *id, datafactory.TypeBasicLinkedServiceTypeCosmosDb, *resp.Type)
 	}
 
-	d.Set("additional_properties", cosmosdb.AdditionalProperties)
-	d.Set("description", cosmosdb.Description)
+	d.Set("additional_properties", openapis.AdditionalProperties)
+	d.Set("description", openapis.Description)
 
-	annotations := flattenDataFactoryAnnotations(cosmosdb.Annotations)
+	annotations := flattenDataFactoryAnnotations(openapis.Annotations)
 	if err := d.Set("annotations", annotations); err != nil {
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
-	parameters := flattenLinkedServiceParameters(cosmosdb.Parameters)
+	parameters := flattenLinkedServiceParameters(openapis.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 
-	if connectVia := cosmosdb.ConnectVia; connectVia != nil {
+	if connectVia := openapis.ConnectVia; connectVia != nil {
 		if connectVia.ReferenceName != nil {
 			d.Set("integration_runtime_name", connectVia.ReferenceName)
 		}
 	}
 
-	accountEndpoint := cosmosdb.AccountEndpoint
+	accountEndpoint := openapis.AccountEndpoint
 	if accountEndpoint != "" {
 		d.Set("account_endpoint", accountEndpoint)
 	}
 
-	databaseName := cosmosdb.Database
+	databaseName := openapis.Database
 	d.Set("database", databaseName)
 
 	return nil

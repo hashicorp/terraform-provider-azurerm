@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -29,7 +29,7 @@ func resourceCosmosDbSQLDatabase() *pluginsdk.Resource {
 		Delete: resourceCosmosDbSQLDatabaseDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := cosmosdb.ParseSqlDatabaseID(id)
+			_, err := openapis.ParseSqlDatabaseID(id)
 			return err
 		}),
 
@@ -75,12 +75,12 @@ func resourceCosmosDbSQLDatabase() *pluginsdk.Resource {
 }
 
 func resourceCosmosDbSQLDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := cosmosdb.NewSqlDatabaseID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
+	id := openapis.NewSqlDatabaseID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.SqlResourcesGetSqlDatabase(ctx, id)
@@ -92,12 +92,12 @@ func resourceCosmosDbSQLDatabaseCreate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	db := cosmosdb.SqlDatabaseCreateUpdateParameters{
-		Properties: cosmosdb.SqlDatabaseCreateUpdateProperties{
-			Resource: cosmosdb.SqlDatabaseResource{
+	db := openapis.SqlDatabaseCreateUpdateParameters{
+		Properties: openapis.SqlDatabaseCreateUpdateProperties{
+			Resource: openapis.SqlDatabaseResource{
 				Id: id.SqlDatabaseName,
 			},
-			Options: &cosmosdb.CreateUpdateOptions{},
+			Options: &openapis.CreateUpdateOptions{},
 		},
 	}
 
@@ -119,12 +119,12 @@ func resourceCosmosDbSQLDatabaseCreate(d *pluginsdk.ResourceData, meta interface
 }
 
 func resourceCosmosDbSQLDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := cosmosdb.ParseSqlDatabaseID(d.Id())
+	id, err := openapis.ParseSqlDatabaseID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -148,12 +148,12 @@ func resourceCosmosDbSQLDatabaseUpdate(d *pluginsdk.ResourceData, meta interface
 }
 
 func resourceCosmosDbSQLDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := cosmosdb.ParseSqlDatabaseID(d.Id())
+	id, err := openapis.ParseSqlDatabaseID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -172,7 +172,7 @@ func resourceCosmosDbSQLDatabaseRead(d *pluginsdk.ResourceData, meta interface{}
 	d.Set("account_name", id.DatabaseAccountName)
 	d.Set("name", id.SqlDatabaseName)
 
-	databaseAccountID := cosmosdb.NewDatabaseAccountID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName)
+	databaseAccountID := openapis.NewDatabaseAccountID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName)
 	accResp, err := client.DatabaseAccountsGet(ctx, databaseAccountID)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", databaseAccountID, err)
@@ -197,12 +197,12 @@ func resourceCosmosDbSQLDatabaseRead(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func resourceCosmosDbSQLDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := cosmosdb.ParseSqlDatabaseID(d.Id())
+	id, err := openapis.ParseSqlDatabaseID(d.Id())
 	if err != nil {
 		return err
 	}

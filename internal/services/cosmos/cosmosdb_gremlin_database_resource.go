@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -28,7 +28,7 @@ func resourceCosmosGremlinDatabase() *pluginsdk.Resource {
 		Delete: resourceCosmosGremlinDatabaseDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := cosmosdb.ParseGremlinDatabaseID(id)
+			_, err := openapis.ParseGremlinDatabaseID(id)
 			return err
 		}),
 
@@ -74,12 +74,12 @@ func resourceCosmosGremlinDatabase() *pluginsdk.Resource {
 }
 
 func resourceCosmosGremlinDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := cosmosdb.NewGremlinDatabaseID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
+	id := openapis.NewGremlinDatabaseID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.GremlinResourcesGetGremlinDatabase(ctx, id)
@@ -93,12 +93,12 @@ func resourceCosmosGremlinDatabaseCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	db := cosmosdb.GremlinDatabaseCreateUpdateParameters{
-		Properties: cosmosdb.GremlinDatabaseCreateUpdateProperties{
-			Resource: cosmosdb.GremlinDatabaseResource{
+	db := openapis.GremlinDatabaseCreateUpdateParameters{
+		Properties: openapis.GremlinDatabaseCreateUpdateProperties{
+			Resource: openapis.GremlinDatabaseResource{
 				Id: id.GremlinDatabaseName,
 			},
-			Options: &cosmosdb.CreateUpdateOptions{},
+			Options: &openapis.CreateUpdateOptions{},
 		},
 	}
 
@@ -122,11 +122,11 @@ func resourceCosmosGremlinDatabaseCreate(d *pluginsdk.ResourceData, meta interfa
 }
 
 func resourceCosmosGremlinDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := cosmosdb.ParseGremlinDatabaseID(d.Id())
+	id, err := openapis.ParseGremlinDatabaseID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -136,12 +136,12 @@ func resourceCosmosGremlinDatabaseUpdate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("checking `autoscale_settings` and `throughput` for %s: %w", id, err)
 	}
 
-	db := cosmosdb.GremlinDatabaseCreateUpdateParameters{
-		Properties: cosmosdb.GremlinDatabaseCreateUpdateProperties{
-			Resource: cosmosdb.GremlinDatabaseResource{
+	db := openapis.GremlinDatabaseCreateUpdateParameters{
+		Properties: openapis.GremlinDatabaseCreateUpdateProperties{
+			Resource: openapis.GremlinDatabaseResource{
 				Id: id.GremlinDatabaseName,
 			},
-			Options: &cosmosdb.CreateUpdateOptions{},
+			Options: &openapis.CreateUpdateOptions{},
 		},
 	}
 
@@ -160,11 +160,11 @@ func resourceCosmosGremlinDatabaseUpdate(d *pluginsdk.ResourceData, meta interfa
 }
 
 func resourceCosmosGremlinDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := cosmosdb.ParseGremlinDatabaseID(d.Id())
+	id, err := openapis.ParseGremlinDatabaseID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -183,7 +183,7 @@ func resourceCosmosGremlinDatabaseRead(d *pluginsdk.ResourceData, meta interface
 	d.Set("account_name", id.DatabaseAccountName)
 	d.Set("name", id.GremlinDatabaseName)
 
-	databaseAccountID := cosmosdb.NewDatabaseAccountID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName)
+	databaseAccountID := openapis.NewDatabaseAccountID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName)
 	accResp, err := client.DatabaseAccountsGet(ctx, databaseAccountID)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", databaseAccountID, err)
@@ -207,11 +207,11 @@ func resourceCosmosGremlinDatabaseRead(d *pluginsdk.ResourceData, meta interface
 }
 
 func resourceCosmosGremlinDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := cosmosdb.ParseGremlinDatabaseID(d.Id())
+	id, err := openapis.ParseGremlinDatabaseID(d.Id())
 	if err != nil {
 		return err
 	}

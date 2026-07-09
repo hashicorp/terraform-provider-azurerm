@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -32,7 +32,7 @@ func resourceCosmosDbMongoCollection() *pluginsdk.Resource {
 		Delete: resourceCosmosDbMongoCollectionDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := cosmosdb.ParseMongodbDatabaseCollectionID(id)
+			_, err := openapis.ParseMongodbDatabaseCollectionID(id)
 			return err
 		}),
 
@@ -148,12 +148,12 @@ func resourceCosmosDbMongoCollection() *pluginsdk.Resource {
 }
 
 func resourceCosmosDbMongoCollectionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := cosmosdb.NewMongodbDatabaseCollectionID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("database_name").(string), d.Get("name").(string))
+	id := openapis.NewMongodbDatabaseCollectionID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("database_name").(string), d.Get("name").(string))
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.MongoDBResourcesGetMongoDBCollection(ctx, id)
@@ -175,13 +175,13 @@ func resourceCosmosDbMongoCollectionCreate(d *pluginsdk.ResourceData, meta inter
 		return fmt.Errorf("index with '_id' key is required")
 	}
 
-	db := cosmosdb.MongoDBCollectionCreateUpdateParameters{
-		Properties: cosmosdb.MongoDBCollectionCreateUpdateProperties{
-			Resource: cosmosdb.MongoDBCollectionResource{
+	db := openapis.MongoDBCollectionCreateUpdateParameters{
+		Properties: openapis.MongoDBCollectionCreateUpdateProperties{
+			Resource: openapis.MongoDBCollectionResource{
 				Id:      id.CollectionName,
 				Indexes: indexes,
 			},
-			Options: &cosmosdb.CreateUpdateOptions{},
+			Options: &openapis.CreateUpdateOptions{},
 		},
 	}
 
@@ -215,11 +215,11 @@ func resourceCosmosDbMongoCollectionCreate(d *pluginsdk.ResourceData, meta inter
 }
 
 func resourceCosmosDbMongoCollectionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := cosmosdb.ParseMongodbDatabaseCollectionID(d.Id())
+	id, err := openapis.ParseMongodbDatabaseCollectionID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -245,14 +245,14 @@ func resourceCosmosDbMongoCollectionUpdate(d *pluginsdk.ResourceData, meta inter
 		return fmt.Errorf("retrieving %s: resource was nil", id)
 	}
 
-	db := cosmosdb.MongoDBCollectionCreateUpdateParameters{
-		Properties: cosmosdb.MongoDBCollectionCreateUpdateProperties{
-			Resource: cosmosdb.MongoDBCollectionResource{
+	db := openapis.MongoDBCollectionCreateUpdateParameters{
+		Properties: openapis.MongoDBCollectionCreateUpdateProperties{
+			Resource: openapis.MongoDBCollectionResource{
 				Id:       id.CollectionName,
 				Indexes:  existing.Model.Properties.Resource.Indexes,
 				ShardKey: existing.Model.Properties.Resource.ShardKey,
 			},
-			Options: &cosmosdb.CreateUpdateOptions{},
+			Options: &openapis.CreateUpdateOptions{},
 		},
 	}
 
@@ -289,12 +289,12 @@ func resourceCosmosDbMongoCollectionUpdate(d *pluginsdk.ResourceData, meta inter
 }
 
 func resourceCosmosDbMongoCollectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := cosmosdb.ParseMongodbDatabaseCollectionID(d.Id())
+	id, err := openapis.ParseMongodbDatabaseCollectionID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -314,7 +314,7 @@ func resourceCosmosDbMongoCollectionRead(d *pluginsdk.ResourceData, meta interfa
 	d.Set("database_name", id.MongodbDatabaseName)
 	d.Set("name", id.CollectionName)
 
-	databaseAccountID := cosmosdb.NewDatabaseAccountID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName)
+	databaseAccountID := openapis.NewDatabaseAccountID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName)
 	accResp, err := client.DatabaseAccountsGet(ctx, databaseAccountID)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", databaseAccountID, err)
@@ -385,12 +385,12 @@ func resourceCosmosDbMongoCollectionRead(d *pluginsdk.ResourceData, meta interfa
 }
 
 func resourceCosmosDbMongoCollectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := cosmosdb.ParseMongodbDatabaseCollectionID(d.Id())
+	id, err := openapis.ParseMongodbDatabaseCollectionID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -402,8 +402,8 @@ func resourceCosmosDbMongoCollectionDelete(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func expandCosmosMongoCollectionIndex(indexes []interface{}, defaultTtl *int) (*[]cosmosdb.MongoIndex, bool) {
-	results := make([]cosmosdb.MongoIndex, 0)
+func expandCosmosMongoCollectionIndex(indexes []interface{}, defaultTtl *int) (*[]openapis.MongoIndex, bool) {
+	results := make([]openapis.MongoIndex, 0)
 
 	hasIdKey := false
 
@@ -418,11 +418,11 @@ func expandCosmosMongoCollectionIndex(indexes []interface{}, defaultTtl *int) (*
 				}
 			}
 
-			results = append(results, cosmosdb.MongoIndex{
-				Key: &cosmosdb.MongoIndexKeys{
+			results = append(results, openapis.MongoIndex{
+				Key: &openapis.MongoIndexKeys{
 					Keys: utils.ExpandStringSlice(index["keys"].([]interface{})),
 				},
-				Options: &cosmosdb.MongoIndexOptions{
+				Options: &openapis.MongoIndexOptions{
 					Unique: pointer.To(index["unique"].(bool)),
 				},
 			})
@@ -430,11 +430,11 @@ func expandCosmosMongoCollectionIndex(indexes []interface{}, defaultTtl *int) (*
 	}
 
 	if defaultTtl != nil {
-		results = append(results, cosmosdb.MongoIndex{
-			Key: &cosmosdb.MongoIndexKeys{
+		results = append(results, openapis.MongoIndex{
+			Key: &openapis.MongoIndexKeys{
 				Keys: &[]string{"_ts"},
 			},
-			Options: &cosmosdb.MongoIndexOptions{
+			Options: &openapis.MongoIndexOptions{
 				ExpireAfterSeconds: pointer.To(int64(*defaultTtl)),
 			},
 		})
@@ -443,7 +443,7 @@ func expandCosmosMongoCollectionIndex(indexes []interface{}, defaultTtl *int) (*
 	return &results, hasIdKey
 }
 
-func flattenCosmosMongoCollectionIndex(input *[]cosmosdb.MongoIndex, accountIsVersion36 bool) (*[]map[string]interface{}, *[]map[string]interface{}, *int64) {
+func flattenCosmosMongoCollectionIndex(input *[]openapis.MongoIndex, accountIsVersion36 bool) (*[]map[string]interface{}, *[]map[string]interface{}, *int64) {
 	indexes := make([]map[string]interface{}, 0)
 	systemIndexes := make([]map[string]interface{}, 0)
 	var ttl *int64

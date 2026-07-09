@@ -10,7 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/rbacs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -111,12 +111,12 @@ func TestAccCosmosDbSQLRoleDefinition_multiple(t *testing.T) {
 }
 
 func (r CosmosDbSQLRoleDefinitionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := rbacs.ParseSqlRoleDefinitionID(state.ID)
+	id, err := openapis.ParseSqlRoleDefinitionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Cosmos.RbacsClient.SqlResourcesGetSqlRoleDefinition(ctx, *id)
+	resp, err := client.Cosmos.OpenapisClient.SqlResourcesGetSqlRoleDefinition(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}

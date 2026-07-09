@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -252,12 +252,12 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 }
 
 func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := cosmosdb.NewDatabaseAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := openapis.NewDatabaseAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	resp, err := client.DatabaseAccountsGet(ctx, id)
 	if err != nil {
@@ -409,7 +409,7 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func anyUnexpectedFailoverPriority(failoverPolicies []cosmosdb.FailoverPolicy) bool {
+func anyUnexpectedFailoverPriority(failoverPolicies []openapis.FailoverPolicy) bool {
 	size := len(failoverPolicies)
 	for _, policy := range failoverPolicies {
 		if int(*policy.FailoverPriority) > size-1 {
@@ -419,7 +419,7 @@ func anyUnexpectedFailoverPriority(failoverPolicies []cosmosdb.FailoverPolicy) b
 	return false
 }
 
-func flattenAzureRmCosmosDBAccountCapabilitiesAsList(capabilities *[]cosmosdb.Capability) *[]map[string]interface{} {
+func flattenAzureRmCosmosDBAccountCapabilitiesAsList(capabilities *[]openapis.Capability) *[]map[string]interface{} {
 	slice := make([]map[string]interface{}, 0)
 
 	for _, c := range *capabilities {
@@ -434,7 +434,7 @@ func flattenAzureRmCosmosDBAccountCapabilitiesAsList(capabilities *[]cosmosdb.Ca
 	return &slice
 }
 
-func flattenAzureRmCosmosDBAccountVirtualNetworkRulesAsList(rules *[]cosmosdb.VirtualNetworkRule) []map[string]interface{} {
+func flattenAzureRmCosmosDBAccountVirtualNetworkRulesAsList(rules *[]openapis.VirtualNetworkRule) []map[string]interface{} {
 	if rules == nil {
 		return []map[string]interface{}{}
 	}

@@ -7,11 +7,11 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
 )
 
 // CosmosDBIpRulesToIpRangeFilterDataSource todo Remove for 4.0
-func CosmosDBIpRulesToIpRangeFilterDataSource(ipRules *[]cosmosdb.IPAddressOrRange) string {
+func CosmosDBIpRulesToIpRangeFilterDataSource(ipRules *[]openapis.IPAddressOrRange) string {
 	ipRangeFilter := make([]string, 0)
 	if ipRules != nil {
 		for _, ipRule := range *ipRules {
@@ -22,7 +22,7 @@ func CosmosDBIpRulesToIpRangeFilterDataSource(ipRules *[]cosmosdb.IPAddressOrRan
 	return strings.Join(ipRangeFilter, ",")
 }
 
-func CosmosDBIpRulesToIpRangeFilter(ipRules *[]cosmosdb.IPAddressOrRange) []string {
+func CosmosDBIpRulesToIpRangeFilter(ipRules *[]openapis.IPAddressOrRange) []string {
 	ipRangeFilter := make([]string, 0)
 	if ipRules != nil {
 		for _, ipRule := range *ipRules {
@@ -33,10 +33,10 @@ func CosmosDBIpRulesToIpRangeFilter(ipRules *[]cosmosdb.IPAddressOrRange) []stri
 	return ipRangeFilter
 }
 
-func CosmosDBIpRangeFilterToIpRules(ipRangeFilter []string) *[]cosmosdb.IPAddressOrRange {
-	ipRules := make([]cosmosdb.IPAddressOrRange, 0)
+func CosmosDBIpRangeFilterToIpRules(ipRangeFilter []string) *[]openapis.IPAddressOrRange {
+	ipRules := make([]openapis.IPAddressOrRange, 0)
 	for _, ipRange := range ipRangeFilter {
-		ipRules = append(ipRules, cosmosdb.IPAddressOrRange{
+		ipRules = append(ipRules, openapis.IPAddressOrRange{
 			IPAddressOrRange: pointer.To(ipRange),
 		})
 	}
@@ -45,11 +45,11 @@ func CosmosDBIpRangeFilterToIpRules(ipRangeFilter []string) *[]cosmosdb.IPAddres
 }
 
 // CosmosDBIpRangeFilterToIpRulesThreePointOh todo Remove for 4.0
-func CosmosDBIpRangeFilterToIpRulesThreePointOh(ipRangeFilter string) *[]cosmosdb.IPAddressOrRange {
-	ipRules := make([]cosmosdb.IPAddressOrRange, 0)
+func CosmosDBIpRangeFilterToIpRulesThreePointOh(ipRangeFilter string) *[]openapis.IPAddressOrRange {
+	ipRules := make([]openapis.IPAddressOrRange, 0)
 	if len(ipRangeFilter) > 0 {
 		for _, ipRange := range strings.Split(ipRangeFilter, ",") {
-			ipRules = append(ipRules, cosmosdb.IPAddressOrRange{
+			ipRules = append(ipRules, openapis.IPAddressOrRange{
 				IPAddressOrRange: pointer.To(ipRange),
 			})
 		}

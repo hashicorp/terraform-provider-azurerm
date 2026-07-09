@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
 	mariadbServers "github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/privatednszonegroups"
@@ -460,7 +460,7 @@ func getCosmosDbResIdInPrivateServiceConnections(p *privateendpoints.PrivateEndp
 			continue
 		}
 		id := *l.Properties.PrivateLinkServiceId
-		if _, err := cosmosdb.ParseDatabaseAccountID(id); err == nil {
+		if _, err := openapis.ParseDatabaseAccountID(id); err == nil {
 			_, ok := exists[id]
 			if !ok {
 				ids = append(ids, id)
@@ -473,7 +473,7 @@ func getCosmosDbResIdInPrivateServiceConnections(p *privateendpoints.PrivateEndp
 			continue
 		}
 		id := *l.Properties.PrivateLinkServiceId
-		if _, err := cosmosdb.ParseDatabaseAccountID(id); err == nil {
+		if _, err := openapis.ParseDatabaseAccountID(id); err == nil {
 			_, ok := exists[id]
 			if !ok {
 				ids = append(ids, id)
