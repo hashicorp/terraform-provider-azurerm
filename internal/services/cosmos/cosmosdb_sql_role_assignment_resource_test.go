@@ -95,7 +95,7 @@ func TestAccCosmosDbSQLRoleAssignment_multiple(t *testing.T) {
 }
 
 func (r CosmosDbSQLRoleAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := openapis.ParseAccountID(state.ID)
+	id, err := openapis.ParseSqlRoleAssignmentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
