@@ -9,13 +9,12 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/threatintelligence"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SecurityInsightsIndicatorResource struct{}
@@ -131,18 +130,14 @@ func (r SecurityInsightsIndicatorResource) Exists(ctx context.Context, clients *
 		return nil, err
 	}
 
-	client := azuresdkhacks.ThreatIntelligenceIndicatorClient{
-		BaseClient: clients.Sentinel.ThreatIntelligenceClient.BaseClient,
-	}
-	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.IndicatorName)
+	client := clients.Sentinel.ThreatIntelligenceClient
+	idSDK := threatintelligence.NewIndicatorID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName, id.IndicatorName)
+	resp, err := client.IndicatorGet(ctx, idSDK)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return pointer.To(false), nil
-		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return pointer.To(resp.Value != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r SecurityInsightsIndicatorResource) template(data acceptance.TestData) string {

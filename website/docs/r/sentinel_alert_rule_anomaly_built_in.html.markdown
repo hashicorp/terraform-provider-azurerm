@@ -7,7 +7,7 @@ description: |-
 ---
 ## Disclaimers
 
-~> **Note:** A Built-in Anomaly Alert Rule could not be deleted. delete a Terraform managed Built-in Anomaly Alert Rule will cause the Built-in Anomaly Alert Rule to be disabled.
+~> **Note:** A Built-in Anomaly Alert Rule cannot be deleted. Deleting a Terraform managed Built-in Anomaly Alert Rule will cause the Built-in Anomaly Alert Rule to be disabled.
 
 # azurerm_sentinel_alert_rule_anomaly_built_in
 
@@ -50,9 +50,9 @@ resource "azurerm_sentinel_alert_rule_anomaly_built_in" "example" {
 
 The following arguments are supported:
 
-* `name` - (Optional) The Name of the built-in Anomaly Alert Rule.
+* `name` - (Optional) The Name of the built-in Anomaly Alert Rule. Changing this forces a new resource to be created.
 
-* `display_name` - (Optional) The Display Name of the built-in Anomaly Alert Rule.
+* `display_name` - (Optional) The Display Name of the built-in Anomaly Alert Rule. Changing this forces a new resource to be created.
 
 ~> **Note:** One of `name` or `display_name` block must be specified.
 
