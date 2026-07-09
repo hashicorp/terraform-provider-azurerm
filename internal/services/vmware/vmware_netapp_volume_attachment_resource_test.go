@@ -98,9 +98,8 @@ resource "azurerm_virtual_network_gateway" "test" {
   sku  = "Standard"
 
   ip_configuration {
-    name                 = "vnetGatewayConfig"
-    public_ip_address_id = azurerm_public_ip.test.id
-    subnet_id            = azurerm_subnet.gatewaySubnet.id
+    name      = "vnetGatewayConfig"
+    subnet_id = azurerm_subnet.gatewaySubnet.id
   }
 }
 
@@ -210,14 +209,6 @@ resource "azurerm_netapp_volume" "test" {
 
 func (r VmwareNetappFileVolumeAttachmentResource) templateVnet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-resource "azurerm_public_ip" "test" {
-  name                = "acctestpip-%d"
-  location            = "centralus"
-  resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Static"
-  sku                 = "Standard"
-}
-
 resource "azurerm_virtual_network" "test" {
   name                = "acctest-VirtualNetwork-%d"
   location            = "centralus"
