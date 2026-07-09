@@ -221,5 +221,5 @@ resource "azurerm_virtual_network" "test" {
 }
 
 
-`, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger)
 }
