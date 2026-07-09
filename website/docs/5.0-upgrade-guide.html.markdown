@@ -838,6 +838,10 @@ Please follow the format in the example below for listing breaking changes in da
 * The deprecated `example_property_with_no_replacement` property has been removed.
 ```
 
+### `azurerm_cosmosdb_account`
+
+* The `ip_range_filter` property's type has changed from a string to a list of strings.
+
 ### `azurerm_storage_blob`
 
 * The deprecated `storage_account_name` property has been removed in favour of the `storage_container_id` property.
