@@ -478,7 +478,7 @@ Before adding a List Resource, the resource must have Resource Identity implemen
 
 ## Handling List for Sub-resources
 
-Some resources can be listed only beneath a parent resource, rather than at the subscription or resource group scope. Treat this as a scoping concern, not a typed versus untyped implementation detail.
+Some resources can be listed only beneath a parent resource, rather than at the subscription or resource group scope.
 
 For these sub-resources:
 
