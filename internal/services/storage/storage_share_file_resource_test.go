@@ -8,7 +8,9 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -139,12 +141,15 @@ func TestAccAzureRMStorageShareFile_withSourceContent(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_share_file", "test")
 	r := StorageShareFileResource{}
 
+	content := "My shopping list:\n* eggs\n* bananas\n* kiwis\n* milk tea\n"
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withSourceContent(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("content_length").Exists(),
+				data.CheckWithClient(r.fileMatchesContent([]byte(content))),
 			),
 		},
 		data.ImportStep("source_content"),
@@ -163,7 +168,7 @@ func TestAccAzureRMStorageShareFile_withEmptyFile(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.withFile(data, sourceBlob.Name()),
-			ExpectError: regexp.MustCompile(`Error: file .* is empty`),
+			ExpectError: regexp.MustCompile(`source file .* is empty`),
 		},
 	})
 }
@@ -240,6 +245,52 @@ func (StorageShareFileResource) Exists(ctx context.Context, clients *clients.Cli
 	}
 
 	return pointer.To(true), nil
+}
+
+func (StorageShareFileResource) fileMatchesContent(expectedContents []byte) func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+		if _, ok := ctx.Deadline(); !ok {
+			var cancel context.CancelFunc
+			ctx, cancel = context.WithDeadline(ctx, time.Now().Add(10*time.Minute))
+			defer cancel()
+		}
+
+		id, err := files.ParseFileID(state.ID, clients.Storage.StorageDomainSuffix)
+		if err != nil {
+			return err
+		}
+
+		account, err := clients.Storage.FindAccount(ctx, clients.Account.SubscriptionId, id.AccountId.AccountName)
+		if err != nil {
+			return fmt.Errorf("retrieving Account %q for File %q (Share %q): %s", id.AccountId.AccountName, id.FileName, id.ShareName, err)
+		}
+		if account == nil {
+			return fmt.Errorf("unable to locate Storage Account %q", id.AccountId.AccountName)
+		}
+
+		client, err := clients.Storage.FileShareFilesDataPlaneClient(ctx, *account, clients.Storage.DataPlaneOperationSupportingAnyAuthMethod())
+		if err != nil {
+			return fmt.Errorf("building File Share Files Client: %s", err)
+		}
+
+		resp, err := client.GetByteRange(ctx, id.ShareName, id.DirectoryPath, id.FileName, files.GetByteRangeInput{
+			StartBytes: 0,
+			EndBytes:   4 * 1024,
+		})
+		if err != nil {
+			return fmt.Errorf("retrieving File %q (File Share %q in %s): %+v", id.FileName, id.ShareName, account.StorageAccountId, err)
+		}
+
+		if resp.Contents == nil {
+			return fmt.Errorf("bad: File %q (File Share %q) returned nil contents", id.FileName, id.ShareName)
+		}
+
+		if strings.TrimSpace(string(*resp.Contents)) != strings.TrimSpace(string(expectedContents)) {
+			return fmt.Errorf("bad: File %q (File Share %q) content does not match expected content", id.FileName, id.ShareName)
+		}
+
+		return nil
+	}
 }
 
 func (StorageShareFileResource) template(data acceptance.TestData) string {

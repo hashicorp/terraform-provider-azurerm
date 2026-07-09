@@ -176,7 +176,7 @@ func TestAccAzureRMStorageShareFile_withEmptyFile_deprecated(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.withFile(data, sourceBlob.Name()),
-			ExpectError: regexp.MustCompile(`Error: file .* is empty`),
+			ExpectError: regexp.MustCompile(`source file .* is empty`),
 		},
 	})
 }
