@@ -18,14 +18,11 @@ import (
 )
 
 type Client struct {
-	AccountsClient                  *cognitiveservicesaccounts.CognitiveServicesAccountsClient
-	DeploymentsClient               *deployments.DeploymentsClient
-	ProjectConnectionResourceClient *projectconnectionresource.ProjectConnectionResourceClient
-	ProjectsClient                  *cognitiveservicesprojects.CognitiveServicesProjectsClient
 	ProjectsClient                  *cognitiveservicesprojects.CognitiveServicesProjectsClient
 	AccountConnectionResourceClient *accountconnectionresource.AccountConnectionResourceClient
 	AccountsClient                  *cognitiveservicesaccounts.CognitiveServicesAccountsClient
 	DeploymentsClient               *deployments.DeploymentsClient
+	ProjectConnectionResourceClient *projectconnectionresource.ProjectConnectionResourceClient
 	RaiBlocklistsClient             *raiblocklists.RaiBlocklistsClient
 	RaiPoliciesClient               *raipolicies.RaiPoliciesClient
 }
@@ -74,13 +71,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	o.Configure(raiBlobklistsClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		AccountsClient:                  accountsClient,
-		DeploymentsClient:               deploymentsClient,
-		ProjectConnectionResourceClient: projectConnectionResourceClient,
 		ProjectsClient:                  projectsClient,
 		AccountConnectionResourceClient: accountConnectionResourceClient,
 		AccountsClient:                  accountsClient,
 		DeploymentsClient:               deploymentsClient,
+		ProjectConnectionResourceClient: projectConnectionResourceClient,
 		RaiBlocklistsClient:             raiBlobklistsClient,
 		RaiPoliciesClient:               raiPoliciesClient,
 	}, nil
