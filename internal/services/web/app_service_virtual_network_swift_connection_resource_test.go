@@ -206,6 +206,10 @@ resource "azurerm_windows_web_app" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   site_config {}
+
+  lifecycle {
+    ignore_changes = [virtual_network_subnet_id]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -309,6 +313,10 @@ resource "azurerm_windows_function_app" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {}
+
+  lifecycle {
+    ignore_changes = [virtual_network_subnet_id]
+  }
 }
 
 resource "azurerm_app_service_virtual_network_swift_connection" "test" {

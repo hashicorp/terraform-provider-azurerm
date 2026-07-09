@@ -266,6 +266,10 @@ resource "azurerm_windows_web_app_slot" "test-staging" {
   app_service_id = azurerm_windows_web_app.test.id
 
   site_config {}
+
+  lifecycle {
+    ignore_changes = [virtual_network_subnet_id]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -393,6 +397,10 @@ resource "azurerm_windows_function_app_slot" "test-staging" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {}
+
+  lifecycle {
+    ignore_changes = [virtual_network_subnet_id]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
