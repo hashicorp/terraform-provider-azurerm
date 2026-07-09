@@ -239,11 +239,11 @@ func resourceStorageShareFileCreate(d *pluginsdk.ResourceData, meta interface{})
 	if file != nil {
 		info, err := file.Stat()
 		if err != nil {
-			return fmt.Errorf("could not stat file %q: %v", file.Name(), err)
+			return fmt.Errorf("'stat'-ing File %q (File Share %q / Account %q): %v", fileName, storageShareId.ShareName, storageShareId.AccountId.AccountName, err)
 		}
 
 		if info.Size() == 0 {
-			return fmt.Errorf("file %q is empty", file.Name())
+			return fmt.Errorf("file %q (File Share %q / Account %q) is empty", fileName, storageShareId.ShareName, storageShareId.AccountId.AccountName)
 		}
 
 		input.ContentLength = info.Size()
