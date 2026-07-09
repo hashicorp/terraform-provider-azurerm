@@ -489,8 +489,6 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 		}
 	}
 
-	featuresMap["enhanced_validation"].ConflictsWith = []string{"enhanced_validation"}
-
 	// this is a temporary hack to enable us to gradually add provider blocks to test configurations
 	// rather than doing it as a big-bang and breaking all open PR's
 	if supportLegacyTestSuite {
