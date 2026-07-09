@@ -111,6 +111,4 @@ require (
 	software.sslmate.com/src/go-pkcs12 v0.7.2 // indirect
 )
 
-replace github.com/hashicorp/go-azure-sdk/resource-manager => /home/v-yyeo/go-azure-sdk/resource-manager
-
 go 1.26.4
