@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/sqldedicatedgateway"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -48,7 +49,7 @@ func (r CosmosDbSqlDedicatedGatewayResource) Arguments() map[string]*pluginsdk.S
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: sqldedicatedgateway.ValidateDatabaseAccountID,
+			ValidateFunc: openapis.ValidateDatabaseAccountID,
 		},
 
 		"instance_size": {
@@ -84,7 +85,7 @@ func (r CosmosDbSqlDedicatedGatewayResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.Cosmos.SqlDedicatedGatewayClient
-			cosmosdbAccountId, err := sqldedicatedgateway.ParseDatabaseAccountID(model.CosmosDbAccountId)
+			cosmosdbAccountId, err := openapis.ParseDatabaseAccountID(model.CosmosDbAccountId)
 			if err != nil {
 				return err
 			}
@@ -105,8 +106,8 @@ func (r CosmosDbSqlDedicatedGatewayResource) Create() sdk.ResourceFunc {
 			serviceType := sqldedicatedgateway.ServiceTypeSqlDedicatedGateway
 
 			parameters := &sqldedicatedgateway.ServiceResourceCreateUpdateParameters{
-				Properties: &sqldedicatedgateway.ServiceResourceCreateUpdateProperties{
-					ServiceType:   &serviceType,
+				Properties: &sqldedicatedgateway.BaseServiceResourceCreateUpdatePropertiesImpl{
+					ServiceType:   serviceType,
 					InstanceCount: &model.InstanceCount,
 					InstanceSize:  &model.InstanceSize,
 				},
@@ -151,8 +152,8 @@ func (r CosmosDbSqlDedicatedGatewayResource) Update() sdk.ResourceFunc {
 			serviceType := sqldedicatedgateway.ServiceTypeSqlDedicatedGateway
 
 			parameters := &sqldedicatedgateway.ServiceResourceCreateUpdateParameters{
-				Properties: &sqldedicatedgateway.ServiceResourceCreateUpdateProperties{
-					ServiceType:   &serviceType,
+				Properties: &sqldedicatedgateway.BaseServiceResourceCreateUpdatePropertiesImpl{
+					ServiceType:   serviceType,
 					InstanceCount: &model.InstanceCount,
 					InstanceSize:  &model.InstanceSize,
 				},
@@ -193,7 +194,7 @@ func (r CosmosDbSqlDedicatedGatewayResource) Read() sdk.ResourceFunc {
 			}
 
 			state := CosmosDbSqlDedicatedGatewayModel{
-				CosmosDbAccountId: sqldedicatedgateway.NewDatabaseAccountID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName).ID(),
+				CosmosDbAccountId: openapis.NewDatabaseAccountID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName).ID(),
 			}
 
 			if props := model.Properties; props != nil {

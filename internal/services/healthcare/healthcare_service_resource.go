@@ -472,7 +472,7 @@ func expandsCosmosDBConfiguration(d *pluginsdk.ResourceData) (*service.ServiceCo
 		if err != nil {
 			return nil, err
 		}
-		openapis.KeyVaultKeyUri = pointer.To(keyVaultKey.ID())
+		cosmosdb.KeyVaultKeyUri = pointer.To(keyVaultKey.ID())
 	}
 
 	return cosmosdb, nil

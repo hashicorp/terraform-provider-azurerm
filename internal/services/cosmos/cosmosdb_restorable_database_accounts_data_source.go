@@ -114,11 +114,9 @@ func dataSourceCosmosDbRestorableDatabaseAccountsRead(d *pluginsdk.ResourceData,
 
 	d.Set("location", locationName)
 
-	if resp.Model != nil {
-		if v := resp.Model.Value; v != nil {
-			if err := d.Set("accounts", flattenCosmosDbRestorableDatabaseAccounts(v, d.Get("name").(string))); err != nil {
-				return fmt.Errorf("flattening `accounts`: %+v", err)
-			}
+	if v := resp.Model; v != nil {
+		if err := d.Set("accounts", flattenCosmosDbRestorableDatabaseAccounts(v, d.Get("name").(string))); err != nil {
+			return fmt.Errorf("flattening `accounts`: %+v", err)
 		}
 	}
 

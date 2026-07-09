@@ -38,7 +38,7 @@ func resourceCosmosDbSQLRoleAssignment() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := openapis.ParseAccountID(id)
+			_, err := openapis.ParseSqlRoleAssignmentID(id)
 			return err
 		}),
 
@@ -99,7 +99,7 @@ func resourceCosmosDbSQLRoleAssignmentCreate(d *pluginsdk.ResourceData, meta int
 		name = uuid
 	}
 
-	id := openapis.NewAccountID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), name)
+	id := openapis.NewSqlRoleAssignmentID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), name)
 
 	locks.ByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
 	defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
@@ -136,7 +136,7 @@ func resourceCosmosDbSQLRoleAssignmentRead(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := openapis.ParseAccountID(d.Id())
+	id, err := openapis.ParseSqlRoleAssignmentID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -172,7 +172,7 @@ func resourceCosmosDbSQLRoleAssignmentUpdate(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := openapis.ParseAccountID(d.Id())
+	id, err := openapis.ParseSqlRoleAssignmentID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -201,7 +201,7 @@ func resourceCosmosDbSQLRoleAssignmentDelete(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := openapis.ParseAccountID(d.Id())
+	id, err := openapis.ParseSqlRoleAssignmentID(d.Id())
 	if err != nil {
 		return err
 	}

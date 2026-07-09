@@ -217,29 +217,29 @@ func resourceDataFactoryLinkedServiceCosmosDbMongoAPIRead(d *pluginsdk.ResourceD
 		return fmt.Errorf("classifying Data Factory Linked Service CosmosDb %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeCosmosDbMongoDbAPI, *resp.Type)
 	}
 
-	d.Set("additional_properties", openapis.AdditionalProperties)
-	d.Set("description", openapis.Description)
+	d.Set("additional_properties", cosmosdb.AdditionalProperties)
+	d.Set("description", cosmosdb.Description)
 
-	annotations := flattenDataFactoryAnnotations(openapis.Annotations)
+	annotations := flattenDataFactoryAnnotations(cosmosdb.Annotations)
 	if err := d.Set("annotations", annotations); err != nil {
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
-	parameters := flattenLinkedServiceParameters(openapis.Parameters)
+	parameters := flattenLinkedServiceParameters(cosmosdb.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 
-	if connectVia := openapis.ConnectVia; connectVia != nil {
+	if connectVia := cosmosdb.ConnectVia; connectVia != nil {
 		if connectVia.ReferenceName != nil {
 			d.Set("integration_runtime_name", connectVia.ReferenceName)
 		}
 	}
 
-	databaseName := openapis.Database
+	databaseName := cosmosdb.Database
 	d.Set("database", databaseName)
 
-	versionAbove32 := openapis.IsServerVersionAbove32
+	versionAbove32 := cosmosdb.IsServerVersionAbove32
 	d.Set("server_version_is_32_or_higher", versionAbove32)
 
 	return nil
