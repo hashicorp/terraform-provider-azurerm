@@ -63,4 +63,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.KeyVault` - 2023-07-01
+* `Microsoft.KeyVault` - 2026-02-01

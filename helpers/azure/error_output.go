@@ -19,12 +19,12 @@ func QuotedStringSlice(strs []string) string {
 	for i, str := range strs {
 		if i < (len(strs) - 1) {
 			if i == (len(strs) - 2) {
-				sb.WriteString(fmt.Sprint(`"`, str, `"`))
+				fmt.Fprint(&sb, `"`, str, `"`)
 			} else {
-				sb.WriteString(fmt.Sprint(`"`, str, `", `))
+				fmt.Fprint(&sb, `"`, str, `", `)
 			}
 		} else {
-			sb.WriteString(fmt.Sprint(` or "`, str, `"`))
+			fmt.Fprint(&sb, ` or "`, str, `"`)
 		}
 	}
 

@@ -110,7 +110,7 @@ jobs:
 
       - name: Cache tctest binary
         id: cache-tctest
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
           path: ~/go/bin/tctest
           key: tctest-${{ runner.os }}-${{ steps.tctest-version.outputs.version }}
@@ -150,18 +150,21 @@ jobs:
           # Initialize default values
           beta=false
           service=""
+          queue=false
 
           # Parse flags using getopts
           # Convert FLAGS_STRING to array for getopts
           eval set -- $FLAGS_STRING
 
-          while getopts ":bs:" opt; do
+          while getopts ":bqs:" opt; do
             case "$opt" in
               b) beta=true ;;
+              q) queue=true ;;
               s) service="$OPTARG" ;;
               *)
-                echo "Usage: /test [-b] [-s service_name]"
+                echo "Usage: /test [-b] [-q] [-s service_name]"
                 echo "  -b: Test beta version"
+                echo "  -q: Add the build to the top of the queue"
                 echo "  -s: Specify service name"
                 exit 1
                 ;;
@@ -171,18 +174,24 @@ jobs:
           echo "Running tctest for PR #${PR_NUMBER}"
           echo "PR commit SHA: ${PR_SHA}"
           echo "Beta version: ${beta}"
+          echo "Queue priority: ${queue}"
           echo "Service: ${service:-all}"
+
+          queue_flag=""
+          if [ "$queue" = true ]; then
+            queue_flag="-q"
+          fi
 
           # Run tctest with parsed flags
           if [ "$service" != "" ]; then
-            tctest pr ${PR_NUMBER} -c --reappend-split-character --service "$service" --properties "TRACKING_ID=${PR_SHA}"
+            tctest pr ${PR_NUMBER} -c ${queue_flag} --reappend-split-character --service "$service" --properties "TRACKING_ID=${PR_SHA}"
             if [ "$beta" = true ]; then
-              tctest pr ${PR_NUMBER} -c --reappend-split-character --service "$service" --buildtypeid TF_AzureRM_AZURERM_BETA_VERSION_SERVICE_PUBLIC --properties "TRACKING_ID=${PR_SHA}"
+              tctest pr ${PR_NUMBER} -c ${queue_flag} --reappend-split-character --service "$service" --buildtypeid TF_AzureRM_AZURERM_BETA_VERSION_SERVICE_PUBLIC --properties "TRACKING_ID=${PR_SHA}"
             fi
           else
-            tctest pr ${PR_NUMBER} -c --reappend-split-character --properties "TRACKING_ID=${PR_SHA}"
+            tctest pr ${PR_NUMBER} -c ${queue_flag} --reappend-split-character --properties "TRACKING_ID=${PR_SHA}"
             if [ "$beta" = true ]; then
-              tctest pr ${PR_NUMBER} -c --reappend-split-character --buildtypeid TF_AzureRM_AZURERM_BETA_VERSION_SERVICE_PUBLIC --properties "TRACKING_ID=${PR_SHA}"
+              tctest pr ${PR_NUMBER} -c ${queue_flag} --reappend-split-character --buildtypeid TF_AzureRM_AZURERM_BETA_VERSION_SERVICE_PUBLIC --properties "TRACKING_ID=${PR_SHA}"
             fi
           fi
 

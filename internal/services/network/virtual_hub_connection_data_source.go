@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -170,7 +171,11 @@ func dataSourceVirtualHubConnectionRead(d *pluginsdk.ResourceData, meta interfac
 			d.Set("internet_security_enabled", props.EnableInternetSecurity)
 			remoteVirtualNetworkId := ""
 			if props.RemoteVirtualNetwork != nil && props.RemoteVirtualNetwork.Id != nil {
-				remoteVirtualNetworkId = *props.RemoteVirtualNetwork.Id
+				parsedRemoteVirtualNetworkId, err := commonids.ParseVirtualNetworkIDInsensitively(*props.RemoteVirtualNetwork.Id)
+				if err != nil {
+					return err
+				}
+				remoteVirtualNetworkId = parsedRemoteVirtualNetworkId.ID()
 			}
 			d.Set("remote_virtual_network_id", remoteVirtualNetworkId)
 

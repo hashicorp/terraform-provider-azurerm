@@ -33,6 +33,7 @@ resource "azurerm_key_vault" "example" {
   name                            = "anfcmkakv"
   location                        = azurerm_resource_group.example.location
   resource_group_name             = azurerm_resource_group.example.name
+  rbac_authorization_enabled      = false
   enabled_for_disk_encryption     = true
   enabled_for_deployment          = true
   enabled_for_template_deployment = true
