@@ -410,7 +410,7 @@ func resourceSynapseSparkPoolUpdate(d *pluginsdk.ResourceData, meta interface{})
 	autoScale := expandArmSparkPoolAutoScaleProperties(d.Get("auto_scale").([]interface{}))
 	sparkConfigProperties := expandSparkPoolSparkConfig(d.Get("spark_config").([]interface{}))
 	if current.BigDataPoolResourceProperties != nil {
-		sparkConfigProperties = current.BigDataPoolResourceProperties.SparkConfigProperties
+		sparkConfigProperties = current.SparkConfigProperties
 	}
 	if d.HasChange("spark_config") {
 		sparkConfigProperties = expandSparkPoolSparkConfig(d.Get("spark_config").([]interface{}))
