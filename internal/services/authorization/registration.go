@@ -63,6 +63,7 @@ func (r Registration) Resources() []sdk.Resource {
 		RoleAssignmentMarketplaceResource{},
 		RoleDefinitionResource{},
 		RoleManagementPolicyResource{},
+		ServicePrincipalAttributeSetResource{},
 	}
 	return resources
 }

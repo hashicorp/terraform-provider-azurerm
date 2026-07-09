@@ -20,16 +20,17 @@ import (
 )
 
 type Client struct {
-	RoleAssignmentScheduleRequestClient    *roleassignmentschedulerequests.RoleAssignmentScheduleRequestsClient
-	RoleAssignmentScheduleInstancesClient  *roleassignmentscheduleinstances.RoleAssignmentScheduleInstancesClient
-	RoleAssignmentSchedulesClient          *roleassignmentschedules.RoleAssignmentSchedulesClient
-	RoleEligibilityScheduleRequestClient   *roleeligibilityschedulerequests.RoleEligibilityScheduleRequestsClient
-	RoleEligibilityScheduleInstancesClient *roleeligibilityscheduleinstances.RoleEligibilityScheduleInstancesClient
-	RoleEligibilitySchedulesClient         *roleeligibilityschedules.RoleEligibilitySchedulesClient
-	RoleManagementPoliciesClient           *rolemanagementpolicies.RoleManagementPoliciesClient
-	RoleManagementPolicyAssignmentsClient  *rolemanagementpolicyassignments.RoleManagementPolicyAssignmentsClient
-	ScopedRoleAssignmentsClient            *roleassignments.RoleAssignmentsClient
-	ScopedRoleDefinitionsClient            *roledefinitions.RoleDefinitionsClient
+	RoleAssignmentScheduleRequestClient            *roleassignmentschedulerequests.RoleAssignmentScheduleRequestsClient
+	RoleAssignmentScheduleInstancesClient          *roleassignmentscheduleinstances.RoleAssignmentScheduleInstancesClient
+	RoleAssignmentSchedulesClient                  *roleassignmentschedules.RoleAssignmentSchedulesClient
+	RoleEligibilityScheduleRequestClient           *roleeligibilityschedulerequests.RoleEligibilityScheduleRequestsClient
+	RoleEligibilityScheduleInstancesClient         *roleeligibilityscheduleinstances.RoleEligibilityScheduleInstancesClient
+	RoleEligibilitySchedulesClient                 *roleeligibilityschedules.RoleEligibilitySchedulesClient
+	RoleManagementPoliciesClient                   *rolemanagementpolicies.RoleManagementPoliciesClient
+	RoleManagementPolicyAssignmentsClient          *rolemanagementpolicyassignments.RoleManagementPolicyAssignmentsClient
+	ScopedRoleAssignmentsClient                    *roleassignments.RoleAssignmentsClient
+	ScopedRoleDefinitionsClient                    *roledefinitions.RoleDefinitionsClient
+	ServicePrincipalCustomSecurityAttributesClient *ServicePrincipalCustomSecurityAttributesClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -94,16 +95,22 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(scopedRoleDefinitionsClient.Client, o.Authorizers.ResourceManager)
 
+	servicePrincipalCustomSecurityAttributesClient, err := NewServicePrincipalCustomSecurityAttributesClient(o)
+	if err != nil {
+		return nil, fmt.Errorf("building Service Principal Custom Security Attributes Client: %+v", err)
+	}
+
 	return &Client{
-		RoleAssignmentScheduleRequestClient:    roleAssignmentScheduleRequestsClient,
-		RoleAssignmentScheduleInstancesClient:  roleAssignmentScheduleInstancesClient,
-		RoleAssignmentSchedulesClient:          roleAssignmentSchedulesClient,
-		RoleEligibilityScheduleRequestClient:   roleEligibilityScheduleRequestClient,
-		RoleEligibilityScheduleInstancesClient: roleEligibilityScheduleInstancesClient,
-		RoleEligibilitySchedulesClient:         roleEligibilitySchedulesClient,
-		RoleManagementPoliciesClient:           roleManagementPoliciesClient,
-		RoleManagementPolicyAssignmentsClient:  roleManagementPolicyAssignmentClient,
-		ScopedRoleAssignmentsClient:            scopedRoleAssignmentsClient,
-		ScopedRoleDefinitionsClient:            scopedRoleDefinitionsClient,
+		RoleAssignmentScheduleRequestClient:            roleAssignmentScheduleRequestsClient,
+		RoleAssignmentScheduleInstancesClient:          roleAssignmentScheduleInstancesClient,
+		RoleAssignmentSchedulesClient:                  roleAssignmentSchedulesClient,
+		RoleEligibilityScheduleRequestClient:           roleEligibilityScheduleRequestClient,
+		RoleEligibilityScheduleInstancesClient:         roleEligibilityScheduleInstancesClient,
+		RoleEligibilitySchedulesClient:                 roleEligibilitySchedulesClient,
+		RoleManagementPoliciesClient:                   roleManagementPoliciesClient,
+		RoleManagementPolicyAssignmentsClient:          roleManagementPolicyAssignmentClient,
+		ScopedRoleAssignmentsClient:                    scopedRoleAssignmentsClient,
+		ScopedRoleDefinitionsClient:                    scopedRoleDefinitionsClient,
+		ServicePrincipalCustomSecurityAttributesClient: servicePrincipalCustomSecurityAttributesClient,
 	}, nil
 }
