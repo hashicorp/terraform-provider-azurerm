@@ -135,6 +135,22 @@ func TestAccAzureRMStorageShareFile_withFile(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageShareFile_withSourceContent(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share_file", "test")
+	r := StorageShareFileResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withSourceContent(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("content_length").Exists(),
+			),
+		},
+		data.ImportStep("source_content"),
+	})
+}
+
 func TestAccAzureRMStorageShareFile_withEmptyFile(t *testing.T) {
 	sourceBlob, err := os.CreateTemp("", "")
 	if err != nil {
@@ -356,6 +372,29 @@ resource "azurerm_storage_share_file" "test" {
   }
 }
 `, r.template(data), fileName)
+}
+
+func (r StorageShareFileResource) withSourceContent(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_share_file" "test" {
+  name              = "my-shopping-list.txt"
+  storage_share_url = azurerm_storage_share.test.url
+
+  source_content = <<-EOT
+My shopping list:
+* eggs
+* bananas
+* kiwis
+* milk tea
+EOT
+
+  metadata = {
+    hello = "world"
+  }
+}
+`, r.template(data))
 }
 
 func (r StorageShareFileResource) withPath(data acceptance.TestData) string {
