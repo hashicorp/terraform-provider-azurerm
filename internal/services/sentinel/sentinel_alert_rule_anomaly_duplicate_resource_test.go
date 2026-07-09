@@ -63,7 +63,7 @@ func TestAccSentinelAlertRuleAnomalyDuplicate_requiresImport(t *testing.T) {
 		},
 		{
 			Config:      r.requiresImport(data),
-			ExpectError: regexp.MustCompile("only one duplicate rule of the same built-in rule is allowed, there is an existing duplicate rule of .+"),
+			ExpectError: regexp.MustCompile("only one duplicate rule of the same built-in rule is allowed, there is an existing duplicate rule with id .+"),
 		},
 	})
 }
