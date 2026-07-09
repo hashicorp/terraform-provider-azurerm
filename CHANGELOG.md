@@ -9,6 +9,7 @@ ENHANCEMENTS:
 * Data Source: `azurerm_logic_app_standard` - add new return attribute `storage_key_vault_secret_id` which will be set if the app service "AzureWebJobsStorage" property had a KeyVault reference format [GH-32571]
 
 FEATURES:
+* **New List Resource**: `azurerm_servicebus_customer_managed_identity` [GH-32315]
 * **New Resource**: `azurerm_log_analytics_workspace_table_microsoft` [GH-31754]
 * **New Resource**: `azurerm_storage_account_table_properties` [GH-32282]
 * **New List Resource**: `azurerm_monitor_scheduled_query_rules_alert`  [GH-32701]
