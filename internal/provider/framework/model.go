@@ -36,10 +36,11 @@ type ProviderModel struct {
 	DisableCorrelationRequestId    types.Bool   `tfsdk:"disable_correlation_request_id"`
 	DisableTerraformPartnerId      types.Bool   `tfsdk:"disable_terraform_partner_id"`
 	StorageUseAzureAD              types.Bool   `tfsdk:"storage_use_azuread"`
-	EnhancedValidation             types.List   `tfsdk:"enhanced_validation"`
 	Features                       types.List   `tfsdk:"features"`
 	ResourceProviderRegistrations  types.String `tfsdk:"resource_provider_registrations"`
 	ResourceProvidersToRegister    types.List   `tfsdk:"resource_providers_to_register"`
+
+	EnhancedValidation types.List `tfsdk:"enhanced_validation"` // TODO - Remove in 5.0
 
 	SkipProviderRegistration types.Bool `tfsdk:"skip_provider_registration"` // TODO - Remove in 5.0
 }
@@ -52,21 +53,22 @@ type Features struct {
 	AppConfiguration         types.List `tfsdk:"app_configuration"`
 	ApplicationInsights      types.List `tfsdk:"application_insights"`
 	CognitiveAccount         types.List `tfsdk:"cognitive_account"`
+	DatabricksWorkspace      types.List `tfsdk:"databricks_workspace"`
+	EnhancedValidation       types.List `tfsdk:"enhanced_validation"`
 	KeyVault                 types.List `tfsdk:"key_vault"`
 	LogAnalyticsWorkspace    types.List `tfsdk:"log_analytics_workspace"`
-	TemplateDeployment       types.List `tfsdk:"template_deployment"`
-	VirtualMachine           types.List `tfsdk:"virtual_machine"`
-	VirtualMachineScaleSet   types.List `tfsdk:"virtual_machine_scale_set"`
-	ResourceGroup            types.List `tfsdk:"resource_group"`
+	MachineLearning          types.List `tfsdk:"machine_learning"`
 	ManagedDisk              types.List `tfsdk:"managed_disk"`
+	NetApp                   types.List `tfsdk:"netapp"`
+	ResourceGroup            types.List `tfsdk:"resource_group"`
 	Storage                  types.List `tfsdk:"storage"`
 	Subscription             types.List `tfsdk:"subscription"`
 	PostgresqlFlexibleServer types.List `tfsdk:"postgresql_flexible_server"`
-	MachineLearning          types.List `tfsdk:"machine_learning"`
 	RecoveryService          types.List `tfsdk:"recovery_service"`
 	RecoveryServicesVaults   types.List `tfsdk:"recovery_services_vaults"`
-	NetApp                   types.List `tfsdk:"netapp"`
-	DatabricksWorkspace      types.List `tfsdk:"databricks_workspace"`
+	TemplateDeployment       types.List `tfsdk:"template_deployment"`
+	VirtualMachine           types.List `tfsdk:"virtual_machine"`
+	VirtualMachineScaleSet   types.List `tfsdk:"virtual_machine_scale_set"`
 }
 
 // FeaturesAttributes and the other block attribute vars are required for unit testing on the Load func
@@ -79,21 +81,22 @@ var FeaturesAttributes = map[string]attr.Type{
 	"app_configuration":          types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(AppConfigurationAttributes)),
 	"application_insights":       types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(ApplicationInsightsAttributes)),
 	"cognitive_account":          types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(CognitiveAccountAttributes)),
+	"databricks_workspace":       types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(DatabricksWorkspaceAttributes)),
+	"enhanced_validation":        types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(EnhancedValidationModelAttributes)),
 	"key_vault":                  types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(KeyVaultAttributes)),
 	"log_analytics_workspace":    types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(LogAnalyticsWorkspaceAttributes)),
+	"machine_learning":           types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(MachineLearningAttributes)),
+	"managed_disk":               types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(ManagedDiskAttributes)),
+	"netapp":                     types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(NetAppAttributes)),
+	"postgresql_flexible_server": types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(PostgresqlFlexibleServerAttributes)),
+	"resource_group":             types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(ResourceGroupAttributes)),
+	"storage":                    types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(StorageAttributes)),
+	"subscription":               types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(SubscriptionAttributes)),
+	"recovery_service":           types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(RecoveryServiceAttributes)),
+	"recovery_services_vaults":   types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(RecoveryServiceVaultsAttributes)),
 	"template_deployment":        types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(TemplateDeploymentAttributes)),
 	"virtual_machine":            types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(VirtualMachineAttributes)),
 	"virtual_machine_scale_set":  types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(VirtualMachineScaleSetAttributes)),
-	"resource_group":             types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(ResourceGroupAttributes)),
-	"managed_disk":               types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(ManagedDiskAttributes)),
-	"storage":                    types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(StorageAttributes)),
-	"subscription":               types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(SubscriptionAttributes)),
-	"postgresql_flexible_server": types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(PostgresqlFlexibleServerAttributes)),
-	"machine_learning":           types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(MachineLearningAttributes)),
-	"recovery_service":           types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(RecoveryServiceAttributes)),
-	"recovery_services_vaults":   types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(RecoveryServiceVaultsAttributes)),
-	"netapp":                     types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(NetAppAttributes)),
-	"databricks_workspace":       types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(DatabricksWorkspaceAttributes)),
 }
 
 type APIManagement struct {
@@ -293,11 +296,15 @@ var DatabricksWorkspaceAttributes = map[string]attr.Type{
 }
 
 type EnhancedValidationModel struct {
-	Locations         types.Bool `tfsdk:"locations"`
-	ResourceProviders types.Bool `tfsdk:"resource_providers"`
+	Locations         types.Bool   `tfsdk:"locations"`
+	ResourceProviders types.Bool   `tfsdk:"resource_providers"`
+	PreflightEnabled  types.Bool   `tfsdk:"preflight_enabled"`
+	LocationFallback  types.String `tfsdk:"preflight_location_fallback"`
 }
 
 var EnhancedValidationModelAttributes = map[string]attr.Type{
-	"locations":          types.BoolType,
-	"resource_providers": types.BoolType,
+	"locations":                   types.BoolType,
+	"resource_providers":          types.BoolType,
+	"preflight_enabled":           types.BoolType,
+	"preflight_location_fallback": types.StringType,
 }

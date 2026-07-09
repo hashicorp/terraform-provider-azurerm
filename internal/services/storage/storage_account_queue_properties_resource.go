@@ -572,6 +572,9 @@ func (s AccountQueuePropertiesResource) Update() sdk.ResourceFunc {
 						})
 					}
 
+					if props.Cors == nil {
+						props.Cors = &queues.Cors{}
+					}
 					props.Cors.CorsRule = corsRules
 				} else {
 					props.Cors = pointer.To(defaultCorsProperties)

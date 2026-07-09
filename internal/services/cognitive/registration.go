@@ -61,6 +61,11 @@ func (r Registration) DataSources() []sdk.DataSource {
 func (r Registration) Resources() []sdk.Resource {
 	resources := []sdk.Resource{
 		CognitiveAccountProjectConnectionEntraIDResource{},
+		CognitiveAccountConnectionAccountKeyResource{},
+		CognitiveAccountConnectionAccountManagedIdentityResource{},
+		CognitiveAccountConnectionApiKeyResource{},
+		CognitiveAccountConnectionCustomKeysResource{},
+		CognitiveAccountConnectionEntraIDResource{},
 		CognitiveAccountProjectResource{},
 		CognitiveAccountRaiPolicyResource{},
 		CognitiveDeploymentResource{},
@@ -92,6 +97,11 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
+		CognitiveAccountConnectionAccountKeyListResource{},
+		CognitiveAccountConnectionAccountManagedIdentityListResource{},
+		CognitiveAccountConnectionApiKeyListResource{},
+		CognitiveAccountConnectionCustomKeysListResource{},
+		CognitiveAccountConnectionEntraIDListResource{},
 		CognitiveAccountListResource{},
 		CognitiveAccountProjectConnectionEntraIDListResource{},
 	}
