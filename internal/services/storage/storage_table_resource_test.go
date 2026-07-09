@@ -40,7 +40,7 @@ func TestAccStorageTable_basicAzureADAuth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_table", "test")
 	r := StorageTableResource{}
 
-	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicAzureADAuth(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -51,7 +51,7 @@ func TestAccStorageTable_basicAzureADAuth(t *testing.T) {
 			Config: r.basicAzureADAuthUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("name").HasValue("accteststupdated"),
+				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestst%d", data.RandomInteger)),
 			),
 		},
 		data.ImportStep(),
@@ -351,10 +351,10 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_table" "test" {
-  name                 = "accteststupdated"
+  name                 = "acctestst%d"
   storage_account_name = azurerm_storage_account.test.name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 	}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -380,10 +380,10 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_table" "test" {
-  name               = "accteststupdated"
+  name               = "acctestst%d"
   storage_account_id = azurerm_storage_account.test.id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
 func (r StorageTableResource) requiresImport(data acceptance.TestData) string {
