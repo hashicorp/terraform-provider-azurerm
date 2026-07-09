@@ -186,11 +186,11 @@ func dataSourceSentinelAlertRuleTemplateRead(d *pluginsdk.ResourceData, meta int
 	case alertruletemplates.FusionAlertRuleTemplate:
 		setForFusionAlertRuleTemplate(d, &template)
 	case alertruletemplates.MicrosoftSecurityIncidentCreationAlertRuleTemplate:
-		err = setForMsSecurityIncidentAlertRuleTemplate(d, &template)
+		setForMsSecurityIncidentAlertRuleTemplate(d, &template)
 	case alertruletemplates.ScheduledAlertRuleTemplate:
-		err = setForScheduledAlertRuleTemplate(d, &template)
+		setForScheduledAlertRuleTemplate(d, &template)
 	case alertruletemplates.NrtAlertRuleTemplate:
-		err = setForNrtAlertRuleTemplate(d, &template)
+		setForNrtAlertRuleTemplate(d, &template)
 	case alertruletemplates.ThreatIntelligenceAlertRuleTemplate:
 		setForThreatIntelligenceAlertRuleTemplate(d, &template)
 	default:
@@ -275,31 +275,28 @@ func getAlertRuleTemplateByDisplayName(ctx context.Context, client *alertruletem
 	return results[0], name, nil
 }
 
-func setForScheduledAlertRuleTemplate(d *pluginsdk.ResourceData, template *alertruletemplates.ScheduledAlertRuleTemplate) error {
+func setForScheduledAlertRuleTemplate(d *pluginsdk.ResourceData, template *alertruletemplates.ScheduledAlertRuleTemplate) {
 	d.Set("name", template.Name)
 	if props := template.Properties; props != nil {
 		d.Set("display_name", props.DisplayName)
 		d.Set("scheduled_template", flattenScheduledAlertRuleTemplate(props))
 	}
-	return nil
 }
 
-func setForNrtAlertRuleTemplate(d *pluginsdk.ResourceData, template *alertruletemplates.NrtAlertRuleTemplate) error {
+func setForNrtAlertRuleTemplate(d *pluginsdk.ResourceData, template *alertruletemplates.NrtAlertRuleTemplate) {
 	d.Set("name", template.Name)
 	if props := template.Properties; props != nil {
 		d.Set("display_name", props.DisplayName)
 		d.Set("nrt_template", flattenNrtAlertRuleTemplate(props))
 	}
-	return nil
 }
 
-func setForMsSecurityIncidentAlertRuleTemplate(d *pluginsdk.ResourceData, template *alertruletemplates.MicrosoftSecurityIncidentCreationAlertRuleTemplate) error {
+func setForMsSecurityIncidentAlertRuleTemplate(d *pluginsdk.ResourceData, template *alertruletemplates.MicrosoftSecurityIncidentCreationAlertRuleTemplate) {
 	d.Set("name", template.Name)
 	if props := template.Properties; props != nil {
 		d.Set("display_name", props.DisplayName)
 		d.Set("security_incident_template", flattenMsSecurityIncidentAlertRuleTemplate(props))
 	}
-	return nil
 }
 
 func setForFusionAlertRuleTemplate(d *pluginsdk.ResourceData, template *alertruletemplates.FusionAlertRuleTemplate) {
