@@ -390,6 +390,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2024-09-30-previe
 github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2024-09-30-preview/certificateprofiles
 github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2024-09-30-preview/codesigningaccounts
 github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesaccounts
+github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/accountconnectionresource
 github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/cognitiveservicesaccounts
 github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/cognitiveservicesprojects
 github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/deployments
@@ -472,6 +473,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/m
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/snapshots
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/trustedaccess
+github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-04-01/managedclusters
 github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/cosmosdb
 github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/sqldedicatedgateway
 github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/managedcassandras
@@ -966,6 +968,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-0
 github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces
 github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/clusters
 github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/tables
+github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces
 github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2023-09-01/deletedworkspaces
 github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2023-09-01/workspaces
 github.com/hashicorp/go-azure-sdk/resource-manager/operationsmanagement/2015-11-01-preview/solution
