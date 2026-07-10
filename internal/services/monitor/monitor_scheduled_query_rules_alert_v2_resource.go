@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -508,11 +509,7 @@ func (r ScheduledQueryRulesAlertV2Resource) Create() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
-			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
-				return err
-			}
-
-			return nil
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id)
 		},
 	}
 }
@@ -688,75 +685,24 @@ func (r ScheduledQueryRulesAlertV2Resource) flatten(metadata sdk.ResourceMetaDat
 
 		properties := &model.Properties
 		state.Actions = flattenScheduledQueryRulesAlertV2ActionsModel(properties.Actions)
-
-		if properties.AutoMitigate != nil {
-			state.AutoMitigate = *properties.AutoMitigate
-		}
-
-		if properties.CheckWorkspaceAlertsStorageConfigured != nil {
-			state.CheckWorkspaceAlertsStorageConfigured = *properties.CheckWorkspaceAlertsStorageConfigured
-		}
-
-		if properties.CreatedWithApiVersion != nil {
-			state.CreatedWithApiVersion = *properties.CreatedWithApiVersion
-		}
-
+		state.AutoMitigate = pointer.From(properties.AutoMitigate)
+		state.CheckWorkspaceAlertsStorageConfigured = pointer.From(properties.CheckWorkspaceAlertsStorageConfigured)
+		state.CreatedWithApiVersion = pointer.From(properties.CreatedWithApiVersion)
 		state.Criteria = flattenScheduledQueryRulesAlertV2CriteriaModel(properties.Criteria)
-
-		if properties.Description != nil {
-			state.Description = *properties.Description
-		}
-
-		if properties.DisplayName != nil {
-			state.DisplayName = *properties.DisplayName
-		}
-
-		if properties.Enabled != nil {
-			state.Enabled = *properties.Enabled
-		}
-
-		if properties.EvaluationFrequency != nil {
-			state.EvaluationFrequency = *properties.EvaluationFrequency
-		}
-
-		if properties.IsLegacyLogAnalyticsRule != nil {
-			state.IsLegacyLogAnalyticsRule = *properties.IsLegacyLogAnalyticsRule
-		}
-
-		if properties.IsWorkspaceAlertsStorageConfigured != nil {
-			state.IsWorkspaceAlertsStorageConfigured = *properties.IsWorkspaceAlertsStorageConfigured
-		}
-
-		if properties.MuteActionsDuration != nil {
-			state.MuteActionsDuration = *properties.MuteActionsDuration
-		}
-
-		if properties.OverrideQueryTimeRange != nil {
-			state.OverrideQueryTimeRange = *properties.OverrideQueryTimeRange
-		}
-
-		if properties.Scopes != nil {
-			state.Scopes = *properties.Scopes
-		}
-
-		if properties.Severity != nil {
-			state.Severity = *properties.Severity
-		}
-
-		if properties.SkipQueryValidation != nil {
-			state.SkipQueryValidation = *properties.SkipQueryValidation
-		}
-
-		if properties.TargetResourceTypes != nil {
-			state.TargetResourceTypes = *properties.TargetResourceTypes
-		}
-
-		if properties.WindowSize != nil {
-			state.WindowSize = *properties.WindowSize
-		}
-		if model.Tags != nil {
-			state.Tags = *model.Tags
-		}
+		state.Description = pointer.From(properties.Description)
+		state.DisplayName = pointer.From(properties.DisplayName)
+		state.Enabled = pointer.From(properties.Enabled)
+		state.EvaluationFrequency = pointer.From(properties.EvaluationFrequency)
+		state.IsLegacyLogAnalyticsRule = pointer.From(properties.IsLegacyLogAnalyticsRule)
+		state.IsWorkspaceAlertsStorageConfigured = pointer.From(properties.IsWorkspaceAlertsStorageConfigured)
+		state.MuteActionsDuration = pointer.From(properties.MuteActionsDuration)
+		state.OverrideQueryTimeRange = pointer.From(properties.OverrideQueryTimeRange)
+		state.Scopes = pointer.From(properties.Scopes)
+		state.Severity = pointer.From(properties.Severity)
+		state.SkipQueryValidation = pointer.From(properties.SkipQueryValidation)
+		state.TargetResourceTypes = pointer.From(properties.TargetResourceTypes)
+		state.WindowSize = pointer.From(properties.WindowSize)
+		state.Tags = pointer.From(model.Tags)
 	}
 
 	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {

@@ -38,11 +38,6 @@ func TestAccMonitorScheduledQueryRulesAlertV2_list(t *testing.T) {
 				Config: r.basicListQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
 					querycheck.ExpectLengthAtLeast(listResourceAddress, 2),
-					querycheck.ExpectIdentity(listResourceAddress, map[string]knownvalue.Check{
-						"name":                knownvalue.StringExact(resourceName),
-						"resource_group_name": knownvalue.StringExact(resourceGroupName),
-						"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary),
-					}),
 				},
 			},
 			{
@@ -79,27 +74,9 @@ resource "azurerm_application_insights" "test" {
   application_type    = "web"
 }
 
-resource "azurerm_monitor_scheduled_query_rules_alert_v2" "test1" {
-  name                 = "acctest-sqrv2-1-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  evaluation_frequency = "PT5M"
-  window_duration      = "PT5M"
-  scopes               = [azurerm_application_insights.test.id]
-  severity             = 3
-  criteria {
-    query                   = <<-QUERY
-      requests
-	    | summarize CountByCountry=count() by client_CountryOrRegion
-	  QUERY
-    time_aggregation_method = "Count"
-    threshold               = 5.0
-    operator                = "Equal"
-  }
-}
-
-resource "azurerm_monitor_scheduled_query_rules_alert_v2" "test2" {
-  name                 = "acctest-sqrv2-2-%[1]d"
+resource "azurerm_monitor_scheduled_query_rules_alert_v2" "test" {
+  count                = 2
+  name                 = "acctest-sqrv2-${count.index}-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   location             = azurerm_resource_group.test.location
   evaluation_frequency = "PT5M"

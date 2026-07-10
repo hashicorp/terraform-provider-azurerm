@@ -3,16 +3,16 @@ subcategory: "Monitor"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_monitor_scheduled_query_rules_alert_v2"
 description: |-
-  Lists Monitor Scheduled Query Rules Alert V2 resources.
+  Lists Scheduled Query Rules Alert V2 resources.
 ---
 
 # List resource: azurerm_monitor_scheduled_query_rules_alert_v2
 
-Lists Monitor Scheduled Query Rules Alert V2 resources.
+Lists Scheduled Query Rules Alert V2 resources.
 
 ## Example Usage
 
-### List all Monitor Scheduled Query Rules Alert V2 resources in the subscription
+### List all Scheduled Query Rules Alert V2 resources in the subscription
 
 ```hcl
 list "azurerm_monitor_scheduled_query_rules_alert_v2" "example" {
@@ -21,7 +21,7 @@ list "azurerm_monitor_scheduled_query_rules_alert_v2" "example" {
 }
 ```
 
-### List all Monitor Scheduled Query Rules Alert V2 resources in a specific resource group
+### List all Scheduled Query Rules Alert V2 resources in a specific resource group
 
 ```hcl
 list "azurerm_monitor_scheduled_query_rules_alert_v2" "example" {

@@ -38,7 +38,7 @@ var TplFuncMap = template.FuncMap{
 // TerraformResourceName generates a Terraform-compliant resource name by combining the provider and resource name.
 func TerraformResourceName(provider, resourceName string) string {
 	fmtStr := "%s_%s"
-	return fmt.Sprintf(fmtStr, strings.ToLower(provider), strcase.ToSnake(resourceName))
+	return fmt.Sprintf(fmtStr, strings.ToLower(provider), pluginsdk.ToSnakeCase(resourceName))
 }
 
 func ToString(value interface{}) string {
