@@ -521,7 +521,7 @@ func TestAccCdnFrontDoorBatchRuleSet_actionCountValidation(t *testing.T) {
         source_pattern   = "/"
         destination_path = "/rewritten"
       }`),
-			ExpectError: regexp.MustCompile("the `url_redirect` and the `url_rewrite` are both present in the `actions` block which is invalid"),
+			ExpectError: regexp.MustCompile("cannot specify both `url_redirect` and the `url_rewrite` in the `actions` block"),
 		},
 		{
 			Config: r.actionCountValidation(data, `
@@ -539,7 +539,7 @@ func TestAccCdnFrontDoorBatchRuleSet_actionCountValidation(t *testing.T) {
           behaviour = "Disabled"
         }
       }`),
-			ExpectError: regexp.MustCompile("the `url_redirect` and the `route_configuration_override` are both present in the `actions` block which is invalid"),
+			ExpectError: regexp.MustCompile("cannot specify both `url_redirect` and the `route_configuration_override` in the `actions` block"),
 		},
 		{
 			Config: r.actionCountValidation(data, `
