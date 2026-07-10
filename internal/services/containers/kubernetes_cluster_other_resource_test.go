@@ -1298,6 +1298,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -1332,6 +1337,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   identity {
@@ -1370,6 +1380,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -1404,6 +1419,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   identity {
@@ -1442,6 +1462,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -1478,6 +1503,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -1511,6 +1541,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -1535,6 +1570,11 @@ resource "azurerm_kubernetes_cluster" "import" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   identity {
@@ -1570,6 +1610,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   identity {
@@ -1656,6 +1701,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -1695,6 +1745,11 @@ resource "azurerm_kubernetes_cluster" "test" {
       container_log_max_size_mb = 100
       container_log_max_line    = 100000
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   identity {
@@ -1747,6 +1802,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -1794,6 +1854,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -1833,6 +1898,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   identity {
@@ -1876,6 +1946,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -1908,6 +1983,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   identity {
@@ -1946,6 +2026,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -1978,6 +2063,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   identity {
@@ -2039,6 +2129,11 @@ resource "azurerm_kubernetes_cluster" "test" {
       max_surge = "10%%"
     }
   }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
   network_profile {
     network_plugin = "azure"
   }
@@ -2075,6 +2170,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -2106,6 +2206,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   identity {
@@ -2143,6 +2248,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   identity {
@@ -2189,6 +2299,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   identity {
@@ -2240,6 +2355,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   identity {
@@ -2300,6 +2420,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -2355,6 +2480,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -2391,6 +2521,7 @@ resource "azurerm_key_vault" "test" {
   name                        = "acctestkeyvault%s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
+  rbac_authorization_enabled  = false
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "standard"
   enabled_for_disk_encryption = true
@@ -2484,6 +2615,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -2539,6 +2675,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -2569,6 +2710,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
   identity {
     type = "SystemAssigned"
@@ -2609,6 +2755,11 @@ resource "azurerm_kubernetes_cluster" "test" {
       max_surge = "10%%"
     }
   }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
   identity {
     type = "SystemAssigned"
   }
@@ -2645,6 +2796,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
   identity {
     type = "SystemAssigned"
@@ -2712,6 +2868,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   identity {
@@ -2783,6 +2944,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
@@ -2821,6 +2987,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
   identity {
     type = "SystemAssigned"
@@ -2872,6 +3043,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
   identity {
     type = "SystemAssigned"
@@ -2932,6 +3108,11 @@ resource "azurerm_kubernetes_cluster" "test" {
       max_surge = "10%%"
     }
   }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
   identity {
     type = "SystemAssigned"
   }
@@ -2985,6 +3166,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -3019,6 +3205,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -3047,6 +3238,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
   identity {
     type = "SystemAssigned"
@@ -3088,6 +3284,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -3125,6 +3326,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -3154,6 +3360,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
   identity {
     type = "SystemAssigned"
@@ -3185,6 +3396,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
   identity {
     type = "SystemAssigned"
@@ -3225,6 +3441,11 @@ resource "azurerm_kubernetes_cluster" "test" {
       max_surge = "10%%"
     }
   }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
   identity {
     type = "SystemAssigned"
   }
@@ -3263,6 +3484,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
   identity {
     type = "SystemAssigned"
@@ -3307,6 +3533,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -3342,6 +3573,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   identity {
@@ -3385,6 +3621,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -3423,6 +3664,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -3457,6 +3703,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   identity {
@@ -3497,6 +3748,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -3526,6 +3782,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
   identity {
     type = "SystemAssigned"
@@ -3558,6 +3819,11 @@ resource "azurerm_kubernetes_cluster" "source" {
       max_surge = "10%%"
     }
   }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
   identity {
     type = "SystemAssigned"
   }
@@ -3589,6 +3855,11 @@ resource "azurerm_kubernetes_cluster" "source" {
       max_surge = "10%%"
     }
   }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
   identity {
     type = "SystemAssigned"
   }
@@ -3612,6 +3883,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
   identity {
     type = "SystemAssigned"
@@ -3648,6 +3924,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -3680,6 +3961,11 @@ resource "azurerm_kubernetes_cluster" "test" {
       max_surge = "10%%"
     }
   }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
   identity {
     type = "SystemAssigned"
   }
@@ -3711,6 +3997,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
   identity {
     type = "SystemAssigned"
@@ -3745,6 +4036,11 @@ resource "azurerm_kubernetes_cluster" "test" {
       max_surge = "10%%"
     }
   }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
   identity {
     type = "SystemAssigned"
   }
@@ -3777,6 +4073,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
   identity {
     type = "SystemAssigned"
@@ -3811,6 +4112,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
   identity {
     type = "SystemAssigned"
@@ -3847,6 +4153,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   identity {
