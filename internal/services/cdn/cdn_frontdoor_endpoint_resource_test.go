@@ -184,3 +184,144 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
+
+func TestAccCdnFrontDoorEndpoint_deleteWithSecurityPolicyAssociation(t *testing.T) {
+	// This test verifies the fix for issue #31362
+	// When an endpoint is deleted that is associated with a security policy,
+	// the endpoint should be automatically removed from the security policy first
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_endpoint", "test")
+	r := CdnFrontDoorEndpointResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			// Step 1: Create endpoint with security policy association
+			Config: r.withSecurityPolicyTwoEndpoints(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That("azurerm_cdn_frontdoor_endpoint.test2").ExistsInAzure(r),
+				check.That("azurerm_cdn_frontdoor_security_policy.test").ExistsInAzure(CdnFrontDoorSecurityPolicyResource{}),
+			),
+		},
+		data.ImportStep(),
+		{
+			// Step 2: Remove one endpoint and its association from security policy
+			// This should succeed because the endpoint delete will automatically
+			// remove the endpoint from the security policy first
+			Config: r.withSecurityPolicyOneEndpoint(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That("azurerm_cdn_frontdoor_security_policy.test").ExistsInAzure(CdnFrontDoorSecurityPolicyResource{}),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (r CdnFrontDoorEndpointResource) withSecurityPolicyTwoEndpoints(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cdn-afdx-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_cdn_frontdoor_profile" "test" {
+  name                = "acctest-cdnfdprofile-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Premium_AzureFrontDoor"
+}
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                = "accTestWAF%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = azurerm_cdn_frontdoor_profile.test.sku_name
+  enabled             = true
+  mode                = "Detection"
+}
+
+resource "azurerm_cdn_frontdoor_endpoint" "test" {
+  name                     = "acctest-cdnfdendpoint1-%[1]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+}
+
+resource "azurerm_cdn_frontdoor_endpoint" "test2" {
+  name                     = "acctest-cdnfdendpoint2-%[1]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+}
+
+resource "azurerm_cdn_frontdoor_security_policy" "test" {
+  name                     = "accTestSecPol%[1]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  security_policies {
+    firewall {
+      cdn_frontdoor_firewall_policy_id = azurerm_cdn_frontdoor_firewall_policy.test.id
+
+      association {
+        domain {
+          cdn_frontdoor_domain_id = azurerm_cdn_frontdoor_endpoint.test.id
+        }
+        domain {
+          cdn_frontdoor_domain_id = azurerm_cdn_frontdoor_endpoint.test2.id
+        }
+
+        patterns_to_match = ["/*"]
+      }
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r CdnFrontDoorEndpointResource) withSecurityPolicyOneEndpoint(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cdn-afdx-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_cdn_frontdoor_profile" "test" {
+  name                = "acctest-cdnfdprofile-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Premium_AzureFrontDoor"
+}
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                = "accTestWAF%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = azurerm_cdn_frontdoor_profile.test.sku_name
+  enabled             = true
+  mode                = "Detection"
+}
+
+resource "azurerm_cdn_frontdoor_endpoint" "test" {
+  name                     = "acctest-cdnfdendpoint1-%[1]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+}
+
+resource "azurerm_cdn_frontdoor_security_policy" "test" {
+  name                     = "accTestSecPol%[1]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  security_policies {
+    firewall {
+      cdn_frontdoor_firewall_policy_id = azurerm_cdn_frontdoor_firewall_policy.test.id
+
+      association {
+        domain {
+          cdn_frontdoor_domain_id = azurerm_cdn_frontdoor_endpoint.test.id
+        }
+
+        patterns_to_match = ["/*"]
+      }
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
