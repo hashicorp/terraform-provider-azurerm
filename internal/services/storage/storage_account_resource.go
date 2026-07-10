@@ -2459,17 +2459,8 @@ func resourceStorageAccountDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	locks.MultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
 	defer locks.UnlockMultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
 
-	if err := pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutDelete), func() *pluginsdk.RetryError {
-		resp, err := client.Delete(ctx, *id)
-		if err != nil {
-			if response.WasConflict(resp.HttpResponse) {
-				return pluginsdk.RetryableError(fmt.Errorf("deleting %s: storage account operation in progress, retrying: %+v", *id, err))
-			}
-			return pluginsdk.NonRetryableError(fmt.Errorf("deleting %s: %+v", *id, err))
-		}
-		return nil
-	}); err != nil {
-		return err
+	if _, err := client.Delete(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	// remove this from the cache
