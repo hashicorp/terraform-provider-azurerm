@@ -221,6 +221,23 @@ for _, item := range items {
 ```
 
 
+### Example Usage: `VirtualMachineScaleSetsClient.ListByLocation`
+
+```go
+ctx := context.TODO()
+id := virtualmachinescalesets.NewLocationID("12345678-1234-9876-4563-123456789012", "locationName")
+
+// alternatively `client.ListByLocation(ctx, id)` can be used to do batched pagination
+items, err := client.ListByLocationComplete(ctx, id)
+if err != nil {
+	// handle the error
+}
+for _, item := range items {
+	// do something
+}
+```
+
+
 ### Example Usage: `VirtualMachineScaleSetsClient.ListSkus`
 
 ```go
@@ -415,42 +432,6 @@ payload := virtualmachinescalesets.VirtualMachineScaleSetVMInstanceRequiredIDs{
 
 
 if err := client.UpdateInstancesThenPoll(ctx, id, payload); err != nil {
-	// handle the error
-}
-```
-
-
-### Example Usage: `VirtualMachineScaleSetsClient.VirtualMachineScaleSetRollingUpgradesCancel`
-
-```go
-ctx := context.TODO()
-id := virtualmachinescalesets.NewVirtualMachineScaleSetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineScaleSetName")
-
-if err := client.VirtualMachineScaleSetRollingUpgradesCancelThenPoll(ctx, id); err != nil {
-	// handle the error
-}
-```
-
-
-### Example Usage: `VirtualMachineScaleSetsClient.VirtualMachineScaleSetRollingUpgradesStartExtensionUpgrade`
-
-```go
-ctx := context.TODO()
-id := virtualmachinescalesets.NewVirtualMachineScaleSetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineScaleSetName")
-
-if err := client.VirtualMachineScaleSetRollingUpgradesStartExtensionUpgradeThenPoll(ctx, id); err != nil {
-	// handle the error
-}
-```
-
-
-### Example Usage: `VirtualMachineScaleSetsClient.VirtualMachineScaleSetRollingUpgradesStartOSUpgrade`
-
-```go
-ctx := context.TODO()
-id := virtualmachinescalesets.NewVirtualMachineScaleSetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineScaleSetName")
-
-if err := client.VirtualMachineScaleSetRollingUpgradesStartOSUpgradeThenPoll(ctx, id); err != nil {
 	// handle the error
 }
 ```

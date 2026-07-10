@@ -8,12 +8,12 @@ import (
 
 	cdnSdk "github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn"          // nolint: staticcheck
 	cdnFrontDoorSdk "github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rulesets"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/securitypolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-09-01/rules"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-04-15/afdcustomdomains"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-06-01/afdendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afddomains"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rulesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/securitypolicies"
 	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
@@ -23,7 +23,7 @@ type Client struct {
 	FrontDoorOriginGroupsClient     *cdnFrontDoorSdk.AFDOriginGroupsClient
 	FrontDoorOriginsClient          *cdnFrontDoorSdk.AFDOriginsClient
 	FrontDoorCustomDomainsClient    *cdnFrontDoorSdk.AFDCustomDomainsClient
-	AFDCustomDomainsClient          *afdcustomdomains.AFDCustomDomainsClient
+	AFDCustomDomainsClient          *afddomains.AFDDomainsClient
 	FrontDoorSecurityPoliciesClient *securitypolicies.SecurityPoliciesClient
 	FrontDoorRoutesClient           *cdnFrontDoorSdk.RoutesClient
 	FrontDoorRulesClient            *rules.RulesClient
@@ -51,15 +51,15 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	frontDoorCustomDomainsClient := cdnFrontDoorSdk.NewAFDCustomDomainsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&frontDoorCustomDomainsClient.Client, o.ResourceManagerAuthorizer)
 
-	afdCustomDomainsClient, err := afdcustomdomains.NewAFDCustomDomainsClientWithBaseURI(o.Environment.ResourceManager)
+	afdCustomDomainsClient, err := afddomains.NewAFDDomainsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("building AFDCustomDomainsClient: %+v", err)
+		return nil, fmt.Errorf("building AFD Domains Client: %+v", err)
 	}
 	o.Configure(afdCustomDomainsClient.Client, o.Authorizers.ResourceManager)
 
 	frontDoorSecurityPoliciesClient, err := securitypolicies.NewSecurityPoliciesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("building SecurityPoliciesClient: %+v", err)
+		return nil, fmt.Errorf("building Security Policies Client: %+v", err)
 	}
 	o.Configure(frontDoorSecurityPoliciesClient.Client, o.Authorizers.ResourceManager)
 
@@ -71,13 +71,13 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	frontDoorRulesClient, err := rules.NewRulesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("building RulesClient: %+v", err)
+		return nil, fmt.Errorf("building Rules Client: %+v", err)
 	}
 	o.Configure(frontDoorRulesClient.Client, o.Authorizers.ResourceManager)
 
 	frontDoorProfilesClient, err := profiles.NewProfilesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("building ProfilesClient: %+v", err)
+		return nil, fmt.Errorf("building Profiles Client: %+v", err)
 	}
 	o.Configure(frontDoorProfilesClient.Client, o.Authorizers.ResourceManager)
 
@@ -86,7 +86,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	frontDoorRuleSetsClient, err := rulesets.NewRuleSetsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("building RuleSet: %+v", err)
+		return nil, fmt.Errorf("building Rule Sets Client: %+v", err)
 	}
 	o.Configure(frontDoorRuleSetsClient.Client, o.Authorizers.ResourceManager)
 

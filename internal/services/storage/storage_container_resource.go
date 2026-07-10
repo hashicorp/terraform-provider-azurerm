@@ -14,10 +14,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/blobcontainers"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -122,6 +124,11 @@ func resourceStorageContainer() *pluginsdk.Resource {
 
 			"has_legal_hold": {
 				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"url": {
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 		},
@@ -287,8 +294,16 @@ func resourceStorageContainerCreate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	if _, err = containerClient.Create(ctx, id, payload); err != nil {
+	resp, err := containerClient.Create(ctx, id, payload)
+	if err != nil {
 		return fmt.Errorf("creating %s: %v", id, err)
+	}
+
+	pollerType := custompollers.NewStorageContainerCreatePoller(containerClient, id, resp.HttpResponse)
+	poller := pollers.NewPoller(pollerType, 5*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+
+	if err = poller.PollUntilDone(ctx); err != nil {
+		return fmt.Errorf("waiting for creation of %s: %v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -387,10 +402,12 @@ func resourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) e
 			return err
 		}
 
-		account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
+		var account *client.AccountDetails
+		account, err = storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
 		if err != nil {
 			return fmt.Errorf("retrieving Account %q for Container %q: %v", id.AccountId.AccountName, id.ContainerName, err)
 		}
+
 		if account == nil {
 			log.Printf("[DEBUG] Unable to locate Account %q for Storage Container %q - assuming removed & removing from state", id.AccountId.AccountName, id.ContainerName)
 			d.SetId("")
@@ -429,6 +446,7 @@ func resourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 		resourceManagerId := commonids.NewStorageContainerID(account.StorageAccountId.SubscriptionId, account.StorageAccountId.ResourceGroupName, id.AccountId.AccountName, id.ContainerName)
 		d.Set("resource_manager_id", resourceManagerId.ID())
+		d.Set("url", id.ID())
 
 		return nil
 	}
@@ -478,6 +496,25 @@ func resourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) e
 			}
 		}
 	}
+
+	account, err := meta.(*clients.Client).Storage.GetAccount(ctx, commonids.NewStorageAccountID(id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName))
+	if err != nil {
+		return fmt.Errorf("retrieving Account for Container %q: %v", id, err)
+	}
+
+	// Determine the blob endpoint, so we can build a data plane ID
+	endpoint, err := account.DataPlaneEndpoint(client.EndpointTypeBlob)
+	if err != nil {
+		return fmt.Errorf("determining Blob endpoint: %v", err)
+	}
+
+	// Parse the blob endpoint as a data plane account ID
+	accountId, err := accounts.ParseAccountID(*endpoint, meta.(*clients.Client).Storage.StorageDomainSuffix)
+	if err != nil {
+		return fmt.Errorf("parsing Account ID: %v", err)
+	}
+
+	d.Set("url", containers.NewContainerID(*accountId, id.ContainerName).ID())
 
 	return nil
 }

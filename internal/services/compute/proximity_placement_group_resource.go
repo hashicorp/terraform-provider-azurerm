@@ -6,6 +6,7 @@ package compute
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -200,7 +201,10 @@ func resourceProximityPlacementGroupDelete(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	if _, err = client.Delete(ctx, *id); err != nil {
+	if resp, err := client.Delete(ctx, *id); err != nil {
+		if response.WasNotFound(resp.HttpResponse) || response.WasStatusCode(resp.HttpResponse, http.StatusNoContent) { // API quirk that delete on non-existent resource returns 204 ¯\_(ツ)_/¯
+			return nil
+		}
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

@@ -17,7 +17,13 @@ class ClientConfiguration(var clientId: String,
                           val emailAddressAccTests : String,
                           val gitHubRepo : String,
                           val gitPat : String,
+                          val teamcityToken : String,
                           val betaVersionEnvVar : String,
+                          val labelSuccess : String,
+                          val labelFailure : String,
+                          val labelOutdated : String,
+                          val labelNewFailure : String,
+                          val applyTestingLabelsEnabled : Boolean,
                           )
 
 class LocationConfiguration(var primary : String, var secondary : String, var tertiary : String, var rotate : Boolean)
@@ -50,7 +56,13 @@ fun ParametrizedWithType.ConfigureAzureSpecificTestParameters(environment: Strin
     hiddenVariable("env.BETA_VERSION_ENV_VAR", config.betaVersionEnvVar, "Name of the beta version env variable")
     hiddenVariable("env.ARM_TEST_ACC_EMAIL_ADDRESS", config.emailAddressAccTests, "email address for the Acceptance Tests User")
     hiddenPasswordVariable("env.GIT_PAT", config.gitPat, "Personal Access Token for GitHub")
+    hiddenPasswordVariable("env.TEAMCITY_TOKEN", config.teamcityToken, "Access Token for TeamCity")
     hiddenVariable("env.GITHUB_REPO", config.gitHubRepo, "GitHub Repository")
     hiddenVariable("env.POST_GITHUB_COMMENT",  "false", "Whether to post a comment on the PR with the results of the tests")
     hiddenVariable("env.TRACKING_ID",  "0", "Tracking id for the comments posted by the build")
+    hiddenVariable("env.LABEL_SUCCESS",  config.labelSuccess, "Label applied when teamcity build passed")
+    hiddenVariable("env.LABEL_FAILURE",  config.labelFailure, "Label applied when teamcity build failed")
+    hiddenVariable("env.LABEL_OUTDATED",  config.labelOutdated, "Label applied when teamcity build is outdated")
+    hiddenVariable("env.LABEL_NEW_FAILURE",  config.labelNewFailure, "Label applied when teamcity build has new failures")
+    hiddenVariable("env.APPLY_TESTING_LABELS_ENABLED",  config.applyTestingLabelsEnabled.toString(), "Whether to apply testing labels to PRs")
 }

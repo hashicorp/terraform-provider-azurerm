@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 func TestAccWindowsVirtualMachineScaleSet_extensionDoNotRunOnOverProvisionedMachines(t *testing.T) {
@@ -181,6 +182,7 @@ func TestAccWindowsVirtualMachineScaleSet_extensionsAutomaticUpgradeWithHealthEx
 			"admin_password",
 			"extension.0.protected_settings",
 			"enable_automatic_updates",
+			"automatic_updates_enabled",
 		),
 	})
 }
@@ -288,6 +290,7 @@ func TestAccWindowsVirtualMachineScaleSet_extensionsAutomaticUpgradeWithServiceF
 			"admin_password",
 			"extension.0.protected_settings",
 			"enable_automatic_updates",
+			"automatic_updates_enabled",
 		),
 	})
 }
@@ -296,22 +299,41 @@ func TestAccWindowsVirtualMachineScaleSet_extensionAutomaticUpgradeUpdate(t *tes
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.extensionsWithHealthExtension(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password", "extension.0.protected_settings", "enable_automatic_updates"),
-		{
-			Config: r.extensionsAutomaticUpgradeWithHealthExtension(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password", "extension.0.protected_settings", "enable_automatic_updates"),
-	})
+	if !features.FivePointOh() {
+		data.ResourceTest(t, r, []acceptance.TestStep{
+			{
+				Config: r.extensionsWithHealthExtension(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep("admin_password", "extension.0.protected_settings", "enable_automatic_updates", "enable_automatic_updates"),
+			{
+				Config: r.extensionsAutomaticUpgradeWithHealthExtension(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep("admin_password", "extension.0.protected_settings", "enable_automatic_updates", "enable_automatic_updates"),
+		})
+	} else {
+		data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
+			{
+				Config: r.extensionsWithHealthExtension(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep("admin_password", "extension.0.protected_settings", "automatic_updates_enabled", "enable_automatic_updates"),
+			{
+				Config: r.extensionsAutomaticUpgradeWithHealthExtension(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep("admin_password", "extension.0.protected_settings", "automatic_updates_enabled", "enable_automatic_updates"),
+		})
+	}
 }
 
 func TestAccWindowsVirtualMachineScaleSet_extensionAutomaticUpgradeEnabled(t *testing.T) {
@@ -985,12 +1007,13 @@ func (r WindowsVirtualMachineScaleSetResource) extensionsAutomaticUpgradeWithSer
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                   = "acc%d"
-  location               = azurerm_resource_group.test.location
-  resource_group_name    = azurerm_resource_group.test.name
-  tenant_id              = data.azurerm_client_config.current.tenant_id
-  sku_name               = "premium"
-  enabled_for_deployment = true
+  name                       = "acc%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
+  enabled_for_deployment     = true
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
@@ -1373,12 +1396,13 @@ data "azurerm_client_config" "current" {}
 resource "azurerm_key_vault" "test" {
   count = 2
 
-  name                   = "acctestkv${count.index}%[2]s"
-  location               = azurerm_resource_group.test.location
-  resource_group_name    = azurerm_resource_group.test.name
-  tenant_id              = data.azurerm_client_config.current.tenant_id
-  sku_name               = "standard"
-  enabled_for_deployment = true
+  name                       = "acctestkv${count.index}%[2]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  enabled_for_deployment     = true
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id

@@ -176,7 +176,7 @@ The following arguments are supported:
 
 * `network_acl_bypass_ids` - (Optional) The list of resource Ids for Network Acl Bypass for this Cosmos DB account.
 
-* `local_authentication_disabled` - (Optional) Disable local authentication and ensure only MSI and AAD can be used exclusively for authentication. Defaults to `false`. Can be set only when using the SQL API.
+* `local_authentication_enabled` - (Optional) Whether local authentication is enabled, when disabled only MSI and AAD can be used exclusively for authentication. Defaults to `true`. Can be set only when using the SQL API.
 
 * `backup` - (Optional) A `backup` block as defined below.
 
@@ -209,6 +209,8 @@ The `geo_location` block Configures the geographic locations the data is replica
 * `failover_priority` - (Required) The failover priority of the region. A failover priority of `0` indicates a write region. The maximum value for a failover priority = (total number of regions - 1). Failover priority values must be unique for each of the regions in which the database account exists. Changing this causes the location to be re-provisioned and cannot be changed for the location with failover priority `0`.
 
 * `zone_redundant` - (Optional) Should zone redundancy be enabled for this region? Defaults to `false`.
+
+~> **Note:** You cannot change zone redundancy in a region that has already been added to a Cosmos DB account. If you wish to change this setting in a deployed region without recreating the account, you can [follow the steps outlined in the official documentation](https://learn.microsoft.com/azure/cosmos-db/enable-zone-redundancy?tabs=portal#enable-zone-redundancy-on-an-existing-account).
 
 ---
 

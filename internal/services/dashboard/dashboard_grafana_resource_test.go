@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -83,6 +84,10 @@ func TestAccDashboardGrafana_update(t *testing.T) {
 }
 
 func TestAccDashboardGrafana_withSku(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("the `Essential` SKU is no longer supported in v5.0 of the AzureRM provider")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_dashboard_grafana", "test")
 	r := DashboardGrafanaResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
@@ -107,6 +112,19 @@ func TestAccDashboardGrafana_withSize(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccDashboardGrafana_preflightPlan(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dashboard_grafana", "test")
+	r := DashboardGrafanaResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:             r.preflightPlan(data),
+			PlanOnly:           true,
+			ExpectNonEmptyPlan: true,
+		},
 	})
 }
 
@@ -185,7 +203,7 @@ resource "azurerm_dashboard_grafana" "test" {
   name                  = "a-dg-%d"
   resource_group_name   = azurerm_resource_group.test.name
   location              = azurerm_resource_group.test.location
-  grafana_major_version = "11"
+  grafana_major_version = "12"
 
   sku      = "Standard"
   sku_size = "X1"
@@ -295,4 +313,61 @@ resource "azurerm_dashboard_grafana" "test" {
   }
 }
 `, template, data.RandomInteger, data.RandomInteger)
+}
+
+func (r DashboardGrafanaResource) preflightPlan(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    enhanced_validation {
+      preflight_enabled = true
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-rg-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_monitor_workspace" "test" {
+  name                = "acctest-mw-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "a-uid-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_dashboard_grafana" "test" {
+  name                              = "a-dg-%[2]d"
+  resource_group_name               = azurerm_resource_group.test.name
+  location                          = azurerm_resource_group.test.location
+  api_key_enabled                   = true
+  deterministic_outbound_ip_enabled = true
+  public_network_access_enabled     = false
+  grafana_major_version             = "12"
+  smtp {
+    enabled          = true
+    host             = "localhost:25"
+    user             = "user"
+    password         = "password"
+    from_address     = "admin@grafana.localhost"
+    from_name        = "Grafana"
+    start_tls_policy = "OpportunisticStartTLS"
+  }
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  tags = {
+    key = "value"
+  }
+}
+`, data.Locations.Primary, data.RandomInteger)
 }

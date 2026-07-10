@@ -31,7 +31,7 @@ resource "azurerm_log_analytics_workspace_table_custom_log" "example" {
 
   column {
     name = "TimeGenerated"
-    type = "datetime"
+    type = "dateTime"
   }
 }
 ```
@@ -70,7 +70,7 @@ A `column` block supports the following:
 
 * `name` - (Required) Specifies the name of the column.
 
-* `type` - (Required) The data type of the column. Possible values are `boolean`, `datetime`, `dynamic`, `guid`, `int`, `long`, `real`, and `string`.
+* `type` - (Required) The data type of the column. Possible values are `boolean`, `dateTime`, `dynamic`, `guid`, `int`, `long`, `real`, and `string`.
 
 * `description` - (Optional) The description of the column.
 

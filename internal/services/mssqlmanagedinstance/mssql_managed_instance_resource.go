@@ -5,6 +5,7 @@ package mssqlmanagedinstance
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"regexp"
@@ -56,6 +57,7 @@ type MsSqlManagedInstanceModel struct {
 	ServicePrincipalType              string                              `tfschema:"service_principal_type"`
 	SkuName                           string                              `tfschema:"sku_name"`
 	StorageAccountType                string                              `tfschema:"storage_account_type"`
+	StorageIOps                       int64                               `tfschema:"storage_iops"`
 	StorageSizeInGb                   int64                               `tfschema:"storage_size_in_gb"`
 	SubnetId                          string                              `tfschema:"subnet_id"`
 	TimezoneId                        string                              `tfschema:"timezone_id"`
@@ -320,6 +322,14 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 
+		"storage_iops": {
+			Type:     schema.TypeInt,
+			Optional: true,
+			// NOTE: O+C - Azure returns a calculated IOPS value for GPv2 instances when `storage_iops` is omitted.
+			Computed:     true,
+			ValidateFunc: validation.IntBetween(300, 80000),
+		},
+
 		"timezone_id": {
 			Type:         schema.TypeString,
 			Optional:     true,
@@ -407,15 +417,34 @@ func (r MsSqlManagedInstanceResource) CustomizeDiff() sdk.ResourceFunc {
 
 			_, aadAdminOk := rd.GetOk("azure_active_directory_administrator")
 			authOnlyEnabled := rd.Get("azure_active_directory_administrator.0.azuread_authentication_only_enabled").(bool)
-			adminLogin := rd.GetRawConfig().AsValueMap()["administrator_login"]
-			adminPassword := rd.GetRawConfig().AsValueMap()["administrator_login_password"]
+			rawConfig := rd.GetRawConfig().AsValueMap()
+			adminLogin := rawConfig["administrator_login"]
+			adminPassword := rawConfig["administrator_login_password"]
 
 			if aadAdminOk && !authOnlyEnabled && (adminLogin.IsNull() || adminPassword.IsNull()) {
 				return fmt.Errorf("`administrator_login` and `administrator_login_password` are required when `azuread_authentication_only_enabled` is false")
 			}
 
+			// Unknown values can come from expressions and may later resolve to null, so only
+			// validate `storage_iops` rules when the argument is known to be explicitly configured.
+			if storageIOps, ok := rawConfig["storage_iops"]; ok && storageIOps.IsKnown() && !storageIOps.IsNull() {
+				if !rd.Get("general_purpose_v2_enabled").(bool) {
+					return errors.New("`storage_iops` can only be set when `general_purpose_v2_enabled` is `true`")
+				}
+
+				if sku := rd.Get("sku_name").(string); strings.HasPrefix(sku, "BC_") {
+					return fmt.Errorf("`storage_iops` is not supported on Business Critical SKUs, got SKU `%s`", sku)
+				}
+			}
+
 			if sku := rd.Get("sku_name").(string); strings.HasPrefix(sku, "BC_") && rd.Get("general_purpose_v2_enabled").(bool) {
 				return fmt.Errorf("`general_purpose_v2_enabled` cannot be set to `true` on Business Critical SKUs, got SKU `%s`", sku)
+			}
+
+			// Zone redundancy is not available for Next-gen General Purpose instances.
+			// https://learn.microsoft.com/azure/azure-sql/managed-instance/high-availability-sla-local-zone-redundancy#next-gen-general-purpose-service-tier
+			if rd.Get("zone_redundant_enabled").(bool) && rd.Get("general_purpose_v2_enabled").(bool) {
+				return errors.New("`zone_redundant_enabled` cannot be set to `true` when `general_purpose_v2_enabled` is `true`")
 			}
 
 			return nil
@@ -462,6 +491,8 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			isGeneralPurposeV2 := expandMsSqlManagedInstanceGeneralPurposeV2Enabled(model.GeneralPurposeV2Enabled, model.SkuName)
+
 			parameters := managedinstances.ManagedInstance{
 				Sku:      sku,
 				Identity: r.expandIdentity(model.Identity),
@@ -471,7 +502,7 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 					AdministratorLoginPassword:       pointer.To(model.AdministratorLoginPassword),
 					Collation:                        pointer.To(model.Collation),
 					DnsZonePartner:                   pointer.To(model.DnsZonePartnerId),
-					IsGeneralPurposeV2:               expandMsSqlManagedInstanceGeneralPurposeV2Enabled(model.GeneralPurposeV2Enabled, model.SkuName),
+					IsGeneralPurposeV2:               isGeneralPurposeV2,
 					LicenseType:                      pointer.To(managedinstances.ManagedInstanceLicenseType(model.LicenseType)),
 					MaintenanceConfigurationId:       pointer.To(maintenanceConfigId.ID()),
 					MinimalTlsVersion:                pointer.To(model.MinimumTlsVersion),
@@ -489,6 +520,11 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 					HybridSecondaryUsage: pointer.To(managedinstances.HybridSecondaryUsage(model.HybridSecondaryUsage)),
 				},
 				Tags: pointer.To(model.Tags),
+			}
+
+			// If StorageIOps is carried in payload and set to 0, the service will return HTTP 405.
+			if pointer.From(isGeneralPurposeV2) && model.StorageIOps != 0 {
+				parameters.Properties.StorageIOps = pointer.To(model.StorageIOps)
 			}
 
 			if parameters.Identity != nil && len(parameters.Identity.IdentityIds) > 0 {
@@ -700,13 +736,19 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 				props.HybridSecondaryUsage = pointer.To(managedinstances.HybridSecondaryUsage(state.HybridSecondaryUsage))
 			}
 
-			if metadata.ResourceData.HasChange("general_purpose_v2_enabled") {
-				props.IsGeneralPurposeV2 = expandMsSqlManagedInstanceGeneralPurposeV2Enabled(state.GeneralPurposeV2Enabled, state.SkuName)
+			effectiveIsGeneralPurposeV2 := expandMsSqlManagedInstanceGeneralPurposeV2Enabled(state.GeneralPurposeV2Enabled, state.SkuName)
 
-				// when `general_purpose_v2_enabled` is `nil` or `false`, ensure `storageIOps is not in the request as this is not supported
-				if !pointer.From(props.IsGeneralPurposeV2) {
-					props.StorageIOps = nil
+			if metadata.ResourceData.HasChanges("general_purpose_v2_enabled", "sku_name") {
+				props.IsGeneralPurposeV2 = effectiveIsGeneralPurposeV2
+			}
+
+			// When updating MI from GPv2 to non GPv2, `StorageIOps` is not a valid value in payload.
+			if pointer.From(effectiveIsGeneralPurposeV2) && state.StorageIOps != 0 {
+				if metadata.ResourceData.HasChange("storage_iops") {
+					props.StorageIOps = pointer.To(state.StorageIOps)
 				}
+			} else {
+				props.StorageIOps = nil
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
@@ -787,6 +829,8 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 
 					model.MinimumTlsVersion = pointer.From(props.MinimalTlsVersion)
 					model.PublicDataEndpointEnabled = pointer.From(props.PublicDataEndpointEnabled)
+					model.GeneralPurposeV2Enabled = pointer.From(props.IsGeneralPurposeV2)
+					model.StorageIOps = pointer.From(props.StorageIOps)
 					model.StorageSizeInGb = pointer.From(props.StorageSizeInGB)
 					model.SubnetId = pointer.From(props.SubnetId)
 					model.TimezoneId = pointer.From(props.TimezoneId)
@@ -799,9 +843,9 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 					}
 					model.DatabaseFormat = string(pointer.From(props.DatabaseFormat))
 					model.HybridSecondaryUsage = string(pointer.From(props.HybridSecondaryUsage))
-					model.GeneralPurposeV2Enabled = pointer.From(props.IsGeneralPurposeV2)
 				}
 			}
+
 			return metadata.Encode(&model)
 		},
 	}
