@@ -9,12 +9,12 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type AppServiceEnvironmentV3Resource struct{}
@@ -113,6 +113,23 @@ func TestAccAppServiceEnvironmentV3_completeUpdate(t *testing.T) {
 	})
 }
 
+func TestAccAppServiceEnvironmentV3_completePreflightPlan(t *testing.T) {
+	if !features.FivePointOh() {
+		t.Skip("skipping 5.0 only feature")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_app_service_environment_v3", "test")
+	r := AppServiceEnvironmentV3Resource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:             r.completePreflightPlan(data),
+			PlanOnly:           true,
+			ExpectNonEmptyPlan: true,
+		},
+	})
+}
+
 func TestAccAppServiceEnvironmentV3_updateVnet(t *testing.T) {
 	if true {
 		t.Skip("Skipping as `ChangeVnet` func not actually implemented in service")
@@ -170,20 +187,17 @@ func TestAccAppServiceEnvironmentV3_dedicatedHosts(t *testing.T) {
 }
 
 func (AppServiceEnvironmentV3Resource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.AppServiceEnvironmentID(state.ID)
+	id, err := commonids.ParseAppServiceEnvironmentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Web.AppServiceEnvironmentsClient.Get(ctx, id.ResourceGroup, id.HostingEnvironmentName)
+	resp, err := client.AppService.AppServiceEnvironmentClient.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return pointer.To(false), nil
-		}
-		return nil, fmt.Errorf("retrieving App Service Environment V3 %q (Resource Group %q): %+v", id.HostingEnvironmentName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return pointer.To(true), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r AppServiceEnvironmentV3Resource) basic(data acceptance.TestData) string {
@@ -254,6 +268,77 @@ resource "azurerm_app_service_environment_v3" "test" {
   }
 }
 `, template, data.RandomInteger)
+}
+
+func (r AppServiceEnvironmentV3Resource) completePreflightPlan(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    enhanced_validation {
+      preflight_enabled = true
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-ase-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_resource_group" "test2" {
+  name     = "acctestRG2-ase-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest-vnet-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctest-subnet-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+  delegation {
+    name = "asedelegation"
+    service_delegation {
+      name    = "Microsoft.Web/hostingEnvironments"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_app_service_environment_v3" "test" {
+  name                         = "acctest-ase-%[1]d"
+  resource_group_name          = azurerm_resource_group.test2.name
+  subnet_id                    = azurerm_subnet.test.id
+  internal_load_balancing_mode = "Web, Publishing"
+  remote_debugging_enabled     = true
+
+  cluster_setting {
+    name  = "InternalEncryption"
+    value = "true"
+  }
+
+  cluster_setting {
+    name  = "DisableTls1.0"
+    value = "1"
+  }
+
+  cluster_setting {
+    name  = "FrontEndSSLCipherSuiteOrder"
+    value = "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"
+  }
+
+  tags = {
+    accTest = "1"
+    env     = "Test"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r AppServiceEnvironmentV3Resource) completeUpdate(data acceptance.TestData) string {

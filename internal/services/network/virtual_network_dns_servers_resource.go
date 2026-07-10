@@ -96,9 +96,11 @@ func resourceVirtualNetworkDnsServersCreate(d *pluginsdk.ResourceData, meta inte
 
 	vnet.Model.Properties.DhcpOptions.DnsServers = utils.ExpandStringSlice(d.Get("dns_servers").([]interface{}))
 
+	// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
 	if err := client.CreateOrUpdateThenPoll(ctx, *vnetId, *vnet.Model); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
+	d.SetId(id.ID())
 
 	timeout, _ := ctx.Deadline()
 
@@ -113,7 +115,6 @@ func resourceVirtualNetworkDnsServersCreate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("waiting for provisioning state of virtual network for %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
 	return resourceVirtualNetworkDnsServersRead(d, meta)
 }
 

@@ -518,7 +518,7 @@ func TestAccSubnet_updateServiceDelegation(t *testing.T) {
 	})
 }
 
-func (t SubnetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r SubnetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseSubnetID(state.ID)
 	if err != nil {
 		return nil, err
@@ -871,7 +871,7 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   ip_address_pool {
     id                     = azurerm_network_manager_ipam_pool.test.id
-    number_of_ip_addresses = "10"
+    number_of_ip_addresses = "32"
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -926,7 +926,7 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   ip_address_pool {
     id                     = azurerm_network_manager_ipam_pool.test.id
-    number_of_ip_addresses = "50"
+    number_of_ip_addresses = "128"
   }
 }
 `, data.RandomInteger, data.Locations.Primary)

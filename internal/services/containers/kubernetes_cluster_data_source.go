@@ -186,6 +186,24 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"bootstrap_profile": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"artifact_source": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"container_registry_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"current_kubernetes_version": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -590,6 +608,11 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
+
+						"outbound_type": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -742,6 +765,16 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("retrieving User Credentials for %s: %+v", id, err)
 	}
 
+	if model := resp.Model; model != nil {
+		if resp.Model.Sku == nil || resp.Model.Sku.Name == nil {
+			return fmt.Errorf("retrieving %s: SKU information is missing", d.Id())
+		}
+
+		if pointer.From(resp.Model.Sku.Name) == managedclusters.ManagedClusterSKUNameAutomatic {
+			return fmt.Errorf("retrieving %s: azurerm_kubernetes_cluster datasource does not support SKU `Automatic`", d.Id())
+		}
+	}
+
 	d.SetId(id.ID())
 	if model := resp.Model; model != nil {
 		d.Set("name", id.ManagedClusterName)
@@ -789,6 +822,14 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 			agentPoolProfiles := flattenKubernetesClusterDataSourceAgentPoolProfiles(props.AgentPoolProfiles)
 			if err := d.Set("agent_pool_profile", agentPoolProfiles); err != nil {
 				return fmt.Errorf("setting `agent_pool_profile`: %+v", err)
+			}
+
+			bootstrapProfile, err := flattenBootstrapProfile(props.BootstrapProfile)
+			if err != nil {
+				return fmt.Errorf("flattening `bootstrap_profile`: %+v", err)
+			}
+			if err := d.Set("bootstrap_profile", bootstrapProfile); err != nil {
+				return fmt.Errorf("setting `bootstrap_profile`: %+v", err)
 			}
 
 			azureKeyVaultKms := flattenKubernetesClusterDataSourceKeyVaultKms(props.SecurityProfile)
@@ -1369,6 +1410,8 @@ func flattenKubernetesClusterDataSourceNetworkProfile(profile *managedclusters.C
 	if profile.LoadBalancerSku != nil {
 		values["load_balancer_sku"] = string(*profile.LoadBalancerSku)
 	}
+
+	values["outbound_type"] = pointer.From(profile.OutboundType)
 
 	return []interface{}{values}
 }

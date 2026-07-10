@@ -8,3 +8,7 @@ const defaultApiVersion = "2023-08-01-preview"
 func userAgent() string {
 	return "hashicorp/go-azure-sdk/outboundfirewallrules/2023-08-01-preview"
 }
+
+func AzureAPIVersion() string {
+	return defaultApiVersion
+}

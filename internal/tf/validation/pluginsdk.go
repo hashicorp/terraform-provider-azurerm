@@ -5,6 +5,7 @@ package validation
 
 import (
 	"fmt"
+	"net/mail"
 	"net/url"
 	"regexp"
 	"strings"
@@ -121,6 +122,20 @@ func IsCIDR(i interface{}, k string) ([]string, []error) {
 // IsDayOfTheWeek id a SchemaValidateFunc which tests if the provided value is of type string and a valid english day of the week
 func IsDayOfTheWeek(ignoreCase bool) func(interface{}, string) ([]string, []error) {
 	return validation.IsDayOfTheWeek(ignoreCase)
+}
+
+// IsEmailAddress is a SchemaValidateFunc which tests if the provided value is of type string and a valid email address
+func IsEmailAddress(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		return []string{}, append(errors, fmt.Errorf("expected type of %s to be string", k))
+	}
+
+	if _, err := mail.ParseAddress(v); err != nil {
+		return []string{}, append(errors, fmt.Errorf("%v must be a valid email address", k))
+	}
+
+	return
 }
 
 // IsIPAddress is a SchemaValidateFunc which tests if the provided value is of type string and is a single IP (v4 or v6)

@@ -169,6 +169,51 @@ func TestAccContainerAppJob_eventTrigger(t *testing.T) {
 	})
 }
 
+func TestAccContainerAppJob_eventTriggerScaleRuleUserIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_job", "test")
+	r := ContainerAppJobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.eventTriggerScaleRuleUserIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerAppJob_eventTriggerScaleRuleSystemIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_job", "test")
+	r := ContainerAppJobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.eventTriggerScaleRuleSystemIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerAppJob_eventTriggerScaleRuleSystemAndUserIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_job", "test")
+	r := ContainerAppJobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.eventTriggerScaleRuleSystemAndUserIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccContainerAppJob_manualTrigger(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_job", "test")
 	r := ContainerAppJobResource{}
@@ -445,6 +490,170 @@ resource "azurerm_container_app_job" "test" {
 `, template, data.RandomInteger)
 }
 
+func (r ContainerAppJobResource) eventTriggerScaleRuleUserIdentity(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acct-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_container_app_job" "test" {
+  name                         = "acctest-cajob%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  container_app_environment_id = azurerm_container_app_environment.test.id
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  replica_timeout_in_seconds = 10
+  replica_retry_limit        = 10
+  event_trigger_config {
+    parallelism = 4
+    scale {
+      max_executions              = 10
+      min_executions              = 1
+      polling_interval_in_seconds = 10
+      rules {
+        metadata = {
+          topic_name = "my-topic"
+        }
+        name             = "servicebuscalingrule"
+        identity_id      = azurerm_user_assigned_identity.test.id
+        custom_rule_type = "azure-servicebus"
+      }
+    }
+  }
+
+  template {
+    container {
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      name   = "testcontainerappsjob0"
+      cpu    = 0.5
+      memory = "1Gi"
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r ContainerAppJobResource) eventTriggerScaleRuleSystemIdentity(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_container_app_job" "test" {
+  name                         = "acctest-cajob%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  container_app_environment_id = azurerm_container_app_environment.test.id
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  replica_timeout_in_seconds = 10
+  replica_retry_limit        = 10
+  event_trigger_config {
+    parallelism = 4
+    scale {
+      max_executions              = 10
+      min_executions              = 1
+      polling_interval_in_seconds = 10
+      rules {
+        metadata = {
+          topic_name = "my-topic"
+        }
+        name             = "servicebuscalingrule"
+        identity_id      = "System"
+        custom_rule_type = "azure-servicebus"
+      }
+    }
+  }
+
+  template {
+    container {
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      name   = "testcontainerappsjob0"
+      cpu    = 0.5
+      memory = "1Gi"
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r ContainerAppJobResource) eventTriggerScaleRuleSystemAndUserIdentity(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acct-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_container_app_job" "test" {
+  name                         = "acctest-cajob%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  container_app_environment_id = azurerm_container_app_environment.test.id
+
+  identity {
+    type         = "SystemAssigned, UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  replica_timeout_in_seconds = 10
+  replica_retry_limit        = 10
+  event_trigger_config {
+    parallelism = 4
+    scale {
+      max_executions              = 10
+      min_executions              = 1
+      polling_interval_in_seconds = 10
+      rules {
+        metadata = {
+          topic_name = "my-topic"
+        }
+        name             = "servicebuscalingrule"
+        identity_id      = azurerm_user_assigned_identity.test.id
+        custom_rule_type = "azure-servicebus"
+      }
+    }
+  }
+
+  template {
+    container {
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      name   = "testcontainerappsjob0"
+      cpu    = 0.5
+      memory = "1Gi"
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
 func (r ContainerAppJobResource) manualTrigger(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
@@ -605,6 +814,7 @@ data "azurerm_client_config" "current" {}
 resource "azurerm_key_vault" "test" {
   name                       = "acctest-kv-%[3]s"
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   location                   = azurerm_resource_group.test.location
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "premium"
@@ -705,6 +915,7 @@ data "azurerm_client_config" "current" {}
 resource "azurerm_key_vault" "test" {
   name                       = "acctest-kv-%[3]s"
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   location                   = azurerm_resource_group.test.location
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "premium"
@@ -805,6 +1016,7 @@ data "azurerm_client_config" "current" {}
 resource "azurerm_key_vault" "test" {
   name                       = "acctest-kv-%[3]s"
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   location                   = azurerm_resource_group.test.location
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "premium"
@@ -929,6 +1141,7 @@ data "azurerm_client_config" "current" {}
 resource "azurerm_key_vault" "test" {
   name                       = "acctest-kv-%[3]s"
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   location                   = azurerm_resource_group.test.location
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "premium"
@@ -1063,6 +1276,7 @@ data "azurerm_client_config" "current" {}
 resource "azurerm_key_vault" "test" {
   name                       = "acctest-kv-%[3]s"
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   location                   = azurerm_resource_group.test.location
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "premium"
@@ -1539,6 +1753,7 @@ resource "azurerm_container_app_environment" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  logs_destination           = "log-analytics"
 }
 `, data.RandomInteger, data.Locations.Primary)
 }

@@ -2,6 +2,9 @@
 
 This guide covers how to add a List Resource for an existing resource, using `azurerm_network_profile` as an example. For more information on Lists, see [Resources - List](https://developer.hashicorp.com/terraform/plugin/sdkv2/resources/list).
 
+> [!IMPORTANT]
+> **List Resource implementations are mandatory for all new resources.** A CI check (`enforce-list-resources`) will verify that every new resource file (`*_resource.go`) has a corresponding `*_resource_list.go` file. If your resource genuinely cannot support listing (e.g. no List API exists), please explain why in the PR description and a maintainer will apply the `allow-without-list` or `list-not-supported` label to skip the check.
+
 ## Prerequisites
 
 Before adding a List Resource, the resource must have Resource Identity implemented. For more information on implementing Resource Identity see [Guide: Resource Identity](guide-resource-identity.md).
@@ -361,7 +364,7 @@ Before adding a List Resource, the resource must have Resource Identity implemen
                 },
                 {
                     Query:  true,
-                    Config: r.basicQueryByResourceGroupName(data),
+                    Config: r.basicQueryByResourceGroupName(),
                     QueryResultChecks: []querycheck.QueryResultCheck{
                         querycheck.ExpectLength(listResourceAddress, 3), // expect exactly the 3 we created in that resource group
                     },
@@ -410,15 +413,15 @@ Before adding a List Resource, the resource must have Resource Identity implemen
     }
     
     // define the list query for testing by resource group name
-    func (r NetworkProfileResource) basicQueryByResourceGroupName(data acceptance.TestData) string {
-        return fmt.Sprintf(`
+    func (r NetworkProfileResource) basicQueryByResourceGroupName() string {
+        return `
     list "azurerm_network_profile" "list" {
       provider = azurerm
       config {
-        resource_group_name = "acctestRG-%[1]d"
+        resource_group_name = azurerm_resource_group.test.name
       }
     }
-    `, data.RandomInteger)
+    `
     }
     
     ```

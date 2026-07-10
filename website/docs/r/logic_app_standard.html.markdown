@@ -67,24 +67,20 @@ resource "azurerm_storage_account" "example" {
   account_replication_type = "LRS"
 }
 
-resource "azurerm_app_service_plan" "example" {
+resource "azurerm_service_plan" "example" {
   name                = "example-service-plan"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  kind                = "Linux"
-  reserved            = true
 
-  sku {
-    tier = "WorkflowStandard"
-    size = "WS1"
-  }
+  os_type  = "Linux"
+  sku_name = "WS1"
 }
 
 resource "azurerm_logic_app_standard" "example" {
   name                       = "example-logic-app"
   location                   = azurerm_resource_group.example.location
   resource_group_name        = azurerm_resource_group.example.name
-  app_service_plan_id        = azurerm_app_service_plan.example.id
+  app_service_plan_id        = azurerm_service_plan.example.id
   storage_account_name       = azurerm_storage_account.example.name
   storage_account_access_key = azurerm_storage_account.example.primary_access_key
 
@@ -97,7 +93,6 @@ resource "azurerm_logic_app_standard" "example" {
     "DOCKER_REGISTRY_SERVER_USERNAME" = "username"
     "DOCKER_REGISTRY_SERVER_PASSWORD" = "password"
   }
-
 }
 ```
 
@@ -113,15 +108,21 @@ The following arguments are supported:
 
 * `app_service_plan_id` - (Required) The ID of the App Service Plan within which to create this Logic App.
 
-* `storage_account_name` - (Required) The backend storage account name which will be used by this Logic App (e.g. for Stateful workflows data). Changing this forces a new resource to be created.
+* `storage_account_name` - (Optional) The backend storage account name which will be used by this Logic App (e.g. for Stateful workflows data). Exactly one of `storage_account_name` or `storage_key_vault_secret_id` must be specified.
 
-* `storage_account_access_key` - (Required) The access key which will be used to access the backend storage account for the Logic App.
+* `storage_account_access_key` - (Optional) The access key which will be used to access the backend storage account for the Logic App. Required when `storage_account_name` is specified. Conflicts with `storage_key_vault_secret_id`.
+
+* `storage_key_vault_secret_id` - (Optional) The Key Vault Secret ID, optionally including version, that contains the connection string to the backend storage account for the Logic App. Exactly one of `storage_account_name` or `storage_key_vault_secret_id` must be specified.
+
+~> **Note:** When using `storage_key_vault_secret_id`, a `key_vault_reference_identity_id` must be set and the corresponding identity must have `Get` and `List` secret permissions on the Key Vault.
+
+~> **Note:** `storage_key_vault_secret_id` used without a version will use the latest version of the secret, however, the service can take up to 24h to pick up a rotation of the latest version. See the [official docs](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#rotation) for more information.
 
 ---
 
 * `app_settings` - (Optional) A map of key-value pairs for [App Settings](https://docs.microsoft.com/azure/azure-functions/functions-app-settings) and custom values.
 
-~> **Note:** There are a number of application settings that will be managed for you by this resource type and *shouldn't* be configured separately as part of the app_settings you specify.  `AzureWebJobsStorage` is filled based on `storage_account_name` and `storage_account_access_key`. `WEBSITE_CONTENTSHARE` is detailed below. `FUNCTIONS_EXTENSION_VERSION` is filled based on `version`. `APP_KIND` is set to workflowApp and `AzureFunctionsJobHost__extensionBundle__id` and `AzureFunctionsJobHost__extensionBundle__version` are set as detailed below.
+~> **Note:** There are a number of application settings that will be managed for you by this resource type and *shouldn't* be configured separately as part of the app_settings you specify.  `AzureWebJobsStorage` is filled based on `storage_account_name` and `storage_account_access_key`, or from `storage_key_vault_secret_id` when using a Key Vault reference. `WEBSITE_CONTENTSHARE` is detailed below. `FUNCTIONS_EXTENSION_VERSION` is filled based on `version`. `APP_KIND` is set to workflowApp and `AzureFunctionsJobHost__extensionBundle__id` and `AzureFunctionsJobHost__extensionBundle__version` are set as detailed below.
 
 * `use_extension_bundle` - (Optional) Should the logic app use the bundled extension package? If true, then application settings for `AzureFunctionsJobHost__extensionBundle__id` and `AzureFunctionsJobHost__extensionBundle__version` will be created. Defaults to `true`.
 
@@ -140,6 +141,10 @@ The following arguments are supported:
 * `https_only` - (Optional) Can the Logic App only be accessed via HTTPS? Defaults to `false`.
 
 * `identity` - (Optional) An `identity` block as defined below.
+
+* `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. 
+
+~> **Note:** The identity must be assigned to the Logic App in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity)
 
 * `public_network_access` - (Optional) Whether Public Network Access should be enabled or not. Possible values are `Enabled` and `Disabled`. Defaults to `Enabled`.
 
@@ -203,10 +208,16 @@ The `site_config` block supports the following:
 
 -> **Note:** User has to explicitly set `ip_restriction` to empty slice (`[]`) to remove it.
 
+* `ip_restriction_default_action` - (Optional) The action to take when no `ip_restriction` rules match. Possible values are `Allow` and `Deny`.
+
+-> **Note:** If `ip_restriction_default_action` is not configured, it is implicitly set to `Allow` when no `ip_restriction` rules are defined and `Deny` when at least one `ip_restriction` rule is defined.
+
 * `scm_ip_restriction` - (Optional) A list of `scm_ip_restriction` objects representing SCM IP restrictions as defined below.
 
 -> **Note:** User has to explicitly set `scm_ip_restriction` to empty slice (`[]`) to remove it.
 
+* `scm_ip_restriction_default_action` - (Optional) The action to take when no `scm_ip_restriction` rules match. Possible values are `Allow` and `Deny`.
+  
 * `scm_use_main_ip_restriction` - (Optional) Should the Logic App `ip_restriction` configuration be used for the SCM too. Defaults to `false`.
 
 * `scm_min_tls_version` - (Optional) Configures the minimum version of TLS required for SSL requests to the SCM site. Possible values are `1.0`, `1.1`, `1.2` and `1.3`.

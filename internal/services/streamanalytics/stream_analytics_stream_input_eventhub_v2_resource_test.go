@@ -74,7 +74,7 @@ func TestAccStreamAnalyticsStreamInputEventHubV2_noOptional(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("eventhub_consumer_group_name").IsEmpty(),
-				check.That((data.ResourceName)).Key("partition_key").IsEmpty(),
+				check.That(data.ResourceName).Key("partition_key").IsEmpty(),
 			),
 		},
 		data.ImportStep("shared_access_policy_key"),
@@ -91,8 +91,9 @@ func TestAccStreamAnalyticsStreamInputEventHubV2_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("eventhub_consumer_group_name").MatchesOtherKey(
-					check.That("azurerm_eventhub_consumer_group.test").Key("name")),
-				check.That((data.ResourceName)).Key("partition_key").HasValue("partitionKey"),
+					check.That("azurerm_eventhub_consumer_group.test").Key("name"),
+				),
+				check.That(data.ResourceName).Key("partition_key").HasValue("partitionKey"),
 			),
 		},
 		{
@@ -100,8 +101,9 @@ func TestAccStreamAnalyticsStreamInputEventHubV2_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("eventhub_consumer_group_name").MatchesOtherKey(
-					check.That("azurerm_eventhub_consumer_group.updated").Key("name")),
-				check.That((data.ResourceName)).Key("partition_key").HasValue("updatedPartitionKey"),
+					check.That("azurerm_eventhub_consumer_group.updated").Key("name"),
+				),
+				check.That(data.ResourceName).Key("partition_key").HasValue("updatedPartitionKey"),
 			),
 		},
 		{
@@ -109,7 +111,7 @@ func TestAccStreamAnalyticsStreamInputEventHubV2_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("eventhub_consumer_group_name").IsEmpty(),
-				check.That((data.ResourceName)).Key("partition_key").IsEmpty(),
+				check.That(data.ResourceName).Key("partition_key").IsEmpty(),
 			),
 		},
 		data.ImportStep("shared_access_policy_key"),

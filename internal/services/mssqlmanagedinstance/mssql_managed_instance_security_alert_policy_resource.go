@@ -116,8 +116,6 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyCreate(d *pluginsdk.Resource
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for managed instance security alert policy creation.")
-
 	alertPolicy := expandManagedServerSecurityAlertPolicy(d)
 
 	managedInstanceId := commonids.NewSqlManagedInstanceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("managed_instance_name").(string))
@@ -243,8 +241,6 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyRead(d *pluginsdk.ResourceDa
 	client := meta.(*clients.Client).MSSQLManagedInstance.ManagedInstanceServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] reading managed instance security alert policy")
 
 	id, err := parse.ManagedInstancesSecurityAlertPolicyID(d.Id())
 	if err != nil {

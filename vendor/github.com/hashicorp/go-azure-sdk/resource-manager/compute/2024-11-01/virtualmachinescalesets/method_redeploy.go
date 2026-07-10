@@ -61,9 +61,20 @@ func (c VirtualMachineScaleSetsClient) Redeploy(ctx context.Context, id VirtualM
 
 // RedeployThenPoll performs Redeploy then polls until it's completed
 func (c VirtualMachineScaleSetsClient) RedeployThenPoll(ctx context.Context, id VirtualMachineScaleSetId, input VirtualMachineScaleSetVMInstanceIDs) error {
+	return c.RedeployCallbackThenPoll(ctx, id, input, nil)
+}
+
+// RedeployCallbackThenPoll performs Redeploy, runs the optional callback function, then polls until it's completed
+func (c VirtualMachineScaleSetsClient) RedeployCallbackThenPoll(ctx context.Context, id VirtualMachineScaleSetId, input VirtualMachineScaleSetVMInstanceIDs, callback func() error) error {
 	result, err := c.Redeploy(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Redeploy: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

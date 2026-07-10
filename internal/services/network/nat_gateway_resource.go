@@ -4,9 +4,12 @@
 package network
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -49,6 +52,16 @@ func resourceNatGateway() *pluginsdk.Resource {
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&natgateways.NatGatewayId{}),
 		},
 
+		CustomizeDiff: func(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+			if diff.Get("sku_name").(string) == string(natgateways.NatGatewaySkuNameStandardVTwo) {
+				if !diff.GetRawConfig().AsValueMap()["zones"].IsNull() {
+					return fmt.Errorf("%s resources with `sku_name` set to `%s` are zone-redundant by default, Azure automatically deploys across all available zones. The `zones` argument must be omitted", natGatewayResourceName, natgateways.NatGatewaySkuNameStandardVTwo)
+				}
+			}
+
+			return nil
+		},
+
 		Schema: resourceNatGatewaySchema(),
 	}
 }
@@ -74,15 +87,26 @@ func resourceNatGatewaySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"sku_name": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(natgateways.NatGatewaySkuNameStandard),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(natgateways.NatGatewaySkuNameStandard),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      string(natgateways.NatGatewaySkuNameStandard),
+			ValidateFunc: validation.StringInSlice(natgateways.PossibleValuesForNatGatewaySkuName(), false),
 		},
 
-		"zones": commonschema.ZonesMultipleOptionalForceNew(),
+		"zones": {
+			Type:                  schema.TypeSet,
+			Optional:              true,
+			ForceNew:              true,
+			DiffSuppressOnRefresh: true,
+			DiffSuppressFunc: func(_, _, _ string, d *schema.ResourceData) bool {
+				return d.Get("sku_name").(string) == string(natgateways.NatGatewaySkuNameStandardVTwo)
+			},
+			Elem: &schema.Schema{
+				Type:         schema.TypeString,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+		},
 
 		"resource_guid": {
 			Type:     pluginsdk.TypeString,
@@ -104,14 +128,16 @@ func resourceNatGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	locks.ByName(id.NatGatewayName, natGatewayResourceName)
 	defer locks.UnlockByName(id.NatGatewayName, natGatewayResourceName)
 
-	resp, err := client.Get(ctx, id, natgateways.DefaultGetOperationOptions())
-	if err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("checking for present of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		resp, err := client.Get(ctx, id, natgateways.DefaultGetOperationOptions())
+		if err != nil {
+			if !response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("checking for present of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if resp.Model != nil && resp.Model.Id != nil && *resp.Model.Id != "" {
-		return tf.ImportAsExistsError("azurerm_nat_gateway", id.ID())
+		if resp.Model != nil && resp.Model.Id != nil && *resp.Model.Id != "" {
+			return tf.ImportAsExistsError("azurerm_nat_gateway", id.ID())
+		}
 	}
 
 	parameters := natgateways.NatGateway{
@@ -130,7 +156,7 @@ func resourceNatGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		parameters.Zones = &zones
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 

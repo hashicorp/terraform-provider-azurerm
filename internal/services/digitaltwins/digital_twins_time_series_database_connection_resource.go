@@ -133,11 +133,11 @@ func (m TimeSeriesDatabaseConnectionResource) IDValidationFunc() pluginsdk.Schem
 func (m TimeSeriesDatabaseConnectionResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.DigitalTwins.TimeSeriesDatabaseConnectionsClient
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.DigitalTwins.TimeSeriesDatabaseConnectionsClient
 
 			var model TimeSeriesDatabaseConnectionModel
-			if err := meta.Decode(&model); err != nil {
+			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
 
@@ -148,12 +148,14 @@ func (m TimeSeriesDatabaseConnectionResource) Create() sdk.ResourceFunc {
 
 			id := timeseriesdatabaseconnections.NewTimeSeriesDatabaseConnectionID(digitalTwinsId.SubscriptionId, digitalTwinsId.ResourceGroupName, digitalTwinsId.DigitalTwinsInstanceName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if !response.WasNotFound(existing.HttpResponse) {
-				if err != nil {
-					return fmt.Errorf("retrieving %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					if err != nil {
+						return fmt.Errorf("retrieving %s: %+v", id, err)
+					}
+					return metadata.ResourceRequiresImport(m.ResourceType(), id)
 				}
-				return meta.ResourceRequiresImport(m.ResourceType(), id)
 			}
 
 			properties := timeseriesdatabaseconnections.AzureDataExplorerConnectionProperties{
@@ -177,11 +179,11 @@ func (m TimeSeriesDatabaseConnectionResource) Create() sdk.ResourceFunc {
 				Properties: properties,
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, req); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, req, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			meta.SetID(id)
+			metadata.SetID(id)
 			return nil
 		},
 	}

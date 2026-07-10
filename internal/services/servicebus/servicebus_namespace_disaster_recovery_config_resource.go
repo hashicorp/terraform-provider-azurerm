@@ -108,7 +108,8 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigCreate(d *pluginsdk.Resour
 	partnerNamespaceId := d.Get("partner_namespace_id").(string)
 
 	id := disasterrecoveryconfigs.NewDisasterRecoveryConfigID(namespaceId.SubscriptionId, namespaceId.ResourceGroupName, namespaceId.NamespaceName, d.Get("name").(string))
-	if d.IsNewResource() {
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -131,11 +132,12 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigCreate(d *pluginsdk.Resour
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	if err := resourceServiceBusNamespaceDisasterRecoveryConfigWaitForState(ctx, client, id); err != nil {
 		return fmt.Errorf("waiting for replication to complete for %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
 	return resourceServiceBusNamespaceDisasterRecoveryConfigRead(d, meta)
 }
 

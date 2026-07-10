@@ -34,6 +34,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
@@ -52,11 +53,31 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 		Update: resourceKubernetesClusterUpdate,
 		Delete: resourceKubernetesClusterDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(
-			func(id string) error {
-				_, err := commonids.ParseKubernetesClusterID(id)
-				return err
-			}),
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
+			_, err := commonids.ParseKubernetesClusterID(id)
+			return err
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+			resourceId, err := commonids.ParseKubernetesClusterID(d.Id())
+			if err != nil {
+				return []*pluginsdk.ResourceData{d}, err
+			}
+
+			client := meta.(*clients.Client).Containers.KubernetesClustersClient
+			resp, err := client.Get(ctx, *resourceId)
+			if err != nil || resp.Model == nil {
+				return []*pluginsdk.ResourceData{d}, fmt.Errorf("retrieving %s: %+v", *resourceId, err)
+			}
+
+			if resp.Model.Sku == nil || resp.Model.Sku.Name == nil {
+				return []*pluginsdk.ResourceData{d}, fmt.Errorf("importing %s: SKU information is missing", resourceId)
+			}
+
+			if pointer.From(resp.Model.Sku.Name) == managedclusters.ManagedClusterSKUNameAutomatic {
+				return []*pluginsdk.ResourceData{d}, fmt.Errorf("importing %s: use the `azurerm_kubernetes_automatic_cluster` resource for clusters using the `Automatic` SKU", d.Id())
+			}
+
+			return []*pluginsdk.ResourceData{d}, nil
+		}),
 
 		CustomizeDiff: pluginsdk.CustomDiffInSequence(
 			// The behaviour of the API requires this, but this could be removed when https://github.com/Azure/azure-rest-api-specs/issues/27373 has been addressed
@@ -65,6 +86,10 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			}),
 			pluginsdk.ForceNewIfChange("default_node_pool.0.upgrade_settings.0.undrainable_node_behavior", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old != "" && new == ""
+			}),
+			pluginsdk.ForceNewIfChange("oidc_issuer_enabled", func(ctx context.Context, old, new, meta interface{}) bool {
+				// The API does not allow disabling OIDC after it has been enabled
+				return old.(bool) && !new.(bool)
 			}),
 			// Migration of `identity` to `service_principal` is not allowed, the other way around is
 			pluginsdk.ForceNewIfChange("service_principal.0.client_id", func(ctx context.Context, old, new, meta interface{}) bool {
@@ -109,6 +134,23 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				return true
 			}),
 			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+				if d.HasChange("network_profile.0.network_plugin") {
+					old, new := d.GetChange("network_profile.0.network_plugin")
+					oldStr := old.(string)
+					newStr := new.(string)
+
+					if oldStr == "kubenet" && newStr == "azure" {
+						networkPluginMode := d.Get("network_profile.0.network_plugin_mode").(string)
+						if strings.EqualFold(networkPluginMode, string(managedclusters.NetworkPluginModeOverlay)) {
+							return nil
+						}
+					}
+
+					return d.ForceNew("network_profile.0.network_plugin")
+				}
+				return nil
+			},
+			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
 				if d.HasChange("oidc_issuer_enabled") {
 					d.SetNewComputed("oidc_issuer_url")
 				}
@@ -136,6 +178,12 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 
 				return true
 			}),
+			pluginsdk.ForceNewIfChange("network_profile.0.pod_cidr", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old.(string) != ""
+			}),
+			pluginsdk.ForceNewIfChange("network_profile.0.pod_cidrs", func(ctx context.Context, old, new, meta interface{}) bool {
+				return len(old.([]interface{})) > 0
+			}),
 			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
 				outboundType := d.Get("network_profile.0.outbound_type").(string)
 				artifactSource := d.Get("bootstrap_profile.0.artifact_source").(string)
@@ -148,17 +196,20 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			},
 			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
 				if len(d.Get("network_profile.0.advanced_networking").([]interface{})) == 1 {
-					if d.Get("network_profile.0.network_data_plane").(string) != string(managedclusters.NetworkDataplaneCilium) {
-						return fmt.Errorf("when `network_profile.0.advanced_networking` is set, `network_profile.0.network_data_plane` must be set to `%s`", managedclusters.NetworkDataplaneCilium)
-					}
-					if d.Get("network_profile.0.network_plugin").(string) != string(managedclusters.NetworkPluginAzure) {
-						return fmt.Errorf("when `network_profile.0.advanced_networking` is set, `network_profile.0.network_plugin` must be set to `%s`", managedclusters.NetworkPluginAzure)
+					securityEnabled := d.Get("network_profile.0.advanced_networking.0.security_enabled").(bool)
+
+					if securityEnabled {
+						if d.Get("network_profile.0.network_data_plane").(string) != string(managedclusters.NetworkDataplaneCilium) {
+							return fmt.Errorf("when `network_profile.0.advanced_networking` has `security_enabled` set to `true`, `network_profile.0.network_data_plane` must be set to `%s`", managedclusters.NetworkDataplaneCilium)
+						}
+						if d.Get("network_profile.0.network_plugin").(string) != string(managedclusters.NetworkPluginAzure) {
+							return fmt.Errorf("when `network_profile.0.advanced_networking` has `security_enabled` set to `true`, `network_profile.0.network_plugin` must be set to `%s`", managedclusters.NetworkPluginAzure)
+						}
 					}
 				}
 				return nil
 			},
 		),
-
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(90 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -525,7 +576,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 									string(managedclusters.NginxIngressControllerTypeInternal),
 									string(managedclusters.NginxIngressControllerTypeExternal),
 									string(managedclusters.NginxIngressControllerTypeNone),
-								}, false),
+								}, false,
+							),
 						},
 
 						"web_app_routing_identity": {
@@ -851,7 +903,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Optional: true,
 							ValidateFunc: validation.StringInSlice(
 								maintenanceconfigurations.PossibleValuesForWeekDay(),
-								false),
+								false,
+							),
 						},
 
 						"duration": {
@@ -865,7 +918,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Optional: true,
 							ValidateFunc: validation.StringInSlice(
 								maintenanceconfigurations.PossibleValuesForType(),
-								false),
+								false,
+							),
 						},
 
 						"day_of_month": {
@@ -942,7 +996,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Optional: true,
 							ValidateFunc: validation.StringInSlice(
 								maintenanceconfigurations.PossibleValuesForWeekDay(),
-								false),
+								false,
+							),
 						},
 
 						"duration": {
@@ -956,7 +1011,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Optional: true,
 							ValidateFunc: validation.StringInSlice(
 								maintenanceconfigurations.PossibleValuesForType(),
-								false),
+								false,
+							),
 						},
 
 						"day_of_month": {
@@ -1077,7 +1133,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"network_plugin": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
-							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(managedclusters.NetworkPluginAzure),
 								string(managedclusters.NetworkPluginKubenet),
@@ -1124,7 +1179,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Default:  string(managedclusters.NetworkDataplaneAzure),
 							ValidateFunc: validation.StringInSlice(
 								managedclusters.PossibleValuesForNetworkDataplane(),
-								false),
+								false,
+							),
 						},
 
 						"network_plugin_mode": {
@@ -1139,7 +1195,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
-							ForceNew:     true,
 							ValidateFunc: validate.CIDR,
 						},
 
@@ -1147,7 +1202,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							Computed: true,
-							ForceNew: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
@@ -1378,6 +1432,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			"oidc_issuer_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				Default:  true,
 			},
 
 			"oidc_issuer_url": {
@@ -1737,6 +1792,31 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 		}
 
 		resource.Schema["key_management_service"].Elem.(*pluginsdk.Resource).Schema["key_vault_key_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny)
+
+		resource.Schema["default_node_pool"].Elem.(*pluginsdk.Resource).Schema["kubelet_config"].Elem.(*pluginsdk.Resource).Schema["container_log_max_line"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeInt,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"default_node_pool.0.kubelet_config.0.container_log_max_files"},
+			Deprecated:    "`container_log_max_line` has been renamed to `container_log_max_files` to align with the API property name and will be removed in v5.0 of the AzureRM Provider",
+			ValidateFunc:  validation.IntAtLeast(2),
+		}
+		resource.Schema["default_node_pool"].Elem.(*pluginsdk.Resource).Schema["kubelet_config"].Elem.(*pluginsdk.Resource).Schema["container_log_max_files"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeInt,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"default_node_pool.0.kubelet_config.0.container_log_max_line"},
+			ValidateFunc:  validation.IntAtLeast(2),
+		}
+
+		resource.Schema["oidc_issuer_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			// Note: O+C because the default value depends on the version
+			// in 5.0 this will default to `true` given that is the default on later AKS versions (1.34+)
+			// and presumably will stay that way.
+			Computed: true,
+		}
 	}
 
 	return resource
@@ -1750,18 +1830,19 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Managed Kubernetes Cluster create.")
-
 	id := commonids.NewKubernetesClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_kubernetes_cluster", id.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+		}
+
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_kubernetes_cluster", id.ID())
+		}
 	}
 
 	if err := validateKubernetesCluster(d, nil, id.ResourceGroupName, id.ManagedClusterName); err != nil {
@@ -1847,11 +1928,13 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	httpProxyConfigRaw := d.Get("http_proxy_config").([]interface{})
 	httpProxyConfig := expandKubernetesClusterHttpProxyConfig(httpProxyConfigRaw)
 
-	enableOidcIssuer := false
-	var oidcIssuerProfile *managedclusters.ManagedClusterOIDCIssuerProfile
-	if v, ok := d.GetOk("oidc_issuer_enabled"); ok {
-		enableOidcIssuer = v.(bool)
-		oidcIssuerProfile = expandKubernetesClusterOidcIssuerProfile(enableOidcIssuer)
+	enableOidcIssuer := d.Get("oidc_issuer_enabled").(bool)
+	oidcIssuerProfile := expandKubernetesClusterOidcIssuerProfile(enableOidcIssuer)
+	if !features.FivePointOh() {
+		oidcIssuerProfile = nil // preserves 4.x default of `nil`, meaning Azure decides
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "oidc_issuer_enabled") {
+			oidcIssuerProfile = expandKubernetesClusterOidcIssuerProfile(enableOidcIssuer)
+		}
 	}
 
 	storageProfileRaw := d.Get("storage_profile").([]interface{})
@@ -2021,10 +2104,11 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		parameters.Properties.ServiceMeshProfile = serviceMeshProfile
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, id, parameters, managedclusters.DefaultCreateOrUpdateOperationOptions())
+	err = client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, managedclusters.DefaultCreateOrUpdateOperationOptions(), sdk.SetIDCallback(meta, &id, d))
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
+	d.SetId(id.ID())
 
 	if maintenanceConfigRaw, ok := d.GetOk("maintenance_window"); ok {
 		client := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
@@ -2059,7 +2143,6 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	d.SetId(id.ID())
 	return resourceKubernetesClusterRead(d, meta)
 }
 
@@ -2102,7 +2185,6 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if d.HasChange("service_principal") && !d.HasChange("identity") {
-		log.Printf("[DEBUG] Updating the Service Principal for %s..", *id)
 		servicePrincipals := d.Get("service_principal").([]interface{})
 		// we'll be rotating the Service Principal - removing the SP block is handled by the validate function
 		servicePrincipalRaw := servicePrincipals[0].(map[string]interface{})
@@ -2118,7 +2200,6 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		if err != nil {
 			return fmt.Errorf("updating Service Principal for %s: %+v", *id, err)
 		}
-		log.Printf("[DEBUG] Updated the Service Principal for %s.", *id)
 
 		// since we're patching it, re-retrieve the latest version of the cluster
 		existing, err = clusterClient.Get(ctx, *id)
@@ -2155,7 +2236,6 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 		props.AadProfile = azureADProfile
 		if props.AadProfile == nil || (props.AadProfile.Managed == nil || !*props.AadProfile.Managed) {
-			log.Printf("[DEBUG] Updating the RBAC AAD profile")
 			props.AadProfile = &managedclusters.ManagedClusterAADProfile{}
 			err = clusterClient.ResetAADProfileThenPoll(ctx, *id, *props.AadProfile)
 			if err != nil {
@@ -2351,6 +2431,26 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 		if d.HasChange("network_profile.0.network_data_plane") {
 			existing.Model.Properties.NetworkProfile.NetworkDataplane = pointer.To(managedclusters.NetworkDataplane(d.Get("network_profile.0.network_data_plane").(string)))
+		}
+
+		if key := "network_profile.0.network_plugin"; d.HasChange(key) {
+			networkPlugin := d.Get(key).(string)
+			existing.Model.Properties.NetworkProfile.NetworkPlugin = pointer.To(managedclusters.NetworkPlugin(networkPlugin))
+		}
+
+		if key := "network_profile.0.network_plugin_mode"; d.HasChange(key) {
+			networkPluginMode := d.Get(key).(string)
+			existing.Model.Properties.NetworkProfile.NetworkPluginMode = pointer.To(managedclusters.NetworkPluginMode(networkPluginMode))
+		}
+
+		if key := "network_profile.0.pod_cidr"; d.HasChange(key) {
+			podCidr := d.Get(key).(string)
+			existing.Model.Properties.NetworkProfile.PodCidr = pointer.To(podCidr)
+		}
+
+		if key := "network_profile.0.pod_cidrs"; d.HasChange(key) {
+			podCidrs := d.Get(key).([]interface{})
+			existing.Model.Properties.NetworkProfile.PodCidrs = utils.ExpandStringSlice(podCidrs)
 		}
 
 		if key := "network_profile.0.outbound_type"; d.HasChange(key) {
@@ -2588,13 +2688,10 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			existing.Model.Properties.SecurityProfile.Defender = nil
 		}
 
-		log.Printf("[DEBUG] Updating %s..", *id)
 		err = clusterClient.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, managedclusters.DefaultCreateOrUpdateOperationOptions())
 		if err != nil {
 			return fmt.Errorf("updating %s: %+v", *id, err)
 		}
-
-		log.Printf("[DEBUG] Updated %s..", *id)
 	}
 
 	// then roll the version of Kubernetes if necessary
@@ -2742,13 +2839,9 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 			log.Printf("[DEBUG] Cycled Default Node Pool..")
 		} else {
-			log.Printf("[DEBUG] Updating of Default Node Pool..")
-
 			if err := nodePoolsClient.CreateOrUpdateThenPoll(ctx, defaultNodePoolId, agentProfile, agentpools.DefaultCreateOrUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("updating Default Node Pool %s %+v", defaultNodePoolId, err)
 			}
-
-			log.Printf("[DEBUG] Updated Default Node Pool.")
 		}
 	}
 
@@ -4277,11 +4370,11 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *managedclust
 }
 
 func expandKubernetesClusterAzureKeyVaultKms(ctx context.Context, keyVaultsClient *keyVaultClient.Client, subscriptionId string, d *pluginsdk.ResourceData, input []interface{}) (*managedclusters.AzureKeyVaultKms, error) {
-	if ((input == nil) || len(input) == 0) && d.HasChanges("key_management_service") {
+	if len(input) == 0 && d.HasChanges("key_management_service") {
 		return &managedclusters.AzureKeyVaultKms{
 			Enabled: pointer.To(false),
 		}, nil
-	} else if (input == nil) || len(input) == 0 {
+	} else if len(input) == 0 {
 		return nil, nil
 	}
 
@@ -4744,7 +4837,7 @@ func flattenKubernetesClusterMicrosoftDefender(input *managedclusters.ManagedClu
 }
 
 func expandStorageProfile(input []interface{}) *managedclusters.ManagedClusterStorageProfile {
-	if (input == nil) || len(input) == 0 {
+	if len(input) == 0 {
 		return nil
 	}
 
@@ -4801,7 +4894,7 @@ func base64IsEncoded(data string) bool {
 }
 
 func expandKubernetesClusterServiceMeshProfile(input []interface{}, existing *managedclusters.ServiceMeshProfile) *managedclusters.ServiceMeshProfile {
-	if (input == nil) || len(input) == 0 {
+	if len(input) == 0 {
 		// explicitly disable istio if it was enabled before
 		if existing != nil && existing.Mode == managedclusters.ServiceMeshModeIstio {
 			return &managedclusters.ServiceMeshProfile{

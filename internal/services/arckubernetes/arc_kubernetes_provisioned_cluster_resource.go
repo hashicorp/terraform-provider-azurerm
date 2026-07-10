@@ -189,13 +189,15 @@ func (r ArcKubernetesProvisionedClusterResource) Create() sdk.ResourceFunc {
 
 			id := arckubernetes.NewConnectedClusterID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			existing, err := client.ConnectedClusterGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.ConnectedClusterGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			arcAgentAutoUpgrade := arckubernetes.AutoUpgradeOptionsDisabled
@@ -228,7 +230,7 @@ func (r ArcKubernetesProvisionedClusterResource) Create() sdk.ResourceFunc {
 				payload.Properties.ArcAgentProfile.DesiredAgentVersion = pointer.To(desiredVersion)
 			}
 
-			if err := client.ConnectedClusterCreateThenPoll(ctx, id, *payload); err != nil {
+			if err := client.ConnectedClusterCreateCallbackThenPoll(ctx, id, *payload, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

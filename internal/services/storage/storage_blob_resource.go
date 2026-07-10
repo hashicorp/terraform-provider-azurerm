@@ -12,8 +12,11 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -25,7 +28,7 @@ import (
 )
 
 func resourceStorageBlob() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Create: resourceStorageBlobCreate,
 		Read:   resourceStorageBlobRead,
 		Update: resourceStorageBlobUpdate,
@@ -56,18 +59,10 @@ func resourceStorageBlob() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"storage_account_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.StorageAccountName,
-			},
-
-			"storage_container_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.StorageContainerName,
+			"storage_container_id": {
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ForceNew: true,
 			},
 
 			"type": {
@@ -172,6 +167,33 @@ func resourceStorageBlob() *pluginsdk.Resource {
 			return nil
 		},
 	}
+
+	if !features.FivePointOh() {
+		r.Schema["storage_container_id"].Required = false
+		r.Schema["storage_container_id"].Optional = true
+		r.Schema["storage_container_id"].Computed = true
+		r.Schema["storage_container_id"].ConflictsWith = []string{"storage_account_name", "storage_container_name"}
+
+		r.Schema["storage_account_name"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ForceNew:      true,
+			ConflictsWith: []string{"storage_container_id"},
+			Deprecated:    "`storage_account_name` has been deprecated in favour of `storage_container_id` and will be removed in v5.0 of the AzureRM Provider",
+		}
+
+		r.Schema["storage_container_name"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ForceNew:      true,
+			ConflictsWith: []string{"storage_container_id"},
+			Deprecated:    "`storage_container_name` has been deprecated in favour of `storage_container_id` and will be removed in v5.0 of the AzureRM Provider",
+		}
+	}
+
+	return r
 }
 
 func resourceStorageBlobCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -180,14 +202,51 @@ func resourceStorageBlobCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	accountName := d.Get("storage_account_name").(string)
-	containerName := d.Get("storage_container_name").(string)
 	name := d.Get("name").(string)
 
-	account, err := storageClient.FindAccount(ctx, subscriptionId, accountName)
-	if err != nil {
-		return fmt.Errorf("retrieving Storage Account %q for Blob %q (Container %q): %v", accountName, name, containerName, err)
+	var accountName string
+	var containerName string
+	var account *client.AccountDetails
+	var err error
+
+	if !features.FivePointOh() {
+		if containerIdStr, ok := d.GetOk("storage_container_id"); ok && containerIdStr.(string) != "" {
+			containerId, err := commonids.ParseStorageContainerID(containerIdStr.(string))
+			if err != nil {
+				return err
+			}
+			accountName = containerId.StorageAccountName
+			containerName = containerId.ContainerName
+			account, err = storageClient.GetAccount(ctx, commonids.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName))
+			if err != nil {
+				return fmt.Errorf("retrieving Storage Account %q for Blob %q (Container %q): %v", accountName, name, containerName, err)
+			}
+		} else {
+			accountName = d.Get("storage_account_name").(string)
+			containerName = d.Get("storage_container_name").(string)
+			if accountName == "" || containerName == "" {
+				return fmt.Errorf("`storage_account_name` and `storage_container_name` must be specified when `storage_container_id` is omitted")
+			}
+
+			account, err = storageClient.FindAccount(ctx, subscriptionId, accountName)
+			if err != nil {
+				return fmt.Errorf("retrieving Storage Account %q for Blob %q (Container %q): %v", accountName, name, containerName, err)
+			}
+		}
+	} else {
+		containerIdStr := d.Get("storage_container_id").(string)
+		containerId, err := commonids.ParseStorageContainerID(containerIdStr)
+		if err != nil {
+			return err
+		}
+		accountName = containerId.StorageAccountName
+		containerName = containerId.ContainerName
+		account, err = storageClient.GetAccount(ctx, commonids.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName))
+		if err != nil {
+			return fmt.Errorf("retrieving Storage Account %q for Blob %q (Container %q): %v", accountName, name, containerName, err)
+		}
 	}
+
 	if account == nil {
 		return fmt.Errorf("locating Storage Account %q", accountName)
 	}
@@ -204,17 +263,15 @@ func resourceStorageBlobCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	id := blobs.NewBlobID(accountId, containerName, name)
-	if d.IsNewResource() {
-		input := blobs.GetPropertiesInput{}
-		props, err := blobsClient.GetProperties(ctx, containerName, name, input)
-		if err != nil {
-			if !response.WasNotFound(props.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %v", id, err)
-			}
-		}
+	input := blobs.GetPropertiesInput{}
+	props, err := blobsClient.GetProperties(ctx, containerName, name, input)
+	if err != nil {
 		if !response.WasNotFound(props.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_storage_blob", id.ID())
+			return fmt.Errorf("checking for existing %s: %v", id, err)
 		}
+	}
+	if !response.WasNotFound(props.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_storage_blob", id.ID())
 	}
 
 	contentMD5Raw := d.Get("content_md5").(string)
@@ -227,14 +284,12 @@ func resourceStorageBlobCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
-	log.Printf("[DEBUG] Creating %s..", id)
 	metaDataRaw := d.Get("metadata").(map[string]interface{})
 	blobInput := BlobUpload{
 		AccountName:   accountName,
 		ContainerName: containerName,
 		BlobName:      name,
 		Client:        blobsClient,
-
 		BlobType:      d.Get("type").(string),
 		CacheControl:  d.Get("cache_control").(string),
 		ContentType:   d.Get("content_type").(string),
@@ -254,7 +309,6 @@ func resourceStorageBlobCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	if err = blobInput.Create(ctx); err != nil {
 		return fmt.Errorf("creating %s: %v", id, err)
 	}
-	log.Printf("[DEBUG] Created %s.", id)
 
 	d.SetId(id.ID())
 
@@ -272,12 +326,48 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("parsing %q: %v", d.Id(), err)
 	}
 
-	account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
-	if err != nil {
-		return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", id.AccountId.AccountName, id.BlobName, id.ContainerName, err)
+	var accountName string
+	var containerName string
+	var account *client.AccountDetails
+
+	if !features.FivePointOh() {
+		if containerIdStr, ok := d.GetOk("storage_container_id"); ok && containerIdStr.(string) != "" {
+			containerId, err := commonids.ParseStorageContainerID(containerIdStr.(string))
+			if err != nil {
+				return err
+			}
+			accountName = containerId.StorageAccountName
+			containerName = containerId.ContainerName
+
+			account, err = storageClient.GetAccount(ctx, commonids.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName))
+			if err != nil {
+				return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, id.BlobName, containerName, err)
+			}
+		} else {
+			accountName = id.AccountId.AccountName
+			containerName = id.ContainerName
+
+			account, err = storageClient.FindAccount(ctx, subscriptionId, accountName)
+			if err != nil {
+				return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, id.BlobName, containerName, err)
+			}
+		}
+	} else {
+		containerId, err := commonids.ParseStorageContainerID(d.Get("storage_container_id").(string))
+		if err != nil {
+			return err
+		}
+		accountName = containerId.StorageAccountName
+		containerName = containerId.ContainerName
+
+		account, err = storageClient.GetAccount(ctx, commonids.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName))
+		if err != nil {
+			return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, id.BlobName, containerName, err)
+		}
 	}
+
 	if account == nil {
-		return fmt.Errorf("locating Storage Account %q", id.AccountId.AccountName)
+		return fmt.Errorf("locating Storage Account %q", accountName)
 	}
 
 	blobsClient, err := storageClient.BlobsDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
@@ -285,7 +375,6 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("building Blobs Client: %v", err)
 	}
 
-	log.Printf("[INFO] Retrieving %s", id)
 	input := blobs.GetPropertiesInput{}
 	props, err := blobsClient.GetProperties(ctx, id.ContainerName, id.BlobName, input)
 	if err != nil {
@@ -299,7 +388,6 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if d.HasChange("content_type") || d.HasChange("cache_control") {
-		log.Printf("[DEBUG] Updating Properties for %s...", id)
 		input := blobs.SetPropertiesInput{
 			ContentType:  pointer.To(d.Get("content_type").(string)),
 			CacheControl: pointer.To(d.Get("cache_control").(string)),
@@ -316,11 +404,9 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		if _, err = blobsClient.SetProperties(ctx, id.ContainerName, id.BlobName, input); err != nil {
 			return fmt.Errorf("updating Properties for %s: %v", id, err)
 		}
-		log.Printf("[DEBUG] Updated Properties for %s", id)
 	}
 
 	if d.HasChange("metadata") {
-		log.Printf("[DEBUG] Updating MetaData for %s...", id)
 		metaDataRaw := d.Get("metadata").(map[string]interface{})
 		input := blobs.SetMetaDataInput{
 			MetaData: ExpandMetaData(metaDataRaw),
@@ -332,19 +418,15 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		if _, err = blobsClient.SetMetaData(ctx, id.ContainerName, id.BlobName, input); err != nil {
 			return fmt.Errorf("updating MetaData for %s: %v", id, err)
 		}
-		log.Printf("[DEBUG] Updated MetaData for %s", id)
 	}
 
 	if d.HasChange("access_tier") {
 		// this is only applicable for Gen2/BlobStorage accounts
-		log.Printf("[DEBUG] Updating Access Tier for %s...", id)
 		accessTier := blobs.AccessTier(d.Get("access_tier").(string))
 
 		if _, err := blobsClient.SetTier(ctx, id.ContainerName, id.BlobName, blobs.SetTierInput{Tier: accessTier}); err != nil {
 			return fmt.Errorf("updating Access Tier for %s: %v", id, err)
 		}
-
-		log.Printf("[DEBUG] Updated Access Tier for %s", id)
 	}
 
 	return resourceStorageBlobRead(d, meta)
@@ -361,12 +443,59 @@ func resourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		return fmt.Errorf("parsing %q: %v", d.Id(), err)
 	}
 
-	account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
-	if err != nil {
-		return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", id.AccountId.AccountName, id.BlobName, id.ContainerName, err)
+	var accountName string
+	var containerName string
+	var account *client.AccountDetails
+
+	if !features.FivePointOh() {
+		if containerIdStr, ok := d.GetOk("storage_container_id"); ok && containerIdStr.(string) != "" {
+			containerId, err := commonids.ParseStorageContainerID(containerIdStr.(string))
+			if err != nil {
+				return err
+			}
+			accountName = containerId.StorageAccountName
+			containerName = containerId.ContainerName
+
+			account, err = storageClient.GetAccount(ctx, commonids.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName))
+			if err != nil {
+				return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, id.BlobName, containerName, err)
+			}
+		} else {
+			accountName = id.AccountId.AccountName
+			containerName = id.ContainerName
+
+			account, err = storageClient.FindAccount(ctx, subscriptionId, accountName)
+			if err != nil {
+				return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, id.BlobName, containerName, err)
+			}
+		}
+	} else {
+		containerIdStr := d.Get("storage_container_id").(string)
+		if containerIdStr == "" { // this may be missing at import time
+			accountName = id.AccountId.AccountName
+			containerName = id.ContainerName
+
+			account, err = storageClient.FindAccount(ctx, subscriptionId, accountName)
+			if err != nil {
+				return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, id.BlobName, containerName, err)
+			}
+		} else {
+			containerId, err := commonids.ParseStorageContainerID(containerIdStr)
+			if err != nil {
+				return err
+			}
+			accountName = containerId.StorageAccountName
+			containerName = containerId.ContainerName
+
+			account, err = storageClient.GetAccount(ctx, commonids.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName))
+			if err != nil {
+				return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, id.BlobName, containerName, err)
+			}
+		}
 	}
+
 	if account == nil {
-		log.Printf("[DEBUG] Unable to locate Account %q for Blob %q (Container %q) - assuming removed & removing from state!", id.AccountId.AccountName, id.BlobName, id.ContainerName)
+		log.Printf("[DEBUG] Unable to locate Account %q for Blob %q (Container %q) - assuming removed & removing from state!", accountName, id.BlobName, containerName)
 		d.SetId("")
 		return nil
 	}
@@ -376,7 +505,6 @@ func resourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		return fmt.Errorf("building Blobs Client: %v", err)
 	}
 
-	log.Printf("[INFO] Retrieving %s", id)
 	input := blobs.GetPropertiesInput{}
 	props, err := blobsClient.GetProperties(ctx, id.ContainerName, id.BlobName, input)
 	if err != nil {
@@ -390,8 +518,12 @@ func resourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	}
 
 	d.Set("name", id.BlobName)
-	d.Set("storage_container_name", id.ContainerName)
-	d.Set("storage_account_name", id.AccountId.AccountName)
+	d.Set("storage_container_id", commonids.NewStorageContainerID(subscriptionId, account.StorageAccountId.ResourceGroupName, accountName, containerName).ID())
+
+	if !features.FivePointOh() {
+		d.Set("storage_container_name", containerName)
+		d.Set("storage_account_name", accountName)
+	}
 
 	d.Set("access_tier", string(props.AccessTier))
 	d.Set("content_type", props.ContentType)
@@ -435,12 +567,59 @@ func resourceStorageBlobDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("parsing %q: %v", d.Id(), err)
 	}
 
-	account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
-	if err != nil {
-		return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %s", id.AccountId.AccountName, id.BlobName, id.ContainerName, err)
+	var accountName string
+	var containerName string
+	var account *client.AccountDetails
+
+	if !features.FivePointOh() {
+		if containerIdStr, ok := d.GetOk("storage_container_id"); ok && containerIdStr.(string) != "" {
+			containerId, err := commonids.ParseStorageContainerID(containerIdStr.(string))
+			if err != nil {
+				return err
+			}
+			accountName = containerId.StorageAccountName
+			containerName = containerId.ContainerName
+
+			account, err = storageClient.GetAccount(ctx, commonids.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName))
+			if err != nil {
+				return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, id.BlobName, containerName, err)
+			}
+		} else {
+			accountName = id.AccountId.AccountName
+			containerName = id.ContainerName
+
+			account, err = storageClient.FindAccount(ctx, subscriptionId, accountName)
+			if err != nil {
+				return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, id.BlobName, containerName, err)
+			}
+		}
+	} else {
+		containerIdStr := d.Get("storage_container_id").(string) // lintignore: gradually-deprecated
+		if containerIdStr == "" {
+			accountName = id.AccountId.AccountName
+			containerName = id.ContainerName
+
+			account, err = storageClient.FindAccount(ctx, subscriptionId, accountName)
+			if err != nil {
+				return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, id.BlobName, containerName, err)
+			}
+		} else {
+			containerId, err := commonids.ParseStorageContainerID(containerIdStr)
+			if err != nil {
+				return err
+			}
+			accountName = containerId.StorageAccountName
+			containerName = containerId.ContainerName
+
+			account, err = storageClient.GetAccount(ctx, commonids.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName))
+			if err != nil {
+				return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, id.BlobName, containerName, err)
+			}
+		}
 	}
+
 	if account == nil {
-		return fmt.Errorf("locating Storage Account %q", id.AccountId.AccountName)
+		return fmt.Errorf("locating Storage Account %q", accountName)
 	}
 
 	blobsClient, err := storageClient.BlobsDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())

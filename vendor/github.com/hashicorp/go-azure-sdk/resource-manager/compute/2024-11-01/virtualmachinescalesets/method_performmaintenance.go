@@ -61,9 +61,20 @@ func (c VirtualMachineScaleSetsClient) PerformMaintenance(ctx context.Context, i
 
 // PerformMaintenanceThenPoll performs PerformMaintenance then polls until it's completed
 func (c VirtualMachineScaleSetsClient) PerformMaintenanceThenPoll(ctx context.Context, id VirtualMachineScaleSetId, input VirtualMachineScaleSetVMInstanceIDs) error {
+	return c.PerformMaintenanceCallbackThenPoll(ctx, id, input, nil)
+}
+
+// PerformMaintenanceCallbackThenPoll performs PerformMaintenance, runs the optional callback function, then polls until it's completed
+func (c VirtualMachineScaleSetsClient) PerformMaintenanceCallbackThenPoll(ctx context.Context, id VirtualMachineScaleSetId, input VirtualMachineScaleSetVMInstanceIDs, callback func() error) error {
 	result, err := c.PerformMaintenance(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing PerformMaintenance: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

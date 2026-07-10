@@ -356,6 +356,7 @@ resource "azurerm_key_vault" "test" {
   name                        = "acctestkv%s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
+  rbac_authorization_enabled  = false
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "standard"
   purge_protection_enabled    = true
@@ -690,8 +691,8 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
-    offer     = "windows-cvm"
-    sku       = "2022-datacenter-cvm"
+    offer     = "WindowsServer"
+    sku       = "2022-datacenter-azure-edition-core"
     version   = "latest"
   }
 
@@ -745,8 +746,8 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
-    offer     = "windows-cvm"
-    sku       = "2022-datacenter-cvm"
+    offer     = "WindowsServer"
+    sku       = "2022-datacenter-azure-edition-core"
     version   = "latest"
   }
 
@@ -781,6 +782,7 @@ resource "azurerm_key_vault" "test" {
   name                        = "acctestkv%[3]s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
+  rbac_authorization_enabled  = false
   sku_name                    = "premium"
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   enabled_for_disk_encryption = true

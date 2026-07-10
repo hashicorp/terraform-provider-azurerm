@@ -61,7 +61,8 @@ func (client CdnFrontDoorOriginWorkaroundClient) UpdatePreparer(ctx context.Cont
 		autorest.WithBaseURL(client.sdkClient.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cdn/profiles/{profileName}/originGroups/{originGroupName}/origins/{originName}", pathParameters),
 		autorest.WithJSON(originUpdateProperties),
-		autorest.WithQueryParameters(queryParameters))
+		autorest.WithQueryParameters(queryParameters),
+	)
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 

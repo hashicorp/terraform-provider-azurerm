@@ -26,19 +26,16 @@ func TestProviderConfig_LoadDefault(t *testing.T) {
 		t.Skip("ARM_CLIENT_SECRET env var not set")
 	}
 
-	enhancedValidation, _ := basetypes.NewObjectValueFrom(context.Background(), EnhancedValidationModelAttributes, map[string]attr.Value{
-		"locations":          basetypes.NewBoolValue(false),
-		"resource_providers": basetypes.NewBoolValue(false),
-	})
-	enhancedValidationList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(EnhancedValidationModelAttributes), []attr.Value{enhancedValidation})
-
 	testData := &ProviderModel{
 		ResourceProviderRegistrations: types.StringValue("none"),
 		Features:                      defaultFeaturesList(),
-		EnhancedValidation:            enhancedValidationList,
 	}
 
-	testConfig.Load(context.Background(), testData, "unittest", &diag.Diagnostics{})
+	diags := new(diag.Diagnostics)
+	testConfig.Load(context.Background(), testData, "unittest", diags)
+	if diags.HasError() {
+		t.Fatalf("failed to configure provider: %+v ", diags.Errors())
+	}
 
 	if testConfig.Client == nil {
 		t.Fatal("client nil after Load")
@@ -70,6 +67,14 @@ func TestProviderConfig_LoadDefault(t *testing.T) {
 	}
 
 	features := client.Features
+
+	if features.PersistIDOnCreateBeforePollingForCompletion {
+		t.Error("expected `persist_id_on_create_before_polling_for_completion` to be false")
+	}
+
+	if features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		t.Error("expected `skip_import_check_on_create_and_allow_overwriting_existing_resources` to be false")
+	}
 
 	if !features.ApiManagement.PurgeSoftDeleteOnDestroy {
 		t.Errorf("expected api_management.purge_soft_delete_on_destroy to be true")
@@ -139,8 +144,8 @@ func TestProviderConfig_LoadDefault(t *testing.T) {
 		t.Errorf("expected key_vault.recover_soft_deleted_hsm_keys to be true")
 	}
 
-	if !features.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy {
-		t.Errorf("expected log_analytics_workspace.permanently_delete_on_destroy to be true")
+	if features.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy {
+		t.Errorf("expected log_analytics_workspace.permanently_delete_on_destroy to be false")
 	}
 
 	if features.TemplateDeployment.DeleteNestedItemsDuringDeletion {
@@ -217,6 +222,10 @@ func TestProviderConfig_LoadDefault(t *testing.T) {
 
 	if features.DatabricksWorkspace.ForceDelete {
 		t.Errorf("expected databricks_workspace.ForceDelete to be false")
+	}
+
+	if features.EnhancedValidation.PreflightEnabled {
+		t.Errorf("expected enhanced_validation.preflight_enabled to be false")
 	}
 }
 
@@ -337,7 +346,19 @@ func defaultFeaturesList() types.List {
 	})
 	databricksWorkspaceList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(DatabricksWorkspaceAttributes), []attr.Value{databricksWorkspace})
 
+	enhancedValidation, _ := basetypes.NewObjectValueFrom(context.Background(), EnhancedValidationModelAttributes, map[string]attr.Value{
+		"locations":                   basetypes.NewBoolNull(),
+		"resource_providers":          basetypes.NewBoolNull(),
+		"preflight_enabled":           basetypes.NewBoolNull(),
+		"preflight_location_fallback": basetypes.NewStringNull(),
+	})
+	enhancedValidationList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(EnhancedValidationModelAttributes), []attr.Value{enhancedValidation})
+
 	fData, d := basetypes.NewObjectValue(FeaturesAttributes, map[string]attr.Value{
+		"persist_id_on_create_before_polling_for_completion":                   basetypes.NewBoolNull(),
+		"skip_import_check_on_create_and_allow_overwriting_existing_resources": basetypes.NewBoolNull(),
+
+		"enhanced_validation":        enhancedValidationList,
 		"api_management":             apiManagementList,
 		"app_configuration":          appConfigurationList,
 		"application_insights":       applicationInsightsList,

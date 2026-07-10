@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -105,7 +106,7 @@ func resourceSiteRecoveryNetworkMappingCreate(d *pluginsdk.ResourceData, meta in
 
 	id := replicationnetworkmappings.NewReplicationNetworkMappingID(subscriptionId, resGroup, vaultName, fabricName, parsedSourceNetworkId.VirtualNetworkName, name)
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) && !wasBadRequestWithNotExist(existing.HttpResponse, err) {
@@ -128,11 +129,9 @@ func resourceSiteRecoveryNetworkMappingCreate(d *pluginsdk.ResourceData, meta in
 		},
 	}
 
-	err = client.CreateThenPoll(ctx, id, parameters)
-	if err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating site recovery network mapping %s (vault %s): %+v", name, vaultName, err)
 	}
-
 	d.SetId(id.ID())
 
 	return resourceSiteRecoveryNetworkMappingRead(d, meta)

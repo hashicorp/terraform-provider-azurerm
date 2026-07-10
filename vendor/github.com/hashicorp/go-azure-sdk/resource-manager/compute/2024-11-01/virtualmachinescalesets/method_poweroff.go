@@ -90,9 +90,20 @@ func (c VirtualMachineScaleSetsClient) PowerOff(ctx context.Context, id VirtualM
 
 // PowerOffThenPoll performs PowerOff then polls until it's completed
 func (c VirtualMachineScaleSetsClient) PowerOffThenPoll(ctx context.Context, id VirtualMachineScaleSetId, input VirtualMachineScaleSetVMInstanceIDs, options PowerOffOperationOptions) error {
+	return c.PowerOffCallbackThenPoll(ctx, id, input, options, nil)
+}
+
+// PowerOffCallbackThenPoll performs PowerOff, runs the optional callback function, then polls until it's completed
+func (c VirtualMachineScaleSetsClient) PowerOffCallbackThenPoll(ctx context.Context, id VirtualMachineScaleSetId, input VirtualMachineScaleSetVMInstanceIDs, options PowerOffOperationOptions, callback func() error) error {
 	result, err := c.PowerOff(ctx, id, input, options)
 	if err != nil {
 		return fmt.Errorf("performing PowerOff: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
