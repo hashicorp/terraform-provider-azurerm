@@ -48,6 +48,11 @@ func realMain(args []string) int {
 				Ui: ui,
 			}, nil
 		},
+		"upgrade": func() (cli.Command, error) {
+			return &commands.UpgradeCommand{
+				Ui: ui,
+			}, nil
+		},
 	}
 
 	scaff := cli.CLI{

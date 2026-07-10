@@ -181,7 +181,7 @@ func RenderListTest(res *ir.ResourceIR) string {
 	data := listTestData{
 		PackageName:           res.ServicePackage,
 		TestName:              res.Name,
-		ResourceStruct:        res.Name + "Resource",
+		ResourceStruct:        res.Name + "TestResource",
 		TerraformResourceName: res.TerraformType,
 		UseResourceGroup:      useRG,
 	}

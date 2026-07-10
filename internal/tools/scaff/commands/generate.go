@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/scaff/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/scaff/ir"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/scaff/pandora"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/scaff/source"
 
 	"github.com/mitchellh/cli"
 )
@@ -329,6 +330,11 @@ func (d GenerateData) generateResource(ui cli.Ui, client *pandora.Client, spec r
 		if err := d.writeGenerated(ui, listTestFile, listTestGo); err != nil {
 			return err
 		}
+
+		regPath := filepath.Join(outputDir, "registration.go")
+		if err := d.registerListResource(ui, regPath, res.Name+"ListResource"); err != nil {
+			return err
+		}
 	}
 
 	if spec.DataSource {
@@ -359,6 +365,33 @@ func (d GenerateData) writeGenerated(ui cli.Ui, path, content string) error {
 		return err
 	}
 	ui.Info(fmt.Sprintf("generated %s", path))
+	return nil
+}
+
+// registerListResource adds the generated list resource to the service package's
+// registration.go ListResources() method. The change is additive and
+// idempotent; when no registration.go is present (e.g. a scratch output
+// directory) it is skipped with a warning.
+func (d GenerateData) registerListResource(ui cli.Ui, regPath, listStruct string) error {
+	if _, err := os.Stat(regPath); err != nil {
+		ui.Warn(fmt.Sprintf("no registration.go found at %s; skipping list resource registration", regPath))
+		return nil
+	}
+	newSrc, changed, err := source.RegisterListResource(regPath, listStruct)
+	if err != nil {
+		return fmt.Errorf("registering list resource: %w", err)
+	}
+	if !changed {
+		ui.Info(fmt.Sprintf("%s already registered in %s", listStruct, regPath))
+		return nil
+	}
+	if err := os.WriteFile(regPath, newSrc, 0o644); err != nil {
+		return fmt.Errorf("writing %q: %w", regPath, err)
+	}
+	if err := helpers.GoImports(regPath); err != nil {
+		return fmt.Errorf("formatting %q: %w", regPath, err)
+	}
+	ui.Info(fmt.Sprintf("registered %s in %s", listStruct, regPath))
 	return nil
 }
 
