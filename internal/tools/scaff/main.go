@@ -1,6 +1,3 @@
-// Copyright IBM Corp. 2014, 2025
-// SPDX-License-Identifier: MPL-2.0
-
 package main
 
 import (
@@ -10,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/scaff/commands"
 	"github.com/mitchellh/cli"
 )
+
+var Commands map[string]cli.CommandFactory
 
 func main() {
 	os.Exit(realMain(os.Args[1:]))
@@ -28,35 +27,39 @@ func realMain(args []string) int {
 		},
 	}
 
-	commands := map[string]cli.CommandFactory{
-		"resource": func() (cli.Command, error) {
-			return &commands.ResourceCommand{
+	Commands = map[string]cli.CommandFactory{
+		"document": func() (cli.Command, error) {
+			return &commands.DocumentCommand{
 				Ui: ui,
 			}, nil
 		},
-		"list-documentation": func() (cli.Command, error) {
-			return &commands.ListDocumentationCommand{
+		"config": func() (cli.Command, error) {
+			return &commands.GenConfigCommand{
 				Ui: ui,
 			}, nil
 		},
-		"list-resource": func() (cli.Command, error) {
-			return &commands.ListResourceCommand{
+		"servicepackage": func() (cli.Command, error) {
+			return &commands.ServicePackageCommand{
+				Ui: ui,
+			}, nil
+		},
+		"generate": func() (cli.Command, error) {
+			return &commands.GenerateCommand{
 				Ui: ui,
 			}, nil
 		},
 	}
 
-	gen := cli.CLI{
+	scaff := cli.CLI{
 		Args:     args,
-		Commands: commands,
+		Commands: Commands,
 		Name:     "scaff",
-		Version:  "0.1",
+		Version:  "0.1.0",
 	}
 
-	exitStatus, err := gen.Run()
+	exitStatus, err := scaff.Run()
 	if err != nil {
 		log.Println(err)
 	}
-
 	return exitStatus
 }
