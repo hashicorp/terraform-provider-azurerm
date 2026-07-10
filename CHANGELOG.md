@@ -1,6 +1,7 @@
 ## 4.81.0 (Unreleased)
 
 ENHANCEMENTS:
+* dependencies: `go-azure-sdk` - update to `v0.20260709.1191450` [GH-32768]
 * `azurerm_cdn_frontdoor_endpoint` - migrate to `go-azure-sdk` [GH-32741]
 * `azurerm_container_registry` Add support for `azuread_authentication_as_arm_policy_enabled`, `role_assignment_mode` and `network_rule_bypass_allowed_for_tasks` properties [GH-31667]
 * `dependencies` - update `go-azure-helpers` to `v0.81.1` [GH-32732]
@@ -31,6 +32,8 @@ FEATURES:
 * **New List Resource:** `azurerm_cognitive_account_connection_entra_id` [GH-30981]
 
 BUG FIXES:
+* `azurerm_palo_alto_next_generation_firewall_virtual_hub_strata_cloud_manager` - fix an issue that set arguments not present in schema causing an error [GH-32768]
+* `azurerm_palo_alto_next_generation_firewall_virtual_network_strata_cloud_manager` - fix an issue that set arguments not present in schema causing an error [GH-32768]
 * `azurerm_network_security_perimeter_association` - fix create/update methods to poll for async operation completion before returning [GH-32742]
 * `azurerm_virtual_hub_connection` - `remote_virtual_network_id` value will now be parsed case insensitive [GH-32734]
 
