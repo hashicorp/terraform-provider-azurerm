@@ -1744,6 +1744,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_DS2_v2"
   node_count            = 1
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 
   kubelet_config {
     cpu_manager_policy    = "static"
@@ -2399,6 +2402,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "import" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster_node_pool.test.kubernetes_cluster_id
   vm_size               = azurerm_kubernetes_cluster_node_pool.test.vm_size
   node_count            = azurerm_kubernetes_cluster_node_pool.test.node_count
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, r.manualScaleConfig(data))
 }
@@ -2518,6 +2524,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_taints = [
     "kubernetes.azure.com/scalesetpriority=spot:NoSchedule"
   ]
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, r.templateConfig(data))
 }
