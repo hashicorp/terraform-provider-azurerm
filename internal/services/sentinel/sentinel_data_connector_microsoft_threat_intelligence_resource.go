@@ -223,8 +223,7 @@ func expandSentinelDataConnectorMicrosoftThreatIntelligenceMicrosoftEmergingThre
 }
 
 func flattenSentinelDataConnectorMicrosoftThreatIntelligenceTime(input string) (string, error) {
-	// TODO: check if this workaround could be removed in 4.0
-
+	// TODO: check if this workaround could be removed in the future
 	t, err := time.Parse(time.RFC3339, input)
 	if err != nil {
 		t, err = time.Parse("01/02/2006 15:04:05", input)

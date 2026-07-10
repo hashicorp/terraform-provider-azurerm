@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -125,14 +124,13 @@ func TestAccSecurityInsightsIndicator_update(t *testing.T) {
 }
 
 func (r SecurityInsightsIndicatorResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ThreatIntelligenceIndicatorID(state.ID)
+	id, err := threatintelligence.ParseIndicatorID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
 	client := clients.Sentinel.ThreatIntelligenceClient
-	idSDK := threatintelligence.NewIndicatorID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName, id.IndicatorName)
-	resp, err := client.IndicatorGet(ctx, idSDK)
+	resp, err := client.IndicatorGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}

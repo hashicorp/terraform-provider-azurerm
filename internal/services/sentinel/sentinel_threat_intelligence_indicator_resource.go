@@ -15,8 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/threatintelligence"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -103,7 +101,7 @@ func (r ThreatIntelligenceIndicator) ModelObject() interface{} {
 }
 
 func (r ThreatIntelligenceIndicator) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ThreatIntelligenceIndicatorID
+	return threatintelligence.ValidateIndicatorID
 }
 
 func (r ThreatIntelligenceIndicator) Arguments() map[string]*pluginsdk.Schema {
@@ -506,8 +504,7 @@ func (r ThreatIntelligenceIndicator) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating Threat Intelligence Indicator in workspace %s: `model` type mismatch", workspaceId)
 			}
 
-			// TODO: migrate to a `resourceids.ResourceId` ID
-			id, err := parse.ThreatIntelligenceIndicatorID(pointer.From(info.Id))
+			id, err := threatintelligence.ParseIndicatorID(pointer.From(info.Id))
 			if err != nil {
 				return err
 			}
@@ -524,7 +521,7 @@ func (r ThreatIntelligenceIndicator) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Sentinel.ThreatIntelligenceClient
 
-			id, err := parse.ThreatIntelligenceIndicatorID(metadata.ResourceData.Id())
+			id, err := threatintelligence.ParseIndicatorID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -534,8 +531,7 @@ func (r ThreatIntelligenceIndicator) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			idSDK := threatintelligence.NewIndicatorID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName, id.IndicatorName)
-			resp, err := client.IndicatorGet(ctx, idSDK)
+			resp, err := client.IndicatorGet(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
@@ -645,7 +641,7 @@ func (r ThreatIntelligenceIndicator) Update() sdk.ResourceFunc {
 				props.ValidUntil = &model.ValidUntil
 			}
 
-			if _, err := client.IndicatorCreate(ctx, idSDK, v); err != nil {
+			if _, err := client.IndicatorCreate(ctx, *id, v); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -660,12 +656,11 @@ func (r ThreatIntelligenceIndicator) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Sentinel.ThreatIntelligenceClient
 
-			id, err := parse.ThreatIntelligenceIndicatorID(metadata.ResourceData.Id())
+			id, err := threatintelligence.ParseIndicatorID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
-			idSDK := threatintelligence.NewIndicatorID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName, id.IndicatorName)
-			resp, err := client.IndicatorGet(ctx, idSDK)
+			resp, err := client.IndicatorGet(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -674,7 +669,7 @@ func (r ThreatIntelligenceIndicator) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
+			workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
 			state := IndicatorModel{
 				Name:        id.IndicatorName,
 				WorkspaceId: workspaceId.ID(),
@@ -754,13 +749,12 @@ func (r ThreatIntelligenceIndicator) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Sentinel.ThreatIntelligenceClient
 
-			id, err := parse.ThreatIntelligenceIndicatorID(metadata.ResourceData.Id())
+			id, err := threatintelligence.ParseIndicatorID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			idSDK := threatintelligence.NewIndicatorID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName, id.IndicatorName)
-			if _, err := client.IndicatorDelete(ctx, idSDK); err != nil {
+			if _, err := client.IndicatorDelete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
