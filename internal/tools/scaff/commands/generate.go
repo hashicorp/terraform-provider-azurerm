@@ -11,8 +11,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/scaff/gen"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/scaff/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/scaff/ir"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/scaff/list-upgrade"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/scaff/pandora"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/scaff/source"
 
 	"github.com/mitchellh/cli"
 )
@@ -377,7 +377,7 @@ func (d GenerateData) registerListResource(ui cli.Ui, regPath, listStruct string
 		ui.Warn(fmt.Sprintf("no registration.go found at %s; skipping list resource registration", regPath))
 		return nil
 	}
-	newSrc, changed, err := source.RegisterListResource(regPath, listStruct)
+	newSrc, changed, err := list_upgrade.RegisterListResource(regPath, listStruct)
 	if err != nil {
 		return fmt.Errorf("registering list resource: %w", err)
 	}

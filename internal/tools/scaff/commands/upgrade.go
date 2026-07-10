@@ -14,8 +14,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/scaff/gen"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/scaff/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/scaff/ir"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/scaff/list-upgrade"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/scaff/pandora"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/scaff/source"
 	"github.com/mitchellh/cli"
 )
 
@@ -184,7 +184,7 @@ func derefBool(b *bool) bool {
 }
 
 func (c UpgradeCommand) run(d *upgradeData) error {
-	res, err := source.Analyze(d.File)
+	res, err := list_upgrade.Analyze(d.File)
 	if err != nil {
 		return err
 	}
@@ -226,7 +226,7 @@ func (c UpgradeCommand) run(d *upgradeData) error {
 		name = strings.TrimPrefix(res.TerraformType, d.provider()+"_")
 	}
 
-	newSrc, changed, err := res.Upgrade(source.UpgradeOptions{
+	newSrc, changed, err := res.Upgrade(list_upgrade.UpgradeOptions{
 		AddIdentity:        wantIdentity,
 		ExtractFlatten:     wantFlatten,
 		ReadModel:          readModel,
@@ -311,7 +311,7 @@ func (c UpgradeCommand) registerListResource(d *upgradeData, regPath, listStruct
 		c.Ui.Warn(fmt.Sprintf("no registration.go found at %s; skipping list resource registration", regPath))
 		return nil
 	}
-	newSrc, changed, err := source.RegisterListResource(regPath, listStruct)
+	newSrc, changed, err := list_upgrade.RegisterListResource(regPath, listStruct)
 	if err != nil {
 		return fmt.Errorf("registering list resource: %w", err)
 	}
@@ -362,7 +362,7 @@ func (c UpgradeCommand) writeOrPreview(d *upgradeData, path, content string) err
 
 // resolveIR resolves the resource IR from the Pandora Data API, using the
 // explicit service/resource when supplied, otherwise the ARM type.
-func (c UpgradeCommand) resolveIR(d *upgradeData, res *source.Resource) (*ir.ResourceIR, error) {
+func (c UpgradeCommand) resolveIR(d *upgradeData, res *list_upgrade.Resource) (*ir.ResourceIR, error) {
 	pandoraURL := d.PandoraURL
 	if pandoraURL == "" && config != nil {
 		pandoraURL = config.SchemaAPIURL
@@ -410,7 +410,7 @@ func (d *upgradeData) org() string {
 // reconcileIR overrides the Pandora-derived naming, package, model, ID and
 // client fields with the values actually used by the hand-written resource, so
 // the generated list code references real symbols.
-func reconcileIR(res *ir.ResourceIR, a *source.Resource) {
+func reconcileIR(res *ir.ResourceIR, a *list_upgrade.Resource) {
 	res.Name = strings.TrimSuffix(a.StructName, "Resource")
 	if a.SDKPackage != "" {
 		res.SDKPackage = a.SDKPackage
@@ -438,7 +438,7 @@ func reconcileIR(res *ir.ResourceIR, a *source.Resource) {
 	}
 }
 
-func (c UpgradeCommand) printPlan(path string, p source.Plan) {
+func (c UpgradeCommand) printPlan(path string, p list_upgrade.Plan) {
 	c.Ui.Info(fmt.Sprintf("Analyzing %s", path))
 	c.Ui.Info(fmt.Sprintf("  kind:        %s", p.Kind))
 	c.Ui.Info(fmt.Sprintf("  identity:    %s", present(p.HasIdentity)))
