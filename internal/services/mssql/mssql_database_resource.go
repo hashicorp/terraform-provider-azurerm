@@ -1454,8 +1454,9 @@ func expandMsSqlDatabaseSecurityAlertPolicy(d *pluginsdk.ResourceData) databases
 		properties.EmailAccountAdmins = pointer.To(securityAlert["email_account_admins_enabled"].(bool))
 
 		if !features.FivePointOh() {
-			if !pluginsdk.IsExplicitlyNullInConfig(d, "email_account_admins") {
-				properties.EmailAccountAdmins = pointer.To(d.Get("email_account_admins") == string(EmailAccountAdminsStatusEnabled))
+			eaa, diags := d.GetRawConfigAt(sdk.ConstructCtyPath("threat_detection_policy.0.email_account_admins"))
+			if !diags.HasError() && !eaa.IsNull() {
+				properties.EmailAccountAdmins = pointer.To(securityAlert["email_account_admins"] == string(EmailAccountAdminsStatusEnabled))
 			}
 		}
 
