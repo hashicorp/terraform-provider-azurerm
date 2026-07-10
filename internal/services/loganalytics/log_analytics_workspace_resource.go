@@ -95,7 +95,7 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 			"internet_ingestion_access_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  "Enabled",
+				Default:  string(workspaces.PublicNetworkAccessTypeEnabled),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(workspaces.PublicNetworkAccessTypeEnabled),
 					string(workspaces.PublicNetworkAccessTypeDisabled),
@@ -106,7 +106,7 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 			"internet_query_access_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  "Enabled",
+				Default:  string(workspaces.PublicNetworkAccessTypeEnabled),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(workspaces.PublicNetworkAccessTypeEnabled),
 					string(workspaces.PublicNetworkAccessTypeDisabled),
@@ -373,22 +373,26 @@ func resourceLogAnalyticsWorkspaceCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if !features.FivePointOh() {
-		// When the new `internet_*_access_type` properties are not set in the config, fall back to the
-		// deprecated boolean properties which map `true` -> `Enabled` and `false`/unset -> `Disabled`.
-		if _, ok := d.GetOk("internet_ingestion_access_type"); !ok {
-			ingestionAccessType := workspaces.PublicNetworkAccessTypeDisabled
-			if d.Get("internet_ingestion_enabled").(bool) {
-				ingestionAccessType = workspaces.PublicNetworkAccessTypeEnabled
+		if pluginsdk.IsExplicitlyNullInConfig(d, "internet_ingestion_access_type") {
+			parameters.Properties.PublicNetworkAccessForIngestion = pointer.To(workspaces.PublicNetworkAccessTypeEnabled)
+			if !pluginsdk.IsExplicitlyNullInConfig(d, "internet_ingestion_enabled") {
+				ingestionAccessType := workspaces.PublicNetworkAccessTypeDisabled
+				if d.Get("internet_ingestion_enabled").(bool) {
+					ingestionAccessType = workspaces.PublicNetworkAccessTypeEnabled
+				}
+				parameters.Properties.PublicNetworkAccessForIngestion = pointer.To(ingestionAccessType)
 			}
-			parameters.Properties.PublicNetworkAccessForIngestion = pointer.To(ingestionAccessType)
 		}
 
-		if _, ok := d.GetOk("internet_query_access_type"); !ok {
-			queryAccessType := workspaces.PublicNetworkAccessTypeDisabled
-			if d.Get("internet_query_enabled").(bool) {
-				queryAccessType = workspaces.PublicNetworkAccessTypeEnabled
+		if pluginsdk.IsExplicitlyNullInConfig(d, "internet_query_access_type") {
+			parameters.Properties.PublicNetworkAccessForQuery = pointer.To(workspaces.PublicNetworkAccessTypeEnabled)
+			if !pluginsdk.IsExplicitlyNullInConfig(d, "internet_query_enabled") {
+				queryAccessType := workspaces.PublicNetworkAccessTypeDisabled
+				if d.Get("internet_query_enabled").(bool) {
+					queryAccessType = workspaces.PublicNetworkAccessTypeEnabled
+				}
+				parameters.Properties.PublicNetworkAccessForQuery = pointer.To(queryAccessType)
 			}
-			parameters.Properties.PublicNetworkAccessForQuery = pointer.To(queryAccessType)
 		}
 
 		// In v4.0, we can not set default values for those O+C properties, we can only set the values manually.
@@ -539,31 +543,27 @@ func resourceLogAnalyticsWorkspaceUpdate(d *pluginsdk.ResourceData, meta interfa
 		payload.Identity = expandedIdentity
 	}
 
+	if d.HasChange("internet_ingestion_access_type") {
+		props.PublicNetworkAccessForIngestion = pointer.To(workspaces.PublicNetworkAccessType(d.Get("internet_ingestion_access_type").(string)))
+	}
+
+	if d.HasChange("internet_query_access_type") {
+		props.PublicNetworkAccessForQuery = pointer.To(workspaces.PublicNetworkAccessType(d.Get("internet_query_access_type").(string)))
+	}
+
 	if !features.FivePointOh() {
-		if d.HasChange("internet_ingestion_access_type") {
-			props.PublicNetworkAccessForIngestion = pointer.To(workspaces.PublicNetworkAccessType(d.Get("internet_ingestion_access_type").(string)))
-		} else if d.HasChange("internet_ingestion_enabled") {
+		if !d.HasChange("internet_ingestion_access_type") && d.HasChange("internet_ingestion_enabled") {
 			props.PublicNetworkAccessForIngestion = pointer.To(workspaces.PublicNetworkAccessTypeDisabled)
 			if d.Get("internet_ingestion_enabled").(bool) {
 				props.PublicNetworkAccessForIngestion = pointer.To(workspaces.PublicNetworkAccessTypeEnabled)
 			}
 		}
 
-		if d.HasChange("internet_query_access_type") {
-			props.PublicNetworkAccessForQuery = pointer.To(workspaces.PublicNetworkAccessType(d.Get("internet_query_access_type").(string)))
-		} else if d.HasChange("internet_query_enabled") {
+		if !d.HasChange("internet_query_access_type") && d.HasChange("internet_query_enabled") {
 			props.PublicNetworkAccessForQuery = pointer.To(workspaces.PublicNetworkAccessTypeDisabled)
 			if d.Get("internet_query_enabled").(bool) {
 				props.PublicNetworkAccessForQuery = pointer.To(workspaces.PublicNetworkAccessTypeEnabled)
 			}
-		}
-	} else {
-		if d.HasChange("internet_ingestion_access_type") {
-			props.PublicNetworkAccessForIngestion = pointer.To(workspaces.PublicNetworkAccessType(d.Get("internet_ingestion_access_type").(string)))
-		}
-
-		if d.HasChange("internet_query_access_type") {
-			props.PublicNetworkAccessForQuery = pointer.To(workspaces.PublicNetworkAccessType(d.Get("internet_query_access_type").(string)))
 		}
 	}
 
@@ -673,28 +673,14 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 		}
 
 		if props := model.Properties; props != nil {
-			if v := props.PublicNetworkAccessForIngestion; v != nil {
-				d.Set("internet_ingestion_access_type", string(*v))
-				if !features.FivePointOh() {
-					d.Set("internet_ingestion_enabled", *v == workspaces.PublicNetworkAccessTypeEnabled)
-				}
-			} else {
-				d.Set("internet_ingestion_access_type", string(workspaces.PublicNetworkAccessTypeEnabled))
-				if !features.FivePointOh() {
-					d.Set("internet_ingestion_enabled", true)
-				}
+			d.Set("internet_ingestion_access_type", string(pointer.From(props.PublicNetworkAccessForIngestion)))
+			if !features.FivePointOh() {
+				d.Set("internet_ingestion_enabled", pointer.From(props.PublicNetworkAccessForIngestion) == workspaces.PublicNetworkAccessTypeEnabled)
 			}
 
-			if v := props.PublicNetworkAccessForQuery; v != nil {
-				d.Set("internet_query_access_type", string(*v))
-				if !features.FivePointOh() {
-					d.Set("internet_query_enabled", *v == workspaces.PublicNetworkAccessTypeEnabled)
-				}
-			} else {
-				d.Set("internet_query_access_type", string(workspaces.PublicNetworkAccessTypeEnabled))
-				if !features.FivePointOh() {
-					d.Set("internet_query_enabled", true)
-				}
+			d.Set("internet_query_access_type", string(pointer.From(props.PublicNetworkAccessForQuery)))
+			if !features.FivePointOh() {
+				d.Set("internet_query_enabled", pointer.From(props.PublicNetworkAccessForQuery) == workspaces.PublicNetworkAccessTypeEnabled)
 			}
 
 			d.Set("workspace_id", pointer.From(props.CustomerId))
