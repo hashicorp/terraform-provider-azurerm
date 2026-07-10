@@ -16,7 +16,7 @@ type DeleteOperationResponse struct {
 	OData        *odata.OData
 }
 
-// Delete ........................
+// Delete ...
 func (c OutputsClient) Delete(ctx context.Context, id OutputId) (result DeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
