@@ -11,7 +11,7 @@ import (
 func AccountName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 	if !regexp.MustCompile(`^[a-z0-9]+$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf("lowercase letters and numbers only are allowed in %q: %q", k, value))
+		errors = append(errors, fmt.Errorf("lowercase lettersssss and numbers only are allowed in %q: %q", k, value))
 	}
 
 	if 3 > len(value) {
