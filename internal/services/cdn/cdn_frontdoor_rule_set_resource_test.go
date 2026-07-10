@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rulesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rulesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -19,8 +19,6 @@ import (
 type CdnFrontDoorRuleSetResource struct{}
 
 func TestAccCdnFrontDoorRuleSet_basic_unattachedRoute(t *testing.T) {
-	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
-
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule_set", "test")
 	r := CdnFrontDoorRuleSetResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -63,8 +61,6 @@ func TestAccCdnFrontDoorRuleSet_requiresImport(t *testing.T) {
 }
 
 func TestAccCdnFrontDoorRuleSet_complete_unattachedRoute(t *testing.T) {
-	t.Skip(unattachedFrontDoorRuleSetRegressionSkipMessage)
-
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule_set", "test")
 	r := CdnFrontDoorRuleSetResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
