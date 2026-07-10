@@ -696,6 +696,13 @@ func TestAccCdnFrontDoorBatchRuleSet_allActions(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config: r.basicUnattachedRouteWithoutOriginGroupOverride(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.originGroupIdOptionalWithoutOrigin(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -726,6 +733,13 @@ func TestAccCdnFrontDoorBatchRuleSet_allActionsUpdate(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.allActions(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicUnattachedRouteWithoutOriginGroupOverride(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
