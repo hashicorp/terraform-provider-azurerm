@@ -104,6 +104,7 @@ func (r Registration) Resources() []sdk.Resource {
 		VirtualMachineRestorePointResource{},
 		VirtualMachineGalleryApplicationAssignmentResource{},
 		VirtualMachineScaleSetStandbyPoolResource{},
+		ImageBuilderTemplateResource{},
 	}
 }
 
