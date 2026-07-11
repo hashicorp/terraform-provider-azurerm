@@ -60,6 +60,17 @@ type ResourceIR struct {
 	ParentListAttr     string // config attribute name, e.g. "storage_mover_id"
 	ParentParseFunc    string // e.g. "ParseStorageMoverID"
 	ParentValidateFunc string // e.g. "ValidateStorageMoverID"
+	ParentPackage      string // package of the parent ID funcs (untyped); e.g. "virtualwans"
+	ParentImportPath   string // full import path of the parent ID package (untyped)
+
+	// Untyped list support (populated when upgrading a native Plugin SDK resource).
+	Untyped         bool   // render the native Plugin SDK list resource shape
+	ConstructorFunc string // e.g. "resourceVirtualHubIP"
+	FlattenFunc     string // e.g. "resourceVirtualHubIPFlatten"
+	IDPackage       string // ID type package; may differ from SDKPackage (e.g. "commonids")
+	IDImportPath    string // full import path of the ID package
+	TestStructName  string // acceptance-test struct name (may differ in casing from Name+"Resource")
+
 	// Schema (populated in the model-graph walk)
 	ModelStructName string        // top-level model struct, e.g. "RedHatOpenShiftClusterModel"
 	TopLevel        []*Property   // flattened top-level schema properties

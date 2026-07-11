@@ -45,7 +45,7 @@ func (r *Resource) PlanUpgrade() Plan {
 	case KindTyped:
 		p.Supported = true
 	case KindUntyped:
-		p.Reason = "untyped resources are not yet supported by `scaff upgrade`"
+		p.Supported = true
 	default:
 		p.Reason = "could not classify the file as a typed or untyped resource"
 	}
@@ -55,10 +55,18 @@ func (r *Resource) PlanUpgrade() Plan {
 // Upgrade computes and applies the requested source edits, returning the new
 // source. It never writes to disk. changed is false when nothing needed doing.
 func (r *Resource) Upgrade(opts UpgradeOptions) (newSrc []byte, changed bool, err error) {
-	if r.Kind != KindTyped {
-		return nil, false, fmt.Errorf("`scaff upgrade` currently supports typed resources only (got %s)", r.Kind)
+	switch r.Kind {
+	case KindTyped:
+		return r.upgradeTyped(opts)
+	case KindUntyped:
+		return r.upgradeUntyped(opts)
+	default:
+		return nil, false, fmt.Errorf("unsupported resource kind %q", r.Kind)
 	}
+}
 
+// upgradeTyped computes the edits for an internal/sdk typed resource.
+func (r *Resource) upgradeTyped(opts UpgradeOptions) (newSrc []byte, changed bool, err error) {
 	e := newEditor(r.src)
 	withIdentity := r.HasIdentity || opts.AddIdentity
 

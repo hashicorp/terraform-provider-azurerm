@@ -73,13 +73,17 @@ func TestUpgrade_TypedUpgraded_NoChanges(t *testing.T) {
 	}
 }
 
-func TestUpgrade_Untyped_Unsupported(t *testing.T) {
+func TestPlanUpgrade_UntypedSupported(t *testing.T) {
 	r, err := Analyze(filepath.Join("testdata", "untyped_plain.go"))
 	if err != nil {
 		t.Fatalf("Analyze: %v", err)
 	}
-	if _, _, err := r.Upgrade(UpgradeOptions{AddIdentity: true}); err == nil {
-		t.Errorf("expected an error upgrading an untyped resource")
+	plan := r.PlanUpgrade()
+	if plan.Kind != KindUntyped {
+		t.Fatalf("expected untyped kind, got %s", plan.Kind)
+	}
+	if !plan.Supported {
+		t.Errorf("expected untyped resources to be supported, got reason: %s", plan.Reason)
 	}
 }
 

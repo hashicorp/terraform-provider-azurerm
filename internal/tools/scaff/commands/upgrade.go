@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/scaff/gen"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/scaff/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/scaff/ir"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/scaff/list-upgrade"
+	list_upgrade "github.com/hashicorp/terraform-provider-azurerm/internal/tools/scaff/list-upgrade"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/scaff/pandora"
 	"github.com/mitchellh/cli"
 )
@@ -37,6 +37,7 @@ type upgradeData struct {
 	Name          string
 	GoName        string
 	ReadModel     string
+	ListMethod    string
 	IdentityProps string
 	Identity      bool
 	Flatten       bool
@@ -73,6 +74,7 @@ type upgradeBlock struct {
 	APIVersion    string `hcl:"api_version,optional"`
 	GoName        string `hcl:"go_name,optional"`
 	ReadModel     string `hcl:"read_model,optional"`
+	ListMethod    string `hcl:"list_method,optional"`
 	IdentityProps string `hcl:"identity_properties,optional"`
 	Identity      *bool  `hcl:"identity,optional"`
 	Flatten       *bool  `hcl:"flatten,optional"`
@@ -89,6 +91,7 @@ func (d *upgradeData) parseArgs(args []string) error {
 	set.StringVar(&d.Name, "name", "", "(Optional) terraform resource name (snake_case, without provider prefix); derived from the file when omitted")
 	set.StringVar(&d.GoName, "go-name", "", "(Optional) Go identifier override for the resource")
 	set.StringVar(&d.ReadModel, "read-model", "", "(Optional) SDK read-model type name; overrides the value resolved from Pandora")
+	set.StringVar(&d.ListMethod, "list-method", "", "(Optional) parent-scoped SDK list method name (without the Complete suffix); overrides the value derived from the Get method")
 	set.StringVar(&d.IdentityProps, "identity-properties", "", "(Optional) -properties value for the identity test go:generate directive; defaults to \"name,resource_group_name\"")
 	set.BoolVar(&d.Identity, "identity", false, "(Optional) add Resource Identity if missing")
 	set.BoolVar(&d.Flatten, "flatten", false, "(Optional) refactor Read into a reusable flatten method if missing")
@@ -149,9 +152,12 @@ func (c UpgradeCommand) runFromFile(d *upgradeData) error {
 		overwrite = *file.Overwrite
 	}
 
+	var failures []string
 	for _, b := range file.Resources {
 		if b.File == "" {
-			return fmt.Errorf("resource %q: file is required", b.Name)
+			c.Ui.Error(fmt.Sprintf("resource %q: file is required", b.Name))
+			failures = append(failures, b.Name)
+			continue
 		}
 		rd := &upgradeData{
 			File:          b.File,
@@ -162,6 +168,7 @@ func (c UpgradeCommand) runFromFile(d *upgradeData) error {
 			Name:          b.Name,
 			GoName:        b.GoName,
 			ReadModel:     b.ReadModel,
+			ListMethod:    b.ListMethod,
 			IdentityProps: b.IdentityProps,
 			Identity:      derefBool(b.Identity),
 			Flatten:       derefBool(b.Flatten),
@@ -172,9 +179,17 @@ func (c UpgradeCommand) runFromFile(d *upgradeData) error {
 			Provider:      file.Provider,
 			Org:           file.Org,
 		}
+		// Continue past a failed resource so one unsupported entry (e.g. an
+		// untyped resource) does not abort the whole batch; failures are
+		// collected and reported together at the end.
 		if err := c.run(rd); err != nil {
-			return fmt.Errorf("resource %q: %w", b.Name, err)
+			c.Ui.Error(fmt.Sprintf("resource %q: %+v", b.Name, err))
+			failures = append(failures, b.Name)
+			continue
 		}
+	}
+	if len(failures) > 0 {
+		return fmt.Errorf("%d of %d resource(s) could not be upgraded: %s", len(failures), len(file.Resources), strings.Join(failures, ", "))
 	}
 	return nil
 }
@@ -204,21 +219,33 @@ func (c UpgradeCommand) run(d *upgradeData) error {
 	wantIdentity := (d.Identity || d.List) && !res.HasIdentity
 	wantFlatten := (d.Flatten || d.List) && !res.HasFlatten
 
-	// Resolve the IR from Pandora when we need the read model or list operations.
+	// A resource with a detected parent scope (typed or untyped) is fully
+	// derivable from source, so it neither needs nor can rely on Pandora.
+	sourceOnly := res.ParentIDType != ""
+
+	// Read model: -read-model flag > vendor-derived (authoritative: the type of
+	// resp.Model) > Pandora (last resort). The flatten parameter and list results
+	// must match resp.Model exactly.
+	readModel := d.ReadModel
+	if readModel == "" {
+		readModel = res.ReadModel
+	}
+
+	// Resolve the IR from Pandora only when we still need the read model or the
+	// list operations (i.e. not fully source-derivable).
 	var resolved *ir.ResourceIR
-	if d.List || (wantFlatten && d.ReadModel == "") {
+	if !sourceOnly && (d.List || (wantFlatten && readModel == "")) {
 		resolved, err = c.resolveIR(d, res)
 		if err != nil {
 			return fmt.Errorf("resolving API definitions (provide -read-model to skip, or -arm-type/-service+-resource): %w", err)
 		}
 	}
 
-	readModel := d.ReadModel
 	if readModel == "" && resolved != nil {
 		readModel = resolved.ReadModel
 	}
 	if wantFlatten && readModel == "" {
-		return errors.New("refactoring Read into flatten needs the SDK read model; provide -read-model or -arm-type")
+		return errors.New("refactoring Read into flatten needs the SDK read model; provide -read-model (required for parent-scoped resources) or -arm-type")
 	}
 
 	name := d.Name
@@ -242,15 +269,73 @@ func (c UpgradeCommand) run(d *upgradeData) error {
 	}
 
 	if d.List {
-		if resolved == nil {
-			return errors.New("-list requires API definitions; provide -arm-type or -service and -resource")
+		if sourceOnly {
+			if readModel == "" {
+				return errors.New("-list for a parent-scoped resource requires the SDK read model; provide read_model")
+			}
+			resolved = c.sourceListIR(res, d, readModel)
+		} else {
+			if resolved == nil {
+				return errors.New("-list requires API definitions; provide -arm-type or -service and -resource")
+			}
+			reconcileIR(resolved, res)
 		}
-		reconcileIR(resolved, res)
 		if err := c.generateList(d, resolved); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+// sourceListIR builds the list IR for an untyped, parent-scoped child resource
+// entirely from the parsed source plus the supplied read model, bypassing
+// Pandora (whose grouping cannot always distinguish such sub-resources).
+func (c UpgradeCommand) sourceListIR(a *list_upgrade.Resource, d *upgradeData, readModel string) *ir.ResourceIR {
+	provider, org := d.provider(), d.org()
+	name := d.Name
+	if name == "" {
+		name = a.BaseName
+	}
+	listMethod := a.ListMethod
+	if d.ListMethod != "" {
+		listMethod = d.ListMethod
+	}
+	terraformType := a.TerraformType
+	if terraformType == "" {
+		terraformType = provider + "_" + name
+	}
+	res := &ir.ResourceIR{
+		ProviderName:       provider,
+		ProviderGithubOrg:  org,
+		ServicePackage:     a.Package,
+		ServiceName:        a.ServiceName,
+		ClientField:        a.ClientField,
+		TerraformType:      terraformType,
+		SDKPackage:         a.SDKPackage,
+		SDKImportPath:      a.SDKImportPath,
+		ReadModel:          readModel,
+		IDPackage:          a.IDPackage,
+		IDImportPath:       a.IDImportPath,
+		IDParseFunc:        a.IDParseFunc,
+		IDTypeName:         a.IDTypeName,
+		IsListable:         true,
+		ListByParentOp:     listMethod,
+		ParentIDType:       a.ParentIDType,
+		ParentListAttr:     a.ParentAttr,
+		ParentParseFunc:    a.ParentParseFunc,
+		ParentValidateFunc: a.ParentValidateFunc,
+		ParentPackage:      a.ParentPackage,
+		ParentImportPath:   a.ParentImportPath,
+	}
+	if a.Kind == list_upgrade.KindUntyped {
+		res.Untyped = true
+		res.Name = a.BaseName
+		res.ConstructorFunc = a.ConstructorFunc
+		res.FlattenFunc = a.ConstructorFunc + "Flatten"
+	} else {
+		res.Name = strings.TrimSuffix(a.StructName, "Resource")
+	}
+	return res
 }
 
 // applyResource writes or previews the upgraded resource file.
@@ -283,21 +368,31 @@ func (c UpgradeCommand) generateList(d *upgradeData, res *ir.ResourceIR) error {
 	if err != nil {
 		return err
 	}
-	listTestGo, err := gen.GenerateListTest(res)
-	if err != nil {
-		return err
-	}
 
 	dir := filepath.Dir(d.File)
 	base := strings.TrimSuffix(filepath.Base(d.File), "_resource.go")
 	listFile := filepath.Join(dir, base+"_resource_list.go")
-	listTestFile := filepath.Join(dir, base+"_resource_list_test.go")
 
 	if err := c.writeOrPreview(d, listFile, listGo); err != nil {
 		return err
 	}
-	if err := c.writeOrPreview(d, listTestFile, listTestGo); err != nil {
-		return err
+
+	// Generate the acceptance test, referencing the resource's existing test
+	// struct (whose casing may differ from the resource base name).
+	if res.TestStructName == "" {
+		res.TestStructName = list_upgrade.TestStructName(d.File)
+	}
+	if res.TestStructName != "" {
+		listTestGo, err := gen.GenerateListTest(res)
+		if err != nil {
+			return err
+		}
+		listTestFile := filepath.Join(dir, base+"_resource_list_test.go")
+		if err := c.writeOrPreview(d, listTestFile, listTestGo); err != nil {
+			return err
+		}
+	} else {
+		c.Ui.Warn(fmt.Sprintf("no acceptance-test struct found alongside %s; skipping list test generation", d.File))
 	}
 
 	regPath := filepath.Join(dir, "registration.go")
@@ -411,7 +506,16 @@ func (d *upgradeData) org() string {
 // client fields with the values actually used by the hand-written resource, so
 // the generated list code references real symbols.
 func reconcileIR(res *ir.ResourceIR, a *list_upgrade.Resource) {
-	res.Name = strings.TrimSuffix(a.StructName, "Resource")
+	if a.Kind == list_upgrade.KindUntyped {
+		res.Untyped = true
+		res.Name = a.BaseName
+		res.ConstructorFunc = a.ConstructorFunc
+		res.FlattenFunc = a.ConstructorFunc + "Flatten"
+		res.IDPackage = a.IDPackage
+		res.IDImportPath = a.IDImportPath
+	} else {
+		res.Name = strings.TrimSuffix(a.StructName, "Resource")
+	}
 	if a.SDKPackage != "" {
 		res.SDKPackage = a.SDKPackage
 	}

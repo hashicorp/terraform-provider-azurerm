@@ -12,10 +12,173 @@ import (
 // the subscription/resource-group scoped shape or the parent-scoped shape based
 // on the operations discovered for the resource.
 func RenderListResource(res *ir.ResourceIR) string {
+	if res.Untyped {
+		return renderUntypedList(res)
+	}
 	if res.ListBySubscriptionOp != "" || res.ListByResourceGroupOp != "" {
 		return renderSubscriptionScopedList(res)
 	}
 	return renderParentScopedList(res)
+}
+
+// renderUntypedList renders a list resource for a native Plugin SDK (untyped)
+// resource. It wraps the resource's own constructor and flatten function rather
+// than the internal/sdk typed wrapper, choosing the parent-scoped shape for
+// child resources and the subscription/resource-group shape otherwise.
+func renderUntypedList(res *ir.ResourceIR) string {
+	if res.ListByParentOp != "" {
+		return renderUntypedParentScopedList(res)
+	}
+	return renderUntypedSubscriptionScopedList(res)
+}
+
+// renderUntypedListImports writes the import block shared by the untyped list
+// resource shapes.
+func renderUntypedListImports(sb *strings.Builder, res *ir.ResourceIR, parentScoped bool) {
+	sb.WriteString("import (\n")
+	sb.WriteString("\"context\"\n\"fmt\"\n\n")
+	if parentScoped {
+		sb.WriteString("\"github.com/hashicorp/go-azure-helpers/framework/typehelpers\"\n")
+	}
+	sb.WriteString("\"github.com/hashicorp/go-azure-helpers/lang/pointer\"\n")
+	if !parentScoped {
+		sb.WriteString("\"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids\"\n")
+	}
+	fmt.Fprintf(sb, "%q\n", res.SDKImportPath)
+	if res.IDImportPath != "" && res.IDImportPath != res.SDKImportPath && res.IDPackage != "commonids" {
+		fmt.Fprintf(sb, "%q\n", res.IDImportPath)
+	}
+	if parentScoped && res.ParentImportPath != "" && res.ParentImportPath != res.SDKImportPath && res.ParentImportPath != res.IDImportPath {
+		fmt.Fprintf(sb, "%q\n", res.ParentImportPath)
+	}
+	sb.WriteString("\"github.com/hashicorp/terraform-plugin-framework/list\"\n")
+	if parentScoped {
+		sb.WriteString("\"github.com/hashicorp/terraform-plugin-framework/list/schema\"\n")
+	}
+	sb.WriteString("\"github.com/hashicorp/terraform-plugin-framework/resource\"\n")
+	if parentScoped {
+		sb.WriteString("\"github.com/hashicorp/terraform-plugin-framework/schema/validator\"\n")
+		sb.WriteString("\"github.com/hashicorp/terraform-plugin-framework/types\"\n")
+	}
+	sb.WriteString("\"github.com/hashicorp/terraform-plugin-sdk/v2/terraform\"\n")
+	fmt.Fprintf(sb, "\"github.com/%s/terraform-provider-%s/internal/sdk\"\n", res.ProviderGithubOrg, res.ProviderName)
+	fmt.Fprintf(sb, "\"github.com/%s/terraform-provider-%s/internal/tf/pluginsdk\"\n", res.ProviderGithubOrg, res.ProviderName)
+	sb.WriteString(")\n\n")
+}
+
+// renderUntypedPreamble writes the interface assertion, Metadata and
+// ResourceFunc shared by the untyped list resource shapes.
+func renderUntypedPreamble(sb *strings.Builder, res *ir.ResourceIR) {
+	fmt.Fprintf(sb, "var _ sdk.FrameworkListWrappedResource = new(%sListResource)\n\n", res.Name)
+	fmt.Fprintf(sb, "func (%sListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {\n", res.Name)
+	fmt.Fprintf(sb, "response.TypeName = %q\n}\n\n", res.TerraformType)
+	fmt.Fprintf(sb, "func (%sListResource) ResourceFunc() *pluginsdk.Resource {\n", res.Name)
+	fmt.Fprintf(sb, "return %s()\n}\n\n", res.ConstructorFunc)
+}
+
+// renderUntypedSubscriptionScopedList renders an untyped list resource for a
+// top-level resource listed by subscription and/or resource group.
+func renderUntypedSubscriptionScopedList(res *ir.ResourceIR) string {
+	var sb strings.Builder
+	fmt.Fprintf(&sb, "package %s\n\n", res.ServicePackage)
+	renderUntypedListImports(&sb, res, false)
+
+	fmt.Fprintf(&sb, "type %sListResource struct{}\n\n", res.Name)
+	renderUntypedPreamble(&sb, res)
+
+	fmt.Fprintf(&sb, "func (%sListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {\n", res.Name)
+	fmt.Fprintf(&sb, "client := metadata.Client.%s.%s\n\n", res.ServiceName, res.ClientField)
+	sb.WriteString("var data sdk.DefaultListModel\n")
+	sb.WriteString("diags := request.Config.Get(ctx, &data)\n")
+	sb.WriteString("if diags.HasError() {\nstream.Results = list.ListResultsStreamDiagnostics(diags)\nreturn\n}\n\n")
+	fmt.Fprintf(&sb, "var results []%s.%s\n", res.SDKPackage, res.ReadModel)
+	sb.WriteString("subscriptionID := metadata.SubscriptionId\n")
+	sb.WriteString("if !data.SubscriptionId.IsNull() {\nsubscriptionID = data.SubscriptionId.ValueString()\n}\n\n")
+
+	rgCall := func() {
+		fmt.Fprintf(&sb, "resp, err := client.%sComplete(ctx, commonids.NewResourceGroupID(subscriptionID, data.ResourceGroupName.ValueString()))\n", res.ListByResourceGroupOp)
+		fmt.Fprintf(&sb, "if err != nil {\nsdk.SetResponseErrorDiagnostic(stream, %q, err)\nreturn\n}\n", "listing "+res.TerraformType)
+		sb.WriteString("results = resp.Items\n")
+	}
+	subCall := func() {
+		fmt.Fprintf(&sb, "resp, err := client.%sComplete(ctx, commonids.NewSubscriptionID(subscriptionID))\n", res.ListBySubscriptionOp)
+		fmt.Fprintf(&sb, "if err != nil {\nsdk.SetResponseErrorDiagnostic(stream, %q, err)\nreturn\n}\n", "listing "+res.TerraformType)
+		sb.WriteString("results = resp.Items\n")
+	}
+	switch {
+	case res.ListByResourceGroupOp != "" && res.ListBySubscriptionOp != "":
+		sb.WriteString("switch {\ncase !data.ResourceGroupName.IsNull():\n")
+		rgCall()
+		sb.WriteString("default:\n")
+		subCall()
+		sb.WriteString("}\n\n")
+	case res.ListByResourceGroupOp != "":
+		rgCall()
+		sb.WriteString("\n")
+	default:
+		subCall()
+		sb.WriteString("\n")
+	}
+
+	renderUntypedListStream(&sb, res, "results")
+	sb.WriteString("}\n")
+	return sb.String()
+}
+
+// renderUntypedParentScopedList renders an untyped list resource for a child
+// resource listed under a parent (a required parent ID is supplied via the list
+// config); it issues a single parent-scoped List call.
+func renderUntypedParentScopedList(res *ir.ResourceIR) string {
+	var sb strings.Builder
+	fmt.Fprintf(&sb, "package %s\n\n", res.ServicePackage)
+	renderUntypedListImports(&sb, res, true)
+
+	fmt.Fprintf(&sb, "type %sListResource struct{}\n\n", res.Name)
+	fmt.Fprintf(&sb, "type %sListModel struct {\n%s types.String `tfsdk:%q`\n}\n\n", res.Name, res.ParentIDType, res.ParentListAttr)
+	renderUntypedPreamble(&sb, res)
+
+	fmt.Fprintf(&sb, "func (%sListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {\n", res.Name)
+	sb.WriteString("response.Schema = schema.Schema{\nAttributes: map[string]schema.Attribute{\n")
+	fmt.Fprintf(&sb, "%q: schema.StringAttribute{\nRequired: true,\nValidators: []validator.String{\n", res.ParentListAttr)
+	fmt.Fprintf(&sb, "typehelpers.WrappedStringValidator{Func: %s.%s},\n", res.ParentPackage, res.ParentValidateFunc)
+	sb.WriteString("},\n},\n},\n}\n}\n\n")
+
+	fmt.Fprintf(&sb, "func (%sListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {\n", res.Name)
+	fmt.Fprintf(&sb, "client := metadata.Client.%s.%s\n\n", res.ServiceName, res.ClientField)
+	fmt.Fprintf(&sb, "var data %sListModel\n", res.Name)
+	sb.WriteString("diags := request.Config.Get(ctx, &data)\n")
+	sb.WriteString("if diags.HasError() {\nstream.Results = list.ListResultsStreamDiagnostics(diags)\nreturn\n}\n\n")
+	fmt.Fprintf(&sb, "parentID, err := %s.%s(data.%s.ValueString())\n", res.ParentPackage, res.ParentParseFunc, res.ParentIDType)
+	fmt.Fprintf(&sb, "if err != nil {\nsdk.SetResponseErrorDiagnostic(stream, %q, err)\nreturn\n}\n\n", "parsing parent ID for "+res.TerraformType)
+	fmt.Fprintf(&sb, "resp, err := client.%sComplete(ctx, *parentID)\n", res.ListByParentOp)
+	fmt.Fprintf(&sb, "if err != nil {\nsdk.SetResponseErrorDiagnostic(stream, %q, err)\nreturn\n}\n\n", "listing "+res.TerraformType)
+
+	renderUntypedListStream(&sb, res, "resp.Items")
+	sb.WriteString("}\n")
+	return sb.String()
+}
+
+// renderUntypedListStream renders the stream.Results closure for a native
+// Plugin SDK list resource, building a ResourceData from the resource's own
+// constructor and populating it via its flatten function.
+func renderUntypedListStream(sb *strings.Builder, res *ir.ResourceIR, itemsExpr string) {
+	idPkg := res.IDPackage
+	if idPkg == "" {
+		idPkg = res.SDKPackage
+	}
+	sb.WriteString("stream.Results = func(push func(list.ListResult) bool) {\n")
+	fmt.Fprintf(sb, "for _, item := range %s {\n", itemsExpr)
+	sb.WriteString("result := request.NewListResult(ctx)\n")
+	sb.WriteString("result.DisplayName = pointer.From(item.Name)\n\n")
+	fmt.Fprintf(sb, "rd := %s().Data(&terraform.InstanceState{})\n", res.ConstructorFunc)
+	fmt.Fprintf(sb, "id, err := %s.%sInsensitively(pointer.From(item.Id))\n", idPkg, res.IDParseFunc)
+	fmt.Fprintf(sb, "if err != nil {\nsdk.SetErrorDiagnosticAndPushListResult(result, push, %q, err)\nreturn\n}\n", "parsing "+res.TerraformType+" ID")
+	sb.WriteString("rd.SetId(id.ID())\n\n")
+	fmt.Fprintf(sb, "if err := %s(rd, id, &item); err != nil {\nsdk.SetErrorDiagnosticAndPushListResult(result, push, %q, err)\nreturn\n}\n\n", res.FlattenFunc, "encoding "+res.TerraformType+" resource data")
+	sb.WriteString("sdk.EncodeListResult(ctx, rd, &result)\n")
+	sb.WriteString("if result.Diagnostics.HasError() {\npush(result)\nreturn\n}\n")
+	sb.WriteString("if !push(result) {\nreturn\n}\n")
+	sb.WriteString("}\n}\n")
 }
 
 // renderSubscriptionScopedList renders a list resource for a top-level resource
@@ -82,6 +245,10 @@ func renderSubscriptionScopedList(res *ir.ResourceIR) string {
 // its parent (a required parent ID is supplied via the list config).
 func renderParentScopedList(res *ir.ResourceIR) string {
 	var sb strings.Builder
+	parentPkg := res.ParentPackage
+	if parentPkg == "" {
+		parentPkg = res.SDKPackage
+	}
 	fmt.Fprintf(&sb, "package %s\n\n", res.ServicePackage)
 
 	sb.WriteString("import (\n")
@@ -89,6 +256,9 @@ func renderParentScopedList(res *ir.ResourceIR) string {
 	sb.WriteString("\"github.com/hashicorp/go-azure-helpers/framework/typehelpers\"\n")
 	sb.WriteString("\"github.com/hashicorp/go-azure-helpers/lang/pointer\"\n")
 	fmt.Fprintf(&sb, "%q\n", res.SDKImportPath)
+	if res.ParentImportPath != "" && res.ParentImportPath != res.SDKImportPath {
+		fmt.Fprintf(&sb, "%q\n", res.ParentImportPath)
+	}
 	sb.WriteString("\"github.com/hashicorp/terraform-plugin-framework/list\"\n")
 	sb.WriteString("\"github.com/hashicorp/terraform-plugin-framework/list/schema\"\n")
 	sb.WriteString("\"github.com/hashicorp/terraform-plugin-framework/resource\"\n")
@@ -114,7 +284,7 @@ func renderParentScopedList(res *ir.ResourceIR) string {
 	fmt.Fprintf(&sb, "%q: schema.StringAttribute{\n", res.ParentListAttr)
 	sb.WriteString("Required: true,\n")
 	sb.WriteString("Validators: []validator.String{\n")
-	fmt.Fprintf(&sb, "typehelpers.WrappedStringValidator{Func: %s.%s},\n", res.SDKPackage, res.ParentValidateFunc)
+	fmt.Fprintf(&sb, "typehelpers.WrappedStringValidator{Func: %s.%s},\n", parentPkg, res.ParentValidateFunc)
 	sb.WriteString("},\n},\n},\n}\n}\n\n")
 
 	fmt.Fprintf(&sb, "func (%sListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {\n", res.Name)
@@ -123,7 +293,7 @@ func renderParentScopedList(res *ir.ResourceIR) string {
 	sb.WriteString("diags := request.Config.Get(ctx, &data)\n")
 	sb.WriteString("if diags.HasError() {\nstream.Results = list.ListResultsStreamDiagnostics(diags)\nreturn\n}\n\n")
 	fmt.Fprintf(&sb, "resource := %sResource{}\n\n", res.Name)
-	fmt.Fprintf(&sb, "parentID, err := %s.%s(data.%s.ValueString())\n", res.SDKPackage, res.ParentParseFunc, res.ParentIDType)
+	fmt.Fprintf(&sb, "parentID, err := %s.%s(data.%s.ValueString())\n", parentPkg, res.ParentParseFunc, res.ParentIDType)
 	sb.WriteString("if err != nil {\nsdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf(\"parsing parent ID for `%s`\", resource.ResourceType()), err)\nreturn\n}\n\n")
 	fmt.Fprintf(&sb, "resp, err := client.%sComplete(ctx, *parentID)\n", res.ListByParentOp)
 	sb.WriteString("if err != nil {\nsdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf(\"listing `%s`\", resource.ResourceType()), err)\nreturn\n}\n\n")
@@ -178,10 +348,14 @@ type listTestData struct {
 // resource's own _test.go provides a basic(data) config method.
 func RenderListTest(res *ir.ResourceIR) string {
 	useRG := res.ListBySubscriptionOp != "" || res.ListByResourceGroupOp != ""
+	resourceStruct := res.TestStructName
+	if resourceStruct == "" {
+		resourceStruct = res.Name + "Resource"
+	}
 	data := listTestData{
 		PackageName:           res.ServicePackage,
 		TestName:              res.Name,
-		ResourceStruct:        res.Name + "TestResource",
+		ResourceStruct:        resourceStruct,
 		TerraformResourceName: res.TerraformType,
 		UseResourceGroup:      useRG,
 	}

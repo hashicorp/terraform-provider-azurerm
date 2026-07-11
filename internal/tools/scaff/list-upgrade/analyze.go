@@ -48,6 +48,8 @@ type Resource struct {
 	// SDK + resource ID.
 	SDKPackage     string // e.g. "azuremonitorworkspaces"
 	SDKImportPath  string // full import path
+	IDPackage      string // package of the ID type; may differ from SDKPackage (e.g. "commonids")
+	IDImportPath   string // full import path of the ID package
 	IDTypeName     string // e.g. "AccountId"
 	IDBase         string // e.g. "Account"
 	IDParseFunc    string // e.g. "ParseAccountID"
@@ -56,6 +58,27 @@ type Resource struct {
 	// Client accessor, parsed from metadata.Client.<Service>.<Field>.
 	ServiceName string // e.g. "Monitor"
 	ClientField string // e.g. "WorkspacesClient"
+
+	// Untyped resource (native *pluginsdk.Resource).
+	ConstructorFunc string // e.g. "resourceSubnetServiceEndpointStoragePolicy"
+	BaseName        string // e.g. "SubnetServiceEndpointStoragePolicy"
+	CreateFunc      string // e.g. "resourceSubnetServiceEndpointStoragePolicyCreate"
+	ReadFunc        string
+	UpdateFunc      string
+	DeleteFunc      string
+	FlattenFunc     string // e.g. "resourceSubnetServiceEndpointStoragePolicyFlatten"
+	GetMethod       string // client Get method name, e.g. "Get" or "VirtualHubIPConfigurationGet"
+	ReadModel       string // SDK read-model type (type of resp.Model), derived from the vendored SDK
+
+	// Parent scope (child resources listed under a parent, e.g. virtual_hub_id).
+	ParentIDBase       string // e.g. "VirtualHub"
+	ParentIDType       string // e.g. "VirtualHubId"
+	ParentPackage      string // package of the parent ID funcs, e.g. "virtualwans"
+	ParentImportPath   string // full import path of the parent ID package
+	ParentParseFunc    string // e.g. "ParseVirtualHubID"
+	ParentValidateFunc string // e.g. "ValidateVirtualHubID"
+	ParentAttr         string // config attribute, e.g. "virtual_hub_id"
+	ListMethod         string // client parent-scoped list method, e.g. "VirtualHubIPConfigurationList"
 
 	// Feature detection.
 	HasIdentity bool
@@ -70,6 +93,10 @@ type Resource struct {
 	assertDecl *ast.GenDecl               // var (…) block or single var holding sdk.Resource* assertions
 	methods    map[string]*ast.FuncDecl   // resource methods keyed by name
 	imports    map[string]*ast.ImportSpec // package name -> import spec
+
+	// Located declarations (untyped).
+	funcs       map[string]*ast.FuncDecl // top-level funcs keyed by name
+	resourceLit *ast.CompositeLit        // the &pluginsdk.Resource{...} literal
 }
 
 // Analyze parses the file at path and derives everything the upgrader needs to
@@ -95,9 +122,11 @@ func Analyze(path string) (*Resource, error) {
 		src:     src,
 		methods: map[string]*ast.FuncDecl{},
 		imports: map[string]*ast.ImportSpec{},
+		funcs:   map[string]*ast.FuncDecl{},
 	}
 
 	r.collectImports()
+	r.collectFuncs()
 
 	if structName := r.findTypedResourceStruct(); structName != "" {
 		r.Kind = KindTyped
@@ -107,8 +136,9 @@ func Analyze(path string) (*Resource, error) {
 		return r, nil
 	}
 
-	if r.isUntyped() {
+	if ctor := r.findUntypedConstructor(); ctor != nil {
 		r.Kind = KindUntyped
+		r.analyzeUntyped(ctor)
 		return r, nil
 	}
 
@@ -260,6 +290,18 @@ func (r *Resource) analyzeTyped() {
 			r.IDValidateFunc = "Validate" + r.IDBase + "ID"
 		}
 	}
+
+	// The Get method (from the Read closure) drives the read model (from the
+	// vendored SDK) and the parent-scoped list method for child resources.
+	if fd := r.methods["Read"]; fd != nil {
+		if body := resourceFuncBody(fd); body != nil {
+			if _, method, _ := findGetAssignment(body.Body.List, body); method != "" {
+				r.GetMethod = method
+			}
+		}
+	}
+	r.deriveReadModel()
+	r.detectTypedParent()
 }
 
 // hasAssertion reports whether the resource declares an `sdk.<name>` interface
@@ -299,6 +341,21 @@ func (r *Resource) setSDKPackage(pkg string) {
 // isUntyped reports whether the file declares a native Plugin SDK resource via a
 // func returning *pluginsdk.Resource.
 func (r *Resource) isUntyped() bool {
+	return r.findUntypedConstructor() != nil
+}
+
+// collectFuncs indexes all top-level (non-method) function declarations by name.
+func (r *Resource) collectFuncs() {
+	for _, decl := range r.file.Decls {
+		if fd, ok := decl.(*ast.FuncDecl); ok && fd.Recv == nil {
+			r.funcs[fd.Name.Name] = fd
+		}
+	}
+}
+
+// findUntypedConstructor returns the `func resourceX() *pluginsdk.Resource`
+// constructor of a native Plugin SDK resource, if present.
+func (r *Resource) findUntypedConstructor() *ast.FuncDecl {
 	for _, decl := range r.file.Decls {
 		fd, ok := decl.(*ast.FuncDecl)
 		if !ok || fd.Recv != nil || !strings.HasPrefix(fd.Name.Name, "resource") {
@@ -310,12 +367,12 @@ func (r *Resource) isUntyped() bool {
 		if star, ok := fd.Type.Results.List[0].Type.(*ast.StarExpr); ok {
 			if sel, ok := star.X.(*ast.SelectorExpr); ok {
 				if pkg, ok := sel.X.(*ast.Ident); ok && pkg.Name == "pluginsdk" && sel.Sel.Name == "Resource" {
-					return true
+					return fd
 				}
 			}
 		}
 	}
-	return false
+	return nil
 }
 
 // ----- small AST readers -----
