@@ -95,7 +95,7 @@ func (d *upgradeData) parseArgs(args []string) error {
 	set.StringVar(&d.IdentityProps, "identity-properties", "", "(Optional) -properties value for the identity test go:generate directive; defaults to \"name,resource_group_name\"")
 	set.BoolVar(&d.Identity, "identity", false, "(Optional) add Resource Identity if missing")
 	set.BoolVar(&d.Flatten, "flatten", false, "(Optional) refactor Read into a reusable flatten method if missing")
-	set.BoolVar(&d.List, "list", false, "(Optional) make the resource list-ready (identity + flatten) and generate the list resource")
+	set.BoolVar(&d.List, "list", true, "(Optional) make the resource list-ready (identity + flatten) and generate the list resource")
 	set.BoolVar(&d.Write, "write", false, "(Optional) write the changes to disk; without it the command performs a dry run")
 	set.BoolVar(&d.Overwrite, "overwrite", false, "(Optional) overwrite an existing generated list file")
 	set.StringVar(&d.PandoraURL, "pandora-url", "", "(Optional) Pandora Data API base URL; defaults to the configured schema_api_url")
@@ -172,12 +172,14 @@ func (c UpgradeCommand) runFromFile(d *upgradeData) error {
 			IdentityProps: b.IdentityProps,
 			Identity:      derefBool(b.Identity),
 			Flatten:       derefBool(b.Flatten),
-			List:          derefBool(b.List),
-			Write:         write,
-			Overwrite:     overwrite,
-			PandoraURL:    file.PandoraURL,
-			Provider:      file.Provider,
-			Org:           file.Org,
+			// List defaults to true (matching the -list CLI flag) so a block need
+			// only set `list = false` to opt out.
+			List:       b.List == nil || *b.List,
+			Write:      write,
+			Overwrite:  overwrite,
+			PandoraURL: file.PandoraURL,
+			Provider:   file.Provider,
+			Org:        file.Org,
 		}
 		// Continue past a failed resource so one unsupported entry (e.g. an
 		// untyped resource) does not abort the whole batch; failures are
@@ -219,9 +221,10 @@ func (c UpgradeCommand) run(d *upgradeData) error {
 	wantIdentity := (d.Identity || d.List) && !res.HasIdentity
 	wantFlatten := (d.Flatten || d.List) && !res.HasFlatten
 
-	// A resource with a detected parent scope (typed or untyped) is fully
-	// derivable from source, so it neither needs nor can rely on Pandora.
-	sourceOnly := res.ParentIDType != ""
+	// A resource whose list operations are derivable from source — a detected
+	// parent scope, or subscription/resource-group list methods found in the
+	// vendored SDK — needs no Pandora resolution.
+	sourceOnly := res.ParentIDType != "" || res.ListSubscriptionMethod != "" || res.ListResourceGroupMethod != ""
 
 	// Read model: -read-model flag > vendor-derived (authoritative: the type of
 	// resp.Model) > Pandora (last resort). The flatten parameter and list results
@@ -271,7 +274,7 @@ func (c UpgradeCommand) run(d *upgradeData) error {
 	if d.List {
 		if sourceOnly {
 			if readModel == "" {
-				return errors.New("-list for a parent-scoped resource requires the SDK read model; provide read_model")
+				return errors.New("-list requires the SDK read model; it could not be derived from the vendored SDK — provide -read-model")
 			}
 			resolved = c.sourceListIR(res, d, readModel)
 		} else {
@@ -279,6 +282,12 @@ func (c UpgradeCommand) run(d *upgradeData) error {
 				return errors.New("-list requires API definitions; provide -arm-type or -service and -resource")
 			}
 			reconcileIR(resolved, res)
+			// The vendored-SDK read model (the type of resp.Model) is
+			// authoritative; override Pandora's classification so the list
+			// results slice (var results []<pkg>.<model>) matches the flatten.
+			if readModel != "" {
+				resolved.ReadModel = readModel
+			}
 		}
 		if err := c.generateList(d, resolved); err != nil {
 			return err
@@ -305,33 +314,41 @@ func (c UpgradeCommand) sourceListIR(a *list_upgrade.Resource, d *upgradeData, r
 		terraformType = provider + "_" + name
 	}
 	res := &ir.ResourceIR{
-		ProviderName:       provider,
-		ProviderGithubOrg:  org,
-		ServicePackage:     a.Package,
-		ServiceName:        a.ServiceName,
-		ClientField:        a.ClientField,
-		TerraformType:      terraformType,
-		SDKPackage:         a.SDKPackage,
-		SDKImportPath:      a.SDKImportPath,
-		ReadModel:          readModel,
-		IDPackage:          a.IDPackage,
-		IDImportPath:       a.IDImportPath,
-		IDParseFunc:        a.IDParseFunc,
-		IDTypeName:         a.IDTypeName,
-		IsListable:         true,
-		ListByParentOp:     listMethod,
-		ParentIDType:       a.ParentIDType,
-		ParentListAttr:     a.ParentAttr,
-		ParentParseFunc:    a.ParentParseFunc,
-		ParentValidateFunc: a.ParentValidateFunc,
-		ParentPackage:      a.ParentPackage,
-		ParentImportPath:   a.ParentImportPath,
+		ProviderName:      provider,
+		ProviderGithubOrg: org,
+		ServicePackage:    a.Package,
+		ServiceName:       a.ServiceName,
+		ClientField:       a.ClientField,
+		TerraformType:     terraformType,
+		SDKPackage:        a.SDKPackage,
+		SDKImportPath:     a.SDKImportPath,
+		ReadModel:         readModel,
+		IDPackage:         a.IDPackage,
+		IDImportPath:      a.IDImportPath,
+		IDParseFunc:       a.IDParseFunc,
+		IDTypeName:        a.IDTypeName,
+		IsListable:        true,
+	}
+	if a.ParentIDType != "" {
+		// Parent-scoped child: a single list call under the parent ID.
+		res.ListByParentOp = listMethod
+		res.ParentIDType = a.ParentIDType
+		res.ParentListAttr = a.ParentAttr
+		res.ParentParseFunc = a.ParentParseFunc
+		res.ParentValidateFunc = a.ParentValidateFunc
+		res.ParentPackage = a.ParentPackage
+		res.ParentImportPath = a.ParentImportPath
+	} else {
+		// Top-level: subscription/resource-group list methods (from the SDK).
+		res.ListBySubscriptionOp = a.ListSubscriptionMethod
+		res.ListByResourceGroupOp = a.ListResourceGroupMethod
 	}
 	if a.Kind == list_upgrade.KindUntyped {
 		res.Untyped = true
 		res.Name = a.BaseName
 		res.ConstructorFunc = a.ConstructorFunc
 		res.FlattenFunc = a.ConstructorFunc + "Flatten"
+		res.FlattenIDValue = a.FlattenIDValue
 	} else {
 		res.Name = strings.TrimSuffix(a.StructName, "Resource")
 	}
@@ -511,6 +528,7 @@ func reconcileIR(res *ir.ResourceIR, a *list_upgrade.Resource) {
 		res.Name = a.BaseName
 		res.ConstructorFunc = a.ConstructorFunc
 		res.FlattenFunc = a.ConstructorFunc + "Flatten"
+		res.FlattenIDValue = a.FlattenIDValue
 		res.IDPackage = a.IDPackage
 		res.IDImportPath = a.IDImportPath
 	} else {

@@ -41,15 +41,27 @@ func renderUntypedListImports(sb *strings.Builder, res *ir.ResourceIR, parentSco
 		sb.WriteString("\"github.com/hashicorp/go-azure-helpers/framework/typehelpers\"\n")
 	}
 	sb.WriteString("\"github.com/hashicorp/go-azure-helpers/lang/pointer\"\n")
+
+	// Resource-manager + commonids imports, de-duplicated: the resource id and
+	// parent id may share a package (e.g. both in commonids for subnet), and the
+	// id may live in the SDK package itself.
+	const commonidsPath = "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	emitted := map[string]bool{}
+	emit := func(path string) {
+		if path == "" || emitted[path] {
+			return
+		}
+		emitted[path] = true
+		fmt.Fprintf(sb, "%q\n", path)
+	}
 	if !parentScoped {
-		sb.WriteString("\"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids\"\n")
+		// Subscription/resource-group lists build a commonids.NewSubscriptionID.
+		emit(commonidsPath)
 	}
-	fmt.Fprintf(sb, "%q\n", res.SDKImportPath)
-	if res.IDImportPath != "" && res.IDImportPath != res.SDKImportPath && res.IDPackage != "commonids" {
-		fmt.Fprintf(sb, "%q\n", res.IDImportPath)
-	}
-	if parentScoped && res.ParentImportPath != "" && res.ParentImportPath != res.SDKImportPath && res.ParentImportPath != res.IDImportPath {
-		fmt.Fprintf(sb, "%q\n", res.ParentImportPath)
+	emit(res.SDKImportPath)
+	emit(res.IDImportPath)
+	if parentScoped {
+		emit(res.ParentImportPath)
 	}
 	sb.WriteString("\"github.com/hashicorp/terraform-plugin-framework/list\"\n")
 	if parentScoped {
@@ -174,7 +186,11 @@ func renderUntypedListStream(sb *strings.Builder, res *ir.ResourceIR, itemsExpr 
 	fmt.Fprintf(sb, "id, err := %s.%sInsensitively(pointer.From(item.Id))\n", idPkg, res.IDParseFunc)
 	fmt.Fprintf(sb, "if err != nil {\nsdk.SetErrorDiagnosticAndPushListResult(result, push, %q, err)\nreturn\n}\n", "parsing "+res.TerraformType+" ID")
 	sb.WriteString("rd.SetId(id.ID())\n\n")
-	fmt.Fprintf(sb, "if err := %s(rd, id, &item); err != nil {\nsdk.SetErrorDiagnosticAndPushListResult(result, push, %q, err)\nreturn\n}\n\n", res.FlattenFunc, "encoding "+res.TerraformType+" resource data")
+	idArg := "id"
+	if res.FlattenIDValue {
+		idArg = "*id"
+	}
+	fmt.Fprintf(sb, "if err := %s(rd, %s, &item); err != nil {\nsdk.SetErrorDiagnosticAndPushListResult(result, push, %q, err)\nreturn\n}\n\n", res.FlattenFunc, idArg, "encoding "+res.TerraformType+" resource data")
 	sb.WriteString("sdk.EncodeListResult(ctx, rd, &result)\n")
 	sb.WriteString("if result.Diagnostics.HasError() {\npush(result)\nreturn\n}\n")
 	sb.WriteString("if !push(result) {\nreturn\n}\n")

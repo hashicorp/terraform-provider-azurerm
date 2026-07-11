@@ -143,6 +143,20 @@ func (r *Resource) setParent(pkg, base, attr string) {
 	r.ListMethod = strings.TrimSuffix(r.GetMethod, "Get") + "List"
 }
 
+// setSDKParent derives the parent scope purely from a parent-scoped SDK list
+// method (e.g. subnets.ListComplete(ctx, commonids.VirtualNetworkId)) when the
+// resource source revealed no parent. The parent attribute name is the
+// snake_case of the parent id base (VirtualNetworkId -> virtual_network_id) and
+// the list method is taken verbatim from the SDK.
+func (r *Resource) setSDKParent(listMethod, idType, idPkg string) {
+	base := strings.TrimSuffix(idType, "Id")
+	if base == "" {
+		return
+	}
+	r.setParent(idPkg, base, toSnakeCase(base)+"_id")
+	r.ListMethod = listMethod
+}
+
 // newIDParentVar finds a `<pkg>.<newFn>(...)` call and returns the variable whose
 // fields are passed as arguments most often (the parent scope ID variable).
 func newIDParentVar(scope ast.Node, newFn string) string {

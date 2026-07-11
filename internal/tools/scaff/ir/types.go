@@ -67,6 +67,7 @@ type ResourceIR struct {
 	Untyped         bool   // render the native Plugin SDK list resource shape
 	ConstructorFunc string // e.g. "resourceVirtualHubIP"
 	FlattenFunc     string // e.g. "resourceVirtualHubIPFlatten"
+	FlattenIDValue  bool   // flatten takes its id by value, so the list passes *id
 	IDPackage       string // ID type package; may differ from SDKPackage (e.g. "commonids")
 	IDImportPath    string // full import path of the ID package
 	TestStructName  string // acceptance-test struct name (may differ in casing from Name+"Resource")

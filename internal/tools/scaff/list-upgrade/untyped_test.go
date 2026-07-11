@@ -68,6 +68,34 @@ func TestAnalyze_TypedChildRoutingIntent_ParentDetection(t *testing.T) {
 	assertEqual(t, "list method", r.ListMethod, "RoutingIntentList")
 }
 
+func TestAnalyze_UntypedSubnet_SDKDerivedParent(t *testing.T) {
+	r, err := Analyze(filepath.Join("testdata", "untyped_subnet.go"))
+	if err != nil {
+		t.Fatalf("Analyze: %v", err)
+	}
+
+	// subnet imports three go-azure-sdk packages; the Get call's subnets-qualified
+	// options argument must disambiguate the model+client package.
+	assertEqual(t, "sdk package", r.SDKPackage, "subnets")
+
+	// The parent scope is not visible in the source (the SubnetId is built from
+	// config strings), so it must be derived from the vendored SDK list method
+	// subnets.ListComplete(ctx, commonids.VirtualNetworkId).
+	assertEqual(t, "parent id type", r.ParentIDType, "VirtualNetworkId")
+	assertEqual(t, "parent package", r.ParentPackage, "commonids")
+	assertEqual(t, "parent attr", r.ParentAttr, "virtual_network_id")
+	assertEqual(t, "parent parse", r.ParentParseFunc, "ParseVirtualNetworkID")
+	assertEqual(t, "parent validate", r.ParentValidateFunc, "ValidateVirtualNetworkID")
+	assertEqual(t, "list method", r.ListMethod, "List")
+	assertEqual(t, "read model", r.ReadModel, "Subnet")
+
+	// The pre-existing flatten takes its id by value, so the list generator must
+	// dereference the parsed (pointer) id.
+	if !r.FlattenIDValue {
+		t.Errorf("expected FlattenIDValue to be true for a value-id flatten")
+	}
+}
+
 func TestUpgrade_UntypedExtractsFlatten(t *testing.T) {
 	r, err := Analyze(filepath.Join("testdata", "untyped_with_identity.go"))
 	if err != nil {

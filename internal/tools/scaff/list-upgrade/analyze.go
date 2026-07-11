@@ -70,6 +70,11 @@ type Resource struct {
 	GetMethod       string // client Get method name, e.g. "Get" or "VirtualHubIPConfigurationGet"
 	ReadModel       string // SDK read-model type (type of resp.Model), derived from the vendored SDK
 
+	// Top-level (subscription/resource-group) list methods, derived from the
+	// vendored SDK by the id parameter type. Empty for parent-scoped resources.
+	ListSubscriptionMethod  string // e.g. "VirtualHubsList" (takes commonids.SubscriptionId)
+	ListResourceGroupMethod string // e.g. "VirtualHubsListByResourceGroup" (takes commonids.ResourceGroupId)
+
 	// Parent scope (child resources listed under a parent, e.g. virtual_hub_id).
 	ParentIDBase       string // e.g. "VirtualHub"
 	ParentIDType       string // e.g. "VirtualHubId"
@@ -83,6 +88,10 @@ type Resource struct {
 	// Feature detection.
 	HasIdentity bool
 	HasFlatten  bool
+	// FlattenIDValue is true when an existing flatten function takes its id
+	// parameter by value (e.g. `id commonids.SubnetId`) rather than by pointer;
+	// the list generator dereferences the parsed (pointer) id accordingly.
+	FlattenIDValue bool
 
 	// AST handles.
 	fset *token.FileSet
@@ -302,6 +311,7 @@ func (r *Resource) analyzeTyped() {
 	}
 	r.deriveReadModel()
 	r.detectTypedParent()
+	r.deriveListMethods()
 }
 
 // hasAssertion reports whether the resource declares an `sdk.<name>` interface

@@ -6,6 +6,7 @@ import (
 	"go/parser"
 	"go/token"
 	"os"
+	"sort"
 	"strings"
 )
 
@@ -39,12 +40,6 @@ func (r *Resource) analyzeUntyped(ctor *ast.FuncDecl) {
 		}
 	}
 
-	// The go-azure-sdk resource-manager import provides the model + client.
-	if pkg, path := r.resourceManagerImport(); pkg != "" {
-		r.SDKPackage = pkg
-		r.SDKImportPath = path
-	}
-
 	// The Read func is the source of truth for the ID, client and Get method.
 	if read := r.funcs[r.ReadFunc]; read != nil {
 		if pkg, base := parseIDCall(read); base != "" {
@@ -65,6 +60,15 @@ func (r *Resource) analyzeUntyped(ctor *ast.FuncDecl) {
 		r.IDParseFunc = "Parse" + r.IDBase + "ID"
 		r.IDValidateFunc = "Validate" + r.IDBase + "ID"
 	}
+
+	// The go-azure-sdk resource-manager import provides the model + client. When
+	// several are imported (e.g. subnet imports subnets, serviceendpointpolicies
+	// and ipampools) the client field / Get call disambiguates which one owns the
+	// Get method, so this runs after the Read func has been parsed.
+	if pkg, path := r.resourceManagerImport(); pkg != "" {
+		r.SDKPackage = pkg
+		r.SDKImportPath = path
+	}
 	// If the ID lives in the same package as the model, keep SDKPackage as the
 	// ID package too so callers that only read SDKPackage still work.
 	if r.SDKPackage == "" {
@@ -77,11 +81,14 @@ func (r *Resource) analyzeUntyped(ctor *ast.FuncDecl) {
 	r.deriveReadModel()
 
 	r.detectUntypedParent()
+	r.deriveListMethods()
 
 	r.FlattenFunc = r.ConstructorFunc + "Flatten"
 	_, r.HasFlatten = r.funcs[r.FlattenFunc]
 	if !r.HasFlatten {
 		r.FlattenFunc = ""
+	} else {
+		r.FlattenIDValue = flattenIDIsValue(r.funcs[r.FlattenFunc])
 	}
 
 	r.HasIdentity = r.hasIdentityField() && r.hasIdentityImporter()
@@ -145,16 +152,112 @@ func identName(expr ast.Expr) string {
 	return ""
 }
 
-// resourceManagerImport returns the package name and path of the first
-// go-azure-sdk resource-manager import in the file (the model + client package).
+// resourceManagerImport returns the package name and path of the go-azure-sdk
+// resource-manager import that provides the model + client. When a file imports
+// several such packages (e.g. subnet imports subnets, serviceendpointpolicies
+// and ipampools), it selects the one that owns the Get method — preferring the
+// package referenced in the Get call's arguments, then the one matching the
+// client field name — and falls back to the first alphabetically so selection is
+// deterministic.
 func (r *Resource) resourceManagerImport() (pkg, path string) {
+	type rmImport struct{ name, path string }
+	var imports []rmImport
+	names := map[string]bool{}
 	for name, imp := range r.imports {
 		p := strings.Trim(imp.Path.Value, `"`)
 		if strings.Contains(p, "/go-azure-sdk/resource-manager/") {
-			return name, p
+			imports = append(imports, rmImport{name, p})
+			names[name] = true
 		}
 	}
-	return "", ""
+	if len(imports) == 0 {
+		return "", ""
+	}
+	sort.Slice(imports, func(i, j int) bool { return imports[i].name < imports[j].name })
+	if len(imports) == 1 {
+		return imports[0].name, imports[0].path
+	}
+
+	pick := getCallPackageQualifier(r.funcs[r.ReadFunc], names)
+	if pick == "" && r.ClientField != "" {
+		want := strings.ToLower(r.ClientField)
+		for _, im := range imports {
+			if strings.ToLower(im.name) == want {
+				pick = im.name
+				break
+			}
+		}
+	}
+	for _, im := range imports {
+		if im.name == pick {
+			return im.name, im.path
+		}
+	}
+	return imports[0].name, imports[0].path
+}
+
+// getCallPackageQualifier returns the package qualifier used in an argument of
+// the Read func's Get call (e.g. `subnets.DefaultGetOperationOptions()` yields
+// "subnets"), restricted to one of the candidate package names. This
+// disambiguates the SDK package when several are imported.
+func getCallPackageQualifier(read *ast.FuncDecl, candidates map[string]bool) string {
+	if read == nil || read.Body == nil {
+		return ""
+	}
+	respVar, _, idx := findGetAssignment(read.Body.List, read)
+	if respVar == "" || idx < 0 {
+		return ""
+	}
+	as, ok := read.Body.List[idx].(*ast.AssignStmt)
+	if !ok || len(as.Rhs) != 1 {
+		return ""
+	}
+	call, ok := as.Rhs[0].(*ast.CallExpr)
+	if !ok {
+		return ""
+	}
+	var found string
+	for _, arg := range call.Args {
+		ast.Inspect(arg, func(n ast.Node) bool {
+			sel, ok := n.(*ast.SelectorExpr)
+			if !ok {
+				return true
+			}
+			if id, ok := sel.X.(*ast.Ident); ok && candidates[id.Name] {
+				found = id.Name
+				return false
+			}
+			return true
+		})
+		if found != "" {
+			break
+		}
+	}
+	return found
+}
+
+// flattenIDIsValue reports whether the flatten function takes its id parameter by
+// value (e.g. `id commonids.SubnetId`) rather than by pointer (`id *X`). The id
+// is the second parameter, after the ResourceData.
+func flattenIDIsValue(fn *ast.FuncDecl) bool {
+	if fn == nil || fn.Type == nil || fn.Type.Params == nil {
+		return false
+	}
+	idx := 0
+	for _, p := range fn.Type.Params.List {
+		n := len(p.Names)
+		if n == 0 {
+			n = 1
+		}
+		for k := 0; k < n; k++ {
+			if idx == 1 { // second parameter is the id
+				_, isPtr := p.Type.(*ast.StarExpr)
+				return !isPtr
+			}
+			idx++
+		}
+	}
+	return false
 }
 
 // untypedClientAccessor extracts service and field from a
