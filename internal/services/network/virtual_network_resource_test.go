@@ -370,6 +370,27 @@ func testAccVirtualNetwork_ipAddressPoolUpdateNumber(t *testing.T) {
 	})
 }
 
+func testAccVirtualNetwork_ipAddressPoolAddedExternally(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
+	r := VirtualNetworkResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ipAddressPoolAddedExternally(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(r.associateIPAddressPool(data)),
+			),
+		},
+		{
+			// the IPAM pool association established outside of Terraform must be preserved,
+			// so re-planning the unchanged configuration must produce an empty plan
+			Config:   r.ipAddressPoolAddedExternally(data),
+			PlanOnly: true,
+		},
+	})
+}
+
 func TestAccVirtualNetwork_subnet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
 	r := VirtualNetworkResource{}
@@ -691,6 +712,114 @@ resource "azurerm_virtual_network" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (VirtualNetworkResource) ipAddressPoolAddedExternally(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+data "azurerm_subscription" "current" {}
+
+resource "azurerm_network_manager" "test" {
+  name                = "acctest-nm-ipam-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  scope {
+    subscription_ids = [data.azurerm_subscription.current.id]
+  }
+}
+
+resource "azurerm_network_manager_ipam_pool" "test" {
+  name               = "acctest-ipampool-%[1]d"
+  network_manager_id = azurerm_network_manager.test.id
+  location           = azurerm_resource_group.test.location
+  display_name       = "ipampool1"
+  address_prefixes   = ["10.0.0.0/16"]
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.0.0.0/24"]
+
+  depends_on = [azurerm_network_manager_ipam_pool.test]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.0.0/26"]
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+// associateIPAddressPool associates the Virtual Network with an IPAM pool outside of Terraform, which is
+// the only way of establishing IPAM ownership of an address range that was provisioned via `address_space`
+func (VirtualNetworkResource) associateIPAddressPool(data acceptance.TestData) acceptance.ClientCheckFunc {
+	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+		client := clients.Network.VirtualNetworks
+
+		id, err := commonids.ParseVirtualNetworkID(state.ID)
+		if err != nil {
+			return err
+		}
+
+		existing, err := client.Get(ctx, *id, virtualnetworks.DefaultGetOperationOptions())
+		if err != nil {
+			return fmt.Errorf("retrieving %s: %+v", *id, err)
+		}
+		if existing.Model == nil || existing.Model.Properties == nil || existing.Model.Properties.AddressSpace == nil {
+			return fmt.Errorf("retrieving %s: `properties.addressSpace` was nil", *id)
+		}
+
+		poolId := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/networkManagers/acctest-nm-ipam-%d/ipamPools/acctest-ipampool-%d", id.SubscriptionId, id.ResourceGroupName, data.RandomInteger, data.RandomInteger)
+
+		payload := *existing.Model
+		payload.Properties.AddressSpace.IPamPoolPrefixAllocations = &[]virtualnetworks.IPamPoolPrefixAllocation{
+			{
+				NumberOfIPAddresses: pointer.To("256"),
+				Pool: &virtualnetworks.IPamPoolPrefixAllocationPool{
+					Id: pointer.To(poolId),
+				},
+			},
+		}
+
+		// associating a Virtual Network also allocates the prefixes of its subnets from the pool
+		if payload.Properties.Subnets != nil {
+			for i := range *payload.Properties.Subnets {
+				subnet := &(*payload.Properties.Subnets)[i]
+				if subnet.Properties == nil {
+					continue
+				}
+				subnet.Properties.IPamPoolPrefixAllocations = &[]virtualnetworks.IPamPoolPrefixAllocation{
+					{
+						NumberOfIPAddresses: pointer.To("64"),
+						Pool: &virtualnetworks.IPamPoolPrefixAllocationPool{
+							Id: pointer.To(poolId),
+						},
+					},
+				}
+			}
+		}
+
+		if err := client.CreateOrUpdateThenPoll(ctx, *id, payload); err != nil {
+			return fmt.Errorf("associating IPAM pool with %s: %+v", *id, err)
+		}
+
+		return nil
+	}
 }
 
 func (VirtualNetworkResource) ipAddressPoolMultiple(data acceptance.TestData) string {

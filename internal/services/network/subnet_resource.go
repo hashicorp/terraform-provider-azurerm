@@ -241,8 +241,15 @@ func resourceSubnet() *pluginsdk.Resource {
 			},
 
 			"ip_address_pool": {
-				Type:         pluginsdk.TypeList,
-				Optional:     true,
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				// `addressPrefixes` and `ipamPoolPrefixAllocations` cannot both be specified when creating a
+				// Subnet, so an IP Address Management Pool can only be allocated to an existing address range
+				// outside of Terraform (e.g. in the Portal or an ARM template, when its Virtual Network is
+				// associated with the pool). Computed so that such an allocation is preserved rather than
+				// planned for removal when `ip_address_pool` has never been configured, consistent with the
+				// behaviour of ARM templates. Changing `address_prefixes` still removes the allocation.
+				Computed:     true,
 				MaxItems:     1,
 				ExactlyOneOf: []string{"address_prefixes", "ip_address_pool"},
 				Elem: &pluginsdk.Resource{
@@ -453,6 +460,15 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 			// return the `AddressPrefix` in response.
 			props.AddressPrefixes = utils.ExpandStringSlice(addressPrefixesRaw)
 			props.AddressPrefix = nil
+		}
+
+		if len(addressPrefixesRaw) > 0 {
+			// since `ip_address_pool` is Computed, removing the block in favour of `address_prefixes` doesn't
+			// register as a change to it, so the pool allocation is removed here instead
+			rawIpAddressPool := d.GetRawConfig().AsValueMap()["ip_address_pool"]
+			if rawIpAddressPool.IsNull() || (rawIpAddressPool.IsKnown() && len(rawIpAddressPool.AsValueSlice()) == 0) {
+				props.IPamPoolPrefixAllocations = nil
+			}
 		}
 	}
 

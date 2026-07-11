@@ -163,8 +163,15 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"ip_address_pool": {
-			Type:         pluginsdk.TypeList,
-			Optional:     true,
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			// `addressPrefixes` and `ipamPoolPrefixAllocations` cannot both be specified when creating a
+			// Virtual Network, so an IP Address Management Pool can only be associated with an existing
+			// address range outside of Terraform (e.g. in the Portal or via an ARM template). Computed so
+			// that such an association is preserved rather than planned for removal when `ip_address_pool`
+			// has never been configured, consistent with the behaviour of ARM templates. Changing
+			// `address_space` still removes the association.
+			Computed:     true,
 			MaxItems:     2,
 			ExactlyOneOf: []string{"address_space", "ip_address_pool"},
 			Elem: &pluginsdk.Resource{
@@ -531,6 +538,13 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 				payload.Properties.AddressSpace = &virtualnetworks.AddressSpace{}
 			}
 			payload.Properties.AddressSpace.AddressPrefixes = utils.ExpandStringSlice(v)
+
+			// since `ip_address_pool` is Computed, removing the block in favour of `address_space` doesn't
+			// register as a change to it, so the pool association is removed here instead
+			rawIpAddressPool := d.GetRawConfig().AsValueMap()["ip_address_pool"]
+			if rawIpAddressPool.IsNull() || (rawIpAddressPool.IsKnown() && len(rawIpAddressPool.AsValueSlice()) == 0) {
+				payload.Properties.AddressSpace.IPamPoolPrefixAllocations = nil
+			}
 		} else {
 			payload.Properties.AddressSpace.AddressPrefixes = nil
 		}
