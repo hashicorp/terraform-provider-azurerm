@@ -86,7 +86,12 @@ func execTemplate(name, tpl string, data fileData) (string, error) {
 	return buf.String(), nil
 }
 
-const resourceTemplate = `package {{.Package}}
+// fileHeader is the license header prepended to every generated Go file so the
+// output matches the repository's copyright convention.
+const fileHeader = "// Copyright IBM Corp. 2014, 2025\n" +
+	"// SPDX-License-Identifier: MPL-2.0\n\n"
+
+const resourceTemplate = fileHeader + `package {{.Package}}
 
 import (
 	"context"

@@ -15,13 +15,16 @@ import (
 // the subscription/resource-group scoped shape or the parent-scoped shape based
 // on the operations discovered for the resource.
 func RenderListResource(res *ir.ResourceIR) string {
-	if res.Untyped {
-		return renderUntypedList(res)
+	var body string
+	switch {
+	case res.Untyped:
+		body = renderUntypedList(res)
+	case res.ListBySubscriptionOp != "" || res.ListByResourceGroupOp != "":
+		body = renderSubscriptionScopedList(res)
+	default:
+		body = renderParentScopedList(res)
 	}
-	if res.ListBySubscriptionOp != "" || res.ListByResourceGroupOp != "" {
-		return renderSubscriptionScopedList(res)
-	}
-	return renderParentScopedList(res)
+	return fileHeader + body
 }
 
 // renderUntypedList renders a list resource for a native Plugin SDK (untyped)
@@ -394,7 +397,7 @@ func RenderListTest(res *ir.ResourceIR) string {
 	return sb.String()
 }
 
-const listTestTemplate = `package {{.PackageName}}_test
+const listTestTemplate = fileHeader + `package {{.PackageName}}_test
 
 import (
 	"context"

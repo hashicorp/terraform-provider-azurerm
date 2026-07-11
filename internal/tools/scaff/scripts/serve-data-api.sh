@@ -63,7 +63,7 @@ while [[ $# -gt 0 ]]; do
     --dir=*) PANDORA_DIR="${1#*=}"; shift ;;
     --update) PANDORA_UPDATE=1; shift ;;
     -h|--help)
-      sed -n '3,23p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+      sed -n '5,25p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
       exit 0
       ;;
     *) die "unknown argument: $1 (use --help)" ;;

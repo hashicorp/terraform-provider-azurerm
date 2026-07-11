@@ -18,6 +18,7 @@ func RenderDataSource(res *ir.ResourceIR) string {
 	dsModel := res.Name + "DataSourceModel"
 
 	var sb strings.Builder
+	sb.WriteString(fileHeader)
 	fmt.Fprintf(&sb, "package %s\n\n", res.ServicePackage)
 
 	sb.WriteString("import (\n")
