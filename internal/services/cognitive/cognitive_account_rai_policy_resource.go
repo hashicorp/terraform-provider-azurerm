@@ -18,8 +18,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.ResourceWithUpdate = &CognitiveAccountRaiPolicyResource{}
-var _ sdk.ResourceWithCustomizeDiff = &CognitiveAccountRaiPolicyResource{}
+var (
+	_ sdk.ResourceWithUpdate        = &CognitiveAccountRaiPolicyResource{}
+	_ sdk.ResourceWithCustomizeDiff = &CognitiveAccountRaiPolicyResource{}
+)
 
 type CognitiveAccountRaiPolicyResource struct{}
 
