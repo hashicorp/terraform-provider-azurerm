@@ -6,6 +6,7 @@ package providerjson
 import (
 	"fmt"
 
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -57,7 +58,69 @@ func schemaFromRaw(input *schema.Schema) SchemaJSON {
 		Elem:        decodeElem(input.Elem),
 		MaxItems:    input.MaxItems,
 		MinItems:    input.MinItems,
+
+		HasValidateFunc: input.ValidateFunc != nil || input.ValidateDiagFunc != nil,
+		AtLeastOneOf:    input.AtLeastOneOf,
+		ExactlyOneOf:    input.ExactlyOneOf,
+		ConflictsWith:   input.ConflictsWith,
+		RequiredWith:    input.RequiredWith,
+		AcceptsValue:    validatorAcceptFunc(input),
 	}
+}
+
+// validatorAcceptFunc returns a predicate reporting whether the property's
+// string validator accepts a given value, or nil when the property has no
+// string validator. Both ValidateDiagFunc (the current API) and ValidateFunc
+// (the classic one) are supported; the deprecated schema.SchemaValidateFunc type
+// is not referenced.
+//
+// The predicate is stored on SchemaJSON.AcceptsValue so rules can probe
+// validators (for example, to detect enum-only special values) without the
+// probing policy living in this package.
+func validatorAcceptFunc(input *schema.Schema) func(string) bool {
+	if input == nil || input.Type != schema.TypeString {
+		return nil
+	}
+
+	switch {
+	case input.ValidateDiagFunc != nil:
+		validate := input.ValidateDiagFunc
+		return func(value string) bool { return validatorAcceptsDiag(validate, value) }
+	case input.ValidateFunc != nil:
+		validate := input.ValidateFunc
+		return func(value string) bool { return validatorAccepts(validate, value) }
+	default:
+		return nil
+	}
+}
+
+// validatorAccepts reports whether the classic validator fn accepts value
+// without warnings or errors. The raw function type is used rather than the
+// deprecated schema.SchemaValidateFunc. It recovers from any panic in a
+// validator (treating it as a rejection).
+func validatorAccepts(fn func(interface{}, string) ([]string, []error), value string) (accepted bool) {
+	defer func() {
+		if recover() != nil {
+			accepted = false
+		}
+	}()
+
+	warnings, errs := fn(value, "schema_lint_probe")
+
+	return len(warnings) == 0 && len(errs) == 0
+}
+
+// validatorAcceptsDiag reports whether the diagnostic validator fn accepts value
+// (produces no error diagnostics). It recovers from any panic (treating it as a
+// rejection).
+func validatorAcceptsDiag(fn schema.SchemaValidateDiagFunc, value string) (accepted bool) {
+	defer func() {
+		if recover() != nil {
+			accepted = false
+		}
+	}()
+
+	return !fn(value, cty.Path{}).HasError()
 }
 
 func SchemaFromMap(input map[string]interface{}) SchemaJSON {

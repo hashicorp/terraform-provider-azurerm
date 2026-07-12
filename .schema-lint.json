@@ -1,0 +1,7 @@
+{
+  "rules": {
+    "SL001": {
+      "enabled": false
+    }
+  }
+}

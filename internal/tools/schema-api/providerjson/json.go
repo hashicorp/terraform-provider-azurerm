@@ -22,17 +22,28 @@ const (
 type ProviderJSON schema.Provider
 
 type SchemaJSON struct {
-	Type        string      `json:"type,omitempty"` // TODO - Needs to be interface{}
-	ConfigMode  string      `json:"configMode,omitempty"`
-	Optional    bool        `json:"optional,omitempty"`
-	Required    bool        `json:"required,omitempty"`
-	Default     interface{} `json:"default,omitempty"`
-	Description string      `json:"description,omitempty"`
-	Computed    bool        `json:"computed,omitempty"`
-	ForceNew    bool        `json:"forceNew,omitempty"`
-	Elem        interface{} `json:"elem,omitempty"`
-	MaxItems    int         `json:"maxItems,omitempty"`
-	MinItems    int         `json:"minItems,omitempty"`
+	Type            string      `json:"type,omitempty"` // TODO - Needs to be interface{}
+	ConfigMode      string      `json:"configMode,omitempty"`
+	Optional        bool        `json:"optional,omitempty"`
+	Required        bool        `json:"required,omitempty"`
+	Default         interface{} `json:"default,omitempty"`
+	Description     string      `json:"description,omitempty"`
+	Computed        bool        `json:"computed,omitempty"`
+	ForceNew        bool        `json:"forceNew,omitempty"`
+	Elem            interface{} `json:"elem,omitempty"`
+	MaxItems        int         `json:"maxItems,omitempty"`
+	MinItems        int         `json:"minItems,omitempty"`
+	HasValidateFunc bool        `json:"hasValidateFunc,omitempty"`
+	AtLeastOneOf    []string    `json:"atLeastOneOf,omitempty"`
+	ExactlyOneOf    []string    `json:"exactlyOneOf,omitempty"`
+	ConflictsWith   []string    `json:"conflictsWith,omitempty"`
+	RequiredWith    []string    `json:"requiredWith,omitempty"`
+
+	// AcceptsValue reports whether the property's string validator accepts a
+	// given value. It is populated only on the live (reflection) path and is not
+	// serialized; it is nil when the property has no string validator. Rules use
+	// it to probe validators (for example, for enum-only values).
+	AcceptsValue func(string) bool `json:"-"`
 }
 
 func (b *SchemaJSON) UnmarshalJSON(body []byte) error {

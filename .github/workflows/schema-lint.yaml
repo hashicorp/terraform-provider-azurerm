@@ -1,0 +1,53 @@
+# Copyright IBM Corp. 2014, 2025
+# SPDX-License-Identifier: MPL-2.0
+---
+name: Schema Lint (New Resources)
+
+permissions:
+  contents: read
+  pull-requests: read
+
+# Runs only for pull requests that ADD a new resource or data source
+# implementation file under internal/services/. The path filter narrows which
+# PRs start the workflow; the script then confirms the files are newly added
+# (git diff --diff-filter=A) and scopes the lint to the new type(s).
+on:
+  pull_request:
+    types: ['opened', 'synchronize']
+    paths:
+      - '.github/workflows/schema-lint.yaml'
+      - 'scripts/run-schema-lint.sh'
+      - 'internal/services/**/*_resource.go'
+      - 'internal/services/**/*_data_source.go'
+      - 'internal/services/**/*_datasource.go'
+
+concurrency:
+  group: 'schema-lint-${{ github.head_ref }}'
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    # Skip when a maintainer has accepted the schema by applying the
+    # "schema-accepted" label to the pull request.
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'schema-accepted') }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: ./.go-version
+      - run: bash ./scripts/run-schema-lint.sh
+      - name: Guidance on failure
+        if: failure()
+        run: |
+          echo "::error::Schema lint failed for a new resource or data source."
+          echo ""
+          echo "A newly added *_resource.go / *_data_source.go file under"
+          echo "introduced a schema that violates a schema-lint rule."
+          echo ""
+          echo "Reproduce locally, scoped to your new resource:"
+          echo "  go run ./internal/tools/schema-lint check -resource=azurerm_your_resource"
+          echo ""
+          echo "See internal/tools/schema-lint/README.md for the full rule list."
