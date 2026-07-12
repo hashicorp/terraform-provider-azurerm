@@ -14,6 +14,7 @@
 //	go run ./internal/tools/schema-lint check -rules=SL001,SL005    # run only specific rules
 //	go run ./internal/tools/schema-lint check -disable=SL001        # disable a rule
 //	go run ./internal/tools/schema-lint check -fix                  # include suggested fixes
+//	go run ./internal/tools/schema-lint check -diff base.json       # only lint properties added since base.json
 //	go run ./internal/tools/schema-lint check -format=json          # machine readable output
 //	go run ./internal/tools/schema-lint list                        # list all rules
 package main
@@ -24,6 +25,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/providerjson"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-lint/config"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-lint/engine"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-lint/report"
@@ -61,6 +63,7 @@ func runCheck(args []string) int {
 	formatFlag := fs.String("format", "text", "output format: text or json")
 	failOnError := fs.Bool("fail-on-error", true, "exit non-zero when any error-severity finding is present")
 	fixFlag := fs.Bool("fix", false, "include suggested fixes for fixable findings")
+	diffFlag := fs.String("diff", "", "path to a base schema dump (from schema-api -export); only report findings on properties added since the base")
 
 	if err := fs.Parse(args); err != nil {
 		fmt.Fprintf(os.Stderr, "error parsing flags: %v\n", err)
@@ -71,6 +74,18 @@ func runCheck(args []string) int {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error loading config: %v\n", err)
 		return 2
+	}
+
+	// In diff mode, load the base schema so that only newly-added properties are
+	// held to the rules.
+	var baseSchema *providerjson.ProviderSchemaJSON
+	if *diffFlag != "" {
+		wrapper, err := providerjson.LoadWrapperFromFile(*diffFlag)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error loading base schema %q: %v\n", *diffFlag, err)
+			return 2
+		}
+		baseSchema = wrapper.ProviderSchema
 	}
 
 	// CLI resource filters override the config file when provided.
@@ -91,6 +106,7 @@ func runCheck(args []string) int {
 		OnlyRules:    only,
 		DisableRules: splitList(*disableFlag),
 		SuggestFixes: *fixFlag,
+		BaseSchema:   baseSchema,
 	})
 
 	findings, err := linter.Run()

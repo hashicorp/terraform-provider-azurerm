@@ -144,3 +144,82 @@ func TestLint_FixSuggestionsWhenRequested(t *testing.T) {
 		t.Fatalf("expected a fix suggestion for SL004 when -fix is set, got none")
 	}
 }
+
+func anyFinding(findings []rules.Finding, resourceType, path string) bool {
+	for i := range findings {
+		if findings[i].ResourceType == resourceType && findings[i].Path == path {
+			return true
+		}
+	}
+	return false
+}
+
+func TestLint_DiffMode(t *testing.T) {
+	base := &providerjson.ProviderSchemaJSON{
+		ResourcesMap: map[string]providerjson.ResourceJSON{
+			"azurerm_test": {
+				Schema: map[string]providerjson.SchemaJSON{
+					"existing": {Type: rules.TypeString, Optional: true},
+					"block": {
+						Type: rules.TypeList,
+						Elem: &providerjson.ResourceJSON{
+							Schema: map[string]providerjson.SchemaJSON{
+								"old": {Type: rules.TypeString, Optional: true},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	current := &providerjson.ProviderSchemaJSON{
+		ResourcesMap: map[string]providerjson.ResourceJSON{
+			// Existing resource that gains a top-level property and a nested one.
+			"azurerm_test": {
+				Schema: map[string]providerjson.SchemaJSON{
+					"existing":  {Type: rules.TypeString, Optional: true},
+					"brand_new": {Type: rules.TypeString, Optional: true},
+					"block": {
+						Type: rules.TypeList,
+						Elem: &providerjson.ResourceJSON{
+							Schema: map[string]providerjson.SchemaJSON{
+								"old":   {Type: rules.TypeString, Optional: true},
+								"added": {Type: rules.TypeString, Optional: true},
+							},
+						},
+					},
+				},
+			},
+			// A brand new resource -> all of its properties are reported.
+			"azurerm_new": {
+				Schema: map[string]providerjson.SchemaJSON{
+					"np": {Type: rules.TypeString, Optional: true},
+				},
+			},
+		},
+	}
+
+	l := New(nil, Options{Config: &config.Config{}, BaseSchema: base})
+	findings := l.Lint(current)
+
+	// Pre-existing properties (and the pre-existing block itself) are not reported.
+	for _, f := range findings {
+		if f.ResourceType == "azurerm_test" && (f.Path == "existing" || f.Path == "block" || f.Path == "block.old") {
+			t.Fatalf("did not expect a finding on pre-existing property, got %+v", f)
+		}
+	}
+
+	// Newly-added top-level and nested properties are reported.
+	if !anyFinding(findings, "azurerm_test", "brand_new") {
+		t.Fatalf("expected a finding on the newly-added property brand_new, got %+v", findings)
+	}
+	if !anyFinding(findings, "azurerm_test", "block.added") {
+		t.Fatalf("expected a finding on the newly-added nested property block.added, got %+v", findings)
+	}
+
+	// Every property of an entirely new resource is reported.
+	if !anyFinding(findings, "azurerm_new", "np") {
+		t.Fatalf("expected findings on the new resource azurerm_new, got %+v", findings)
+	}
+}

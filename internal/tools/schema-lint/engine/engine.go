@@ -28,6 +28,11 @@ type Options struct {
 	// SuggestFixes, when true, keeps the fix suggestions that fixable rules
 	// attach to their findings. When false the suggestions are discarded.
 	SuggestFixes bool
+	// BaseSchema, when set, enables diff mode: only findings on properties (or
+	// entire resources/data sources) that are absent from the base schema — i.e.
+	// added since the base — are reported. Pre-existing properties are ignored so
+	// that only what a change set adds is held to the rules.
+	BaseSchema *providerjson.ProviderSchemaJSON
 }
 
 // Linter applies a set of rules to the provider schema.
@@ -103,6 +108,12 @@ func (l *Linter) Lint(schema *providerjson.ProviderSchemaJSON) []rules.Finding {
 		for i := range findings {
 			findings[i].FixSuggestion = ""
 		}
+	}
+
+	// In diff mode, keep only findings on properties (or resources) that did not
+	// exist in the base schema.
+	if l.options.BaseSchema != nil {
+		findings = keepNewFindings(findings, l.options.BaseSchema)
 	}
 
 	sortFindings(findings)
@@ -226,4 +237,68 @@ func toSet(in []string) map[string]bool {
 	}
 
 	return out
+}
+
+// keepNewFindings filters findings down to those on properties (or entire
+// resources/data sources) that are absent from the base schema, i.e. added
+// since the base. This powers diff mode, where only what a change set introduces
+// should be held to the rules.
+func keepNewFindings(findings []rules.Finding, base *providerjson.ProviderSchemaJSON) []rules.Finding {
+	index := basePathIndex(base)
+
+	out := make([]rules.Finding, 0, len(findings))
+	for _, f := range findings {
+		paths, ok := index[indexKey(f.Kind, f.ResourceType)]
+		if !ok {
+			// The resource/data source did not exist in the base -> entirely new.
+			out = append(out, f)
+			continue
+		}
+		if _, exists := paths[f.Path]; !exists {
+			// The property (path) did not exist in the base -> newly added.
+			out = append(out, f)
+		}
+	}
+
+	return out
+}
+
+// basePathIndex builds, per resource/data source, the set of property paths that
+// exist in the base schema. The resource root is recorded as the empty path so
+// that resource-level findings on a pre-existing resource are dropped.
+func basePathIndex(base *providerjson.ProviderSchemaJSON) map[string]map[string]struct{} {
+	index := make(map[string]map[string]struct{})
+	if base == nil {
+		return index
+	}
+
+	add := func(kind rules.Kind, resources map[string]providerjson.ResourceJSON) {
+		for name, res := range resources {
+			paths := map[string]struct{}{"": {}}
+			for propName, prop := range res.Schema {
+				collectPaths(propName, prop, paths)
+			}
+			index[indexKey(kind, name)] = paths
+		}
+	}
+
+	add(rules.KindResource, base.ResourcesMap)
+	add(rules.KindDataSource, base.DataSourcesMap)
+
+	return index
+}
+
+// collectPaths records the dotted path of a property node and recurses into
+// nested blocks, mirroring walkProperty's path convention.
+func collectPaths(path string, s providerjson.SchemaJSON, out map[string]struct{}) {
+	out[path] = struct{}{}
+	if block, ok := rules.BlockElem(s); ok {
+		for childName, child := range block.Schema {
+			collectPaths(path+"."+childName, child, out)
+		}
+	}
+}
+
+func indexKey(kind rules.Kind, resourceType string) string {
+	return string(kind) + "|" + resourceType
 }

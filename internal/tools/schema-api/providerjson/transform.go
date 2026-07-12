@@ -161,8 +161,21 @@ func SchemaFromMap(input map[string]interface{}) SchemaJSON {
 		result.ForceNew = t.(bool)
 	}
 
-	if t, ok := input["elem"]; ok {
-		result.Elem = decodeElem(t)
+	if t, ok := input["elem"]; ok && t != nil {
+		if elem, ok := t.(map[string]interface{}); ok {
+			// Mirror SchemaJSON.UnmarshalJSON: a block's element is a nested
+			// resource (recursed via ResourceFromMap), while a collection of
+			// scalars carries only a type. Without this, blocks nested two or
+			// more levels deep would lose their Elem (and therefore all of their
+			// child property paths) when a schema is loaded from JSON.
+			if s, ok := elem["schema"].(map[string]interface{}); ok {
+				result.Elem = ResourceFromMap(s)
+			} else if typ, ok := elem["type"].(string); ok {
+				result.Elem = typ
+			}
+		} else {
+			result.Elem = decodeElem(t)
+		}
 	}
 
 	if t, ok := input["minItems"]; ok {

@@ -30,6 +30,9 @@ go run ./internal/tools/schema-lint check -fix
 # scope to specific resources / data sources
 go run ./internal/tools/schema-lint check -resource=azurerm_kubernetes_cluster
 
+# lint only properties added since a base schema (see Diff mode)
+go run ./internal/tools/schema-lint check -diff .release/provider-schema.json
+
 # machine readable output
 go run ./internal/tools/schema-lint check -format=json
 ```
@@ -52,6 +55,7 @@ make schema-lint
 | `-format` | `text` | output format: `text` or `json` |
 | `-fail-on-error` | `true` | exit non-zero when any `error`-severity finding is present |
 | `-fix` | `false` | include suggested fixes for fixable findings (see [Suggested fixes](#suggested-fixes)) |
+| `-diff` | | path to a base schema dump; report only findings on properties added since the base (see [Diff mode](#diff-mode)) |
 
 Precedence for enabling/disabling and severity is **CLI flags > config file > rule defaults**.
 
@@ -111,6 +115,42 @@ azurerm_api_management (resource)
 
 Because the linter inspects the compiled provider schema rather than its Go source, `-fix` reports the
 recommended change; it does not edit source files.
+
+## Diff mode
+
+In a pull request, existing properties usually cannot be changed to satisfy a rule — renaming a released
+property is a breaking change. Diff mode holds only the properties a change set **adds** to the rules,
+leaving pre-existing ones untouched.
+
+Pass `-diff <base>`, where `<base>` is a provider schema dump (as produced by `schema-api -export`). A
+finding is reported only when the property (by its dotted path) — or the whole resource / data source —
+is absent from the base schema:
+
+```bash
+# export a base schema, then lint only what changed since it
+go run internal/tools/schema-api/main.go -export /tmp/base.json
+go run ./internal/tools/schema-lint check -diff /tmp/base.json
+```
+
+A brand new resource is linted in full; a new child added to a pre-existing block is linted while its
+siblings are not.
+
+### Continuous integration
+
+The [schema-lint workflow](../../../.github/workflows/schema-lint.yaml) runs two jobs on pull requests
+that touch `internal/services/**` schemas:
+
+- **check** — lints entirely new resources / data sources
+  ([run-schema-lint.sh](../../../scripts/run-schema-lint.sh)).
+- **diff** — exports the base branch's schema into a temporary `git worktree` and runs `-diff`, so only
+  newly added properties are checked ([run-schema-lint-diff.sh](../../../scripts/run-schema-lint-diff.sh)).
+
+Both are skipped when a maintainer applies the `schema-accepted` label. Reproduce the diff check locally
+against the branch you are merging into:
+
+```bash
+GITHUB_BASE_REF=main bash ./scripts/run-schema-lint-diff.sh
+```
 
 ## Design considerations coverage
 

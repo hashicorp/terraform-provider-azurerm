@@ -1,22 +1,29 @@
 # Copyright IBM Corp. 2014, 2025
 # SPDX-License-Identifier: MPL-2.0
 ---
-name: Schema Lint (New Resources)
+name: Schema Lint
 
 permissions:
   contents: read
   pull-requests: read
 
-# Runs only for pull requests that ADD a new resource or data source
-# implementation file under internal/services/. The path filter narrows which
-# PRs start the workflow; the script then confirms the files are newly added
-# (git diff --diff-filter=A) and scopes the lint to the new type(s).
+# Two independent checks run on pull requests that touch resource or data source
+# schemas under internal/services/:
+#
+#   * check — lints entirely new resources / data sources (files added in the PR),
+#     scoped to the new type name(s).
+#   * diff  — lints only the schema PROPERTIES a PR adds, relative to the base
+#     branch it is merging into, so pre-existing properties (which cannot be
+#     renamed, as that would be a breaking change) are ignored.
+#
+# Both jobs are skipped when a maintainer applies the "schema-accepted" label.
 on:
   pull_request:
     types: ['opened', 'synchronize']
     paths:
       - '.github/workflows/schema-lint.yaml'
       - 'scripts/run-schema-lint.sh'
+      - 'scripts/run-schema-lint-diff.sh'
       - 'internal/services/**/*_resource.go'
       - 'internal/services/**/*_data_source.go'
       - 'internal/services/**/*_datasource.go'
@@ -26,7 +33,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  check:
+  diff:
     runs-on: ubuntu-latest
     # Skip when a maintainer has accepted the schema by applying the
     # "schema-accepted" label to the pull request.
@@ -34,20 +41,21 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
+          # Full history so the base branch can be checked out in a worktree.
           fetch-depth: 0
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: ./.go-version
-      - run: bash ./scripts/run-schema-lint.sh
+      - run: bash ./scripts/run-schema-lint-diff.sh
       - name: Guidance on failure
         if: failure()
         run: |
-          echo "::error::Schema lint failed for a new resource or data source."
+          echo "::error::Schema lint failed for a newly added schema property."
           echo ""
-          echo "A newly added *_resource.go / *_data_source.go file under"
-          echo "introduced a schema that violates a schema-lint rule."
+          echo "This PR adds one or more schema properties that violate a"
+          echo "schema-lint rule. Only NEWLY ADDED properties are checked"
           echo ""
-          echo "Reproduce locally, scoped to your new resource:"
-          echo "  go run ./internal/tools/schema-lint check -resource=azurerm_your_resource"
+          echo "Reproduce locally against the branch you are merging into:"
+          echo "  GITHUB_BASE_REF=main bash ./scripts/run-schema-lint-diff.sh"
           echo ""
           echo "See internal/tools/schema-lint/README.md for the full rule list."
