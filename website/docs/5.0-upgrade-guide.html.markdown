@@ -292,6 +292,14 @@ This deprecated resource has been superseded/retired and has been removed from t
 
 * This deprecated resource has been retired and has been removed from the Azure Provider.
 
+### `azurerm_redis_enterprise_cluster`
+
+* This deprecated resource has been superseded by `azurerm_managed_redis_cluster` and has been removed from the provider.
+
+### `azurerm_redis_enterprise_database`
+
+* This deprecated data source has been superseded by `azurerm_managed_redis_database` and has been removed from the provider.
+
 ### `azurerm_security_center_auto_provisioning`
 
 * This deprecated resource has been removed from the Azure Provider. Please see the [documentation for more details](https://learn.microsoft.com/en-us/azure/defender-for-cloud/prepare-deprecation-log-analytics-mma-agent#log-analytics-agent-autoprovisioning-experience---deprecation-plan).
@@ -338,6 +346,10 @@ This deprecated data source has been superseded/retired and has been removed fro
 ### `azurerm_postgresql_server`
 
 * This deprecated data source has been retired and has been removed from the Azure Provider.
+
+### `azurerm_redis_enterprise_database`
+
+* This deprecated data source has been superseded by `azurerm_managed_redis_database` and has been removed from the provider.
 
 ### `azurerm_spatial_anchors_account`
 
