@@ -589,15 +589,3 @@ func TestValidateStorageContainerName(t *testing.T) {
 		}
 	}
 }
-
-func (r StorageContainerResource) withAccountName(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-`, r.template(data))
-}

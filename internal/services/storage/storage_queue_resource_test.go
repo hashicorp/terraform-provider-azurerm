@@ -162,8 +162,8 @@ func (r StorageQueueResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_storage_queue" "test" {
-  name                 = "acctestmysamplequeue-%d"
-  storage_account_name = azurerm_storage_account.test.name
+  name               = "acctestmysamplequeue-%d"
+  storage_account_id = azurerm_storage_account.test.id
 }
 `, r.template(data), data.RandomInteger)
 }
