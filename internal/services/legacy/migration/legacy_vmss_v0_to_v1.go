@@ -253,7 +253,6 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 					},
-					// TODO 4.0: change this from enable_* to *_enabled
 					"enable_automatic_upgrades": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
