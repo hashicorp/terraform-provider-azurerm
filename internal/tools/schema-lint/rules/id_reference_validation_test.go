@@ -6,7 +6,7 @@ package rules
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/providerjson"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/providerschema"
 )
 
 func TestIDReferenceValidation(t *testing.T) {
@@ -16,16 +16,16 @@ func TestIDReferenceValidation(t *testing.T) {
 	cases := []struct {
 		name     string
 		propName string
-		schema   providerjson.SchemaJSON
+		schema   providerschema.SchemaJSON
 		wantHits int
 	}{
-		{name: "id without validation", propName: "subnet_id", schema: providerjson.SchemaJSON{Type: TypeString, Required: true}, wantHits: 1},
-		{name: "id with weak validation", propName: "subnet_id", schema: providerjson.SchemaJSON{Type: TypeString, Required: true, AcceptsValue: acceptAll}, wantHits: 1},
-		{name: "id with strong validation", propName: "subnet_id", schema: providerjson.SchemaJSON{Type: TypeString, Required: true, AcceptsValue: uuidLike}, wantHits: 0},
-		{name: "computed-only id", propName: "subnet_id", schema: providerjson.SchemaJSON{Type: TypeString, Computed: true, AcceptsValue: acceptAll}, wantHits: 0},
-		{name: "plural ids not matched", propName: "subnet_ids", schema: providerjson.SchemaJSON{Type: TypeString, Required: true}, wantHits: 0},
-		{name: "non-id property", propName: "location", schema: providerjson.SchemaJSON{Type: TypeString, Required: true}, wantHits: 0},
-		{name: "resource id itself", propName: "id", schema: providerjson.SchemaJSON{Type: TypeString, Computed: true}, wantHits: 0},
+		{name: "id without validation", propName: "subnet_id", schema: providerschema.SchemaJSON{Type: TypeString, Required: true}, wantHits: 1},
+		{name: "id with weak validation", propName: "subnet_id", schema: providerschema.SchemaJSON{Type: TypeString, Required: true, AcceptsValue: acceptAll}, wantHits: 1},
+		{name: "id with strong validation", propName: "subnet_id", schema: providerschema.SchemaJSON{Type: TypeString, Required: true, AcceptsValue: uuidLike}, wantHits: 0},
+		{name: "computed-only id", propName: "subnet_id", schema: providerschema.SchemaJSON{Type: TypeString, Computed: true, AcceptsValue: acceptAll}, wantHits: 0},
+		{name: "plural ids not matched", propName: "subnet_ids", schema: providerschema.SchemaJSON{Type: TypeString, Required: true}, wantHits: 0},
+		{name: "non-id property", propName: "location", schema: providerschema.SchemaJSON{Type: TypeString, Required: true}, wantHits: 0},
+		{name: "resource id itself", propName: "id", schema: providerschema.SchemaJSON{Type: TypeString, Computed: true}, wantHits: 0},
 	}
 
 	rule := idReferenceValidation{}

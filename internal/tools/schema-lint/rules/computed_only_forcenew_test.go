@@ -6,19 +6,19 @@ package rules
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/providerjson"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/providerschema"
 )
 
 func TestComputedOnlyForceNew(t *testing.T) {
 	cases := []struct {
 		name     string
-		schema   providerjson.SchemaJSON
+		schema   providerschema.SchemaJSON
 		wantHits int
 	}{
-		{name: "computed only without forcenew", schema: providerjson.SchemaJSON{Type: TypeString, Computed: true}, wantHits: 0},
-		{name: "optional with forcenew", schema: providerjson.SchemaJSON{Type: TypeString, Optional: true, ForceNew: true}, wantHits: 0},
-		{name: "optional computed with forcenew", schema: providerjson.SchemaJSON{Type: TypeString, Optional: true, Computed: true, ForceNew: true}, wantHits: 0},
-		{name: "computed only with forcenew", schema: providerjson.SchemaJSON{Type: TypeString, Computed: true, ForceNew: true}, wantHits: 1},
+		{name: "computed only without forcenew", schema: providerschema.SchemaJSON{Type: TypeString, Computed: true}, wantHits: 0},
+		{name: "optional with forcenew", schema: providerschema.SchemaJSON{Type: TypeString, Optional: true, ForceNew: true}, wantHits: 0},
+		{name: "optional computed with forcenew", schema: providerschema.SchemaJSON{Type: TypeString, Optional: true, Computed: true, ForceNew: true}, wantHits: 0},
+		{name: "computed only with forcenew", schema: providerschema.SchemaJSON{Type: TypeString, Computed: true, ForceNew: true}, wantHits: 1},
 	}
 
 	rule := computedOnlyForceNew{}

@@ -6,19 +6,19 @@ package rules
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/providerjson"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/providerschema"
 )
 
 func TestRequiredAndComputed(t *testing.T) {
 	cases := []struct {
 		name     string
-		schema   providerjson.SchemaJSON
+		schema   providerschema.SchemaJSON
 		wantHits int
 	}{
-		{name: "required only", schema: providerjson.SchemaJSON{Type: TypeString, Required: true}, wantHits: 0},
-		{name: "computed only", schema: providerjson.SchemaJSON{Type: TypeString, Computed: true}, wantHits: 0},
-		{name: "optional and computed", schema: providerjson.SchemaJSON{Type: TypeString, Optional: true, Computed: true}, wantHits: 0},
-		{name: "required and computed", schema: providerjson.SchemaJSON{Type: TypeString, Required: true, Computed: true}, wantHits: 1},
+		{name: "required only", schema: providerschema.SchemaJSON{Type: TypeString, Required: true}, wantHits: 0},
+		{name: "computed only", schema: providerschema.SchemaJSON{Type: TypeString, Computed: true}, wantHits: 0},
+		{name: "optional and computed", schema: providerschema.SchemaJSON{Type: TypeString, Optional: true, Computed: true}, wantHits: 0},
+		{name: "required and computed", schema: providerschema.SchemaJSON{Type: TypeString, Required: true, Computed: true}, wantHits: 1},
 	}
 
 	rule := requiredAndComputed{}

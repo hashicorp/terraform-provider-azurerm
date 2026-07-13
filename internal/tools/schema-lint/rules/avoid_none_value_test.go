@@ -6,7 +6,7 @@ package rules
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/providerjson"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/providerschema"
 )
 
 func TestAvoidNoneValue(t *testing.T) {
@@ -24,15 +24,15 @@ func TestAvoidNoneValue(t *testing.T) {
 
 	cases := []struct {
 		name     string
-		schema   providerjson.SchemaJSON
+		schema   providerschema.SchemaJSON
 		wantHits int
 	}{
-		{name: "optional enum accepting None", schema: providerjson.SchemaJSON{Type: TypeString, Optional: true, AcceptsValue: enumAccept("None", "Auto")}, wantHits: 1},
-		{name: "required enum accepting Off and Default", schema: providerjson.SchemaJSON{Type: TypeString, Required: true, AcceptsValue: enumAccept("Off", "On", "Default")}, wantHits: 1},
-		{name: "enum without special values", schema: providerjson.SchemaJSON{Type: TypeString, Optional: true, AcceptsValue: enumAccept("Standard", "Premium")}, wantHits: 0},
-		{name: "free-form validator is not an enum", schema: providerjson.SchemaJSON{Type: TypeString, Optional: true, AcceptsValue: acceptAll}, wantHits: 0},
-		{name: "no validator", schema: providerjson.SchemaJSON{Type: TypeString, Optional: true}, wantHits: 0},
-		{name: "computed-only accepting None", schema: providerjson.SchemaJSON{Type: TypeString, Computed: true, AcceptsValue: enumAccept("None")}, wantHits: 0},
+		{name: "optional enum accepting None", schema: providerschema.SchemaJSON{Type: TypeString, Optional: true, AcceptsValue: enumAccept("None", "Auto")}, wantHits: 1},
+		{name: "required enum accepting Off and Default", schema: providerschema.SchemaJSON{Type: TypeString, Required: true, AcceptsValue: enumAccept("Off", "On", "Default")}, wantHits: 1},
+		{name: "enum without special values", schema: providerschema.SchemaJSON{Type: TypeString, Optional: true, AcceptsValue: enumAccept("Standard", "Premium")}, wantHits: 0},
+		{name: "free-form validator is not an enum", schema: providerschema.SchemaJSON{Type: TypeString, Optional: true, AcceptsValue: acceptAll}, wantHits: 0},
+		{name: "no validator", schema: providerschema.SchemaJSON{Type: TypeString, Optional: true}, wantHits: 0},
+		{name: "computed-only accepting None", schema: providerschema.SchemaJSON{Type: TypeString, Computed: true, AcceptsValue: enumAccept("None")}, wantHits: 0},
 	}
 
 	rule := avoidNoneValue{}

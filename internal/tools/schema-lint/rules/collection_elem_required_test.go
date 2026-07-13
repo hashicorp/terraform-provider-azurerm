@@ -6,20 +6,20 @@ package rules
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/providerjson"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/providerschema"
 )
 
 func TestCollectionElemRequired(t *testing.T) {
 	cases := []struct {
 		name     string
-		schema   providerjson.SchemaJSON
+		schema   providerschema.SchemaJSON
 		wantHits int
 	}{
-		{name: "string is not a collection", schema: providerjson.SchemaJSON{Type: TypeString}, wantHits: 0},
-		{name: "list with elem", schema: providerjson.SchemaJSON{Type: TypeList, Elem: providerjson.SchemaJSON{Type: TypeString}}, wantHits: 0},
-		{name: "set with block elem", schema: providerjson.SchemaJSON{Type: TypeSet, Elem: &providerjson.ResourceJSON{}}, wantHits: 0},
-		{name: "list without elem", schema: providerjson.SchemaJSON{Type: TypeList}, wantHits: 1},
-		{name: "set without elem", schema: providerjson.SchemaJSON{Type: TypeSet}, wantHits: 1},
+		{name: "string is not a collection", schema: providerschema.SchemaJSON{Type: TypeString}, wantHits: 0},
+		{name: "list with elem", schema: providerschema.SchemaJSON{Type: TypeList, Elem: providerschema.SchemaJSON{Type: TypeString}}, wantHits: 0},
+		{name: "set with block elem", schema: providerschema.SchemaJSON{Type: TypeSet, Elem: &providerschema.ResourceJSON{}}, wantHits: 0},
+		{name: "list without elem", schema: providerschema.SchemaJSON{Type: TypeList}, wantHits: 1},
+		{name: "set without elem", schema: providerschema.SchemaJSON{Type: TypeSet}, wantHits: 1},
 	}
 
 	rule := collectionElemRequired{}

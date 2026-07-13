@@ -209,11 +209,11 @@ remediation surfaced by `-fix`.
 
 - `rules/` — rule contracts (`Rule`, `PropertyRule`, `ResourceRule`, `Fixer`), the `Finding`/context
   types, the `AllRules` registry, and the concrete rules.
-- `engine/` — loads the schema via `schema-api/providerjson`, walks resources/data sources and nested
+- `engine/` — loads the schema via `providerschema`, walks resources/data sources and nested
   blocks, applies the active rules and resolves severity.
 - `config/` — the `.schema-lint.json` model and loader.
 - `report/` — text and JSON reporters.
 - `main.go` — the CLI.
 
-The schema model is reused from `internal/tools/schema-api/providerjson`, so the linter does not
-duplicate schema extraction.
+The schema model is reused from `internal/tools/providerschema` (shared with `schema-api`), so the
+linter does not duplicate schema extraction.

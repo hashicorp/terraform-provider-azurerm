@@ -6,24 +6,24 @@ package rules
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/providerjson"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/providerschema"
 )
 
-func optionalBlock(schema map[string]providerjson.SchemaJSON) providerjson.SchemaJSON {
-	return providerjson.SchemaJSON{Type: TypeList, Optional: true, MaxItems: 1, Elem: &providerjson.ResourceJSON{Schema: schema}}
+func optionalBlock(schema map[string]providerschema.SchemaJSON) providerschema.SchemaJSON {
+	return providerschema.SchemaJSON{Type: TypeList, Optional: true, MaxItems: 1, Elem: &providerschema.ResourceJSON{Schema: schema}}
 }
 
 func TestBlockNeedsConstraint(t *testing.T) {
 	cases := []struct {
 		name     string
-		schema   providerjson.SchemaJSON
+		schema   providerschema.SchemaJSON
 		wantHits int
 	}{
-		{name: "all optional, no constraint", schema: optionalBlock(map[string]providerjson.SchemaJSON{"a": {Type: TypeString, Optional: true}, "b": {Type: TypeString, Optional: true}}), wantHits: 1},
-		{name: "has a required field", schema: optionalBlock(map[string]providerjson.SchemaJSON{"a": {Type: TypeString, Required: true}}), wantHits: 0},
-		{name: "has AtLeastOneOf", schema: optionalBlock(map[string]providerjson.SchemaJSON{"a": {Type: TypeString, Optional: true, AtLeastOneOf: []string{"x.0.a", "x.0.b"}}}), wantHits: 0},
-		{name: "computed-only block", schema: providerjson.SchemaJSON{Type: TypeList, Computed: true, Elem: &providerjson.ResourceJSON{Schema: map[string]providerjson.SchemaJSON{"a": {Type: TypeString}}}}, wantHits: 0},
-		{name: "not a block", schema: providerjson.SchemaJSON{Type: TypeString, Optional: true}, wantHits: 0},
+		{name: "all optional, no constraint", schema: optionalBlock(map[string]providerschema.SchemaJSON{"a": {Type: TypeString, Optional: true}, "b": {Type: TypeString, Optional: true}}), wantHits: 1},
+		{name: "has a required field", schema: optionalBlock(map[string]providerschema.SchemaJSON{"a": {Type: TypeString, Required: true}}), wantHits: 0},
+		{name: "has AtLeastOneOf", schema: optionalBlock(map[string]providerschema.SchemaJSON{"a": {Type: TypeString, Optional: true, AtLeastOneOf: []string{"x.0.a", "x.0.b"}}}), wantHits: 0},
+		{name: "computed-only block", schema: providerschema.SchemaJSON{Type: TypeList, Computed: true, Elem: &providerschema.ResourceJSON{Schema: map[string]providerschema.SchemaJSON{"a": {Type: TypeString}}}}, wantHits: 0},
+		{name: "not a block", schema: providerschema.SchemaJSON{Type: TypeString, Optional: true}, wantHits: 0},
 	}
 
 	rule := blockNeedsConstraint{}

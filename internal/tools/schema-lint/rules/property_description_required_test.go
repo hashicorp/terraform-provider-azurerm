@@ -6,17 +6,17 @@ package rules
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/providerjson"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/providerschema"
 )
 
 func TestPropertyDescriptionRequired(t *testing.T) {
 	cases := []struct {
 		name     string
-		schema   providerjson.SchemaJSON
+		schema   providerschema.SchemaJSON
 		wantHits int
 	}{
-		{name: "with description", schema: providerjson.SchemaJSON{Type: TypeString, Description: "the name"}, wantHits: 0},
-		{name: "missing description", schema: providerjson.SchemaJSON{Type: TypeString}, wantHits: 1},
+		{name: "with description", schema: providerschema.SchemaJSON{Type: TypeString, Description: "the name"}, wantHits: 0},
+		{name: "missing description", schema: providerschema.SchemaJSON{Type: TypeString}, wantHits: 1},
 	}
 
 	rule := propertyDescriptionRequired{}

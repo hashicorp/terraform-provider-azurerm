@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/providerjson"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/providerschema"
 )
 
 func TestRedundantSuffix(t *testing.T) {
@@ -27,7 +27,7 @@ func TestRedundantSuffix(t *testing.T) {
 	rule := redundantSuffix{}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			got := rule.CheckProperty(PropertyContext{ResourceType: "azurerm_test", Kind: KindResource, Name: tc.propName, Path: tc.propName, Schema: providerjson.SchemaJSON{Type: TypeList}})
+			got := rule.CheckProperty(PropertyContext{ResourceType: "azurerm_test", Kind: KindResource, Name: tc.propName, Path: tc.propName, Schema: providerschema.SchemaJSON{Type: TypeList}})
 			if len(got) != tc.wantHits {
 				t.Fatalf("expected %d finding(s), got %d: %+v", tc.wantHits, len(got), got)
 			}

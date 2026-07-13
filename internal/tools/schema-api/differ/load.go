@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"os"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/providerjson"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/providerschema"
 )
 
 func (d *Differ) loadFromFile(fileName string) error {
@@ -16,7 +16,7 @@ func (d *Differ) loadFromFile(fileName string) error {
 		return err
 	}
 	defer f.Close()
-	buf := &providerjson.ProviderWrapper{}
+	buf := &providerschema.ProviderWrapper{}
 	// TODO - Custom marshalling to fix the type assertions later? meh, works for now...
 	if err := json.NewDecoder(f).Decode(buf); err != nil {
 		return err
@@ -26,11 +26,11 @@ func (d *Differ) loadFromFile(fileName string) error {
 	return nil
 }
 
-func (d *Differ) loadFromProvider(data *providerjson.ProviderJSON, providerName string) error {
-	if s, err := providerjson.ProviderFromRaw(data); err != nil {
+func (d *Differ) loadFromProvider(data *providerschema.ProviderJSON, providerName string) error {
+	if s, err := providerschema.ProviderFromRaw(data); err != nil {
 		return err
 	} else {
-		d.current = &providerjson.ProviderWrapper{
+		d.current = &providerschema.ProviderWrapper{
 			ProviderName:   providerName,
 			ProviderSchema: s,
 		}

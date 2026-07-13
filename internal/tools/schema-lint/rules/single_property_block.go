@@ -6,7 +6,7 @@ package rules
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/providerjson"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/providerschema"
 )
 
 var (
@@ -43,7 +43,7 @@ func (r singlePropertyBlock) CheckProperty(ctx PropertyContext) []Finding {
 	}
 
 	var childName string
-	var child providerjson.SchemaJSON
+	var child providerschema.SchemaJSON
 	for k, v := range block.Schema {
 		childName, child = k, v
 	}

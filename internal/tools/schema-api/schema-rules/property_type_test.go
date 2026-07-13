@@ -6,11 +6,11 @@ package schema_rules
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/providerjson"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/providerschema"
 )
 
-var propertyTypeBaseNode = providerjson.SchemaJSON{
-	Type:        providerjson.SchemaTypeString,
+var propertyTypeBaseNode = providerschema.SchemaJSON{
+	Type:        providerschema.SchemaTypeString,
 	ConfigMode:  "",
 	Optional:    false,
 	Required:    false,
@@ -23,8 +23,8 @@ var propertyTypeBaseNode = providerjson.SchemaJSON{
 	MinItems:    0,
 }
 
-var propertyTypePasses = providerjson.SchemaJSON{
-	Type:        providerjson.SchemaTypeString,
+var propertyTypePasses = providerschema.SchemaJSON{
+	Type:        providerschema.SchemaTypeString,
 	ConfigMode:  "",
 	Optional:    false,
 	Required:    false,
@@ -37,8 +37,8 @@ var propertyTypePasses = providerjson.SchemaJSON{
 	MinItems:    0,
 }
 
-var propertyTypeViolates = providerjson.SchemaJSON{
-	Type:        providerjson.SchemaTypeInt,
+var propertyTypeViolates = providerschema.SchemaJSON{
+	Type:        providerschema.SchemaTypeInt,
 	ConfigMode:  "",
 	Optional:    false,
 	Required:    false,
@@ -51,8 +51,8 @@ var propertyTypeViolates = providerjson.SchemaJSON{
 	MinItems:    0,
 }
 
-var propertyTypeList = providerjson.SchemaJSON{
-	Type:        providerjson.SchemaTypeList,
+var propertyTypeList = providerschema.SchemaJSON{
+	Type:        providerschema.SchemaTypeList,
 	ConfigMode:  "",
 	Optional:    false,
 	Required:    false,
@@ -65,8 +65,8 @@ var propertyTypeList = providerjson.SchemaJSON{
 	MinItems:    0,
 }
 
-var propertyTypeSet = providerjson.SchemaJSON{
-	Type:        providerjson.SchemaTypeSet,
+var propertyTypeSet = providerschema.SchemaJSON{
+	Type:        providerschema.SchemaTypeSet,
 	ConfigMode:  "",
 	Optional:    false,
 	Required:    false,

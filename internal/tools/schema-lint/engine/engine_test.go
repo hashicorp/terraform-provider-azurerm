@@ -6,23 +6,23 @@ package engine
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/providerjson"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/providerschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-lint/config"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-lint/rules"
 )
 
-func testSchema() *providerjson.ProviderSchemaJSON {
-	return &providerjson.ProviderSchemaJSON{
-		ResourcesMap: map[string]providerjson.ResourceJSON{
+func testSchema() *providerschema.ProviderSchemaJSON {
+	return &providerschema.ProviderSchemaJSON{
+		ResourcesMap: map[string]providerschema.ResourceJSON{
 			"azurerm_test": {
-				Schema: map[string]providerjson.SchemaJSON{
+				Schema: map[string]providerschema.SchemaJSON{
 					// Missing description -> SL001.
 					"name": {Type: rules.TypeString, Required: true},
 					// Nested block, missing description -> SL001.
 					"block": {
 						Type: rules.TypeList,
-						Elem: &providerjson.ResourceJSON{
-							Schema: map[string]providerjson.SchemaJSON{
+						Elem: &providerschema.ResourceJSON{
+							Schema: map[string]providerschema.SchemaJSON{
 								// Optional + Required -> SL002, and missing description -> SL001.
 								"inner": {Type: rules.TypeString, Optional: true, Required: true},
 							},
@@ -110,12 +110,12 @@ func TestLint_ResourceFilterSkip(t *testing.T) {
 	}
 }
 
-func fixSchema() *providerjson.ProviderSchemaJSON {
-	return &providerjson.ProviderSchemaJSON{
-		ResourcesMap: map[string]providerjson.ResourceJSON{
+func fixSchema() *providerschema.ProviderSchemaJSON {
+	return &providerschema.ProviderSchemaJSON{
+		ResourcesMap: map[string]providerschema.ResourceJSON{
 			"azurerm_fix": {
-				Timeouts: &providerjson.ResourceTimeoutJSON{Read: 5},
-				Schema: map[string]providerjson.SchemaJSON{
+				Timeouts: &providerschema.ResourceTimeoutJSON{Read: 5},
+				Schema: map[string]providerschema.SchemaJSON{
 					// Computed-only + ForceNew -> SL004 (fixable). Has a description
 					// so SL001 does not also fire.
 					"id_out": {Type: rules.TypeString, Computed: true, ForceNew: true, Description: "an output"},
@@ -155,15 +155,15 @@ func anyFinding(findings []rules.Finding, resourceType, path string) bool {
 }
 
 func TestLint_DiffMode(t *testing.T) {
-	base := &providerjson.ProviderSchemaJSON{
-		ResourcesMap: map[string]providerjson.ResourceJSON{
+	base := &providerschema.ProviderSchemaJSON{
+		ResourcesMap: map[string]providerschema.ResourceJSON{
 			"azurerm_test": {
-				Schema: map[string]providerjson.SchemaJSON{
+				Schema: map[string]providerschema.SchemaJSON{
 					"existing": {Type: rules.TypeString, Optional: true},
 					"block": {
 						Type: rules.TypeList,
-						Elem: &providerjson.ResourceJSON{
-							Schema: map[string]providerjson.SchemaJSON{
+						Elem: &providerschema.ResourceJSON{
+							Schema: map[string]providerschema.SchemaJSON{
 								"old": {Type: rules.TypeString, Optional: true},
 							},
 						},
@@ -173,17 +173,17 @@ func TestLint_DiffMode(t *testing.T) {
 		},
 	}
 
-	current := &providerjson.ProviderSchemaJSON{
-		ResourcesMap: map[string]providerjson.ResourceJSON{
+	current := &providerschema.ProviderSchemaJSON{
+		ResourcesMap: map[string]providerschema.ResourceJSON{
 			// Existing resource that gains a top-level property and a nested one.
 			"azurerm_test": {
-				Schema: map[string]providerjson.SchemaJSON{
+				Schema: map[string]providerschema.SchemaJSON{
 					"existing":  {Type: rules.TypeString, Optional: true},
 					"brand_new": {Type: rules.TypeString, Optional: true},
 					"block": {
 						Type: rules.TypeList,
-						Elem: &providerjson.ResourceJSON{
-							Schema: map[string]providerjson.SchemaJSON{
+						Elem: &providerschema.ResourceJSON{
+							Schema: map[string]providerschema.SchemaJSON{
 								"old":   {Type: rules.TypeString, Optional: true},
 								"added": {Type: rules.TypeString, Optional: true},
 							},
@@ -193,7 +193,7 @@ func TestLint_DiffMode(t *testing.T) {
 			},
 			// A brand new resource -> all of its properties are reported.
 			"azurerm_new": {
-				Schema: map[string]providerjson.SchemaJSON{
+				Schema: map[string]providerschema.SchemaJSON{
 					"np": {Type: rules.TypeString, Optional: true},
 				},
 			},

@@ -19,7 +19,7 @@ package rules
 import (
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/providerjson"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/providerschema"
 )
 
 // Severity indicates how a Finding should be treated by the reporter and the
@@ -65,12 +65,12 @@ type PropertyContext struct {
 	Name string
 	// Path is the full dotted path from the resource root (e.g. "network_profile.load_balancer_sku").
 	Path   string
-	Schema providerjson.SchemaJSON
+	Schema providerschema.SchemaJSON
 	// Parent is the schema of the enclosing block, or nil at the top level.
-	Parent *providerjson.SchemaJSON
+	Parent *providerschema.SchemaJSON
 	// Siblings is the set of properties at the same level as this one (including
 	// this property), keyed by name. It is nil when unavailable.
-	Siblings map[string]providerjson.SchemaJSON
+	Siblings map[string]providerschema.SchemaJSON
 }
 
 // ResourceContext carries the information a ResourceRule needs to evaluate a
@@ -78,7 +78,7 @@ type PropertyContext struct {
 type ResourceContext struct {
 	ResourceType string
 	Kind         Kind
-	Resource     providerjson.ResourceJSON
+	Resource     providerschema.ResourceJSON
 }
 
 // Rule is the common interface implemented by every lint rule.

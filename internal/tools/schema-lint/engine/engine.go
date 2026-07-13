@@ -9,7 +9,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/providerjson"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/providerschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-lint/config"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-lint/rules"
 )
@@ -32,7 +32,7 @@ type Options struct {
 	// entire resources/data sources) that are absent from the base schema — i.e.
 	// added since the base — are reported. Pre-existing properties are ignored so
 	// that only what a change set adds is held to the rules.
-	BaseSchema *providerjson.ProviderSchemaJSON
+	BaseSchema *providerschema.ProviderSchemaJSON
 }
 
 // Linter applies a set of rules to the provider schema.
@@ -56,7 +56,7 @@ func New(ruleSet []rules.Rule, opts Options) *Linter {
 
 // Run loads the live provider schema and lints it.
 func (l *Linter) Run() ([]rules.Finding, error) {
-	schema, err := providerjson.ProviderFromRaw(providerjson.LoadData())
+	schema, err := providerschema.ProviderFromRaw(providerschema.LoadData())
 	if err != nil {
 		return nil, err
 	}
@@ -66,12 +66,12 @@ func (l *Linter) Run() ([]rules.Finding, error) {
 
 // Lint applies the active rules to the supplied provider schema. It is separated
 // from Run so it can be exercised with a synthetic schema in tests.
-func (l *Linter) Lint(schema *providerjson.ProviderSchemaJSON) []rules.Finding {
+func (l *Linter) Lint(schema *providerschema.ProviderSchemaJSON) []rules.Finding {
 	propertyRules, resourceRules, severity := l.activeRules()
 
 	findings := make([]rules.Finding, 0)
 
-	lintOne := func(name string, res providerjson.ResourceJSON, kind rules.Kind) {
+	lintOne := func(name string, res providerschema.ResourceJSON, kind rules.Kind) {
 		if !l.options.Config.ResourceAllowed(name) {
 			return
 		}
@@ -170,7 +170,7 @@ func (l *Linter) activeRules() (propertyRules []rules.PropertyRule, resourceRule
 
 // walkProperty applies the property rules to a node and recurses into nested
 // blocks, building a dotted path as it descends.
-func walkProperty(resourceType string, kind rules.Kind, name, path string, s providerjson.SchemaJSON, parent *providerjson.SchemaJSON, siblings map[string]providerjson.SchemaJSON, propertyRules []rules.PropertyRule, out *[]rules.Finding) {
+func walkProperty(resourceType string, kind rules.Kind, name, path string, s providerschema.SchemaJSON, parent *providerschema.SchemaJSON, siblings map[string]providerschema.SchemaJSON, propertyRules []rules.PropertyRule, out *[]rules.Finding) {
 	ctx := rules.PropertyContext{
 		ResourceType: resourceType,
 		Kind:         kind,
@@ -192,7 +192,7 @@ func walkProperty(resourceType string, kind rules.Kind, name, path string, s pro
 	}
 }
 
-func sortedKeys(m map[string]providerjson.SchemaJSON) []string {
+func sortedKeys(m map[string]providerschema.SchemaJSON) []string {
 	keys := make([]string, 0, len(m))
 	for k := range m {
 		keys = append(keys, k)
@@ -202,7 +202,7 @@ func sortedKeys(m map[string]providerjson.SchemaJSON) []string {
 	return keys
 }
 
-func sortedResourceKeys(m map[string]providerjson.ResourceJSON) []string {
+func sortedResourceKeys(m map[string]providerschema.ResourceJSON) []string {
 	keys := make([]string, 0, len(m))
 	for k := range m {
 		keys = append(keys, k)
@@ -243,7 +243,7 @@ func toSet(in []string) map[string]bool {
 // resources/data sources) that are absent from the base schema, i.e. added
 // since the base. This powers diff mode, where only what a change set introduces
 // should be held to the rules.
-func keepNewFindings(findings []rules.Finding, base *providerjson.ProviderSchemaJSON) []rules.Finding {
+func keepNewFindings(findings []rules.Finding, base *providerschema.ProviderSchemaJSON) []rules.Finding {
 	index := basePathIndex(base)
 
 	out := make([]rules.Finding, 0, len(findings))
@@ -266,13 +266,13 @@ func keepNewFindings(findings []rules.Finding, base *providerjson.ProviderSchema
 // basePathIndex builds, per resource/data source, the set of property paths that
 // exist in the base schema. The resource root is recorded as the empty path so
 // that resource-level findings on a pre-existing resource are dropped.
-func basePathIndex(base *providerjson.ProviderSchemaJSON) map[string]map[string]struct{} {
+func basePathIndex(base *providerschema.ProviderSchemaJSON) map[string]map[string]struct{} {
 	index := make(map[string]map[string]struct{})
 	if base == nil {
 		return index
 	}
 
-	add := func(kind rules.Kind, resources map[string]providerjson.ResourceJSON) {
+	add := func(kind rules.Kind, resources map[string]providerschema.ResourceJSON) {
 		for name, res := range resources {
 			paths := map[string]struct{}{"": {}}
 			for propName, prop := range res.Schema {
@@ -290,7 +290,7 @@ func basePathIndex(base *providerjson.ProviderSchemaJSON) map[string]map[string]
 
 // collectPaths records the dotted path of a property node and recurses into
 // nested blocks, mirroring walkProperty's path convention.
-func collectPaths(path string, s providerjson.SchemaJSON, out map[string]struct{}) {
+func collectPaths(path string, s providerschema.SchemaJSON, out map[string]struct{}) {
 	out[path] = struct{}{}
 	if block, ok := rules.BlockElem(s); ok {
 		for childName, child := range block.Schema {

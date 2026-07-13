@@ -7,24 +7,24 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/providerjson"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/providerschema"
 )
 
-func block(maxItems int, schema map[string]providerjson.SchemaJSON) providerjson.SchemaJSON {
-	return providerjson.SchemaJSON{Type: TypeList, MaxItems: maxItems, Elem: &providerjson.ResourceJSON{Schema: schema}}
+func block(maxItems int, schema map[string]providerschema.SchemaJSON) providerschema.SchemaJSON {
+	return providerschema.SchemaJSON{Type: TypeList, MaxItems: maxItems, Elem: &providerschema.ResourceJSON{Schema: schema}}
 }
 
 func TestSinglePropertyBlock(t *testing.T) {
 	cases := []struct {
 		name     string
-		schema   providerjson.SchemaJSON
+		schema   providerschema.SchemaJSON
 		wantHits int
 	}{
-		{name: "single enabled property, maxitems 1", schema: block(1, map[string]providerjson.SchemaJSON{"enabled": {Type: TypeBool, Optional: true}}), wantHits: 1},
-		{name: "single non-enabled property, maxitems 1", schema: block(1, map[string]providerjson.SchemaJSON{"version": {Type: TypeString, Optional: true}}), wantHits: 1},
-		{name: "two properties, maxitems 1", schema: block(1, map[string]providerjson.SchemaJSON{"a": {Type: TypeString}, "b": {Type: TypeString}}), wantHits: 0},
-		{name: "single property, maxitems 0", schema: block(0, map[string]providerjson.SchemaJSON{"enabled": {Type: TypeBool}}), wantHits: 0},
-		{name: "not a block", schema: providerjson.SchemaJSON{Type: TypeString, MaxItems: 1}, wantHits: 0},
+		{name: "single enabled property, maxitems 1", schema: block(1, map[string]providerschema.SchemaJSON{"enabled": {Type: TypeBool, Optional: true}}), wantHits: 1},
+		{name: "single non-enabled property, maxitems 1", schema: block(1, map[string]providerschema.SchemaJSON{"version": {Type: TypeString, Optional: true}}), wantHits: 1},
+		{name: "two properties, maxitems 1", schema: block(1, map[string]providerschema.SchemaJSON{"a": {Type: TypeString}, "b": {Type: TypeString}}), wantHits: 0},
+		{name: "single property, maxitems 0", schema: block(0, map[string]providerschema.SchemaJSON{"enabled": {Type: TypeBool}}), wantHits: 0},
+		{name: "not a block", schema: providerschema.SchemaJSON{Type: TypeString, MaxItems: 1}, wantHits: 0},
 	}
 
 	rule := singlePropertyBlock{}
@@ -45,7 +45,7 @@ func TestSinglePropertyBlock_EnabledFixSuggestion(t *testing.T) {
 		Kind:         KindResource,
 		Name:         "blob_csi_driver",
 		Path:         "storage_profile.blob_csi_driver",
-		Schema:       block(1, map[string]providerjson.SchemaJSON{"enabled": {Type: TypeBool, Optional: true}}),
+		Schema:       block(1, map[string]providerschema.SchemaJSON{"enabled": {Type: TypeBool, Optional: true}}),
 	})
 
 	if len(got) != 1 {

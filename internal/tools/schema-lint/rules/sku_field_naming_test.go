@@ -7,29 +7,29 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/providerjson"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/providerschema"
 )
 
 func TestSkuFieldNaming(t *testing.T) {
-	str := providerjson.SchemaJSON{Type: TypeString, Optional: true}
-	parent := &providerjson.SchemaJSON{Type: TypeList}
+	str := providerschema.SchemaJSON{Type: TypeString, Optional: true}
+	parent := &providerschema.SchemaJSON{Type: TypeList}
 
-	single := map[string]providerjson.SchemaJSON{"sku_name": str, "location": str}
-	multiple := map[string]providerjson.SchemaJSON{"sku_name": str, "sku_capacity": str}
+	single := map[string]providerschema.SchemaJSON{"sku_name": str, "location": str}
+	multiple := map[string]providerschema.SchemaJSON{"sku_name": str, "sku_capacity": str}
 
 	cases := []struct {
 		name       string
 		propName   string
-		parent     *providerjson.SchemaJSON
-		siblings   map[string]providerjson.SchemaJSON
+		parent     *providerschema.SchemaJSON
+		siblings   map[string]providerschema.SchemaJSON
 		wantHits   int
 		wantSubstr string
 	}{
 		{name: "single sku field is not flagged", propName: "sku_name", siblings: single, wantHits: 0},
 		{name: "multiple sku fields prefer block", propName: "sku_name", siblings: multiple, wantHits: 1, wantSubstr: "`sku` block"},
 		{name: "second sku field also prefers block", propName: "sku_capacity", siblings: multiple, wantHits: 1, wantSubstr: "`sku` block"},
-		{name: "top-level sku (exact)", propName: "sku", siblings: map[string]providerjson.SchemaJSON{"sku": str}, wantHits: 0},
-		{name: "top-level non-sku", propName: "name", siblings: map[string]providerjson.SchemaJSON{"name": str}, wantHits: 0},
+		{name: "top-level sku (exact)", propName: "sku", siblings: map[string]providerschema.SchemaJSON{"sku": str}, wantHits: 0},
+		{name: "top-level non-sku", propName: "name", siblings: map[string]providerschema.SchemaJSON{"name": str}, wantHits: 0},
 		{name: "nested sku_name", propName: "sku_name", parent: parent, siblings: multiple, wantHits: 0},
 	}
 

@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package providerjson
+package providerschema
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func resourceFromRaw(input *schema.Resource) (*ResourceJSON, error) {
+func ResourceFromRaw(input *schema.Resource) (*ResourceJSON, error) {
 	if input == nil {
 		return nil, fmt.Errorf("resource not found")
 	}
@@ -224,7 +224,7 @@ func decodeElem(input interface{}) interface{} {
 	case *schema.Schema:
 		return schemaFromRaw(t)
 	case *schema.Resource:
-		r, _ := resourceFromRaw(t)
+		r, _ := ResourceFromRaw(t)
 		return r
 	}
 	return nil
@@ -246,7 +246,7 @@ func ProviderFromRaw(input *ProviderJSON) (*ProviderSchemaJSON, error) {
 	}
 
 	for k, v := range input.ResourcesMap {
-		resource, err := resourceFromRaw(v)
+		resource, err := ResourceFromRaw(v)
 		if err != nil {
 			return nil, err
 		}
@@ -254,7 +254,7 @@ func ProviderFromRaw(input *ProviderJSON) (*ProviderSchemaJSON, error) {
 	}
 
 	for k, v := range input.DataSourcesMap {
-		dataSource, err := resourceFromRaw(v)
+		dataSource, err := ResourceFromRaw(v)
 		if err != nil {
 			return nil, err
 		}

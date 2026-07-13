@@ -25,7 +25,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/providerjson"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/providerschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-lint/config"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-lint/engine"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-lint/report"
@@ -78,9 +78,9 @@ func runCheck(args []string) int {
 
 	// In diff mode, load the base schema so that only newly-added properties are
 	// held to the rules.
-	var baseSchema *providerjson.ProviderSchemaJSON
+	var baseSchema *providerschema.ProviderSchemaJSON
 	if *diffFlag != "" {
-		wrapper, err := providerjson.LoadWrapperFromFile(*diffFlag)
+		wrapper, err := providerschema.LoadWrapperFromFile(*diffFlag)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "error loading base schema %q: %v\n", *diffFlag, err)
 			return 2

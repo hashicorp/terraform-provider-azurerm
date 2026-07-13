@@ -6,17 +6,17 @@ package differ
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/providerjson"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/providerschema"
 	schema_rules "github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/schema-rules"
 )
 
 type Differ struct {
-	base    *providerjson.ProviderWrapper
-	current *providerjson.ProviderWrapper
+	base    *providerschema.ProviderWrapper
+	current *providerschema.ProviderWrapper
 }
 
 func (d *Differ) Diff(fileName string, providerName string) []string {
-	if err := d.loadFromProvider(providerjson.LoadData(), providerName); err != nil {
+	if err := d.loadFromProvider(providerschema.LoadData(), providerName); err != nil {
 		return []string{err.Error()}
 	}
 
@@ -41,7 +41,7 @@ func (d *Differ) Diff(fileName string, providerName string) []string {
 			baseItem, ok := d.base.ProviderSchema.ResourcesMap[resource].Schema[propertyName]
 			if !ok {
 				// New property, could be breaking - Required etc
-				baseItem = providerjson.SchemaJSON{}
+				baseItem = providerschema.SchemaJSON{}
 			}
 			if errs := compareNodeResource(baseItem, propertySchema, propertyName); errs != nil {
 				violations = append(violations, errs...)
@@ -60,7 +60,7 @@ func (d *Differ) Diff(fileName string, providerName string) []string {
 			baseItem, ok := d.base.ProviderSchema.DataSourcesMap[dataSource].Schema[propertyName]
 			if !ok {
 				// New property, could be breaking - Required etc
-				baseItem = providerjson.SchemaJSON{}
+				baseItem = providerschema.SchemaJSON{}
 			}
 			if errs := compareNodeDataSource(baseItem, propertySchema, propertyName); errs != nil {
 				violations = append(violations, errs...)
@@ -71,10 +71,10 @@ func (d *Differ) Diff(fileName string, providerName string) []string {
 	return violations
 }
 
-func compareNodeResource(base providerjson.SchemaJSON, current providerjson.SchemaJSON, nodeName string) (errs []string) {
+func compareNodeResource(base providerschema.SchemaJSON, current providerschema.SchemaJSON, nodeName string) (errs []string) {
 	if nodeIsBlock(base) {
-		newBaseRaw := base.Elem.(providerjson.ResourceJSON).Schema
-		newCurrent := current.Elem.(*providerjson.ResourceJSON).Schema
+		newBaseRaw := base.Elem.(providerschema.ResourceJSON).Schema
+		newCurrent := current.Elem.(*providerschema.ResourceJSON).Schema
 		for k, newBase := range newBaseRaw {
 			errs = append(errs, compareNodeResource(newBase, newCurrent[k], k)...)
 		}
@@ -89,10 +89,10 @@ func compareNodeResource(base providerjson.SchemaJSON, current providerjson.Sche
 	return
 }
 
-func compareNodeDataSource(base providerjson.SchemaJSON, current providerjson.SchemaJSON, nodeName string) (errs []string) {
+func compareNodeDataSource(base providerschema.SchemaJSON, current providerschema.SchemaJSON, nodeName string) (errs []string) {
 	if nodeIsBlock(base) {
-		newBaseRaw := base.Elem.(providerjson.ResourceJSON).Schema
-		newCurrent := current.Elem.(*providerjson.ResourceJSON).Schema
+		newBaseRaw := base.Elem.(providerschema.ResourceJSON).Schema
+		newCurrent := current.Elem.(*providerschema.ResourceJSON).Schema
 		for k, newBase := range newBaseRaw {
 			errs = append(errs, compareNodeDataSource(newBase, newCurrent[k], k)...)
 		}
@@ -107,9 +107,9 @@ func compareNodeDataSource(base providerjson.SchemaJSON, current providerjson.Sc
 	return
 }
 
-func nodeIsBlock(input providerjson.SchemaJSON) bool {
-	if input.Type == providerjson.SchemaTypeList || input.Type == providerjson.SchemaTypeSet {
-		if _, ok := input.Elem.(providerjson.ResourceJSON); ok {
+func nodeIsBlock(input providerschema.SchemaJSON) bool {
+	if input.Type == providerschema.SchemaTypeList || input.Type == providerschema.SchemaTypeSet {
+		if _, ok := input.Elem.(providerschema.ResourceJSON); ok {
 			return true
 		}
 	}

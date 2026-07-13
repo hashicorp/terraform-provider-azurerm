@@ -6,18 +6,18 @@ package rules
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/providerjson"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/providerschema"
 )
 
 func TestOptionalAndRequired(t *testing.T) {
 	cases := []struct {
 		name     string
-		schema   providerjson.SchemaJSON
+		schema   providerschema.SchemaJSON
 		wantHits int
 	}{
-		{name: "optional only", schema: providerjson.SchemaJSON{Type: TypeString, Optional: true}, wantHits: 0},
-		{name: "required only", schema: providerjson.SchemaJSON{Type: TypeString, Required: true}, wantHits: 0},
-		{name: "optional and required", schema: providerjson.SchemaJSON{Type: TypeString, Optional: true, Required: true}, wantHits: 1},
+		{name: "optional only", schema: providerschema.SchemaJSON{Type: TypeString, Optional: true}, wantHits: 0},
+		{name: "required only", schema: providerschema.SchemaJSON{Type: TypeString, Required: true}, wantHits: 0},
+		{name: "optional and required", schema: providerschema.SchemaJSON{Type: TypeString, Optional: true, Required: true}, wantHits: 1},
 	}
 
 	rule := optionalAndRequired{}
