@@ -11,6 +11,7 @@ ENHANCEMENTS:
 * Data Source: `azurerm_logic_app_standard` - add new return attribute `storage_key_vault_secret_id` which will be set if the app service "AzureWebJobsStorage" property had a KeyVault reference format [GH-32571]
 
 FEATURES:
+* **New List Resource**: `azurerm_web_pubsub_custom_certificate` [GH-32192]
 * `azurerm_servicebus_subscription` - added new provider feature flag that will remove the "$Default" rule immediately on new subscription creation [GH-32452]
 * **New Resource**: `azurerm_cdn_frontdoor_batch_rule_set` [GH-32733]
 * **New List Resource**: `azurerm_cdn_frontdoor_batch_rule_set` [GH-32733]
