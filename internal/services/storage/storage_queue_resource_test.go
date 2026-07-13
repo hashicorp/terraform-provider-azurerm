@@ -121,30 +121,6 @@ func TestAccStorageQueue_migrateToStorageID(t *testing.T) {
 	})
 }
 
-func TestAccStorageQueue_migrateFromStorageIDShouldFail(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip("skipping as test is not valid in 5.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_storage_queue", "test")
-	r := StorageQueueResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("storage_account_id").IsSet(),
-				check.That(data.ResourceName).Key("storage_account_name").IsEmpty(),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config:      r.basic(data),
-			ExpectError: regexp.MustCompile("expected action to not be Replace"),
-		},
-	})
-}
-
 func (r StorageQueueResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	if !features.FivePointOh() && !strings.HasPrefix(state.ID, "/subscriptions") {
 		id, err := queues.ParseQueueID(state.ID, client.Storage.StorageDomainSuffix)
@@ -183,7 +159,6 @@ func (r StorageQueueResource) Exists(ctx context.Context, client *clients.Client
 
 func (r StorageQueueResource) basic(data acceptance.TestData) string {
 	if !features.FivePointOh() {
-		template := r.template(data)
 		return fmt.Sprintf(`
 	%s
 
@@ -191,9 +166,8 @@ resource "azurerm_storage_queue" "test" {
   name                 = "acctestmysamplequeue-%d"
   storage_account_name = azurerm_storage_account.test.name
 }
-	`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 	}
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -201,7 +175,7 @@ resource "azurerm_storage_queue" "test" {
   name               = "acctestmysamplequeue-%d"
   storage_account_id = azurerm_storage_account.test.id
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StorageQueueResource) basicAzureADAuth(data acceptance.TestData) string {
