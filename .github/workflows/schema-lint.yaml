@@ -7,16 +7,6 @@ permissions:
   contents: read
   pull-requests: read
 
-# Two independent checks run on pull requests that touch resource or data source
-# schemas under internal/services/:
-#
-#   * check — lints entirely new resources / data sources (files added in the PR),
-#     scoped to the new type name(s).
-#   * diff  — lints only the schema PROPERTIES a PR adds, relative to the base
-#     branch it is merging into, so pre-existing properties (which cannot be
-#     renamed, as that would be a breaking change) are ignored.
-#
-# Both jobs are skipped when a maintainer applies the "schema-accepted" label.
 on:
   pull_request:
     types: ['opened', 'synchronize']
@@ -41,7 +31,6 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
-          # Full history so the base branch can be checked out in a worktree.
           fetch-depth: 0
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
@@ -53,7 +42,9 @@ jobs:
           echo "::error::Schema lint failed for a newly added schema property."
           echo ""
           echo "This PR adds one or more schema properties that violate a"
-          echo "schema-lint rule. Only NEWLY ADDED properties are checked"
+          echo "schema-lint rule. Please correct the schema property or defend"
+          echo "the change in the PR description and a maintainer may apply the"
+          echo "schema-accepted label to the PR to bypass this check."
           echo ""
           echo "Reproduce locally against the branch you are merging into:"
           echo "  GITHUB_BASE_REF=main bash ./scripts/run-schema-lint-diff.sh"

@@ -10,18 +10,13 @@ import (
 
 var _ PropertyRule = avoidNoneValue{}
 
-// avoidNoneValue flags a user-settable string property whose enum validator
-// still accepts the special sentinel values None/Off/Default/Disabled. The
-// provider prefers omitting these (Terraform's null) and normalising in the
-// Create/Read functions instead.
 type avoidNoneValue struct{}
 
-// specialSentinels are enum values the provider is moving away from exposing
-// directly. Each is paired with nonsense decoys that share its length and
+// noneValues are paired with nonsense decoys that share its length and
 // letter-case shape: a finite-set (enum) validator accepts the special value but
 // rejects every decoy, whereas a format or length validator accepts the
 // same-shaped decoys too. This lets the rule flag only genuine enum validators.
-var specialSentinels = []struct {
+var noneValues = []struct {
 	value  string
 	decoys []string
 }{
@@ -65,7 +60,7 @@ func acceptedSpecialValues(accept func(string) bool) []string {
 	}
 
 	var out []string
-	for _, s := range specialSentinels {
+	for _, s := range noneValues {
 		if !accept(s.value) {
 			continue
 		}
