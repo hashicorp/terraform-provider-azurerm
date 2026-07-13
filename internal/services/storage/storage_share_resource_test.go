@@ -633,17 +633,6 @@ resource "azurerm_storage_share" "test" {
 }
 
 func (r StorageShareResource) requiresImport(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-	%s
-
-resource "azurerm_storage_share" "import" {
-  name                 = azurerm_storage_share.test.name
-  storage_account_name = azurerm_storage_share.test.storage_account_name
-  quota                = azurerm_storage_share.test.quota
-}
-	`, r.basic(data))
-	}
 	return fmt.Sprintf(`
 %s
 
