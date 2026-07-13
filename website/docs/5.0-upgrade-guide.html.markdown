@@ -722,6 +722,46 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The `mode` property now defaults to `Gen2`.
 
+### `azurerm_private_dns_a_record`
+
+* The `resource_group_name` property has been removed in favour of the `private_dns_zone_id` property.
+* The `zone_name` property has been removed in favour of the `private_dns_zone_id` property.
+
+### `azurerm_private_dns_aaaa_record`
+
+* The `resource_group_name` property has been removed in favour of the `private_dns_zone_id` property.
+* The `zone_name` property has been removed in favour of the `private_dns_zone_id` property.
+
+### `azurerm_private_dns_cname_record`
+
+* The `resource_group_name` property has been removed in favour of the `private_dns_zone_id` property.
+* The `zone_name` property has been removed in favour of the `private_dns_zone_id` property.
+
+### `azurerm_private_dns_mx_record`
+
+* The `resource_group_name` property has been removed in favour of the `private_dns_zone_id` property.
+* The `zone_name` property has been removed in favour of the `private_dns_zone_id` property.
+
+### `azurerm_private_dns_ptr_record`
+
+* The `resource_group_name` property has been removed in favour of the `private_dns_zone_id` property.
+* The `zone_name` property has been removed in favour of the `private_dns_zone_id` property.
+
+### `azurerm_private_dns_srv_record`
+
+* The `resource_group_name` property has been removed in favour of the `private_dns_zone_id` property.
+* The `zone_name` property has been removed in favour of the `private_dns_zone_id` property.
+
+### `azurerm_private_dns_txt_record`
+
+* The `resource_group_name` property has been removed in favour of the `private_dns_zone_id` property.
+* The `zone_name` property has been removed in favour of the `private_dns_zone_id` property.
+
+### `azurerm_private_dns_zone_virtual_network_link`
+
+* The `private_dns_zone_name` property has been removed in favour of the `private_dns_zone_id` property.
+* The `resource_group_name` property has been removed in favour of the `private_dns_zone_id` property.
+
 ### `azurerm_private_link_service`
 
 * The deprecated `enable_proxy_protocol` property has been removed in favour of the `proxy_protocol_enabled` property.
