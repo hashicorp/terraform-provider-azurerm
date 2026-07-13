@@ -61,11 +61,7 @@ To add Resource Identity to a typed resource, we will need to implement the `sdk
                 }
                 
                 metadata.SetID(id)
-                if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
-                    return err
-                }
-                
-                return metadata.Encode(&model)
+                return pluginsdk.SetResourceIdentityData(metadata.ResourceData, id)
             },
         }
     }

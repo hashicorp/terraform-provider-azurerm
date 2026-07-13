@@ -10,6 +10,7 @@ import (
 	vmwaremachines "github.com/hashicorp/go-azure-sdk/resource-manager/migrate/2020-01-01/machines"
 	vmwarerunasaccounts "github.com/hashicorp/go-azure-sdk/resource-manager/migrate/2020-01-01/runasaccounts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2025-08-01/vaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2025-08-01/backuppolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2025-08-01/backupprotectableitems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2025-08-01/backupprotecteditems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2025-08-01/backupresourcevaultconfigs"
@@ -38,6 +39,7 @@ type Client struct {
 	ProtectedItemOperationResultsClient       *backup.ProtectedItemOperationResultsClient
 	ProtectedItemsGroupClient                 *backupprotecteditems.BackupProtectedItemsClient
 	ProtectionPoliciesClient                  *protectionpolicies.ProtectionPoliciesClient
+	BackupPoliciesClient                      *backuppolicies.BackupPoliciesClient
 	ProtectionContainerOperationResultsClient *backup.ProtectionContainerOperationResultsClient
 	BackupProtectionContainersClient          *protectioncontainers.ProtectionContainersClient
 	BackupOperationStatusesClient             *backup.OperationStatusesClient
@@ -93,6 +95,9 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	protectionPoliciesClient := protectionpolicies.NewProtectionPoliciesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&protectionPoliciesClient.Client, o.ResourceManagerAuthorizer)
+
+	backupPoliciesClient := backuppolicies.NewBackupPoliciesClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&backupPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
 	backupProtectionContainersClient := protectioncontainers.NewProtectionContainersClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&backupProtectionContainersClient.Client, o.ResourceManagerAuthorizer)
@@ -174,6 +179,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		ProtectedItemsClient:                      &protectedItemsClient,
 		ProtectedItemsGroupClient:                 &protectedItemsGroupClient,
 		ProtectionPoliciesClient:                  &protectionPoliciesClient,
+		BackupPoliciesClient:                      &backupPoliciesClient,
 		ProtectionContainerOperationResultsClient: &backupProtectionContainerOperationResultsClient,
 		BackupProtectionContainersClient:          &backupProtectionContainersClient,
 		ProtectedItemOperationResultsClient:       &protectedItemOperationResultClient,

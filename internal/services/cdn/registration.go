@@ -54,12 +54,15 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
+		CdnFrontDoorBatchRuleSetDataSource{},
 		CdnFrontDoorSecurityPolicyDataSource{},
 	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
-	return []sdk.Resource{}
+	return []sdk.Resource{
+		CdnFrontDoorBatchRuleSetResource{},
+	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
@@ -106,5 +109,7 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 }
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
-	return []sdk.FrameworkListWrappedResource{}
+	return []sdk.FrameworkListWrappedResource{
+		CdnFrontDoorBatchRuleSetListResource{},
+	}
 }

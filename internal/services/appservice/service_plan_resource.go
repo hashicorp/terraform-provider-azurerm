@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/appserviceplans"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/preflight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/migration"
@@ -187,36 +188,9 @@ func (r ServicePlanResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			appServicePlan := appserviceplans.AppServicePlan{
-				Properties: &appserviceplans.AppServicePlanProperties{
-					PerSiteScaling:      pointer.To(servicePlan.PerSiteScaling),
-					Reserved:            pointer.To(servicePlan.OSType == OSTypeLinux),
-					HyperV:              pointer.To(servicePlan.OSType == OSTypeWindowsContainer),
-					ElasticScaleEnabled: pointer.To(servicePlan.PremiumPlanAutoScaleEnabled),
-					ZoneRedundant:       pointer.To(servicePlan.ZoneBalancing),
-				},
-				Sku: &appserviceplans.SkuDescription{
-					Name: pointer.To(servicePlan.Sku),
-				},
-				Location: location.Normalize(servicePlan.Location),
-				Tags:     pointer.To(servicePlan.Tags),
-			}
-
-			if servicePlan.AppServiceEnvironmentId != "" {
-				if !strings.HasPrefix(servicePlan.Sku, "I") {
-					return errors.New("'App Service Environment' based Service Plans can only be used with Isolated SKUs")
-				}
-				appServicePlan.Properties.HostingEnvironmentProfile = &appserviceplans.HostingEnvironmentProfile{
-					Id: pointer.To(servicePlan.AppServiceEnvironmentId),
-				}
-			}
-
-			if servicePlan.MaximumElasticWorkerCount > 0 {
-				appServicePlan.Properties.MaximumElasticWorkerCount = pointer.To(servicePlan.MaximumElasticWorkerCount)
-			}
-
-			if servicePlan.WorkerCount != 0 {
-				appServicePlan.Sku.Capacity = pointer.To(servicePlan.WorkerCount)
+			appServicePlan, err := expandCreateForServicePlan(servicePlan)
+			if err != nil {
+				return err
 			}
 
 			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, appServicePlan, metadata.SetIDAndIdentityCallback(&id)); err != nil {
@@ -231,6 +205,41 @@ func (r ServicePlanResource) Create() sdk.ResourceFunc {
 			return nil
 		},
 	}
+}
+
+func expandCreateForServicePlan(servicePlan ServicePlanModel) (appserviceplans.AppServicePlan, error) {
+	appServicePlan := appserviceplans.AppServicePlan{
+		Properties: &appserviceplans.AppServicePlanProperties{
+			PerSiteScaling:      pointer.To(servicePlan.PerSiteScaling),
+			Reserved:            pointer.To(servicePlan.OSType == OSTypeLinux),
+			HyperV:              pointer.To(servicePlan.OSType == OSTypeWindowsContainer),
+			ElasticScaleEnabled: pointer.To(servicePlan.PremiumPlanAutoScaleEnabled),
+			ZoneRedundant:       pointer.To(servicePlan.ZoneBalancing),
+		},
+		Sku: &appserviceplans.SkuDescription{
+			Name: pointer.To(servicePlan.Sku),
+		},
+		Location: location.Normalize(servicePlan.Location),
+		Tags:     pointer.To(servicePlan.Tags),
+	}
+
+	if servicePlan.AppServiceEnvironmentId != "" {
+		if !strings.HasPrefix(servicePlan.Sku, "I") {
+			return appServicePlan, errors.New("'App Service Environment' based Service Plans can only be used with Isolated SKUs")
+		}
+		appServicePlan.Properties.HostingEnvironmentProfile = &appserviceplans.HostingEnvironmentProfile{
+			Id: pointer.To(servicePlan.AppServiceEnvironmentId),
+		}
+	}
+
+	if servicePlan.MaximumElasticWorkerCount > 0 {
+		appServicePlan.Properties.MaximumElasticWorkerCount = pointer.To(servicePlan.MaximumElasticWorkerCount)
+	}
+
+	if servicePlan.WorkerCount != 0 {
+		appServicePlan.Sku.Capacity = pointer.To(servicePlan.WorkerCount)
+	}
+	return appServicePlan, nil
 }
 
 func (r ServicePlanResource) Read() sdk.ResourceFunc {
@@ -354,6 +363,34 @@ func (r ServicePlanResource) CustomizeDiff() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			rd := metadata.ResourceDiff
+
+			if metadata.Client.Features.EnhancedValidation.PreflightEnabled {
+				// Only perform preflight validation if there are changes. This avoids validation failures and
+				// additional API calls for resources that are unchanged between plan invocations
+				if len(rd.GetChangedKeysPrefix("")) > 0 || rd.Id() == "" {
+					var model ServicePlanModel
+					if err := metadata.DecodeDiff(&model); err != nil {
+						return err
+					}
+
+					req, err := expandCreateForServicePlan(model)
+					if err != nil {
+						return err
+					}
+
+					id := commonids.NewAppServicePlanID(metadata.Client.Account.SubscriptionId, model.ResourceGroup, model.Name)
+
+					preflightValidate, err := preflight.NewValidationRequest(pointer.To(model.Location), pointer.To(id), "2023-12-01", req)
+					if err != nil {
+						return fmt.Errorf("constructing preflight validation request: %w", err)
+					}
+
+					if err = preflightValidate.ValidateResource(ctx, metadata); err != nil {
+						return err
+					}
+				}
+			}
+
 			servicePlanSku := rd.Get("sku_name").(string)
 			_, newAutoScaleEnabled := rd.GetChange("premium_plan_auto_scale_enabled")
 			_, newEcValue := rd.GetChange("maximum_elastic_worker_count")
