@@ -10,6 +10,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/fileshares"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -297,7 +300,7 @@ func TestAccStorageShare_migrateFromStorageIDShouldFail(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
 	r := StorageShareResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -308,8 +311,12 @@ func TestAccStorageShare_migrateFromStorageIDShouldFail(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config:      r.withAccountName(data),
-			ExpectError: regexp.MustCompile("expected action to not be Replace"),
+			Config: r.withAccountName(data),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
 		},
 	})
 }
@@ -385,9 +392,9 @@ func (r StorageShareResource) basic(data acceptance.TestData) string {
 	%s
 
 resource "azurerm_storage_share" "test" {
-  name                 = "testshare%s"
-  storage_account_name = azurerm_storage_account.test.name
-  quota                = 5
+  name               = "testshare%s"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 5
 }
 `, r.template(data), data.RandomString)
 }
