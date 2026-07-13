@@ -143,7 +143,7 @@ func printHelp() {
 
 COMMANDS:
   check   lint the provider schema (default)
-  list    list the available rules
+  list    show the available rules
 
 Run "schema-lint check -h" for the available options.
 `)

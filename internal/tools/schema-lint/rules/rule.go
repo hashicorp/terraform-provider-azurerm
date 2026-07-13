@@ -202,16 +202,3 @@ func propertyFindingFix(r Rule, ctx PropertyContext, message, suggestion string)
 	f.FixSuggestion = suggestion
 	return f
 }
-
-// resourceFinding builds a Finding for a resource-level rule using the rule's
-// own ID, name and default severity.
-func resourceFinding(r Rule, ctx ResourceContext, message string) Finding {
-	return Finding{
-		RuleID:       r.ID(),
-		RuleName:     r.Name(),
-		Severity:     r.DefaultSeverity(),
-		ResourceType: ctx.ResourceType,
-		Kind:         ctx.Kind,
-		Message:      message,
-	}
-}
