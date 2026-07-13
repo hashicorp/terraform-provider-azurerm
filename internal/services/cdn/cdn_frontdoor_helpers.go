@@ -9,6 +9,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rules"
 	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -552,4 +553,16 @@ func expandCustomDomains(input []interface{}) ([]interface{}, error) {
 	}
 
 	return out, nil
+}
+
+const RuleCacheBehaviorDisabled = "Disabled"
+
+func PossibleValuesForRuleCacheBehavior() []string {
+	return []string{
+		string(rules.RuleCacheBehaviorHonorOrigin),
+		string(rules.RuleCacheBehaviorOverrideAlways),
+		string(rules.RuleCacheBehaviorOverrideIfOriginMissing),
+		// Exposed `Disabled` as a valid value for provider issue #19008.
+		RuleCacheBehaviorDisabled,
+	}
 }

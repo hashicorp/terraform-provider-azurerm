@@ -19,6 +19,7 @@ import (
 	"github.com/go-git/go-billy/v5"
 	"github.com/go-git/go-billy/v5/osfs"
 	"github.com/go-git/go-billy/v5/util"
+
 	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/internal/path_util"
 	"github.com/go-git/go-git/v5/internal/revision"
@@ -207,6 +208,12 @@ func Open(s storage.Storer, worktree billy.Filesystem) (*Repository, error) {
 		return nil, ErrRepositoryNotExists
 	}
 
+	cfg, err := s.Config()
+	if err != nil {
+		return nil, err
+	}
+
+	err = verifyExtensions(s, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -930,6 +937,8 @@ func (r *Repository) clone(ctx context.Context, o *CloneOptions) error {
 		Tags:            o.Tags,
 		RemoteName:      o.RemoteName,
 		InsecureSkipTLS: o.InsecureSkipTLS,
+		ClientCert:      o.ClientCert,
+		ClientKey:       o.ClientKey,
 		CABundle:        o.CABundle,
 		ProxyOptions:    o.ProxyOptions,
 	}, o.ReferenceName)
