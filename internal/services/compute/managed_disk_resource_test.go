@@ -1495,7 +1495,7 @@ resource "azurerm_managed_disk" "test" {
   gallery_image_reference_id = azurerm_shared_image_version.test.id
   storage_account_type       = "Standard_LRS"
 }
-`, LinuxVirtualMachineResource{}.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.templateAttached(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (ManagedDiskResource) upload(data acceptance.TestData) string {
@@ -1803,12 +1803,12 @@ provider "azurerm" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_key_vault" "test" {
-  name                        = "acctestkv%s"
+  name                        = "acctestkv%[3]s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
   rbac_authorization_enabled  = false
@@ -1858,7 +1858,7 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_disk_encryption_set" "test" {
-  name                = "acctestdes-%d"
+  name                = "acctestdes-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   key_vault_key_id    = azurerm_key_vault_key.test.id
@@ -1887,7 +1887,7 @@ resource "azurerm_role_assignment" "disk-encryption-read-keyvault" {
   role_definition_name = "Reader"
   principal_id         = azurerm_disk_encryption_set.test.identity.0.principal_id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r ManagedDiskResource) diskEncryptionSetEncrypted(data acceptance.TestData) string {
@@ -2101,6 +2101,10 @@ resource "azurerm_linux_virtual_machine" "test" {
     offer     = "0001-com-ubuntu-server-jammy"
     sku       = "22_04-lts"
     version   = "latest"
+  }
+
+  additional_capabilities {
+    ultra_ssd_enabled = true
   }
 }
 
@@ -2419,12 +2423,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_managed_disk" "test" {
-  name                  = "acctestd-%d"
+  name                  = "acctestd-%[1]d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   storage_account_type  = "Standard_LRS"
@@ -2438,7 +2442,7 @@ resource "azurerm_managed_disk" "test" {
     cost-center = "ops"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (ManagedDiskResource) networkPolicy_update(data acceptance.TestData) string {
@@ -2448,12 +2452,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_managed_disk" "test" {
-  name                  = "acctestd-%d"
+  name                  = "acctestd-%[1]d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   storage_account_type  = "Standard_LRS"
@@ -2467,7 +2471,7 @@ resource "azurerm_managed_disk" "test" {
     cost-center = "ops"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (ManagedDiskResource) networkPolicy_create_withAllowPrivate(data acceptance.TestData) string {
@@ -2477,12 +2481,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_disk_access" "test" {
-  name                = "accda%d"
+  name                = "accda%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
@@ -2492,7 +2496,7 @@ resource "azurerm_disk_access" "test" {
 }
 
 resource "azurerm_managed_disk" "test" {
-  name                  = "acctestd-%d"
+  name                  = "acctestd-%[1]d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   storage_account_type  = "Standard_LRS"
@@ -2507,7 +2511,7 @@ resource "azurerm_managed_disk" "test" {
     cost-center = "ops"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (ManagedDiskResource) networkPolicy_update_withAllowPrivate(data acceptance.TestData) string {
@@ -2517,12 +2521,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_disk_access" "test" {
-  name                = "accda%d"
+  name                = "accda%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
@@ -2532,7 +2536,7 @@ resource "azurerm_disk_access" "test" {
 }
 
 resource "azurerm_disk_access" "test2" {
-  name                = "acctest2%d"
+  name                = "acctest2%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
@@ -2542,7 +2546,7 @@ resource "azurerm_disk_access" "test2" {
 }
 
 resource "azurerm_managed_disk" "test" {
-  name                  = "acctestd-%d"
+  name                  = "acctestd-%[1]d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   storage_account_type  = "Standard_LRS"
@@ -2557,7 +2561,7 @@ resource "azurerm_managed_disk" "test" {
     cost-center = "ops"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (ManagedDiskResource) publicNetworkAccessDefault(data acceptance.TestData) string {
@@ -2692,8 +2696,8 @@ provider "azurerm" {
 data "azurerm_platform_image" "test" {
   location  = "%s"
   publisher = "Canonical"
-  offer     = "0001-com-ubuntu-server-jammy"
-  sku       = "22_04-lts-gen2"
+  offer     = "0001-com-ubuntu-confidential-vm-focal"
+  sku       = "20_04-lts-cvm"
 }
 
 resource "azurerm_resource_group" "test" {
