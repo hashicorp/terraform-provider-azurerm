@@ -4,7 +4,6 @@
 package storage
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -138,36 +137,7 @@ func resourceStorageTable() *pluginsdk.Resource {
 			ExactlyOneOf: []string{"storage_account_id", "storage_account_name"},
 		}
 
-		r.CustomizeDiff = func(ctx context.Context, diff *pluginsdk.ResourceDiff, i interface{}) error {
-			if strings.HasPrefix(diff.Id(), "/subscriptions/") && diff.HasChange("storage_account_id") {
-				return diff.ForceNew("storage_account_id")
-			}
-
-			if diff.Id() != "" && !strings.HasPrefix(diff.Id(), "/subscriptions/") && diff.HasChange("storage_account_name") {
-				oldAccountId, newAccountId := diff.GetChange("storage_account_id")
-				oldName, newName := diff.GetChange("storage_account_name")
-
-				if oldAccountId.(string) != "" && newName.(string) != "" {
-					return diff.ForceNew("storage_account_name")
-				}
-
-				if oldName.(string) != "" && newName.(string) != "" {
-					return diff.ForceNew("storage_account_name")
-				}
-
-				if oldName.(string) != "" && newName.(string) == "" && newAccountId.(string) != "" {
-					parsedId, err := commonids.ParseStorageAccountID(newAccountId.(string))
-					if err != nil {
-						return err
-					}
-					if !strings.EqualFold(parsedId.StorageAccountName, oldName.(string)) {
-						return diff.ForceNew("storage_account_id")
-					}
-				}
-			}
-
-			return nil
-		}
+		r.CustomizeDiff = helpers.LegacyStorageAccountResourceCustomizeDiff
 		r.SchemaVersion = 2
 		r.StateUpgraders = pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.TableV0ToV1{},
