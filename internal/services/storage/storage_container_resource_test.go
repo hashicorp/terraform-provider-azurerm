@@ -393,17 +393,6 @@ resource "azurerm_storage_container" "test" {
 }
 
 func (r StorageContainerResource) requiresImport(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-	%s
-
-resource "azurerm_storage_container" "import" {
-  name                  = azurerm_storage_container.test.name
-  storage_account_name  = azurerm_storage_container.test.storage_account_name
-  container_access_type = azurerm_storage_container.test.container_access_type
-}
-	`, r.basic(data))
-	}
 	return fmt.Sprintf(`
 %s
 
