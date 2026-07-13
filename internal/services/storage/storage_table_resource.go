@@ -126,7 +126,6 @@ func resourceStorageTable() *pluginsdk.Resource {
 		r.Schema["storage_account_name"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			ValidateFunc: validate.StorageAccountName,
 			ExactlyOneOf: []string{"storage_account_id", "storage_account_name"},
 			Deprecated:   "the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider.",
@@ -135,7 +134,6 @@ func resourceStorageTable() *pluginsdk.Resource {
 		r.Schema["storage_account_id"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			ValidateFunc: commonids.ValidateStorageAccountID,
 			ExactlyOneOf: []string{"storage_account_id", "storage_account_name"},
 		}
@@ -146,7 +144,7 @@ func resourceStorageTable() *pluginsdk.Resource {
 			}
 
 			if diff.Id() != "" && !strings.HasPrefix(diff.Id(), "/subscriptions/") && diff.HasChange("storage_account_name") {
-				oldAccountId, _ := diff.GetChange("storage_account_id")
+				oldAccountId, newAccountId := diff.GetChange("storage_account_id")
 				oldName, newName := diff.GetChange("storage_account_name")
 
 				if oldAccountId.(string) != "" && newName.(string) != "" {
@@ -155,6 +153,16 @@ func resourceStorageTable() *pluginsdk.Resource {
 
 				if oldName.(string) != "" && newName.(string) != "" {
 					return diff.ForceNew("storage_account_name")
+				}
+
+				if oldName.(string) != "" && newName.(string) == "" && newAccountId.(string) != "" {
+					parsedId, err := commonids.ParseStorageAccountID(newAccountId.(string))
+					if err != nil {
+						return err
+					}
+					if !strings.EqualFold(parsedId.StorageAccountName, oldName.(string)) {
+						return diff.ForceNew("storage_account_id")
+					}
 				}
 			}
 
