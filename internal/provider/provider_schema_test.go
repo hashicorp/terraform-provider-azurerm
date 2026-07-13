@@ -290,7 +290,7 @@ func TestResourcesDoNotContainANameFieldWithADefaultOfDefault(t *testing.T) {
 			"name": {},
 		},
 
-		// @sreallymatt: The Spring Cloud service is being retired, so there is no sense in updating these as this stage.
+		// @sreallymatt: The Spring Cloud service is being retired, so there is no sense in updating these at this stage.
 		"azurerm_spring_cloud_accelerator": {
 			"name": {},
 		},
