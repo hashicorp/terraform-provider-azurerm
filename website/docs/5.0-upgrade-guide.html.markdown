@@ -298,7 +298,7 @@ This deprecated resource has been superseded/retired and has been removed from t
 
 ### `azurerm_redis_enterprise_database`
 
-* This deprecated data source has been superseded by `azurerm_managed_redis_database` and has been removed from the provider.
+* This deprecated resource has been superseded by `azurerm_managed_redis_database` and has been removed from the provider.
 
 ### `azurerm_security_center_auto_provisioning`
 
