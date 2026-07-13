@@ -34,6 +34,7 @@ FEATURES:
 * **New List Resource:** `azurerm_cognitive_account_connection_entra_id` [GH-30981]
 
 BUG FIXES:
+* `azurerm_cdn_frontdoor_custom_domain` - fix a validation regression that prevented previously valid wildcard inputs to the `host_name` property [GH-32738]
 * `azurerm_palo_alto_next_generation_firewall_virtual_hub_strata_cloud_manager` - fix an issue that set arguments not present in schema causing an error [GH-32768]
 * `azurerm_palo_alto_next_generation_firewall_virtual_network_strata_cloud_manager` - fix an issue that set arguments not present in schema causing an error [GH-32768]
 * `azurerm_network_security_perimeter_association` - fix create/update methods to poll for async operation completion before returning [GH-32742]
