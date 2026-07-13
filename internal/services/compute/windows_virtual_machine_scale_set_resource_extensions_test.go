@@ -181,7 +181,6 @@ func TestAccWindowsVirtualMachineScaleSet_extensionsAutomaticUpgradeWithHealthEx
 		data.ImportStep(
 			"admin_password",
 			"extension.0.protected_settings",
-			"enable_automatic_updates",
 			"automatic_updates_enabled",
 		),
 	})
@@ -289,7 +288,6 @@ func TestAccWindowsVirtualMachineScaleSet_extensionsAutomaticUpgradeWithServiceF
 		data.ImportStep(
 			"admin_password",
 			"extension.0.protected_settings",
-			"enable_automatic_updates",
 			"automatic_updates_enabled",
 		),
 	})
@@ -307,14 +305,14 @@ func TestAccWindowsVirtualMachineScaleSet_extensionAutomaticUpgradeUpdate(t *tes
 					check.That(data.ResourceName).ExistsInAzure(r),
 				),
 			},
-			data.ImportStep("admin_password", "extension.0.protected_settings", "enable_automatic_updates", "enable_automatic_updates"),
+			data.ImportStep("admin_password", "extension.0.protected_settings", "automatic_updates_enabled"),
 			{
 				Config: r.extensionsAutomaticUpgradeWithHealthExtension(data),
 				Check: acceptance.ComposeTestCheckFunc(
 					check.That(data.ResourceName).ExistsInAzure(r),
 				),
 			},
-			data.ImportStep("admin_password", "extension.0.protected_settings", "enable_automatic_updates", "enable_automatic_updates"),
+			data.ImportStep("admin_password", "extension.0.protected_settings", "automatic_updates_enabled"),
 		})
 	} else {
 		data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
@@ -324,14 +322,14 @@ func TestAccWindowsVirtualMachineScaleSet_extensionAutomaticUpgradeUpdate(t *tes
 					check.That(data.ResourceName).ExistsInAzure(r),
 				),
 			},
-			data.ImportStep("admin_password", "extension.0.protected_settings", "automatic_updates_enabled", "enable_automatic_updates"),
+			data.ImportStep("admin_password", "extension.0.protected_settings", "automatic_updates_enabled"),
 			{
 				Config: r.extensionsAutomaticUpgradeWithHealthExtension(data),
 				Check: acceptance.ComposeTestCheckFunc(
 					check.That(data.ResourceName).ExistsInAzure(r),
 				),
 			},
-			data.ImportStep("admin_password", "extension.0.protected_settings", "automatic_updates_enabled", "enable_automatic_updates"),
+			data.ImportStep("admin_password", "extension.0.protected_settings", "automatic_updates_enabled"),
 		})
 	}
 }
@@ -787,15 +785,15 @@ func (r WindowsVirtualMachineScaleSetResource) extensionsWithHealthExtension(dat
 %s
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                     = local.vm_name
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  sku                      = "Standard_F2"
-  instances                = 1
-  admin_username           = "adminuser"
-  admin_password           = "P@ssword1234!"
-  upgrade_mode             = "Automatic"
-  enable_automatic_updates = false
+  name                      = local.vm_name
+  resource_group_name       = azurerm_resource_group.test.name
+  location                  = azurerm_resource_group.test.location
+  sku                       = "Standard_F2"
+  instances                 = 1
+  admin_username            = "adminuser"
+  admin_password            = "P@ssword1234!"
+  upgrade_mode              = "Automatic"
+  automatic_updates_enabled = false
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
@@ -840,19 +838,19 @@ func (r WindowsVirtualMachineScaleSetResource) extensionsAutomaticUpgradeWithHea
 %s
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                     = local.vm_name
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  sku                      = "Standard_F2"
-  instances                = 1
-  admin_username           = "adminuser"
-  admin_password           = "P@ssword1234!"
-  upgrade_mode             = "Automatic"
-  enable_automatic_updates = false
+  name                      = local.vm_name
+  resource_group_name       = azurerm_resource_group.test.name
+  location                  = azurerm_resource_group.test.location
+  sku                       = "Standard_F2"
+  instances                 = 1
+  admin_username            = "adminuser"
+  admin_password            = "P@ssword1234!"
+  upgrade_mode              = "Automatic"
+  automatic_updates_enabled = false
 
   automatic_os_upgrade_policy {
-    disable_automatic_rollback  = true
-    enable_automatic_os_upgrade = true
+    automatic_rollback_enabled   = true
+    automatic_os_upgrade_enabled = true
   }
 
   rolling_upgrade_policy {
@@ -1144,20 +1142,20 @@ resource "azurerm_service_fabric_cluster" "test" {
 }
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                     = local.vm_name
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  sku                      = "Standard_F2"
-  instances                = 1
-  admin_username           = "adminuser"
-  admin_password           = "P@ssword1234!"
-  upgrade_mode             = "Automatic"
-  enable_automatic_updates = false
-  overprovision            = false
+  name                      = local.vm_name
+  resource_group_name       = azurerm_resource_group.test.name
+  location                  = azurerm_resource_group.test.location
+  sku                       = "Standard_F2"
+  instances                 = 1
+  admin_username            = "adminuser"
+  admin_password            = "P@ssword1234!"
+  upgrade_mode              = "Automatic"
+  automatic_updates_enabled = false
+  overprovision             = false
 
   automatic_os_upgrade_policy {
-    disable_automatic_rollback  = true
-    enable_automatic_os_upgrade = false
+    automatic_rollback_enabled   = true
+    automatic_os_upgrade_enabled = false
   }
 
   rolling_upgrade_policy {

@@ -300,6 +300,10 @@ This deprecated resource has been superseded/retired and has been removed from t
 
 * This deprecated resource has been superseded by `azurerm_managed_redis_database` and has been removed from the provider.
 
+### `azurerm_restore_point_collection`
+
+* This deprecated resource has been superseded by `azurerm_virtual_machine_restore_point_collection` and has been removed from the provider
+
 ### `azurerm_security_center_auto_provisioning`
 
 * This deprecated resource has been removed from the Azure Provider. Please see the [documentation for more details](https://learn.microsoft.com/en-us/azure/defender-for-cloud/prepare-deprecation-log-analytics-mma-agent#log-analytics-agent-autoprovisioning-experience---deprecation-plan).
@@ -626,8 +630,12 @@ Please follow the format in the example below for listing breaking changes in re
 
 ### `azurerm_linux_virtual_machine_scale_set`
 
+* The `automatic_os_upgrade_policy.disable_automatic_rollback` property has been removed in favour of the `automatic_os_upgrade_policy.automatic_rollback_enabled` property.
+* The `automatic_os_upgrade_policy.enable_automatic_os_upgrade` property has been removed in favour of the `automatic_os_upgrade_policy.automatic_os_upgrade_enabled` property.
 * The deprecated `data_disk.ultra_ssd_disk_iops_read_write` property has been removed in favour of the `data_disk.disk_iops_read_write` property.
 * The deprecated `data_disk.ultra_ssd_disk_mbps_read_write` property has been removed in favour of the `data_disk.disk_mbps_read_write` property.
+* The `network_interface.enable_accelerated_networking` property has been removed in favour of the `network_interface.accelerated_networking_enabled` property.
+* The `network_interface.enable_ip_forwarding` property has been removed in favour of the `network_interface.ip_forwarding_enabled` property.
 
 ### `azurerm_linux_web_app`
 
@@ -840,8 +848,13 @@ Please follow the format in the example below for listing breaking changes in re
 
 ### `azurerm_windows_virtual_machine_scale_set`
 
+* The `automatic_os_upgrade_policy.disable_automatic_rollback` property has been removed in favour of the `automatic_os_upgrade_policy.automatic_rollback_enabled` property.
+* The `automatic_os_upgrade_policy.enable_automatic_os_upgrade` property has been removed in favour of the `automatic_os_upgrade_policy.automatic_os_upgrade_enabled` property.
 * The deprecated `data_disk.ultra_ssd_disk_iops_read_write` property has been removed in favour of the `data_disk.disk_iops_read_write` property.
 * The deprecated `data_disk.ultra_ssd_disk_mbps_read_write` property has been removed in favour of the `data_disk.disk_mbps_read_write` property.
+* The `enable_automatic_updates` property has been removed in favour of the `automatic_updates_enabled` property.
+* The `network_interface.enable_accelerated_networking` property has been removed in favour of the `network_interface.accelerated_networking_enabled` property.
+* The `network_interface.enable_ip_forwarding` property has been removed in favour of the `network_interface.ip_forwarding_enabled` property.
 
 ### `azurerm_windows_web_app`
 
@@ -984,6 +997,11 @@ Please follow the format in the example below for listing breaking changes in da
 
 * The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
 * The deprecated `resource_manager_id` property has been removed in favour of the `id` property.
+
+### `azurerm_virtual_machine_scale_set`
+
+* The `network_interface.enable_accelerated_networking` property has been removed in favour of the `network_interface.accelerated_networking_enabled` property.
+* The `network_interface.enable_ip_forwarding` property has been removed in favour of the `network_interface.ip_forwarding_enabled` property.
 
 ### `azurerm_virtual_network_gateway`
 

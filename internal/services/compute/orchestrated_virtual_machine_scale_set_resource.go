@@ -62,7 +62,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 
 		// The plan was to remove support the legacy Orchestrated Virtual Machine Scale Set in 3.0.
 		// Turns out it's still in use
-		// TODO: Revisit in 4.0
+		// TODO: Revisit for 6.0
 		// TODO: exposing requireGuestProvisionSignal once it's available
 		// https://github.com/Azure/azure-rest-api-specs/pull/7246
 
