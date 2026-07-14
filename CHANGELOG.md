@@ -1,44 +1,49 @@
-## 4.81.0 (Unreleased)
-
-ENHANCEMENTS:
-* dependencies: `go-azure-sdk` - update to `v0.20260709.1191450` [GH-32768]
-* `azurerm_cdn_frontdoor_endpoint` - migrate to `go-azure-sdk` [GH-32741]
-* `azurerm_container_registry` Add support for `azuread_authentication_as_arm_policy_enabled`, `role_assignment_mode` and `network_rule_bypass_allowed_for_tasks` properties [GH-31667]
-* `dependencies` - update `go-azure-helpers` to `v0.81.1` [GH-32732]
-* dependencies: `cdn` - update to API version `2025-12-01` [GH-32719]
-* dependencies: `keyvault` update to API version `2026-02-01` [GH-32320]
-* `azurerm_logic_app_standard` - add attribute `storage_key_vault_secret_id` which can be used in place of `storage_account_name` and `storage_account_key`, allowing the app service property "AzureWebJobsStorage" to reference a key vault secret in the format "@Microsoft.KeyVault(SecretUri=...)" [GH-32571]
-* Data Source: `azurerm_logic_app_standard` - add new return attribute `storage_key_vault_secret_id` which will be set if the app service "AzureWebJobsStorage" property had a KeyVault reference format [GH-32571]
+## 4.81.0 (July 14, 2026)
 
 FEATURES:
-* **New List Resource**: `azurerm_web_pubsub_custom_certificate` [GH-32192]
-* `azurerm_servicebus_subscription` - added new provider feature flag that will remove the "$Default" rule immediately on new subscription creation [GH-32452]
-* **New Resource**: `azurerm_cdn_frontdoor_batch_rule_set` [GH-32733]
-* **New List Resource**: `azurerm_cdn_frontdoor_batch_rule_set` [GH-32733]
-* **New Data Source**: `azurerm_cdn_frontdoor_batch_rule_set` [GH-32733]
-* **New List Resource**: `azurerm_backup_policy_vm` [GH-32736]
-* **New List Resource**: `azurerm_federated_identity_credential` [GH-32672]
-* **New List Resource**: `azurerm_servicebus_customer_managed_identity` [GH-32315]
-* **New Resource**: `azurerm_log_analytics_workspace_table_microsoft` [GH-31754]
-* **New Resource**: `azurerm_storage_account_table_properties` [GH-32282]
-* **New List Resource**: `azurerm_monitor_scheduled_query_rules_alert`  [GH-32701]
-* **New Resource:** `azurerm_cognitive_account_connection_account_key` [GH-30981]
-* **New List Resource:** `azurerm_cognitive_account_connection_account_key` [GH-30981]
-* **New Resource:** `azurerm_cognitive_account_connection_account_managed_identity` [GH-30981]
-* **New List Resource:** `azurerm_cognitive_account_connection_account_managed_identity` [GH-30981]
-* **New Resource:** `azurerm_cognitive_account_connection_api_key` ([GH-30981]
-* **New List Resource:** `azurerm_cognitive_account_connection_api_key` ([GH-30981]
-* **New Resource:** `azurerm_cognitive_account_connection_custom_keys` [GH-30981]
-* **New List Resource:** `azurerm_cognitive_account_connection_custom_keys` [GH-30981]
-* **New Resource:** `azurerm_cognitive_account_connection_entra_id` [GH-30981]
-* **New List Resource:** `azurerm_cognitive_account_connection_entra_id` [GH-30981]
+
+* **New Data Source**: `azurerm_cdn_frontdoor_batch_rule_set` ([#32733](https://github.com/hashicorp/terraform-provider-azurerm/issues/32733))
+* **New List Resource**: `azurerm_backup_policy_vm` ([#32736](https://github.com/hashicorp/terraform-provider-azurerm/issues/32736))
+* **New List Resource**: `azurerm_cdn_frontdoor_batch_rule_set` ([#32733](https://github.com/hashicorp/terraform-provider-azurerm/issues/32733))
+* **New List Resource:** `azurerm_cognitive_account_connection_account_key` ([#30981](https://github.com/hashicorp/terraform-provider-azurerm/issues/30981))
+* **New List Resource:** `azurerm_cognitive_account_connection_account_managed_identity` ([#30981](https://github.com/hashicorp/terraform-provider-azurerm/issues/30981))
+* **New List Resource:** `azurerm_cognitive_account_connection_api_key` (([#30981](https://github.com/hashicorp/terraform-provider-azurerm/issues/30981))
+* **New List Resource:** `azurerm_cognitive_account_connection_custom_keys` ([#30981](https://github.com/hashicorp/terraform-provider-azurerm/issues/30981))
+* **New List Resource:** `azurerm_cognitive_account_connection_entra_id` ([#30981](https://github.com/hashicorp/terraform-provider-azurerm/issues/30981))
+* **New List Resource**: `azurerm_federated_identity_credential` ([#32672](https://github.com/hashicorp/terraform-provider-azurerm/issues/32672))
+* **New List Resource**: `azurerm_monitor_scheduled_query_rules_alert`  ([#32701](https://github.com/hashicorp/terraform-provider-azurerm/issues/32701))
+* **New List Resource**: `azurerm_servicebus_customer_managed_identity` ([#32315](https://github.com/hashicorp/terraform-provider-azurerm/issues/32315))
+* **New List Resource**: `azurerm_web_pubsub_custom_certificate` ([#32192](https://github.com/hashicorp/terraform-provider-azurerm/issues/32192))
+* **New Resource**: `azurerm_cdn_frontdoor_batch_rule_set` ([#32733](https://github.com/hashicorp/terraform-provider-azurerm/issues/32733))
+* **New Resource:** `azurerm_cognitive_account_connection_account_key` ([#30981](https://github.com/hashicorp/terraform-provider-azurerm/issues/30981))
+* **New Resource:** `azurerm_cognitive_account_connection_account_managed_identity` ([#30981](https://github.com/hashicorp/terraform-provider-azurerm/issues/30981))
+* **New Resource:** `azurerm_cognitive_account_connection_api_key` (([#30981](https://github.com/hashicorp/terraform-provider-azurerm/issues/30981))
+* **New Resource:** `azurerm_cognitive_account_connection_custom_keys` ([#30981](https://github.com/hashicorp/terraform-provider-azurerm/issues/30981))
+* **New Resource:** `azurerm_cognitive_account_connection_entra_id` ([#30981](https://github.com/hashicorp/terraform-provider-azurerm/issues/30981))
+* **New Resource**: `azurerm_log_analytics_workspace_table_microsoft` ([#31754](https://github.com/hashicorp/terraform-provider-azurerm/issues/31754))
+* `azurerm_servicebus_subscription` - added new provider feature flag that will remove the "$Default" rule immediately on new subscription creation ([#32452](https://github.com/hashicorp/terraform-provider-azurerm/issues/32452))
+* **New Resource**: `azurerm_storage_account_table_properties` ([#32282](https://github.com/hashicorp/terraform-provider-azurerm/issues/32282))
+
+ENHANCEMENTS:
+
+* dependencies: `cdn` - update to API version `2025-12-01` ([#32719](https://github.com/hashicorp/terraform-provider-azurerm/issues/32719))
+* dependencies: `compute` - update to API version `2025-04-01` ([#32592](https://github.com/hashicorp/terraform-provider-azurerm/issues/32592))
+* dependencies: `go-azure-helpers` update to `v0.81.1` ([#32732](https://github.com/hashicorp/terraform-provider-azurerm/issues/32732))
+* dependencies: `go-azure-sdk` - update to `v0.20260709.1191450` ([#32768](https://github.com/hashicorp/terraform-provider-azurerm/issues/32768))
+* dependencies: `keyvault` update to API version `2026-02-01` ([#32320](https://github.com/hashicorp/terraform-provider-azurerm/issues/32320))
+* Data Source: `azurerm_logic_app_standard` - add new return attribute `storage_key_vault_secret_id` which will be set if the app service "AzureWebJobsStorage" property had a KeyVault reference format ([#32571](https://github.com/hashicorp/terraform-provider-azurerm/issues/32571))
+* `azurerm_cdn_frontdoor_endpoint` - migrate to `go-azure-sdk` ([#32741](https://github.com/hashicorp/terraform-provider-azurerm/issues/32741))
+* `azurerm_container_registry` Add support for `azuread_authentication_as_arm_policy_enabled`, `role_assignment_mode` and `network_rule_bypass_allowed_for_tasks` properties ([#31667](https://github.com/hashicorp/terraform-provider-azurerm/issues/31667))
+* `azurerm_logic_app_standard` - add attribute `storage_key_vault_secret_id` which can be used in place of `storage_account_name` and `storage_account_key`, allowing the app service property "AzureWebJobsStorage" to reference a key vault secret in the format "@Microsoft.KeyVault(SecretUri=...)" ([#32571](https://github.com/hashicorp/terraform-provider-azurerm/issues/32571))
+* `azurerm_orchestrated_virtual_machine_scale_set` - support for the `tags` property within the `network_interface` block ([#32592](https://github.com/hashicorp/terraform-provider-azurerm/issues/32592))
 
 BUG FIXES:
-* `azurerm_cdn_frontdoor_custom_domain` - fix a validation regression that prevented previously valid wildcard inputs to the `host_name` property [GH-32738]
-* `azurerm_palo_alto_next_generation_firewall_virtual_hub_strata_cloud_manager` - fix an issue that set arguments not present in schema causing an error [GH-32768]
-* `azurerm_palo_alto_next_generation_firewall_virtual_network_strata_cloud_manager` - fix an issue that set arguments not present in schema causing an error [GH-32768]
-* `azurerm_network_security_perimeter_association` - fix create/update methods to poll for async operation completion before returning [GH-32742]
-* `azurerm_virtual_hub_connection` - `remote_virtual_network_id` value will now be parsed case insensitive [GH-32734]
+
+* `azurerm_cdn_frontdoor_custom_domain` - fix a validation regression that prevented previously valid wildcard inputs to the `host_name` property ([#32738](https://github.com/hashicorp/terraform-provider-azurerm/issues/32738))
+* `azurerm_network_security_perimeter_association` - fix create/update methods to poll for async operation completion before returning ([#32742](https://github.com/hashicorp/terraform-provider-azurerm/issues/32742))
+* `azurerm_palo_alto_next_generation_firewall_virtual_hub_strata_cloud_manager` - fix an issue that set arguments not present in schema causing an error ([#32768](https://github.com/hashicorp/terraform-provider-azurerm/issues/32768))
+* `azurerm_palo_alto_next_generation_firewall_virtual_network_strata_cloud_manager` - fix an issue that set arguments not present in schema causing an error ([#32768](https://github.com/hashicorp/terraform-provider-azurerm/issues/32768))
+* `azurerm_virtual_hub_connection` - `remote_virtual_network_id` value will now be parsed case insensitive ([#32734](https://github.com/hashicorp/terraform-provider-azurerm/issues/32734))
 
 ## 4.80.0 (July 02, 2026)
 
