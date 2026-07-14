@@ -63,8 +63,9 @@ type Features struct {
 	ResourceGroup            types.List `tfsdk:"resource_group"`
 	Storage                  types.List `tfsdk:"storage"`
 	Subscription             types.List `tfsdk:"subscription"`
-	PostgresqlFlexibleServer types.List `tfsdk:"postgresql_flexible_server"`
-	RecoveryService          types.List `tfsdk:"recovery_service"`
+	PostgresqlFlexibleServer                types.List `tfsdk:"postgresql_flexible_server"`
+	PostgresqlFlexibleServerVirtualEndpoint types.List `tfsdk:"postgresql_flexible_server_virtual_endpoint"`
+	RecoveryService                         types.List `tfsdk:"recovery_service"`
 	RecoveryServicesVaults   types.List `tfsdk:"recovery_services_vaults"`
 	TemplateDeployment       types.List `tfsdk:"template_deployment"`
 	VirtualMachine           types.List `tfsdk:"virtual_machine"`
@@ -89,8 +90,9 @@ var FeaturesAttributes = map[string]attr.Type{
 	"machine_learning":           types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(MachineLearningAttributes)),
 	"managed_disk":               types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(ManagedDiskAttributes)),
 	"netapp":                     types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(NetAppAttributes)),
-	"postgresql_flexible_server": types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(PostgresqlFlexibleServerAttributes)),
-	"resource_group":             types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(ResourceGroupAttributes)),
+	"postgresql_flexible_server":                          types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(PostgresqlFlexibleServerAttributes)),
+	"postgresql_flexible_server_virtual_endpoint":         types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(PostgresqlFlexibleServerVirtualEndpointAttributes)),
+	"resource_group":                                      types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(ResourceGroupAttributes)),
 	"storage":                    types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(StorageAttributes)),
 	"subscription":               types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(SubscriptionAttributes)),
 	"recovery_service":           types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(RecoveryServiceAttributes)),
@@ -249,6 +251,14 @@ type PostgresqlFlexibleServer struct {
 
 var PostgresqlFlexibleServerAttributes = map[string]attr.Type{
 	"restart_server_on_configuration_value_change": types.BoolType,
+}
+
+type PostgresqlFlexibleServerVirtualEndpoint struct {
+	RecreateResourceAfterFailover types.Bool `tfsdk:"recreate_resource_after_failover"`
+}
+
+var PostgresqlFlexibleServerVirtualEndpointAttributes = map[string]attr.Type{
+	"recreate_resource_after_failover": types.BoolType,
 }
 
 type MachineLearning struct {

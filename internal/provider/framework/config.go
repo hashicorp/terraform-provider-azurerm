@@ -465,6 +465,22 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 			f.PostgresqlFlexibleServer.RestartServerOnConfigurationValueChange = true
 		}
 
+		if !features.PostgresqlFlexibleServerVirtualEndpoint.IsNull() && !features.PostgresqlFlexibleServerVirtualEndpoint.IsUnknown() {
+			var feature []PostgresqlFlexibleServerVirtualEndpoint
+			d := features.PostgresqlFlexibleServerVirtualEndpoint.ElementsAs(ctx, &feature, true)
+			diags.Append(d...)
+			if diags.HasError() {
+				return
+			}
+
+			f.PostgresqlFlexibleServerVirtualEndpoint.RecreateResourceAfterFailover = false
+			if !feature[0].RecreateResourceAfterFailover.IsNull() && !feature[0].RecreateResourceAfterFailover.IsUnknown() {
+				f.PostgresqlFlexibleServerVirtualEndpoint.RecreateResourceAfterFailover = feature[0].RecreateResourceAfterFailover.ValueBool()
+			}
+		} else {
+			f.PostgresqlFlexibleServerVirtualEndpoint.RecreateResourceAfterFailover = false
+		}
+
 		if !features.RecoveryService.IsNull() && !features.RecoveryService.IsUnknown() {
 			var feature []RecoveryService
 			d := features.RecoveryService.ElementsAs(ctx, &feature, true)

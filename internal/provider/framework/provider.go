@@ -449,6 +449,16 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 								},
 							},
 						},
+						"postgresql_flexible_server_virtual_endpoint": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"recreate_resource_after_failover": schema.BoolAttribute{
+										Optional:    true,
+										Description: "When enabled, the `azurerm_postgresql_flexible_server_virtual_endpoint` will be recreated after a failover is detected, restoring the pre-v4.15.0 behavior. Defaults to `false`.",
+									},
+								},
+							},
+						},
 						"recovery_service": schema.ListNestedBlock{
 							NestedObject: schema.NestedBlockObject{
 								Attributes: map[string]schema.Attribute{
