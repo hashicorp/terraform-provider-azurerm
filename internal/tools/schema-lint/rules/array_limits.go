@@ -12,7 +12,7 @@ var _ PropertyRule = arrayLimits{}
 // MaxItems based on the API constraints.
 type arrayLimits struct{}
 
-func (arrayLimits) ID() string   { return "SL011" }
+func (arrayLimits) ID() string   { return "SL007" }
 func (arrayLimits) Name() string { return "array-limits" }
 
 func (arrayLimits) Description() string {
@@ -32,7 +32,7 @@ func (r arrayLimits) CheckProperty(ctx PropertyContext) []Finding {
 	if _, isBlock := BlockElem(ctx.Schema); isBlock {
 		return nil
 	}
-	// A missing Elem is reported by SL005.
+	// A missing Elem is malformed schema and out of scope here.
 	if ctx.Schema.Elem == nil {
 		return nil
 	}

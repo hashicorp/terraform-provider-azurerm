@@ -29,7 +29,7 @@ var unitSuffixes = []string{
 	"ms", "seconds", "secs", "sec", "minutes", "hours", "hrs", "days",
 }
 
-func (unitInNaming) ID() string   { return "SL013" }
+func (unitInNaming) ID() string   { return "SL009" }
 func (unitInNaming) Name() string { return "unit-in-naming" }
 
 func (unitInNaming) Description() string {

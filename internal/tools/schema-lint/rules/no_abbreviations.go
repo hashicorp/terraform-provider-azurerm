@@ -49,7 +49,7 @@ var abbreviations = map[string]string{
 	"email_address": "email",
 }
 
-func (noAbbreviations) ID() string   { return "SL014" }
+func (noAbbreviations) ID() string   { return "SL010" }
 func (noAbbreviations) Name() string { return "no-abbreviations" }
 
 func (noAbbreviations) Description() string {

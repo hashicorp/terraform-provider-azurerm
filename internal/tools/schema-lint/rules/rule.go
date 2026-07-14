@@ -130,10 +130,6 @@ func Fixable(r Rule) bool {
 // by appending it here.
 var AllRules = []Rule{
 	propertyDescriptionRequired{},
-	optionalAndRequired{},
-	requiredAndComputed{},
-	computedOnlyForceNew{},
-	collectionElemRequired{},
 	singlePropertyBlock{},
 	limitsOnNonCollection{},
 	avoidNoneValue{},

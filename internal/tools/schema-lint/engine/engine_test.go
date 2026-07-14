@@ -23,8 +23,8 @@ func testSchema() *providerschema.ProviderSchemaJSON {
 						Type: rules.TypeList,
 						Elem: &providerschema.ResourceJSON{
 							Schema: map[string]providerschema.SchemaJSON{
-								// Optional + Required -> SL002, and missing description -> SL001.
-								"inner": {Type: rules.TypeString, Optional: true, Required: true},
+								// Missing description -> SL001 at the dotted path block.inner.
+								"inner": {Type: rules.TypeString, Optional: true},
 							},
 						},
 					},
@@ -47,11 +47,7 @@ func TestLint_NestedTraversal(t *testing.T) {
 	l := New(nil, Options{Config: &config.Config{}})
 	findings := l.Lint(testSchema())
 
-	// Nested block property is reached with a dotted path and SL002 fires.
-	if hasFinding(findings, "SL002", "block.inner") == nil {
-		t.Fatalf("expected SL002 finding at path block.inner, got %+v", findings)
-	}
-	// The nested property is also checked for a missing description.
+	// The nested block property is reached with a dotted path.
 	if hasFinding(findings, "SL001", "block.inner") == nil {
 		t.Fatalf("expected SL001 finding at path block.inner, got %+v", findings)
 	}
@@ -116,9 +112,20 @@ func fixSchema() *providerschema.ProviderSchemaJSON {
 			"azurerm_fix": {
 				Timeouts: &providerschema.ResourceTimeoutJSON{Read: 5},
 				Schema: map[string]providerschema.SchemaJSON{
-					// Computed-only + ForceNew -> SL004 (fixable). Has a description
+					// A MaxItems:1 block with a single nested "enabled" bool ->
+					// SL002 (single-property-block, fixable). Descriptions are set
 					// so SL001 does not also fire.
-					"id_out": {Type: rules.TypeString, Computed: true, ForceNew: true, Description: "an output"},
+					"sign_in": {
+						Type:        rules.TypeList,
+						Optional:    true,
+						MaxItems:    1,
+						Description: "sign in settings",
+						Elem: &providerschema.ResourceJSON{
+							Schema: map[string]providerschema.SchemaJSON{
+								"enabled": {Type: rules.TypeBool, Optional: true, Description: "whether sign in is enabled"},
+							},
+						},
+					},
 				},
 			},
 		},
@@ -136,12 +143,12 @@ func TestLint_FixSuggestionsDisabledByDefault(t *testing.T) {
 
 func TestLint_FixSuggestionsWhenRequested(t *testing.T) {
 	l := New(nil, Options{Config: &config.Config{}, SuggestFixes: true})
-	f := hasFinding(l.Lint(fixSchema()), "SL004", "id_out")
+	f := hasFinding(l.Lint(fixSchema()), "SL002", "sign_in")
 	if f == nil {
-		t.Fatal("expected an SL004 finding")
+		t.Fatal("expected an SL002 finding")
 	}
 	if f.FixSuggestion == "" {
-		t.Fatalf("expected a fix suggestion for SL004 when -fix is set, got none")
+		t.Fatalf("expected a fix suggestion for SL002 when -fix is set, got none")
 	}
 }
 

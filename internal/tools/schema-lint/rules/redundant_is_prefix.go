@@ -17,7 +17,7 @@ var (
 // verb (e.g. is_storage_enabled should be storage_enabled).
 type redundantIsPrefix struct{}
 
-func (redundantIsPrefix) ID() string   { return "SL015" }
+func (redundantIsPrefix) ID() string   { return "SL011" }
 func (redundantIsPrefix) Name() string { return "redundant-is-prefix" }
 
 func (redundantIsPrefix) Description() string {

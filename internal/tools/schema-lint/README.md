@@ -83,22 +83,18 @@ An optional `.schema-lint.json` file (markdownlint-style) configures the run:
 | ID | Name | Severity | Checks |
 |----|------|----------|--------|
 | SL001 | property-description-required | warning | every property sets a non-empty `Description` |
-| SL002 | optional-and-required | error | a property is not both `Optional` and `Required` |
-| SL003 | required-and-computed | error | a property is not both `Required` and `Computed` |
-| SL004 | computed-only-forcenew | warning | a Computed-only property does not set `ForceNew` |
-| SL005 | collection-elem-required | error | a `TypeList`/`TypeSet` property defines an `Elem` |
-| SL006 | single-property-block | warning | a `MaxItems: 1` block with a single nested property should be flattened |
-| SL007 | limits-on-non-collection | error | `MinItems`/`MaxItems` are only set on `TypeList`/`TypeSet` |
-| SL008 | avoid-none-value | warning | a user-settable enum should not accept `None`/`Off`/`Default`/`Disabled` |
-| SL009 | validation-required | warning | user-settable string/numeric arguments set validation |
-| SL010 | block-needs-constraint | warning | a block with no required fields sets `AtLeastOneOf`/`ExactlyOneOf` |
-| SL011 | array-limits | warning | a scalar array declares `MinItems`/`MaxItems` |
-| SL012 | sku-field-naming | warning | group multiple `sku_*` fields into a single `sku` block |
-| SL013 | unit-in-naming | warning | unit-of-measure suffixes use the `_in_<unit>` form (e.g. `size_in_mb`) |
-| SL014 | no-abbreviations | warning | property names use full words, not abbreviations (e.g. `virtual_machine` not `vm`, `percentage` not `pct`) |
-| SL015 | redundant-is-prefix | warning | boolean names do not start with a redundant `is_` |
-| SL016 | redundant-suffix | warning | names drop a redundant grouping-word suffix (`_properties`/`_config`/`_profile`) |
-| SL017 | id-reference-validation | warning | `*_id` references use a resource-specific ID validator or `IsUUID`, not just `StringIsNotEmpty` |
+| SL002 | single-property-block | warning | a `MaxItems: 1` block with a single nested property should be flattened |
+| SL003 | limits-on-non-collection | error | `MinItems`/`MaxItems` are only set on `TypeList`/`TypeSet` |
+| SL004 | avoid-none-value | warning | a user-settable enum should not accept `None`/`Off`/`Default`/`Disabled` |
+| SL005 | validation-required | warning | user-settable string/numeric arguments set validation |
+| SL006 | block-needs-constraint | warning | a block with no required fields sets `AtLeastOneOf`/`ExactlyOneOf` |
+| SL007 | array-limits | warning | a scalar array declares `MinItems`/`MaxItems` |
+| SL008 | sku-field-naming | warning | group multiple `sku_*` fields into a single `sku` block |
+| SL009 | unit-in-naming | warning | unit-of-measure suffixes use the `_in_<unit>` form (e.g. `size_in_mb`) |
+| SL010 | no-abbreviations | warning | property names use full words, not abbreviations (e.g. `virtual_machine` not `vm`, `percentage` not `pct`) |
+| SL011 | redundant-is-prefix | warning | boolean names do not start with a redundant `is_` |
+| SL012 | redundant-suffix | warning | names drop a redundant grouping-word suffix (`_properties`/`_config`/`_profile`) |
+| SL013 | id-reference-validation | warning | `*_id` references use a resource-specific ID validator or `IsUUID`, not just `StringIsNotEmpty` |
 
 ## Suggested fixes
 
@@ -107,7 +103,7 @@ output (a `→ fix:` line in text mode, or a `fixSuggestion` field in JSON mode)
 
 ```text
 azurerm_api_management (resource)
-  warning  SL006   sign_in: block "sign_in" has a single nested property "enabled" (MaxItems 1); consider flattening it
+  warning  SL002   sign_in: block "sign_in" has a single nested property "enabled" (MaxItems 1); consider flattening it
            → fix: replace the block "sign_in" with a single top-level boolean "sign_in_enabled"
 ```
 

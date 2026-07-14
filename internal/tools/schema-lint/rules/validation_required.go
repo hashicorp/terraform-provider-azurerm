@@ -11,7 +11,7 @@ var _ PropertyRule = validationRequired{}
 // float) that does not set any validation.
 type validationRequired struct{}
 
-func (validationRequired) ID() string   { return "SL009" }
+func (validationRequired) ID() string   { return "SL005" }
 func (validationRequired) Name() string { return "validation-required" }
 
 func (validationRequired) Description() string {

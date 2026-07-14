@@ -21,7 +21,7 @@ var (
 // pattern).
 type singlePropertyBlock struct{}
 
-func (singlePropertyBlock) ID() string   { return "SL006" }
+func (singlePropertyBlock) ID() string   { return "SL002" }
 func (singlePropertyBlock) Name() string { return "single-property-block" }
 
 func (singlePropertyBlock) Description() string {

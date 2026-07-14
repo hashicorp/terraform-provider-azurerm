@@ -22,7 +22,7 @@ type idReferenceValidation struct{}
 // constrain the ID.
 var idProbes = []string{"x", "not-a-valid-id", "0000"}
 
-func (idReferenceValidation) ID() string   { return "SL017" }
+func (idReferenceValidation) ID() string   { return "SL013" }
 func (idReferenceValidation) Name() string { return "id-reference-validation" }
 
 func (idReferenceValidation) Description() string {

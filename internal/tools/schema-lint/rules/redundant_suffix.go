@@ -21,7 +21,7 @@ type redundantSuffix struct{}
 // redundantSuffixes are the grouping-word suffixes that should be dropped.
 var redundantSuffixes = []string{"_properties", "_config", "_profile"}
 
-func (redundantSuffix) ID() string   { return "SL016" }
+func (redundantSuffix) ID() string   { return "SL012" }
 func (redundantSuffix) Name() string { return "redundant-suffix" }
 
 func (redundantSuffix) Description() string {

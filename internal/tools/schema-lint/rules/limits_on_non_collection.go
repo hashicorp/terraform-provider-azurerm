@@ -15,7 +15,7 @@ var (
 // on any other type they have no effect and should be removed.
 type limitsOnNonCollection struct{}
 
-func (limitsOnNonCollection) ID() string   { return "SL007" }
+func (limitsOnNonCollection) ID() string   { return "SL003" }
 func (limitsOnNonCollection) Name() string { return "limits-on-non-collection" }
 
 func (limitsOnNonCollection) Description() string {

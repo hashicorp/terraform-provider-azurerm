@@ -13,7 +13,7 @@ var _ PropertyRule = blockNeedsConstraint{}
 // validation such a block can be configured empty.
 type blockNeedsConstraint struct{}
 
-func (blockNeedsConstraint) ID() string   { return "SL010" }
+func (blockNeedsConstraint) ID() string   { return "SL006" }
 func (blockNeedsConstraint) Name() string { return "block-needs-constraint" }
 
 func (blockNeedsConstraint) Description() string {

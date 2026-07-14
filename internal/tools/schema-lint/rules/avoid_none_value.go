@@ -26,7 +26,7 @@ var noneValues = []struct {
 	{value: "Disabled", decoys: []string{"Ronketal", "Verbunth", "Malforte"}},
 }
 
-func (avoidNoneValue) ID() string   { return "SL008" }
+func (avoidNoneValue) ID() string   { return "SL004" }
 func (avoidNoneValue) Name() string { return "avoid-none-value" }
 
 func (avoidNoneValue) Description() string {

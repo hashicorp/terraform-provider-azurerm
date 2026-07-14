@@ -15,7 +15,7 @@ var _ PropertyRule = skuFieldNaming{}
 // block. A lone sku_* argument is not flagged.
 type skuFieldNaming struct{}
 
-func (skuFieldNaming) ID() string   { return "SL012" }
+func (skuFieldNaming) ID() string   { return "SL008" }
 func (skuFieldNaming) Name() string { return "sku-field-naming" }
 
 func (skuFieldNaming) Description() string {
