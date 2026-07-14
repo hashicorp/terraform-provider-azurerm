@@ -414,11 +414,20 @@ func resourceSynapseSparkPoolUpdate(d *pluginsdk.ResourceData, meta interface{})
 		current.IsComputeIsolationEnabled = pointer.To(d.Get("compute_isolation_enabled").(bool))
 	}
 	if d.HasChanges("dynamic_executor_allocation_enabled", "min_executors", "max_executors") {
-		current.DynamicExecutorAllocation = &synapse.DynamicExecutorAllocation{
-			Enabled:      pointer.To(d.Get("dynamic_executor_allocation_enabled").(bool)),
-			MinExecutors: pointer.To(int32(d.Get("min_executors").(int))),
-			MaxExecutors: pointer.To(int32(d.Get("max_executors").(int))),
+		dynamicExecutorAllocation := current.DynamicExecutorAllocation
+		if dynamicExecutorAllocation == nil {
+			dynamicExecutorAllocation = &synapse.DynamicExecutorAllocation{}
 		}
+		if d.HasChange("dynamic_executor_allocation_enabled") {
+			dynamicExecutorAllocation.Enabled = pointer.To(d.Get("dynamic_executor_allocation_enabled").(bool))
+		}
+		if d.HasChange("min_executors") {
+			dynamicExecutorAllocation.MinExecutors = pointer.To(int32(d.Get("min_executors").(int)))
+		}
+		if d.HasChange("max_executors") {
+			dynamicExecutorAllocation.MaxExecutors = pointer.To(int32(d.Get("max_executors").(int)))
+		}
+		current.DynamicExecutorAllocation = dynamicExecutorAllocation
 	}
 	if d.HasChange("spark_config") {
 		current.SparkConfigProperties = expandSparkPoolSparkConfig(d.Get("spark_config").([]interface{}))
