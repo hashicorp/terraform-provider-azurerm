@@ -1251,7 +1251,7 @@ resource "azurerm_managed_disk" "test" {
   gallery_image_reference_id = azurerm_shared_image_version.test.id
   storage_account_type       = "Standard_LRS"
 }
-`, r.templateAttached(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, LinuxVirtualMachineResource{}.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (ManagedDiskResource) upload(data acceptance.TestData) string {
