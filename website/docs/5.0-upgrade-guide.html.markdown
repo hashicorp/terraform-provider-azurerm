@@ -822,6 +822,14 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `auto_backup.encryption_enabled` property has been removed.
 
+### `azurerm_virtual_network_gateway`
+
+* The deprecated `enable_bgp` property has been removed in favour of the `bgp_enabled` property.
+
+### `azurerm_virtual_network_gateway_connection`
+
+* The deprecated `enable_bgp` property has been removed in favour of the `bgp_enabled` property.
+
 ### `azurerm_windows_function_app`
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
