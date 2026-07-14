@@ -18,8 +18,9 @@ type UserFeatures struct {
 	MachineLearning          MachineLearningFeatures
 	ManagedDisk              ManagedDiskFeatures
 	NetApp                   NetAppFeatures
-	PostgresqlFlexibleServer PostgresqlFlexibleServerFeatures
-	RecoveryService          RecoveryServiceFeatures
+	PostgresqlFlexibleServer           PostgresqlFlexibleServerFeatures
+	PostgresqlFlexibleServerVirtualEndpoint PostgresqlFlexibleServerVirtualEndpointFeatures
+	RecoveryService                    RecoveryServiceFeatures
 	RecoveryServicesVault    RecoveryServicesVault
 	ResourceGroup            ResourceGroupFeatures
 	Storage                  StorageFeatures
@@ -113,6 +114,10 @@ type RecoveryServicesVault struct {
 
 type PostgresqlFlexibleServerFeatures struct {
 	RestartServerOnConfigurationValueChange bool
+}
+
+type PostgresqlFlexibleServerVirtualEndpointFeatures struct {
+	RecreateResourceAfterFailover bool
 }
 
 type MachineLearningFeatures struct {
