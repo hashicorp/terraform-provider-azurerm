@@ -19,7 +19,7 @@ fun AzureRM(environment: String, configuration : ClientConfiguration) : Project 
         buildConfigs.forEach { buildConfiguration ->
             buildType(buildConfiguration)
         }
-        if (configuration.runBetaVersion) {
+        if (configuration.createBetaProject) {
             subProject(AzureRMBetaVersion(environment, configuration))
         }
     }
