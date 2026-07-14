@@ -457,7 +457,7 @@ func resourceSynapseSparkPoolUpdate(d *pluginsdk.ResourceData, meta interface{})
 		current.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 	if d.HasChanges("node_count", "auto_scale") {
-		if current.AutoScale != nil && current.AutoScale.Enabled != nil && !*current.AutoScale.Enabled {
+		if _, ok := d.GetOk("auto_scale"); !ok {
 			current.NodeCount = pointer.To(int32(d.Get("node_count").(int)))
 		} else {
 			current.NodeCount = nil
