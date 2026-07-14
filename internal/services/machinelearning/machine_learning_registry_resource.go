@@ -263,7 +263,7 @@ func (r MachineLearningRegistryResource) CustomizeDiff() sdk.ResourceFunc {
 
 			for _, region := range model.ReplicationRegion {
 				if location.Normalize(region.Location) == location.Normalize(model.Location) {
-					return fmt.Errorf("`replication_region` cannot contain the primary `Location`: `%s`", model.Location)
+					return fmt.Errorf("`replication_region` cannot contain the primary `location`: `%s`", model.Location)
 				}
 			}
 
@@ -283,13 +283,19 @@ func (r MachineLearningRegistryResource) CustomizeDiff() sdk.ResourceFunc {
 					oldLocation := location.Normalize(oldRegion["location"].(string))
 					newRegion, exists := newRegionsByLocation[oldLocation]
 					if !exists {
-						return fmt.Errorf("removing a `replication_region` is not supported, region `%s` cannot be removed", oldRegion["location"].(string))
+						if err := metadata.ResourceDiff.ForceNew("replication_region"); err != nil {
+							return err
+						}
+						break
 					}
 
 					if oldRegion["system_created_storage_account_type"].(string) != newRegion["system_created_storage_account_type"].(string) ||
 						oldRegion["system_created_storage_account_hierarchical_namespace_enabled"].(bool) != newRegion["system_created_storage_account_hierarchical_namespace_enabled"].(bool) ||
 						oldRegion["system_created_container_registry_sku"].(string) != newRegion["system_created_container_registry_sku"].(string) {
-						return fmt.Errorf("updating properties of an existing `replication_region` is not supported, region `%s` cannot be modified", oldRegion["location"].(string))
+						if err := metadata.ResourceDiff.ForceNew("replication_region"); err != nil {
+							return err
+						}
+						break
 					}
 				}
 			}
@@ -308,7 +314,7 @@ func (r MachineLearningRegistryResource) Create() sdk.ResourceFunc {
 
 			var model MachineLearningRegistryModel
 			if err := metadata.Decode(&model); err != nil {
-				return fmt.Errorf("decoding Machine Learning Registry model %+v", err)
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			id := registrymanagement.NewRegistryID(subscriptionId, model.ResourceGroupName, model.Name)
