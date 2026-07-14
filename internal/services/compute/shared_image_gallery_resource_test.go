@@ -232,29 +232,6 @@ resource "azurerm_shared_image_gallery" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (SharedImageGalleryResource) groupsGallery(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_shared_image_gallery" "test" {
-  name                = "acctestsig%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-
-  sharing {
-    permission = "Groups"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
 func (SharedImageGalleryResource) privateGallery(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
