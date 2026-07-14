@@ -7,28 +7,28 @@ type UserFeatures struct {
 	PersistIDOnCreateBeforePollingForCompletion                 bool
 	SkipImportCheckOnCreateAndAllowOverwritingExistingResources bool
 
-	ApiManagement            ApiManagementFeatures
-	AppConfiguration         AppConfigurationFeatures
-	ApplicationInsights      ApplicationInsightFeatures
-	CognitiveAccount         CognitiveAccountFeatures
-	DatabricksWorkspace      DatabricksWorkspaceFeatures
-	EnhancedValidation       EnhancedValidationFeatures
-	KeyVault                 KeyVaultFeatures
-	LogAnalyticsWorkspace    LogAnalyticsWorkspaceFeatures
-	MachineLearning          MachineLearningFeatures
-	ManagedDisk              ManagedDiskFeatures
-	NetApp                   NetAppFeatures
-	PostgresqlFlexibleServer           PostgresqlFlexibleServerFeatures
+	ApiManagement                           ApiManagementFeatures
+	AppConfiguration                        AppConfigurationFeatures
+	ApplicationInsights                     ApplicationInsightFeatures
+	CognitiveAccount                        CognitiveAccountFeatures
+	DatabricksWorkspace                     DatabricksWorkspaceFeatures
+	EnhancedValidation                      EnhancedValidationFeatures
+	KeyVault                                KeyVaultFeatures
+	LogAnalyticsWorkspace                   LogAnalyticsWorkspaceFeatures
+	MachineLearning                         MachineLearningFeatures
+	ManagedDisk                             ManagedDiskFeatures
+	NetApp                                  NetAppFeatures
+	PostgresqlFlexibleServer                PostgresqlFlexibleServerFeatures
 	PostgresqlFlexibleServerVirtualEndpoint PostgresqlFlexibleServerVirtualEndpointFeatures
-	RecoveryService                    RecoveryServiceFeatures
-	RecoveryServicesVault    RecoveryServicesVault
-	ResourceGroup            ResourceGroupFeatures
-	Storage                  StorageFeatures
-	Subscription             SubscriptionFeatures
-	TemplateDeployment       TemplateDeploymentFeatures
-	VirtualMachine           VirtualMachineFeatures
-	VirtualMachineScaleSet   VirtualMachineScaleSetFeatures
-	ServiceBus               ServiceBusFeatures
+	RecoveryService                         RecoveryServiceFeatures
+	RecoveryServicesVault                   RecoveryServicesVault
+	ResourceGroup                           ResourceGroupFeatures
+	Storage                                 StorageFeatures
+	Subscription                            SubscriptionFeatures
+	TemplateDeployment                      TemplateDeploymentFeatures
+	VirtualMachine                          VirtualMachineFeatures
+	VirtualMachineScaleSet                  VirtualMachineScaleSetFeatures
+	ServiceBus                              ServiceBusFeatures
 }
 
 type CognitiveAccountFeatures struct {

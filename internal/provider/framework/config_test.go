@@ -390,14 +390,14 @@ func defaultFeaturesList() types.List {
 		"managed_disk":               managedDiskList,
 		"storage":                    storageList,
 		"subscription":               subscriptionList,
-		"postgresql_flexible_server":                          postgresqlFlexibleServerList,
-		"postgresql_flexible_server_virtual_endpoint":         postgresqlFlexibleServerVirtualEndpointList,
-		"machine_learning":                                    machineLearningList,
-		"recovery_service":           recoveryServicesList,
-		"recovery_services_vaults":   recoveryServicesVaultsList,
-		"netapp":                     netappList,
-		"databricks_workspace":       databricksWorkspaceList,
-		"servicebus":                 servicebusList,
+		"postgresql_flexible_server": postgresqlFlexibleServerList,
+		"postgresql_flexible_server_virtual_endpoint": postgresqlFlexibleServerVirtualEndpointList,
+		"machine_learning":                            machineLearningList,
+		"recovery_service":                            recoveryServicesList,
+		"recovery_services_vaults":                    recoveryServicesVaultsList,
+		"netapp":                                      netappList,
+		"databricks_workspace":                        databricksWorkspaceList,
+		"servicebus":                                  servicebusList,
 	})
 
 	fmt.Printf("%+v", d)
