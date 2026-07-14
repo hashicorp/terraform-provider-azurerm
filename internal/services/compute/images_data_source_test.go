@@ -133,6 +133,7 @@ resource "azurerm_image" "test" {
     managed_disk_id = data.azurerm_managed_disk.testsource.id
     size_gb         = 30
     caching         = "None"
+    storage_type    = "Standard_LRS"
   }
 
   tags = {
