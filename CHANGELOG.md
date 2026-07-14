@@ -26,11 +26,12 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: `go` - update to `1.26.5`
 * dependencies: `cdn` - update to API version `2025-12-01` ([#32719](https://github.com/hashicorp/terraform-provider-azurerm/issues/32719))
 * dependencies: `compute` - update to API version `2025-04-01` ([#32592](https://github.com/hashicorp/terraform-provider-azurerm/issues/32592))
-* dependencies: `go-azure-helpers` update to `v0.81.1` ([#32732](https://github.com/hashicorp/terraform-provider-azurerm/issues/32732))
+* dependencies: `go-azure-helpers` - update to `v0.81.1` ([#32732](https://github.com/hashicorp/terraform-provider-azurerm/issues/32732))
 * dependencies: `go-azure-sdk` - update to `v0.20260709.1191450` ([#32768](https://github.com/hashicorp/terraform-provider-azurerm/issues/32768))
-* dependencies: `keyvault` update to API version `2026-02-01` ([#32320](https://github.com/hashicorp/terraform-provider-azurerm/issues/32320))
+* dependencies: `keyvault` - update to API version `2026-02-01` ([#32320](https://github.com/hashicorp/terraform-provider-azurerm/issues/32320))
 * Data Source: `azurerm_logic_app_standard` - add new return attribute `storage_key_vault_secret_id` which will be set if the app service "AzureWebJobsStorage" property had a KeyVault reference format ([#32571](https://github.com/hashicorp/terraform-provider-azurerm/issues/32571))
 * `azurerm_cdn_frontdoor_endpoint` - migrate to `go-azure-sdk` ([#32741](https://github.com/hashicorp/terraform-provider-azurerm/issues/32741))
 * `azurerm_container_registry` Add support for `azuread_authentication_as_arm_policy_enabled`, `role_assignment_mode` and `network_rule_bypass_allowed_for_tasks` properties ([#31667](https://github.com/hashicorp/terraform-provider-azurerm/issues/31667))
