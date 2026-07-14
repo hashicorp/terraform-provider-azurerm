@@ -27,6 +27,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: `go` - update to `1.26.5`
+* dependencies: `x/crypto` - update to `v0.54.0`
 * dependencies: `cdn` - update to API version `2025-12-01` ([#32719](https://github.com/hashicorp/terraform-provider-azurerm/issues/32719))
 * dependencies: `compute` - update to API version `2025-04-01` ([#32592](https://github.com/hashicorp/terraform-provider-azurerm/issues/32592))
 * dependencies: `go-azure-helpers` - update to `v0.81.1` ([#32732](https://github.com/hashicorp/terraform-provider-azurerm/issues/32732))
