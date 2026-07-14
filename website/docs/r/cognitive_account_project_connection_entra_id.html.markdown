@@ -61,9 +61,9 @@ resource "azurerm_cognitive_account_project_connection_entra_id" "example" {
   target                       = azurerm_cognitive_account.openai.endpoint
 
   metadata = {
-    apiType    = "Azure"
-    resourceId = azurerm_cognitive_account.openai.id
-    location   = azurerm_cognitive_account.openai.location
+    ApiType    = "Azure"
+    ResourceId = azurerm_cognitive_account.openai.id
+    Location   = azurerm_cognitive_account.openai.location
   }
 }
 ```
