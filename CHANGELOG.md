@@ -1,6 +1,7 @@
 ## 4.82.0 (Unreleased)
 
 ENHANCEMENTS:
+* `sentinel` - migrate to `go-azure-sdk` [GH-32759]
 
 FEATURES:
 
