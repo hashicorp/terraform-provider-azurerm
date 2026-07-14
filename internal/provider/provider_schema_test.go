@@ -160,14 +160,7 @@ func TestResourcesHaveEnabledFieldsMarkedAsBooleans(t *testing.T) {
 	}
 	sort.Strings(resourceNames)
 
-	// TODO: 4.0 - work through this list
-	resourceFieldsWhichNeedToBeAddressed := map[string]map[string]struct{}{
-		// 1: Fields which require renaming etc
-		"azurerm_iot_security_solution": {
-			// this is a list of recommendations
-			"recommendations_enabled": {},
-		},
-	}
+	resourceFieldsWhichNeedToBeAddressed := map[string]map[string]struct{}{}
 
 	if !features.FivePointOh() {
 		// These have been addressed but while in 4.x we need to ignore them so the test can pass.

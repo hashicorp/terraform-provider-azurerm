@@ -563,6 +563,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `parent_id` property has been removed in favour of the `user_assigned_identity_id` property.
 
+### `azurerm_iot_security_solution`
+
+* The `recommendations_enabled` property has been removed in favour of the `recommendations` property.
+
 ### `azurerm_key_vault`
 
 * The deprecated `contact` property has been removed as it is no longer supported by the resource.
