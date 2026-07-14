@@ -145,12 +145,12 @@ resource "azurerm_site_recovery_protection_container_mapping" "test" {
 func (r SiteRecoveryProtectionContainerMappingResource) autoUpdateExtension(data acceptance.TestData, enabled bool) string {
 	automaticUpdate := ""
 	if enabled {
-		automaticUpdate = fmt.Sprintf(`
+		automaticUpdate = `
   automatic_update {
     automation_account_id = azurerm_automation_account.test.id
     authentication_type   = "SystemAssignedIdentity"
   }
-`)
+`
 	}
 
 	return fmt.Sprintf(`
