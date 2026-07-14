@@ -399,6 +399,22 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			},
 		},
 
+		"postgresql_flexible_server_virtual_endpoint": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"recreate_resource_after_failover": {
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
+						Description: "When enabled, the `azurerm_postgresql_flexible_server_virtual_endpoint` will be recreated after a failover is detected, restoring the pre-v4.15.0 behavior. Defaults to `false`.",
+					},
+				},
+			},
+		},
+
 		"machine_learning": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -830,6 +846,16 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			servicebusRaw := items[0].(map[string]interface{})
 			if v, ok := servicebusRaw["auto_delete_subscription_default_rule"]; ok {
 				featuresMap.ServiceBus.AutoDeleteSubscriptionDefaultRule = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["postgresql_flexible_server_virtual_endpoint"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			virtualEndpointRaw := items[0].(map[string]interface{})
+			if v, ok := virtualEndpointRaw["recreate_resource_after_failover"]; ok {
+				featuresMap.PostgresqlFlexibleServerVirtualEndpoint.RecreateResourceAfterFailover = v.(bool)
 			}
 		}
 	}

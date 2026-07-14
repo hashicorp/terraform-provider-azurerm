@@ -166,6 +166,11 @@ func TestExpandFeatures(t *testing.T) {
 							"restart_server_on_configuration_value_change": true,
 						},
 					},
+					"postgresql_flexible_server_virtual_endpoint": []interface{}{
+						map[string]interface{}{
+							"recreate_resource_after_failover": true,
+						},
+					},
 					"resource_group": []interface{}{
 						map[string]interface{}{
 							"prevent_deletion_if_contains_resources": true,
@@ -310,6 +315,9 @@ func TestExpandFeatures(t *testing.T) {
 				PostgresqlFlexibleServer: features.PostgresqlFlexibleServerFeatures{
 					RestartServerOnConfigurationValueChange: true,
 				},
+				PostgresqlFlexibleServerVirtualEndpoint: features.PostgresqlFlexibleServerVirtualEndpointFeatures{
+					RecreateResourceAfterFailover: true,
+				},
 				MachineLearning: features.MachineLearningFeatures{
 					PurgeSoftDeletedWorkspaceOnDestroy: true,
 				},
@@ -383,6 +391,11 @@ func TestExpandFeatures(t *testing.T) {
 					"postgresql_flexible_server": []interface{}{
 						map[string]interface{}{
 							"restart_server_on_configuration_value_change": false,
+						},
+					},
+					"postgresql_flexible_server_virtual_endpoint": []interface{}{
+						map[string]interface{}{
+							"recreate_resource_after_failover": false,
 						},
 					},
 					"resource_group": []interface{}{
@@ -528,6 +541,9 @@ func TestExpandFeatures(t *testing.T) {
 				},
 				PostgresqlFlexibleServer: features.PostgresqlFlexibleServerFeatures{
 					RestartServerOnConfigurationValueChange: false,
+				},
+				PostgresqlFlexibleServerVirtualEndpoint: features.PostgresqlFlexibleServerVirtualEndpointFeatures{
+					RecreateResourceAfterFailover: false,
 				},
 				MachineLearning: features.MachineLearningFeatures{
 					PurgeSoftDeletedWorkspaceOnDestroy: false,
@@ -2057,6 +2073,70 @@ func TestExpandFeaturesEnhancedValidation(t *testing.T) {
 		result := expandFeatures(testCase.Input)
 		if !reflect.DeepEqual(result.EnhancedValidation, testCase.Expected.EnhancedValidation) {
 			t.Fatalf("Expected %+v but got %+v", testCase.Expected.EnhancedValidation, result.EnhancedValidation)
+		}
+	}
+}
+
+func TestExpandFeaturesPostgresqlFlexibleServerVirtualEndpoint(t *testing.T) {
+	testData := []struct {
+		Name     string
+		Input    []interface{}
+		Expected features.UserFeatures
+	}{
+		{
+			Name: "Empty Block",
+			Input: []interface{}{
+				map[string]interface{}{
+					"postgresql_flexible_server_virtual_endpoint": []interface{}{},
+				},
+			},
+			Expected: features.UserFeatures{
+				PostgresqlFlexibleServerVirtualEndpoint: features.PostgresqlFlexibleServerVirtualEndpointFeatures{
+					RecreateResourceAfterFailover: false,
+				},
+			},
+		},
+		{
+			Name: "Recreate Resource After Failover Enabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"postgresql_flexible_server_virtual_endpoint": []interface{}{
+						map[string]interface{}{
+							"recreate_resource_after_failover": true,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				PostgresqlFlexibleServerVirtualEndpoint: features.PostgresqlFlexibleServerVirtualEndpointFeatures{
+					RecreateResourceAfterFailover: true,
+				},
+			},
+		},
+		{
+			Name: "Recreate Resource After Failover Disabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"postgresql_flexible_server_virtual_endpoint": []interface{}{
+						map[string]interface{}{
+							"recreate_resource_after_failover": false,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				PostgresqlFlexibleServerVirtualEndpoint: features.PostgresqlFlexibleServerVirtualEndpointFeatures{
+					RecreateResourceAfterFailover: false,
+				},
+			},
+		},
+	}
+
+	for _, testCase := range testData {
+		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
+		result := expandFeatures(testCase.Input)
+		if !reflect.DeepEqual(result.PostgresqlFlexibleServerVirtualEndpoint, testCase.Expected.PostgresqlFlexibleServerVirtualEndpoint) {
+			t.Fatalf("Expected %+v but got %+v", testCase.Expected.PostgresqlFlexibleServerVirtualEndpoint, result.PostgresqlFlexibleServerVirtualEndpoint)
 		}
 	}
 }
