@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	rmtags "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/sdk/auth"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -342,6 +343,8 @@ func azureProvider(supportLegacyTestSuite bool, testName string) *schema.Provide
 
 			"features": schemaFeatures(supportLegacyTestSuite),
 
+			"ignore_tags": schemaIgnoreTags(),
+
 			// Advanced feature flags
 			"resource_provider_registrations": {
 				Type:        schema.TypeString,
@@ -579,6 +582,9 @@ func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData
 	} else if os.Getenv("ARM_PROVIDER_ENHANCED_VALIDATION") != "" {
 		return nil, diag.Errorf("the environment variable `ARM_PROVIDER_ENHANCED_VALIDATION` has been removed in v5.0 of the AzureRM Provider - please use the `enhanced_validation` block inside the `features` block or the replacement environment variables `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` and `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS` instead")
 	}
+
+	// configure the provider-level set of tag keys to ignore across all resources and data sources
+	rmtags.SetIgnore(expandIgnoreTags(d.Get("ignore_tags").([]interface{})))
 
 	clientBuilder := clients.ClientBuilder{
 		AuthConfig:                  authConfig,

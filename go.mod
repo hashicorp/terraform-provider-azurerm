@@ -112,3 +112,5 @@ require (
 )
 
 go 1.26.4
+
+replace github.com/hashicorp/go-azure-helpers => github.com/cdobbyn/go-azure-helpers v0.80.1-0.20260707155757-74243bc250fe
