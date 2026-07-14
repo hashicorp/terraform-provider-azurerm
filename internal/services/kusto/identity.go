@@ -37,3 +37,27 @@ func flattenTrustedExternalTenants(input *[]clusters.TrustedExternalTenant) []in
 
 	return output
 }
+
+// trustedExternalTenantsEqual reports whether two `trusted_external_tenants` lists contain the same
+// set of tenant IDs, ignoring order and duplicates. It is used to suppress the perpetual diff caused
+// by the Azure Data Explorer API returning the tenants in a different order than configured.
+func trustedExternalTenantsEqual(a, b []interface{}) bool {
+	if len(a) != len(b) {
+		return false
+	}
+
+	counts := make(map[string]int, len(a))
+	for _, v := range a {
+		counts[v.(string)]++
+	}
+	for _, v := range b {
+		counts[v.(string)]--
+	}
+	for _, c := range counts {
+		if c != 0 {
+			return false
+		}
+	}
+
+	return true
+}

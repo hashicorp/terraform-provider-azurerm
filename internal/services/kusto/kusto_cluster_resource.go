@@ -300,6 +300,23 @@ func resourceKustoCluster() *pluginsdk.Resource {
 		}
 
 		resource.CustomizeDiff = func(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+			// `trusted_external_tenants` is semantically an unordered set of tenant IDs. The Azure Data
+			// Explorer API returns the tenants in its own canonical order, which frequently differs from
+			// the configured order, and because the attribute is a `TypeList` in 4.x that reordering
+			// surfaces as a permanent no-op diff. Suppress the diff when the configured set matches what
+			// is already in state; a genuine add/removal changes the set and still applies. In 5.0 the
+			// attribute is a `TypeSet`, so this normalization is not needed (and is not wired up there).
+			oldTenants, newTenants := d.GetChange("trusted_external_tenants")
+			if oldList, ok := oldTenants.([]interface{}); ok {
+				if newList, ok := newTenants.([]interface{}); ok {
+					if trustedExternalTenantsEqual(oldList, newList) {
+						if err := d.SetNew("trusted_external_tenants", oldList); err != nil {
+							return err
+						}
+					}
+				}
+			}
+
 			rawLanguageExtensions, diags := d.GetRawConfigAt(sdk.ConstructCtyPath("language_extensions"))
 			if diags.HasError() {
 				return nil
@@ -325,6 +342,23 @@ func resourceKustoCluster() *pluginsdk.Resource {
 			}
 
 			return nil
+		}
+	}
+
+	if features.FivePointOh() {
+		// `trusted_external_tenants` is an unordered set of tenant IDs. The Azure Data Explorer API
+		// returns them in its own canonical order, which frequently differs from the configured order.
+		// Modelling the attribute as a `TypeSet` (in 5.0) makes ordering irrelevant and removes the
+		// perpetual diff. In 4.x it stays a `TypeList` with a `CustomizeDiff` that suppresses
+		// ordering-only diffs, since changing the type there would be a breaking change.
+		resource.Schema["trusted_external_tenants"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty, validation.StringInSlice([]string{"*"}, false)),
+			},
 		}
 	}
 
@@ -392,7 +426,7 @@ func resourceKustoClusterCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		EnablePurge:            pointer.To(d.Get("purge_enabled").(bool)),
 		PublicNetworkAccess:    &publicNetworkAccess,
 		PublicIPType:           &publicIPType,
-		TrustedExternalTenants: expandTrustedExternalTenants(d.Get("trusted_external_tenants").([]interface{})),
+		TrustedExternalTenants: expandTrustedExternalTenants(trustedExternalTenantsInput(d.Get("trusted_external_tenants"))),
 	}
 
 	if !features.FivePointOh() {
@@ -609,7 +643,7 @@ func resourceKustoClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if d.HasChange("trusted_external_tenants") {
-		props.TrustedExternalTenants = expandTrustedExternalTenants(d.Get("trusted_external_tenants").([]interface{}))
+		props.TrustedExternalTenants = expandTrustedExternalTenants(trustedExternalTenantsInput(d.Get("trusted_external_tenants")))
 	}
 
 	if !features.FivePointOh() {
@@ -783,6 +817,20 @@ func expandKustoListString(input []interface{}) *[]string {
 	}
 
 	return &result
+}
+
+// trustedExternalTenantsInput normalizes the raw `trusted_external_tenants` attribute value to a
+// slice, tolerating both the 4.x `TypeList` (`[]interface{}`) and the 5.0 `TypeSet` (`*schema.Set`)
+// representations.
+func trustedExternalTenantsInput(input interface{}) []interface{} {
+	switch v := input.(type) {
+	case *schema.Set:
+		return v.List()
+	case []interface{}:
+		return v
+	default:
+		return nil
+	}
 }
 
 func expandKustoClusterSku(input []interface{}) (*clusters.AzureSku, error) {
