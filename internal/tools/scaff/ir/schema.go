@@ -26,6 +26,25 @@ func goIdent(s string) string {
 	return camel(snake(s))
 }
 
+// sourceSegment returns the JSON path segment for a field, preferring its JSON
+// wire name and falling back to the SDK field key. Used to build the stable
+// SourcePath that schema customizations address.
+func sourceSegment(key string, f pandora.Field) string {
+	if f.JSONName != "" {
+		return f.JSONName
+	}
+	return key
+}
+
+// joinSourcePath joins a parent source path with a child segment, e.g.
+// ("properties.networkProfile", "podCidr") -> "properties.networkProfile.podCidr".
+func joinSourcePath(parent, seg string) string {
+	if parent == "" {
+		return seg
+	}
+	return parent + "." + seg
+}
+
 // walkSchema traverses the create model's graph, flattens the ARM envelope
 // (hoisting name/location/tags, descending into Properties), and populates the
 // IR's top-level properties and nested block models.
@@ -44,12 +63,13 @@ func (res *ResourceIR) walkSchema(schema *pandora.SchemaResponse) error {
 	// The resource group is sourced from the ID, not the model body.
 	if res.HasResourceGroup {
 		res.TopLevel = append(res.TopLevel, &Property{
-			TFName:   "resource_group_name",
-			TFType:   "TypeString",
-			Required: true,
-			ForceNew: true,
-			GoField:  "ResourceGroup",
-			GoType:   "string",
+			TFName:     "resource_group_name",
+			TFType:     "TypeString",
+			Required:   true,
+			ForceNew:   true,
+			GoField:    "ResourceGroup",
+			GoType:     "string",
+			SourcePath: "resource_group_name",
 		})
 	}
 
@@ -60,17 +80,19 @@ func (res *ResourceIR) walkSchema(schema *pandora.SchemaResponse) error {
 			res.TopLevel = append(res.TopLevel, &Property{
 				TFName: "name", TFType: "TypeString", Required: true, ForceNew: true,
 				GoField: "Name", GoType: "string", SDKField: "Name", JSONName: f.JSONName,
-				Description: f.Description,
+				SourcePath: "name", Description: f.Description,
 			})
 		case "Location":
 			res.TopLevel = append(res.TopLevel, &Property{
 				TFName: "location", TFType: "TypeString", Required: true, ForceNew: true,
 				GoField: "Location", GoType: "string", SDKField: "Location", JSONName: f.JSONName,
+				SourcePath: "location",
 			})
 		case "Tags":
 			res.TopLevel = append(res.TopLevel, &Property{
 				TFName: "tags", TFType: "TypeMap", Optional: true,
 				GoField: "Tags", GoType: "map[string]string", SDKField: "Tags", JSONName: f.JSONName,
+				SourcePath: "tags",
 			})
 		case "Identity":
 			// Identity (UserAssignedIdentityMap) needs dedicated commonschema
@@ -88,7 +110,7 @@ func (res *ResourceIR) walkSchema(schema *pandora.SchemaResponse) error {
 				if skipEnvelopeFields[pk] {
 					continue
 				}
-				if prop := w.resolveField(pk, propsModel.Fields[pk]); prop != nil {
+				if prop := w.resolveField("properties", pk, propsModel.Fields[pk]); prop != nil {
 					prop.UnderProperties = true
 					res.TopLevel = append(res.TopLevel, prop)
 				}
@@ -97,7 +119,7 @@ func (res *ResourceIR) walkSchema(schema *pandora.SchemaResponse) error {
 			if skipEnvelopeFields[key] {
 				continue
 			}
-			if prop := w.resolveField(key, f); prop != nil {
+			if prop := w.resolveField("", key, f); prop != nil {
 				res.TopLevel = append(res.TopLevel, prop)
 			}
 		}
@@ -154,12 +176,13 @@ type schemaWalker struct {
 
 // resolveField converts a single Pandora field into an IR Property, recursing
 // into referenced models to build nested block structs.
-func (w *schemaWalker) resolveField(key string, f pandora.Field) *Property {
+func (w *schemaWalker) resolveField(parentPath, key string, f pandora.Field) *Property {
 	p := &Property{
 		TFName:      snake(key),
 		GoField:     goIdent(key),
 		SDKField:    key,
 		JSONName:    f.JSONName,
+		SourcePath:  joinSourcePath(parentPath, sourceSegment(key, f)),
 		Description: f.Description,
 		Required:    f.Required,
 		Optional:    f.Optional && !f.Required,
@@ -236,7 +259,7 @@ func (w *schemaWalker) applyReference(p *Property, def pandora.ObjectDefinition)
 		return true
 	}
 
-	block := w.resolveModelBlock(ref)
+	block := w.resolveModelBlock(ref, p.SourcePath)
 	p.TFType = "TypeList"
 	p.MaxItems = 1
 	p.IsBlock = true
@@ -262,7 +285,7 @@ func (w *schemaWalker) applyList(p *Property, def pandora.ObjectDefinition) bool
 			p.EnumValues = sortedConstantValues(w.schema.Constants[*item.ReferenceName])
 			return true
 		}
-		block := w.resolveModelBlock(*item.ReferenceName)
+		block := w.resolveModelBlock(*item.ReferenceName, p.SourcePath)
 		p.IsBlock = true
 		p.BlockName = block.Name
 		p.GoType = "[]" + block.Name
@@ -281,7 +304,7 @@ func (w *schemaWalker) applyList(p *Property, def pandora.ObjectDefinition) bool
 
 // resolveModelBlock ensures a nested block model exists (recursing into its
 // fields), deduplicating by Go struct name and guarding against cycles.
-func (w *schemaWalker) resolveModelBlock(sdkModel string) *BlockModel {
+func (w *schemaWalker) resolveModelBlock(sdkModel, parentPath string) *BlockModel {
 	name := goIdent(sdkModel)
 	if existing, ok := w.blocks[name]; ok {
 		return existing
@@ -300,7 +323,7 @@ func (w *schemaWalker) resolveModelBlock(sdkModel string) *BlockModel {
 			if key == "SystemData" {
 				continue
 			}
-			if prop := w.resolveField(key, model.Fields[key]); prop != nil {
+			if prop := w.resolveField(parentPath, key, model.Fields[key]); prop != nil {
 				block.Properties = append(block.Properties, prop)
 			}
 		}

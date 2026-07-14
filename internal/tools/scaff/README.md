@@ -10,7 +10,9 @@ existing provider source and generates idiomatic Go, including:
   for the Typed SDK (`internal/sdk`).
 - **List resources** — makes an existing resource list-ready (Resource Identity
   - a reusable flatten method) and generates the `*_resource_list.go` (and its
-  acceptance test), registering it in the service package.
+  acceptance test), registering it in the service package. The matching
+  list-resource documentation under `website/docs/list-resources/` is generated
+  automatically alongside the code.
 - **Service package scaffolding**, and **documentation**.
 
 It exposes the following commands:
@@ -18,6 +20,7 @@ It exposes the following commands:
 | Command          | Purpose                                                                             |
 | ---------------- | ----------------------------------------------------------------------------------- |
 | `generate`       | Generate a typed resource (and optionally a data source / list resource).           |
+| `regen`          | Re-apply a `.scaffold.hcl` schema customization and rewrite the generated files.    |
 | `upgrade`        | Upgrade an existing resource to support List (adds identity + flatten).             |
 | `servicepackage` | Create a new service package directory and scaffold `registration.go` + `client/`.  |
 | `document`       | Generate provider documentation for a resource or data source.                      |
@@ -71,7 +74,7 @@ A running Pandora Data API reachable at `schema_api_url` (default
 | `-api-version`    |          | API version; defaults to the latest non-preview version.                            |
 | `-service`        |          | Explicit Pandora service name; overrides the value derived from `-arm-type`.        |
 | `-resource`       |          | Explicit Pandora resource key; overrides the value derived from `-arm-type`.        |
-| `-list`           |          | Also generate a list resource and its acceptance test.                             |
+| `-list`           |          | Also generate a list resource, its acceptance test, and its documentation.         |
 | `-gen-resource`   |          | Generate the resource file (default `true`); set `false` with `-list` for list-only.|
 | `-data-source`    |          | Also generate a data source (shares nested block structs with the resource).        |
 | `-path`           |          | Output directory; defaults to `{service_packages_path}/{servicepackage}`.           |
@@ -103,13 +106,75 @@ go run ./internal/tools/scaff generate -input="internal/tools/scaff/examples/gen
 
 See [`examples/generate.hcl`](examples/generate.hcl) for the input-file format.
 
+### Customizing the schema (`.scaffold.hcl` + `regen`)
+
+Terraform schemas rarely match the ARM/Pandora spec one-to-one. Every `generate`
+run therefore also writes a **schema-customization mapping** next to the
+generated code — `{name}.scaffold.hcl` — listing every attribute keyed by its
+stable *source path* (the API JSON path, e.g. `properties.masterProfile.vmSize`).
+Edit that file to rename, drop or re-flag attributes, then run `scaff regen` to
+re-resolve the resource from Pandora, apply your customizations, and rewrite the
+generated files. Because attributes are keyed by source path, your edits survive
+regeneration even after they are renamed.
+
+An existing mapping is never overwritten by `generate`, so your customizations
+are safe.
+
+```hcl
+# redhat_openshift_cluster.scaffold.hcl (excerpt)
+resource_name = "redhat_openshift_cluster"
+arm_type      = "Microsoft.RedHatOpenShift/openShiftClusters"
+api_version   = "2025-07-25"
+
+gen_resource = true
+data_source  = true
+
+attribute "properties.masterProfile.vmSize" {
+  tf_name = "vm_sku"   # rename the schema key (and the Go model field)
+}
+
+attribute "properties.clusterProfile.domain" {
+  remove = true        # drop this attribute from the schema
+}
+
+attribute "properties.apiserverProfile.visibility" {
+  tf_name  = "visibility"
+  required = true       # override required / optional / computed / sensitive / force_new
+}
+```
+
+Then:
+
+```sh
+go run ./internal/tools/scaff regen \
+  -file internal/services/redhatopenshift/redhat_openshift_cluster.scaffold.hcl -overwrite
+```
+
+`regen` requires `-overwrite` because it rewrites the generated files. It reads
+the resolution inputs and the artifact flags (`gen_resource` / `list` /
+`data_source`) from the mapping, so no other arguments are needed.
+
+| Per-attribute field                                          | Effect                                             |
+| ----------------------------------------------------------- | -------------------------------------------------- |
+| `tf_name`                                                   | Rename the schema key (and the Go model field).    |
+| `remove`                                                    | Drop the attribute from the generated schema.      |
+| `required` / `optional` / `computed` / `sensitive` / `force_new` | Override the attribute's metadata.            |
+| `description`                                               | Override the attribute description.                |
+
+> **Scope (v1):** renaming, removing and metadata changes are supported. Moving
+> an attribute into a different block, and merging upstream Pandora schema
+> changes into an existing mapping, are planned follow-ups. `name` and
+> `resource_group_name` cannot be removed (they build the resource ID).
+
 ### Upgrade
 
 Upgrades an existing resource (typed or untyped/native Plugin SDK) so it can
 support List. It adds Resource Identity and refactors `Read` into a reusable
 flatten method when those are missing, then — with `-list` (the default) —
 generates the list resource, its acceptance test, and registers it in the
-service package's `ListResources()`.
+service package's `ListResources()`. When run with `-write`, the matching
+list-resource documentation is generated too (existing docs are preserved unless
+`-overwrite` is passed).
 
 Most metadata (SDK package, read model, and list operations) is derived from the
 resource source and the vendored `go-azure-sdk`, so a running Data API is only

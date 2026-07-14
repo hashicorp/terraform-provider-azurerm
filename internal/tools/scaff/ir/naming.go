@@ -36,6 +36,14 @@ func camel(s string) string {
 	return strcase.ToCamel(s)
 }
 
+// GoFieldFromTFName derives the Go struct field name for a snake_case Terraform
+// schema key, matching the naming used when resolving from Pandora (e.g.
+// "vm_size" -> "VmSize"). It is exported for the schema-customization layer,
+// which renames a property's schema key and must keep its Go field consistent.
+func GoFieldFromTFName(tfName string) string {
+	return camel(snake(tfName))
+}
+
 // idToID normalises a trailing "Id" to "ID" so generated Parse/New function
 // names match the go-azure-sdk convention (e.g. OpenShiftClusterId ->
 // OpenShiftClusterID, giving ParseOpenShiftClusterID / NewOpenShiftClusterID).

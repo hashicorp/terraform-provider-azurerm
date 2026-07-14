@@ -108,6 +108,7 @@ type Property struct {
 	EnumValues []string // allowed values, for validation
 
 	// Source
+	SourcePath      string // stable JSON source path from the model root, e.g. "properties.masterProfile.vmSize"
 	SDKField        string // originating SDK model field name, e.g. "VMSize"
 	JSONName        string // original JSON name
 	UnderProperties bool   // true if this property lives under the ARM Properties envelope

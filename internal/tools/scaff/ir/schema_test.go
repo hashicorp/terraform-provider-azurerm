@@ -53,4 +53,21 @@ func TestLive_SchemaRedHatOpenShift(t *testing.T) {
 			t.Errorf("expected top-level property %q", want)
 		}
 	}
+
+	// SourcePath must record the stable JSON path used to address a property in
+	// schema-customization mappings.
+	paths := map[string]bool{}
+	for _, p := range res.TopLevel {
+		paths[p.SourcePath] = true
+	}
+	for _, b := range res.Blocks {
+		for _, p := range b.Properties {
+			paths[p.SourcePath] = true
+		}
+	}
+	for _, want := range []string{"name", "location", "resource_group_name", "properties.masterProfile.vmSize"} {
+		if !paths[want] {
+			t.Errorf("expected a property with source path %q", want)
+		}
+	}
 }

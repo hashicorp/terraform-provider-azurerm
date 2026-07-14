@@ -397,6 +397,10 @@ func (c UpgradeCommand) generateList(d *upgradeData, res *ir.ResourceIR) error {
 		return err
 	}
 
+	if d.Write {
+		generateListDoc(c.Ui, listFile, d.Overwrite)
+	}
+
 	// Generate the acceptance test, referencing the resource's existing test
 	// struct (whose casing may differ from the resource base name).
 	if res.TestStructName == "" {

@@ -11,11 +11,13 @@ import (
 	"path/filepath"
 
 	"github.com/hashicorp/hcl/v2/hclsimple"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/scaff/docs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/scaff/gen"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/scaff/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/scaff/ir"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/scaff/list-upgrade"
+	list_upgrade "github.com/hashicorp/terraform-provider-azurerm/internal/tools/scaff/list-upgrade"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/scaff/pandora"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/scaff/scaffold"
 
 	"github.com/mitchellh/cli"
 )
@@ -338,6 +340,8 @@ func (d GenerateData) generateResource(ui cli.Ui, client *pandora.Client, spec r
 		if err := d.registerListResource(ui, regPath, res.Name+"ListResource"); err != nil {
 			return err
 		}
+
+		generateListDoc(ui, listFile, d.Overwrite)
 	}
 
 	if spec.DataSource {
@@ -351,6 +355,37 @@ func (d GenerateData) generateResource(ui cli.Ui, client *pandora.Client, spec r
 		}
 	}
 
+	// Emit the schema-customization mapping alongside the generated files so the
+	// schema can be edited and re-applied via `scaff regen`. An existing mapping
+	// is never overwritten — it holds the user's customizations.
+	mappingFile := filepath.Join(outputDir, fmt.Sprintf("%s.scaffold.hcl", spec.Name))
+	mapping := scaffold.Emit(res, scaffold.EmitOptions{
+		ResourceName: spec.Name,
+		ARMType:      spec.ARMType,
+		Service:      spec.Service,
+		Resource:     spec.Resource,
+		GenResource:  spec.GenResource,
+		List:         spec.List,
+		DataSource:   spec.DataSource,
+	})
+	if err := d.writeMapping(ui, mappingFile, mapping); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// writeMapping writes the schema-customization mapping, never overwriting an
+// existing file so hand edits are preserved across regenerations.
+func (d GenerateData) writeMapping(ui cli.Ui, path, content string) error {
+	if _, err := os.Stat(path); err == nil {
+		ui.Info(fmt.Sprintf("keeping existing mapping %s", path))
+		return nil
+	}
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+		return fmt.Errorf("writing %q: %w", path, err)
+	}
+	ui.Info(fmt.Sprintf("generated %s", path))
 	return nil
 }
 
@@ -396,6 +431,19 @@ func (d GenerateData) registerListResource(ui cli.Ui, regPath, listStruct string
 	}
 	ui.Info(fmt.Sprintf("registered %s in %s", listStruct, regPath))
 	return nil
+}
+
+func generateListDoc(ui cli.Ui, listFile string, overwrite bool) {
+	docPath, written, err := docs.GenerateListDoc(listFile, overwrite)
+	if err != nil {
+		ui.Warn(fmt.Sprintf("generating list documentation for %s: %v", listFile, err))
+		return
+	}
+	if !written {
+		ui.Info(fmt.Sprintf("keeping existing list documentation %s (use -overwrite to regenerate)", docPath))
+		return
+	}
+	ui.Info(fmt.Sprintf("generated %s", docPath))
 }
 
 func writeAndFormat(path, content string) error {

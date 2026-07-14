@@ -56,6 +56,11 @@ func realMain(args []string) int {
 				Ui: ui,
 			}, nil
 		},
+		"regen": func() (cli.Command, error) {
+			return &commands.RegenCommand{
+				Ui: ui,
+			}, nil
+		},
 	}
 
 	scaff := cli.CLI{
