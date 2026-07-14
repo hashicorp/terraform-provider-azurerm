@@ -236,7 +236,9 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Read() sdk.ResourceFunc
 			}
 
 			// if a fail-over has occurred, the source/replica ids have swapped so we'll have to swap them back in Terraform to prevent a diff
-			if failOverHasOccurred {
+			// unless recreate_resource_after_failover is enabled, in which case we intentionally leave the IDs swapped so Terraform
+			// detects the change and recreates the resource (source_server_id has ForceNew: true)
+			if failOverHasOccurred && !metadata.Client.Features.PostgresqlFlexibleServerVirtualEndpoint.RecreateResourceAfterFailover {
 				state.SourceServerId, state.ReplicaServerId = state.ReplicaServerId, state.SourceServerId
 			}
 
