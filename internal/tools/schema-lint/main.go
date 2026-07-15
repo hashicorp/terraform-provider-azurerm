@@ -27,7 +27,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-lint/rules"
 )
 
-// defaultPathspecs restrict diff mode to resource and data source source files,
+// defaultPathspecs restrict diff mode to resource and data source files,
 // matching the schema-lint workflow's trigger paths.
 var defaultPathspecs = []string{
 	":(glob)internal/services/**/*_resource.go",
@@ -139,7 +139,7 @@ func printHelp() {
 
 Commands:
   check [flags] [files/dirs...]   lint the given targets (default command)
-  list                            list the available rules
+  list                            show the available rules
 
 Check flags:
   -C <dir>            repository root (default ".")

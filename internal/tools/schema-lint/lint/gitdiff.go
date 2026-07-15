@@ -115,8 +115,6 @@ func parseDiff(root, diff string) (*Changes, error) {
 				c.files[curFile][curLine] = true
 			}
 			curLine++
-		case strings.HasPrefix(line, "-"):
-			// removal; does not advance the new-side line counter.
 		}
 	}
 	return c, scanner.Err()
