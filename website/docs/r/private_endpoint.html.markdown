@@ -200,6 +200,8 @@ The following arguments are supported:
 
 * `location` - (Required) The supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
+* `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Private Endpoint should exist. Changing this forces a new resource to be created.
+
 * `subnet_id` - (Required) The ID of the Subnet from which Private IP Addresses will be allocated for this Private Endpoint. Changing this forces a new resource to be created.
 
 * `custom_network_interface_name` - (Optional) The custom name of the network interface attached to the private endpoint. Changing this forces a new resource to be created.

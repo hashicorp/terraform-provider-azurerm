@@ -324,3 +324,21 @@ func StringStartsWithOneOf(prefixs ...string) func(interface{}, string) ([]strin
 		return warnings, errors
 	}
 }
+
+func StringDoesNotStartWithOneOf(prefixes ...string) func(interface{}, string) ([]string, []error) {
+	return func(i interface{}, k string) (warnings []string, errors []error) {
+		v, ok := i.(string)
+		if !ok {
+			errors = append(errors, fmt.Errorf("expected type of `%s` to be string", k))
+			return warnings, errors
+		}
+
+		for _, val := range prefixes {
+			if strings.HasPrefix(v, val) {
+				errors = append(errors, fmt.Errorf("expected `%s` to not start with one of %s, got `%s`", k, strings.Join(prefixes, ", "), v))
+				return warnings, errors
+			}
+		}
+		return warnings, errors
+	}
+}
