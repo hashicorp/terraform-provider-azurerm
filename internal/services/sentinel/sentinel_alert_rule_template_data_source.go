@@ -8,11 +8,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2021-09-01-preview/securityinsight" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/alertruletemplates"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -148,7 +148,7 @@ func dataSourceSentinelAlertRuleTemplate() *pluginsdk.Resource {
 
 func dataSourceSentinelAlertRuleTemplateRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.AlertRuleTemplatesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -159,8 +159,7 @@ func dataSourceSentinelAlertRuleTemplateRead(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	// Either "name" or "display_name" must have been specified, constrained by the pluginsdk.
-	var resp securityinsight.BasicAlertRuleTemplate
+	var resp alertruletemplates.AlertRuleTemplate
 	var nameToLog string
 	if name != "" {
 		nameToLog = name
@@ -178,21 +177,22 @@ func dataSourceSentinelAlertRuleTemplateRead(d *pluginsdk.ResourceData, meta int
 		name = *realName
 	}
 
-	id := parse.NewSentinelAlertRuleTemplateID(subscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, name)
+	id := alertruletemplates.NewAlertRuleTemplateID(meta.(*clients.Client).Account.SubscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, name)
+	d.SetId(id.ID())
 
 	switch template := resp.(type) {
-	case securityinsight.MLBehaviorAnalyticsAlertRuleTemplate:
-		setForMLBehaviorAnalyticsAlertRuleTemplate(d, id, &template)
-	case securityinsight.FusionAlertRuleTemplate:
-		setForFusionAlertRuleTemplate(d, id, &template)
-	case securityinsight.MicrosoftSecurityIncidentCreationAlertRuleTemplate:
-		err = setForMsSecurityIncidentAlertRuleTemplate(d, id, &template)
-	case securityinsight.ScheduledAlertRuleTemplate:
-		err = setForScheduledAlertRuleTemplate(d, id, &template)
-	case securityinsight.NrtAlertRuleTemplate:
-		err = setForNrtAlertRuleTemplate(d, id, &template)
-	case securityinsight.ThreatIntelligenceAlertRuleTemplate:
-		setForThreatIntelligenceAlertRuleTemplate(d, id, &template)
+	case alertruletemplates.MLBehaviorAnalyticsAlertRuleTemplate:
+		setForMLBehaviorAnalyticsAlertRuleTemplate(d, &template)
+	case alertruletemplates.FusionAlertRuleTemplate:
+		setForFusionAlertRuleTemplate(d, &template)
+	case alertruletemplates.MicrosoftSecurityIncidentCreationAlertRuleTemplate:
+		setForMsSecurityIncidentAlertRuleTemplate(d, &template)
+	case alertruletemplates.ScheduledAlertRuleTemplate:
+		setForScheduledAlertRuleTemplate(d, &template)
+	case alertruletemplates.NrtAlertRuleTemplate:
+		setForNrtAlertRuleTemplate(d, &template)
+	case alertruletemplates.ThreatIntelligenceAlertRuleTemplate:
+		setForThreatIntelligenceAlertRuleTemplate(d, &template)
 	default:
 		return fmt.Errorf("unknown template type of Sentinel Alert Rule Template %q (Workspace %q / Resource Group %q) ID", nameToLog, workspaceID.WorkspaceName, workspaceID.ResourceGroupName)
 	}
@@ -204,69 +204,65 @@ func dataSourceSentinelAlertRuleTemplateRead(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func getAlertRuleTemplateByName(ctx context.Context, client *securityinsight.AlertRuleTemplatesClient, workspaceID *workspaces.WorkspaceId, name string) (res securityinsight.BasicAlertRuleTemplate, err error) {
-	template, err := client.Get(ctx, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, name)
+func getAlertRuleTemplateByName(ctx context.Context, client *alertruletemplates.AlertRuleTemplatesClient, workspaceID *workspaces.WorkspaceId, name string) (res alertruletemplates.AlertRuleTemplate, err error) {
+	id := alertruletemplates.NewAlertRuleTemplateID(workspaceID.SubscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, name)
+	template, err := client.Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-	return template.Value, nil
+	return template.Model, nil
 }
 
-func getAlertRuleTemplateByDisplayName(ctx context.Context, client *securityinsight.AlertRuleTemplatesClient, workspaceID *workspaces.WorkspaceId, displayName string) (res securityinsight.BasicAlertRuleTemplate, name *string, err error) {
-	templates, err := client.ListComplete(ctx, workspaceID.ResourceGroupName, workspaceID.WorkspaceName)
+func getAlertRuleTemplateByDisplayName(ctx context.Context, client *alertruletemplates.AlertRuleTemplatesClient, workspaceID *workspaces.WorkspaceId, displayName string) (res alertruletemplates.AlertRuleTemplate, name *string, err error) {
+	templates, err := client.ListComplete(ctx, alertruletemplates.WorkspaceId(*workspaceID))
 	if err != nil {
 		return nil, nil, err
 	}
-	var results []securityinsight.BasicAlertRuleTemplate
-	for templates.NotDone() {
-		template := templates.Value()
-		switch template := template.(type) {
-		case securityinsight.FusionAlertRuleTemplate:
-			if template.DisplayName != nil && *template.DisplayName == displayName {
-				results = append(results, templates.Value())
+	var results []alertruletemplates.AlertRuleTemplate
+	for _, item := range templates.Items {
+		switch template := item.(type) {
+		case alertruletemplates.FusionAlertRuleTemplate:
+			if template.Properties != nil && pointer.From(template.Properties.DisplayName) == displayName {
+				results = append(results, item)
 				if template.Name != nil {
 					name = template.Name
 				}
 			}
-		case securityinsight.MLBehaviorAnalyticsAlertRuleTemplate:
-			if template.DisplayName != nil && *template.DisplayName == displayName {
-				results = append(results, templates.Value())
+		case alertruletemplates.MLBehaviorAnalyticsAlertRuleTemplate:
+			if template.Properties != nil && pointer.From(template.Properties.DisplayName) == displayName {
+				results = append(results, item)
 				if template.Name != nil {
 					name = template.Name
 				}
 			}
-		case securityinsight.MicrosoftSecurityIncidentCreationAlertRuleTemplate:
-			if template.DisplayName != nil && *template.DisplayName == displayName {
-				results = append(results, templates.Value())
+		case alertruletemplates.MicrosoftSecurityIncidentCreationAlertRuleTemplate:
+			if template.Properties != nil && pointer.From(template.Properties.DisplayName) == displayName {
+				results = append(results, item)
 				if template.Name != nil {
 					name = template.Name
 				}
 			}
-		case securityinsight.ScheduledAlertRuleTemplate:
-			if template.DisplayName != nil && *template.DisplayName == displayName {
-				results = append(results, templates.Value())
+		case alertruletemplates.ScheduledAlertRuleTemplate:
+			if template.Properties != nil && pointer.From(template.Properties.DisplayName) == displayName {
+				results = append(results, item)
 				if template.Name != nil {
 					name = template.Name
 				}
 			}
-		case securityinsight.NrtAlertRuleTemplate:
-			if template.DisplayName != nil && *template.DisplayName == displayName {
-				results = append(results, templates.Value())
+		case alertruletemplates.NrtAlertRuleTemplate:
+			if template.Properties != nil && pointer.From(template.Properties.DisplayName) == displayName {
+				results = append(results, item)
 				if template.Name != nil {
 					name = template.Name
 				}
 			}
-		case securityinsight.ThreatIntelligenceAlertRuleTemplate:
-			if template.DisplayName != nil && *template.DisplayName == displayName {
-				results = append(results, templates.Value())
+		case alertruletemplates.ThreatIntelligenceAlertRuleTemplate:
+			if template.Properties != nil && pointer.From(template.Properties.DisplayName) == displayName {
+				results = append(results, item)
 				if template.Name != nil {
 					name = template.Name
 				}
 			}
-		}
-
-		if err := templates.NextWithContext(ctx); err != nil {
-			return nil, nil, fmt.Errorf("iterating Alert Rule Templates: %+v", err)
 		}
 	}
 
@@ -279,152 +275,94 @@ func getAlertRuleTemplateByDisplayName(ctx context.Context, client *securityinsi
 	return results[0], name, nil
 }
 
-func setForScheduledAlertRuleTemplate(d *pluginsdk.ResourceData, id parse.SentinelAlertRuleTemplateId, template *securityinsight.ScheduledAlertRuleTemplate) error {
-	d.SetId(id.ID())
+func setForScheduledAlertRuleTemplate(d *pluginsdk.ResourceData, template *alertruletemplates.ScheduledAlertRuleTemplate) {
 	d.Set("name", template.Name)
-	d.Set("display_name", template.DisplayName)
-	return d.Set("scheduled_template", flattenScheduledAlertRuleTemplate(template.ScheduledAlertRuleTemplateProperties))
+	if props := template.Properties; props != nil {
+		d.Set("display_name", props.DisplayName)
+		d.Set("scheduled_template", flattenScheduledAlertRuleTemplate(props))
+	}
 }
 
-func setForNrtAlertRuleTemplate(d *pluginsdk.ResourceData, id parse.SentinelAlertRuleTemplateId, template *securityinsight.NrtAlertRuleTemplate) error {
-	d.SetId(id.ID())
+func setForNrtAlertRuleTemplate(d *pluginsdk.ResourceData, template *alertruletemplates.NrtAlertRuleTemplate) {
 	d.Set("name", template.Name)
-	d.Set("display_name", template.DisplayName)
-	return d.Set("nrt_template", flattenNrtAlertRuleTemplate(template.NrtAlertRuleTemplateProperties))
+	if props := template.Properties; props != nil {
+		d.Set("display_name", props.DisplayName)
+		d.Set("nrt_template", flattenNrtAlertRuleTemplate(props))
+	}
 }
 
-func setForMsSecurityIncidentAlertRuleTemplate(d *pluginsdk.ResourceData, id parse.SentinelAlertRuleTemplateId, template *securityinsight.MicrosoftSecurityIncidentCreationAlertRuleTemplate) error {
-	d.SetId(id.ID())
+func setForMsSecurityIncidentAlertRuleTemplate(d *pluginsdk.ResourceData, template *alertruletemplates.MicrosoftSecurityIncidentCreationAlertRuleTemplate) {
 	d.Set("name", template.Name)
-	d.Set("display_name", template.DisplayName)
-	return d.Set("security_incident_template", flattenMsSecurityIncidentAlertRuleTemplate(template.MicrosoftSecurityIncidentCreationAlertRuleTemplateProperties))
+	if props := template.Properties; props != nil {
+		d.Set("display_name", props.DisplayName)
+		d.Set("security_incident_template", flattenMsSecurityIncidentAlertRuleTemplate(props))
+	}
 }
 
-func setForFusionAlertRuleTemplate(d *pluginsdk.ResourceData, id parse.SentinelAlertRuleTemplateId, template *securityinsight.FusionAlertRuleTemplate) {
-	d.SetId(id.ID())
+func setForFusionAlertRuleTemplate(d *pluginsdk.ResourceData, template *alertruletemplates.FusionAlertRuleTemplate) {
 	d.Set("name", template.Name)
-	d.Set("display_name", template.DisplayName)
+	if props := template.Properties; props != nil {
+		d.Set("display_name", props.DisplayName)
+	}
 }
 
-func setForMLBehaviorAnalyticsAlertRuleTemplate(d *pluginsdk.ResourceData, id parse.SentinelAlertRuleTemplateId, template *securityinsight.MLBehaviorAnalyticsAlertRuleTemplate) {
-	d.SetId(id.ID())
+func setForMLBehaviorAnalyticsAlertRuleTemplate(d *pluginsdk.ResourceData, template *alertruletemplates.MLBehaviorAnalyticsAlertRuleTemplate) {
 	d.Set("name", template.Name)
-	d.Set("display_name", template.DisplayName)
+	if props := template.Properties; props != nil {
+		d.Set("display_name", props.DisplayName)
+	}
 }
 
-func setForThreatIntelligenceAlertRuleTemplate(d *pluginsdk.ResourceData, id parse.SentinelAlertRuleTemplateId, template *securityinsight.ThreatIntelligenceAlertRuleTemplate) {
-	d.SetId(id.ID())
+func setForThreatIntelligenceAlertRuleTemplate(d *pluginsdk.ResourceData, template *alertruletemplates.ThreatIntelligenceAlertRuleTemplate) {
 	d.Set("name", template.Name)
-	d.Set("display_name", template.DisplayName)
+	if props := template.Properties; props != nil {
+		d.Set("display_name", props.DisplayName)
+	}
 }
 
-func flattenScheduledAlertRuleTemplate(input *securityinsight.ScheduledAlertRuleTemplateProperties) []interface{} {
+func flattenScheduledAlertRuleTemplate(input *alertruletemplates.ScheduledAlertRuleTemplateProperties) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
 
-	description := ""
-	if input.Description != nil {
-		description = *input.Description
-	}
-
-	tactics := []interface{}{}
-	if input.Tactics != nil {
-		tactics = flattenAlertRuleTacticsForTemplate(input.Tactics)
-	}
-
-	query := ""
-	if input.Query != nil {
-		query = *input.Query
-	}
-
-	queryFrequency := ""
-	if input.QueryFrequency != nil {
-		queryFrequency = *input.QueryFrequency
-	}
-
-	queryPeriod := ""
-	if input.QueryPeriod != nil {
-		queryPeriod = *input.QueryPeriod
-	}
-
-	triggerThreshold := 0
-	if input.TriggerThreshold != nil {
-		triggerThreshold = int(*input.TriggerThreshold)
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"description":       description,
-			"tactics":           tactics,
-			"severity":          string(input.Severity),
-			"query":             query,
-			"query_frequency":   queryFrequency,
-			"query_period":      queryPeriod,
-			"trigger_operator":  string(input.TriggerOperator),
-			"trigger_threshold": triggerThreshold,
+			"description":       pointer.From(input.Description),
+			"tactics":           pointer.FromEnumSlice(input.Tactics),
+			"severity":          pointer.FromEnum(input.Severity),
+			"query":             pointer.From(input.Query),
+			"query_frequency":   pointer.From(input.QueryFrequency),
+			"query_period":      pointer.From(input.QueryPeriod),
+			"trigger_operator":  pointer.FromEnum(input.TriggerOperator),
+			"trigger_threshold": pointer.From(input.TriggerThreshold),
 		},
 	}
 }
 
-func flattenNrtAlertRuleTemplate(input *securityinsight.NrtAlertRuleTemplateProperties) []interface{} {
+func flattenNrtAlertRuleTemplate(input *alertruletemplates.NrtAlertRuleTemplateProperties) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
 
-	description := ""
-	if input.Description != nil {
-		description = *input.Description
-	}
-
-	tactics := []interface{}{}
-	if input.Tactics != nil {
-		tactics = flattenAlertRuleTacticsForTemplate(input.Tactics)
-	}
-
-	query := ""
-	if input.Query != nil {
-		query = *input.Query
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"description": description,
-			"tactics":     tactics,
+			"description": pointer.From(input.Description),
+			"tactics":     pointer.FromEnumSlice(input.Tactics),
 			"severity":    string(input.Severity),
-			"query":       query,
+			"query":       input.Query,
 		},
 	}
 }
 
-func flattenMsSecurityIncidentAlertRuleTemplate(input *securityinsight.MicrosoftSecurityIncidentCreationAlertRuleTemplateProperties) []interface{} {
+func flattenMsSecurityIncidentAlertRuleTemplate(input *alertruletemplates.MicrosoftSecurityIncidentCreationAlertRuleTemplateProperties) []interface{} {
 	if input == nil {
 		return []interface{}{}
-	}
-
-	description := ""
-	if input.Description != nil {
-		description = *input.Description
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"description":    description,
-			"product_filter": string(input.ProductFilter),
+			"description":    pointer.From(input.Description),
+			"product_filter": pointer.FromEnum(input.ProductFilter),
 		},
 	}
-}
-
-func flattenAlertRuleTacticsForTemplate(input *[]securityinsight.AttackTactic) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	output := make([]interface{}, 0)
-
-	for _, e := range *input {
-		output = append(output, string(e))
-	}
-
-	return output
 }

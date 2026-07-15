@@ -10,15 +10,13 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2023-09-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/dataconnectors"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	securityinsight "github.com/jackofallops/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
 type DataConnectorMicrosoftThreatIntelligenceResource struct{}
@@ -96,16 +94,16 @@ func (s DataConnectorMicrosoftThreatIntelligenceResource) Create() sdk.ResourceF
 				return fmt.Errorf("parsing workspace id %+v", err)
 			}
 
-			id := parse.NewDataConnectorID(workSpaceId.SubscriptionId, workSpaceId.ResourceGroupName, workSpaceId.WorkspaceName, metaModel.Name)
+			id := dataconnectors.NewDataConnectorID(workSpaceId.SubscriptionId, workSpaceId.ResourceGroupName, workSpaceId.WorkspaceName, metaModel.Name)
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-				existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+				existing, err := client.Get(ctx, id)
 				if err != nil {
-					if !utils.ResponseWasNotFound(existing.Response) {
+					if !response.WasNotFound(existing.HttpResponse) {
 						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 					}
 				}
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.HttpResponse) {
 					return metadata.ResourceRequiresImport(s.ResourceType(), id)
 				}
 			}
@@ -115,17 +113,17 @@ func (s DataConnectorMicrosoftThreatIntelligenceResource) Create() sdk.ResourceF
 				tenantId = metadata.Client.Account.TenantId
 			}
 
-			dataConnector := securityinsight.MSTIDataConnector{
-				Name: &id.Name,
-				Kind: securityinsight.KindBasicDataConnectorKindMicrosoftThreatIntelligence,
-				MSTIDataConnectorProperties: &securityinsight.MSTIDataConnectorProperties{
-					DataTypes: &securityinsight.MSTIDataConnectorDataTypes{
+			dataConnector := dataconnectors.MSTIDataConnector{
+				Name: &id.DataConnectorId,
+				Kind: dataconnectors.DataConnectorKindMicrosoftThreatIntelligence,
+				Properties: &dataconnectors.MSTIDataConnectorProperties{
+					DataTypes: dataconnectors.MSTIDataConnectorDataTypes{
 						MicrosoftEmergingThreatFeed: expandSentinelDataConnectorMicrosoftThreatIntelligenceMicrosoftEmergingThreatFeed(metaModel),
 					},
-					TenantID: &tenantId,
+					TenantId: tenantId,
 				},
 			}
-			if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, dataConnector); err != nil {
+			if _, err = client.CreateOrUpdate(ctx, id, dataConnector); err != nil {
 				return fmt.Errorf("creating %+v", err)
 			}
 
@@ -140,40 +138,40 @@ func (s DataConnectorMicrosoftThreatIntelligenceResource) Read() sdk.ResourceFun
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Sentinel.DataConnectorsClient
-			id, err := parse.DataConnectorID(metadata.ResourceData.Id())
+			id, err := dataconnectors.ParseDataConnectorID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
-
-			existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+			existing, err := client.Get(ctx, *id)
 			if err != nil {
-				if utils.ResponseWasNotFound(existing.Response) {
+				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			dc, ok := existing.Value.(securityinsight.MSTIDataConnector)
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", id)
+			}
+
+			dc, ok := existing.Model.(dataconnectors.MSTIDataConnector)
 			if !ok {
 				return fmt.Errorf("%s was not an Microsoft Threat Protection Data Connector", id)
 			}
 
 			state := DataConnectorMicrosoftThreatIntelligenceModel{
-				Name:        id.Name,
-				WorkspaceId: workspaceId.ID(),
-				TenantId:    *dc.TenantID,
+				Name:        id.DataConnectorId,
+				WorkspaceId: workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName).ID(),
 			}
 
-			if dc.TenantID != nil {
-				state.TenantId = *dc.TenantID
-			}
+			if props := dc.Properties; props != nil {
+				state.TenantId = props.TenantId
 
-			if dt := dc.DataTypes; dt != nil {
-				if dt.MicrosoftEmergingThreatFeed != nil {
-					if strings.EqualFold(string(dt.MicrosoftEmergingThreatFeed.State), string(securityinsight.DataTypeStateEnabled)) {
-						state.MicrosoftEmergingThreatFeedLookBackDate, err = flattenSentinelDataConnectorMicrosoftThreatIntelligenceTime(*dt.MicrosoftEmergingThreatFeed.LookbackPeriod)
+				dt := props.DataTypes
+				if metf := dt.MicrosoftEmergingThreatFeed; metf.State != nil {
+					if strings.EqualFold(string(*metf.State), string(dataconnectors.DataTypeStateEnabled)) {
+						state.MicrosoftEmergingThreatFeedLookBackDate, err = flattenSentinelDataConnectorMicrosoftThreatIntelligenceTime(metf.LookbackPeriod)
 						if err != nil {
 							return fmt.Errorf("flattening `microsoft_emerging_threat_feed`: %+v", err)
 						}
@@ -192,12 +190,12 @@ func (s DataConnectorMicrosoftThreatIntelligenceResource) Delete() sdk.ResourceF
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Sentinel.DataConnectorsClient
 
-			id, err := parse.DataConnectorID(metadata.ResourceData.Id())
+			id, err := dataconnectors.ParseDataConnectorID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			if _, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.Name); err != nil {
+			if _, err := client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
@@ -207,26 +205,25 @@ func (s DataConnectorMicrosoftThreatIntelligenceResource) Delete() sdk.ResourceF
 }
 
 func (s DataConnectorMicrosoftThreatIntelligenceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.DataConnectorID
+	return dataconnectors.ValidateDataConnectorID
 }
 
-func expandSentinelDataConnectorMicrosoftThreatIntelligenceMicrosoftEmergingThreatFeed(input DataConnectorMicrosoftThreatIntelligenceModel) *securityinsight.MSTIDataConnectorDataTypesMicrosoftEmergingThreatFeed {
+func expandSentinelDataConnectorMicrosoftThreatIntelligenceMicrosoftEmergingThreatFeed(input DataConnectorMicrosoftThreatIntelligenceModel) dataconnectors.MSTIDataConnectorDataTypesMicrosoftEmergingThreatFeed {
 	if input.MicrosoftEmergingThreatFeedLookBackDate == "" {
-		return &securityinsight.MSTIDataConnectorDataTypesMicrosoftEmergingThreatFeed{
-			LookbackPeriod: pointer.To(""),
-			State:          securityinsight.DataTypeStateDisabled,
+		return dataconnectors.MSTIDataConnectorDataTypesMicrosoftEmergingThreatFeed{
+			LookbackPeriod: "",
+			State:          pointer.To(dataconnectors.DataTypeStateDisabled),
 		}
 	}
 
-	return &securityinsight.MSTIDataConnectorDataTypesMicrosoftEmergingThreatFeed{
-		LookbackPeriod: pointer.To(input.MicrosoftEmergingThreatFeedLookBackDate),
-		State:          securityinsight.DataTypeStateEnabled,
+	return dataconnectors.MSTIDataConnectorDataTypesMicrosoftEmergingThreatFeed{
+		LookbackPeriod: input.MicrosoftEmergingThreatFeedLookBackDate,
+		State:          pointer.To(dataconnectors.DataTypeStateEnabled),
 	}
 }
 
 func flattenSentinelDataConnectorMicrosoftThreatIntelligenceTime(input string) (string, error) {
-	// TODO: check if this workaround could be removed in 4.0
-
+	// TODO: check if this workaround could be removed in the future
 	t, err := time.Parse(time.RFC3339, input)
 	if err != nil {
 		t, err = time.Parse("01/02/2006 15:04:05", input)

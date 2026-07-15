@@ -289,28 +289,24 @@ func TestResourcesDoNotContainANameFieldWithADefaultOfDefault(t *testing.T) {
 			// which'll also need the Monitor resource to have Create call Update
 			"name": {},
 		},
+
+		// @sreallymatt: The Spring Cloud service is being retired, so there is no sense in updating these at this stage.
 		"azurerm_spring_cloud_accelerator": {
-			// TODO: in 4.0 this resource probably wants embedding within `azurerm_spring_cloud_service`
 			"name": {},
 		},
 		"azurerm_spring_cloud_api_portal": {
-			// TODO: in 4.0 this resource probably wants embedding within `azurerm_spring_cloud_service`
 			"name": {},
 		},
 		"azurerm_spring_cloud_application_live_view": {
-			// TODO: in 4.0 this resource probably wants embedding within `azurerm_spring_cloud_service`
 			"name": {},
 		},
 		"azurerm_spring_cloud_configuration_service": {
-			// TODO: in 4.0 this resource probably wants embedding within `azurerm_spring_cloud_service`
 			"name": {},
 		},
 		"azurerm_spring_cloud_dev_tool_portal": {
-			// TODO: in 4.0 this resource probably wants embedding within `azurerm_spring_cloud_service`
 			"name": {},
 		},
 		"azurerm_spring_cloud_gateway": {
-			// TODO: in 4.0 this resource probably wants embedding within `azurerm_spring_cloud_service`
 			"name": {},
 		},
 
@@ -319,12 +315,8 @@ func TestResourcesDoNotContainANameFieldWithADefaultOfDefault(t *testing.T) {
 			"name": {},
 		},
 
-		// 3: Deprecated / to be removed in 4.0
-		"azurerm_cosmosdb_notebook_workspace": {
-			"name": {},
-		},
-
-		// 4: Deprecated / to be removed in 5.0
+		// 3: Deprecated / to be removed in 5.0
+		// TODO 5.0: remove this entry
 		"azurerm_redis_enterprise_database": {
 			"name": {},
 		},
@@ -556,11 +548,12 @@ func TestResourcesDoNotContainLocalAuthenticationDisabled(t *testing.T) {
 	}
 	sort.Strings(resourceNames)
 
-	// TODO: 4.0 - work through this list
-	resourcesWhichNeedToBeAddressed := map[string]struct{}{
-		"azurerm_application_insights":    {},
-		"azurerm_cosmosdb_account":        {},
-		"azurerm_log_analytics_workspace": {},
+	resourcesWhichNeedToBeAddressed := make(map[string]struct{})
+	if !features.FivePointOh() {
+		// These have been addressed but while in 4.x we need to ignore them so the test can pass.
+		resourcesWhichNeedToBeAddressed["azurerm_application_insights"] = struct{}{}
+		resourcesWhichNeedToBeAddressed["azurerm_cosmosdb_account"] = struct{}{}
+		resourcesWhichNeedToBeAddressed["azurerm_log_analytics_workspace"] = struct{}{}
 	}
 
 	for _, resourceName := range resourceNames {

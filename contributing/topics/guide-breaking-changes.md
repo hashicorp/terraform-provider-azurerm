@@ -392,10 +392,22 @@ func (r SparkResource) Arguments() map[string]*pluginsdk.Schema{
             },
         }
 
+    // Regardless of the number of arguments changing, the whole schema definition should be updated like the following rather than inline changes for the current schema definition.
     if !features.FivePointOh() {
-        args["spark_version"].Default = "2.4"
+        args["spark_version"] = &pluginsdk.Schema{
+            Type:     pluginsdk.TypeString,
+            Optional: true,
+            Default: "2.4",
+            ValidateFunc: validation.StringInSlice([]string{
+               "2.4",
+               "3.1",
+               "3.2",
+               "3.3",
+               "3.4",
+            }, false),
+        }
     }
-	
+
     return args
 }
 ```

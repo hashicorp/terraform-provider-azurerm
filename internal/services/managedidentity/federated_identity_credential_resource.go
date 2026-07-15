@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2024-11-30/federatedidentitycredentials"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -18,7 +19,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var _ sdk.Resource = FederatedIdentityCredentialResource{}
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name federated_identity_credential -service-package-name managedidentity -properties "name" -compare-values "subscription_id:user_assigned_identity_id,resource_group_name:user_assigned_identity_id,user_assigned_identity_name:user_assigned_identity_id" -test-sequential
+
+var (
+	_ sdk.Resource             = FederatedIdentityCredentialResource{}
+	_ sdk.ResourceWithIdentity = FederatedIdentityCredentialResource{}
+)
 
 type FederatedIdentityCredentialResource struct{}
 
@@ -37,6 +43,10 @@ type FederatedIdentityCredentialResourceSchema struct {
 	ParentId               string `tfschema:"parent_id,removedInNextMajorVersion"`
 	UserAssignedIdentityId string `tfschema:"user_assigned_identity_id"`
 	Subject                string `tfschema:"subject"`
+}
+
+func (r FederatedIdentityCredentialResource) Identity() resourceids.ResourceId {
+	return &federatedidentitycredentials.FederatedIdentityCredentialId{}
 }
 
 func (r FederatedIdentityCredentialResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -159,6 +169,9 @@ func (r FederatedIdentityCredentialResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -169,7 +182,6 @@ func (r FederatedIdentityCredentialResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ManagedIdentity.V20241130.FederatedIdentityCredentials
-			schema := FederatedIdentityCredentialResourceSchema{}
 
 			id, err := federatedidentitycredentials.ParseFederatedIdentityCredentialID(metadata.ResourceData.Id())
 			if err != nil {
@@ -184,22 +196,33 @@ func (r FederatedIdentityCredentialResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			if model := resp.Model; model != nil {
-				schema.Name = id.FederatedIdentityCredentialName
-				parentId := commonids.NewUserAssignedIdentityID(id.SubscriptionId, id.ResourceGroupName, id.UserAssignedIdentityName)
-				schema.UserAssignedIdentityId = parentId.ID()
-
-				r.mapFederatedIdentityCredentialToFederatedIdentityCredentialResourceSchema(*model, &schema)
-
-				if !features.FivePointOh() {
-					schema.ParentId = parentId.ID()
-					schema.ResourceGroupName = id.ResourceGroupName
-				}
-			}
-
-			return metadata.Encode(&schema)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
+}
+
+func (r FederatedIdentityCredentialResource) flatten(metadata sdk.ResourceMetaData, id *federatedidentitycredentials.FederatedIdentityCredentialId, model *federatedidentitycredentials.FederatedIdentityCredential) error {
+	schema := FederatedIdentityCredentialResourceSchema{
+		Name: id.FederatedIdentityCredentialName,
+	}
+
+	parentId := commonids.NewUserAssignedIdentityID(id.SubscriptionId, id.ResourceGroupName, id.UserAssignedIdentityName)
+	schema.UserAssignedIdentityId = parentId.ID()
+
+	if model != nil {
+		r.mapFederatedIdentityCredentialToFederatedIdentityCredentialResourceSchema(*model, &schema)
+
+		if !features.FivePointOh() {
+			schema.ParentId = parentId.ID()
+			schema.ResourceGroupName = id.ResourceGroupName
+		}
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&schema)
 }
 
 func (r FederatedIdentityCredentialResource) Update() sdk.ResourceFunc {
