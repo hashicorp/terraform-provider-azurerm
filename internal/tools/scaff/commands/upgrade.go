@@ -346,16 +346,46 @@ func (c UpgradeCommand) sourceListIR(a *list_upgrade.Resource, d *upgradeData, r
 		res.ListBySubscriptionOp = a.ListSubscriptionMethod
 		res.ListByResourceGroupOp = a.ListResourceGroupMethod
 	}
+	reconcileParentListOp(res, a.Path)
+	setListOptionFlags(res, a.Path)
 	if a.Kind == list_upgrade.KindUntyped {
 		res.Untyped = true
 		res.Name = a.BaseName
 		res.ConstructorFunc = a.ConstructorFunc
 		res.FlattenFunc = a.ConstructorFunc + "Flatten"
 		res.FlattenIDValue = a.FlattenIDValue
+		res.FlattenNeedsContext = a.FlattenNeedsContext
+		res.FlattenClientType = a.ClientTypeName
 	} else {
 		res.Name = strings.TrimSuffix(a.StructName, "Resource")
 	}
 	return res
+}
+
+// setListOptionFlags resolves, from the vendored SDK, whether each list Complete
+// method takes a trailing options argument so the generator emits it. anchorPath
+// is any path inside the provider module (used to locate vendor/).
+func setListOptionFlags(res *ir.ResourceIR, anchorPath string) {
+	res.ListBySubscriptionHasOptions = list_upgrade.ListMethodTakesOptions(anchorPath, res.SDKImportPath, res.ListBySubscriptionOp)
+	res.ListByResourceGroupHasOptions = list_upgrade.ListMethodTakesOptions(anchorPath, res.SDKImportPath, res.ListByResourceGroupOp)
+	res.ListByParentHasOptions = list_upgrade.ListMethodTakesOptions(anchorPath, res.SDKImportPath, res.ListByParentOp)
+}
+
+// reconcileParentListOp reconciles a parent-scoped list operation name against
+// the vendored SDK. Pandora (and the typed source-derived path) may name it
+// differently from the SDK (e.g. "List" vs "ListByMongoCluster"); when the
+// resolved name has no matching SDK method, it is replaced by the SDK method
+// whose id parameter is the parent id type.
+func reconcileParentListOp(res *ir.ResourceIR, anchorPath string) {
+	if res.ListByParentOp == "" || res.ParentIDType == "" {
+		return
+	}
+	if list_upgrade.ListCompleteMethodExists(anchorPath, res.SDKImportPath, res.ListByParentOp) {
+		return
+	}
+	if m := list_upgrade.ParentListMethodByID(anchorPath, res.SDKImportPath, res.ParentIDType); m != "" {
+		res.ListByParentOp = m
+	}
 }
 
 // applyResource writes or previews the upgraded resource file.
@@ -536,6 +566,8 @@ func reconcileIR(res *ir.ResourceIR, a *list_upgrade.Resource) {
 		res.ConstructorFunc = a.ConstructorFunc
 		res.FlattenFunc = a.ConstructorFunc + "Flatten"
 		res.FlattenIDValue = a.FlattenIDValue
+		res.FlattenNeedsContext = a.FlattenNeedsContext
+		res.FlattenClientType = a.ClientTypeName
 		res.IDPackage = a.IDPackage
 		res.IDImportPath = a.IDImportPath
 	} else {
@@ -565,6 +597,8 @@ func reconcileIR(res *ir.ResourceIR, a *list_upgrade.Resource) {
 	if a.TerraformType != "" {
 		res.TerraformType = a.TerraformType
 	}
+	reconcileParentListOp(res, a.Path)
+	setListOptionFlags(res, a.Path)
 }
 
 func (c UpgradeCommand) printPlan(path string, p list_upgrade.Plan) {

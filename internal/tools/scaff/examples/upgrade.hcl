@@ -38,12 +38,8 @@ overwrite = true # set true to replace an existing generated *_resource_list.go
 # The ARM segment ("accounts") does not match the Pandora resource key, so the
 # resource is addressed explicitly via service + pandora_resource. The API
 # version is pinned because the resource key differs in newer versions.
-resource "monitor_workspace" {
-  file             = "internal/services/monitor/monitor_workspace_resource.go"
-  service          = "Monitor"
-  pandora_resource = "azuremonitorworkspaces"
-  api_version      = "2023-04-03"
-  list             = true
+resource "eventgrid_domain" {
+  file             = "/Users/mark/gitRepos/scaff-workspace/terraform-provider-azurerm/internal/services/eventgrid/eventgrid_domain_resource.go"
 }
 
 # Add ONLY Resource Identity to an existing resource (no list). No Pandora call

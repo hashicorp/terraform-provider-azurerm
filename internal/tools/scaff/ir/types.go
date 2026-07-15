@@ -57,6 +57,11 @@ type ResourceIR struct {
 	IsListable            bool   // has subscription/resource-group or parent list operations
 	ListBySubscriptionOp  string // e.g. "List"
 	ListByResourceGroupOp string // e.g. "ListByResourceGroup"
+	// Some go-azure-sdk list Complete methods take a trailing options argument
+	// (e.g. ListBySubscriptionOperationOptions); these flag when to emit it.
+	ListBySubscriptionHasOptions  bool
+	ListByResourceGroupHasOptions bool
+	ListByParentHasOptions        bool
 	// Parent-scoped list (child resources)
 	ListByParentOp     string // list operation scoped to a parent, e.g. "List"
 	ParentIDType       string // parent scope ID type, e.g. "StorageMoverId"
@@ -74,6 +79,9 @@ type ResourceIR struct {
 	IDPackage       string // ID type package; may differ from SDKPackage (e.g. "commonids")
 	IDImportPath    string // full import path of the ID package
 	TestStructName  string // acceptance-test struct name (may differ in casing from Name+"Resource")
+
+	FlattenNeedsContext bool
+	FlattenClientType   string
 
 	// Schema (populated in the model-graph walk)
 	ModelStructName string        // top-level model struct, e.g. "RedHatOpenShiftClusterModel"

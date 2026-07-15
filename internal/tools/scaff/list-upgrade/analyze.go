@@ -94,7 +94,9 @@ type Resource struct {
 	// FlattenIDValue is true when an existing flatten function takes its id
 	// parameter by value (e.g. `id commonids.SubnetId`) rather than by pointer;
 	// the list generator dereferences the parsed (pointer) id accordingly.
-	FlattenIDValue bool
+	FlattenIDValue      bool
+	FlattenNeedsContext bool
+	ClientTypeName      string
 
 	// AST handles.
 	fset *token.FileSet
@@ -446,7 +448,17 @@ func selectorReturnValue(fd *ast.FuncDecl) (pkg, sel string) {
 // parseIDCall finds a `pkg.Parse<Base>ID(...)` call within fd and returns the
 // package and Base.
 func parseIDCall(fd *ast.FuncDecl) (pkg, base string) {
+	// A Read may parse several IDs — the resource's own (from d.Id()) and nested
+	// references (e.g. a virtual network id from a sub-block). Prefer the parse
+	// of the resource's own ID, falling back to the first Parse<X>ID seen. Note
+	// that returning false from ast.Inspect only prunes children, so a `done`
+	// flag is used to stop once the resource ID is found.
+	var firstPkg, firstBase string
+	done := false
 	ast.Inspect(fd, func(n ast.Node) bool {
+		if done {
+			return false
+		}
 		call, ok := n.(*ast.CallExpr)
 		if !ok {
 			return true
@@ -460,14 +472,43 @@ func parseIDCall(fd *ast.FuncDecl) (pkg, base string) {
 			return true
 		}
 		fn := sel.Sel.Name
-		if strings.HasPrefix(fn, "Parse") && strings.HasSuffix(fn, "ID") {
-			pkg = id.Name
-			base = strings.TrimSuffix(strings.TrimPrefix(fn, "Parse"), "ID")
+		if !strings.HasPrefix(fn, "Parse") || !strings.HasSuffix(fn, "ID") {
+			return true
+		}
+		p := id.Name
+		b := strings.TrimSuffix(strings.TrimPrefix(fn, "Parse"), "ID")
+		if firstBase == "" {
+			firstPkg, firstBase = p, b
+		}
+		if callArgIsResourceID(call) {
+			pkg, base = p, b
+			done = true
 			return false
 		}
 		return true
 	})
+	if base == "" {
+		pkg, base = firstPkg, firstBase
+	}
 	return pkg, base
+}
+
+// callArgIsResourceID reports whether the call's sole argument is `d.Id()`, i.e.
+// the call parses the resource's own ID rather than a nested reference.
+func callArgIsResourceID(call *ast.CallExpr) bool {
+	if len(call.Args) != 1 {
+		return false
+	}
+	inner, ok := call.Args[0].(*ast.CallExpr)
+	if !ok || len(inner.Args) != 0 {
+		return false
+	}
+	sel, ok := inner.Fun.(*ast.SelectorExpr)
+	if !ok || sel.Sel.Name != "Id" {
+		return false
+	}
+	x, ok := sel.X.(*ast.Ident)
+	return ok && x.Name == "d"
 }
 
 // clientAccessor finds a `metadata.Client.<Service>.<Field>` selector and

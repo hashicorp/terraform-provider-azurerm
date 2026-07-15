@@ -202,17 +202,36 @@ func (r *Resource) extractFlattenEdits(e *editor, readModel string, withIdentity
 		return err
 	}
 
+	// The Get response variable is not necessarily named `resp` (e.g. `existing`,
+	// `read`), so detect it from the Read closure rather than assuming.
+	respVar := "resp"
+	if read := r.methods["Read"]; read != nil {
+		if body := resourceFuncBody(read); body != nil && body.Body != nil {
+			if v, _, _ := findGetAssignment(body.Body.List, body); v != "" {
+				respVar = v
+			}
+		}
+	}
+
 	buildText := r.src[r.offset(reg.startPos):r.offset(reg.encodePos)]
 	terminalText := r.src[r.offset(reg.encodePos):r.offset(reg.endPos)]
 
-	build := rewriteRespModel(string(buildText), reg.modelVar)
-	terminal := rewriteRespModel(string(terminalText), reg.modelVar)
+	build := rewriteRespModel(string(buildText), reg.modelVar, respVar)
+	terminal := rewriteRespModel(string(terminalText), reg.modelVar, respVar)
 
-	// After rewriting, any remaining `resp.` access refers to something other
+	// After rewriting, any remaining `<respVar>.` access refers to something other
 	// than the model (e.g. resp.HttpResponse) which would not exist inside
 	// flatten, so we bail out rather than emit code that will not compile.
-	if strings.Contains(build, "resp.") || strings.Contains(terminal, "resp.") {
-		return fmt.Errorf("the flatten region references `resp` beyond `resp.Model`; refactor Read manually (see guide-list-resource.md step 1)")
+	if strings.Contains(build, respVar+".") || strings.Contains(terminal, respVar+".") {
+		return fmt.Errorf("the flatten region references %q beyond `.Model`; refactor Read manually (see guide-list-resource.md step 1)", respVar)
+	}
+
+	// A typed flatten has the fixed signature (metadata, id, model) and so cannot
+	// receive a context; a region that issues additional API calls (referencing
+	// `ctx`) cannot be auto-extracted. Bail with guidance rather than emit code
+	// that will not compile.
+	if usesIdentifier(build, "ctx") || usesIdentifier(terminal, "ctx") {
+		return fmt.Errorf("the flatten region issues additional API calls needing a live context; typed resources cannot be auto-upgraded for this — refactor Read manually (see guide-list-resource.md, \"Cancelled Context\")")
 	}
 
 	var flatten strings.Builder
@@ -231,26 +250,70 @@ func (r *Resource) extractFlattenEdits(e *editor, readModel string, withIdentity
 	// Insert the flatten method immediately after the Read method.
 	e.insert(r.offset(r.methods["Read"].End()), flatten.String())
 
-	// Replace the region in Read with a delegating call.
-	e.replace(r.offset(reg.startPos), r.offset(reg.endPos), "return r.flatten(metadata, id, resp.Model)")
+	// Replace the region in Read with a delegating call. The call is made on
+	// Read's receiver when it has one; otherwise (an unnamed receiver, e.g.
+	// `func (X) Read()`) it is made on a zero value so it still compiles.
+	callRecv := receiverName(r.methods["Read"])
+	if callRecv == "" {
+		callRecv = r.StructName + "{}"
+	}
+	e.replace(r.offset(reg.startPos), r.offset(reg.endPos), fmt.Sprintf("return %s.flatten(metadata, id, %s.Model)", callRecv, respVar))
 
 	return nil
+}
+
+// receiverName returns the name of a method's receiver, or "" when the receiver
+// is unnamed (e.g. `func (X) Read()`).
+func receiverName(fd *ast.FuncDecl) string {
+	if fd == nil || fd.Recv == nil || len(fd.Recv.List) != 1 {
+		return ""
+	}
+	if len(fd.Recv.List[0].Names) == 1 {
+		return fd.Recv.List[0].Names[0].Name
+	}
+	return ""
 }
 
 // rewriteRespModel rewrites references to resp.Model so they use the flatten
 // method's model parameter. The `if <mv> := resp.Model; <mv> != nil {` init form
 // is collapsed to `if <mv> != nil {`, and any bare `resp.Model` becomes `<mv>`.
-func rewriteRespModel(text, modelVar string) string {
+func rewriteRespModel(text, modelVar, respVar string) string {
 	// Collapse the init-guard form first.
-	text = collapseModelGuard(text, modelVar)
-	// Replace any remaining resp.Model references with the parameter.
-	text = strings.ReplaceAll(text, "resp.Model", modelVar)
+	text = collapseModelGuard(text, modelVar, respVar)
+	// Replace any remaining <respVar>.Model references with the parameter.
+	text = strings.ReplaceAll(text, respVar+".Model", modelVar)
 	return text
 }
 
-// collapseModelGuard rewrites `if <mv> := resp.Model; <mv> != nil {` to
-// `if <mv> != nil {` for the detected model variable name.
-func collapseModelGuard(text, modelVar string) string {
-	needle := fmt.Sprintf("if %s := resp.Model; ", modelVar)
+// collapseModelGuard rewrites `if <mv> := <respVar>.Model; <mv> != nil {` to
+// `if <mv> != nil {` for the detected model and response variable names.
+func collapseModelGuard(text, modelVar, respVar string) string {
+	needle := fmt.Sprintf("if %s := %s.Model; ", modelVar, respVar)
 	return strings.ReplaceAll(text, needle, "if ")
+}
+
+// usesIdentifier reports whether text references name as a whole identifier
+// rather than as a substring of a longer identifier (so "ctx" does not match
+// "context" or "ctxData").
+func usesIdentifier(text, name string) bool {
+	for i := 0; i+len(name) <= len(text); {
+		j := strings.Index(text[i:], name)
+		if j == -1 {
+			return false
+		}
+		start := i + j
+		end := start + len(name)
+		beforeOK := start == 0 || !isIdentByte(text[start-1])
+		afterOK := end == len(text) || !isIdentByte(text[end])
+		if beforeOK && afterOK {
+			return true
+		}
+		i = end
+	}
+	return false
+}
+
+// isIdentByte reports whether b can appear within a Go identifier.
+func isIdentByte(b byte) bool {
+	return b == '_' || (b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z') || (b >= '0' && b <= '9')
 }

@@ -9,6 +9,7 @@ import (
 	"go/parser"
 	"go/token"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 )
@@ -93,6 +94,8 @@ func (r *Resource) analyzeUntyped(ctor *ast.FuncDecl) {
 	} else {
 		r.FlattenIDValue = flattenIDIsValue(r.funcs[r.FlattenFunc])
 	}
+
+	r.detectFlattenNeedsContext()
 
 	r.HasIdentity = r.hasIdentityField() && r.hasIdentityImporter()
 }
@@ -261,6 +264,144 @@ func flattenIDIsValue(fn *ast.FuncDecl) bool {
 		}
 	}
 	return false
+}
+
+func (r *Resource) detectFlattenNeedsContext() {
+	needs := false
+	if r.HasFlatten {
+		needs = flattenTakesContextAndClient(r.funcs[r.FlattenFunc])
+	} else if read := r.funcs[r.ReadFunc]; read != nil {
+		needs = stmtsUseIdent(r.untypedFlattenRegionStmts(read), "ctx")
+	}
+	if !needs {
+		return
+	}
+	r.FlattenNeedsContext = true
+	r.ClientTypeName = r.deriveClientType()
+}
+
+// untypedFlattenRegionStmts returns the statements of the Read function that make
+// up the flatten region — everything after the Get call and its error handler.
+// It mirrors the boundaries used by extractUntypedFlattenEdits so detection and
+// extraction agree on what moves into flatten.
+func (r *Resource) untypedFlattenRegionStmts(read *ast.FuncDecl) []ast.Stmt {
+	if read == nil || read.Body == nil {
+		return nil
+	}
+	_, _, idx := findGetAssignment(read.Body.List, read)
+	if idx == -1 {
+		return nil
+	}
+	regionStart := idx + 2 // skip the Get call and its error handler
+	if regionStart >= len(read.Body.List) {
+		return nil
+	}
+	return read.Body.List[regionStart:]
+}
+
+// stmtsUseIdent reports whether any of the given statements references the named
+// identifier.
+func stmtsUseIdent(stmts []ast.Stmt, name string) bool {
+	for _, st := range stmts {
+		used := false
+		ast.Inspect(st, func(n ast.Node) bool {
+			if id, ok := n.(*ast.Ident); ok && id.Name == name {
+				used = true
+				return false
+			}
+			return true
+		})
+		if used {
+			return true
+		}
+	}
+	return false
+}
+
+// flattenTakesContextAndClient reports whether the function has the exact
+// (ctx context.Context, client *X, d, id, model) shape produced when a
+// context-needing flatten is extracted: five parameters whose first is a
+// context.Context and whose second is a pointer (the SDK client). Requiring the
+// exact arity avoids mis-detecting hand-written flattens with extra parameters
+// (e.g. a trailing includeResource bool), for which the generated call would not
+// match.
+func flattenTakesContextAndClient(fn *ast.FuncDecl) bool {
+	if fn == nil || fn.Type == nil || fn.Type.Params == nil {
+		return false
+	}
+	types := make([]ast.Expr, 0, 5)
+	for _, p := range fn.Type.Params.List {
+		n := len(p.Names)
+		if n == 0 {
+			n = 1
+		}
+		for k := 0; k < n; k++ {
+			types = append(types, p.Type)
+		}
+	}
+	if len(types) != 5 {
+		return false
+	}
+	if !isContextType(types[0]) {
+		return false
+	}
+	_, isPtr := types[1].(*ast.StarExpr)
+	return isPtr
+}
+
+// isContextType reports whether expr is the `context.Context` selector.
+func isContextType(expr ast.Expr) bool {
+	sel, ok := expr.(*ast.SelectorExpr)
+	if !ok || sel.Sel.Name != "Context" {
+		return false
+	}
+	x, ok := sel.X.(*ast.Ident)
+	return ok && x.Name == "context"
+}
+
+// deriveClientType resolves the SDK client type name (the receiver of the Get
+// method) by reading the vendored go-azure-sdk package, e.g. "DomainsClient".
+func (r *Resource) deriveClientType() string {
+	if r.GetMethod == "" || r.SDKImportPath == "" {
+		return ""
+	}
+	root := findVendorRoot(r.Path)
+	if root == "" {
+		return ""
+	}
+	pkgDir := filepath.Join(root, "vendor", filepath.FromSlash(r.SDKImportPath))
+	return clientTypeFromGetMethod(pkgDir, r.GetMethod)
+}
+
+// clientTypeFromGetMethod scans the vendored SDK package for the
+// `func (c <Client>) <GetMethod>(ctx context.Context, ...` declaration and
+// returns <Client> (with any leading pointer star trimmed).
+func clientTypeFromGetMethod(pkgDir, getMethod string) string {
+	entries, err := os.ReadDir(pkgDir)
+	if err != nil {
+		return ""
+	}
+	needle := ") " + getMethod + "(ctx context.Context"
+	for _, e := range entries {
+		if e.IsDir() || !strings.HasSuffix(e.Name(), ".go") {
+			continue
+		}
+		data, err := os.ReadFile(filepath.Join(pkgDir, e.Name()))
+		if err != nil {
+			continue
+		}
+		for _, line := range strings.Split(string(data), "\n") {
+			line = strings.TrimSpace(line)
+			if !strings.HasPrefix(line, "func (c ") || !strings.Contains(line, needle) {
+				continue
+			}
+			recv := strings.TrimPrefix(line, "func (c ")
+			if cp := strings.Index(recv, ")"); cp != -1 {
+				return strings.TrimPrefix(strings.TrimSpace(recv[:cp]), "*")
+			}
+		}
+	}
+	return ""
 }
 
 // untypedClientAccessor extracts service and field from a
@@ -444,10 +585,24 @@ func (r *Resource) extractUntypedFlattenEdits(e *editor, readModel string, withI
 		idPkg = r.SDKPackage
 	}
 
+	needsCtx := stmtsUseIdent(stmts[regionStart:], "ctx")
+	clientType := r.ClientTypeName
+	if needsCtx && clientType == "" {
+		clientType = r.deriveClientType()
+	}
+	if needsCtx && clientType == "" {
+		return fmt.Errorf("the flatten region issues additional API calls needing a live context, but the SDK client type could not be resolved from the vendored SDK; refactor Read manually (see guide-list-resource.md, \"Cancelled Context\")")
+	}
+
 	flattenName := r.ConstructorFunc + "Flatten"
 	var fn strings.Builder
-	fmt.Fprintf(&fn, "\n\nfunc %s(d *pluginsdk.ResourceData, id *%s.%s, %s *%s.%s) error {\n",
-		flattenName, idPkg, r.IDTypeName, modelVar, r.SDKPackage, readModel)
+	if needsCtx {
+		fmt.Fprintf(&fn, "\n\nfunc %s(ctx context.Context, client *%s.%s, d *pluginsdk.ResourceData, id *%s.%s, %s *%s.%s) error {\n",
+			flattenName, r.SDKPackage, clientType, idPkg, r.IDTypeName, modelVar, r.SDKPackage, readModel)
+	} else {
+		fmt.Fprintf(&fn, "\n\nfunc %s(d *pluginsdk.ResourceData, id *%s.%s, %s *%s.%s) error {\n",
+			flattenName, idPkg, r.IDTypeName, modelVar, r.SDKPackage, readModel)
+	}
 	if withIdentity && !strings.Contains(body, "SetResourceIdentityData") {
 		body = injectIdentityBeforeFinalReturn(body)
 	}
@@ -460,7 +615,11 @@ func (r *Resource) extractUntypedFlattenEdits(e *editor, readModel string, withI
 	// Insert the flatten func immediately after the Read function.
 	e.insert(r.offset(read.End()), fn.String())
 	// Replace the extracted region with a delegating call.
-	e.replace(r.offset(startPos), r.offset(endPos), fmt.Sprintf("return %s(d, id, %s.Model)", flattenName, respVar))
+	call := fmt.Sprintf("return %s(d, id, %s.Model)", flattenName, respVar)
+	if needsCtx {
+		call = fmt.Sprintf("return %s(ctx, client, d, id, %s.Model)", flattenName, respVar)
+	}
+	e.replace(r.offset(startPos), r.offset(endPos), call)
 	return nil
 }
 

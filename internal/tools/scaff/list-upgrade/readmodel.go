@@ -29,6 +29,125 @@ func (r *Resource) deriveReadModel() {
 	}
 }
 
+// ListMethodTakesOptions reports whether the vendored SDK's `<op>Complete` method
+// requires a trailing options argument (e.g. ListBySubscriptionOperationOptions).
+// anchorPath is any path inside the provider module (used to locate the vendor
+// directory) and sdkImportPath is the go-azure-sdk package declaring the method.
+// It returns false when the method, package or vendor directory cannot be found,
+// so callers safely fall back to the no-options call shape.
+func ListMethodTakesOptions(anchorPath, sdkImportPath, op string) bool {
+	if op == "" || sdkImportPath == "" {
+		return false
+	}
+	root := findVendorRoot(anchorPath)
+	if root == "" {
+		return false
+	}
+	pkgDir := filepath.Join(root, "vendor", filepath.FromSlash(sdkImportPath))
+	return listCompleteMethodHasOptions(pkgDir, op)
+}
+
+// listCompleteMethodHasOptions reports whether `<op>Complete` in the vendored SDK
+// package takes a parameter after its id argument (the options struct). It keys
+// off the character terminating the id parameter: a comma means another
+// parameter (options) follows, a close paren means the id is the last argument.
+func listCompleteMethodHasOptions(pkgDir, op string) bool {
+	entries, err := os.ReadDir(pkgDir)
+	if err != nil {
+		return false
+	}
+	needle := ") " + op + "Complete(ctx context.Context, id "
+	for _, e := range entries {
+		if e.IsDir() || !strings.HasSuffix(e.Name(), ".go") {
+			continue
+		}
+		data, err := os.ReadFile(filepath.Join(pkgDir, e.Name()))
+		if err != nil {
+			continue
+		}
+		for _, line := range strings.Split(string(data), "\n") {
+			idx := strings.Index(line, needle)
+			if idx == -1 {
+				continue
+			}
+			after := line[idx+len(needle):]
+			if end := strings.IndexAny(after, "),"); end >= 0 {
+				return after[end] == ','
+			}
+		}
+	}
+	return false
+}
+
+// ListCompleteMethodExists reports whether the vendored SDK package declares a
+// `<op>Complete(ctx context.Context, id ...)` method. It is used to detect when
+// a Pandora-derived list operation name does not match the actual SDK.
+func ListCompleteMethodExists(anchorPath, sdkImportPath, op string) bool {
+	if op == "" || sdkImportPath == "" {
+		return false
+	}
+	root := findVendorRoot(anchorPath)
+	if root == "" {
+		return false
+	}
+	pkgDir := filepath.Join(root, "vendor", filepath.FromSlash(sdkImportPath))
+	entries, err := os.ReadDir(pkgDir)
+	if err != nil {
+		return false
+	}
+	needle := ") " + op + "Complete(ctx context.Context, id "
+	for _, e := range entries {
+		if e.IsDir() || !strings.HasSuffix(e.Name(), ".go") {
+			continue
+		}
+		data, err := os.ReadFile(filepath.Join(pkgDir, e.Name()))
+		if err != nil {
+			continue
+		}
+		if strings.Contains(string(data), needle) {
+			return true
+		}
+	}
+	return false
+}
+
+// ParentListMethodByID scans the vendored SDK package for a list `<name>Complete`
+// method whose id parameter type is parentIDType, returning <name>. It lets a
+// parent-scoped list operation resolved from Pandora be reconciled against the
+// actual SDK (e.g. Pandora's "List" -> "ListByMongoCluster", or
+// "CredentialOperationsList" -> "CredentialOperationsListByFactory"). It returns
+// "" when no such method is found.
+func ParentListMethodByID(anchorPath, sdkImportPath, parentIDType string) string {
+	if parentIDType == "" || sdkImportPath == "" {
+		return ""
+	}
+	root := findVendorRoot(anchorPath)
+	if root == "" {
+		return ""
+	}
+	pkgDir := filepath.Join(root, "vendor", filepath.FromSlash(sdkImportPath))
+	entries, err := os.ReadDir(pkgDir)
+	if err != nil {
+		return ""
+	}
+	for _, e := range entries {
+		if e.IsDir() || !strings.HasSuffix(e.Name(), ".go") {
+			continue
+		}
+		data, err := os.ReadFile(filepath.Join(pkgDir, e.Name()))
+		if err != nil {
+			continue
+		}
+		for _, line := range strings.Split(string(data), "\n") {
+			name, idType, _ := parseListCompleteMethod(line, "")
+			if name != "" && idType == parentIDType {
+				return name
+			}
+		}
+	}
+	return ""
+}
+
 // findVendorRoot walks up from filePath to the directory containing a `vendor`
 // folder (the provider module root), or "" when none is found.
 func findVendorRoot(filePath string) string {

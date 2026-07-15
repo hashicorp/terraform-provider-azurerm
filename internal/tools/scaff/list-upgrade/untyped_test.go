@@ -131,3 +131,60 @@ func TestUpgrade_UntypedExtractsFlatten(t *testing.T) {
 		t.Errorf("expected the resp.Model guard to be collapsed in flatten")
 	}
 }
+
+func TestAnalyze_UntypedExtraAPI_DetectsContextNeed(t *testing.T) {
+	r, err := Analyze(filepath.Join("testdata", "untyped_extra_api.go"))
+	if err != nil {
+		t.Fatalf("Analyze: %v", err)
+	}
+
+	assertEqual(t, "kind", r.Kind.String(), "untyped")
+	assertEqual(t, "sdk package", r.SDKPackage, "domains")
+	assertEqual(t, "read model", r.ReadModel, "Domain")
+
+	// The Read function issues a second API call (ListSharedAccessKeys) that uses
+	// ctx, so the flatten (once extracted) needs a live context, and the SDK
+	// client type must be resolved so the generated code can name it.
+	if !r.FlattenNeedsContext {
+		t.Errorf("expected FlattenNeedsContext to be true for a Read that issues additional API calls")
+	}
+	assertEqual(t, "client type", r.ClientTypeName, "DomainsClient")
+}
+
+func TestUpgrade_UntypedExtraAPI_ExtractsCtxClientFlatten(t *testing.T) {
+	r, err := Analyze(filepath.Join("testdata", "untyped_extra_api.go"))
+	if err != nil {
+		t.Fatalf("Analyze: %v", err)
+	}
+
+	out, changed, err := r.Upgrade(UpgradeOptions{
+		ExtractFlatten: true,
+		ReadModel:      "Domain",
+		ResourceName:   "eventgrid_domain",
+	})
+	if err != nil {
+		t.Fatalf("Upgrade: %v", err)
+	}
+	if !changed {
+		t.Fatalf("expected changed to be true")
+	}
+
+	formatted, err := format.Source(out)
+	if err != nil {
+		t.Fatalf("result is not valid Go: %v\n\n%s", err, out)
+	}
+	got := string(formatted)
+
+	// The extracted flatten must take ctx + client so the additional API call
+	// compiles, and Read must delegate to it passing both.
+	mustContain(t, got, "func resourceEventGridDomainFlatten(ctx context.Context, client *domains.DomainsClient, d *pluginsdk.ResourceData, id *domains.DomainId, model *domains.Domain) error {")
+	mustContain(t, got, "return resourceEventGridDomainFlatten(ctx, client, d, id, resp.Model)")
+	// The additional API call moves into flatten intact.
+	mustContain(t, got, "keys, err := client.ListSharedAccessKeys(ctx, *id)")
+	// The resp.Model guard is collapsed to use the parameter, and no stray resp.
+	// reference remains in the extracted body.
+	mustContain(t, got, "if model != nil {")
+	if strings.Contains(got, "return resourceEventGridDomainFlatten(d, id, resp.Model)") {
+		t.Errorf("expected the delegating call to pass ctx and client")
+	}
+}

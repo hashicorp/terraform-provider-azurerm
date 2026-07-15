@@ -44,6 +44,36 @@ type VirtualHubIPConfigurationGetOperationResponse struct {
 	}
 }
 
+func TestListCompleteMethodHasOptions(t *testing.T) {
+	dir := t.TempDir()
+	withOptions := `package domains
+
+func (c DomainsClient) ListBySubscriptionComplete(ctx context.Context, id commonids.SubscriptionId, options ListBySubscriptionOperationOptions) (ListBySubscriptionCompleteResult, error) {
+}
+`
+	noOptions := `package redisresources
+
+func (c RedisResourcesClient) RedisListBySubscriptionComplete(ctx context.Context, id commonids.SubscriptionId) (RedisListBySubscriptionCompleteResult, error) {
+}
+`
+	if err := os.WriteFile(filepath.Join(dir, "method_listbysubscription.go"), []byte(withOptions), 0o644); err != nil {
+		t.Fatalf("writing options method: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "method_redislistbysubscription.go"), []byte(noOptions), 0o644); err != nil {
+		t.Fatalf("writing no-options method: %v", err)
+	}
+
+	if !listCompleteMethodHasOptions(dir, "ListBySubscription") {
+		t.Errorf("expected ListBySubscription to require options")
+	}
+	if listCompleteMethodHasOptions(dir, "RedisListBySubscription") {
+		t.Errorf("expected RedisListBySubscription to take no options")
+	}
+	if listCompleteMethodHasOptions(dir, "MissingList") {
+		t.Errorf("expected false for a missing method")
+	}
+}
+
 func TestParseListCompleteMethod(t *testing.T) {
 	cases := []struct {
 		name     string

@@ -27,6 +27,17 @@ func RenderListResource(res *ir.ResourceIR) string {
 	return fileHeader + body
 }
 
+// listOptionsArg returns the trailing options argument for a list Complete call
+// — ", <sdkPackage>.Default<Op>OperationOptions()" — when the SDK method
+// requires one, or "" otherwise. Some go-azure-sdk list methods (e.g.
+// ListBySubscription) take an options struct after the id; others do not.
+func listOptionsArg(res *ir.ResourceIR, op string, hasOptions bool) string {
+	if !hasOptions {
+		return ""
+	}
+	return fmt.Sprintf(", %s.Default%sOperationOptions()", res.SDKPackage, op)
+}
+
 // renderUntypedList renders a list resource for a native Plugin SDK (untyped)
 // resource. It wraps the resource's own constructor and flatten function rather
 // than the internal/sdk typed wrapper, choosing the parent-scoped shape for
@@ -114,12 +125,12 @@ func renderUntypedSubscriptionScopedList(res *ir.ResourceIR) string {
 	sb.WriteString("if !data.SubscriptionId.IsNull() {\nsubscriptionID = data.SubscriptionId.ValueString()\n}\n\n")
 
 	rgCall := func() {
-		fmt.Fprintf(&sb, "resp, err := client.%sComplete(ctx, commonids.NewResourceGroupID(subscriptionID, data.ResourceGroupName.ValueString()))\n", res.ListByResourceGroupOp)
+		fmt.Fprintf(&sb, "resp, err := client.%sComplete(ctx, commonids.NewResourceGroupID(subscriptionID, data.ResourceGroupName.ValueString())%s)\n", res.ListByResourceGroupOp, listOptionsArg(res, res.ListByResourceGroupOp, res.ListByResourceGroupHasOptions))
 		fmt.Fprintf(&sb, "if err != nil {\nsdk.SetResponseErrorDiagnostic(stream, %q, err)\nreturn\n}\n", "listing "+res.TerraformType)
 		sb.WriteString("results = resp.Items\n")
 	}
 	subCall := func() {
-		fmt.Fprintf(&sb, "resp, err := client.%sComplete(ctx, commonids.NewSubscriptionID(subscriptionID))\n", res.ListBySubscriptionOp)
+		fmt.Fprintf(&sb, "resp, err := client.%sComplete(ctx, commonids.NewSubscriptionID(subscriptionID)%s)\n", res.ListBySubscriptionOp, listOptionsArg(res, res.ListBySubscriptionOp, res.ListBySubscriptionHasOptions))
 		fmt.Fprintf(&sb, "if err != nil {\nsdk.SetResponseErrorDiagnostic(stream, %q, err)\nreturn\n}\n", "listing "+res.TerraformType)
 		sb.WriteString("results = resp.Items\n")
 	}
@@ -148,6 +159,10 @@ func renderUntypedSubscriptionScopedList(res *ir.ResourceIR) string {
 // config); it issues a single parent-scoped List call.
 func renderUntypedParentScopedList(res *ir.ResourceIR) string {
 	var sb strings.Builder
+	parentPkg := res.ParentPackage
+	if parentPkg == "" {
+		parentPkg = res.SDKPackage
+	}
 	fmt.Fprintf(&sb, "package %s\n\n", res.ServicePackage)
 	renderUntypedListImports(&sb, res, true)
 
@@ -158,7 +173,7 @@ func renderUntypedParentScopedList(res *ir.ResourceIR) string {
 	fmt.Fprintf(&sb, "func (%sListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {\n", res.Name)
 	sb.WriteString("response.Schema = schema.Schema{\nAttributes: map[string]schema.Attribute{\n")
 	fmt.Fprintf(&sb, "%q: schema.StringAttribute{\nRequired: true,\nValidators: []validator.String{\n", res.ParentListAttr)
-	fmt.Fprintf(&sb, "typehelpers.WrappedStringValidator{Func: %s.%s},\n", res.ParentPackage, res.ParentValidateFunc)
+	fmt.Fprintf(&sb, "typehelpers.WrappedStringValidator{Func: %s.%s},\n", parentPkg, res.ParentValidateFunc)
 	sb.WriteString("},\n},\n},\n}\n}\n\n")
 
 	fmt.Fprintf(&sb, "func (%sListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {\n", res.Name)
@@ -166,9 +181,9 @@ func renderUntypedParentScopedList(res *ir.ResourceIR) string {
 	fmt.Fprintf(&sb, "var data %sListModel\n", res.Name)
 	sb.WriteString("diags := request.Config.Get(ctx, &data)\n")
 	sb.WriteString("if diags.HasError() {\nstream.Results = list.ListResultsStreamDiagnostics(diags)\nreturn\n}\n\n")
-	fmt.Fprintf(&sb, "parentID, err := %s.%s(data.%s.ValueString())\n", res.ParentPackage, res.ParentParseFunc, res.ParentIDType)
+	fmt.Fprintf(&sb, "parentID, err := %s.%s(data.%s.ValueString())\n", parentPkg, res.ParentParseFunc, res.ParentIDType)
 	fmt.Fprintf(&sb, "if err != nil {\nsdk.SetResponseErrorDiagnostic(stream, %q, err)\nreturn\n}\n\n", "parsing parent ID for "+res.TerraformType)
-	fmt.Fprintf(&sb, "resp, err := client.%sComplete(ctx, *parentID)\n", res.ListByParentOp)
+	fmt.Fprintf(&sb, "resp, err := client.%sComplete(ctx, *parentID%s)\n", res.ListByParentOp, listOptionsArg(res, res.ListByParentOp, res.ListByParentHasOptions))
 	fmt.Fprintf(&sb, "if err != nil {\nsdk.SetResponseErrorDiagnostic(stream, %q, err)\nreturn\n}\n\n", "listing "+res.TerraformType)
 
 	renderUntypedListStream(&sb, res, "resp.Items")
@@ -184,7 +199,17 @@ func renderUntypedListStream(sb *strings.Builder, res *ir.ResourceIR, itemsExpr 
 	if idPkg == "" {
 		idPkg = res.SDKPackage
 	}
+	if res.FlattenNeedsContext {
+		sb.WriteString("// The List wrapper cancels the supplied context before the iterator below runs,\n")
+		sb.WriteString("// so capture its deadline to rebuild a live context for the per-item flatten.\n")
+		sb.WriteString("deadline, ok := ctx.Deadline()\n")
+		sb.WriteString("if !ok {\nsdk.SetResponseErrorDiagnostic(stream, \"internal-error\", \"context had no deadline\")\nreturn\n}\n\n")
+	}
 	sb.WriteString("stream.Results = func(push func(list.ListResult) bool) {\n")
+	if res.FlattenNeedsContext {
+		sb.WriteString("ctx, cancel := context.WithDeadline(context.Background(), deadline)\n")
+		sb.WriteString("defer cancel()\n\n")
+	}
 	fmt.Fprintf(sb, "for _, item := range %s {\n", itemsExpr)
 	sb.WriteString("result := request.NewListResult(ctx)\n")
 	sb.WriteString("result.DisplayName = pointer.From(item.Name)\n\n")
@@ -196,7 +221,11 @@ func renderUntypedListStream(sb *strings.Builder, res *ir.ResourceIR, itemsExpr 
 	if res.FlattenIDValue {
 		idArg = "*id"
 	}
-	fmt.Fprintf(sb, "if err := %s(rd, %s, &item); err != nil {\nsdk.SetErrorDiagnosticAndPushListResult(result, push, %q, err)\nreturn\n}\n\n", res.FlattenFunc, idArg, "encoding "+res.TerraformType+" resource data")
+	if res.FlattenNeedsContext {
+		fmt.Fprintf(sb, "if err := %s(ctx, client, rd, %s, &item); err != nil {\nsdk.SetErrorDiagnosticAndPushListResult(result, push, %q, err)\nreturn\n}\n\n", res.FlattenFunc, idArg, "encoding "+res.TerraformType+" resource data")
+	} else {
+		fmt.Fprintf(sb, "if err := %s(rd, %s, &item); err != nil {\nsdk.SetErrorDiagnosticAndPushListResult(result, push, %q, err)\nreturn\n}\n\n", res.FlattenFunc, idArg, "encoding "+res.TerraformType+" resource data")
+	}
 	sb.WriteString("sdk.EncodeListResult(ctx, rd, &result)\n")
 	sb.WriteString("if result.Diagnostics.HasError() {\npush(result)\nreturn\n}\n")
 	sb.WriteString("if !push(result) {\nreturn\n}\n")
@@ -233,12 +262,12 @@ func renderSubscriptionScopedList(res *ir.ResourceIR) string {
 	fmt.Fprintf(&sb, "resource := %sResource{}\n\n", res.Name)
 
 	rgCall := func() {
-		fmt.Fprintf(&sb, "resp, err := client.%sComplete(ctx, commonids.NewResourceGroupID(subscriptionID, data.ResourceGroupName.ValueString()))\n", res.ListByResourceGroupOp)
+		fmt.Fprintf(&sb, "resp, err := client.%sComplete(ctx, commonids.NewResourceGroupID(subscriptionID, data.ResourceGroupName.ValueString())%s)\n", res.ListByResourceGroupOp, listOptionsArg(res, res.ListByResourceGroupOp, res.ListByResourceGroupHasOptions))
 		sb.WriteString("if err != nil {\nsdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf(\"listing `%s`\", resource.ResourceType()), err)\nreturn\n}\n")
 		sb.WriteString("results = resp.Items\n")
 	}
 	subCall := func() {
-		fmt.Fprintf(&sb, "resp, err := client.%sComplete(ctx, commonids.NewSubscriptionID(subscriptionID))\n", res.ListBySubscriptionOp)
+		fmt.Fprintf(&sb, "resp, err := client.%sComplete(ctx, commonids.NewSubscriptionID(subscriptionID)%s)\n", res.ListBySubscriptionOp, listOptionsArg(res, res.ListBySubscriptionOp, res.ListBySubscriptionHasOptions))
 		sb.WriteString("if err != nil {\nsdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf(\"listing `%s`\", resource.ResourceType()), err)\nreturn\n}\n")
 		sb.WriteString("results = resp.Items\n")
 	}
@@ -317,7 +346,7 @@ func renderParentScopedList(res *ir.ResourceIR) string {
 	fmt.Fprintf(&sb, "resource := %sResource{}\n\n", res.Name)
 	fmt.Fprintf(&sb, "parentID, err := %s.%s(data.%s.ValueString())\n", parentPkg, res.ParentParseFunc, res.ParentIDType)
 	sb.WriteString("if err != nil {\nsdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf(\"parsing parent ID for `%s`\", resource.ResourceType()), err)\nreturn\n}\n\n")
-	fmt.Fprintf(&sb, "resp, err := client.%sComplete(ctx, *parentID)\n", res.ListByParentOp)
+	fmt.Fprintf(&sb, "resp, err := client.%sComplete(ctx, *parentID%s)\n", res.ListByParentOp, listOptionsArg(res, res.ListByParentOp, res.ListByParentHasOptions))
 	sb.WriteString("if err != nil {\nsdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf(\"listing `%s`\", resource.ResourceType()), err)\nreturn\n}\n\n")
 
 	renderListStream(&sb, res, "resp.Items")
