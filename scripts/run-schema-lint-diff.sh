@@ -12,7 +12,7 @@
 #
 # Mechanics:
 #   1. Resolve the base branch.
-#   2. Build the linter from the standalone module in .tfproviderlint/.
+#   2. Build the linter from internal/tools/schema-lint.
 #   3. Run `schemalint check -diff-base <base>` against the current checkout,
 #      which parses the changed Go source directly (no provider build or JSON
 #      schema export) and reports only findings on properties added since base.
@@ -46,10 +46,7 @@ cleanup() {
 trap cleanup EXIT
 
 echo "==> Building the schema linter..."
-# The tool is a standalone module with no vendor directory; force module mode so
-# an inherited GOFLAGS=-mod=vendor (from the vendored provider module) does not
-# break the build.
-( cd .tfproviderlint/schemalint && GOFLAGS=-mod=mod go build -o "${bin_dir}/schemalint" . )
+go build -o "${bin_dir}/schemalint" ./internal/tools/schema-lint
 
 echo ""
 echo "==> Linting schema properties added since '${base_ref}'..."

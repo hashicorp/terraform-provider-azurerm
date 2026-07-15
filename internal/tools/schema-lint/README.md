@@ -1,53 +1,46 @@
-# .tfproviderlint — AST-based schema linter
+# schema-lint — AST-based schema linter
 
 A fast, AST-based linter for the AzureRM provider's **resource** and **data
-source** schemas. It reimplements the schema-lint rules (`SL001`–`SL013`) as
+source** schemas. It implements the schema-lint rules (`SL001`–`SL013`) as
 small checks over a syntactic schema tree built with the standard `go/ast`.
 
-Unlike the JSON-schema linter in `internal/tools/schema-lint`, this tool never
-compiles the provider or renders its schema. It parses Go source directly (no
-type checking), which makes it fast enough to lint a single file and to run on
-every pull request. Linting the whole `internal/services` tree takes well under
-a second.
-
-This is a standalone Go module (it lives in the repository but is not part of the
-`terraform-provider-azurerm` module), so it does not affect the provider build or
-its vendored dependencies. It has **no external dependencies** — only the Go
-standard library — so there is no `go.sum` to maintain and nothing to fetch when
-building it.
+It is a normal package of the provider module (at `internal/tools/schema-lint`)
+with **no external dependencies** — only the Go standard library — so it adds
+nothing to the provider's `go.mod` or vendor tree and needs no build of the
+provider itself.
 
 ## Usage
 
+Run it from the repository root:
+
 ```bash
-cd .tfproviderlint/schemalint
-
 # list the available rules
-go run . list
+go run ./internal/tools/schema-lint list
 
-# lint a single file (paths resolve against -C, default the current directory)
-go run . check -C ../.. ../../internal/services/foo/foo_resource.go
+# lint a single file
+go run ./internal/tools/schema-lint check internal/services/foo/foo_resource.go
 
 # lint a directory tree
-go run . check -C ../.. ../../internal/services/foo
+go run ./internal/tools/schema-lint check internal/services/foo
 
 # include suggested fixes for fixable findings
-go run . check -C ../.. -fix ../../internal/services/foo
+go run ./internal/tools/schema-lint check -fix internal/services/foo
 
 # run or disable specific rules
-go run . check -C ../.. -rules SL002,SL007 ../../internal/services/foo
-go run . check -C ../.. -disable SL001 ../../internal/services/foo
+go run ./internal/tools/schema-lint check -rules SL002,SL007 internal/services/foo
+go run ./internal/tools/schema-lint check -disable SL001 internal/services/foo
 
 # machine-readable output
-go run . check -C ../.. -format json ../../internal/services/foo
+go run ./internal/tools/schema-lint check -format json internal/services/foo
 
 # lint only the schema properties added since a base branch (see Diff mode)
-go run . check -diff-base origin/main
+go run ./internal/tools/schema-lint check -diff-base origin/main
 ```
 
-Or build a binary and run it from the repository root:
+Or build a binary once and reuse it:
 
 ```bash
-( cd .tfproviderlint/schemalint && go build -o /tmp/schemalint . )
+go build -o /tmp/schemalint ./internal/tools/schema-lint
 /tmp/schemalint check internal/services/foo/foo_resource.go
 ```
 
