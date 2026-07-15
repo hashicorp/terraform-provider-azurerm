@@ -320,7 +320,7 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Update() sdk.ResourceFu
 					if _, err = client.Get(ctx, virtualEndpointId); err != nil {
 						return fmt.Errorf("retrieving %s: %+v", virtualEndpointId, err)
 					}
-					return fmt.Errorf("a fail-over has occurred and the `source_server_id` in the config is no longer the SourceServerId for the virtual endpoint. If you wish to change the `replica_server_id`, remove this resource from state and reimport it back in with the `replica_server_id` and `source_server_id` swapped")
+					return fmt.Errorf("a fail-over has occurred and the `source_server_id` in the config is no longer the SourceServerId for the virtual endpoint. If you wish to change the `replica_server_id`, remove this resource from state and reimport it back in with the `replica_server_id` and `source_server_id` swapped. Alternatively, set `recreate_resource_after_failover = true` in the `postgresql_flexible_server_virtual_endpoint` block of the provider `features {}` configuration to have Terraform automatically handle failover recovery via resource recreation")
 				}
 				return fmt.Errorf("retrieving %s: %+v", virtualEndpointId, err)
 			}
