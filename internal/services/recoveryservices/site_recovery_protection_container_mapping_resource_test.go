@@ -197,6 +197,10 @@ resource "azurerm_automation_account" "test" {
 
   sku_name = "Basic"
 
+  identity {
+    type = "SystemAssigned"
+  }
+
   tags = {
     Environment = "Test"
   }
@@ -208,6 +212,10 @@ resource "azurerm_automation_account" "test2" {
   resource_group_name = azurerm_resource_group.test1.name
 
   sku_name = "Basic"
+
+  identity {
+    type = "SystemAssigned"
+  }
 
   tags = {
     Environment = "Test"
