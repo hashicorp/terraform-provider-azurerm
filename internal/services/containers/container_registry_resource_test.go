@@ -511,7 +511,7 @@ resource "azurerm_container_registry" "test" {
   public_network_access_enabled = false
   quarantine_policy_enabled     = true
   retention_policy_in_days      = 10
-  trust_policy_enabled          = true
+  trust_policy_enabled          = false
   export_policy_enabled         = false
   anonymous_pull_enabled        = true
   data_endpoint_enabled         = true
