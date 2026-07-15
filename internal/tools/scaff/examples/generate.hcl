@@ -8,7 +8,6 @@
 # prefix, e.g. "redhat_openshift_cluster" -> azurerm_redhat_openshift_cluster).
 #
 # A running Pandora Data API is required (see -pandora-url / pandora_url below).
-
 # ---------------------------------------------------------------------------
 # Optional global overrides. When omitted these fall back to .scaff.hcl (or the
 # tool's built-in defaults), so you usually don't need to set them here.
@@ -19,10 +18,6 @@
 # org         = "hashicorp"             # provider GitHub org (import paths)
 overwrite   = false                   # set true to replace existing generated files
 
-# RedHat OpenShift cluster (Microsoft.RedHatOpenShift) — resource + list resource
-# + data source, pinned to a specific API version. go_name is set because the
-# snake->camel derivation ("RedhatOpenshiftCluster") wouldn't match the canonical
-# "RedHatOpenShift" casing.
 resource "redhat_openshift_cluster" {
   arm_type       = "Microsoft.RedHatOpenShift/openShiftClusters"
   go_name        = "RedHatOpenShiftCluster"
@@ -32,16 +27,11 @@ resource "redhat_openshift_cluster" {
   data_source    = true
 }
 
-# Storage Mover (Microsoft.StorageMover) — minimal block. api_version defaults to
-# the latest non-preview version, and go_name is derived from the name
-# ("storage_mover" -> "StorageMover").
 resource "storage_mover" {
   arm_type       = "Microsoft.StorageMover/storageMovers"
   servicepackage = "storagemover"
 }
 
-# NetApp account (Microsoft.NetApp) — resource + data source. go_name overridden
-# to preserve the "NetApp" casing.
 resource "netapp_account" {
   arm_type       = "Microsoft.NetApp/netAppAccounts"
   go_name        = "NetAppAccount"
@@ -49,7 +39,6 @@ resource "netapp_account" {
   data_source    = true
 }
 
-# Automation account (Microsoft.Automation) — resource + list resource.
 resource "automation_account" {
   arm_type       = "Microsoft.Automation/automationAccounts"
   go_name        = "AutomationAccount"
@@ -58,10 +47,6 @@ resource "automation_account" {
   list           = true
 }
 
-# Container Registry (Microsoft.ContainerRegistry) — the Pandora service name
-# (ContainerRegistry) differs from the provider's service package directory
-# (containers), so servicepackage places the files in internal/services/containers.
-# An explicit output directory override is shown (commented) via "path".
 resource "container_registry" {
   arm_type       = "Microsoft.ContainerRegistry/registries"
   go_name        = "ContainerRegistry"
@@ -71,9 +56,6 @@ resource "container_registry" {
   # path         = "internal/services/containers/registry"
 }
 
-# Load Test (Microsoft.LoadTestService) — addressed here by arm_type, but a
-# resource can also be addressed by its explicit Pandora service + resource key
-# instead (either form is accepted). The equivalent is shown commented below.
 resource "load_test" {
   arm_type       = "Microsoft.LoadTestService/loadTests"
   go_name        = "LoadTest"
@@ -83,8 +65,6 @@ resource "load_test" {
   # pandora_resource = "LoadTests"
 }
 
-# List-only regeneration — generate ONLY the list resource for a resource that
-# already exists (assumes the resource file already provides a flatten method).
 resource "storage_mover_agent" {
   arm_type       = "Microsoft.StorageMover/agents"
   go_name        = "StorageMoverAgent"

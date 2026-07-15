@@ -8,35 +8,6 @@
 # registration.go ListResources() method. `list` defaults to true, so a block
 # need only set `list = false` to opt out.
 #
-# NOTE — support status (the batch continues past any that fail and prints a
-# summary at the end):
-#
-#   * Both [typed] and [untyped] resources are supported. All but one of these
-#     are [untyped] native Plugin SDK resources; azurerm_virtual_hub_routing_intent
-#     is [typed]. All already have Resource Identity.
-#
-#   * subnet is a parent-scoped child of virtual network
-#     (Microsoft.Network/virtualNetworks/subnets); its list is derived from the
-#     vendored SDK (subnets.ListComplete(ctx, commonids.VirtualNetworkId)), so the
-#     list config takes a virtual_network_id. subnet_service_endpoint_storage_policy
-#     is top-level; its subscription/resource-group list methods are likewise
-#     SDK-derived. Both upgrade entirely from source.
-#
-#   * The virtual_hub_* CHILD resources (bgp_connection, connection, ip,
-#     route_table) are parent-scoped: they generate a single parent-scoped list
-#     call, e.g. client.VirtualHubIPConfigurationListComplete(ctx, *virtualHubID).
-#     Because the go-azure-sdk `virtualwans` package is one Pandora "VirtualWANs"
-#     resource, their read model is supplied via `read_model` and derived entirely
-#     from source (no Pandora call). `list_method` overrides the derived SDK list
-#     method name where it pluralises irregularly (e.g. bgp_connection).
-#
-#   * azurerm_virtual_hub itself is a TOP-LEVEL resource in the same package; its
-#     subscription/resource-group list operations are derived from the vendored
-#     SDK (VirtualHubsListComplete / VirtualHubsListByResourceGroupComplete), so
-#     it too upgrades entirely from source without a Pandora call.
-#
-# No running Pandora Data API is required: every resource below derives its read
-# model and list operations from the vendored go-azure-sdk.
 
 pandora_url = "http://localhost:8080"
 write       = true # set true to APPLY the changes; false performs a dry run
