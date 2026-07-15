@@ -8,7 +8,7 @@ Azure Resource Manager: The Features Block
 
 # The Features Block
 
-The Azure Provider allows the behaviour of certain resources to be configured using the `features` block.
+The Azure Provider allows users to configure the behaviour of certain functionalities using the `features` block.
 
 This allows different users to select the behaviour they require, for example some users may wish for the OS Disks for a Virtual Machine to be removed automatically when the Virtual Machine is destroyed - whereas other users may wish for these OS Disks to be detached but not deleted.
 
@@ -27,6 +27,9 @@ Each of the blocks defined below can be optionally specified to configure the be
 ```hcl
 provider "azurerm" {
   features {
+    persist_id_on_create_before_polling_for_completion                   = true
+    skip_import_check_on_create_and_allow_overwriting_existing_resources = true
+
     api_management {
       purge_soft_delete_on_destroy = true
       recover_soft_deleted         = true
@@ -47,6 +50,17 @@ provider "azurerm" {
 
     databricks_workspace {
       force_delete = false
+    }
+
+    enhanced_validation {
+      locations                   = true
+      resource_providers          = true
+      preflight_enabled           = false
+      preflight_location_fallback = "westeurope"
+    }
+
+    servicebus {
+      auto_delete_subscription_default_rule = false
     }
 
     key_vault {
@@ -121,6 +135,14 @@ provider "azurerm" {
 
 The `features` block supports the following:
 
+* `persist_id_on_create_before_polling_for_completion` - (Optional) Whether to set the resource ID into state before polling asynchronous operations for completion. Defaults to `false`.
+
+~> **Note:** A deployment failure taints the resource, and in most cases a subsequent run would replace it. However, in rare cases, this could lead to Terraform tracking failed resources in state that cannot be deleted via the API, which may require manual clean up and/or state manipulation.
+
+* `skip_import_check_on_create_and_allow_overwriting_existing_resources` - (Optional) Whether to skip the import check and allow the provider to overwrite existing remote resources if present. Defaults to `false`.
+
+!> **Note:** The majority of the resources within this provider use `PUT` operations for creation, meaning enabling `skip_import_check_on_create_and_allow_overwriting_existing_resources` could lead to Terraform overwriting existing resources without any warning. Use this at your own risk.
+
 * `api_management` - (Optional) An `api_management` block as defined below.
 
 * `app_configuration` - (Optional) An `app_configuration` block as defined below.
@@ -130,6 +152,10 @@ The `features` block supports the following:
 * `cognitive_account` - (Optional) A `cognitive_account` block as defined below.
 
 * `databricks_workspace` - (Optional) A `databricks_workspace` block as defined below.
+
+* `enhanced_validation` - (Optional) An `enhanced_validation` block as defined below.
+
+* `servicebus` - (Optional) A `servicebus` block as defined below.
 
 * `key_vault` - (Optional) A `key_vault` block as defined below.
 
@@ -192,6 +218,26 @@ The `cognitive_account` block supports the following:
 The `databricks_workspace` block supports the following:
 
 * `force_delete` - (Optional) Should the managed resource group that contains the Unity Catalog data be forcibly deleted when the `azurerm_databricks_workspace` is destroyed? Defaults to `false`.
+
+---
+
+The `enhanced_validation` block supports the following:
+
+* `locations` - (Optional) Should the AzureRM Provider validate location arguments against the list of supported Azure Locations? When enabled, invalid locations are caught at `terraform plan` time; when disabled, they are caught at `terraform apply` time when Azure rejects the request. This can also be sourced from the `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` Environment Variable. Defaults to `true` in version 4.x and `false` in version 5.0+.
+
+* `preflight_enabled` - (Optional) Should the AzureRM Provider call the Azure Preflight Validation API at plan time to check the request payload for each supported resource is valid? Requires valid credentials and external Azure API access at plan time. This can also be sourced from the `ARM_PROVIDER_ENHANCED_VALIDATION_PREFLIGHT_ENABLED` Environment Variable. Defaults to `false`.
+
+~> **Note:** Preflight Validation is a "Best Effort" feature and is not guaranteed to be 100% accurate. Terraform will attempt to validate the request payload against the Azure API based on known values for the resource from the configuration. References to resources or values that is not known at plan time are sent as empty or null values.
+
+* `preflight_location_fallback` - (Optional) The Azure location to use as a fallback when Preflight Validation is enabled and a resource does not specify a location. This is typically used for resources that derive their location from a dependency that has not yet been created. This can also be sourced from the `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATION_FALLBACK` Environment Variable.
+
+* `resource_providers` - (Optional) Should the AzureRM Provider validate Resource Provider arguments against the list of supported Resource Providers? When enabled, invalid resource providers are caught at `terraform plan` time; when disabled, they are caught at `terraform apply` time when Azure rejects the request. This can also be sourced from the `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS` Environment Variable. Defaults to `true` in version 4.x and `false` in version 5.0+.
+
+---
+
+The `servicebus` block supports the following:
+
+* `auto_delete_subscription_default_rule` - (Optional) Should the `$Default` rule be automatically deleted after creating an `azurerm_servicebus_subscription`? This prevents unfiltered messages from being delivered during the window between subscription creation and custom rule application. Defaults to `false`.
 
 ---
 

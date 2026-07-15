@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -50,6 +50,10 @@ func (r ManagerNetworkGroupDataSource) Attributes() map[string]*pluginsdk.Schema
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+		"member_type": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 	}
 }
 
@@ -91,6 +95,7 @@ func (r ManagerNetworkGroupDataSource) Read() sdk.ResourceFunc {
 				Name:             id.NetworkGroupName,
 				NetworkManagerId: networkgroups.NewNetworkManagerID(id.SubscriptionId, id.ResourceGroupName, id.NetworkManagerName).ID(),
 				Description:      pointer.From(properties.Description),
+				MemberType:       pointer.FromEnum(properties.MemberType),
 			}
 
 			metadata.SetID(id)

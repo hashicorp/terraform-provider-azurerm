@@ -36,7 +36,9 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies The Azure Region where the resource exists. Changing this force a new resource to be created.
 
-* `sku_name` - (Required) The name which should be used for the SKU of the service. Possible values are `C0`, `F0` and `S1`.
+* `sku_name` - (Required) The name which should be used for the SKU of the service. Possible values are `C0`, `C1`, `F0`, `PES` and `S1`.
+
+~> **Note:** Downgrading to `F0` forces a new resource to be created.
 
 ---
 
@@ -73,4 +75,4 @@ terraform import azurerm_healthbot.example /subscriptions/00000000-0000-0000-000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.HealthBot` - 2022-08-08
+* `Microsoft.HealthBot` - 2025-05-25

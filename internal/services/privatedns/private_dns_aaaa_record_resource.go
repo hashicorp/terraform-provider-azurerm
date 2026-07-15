@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package privatedns
@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -17,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourcePrivateDnsAaaaRecord() *pluginsdk.Resource {
@@ -92,37 +92,43 @@ func resourcePrivateDnsAaaaRecordCreateUpdate(d *pluginsdk.ResourceData, meta in
 	defer cancel()
 
 	id := privatedns.NewRecordTypeID(subscriptionId, d.Get("resource_group_name").(string), d.Get("zone_name").(string), privatedns.RecordTypeAAAA, d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.RecordSetsGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_private_dns_aaaa_record", id.ID())
+	if d.IsNewResource() {
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.RecordSetsGet(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+			}
+
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_private_dns_aaaa_record", id.ID())
+			}
 		}
 	}
 
 	parameters := privatedns.RecordSet{
-		Name: utils.String(id.RelativeRecordSetName),
+		Name: pointer.To(id.RelativeRecordSetName),
 		Properties: &privatedns.RecordSetProperties{
 			Metadata:    tags.Expand(d.Get("tags").(map[string]interface{})),
-			Ttl:         utils.Int64(int64(d.Get("ttl").(int))),
+			Ttl:         pointer.To(int64(d.Get("ttl").(int))),
 			AaaaRecords: expandAzureRmPrivateDnsAaaaRecords(d),
 		},
 	}
 
 	options := privatedns.RecordSetsCreateOrUpdateOperationOptions{
-		IfMatch:     utils.String(""),
-		IfNoneMatch: utils.String(""),
+		IfMatch:     pointer.To(""),
+		IfNoneMatch: pointer.To(""),
 	}
 	if _, err := client.RecordSetsCreateOrUpdate(ctx, id, parameters, options); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
+
 	return resourcePrivateDnsAaaaRecordRead(d, meta)
 }
 
@@ -158,7 +164,9 @@ func resourcePrivateDnsAaaaRecordRead(d *pluginsdk.ResourceData, meta interface{
 				return err
 			}
 
-			return tags.FlattenAndSet(d, props.Metadata)
+			if err := tags.FlattenAndSet(d, props.Metadata); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -175,7 +183,7 @@ func resourcePrivateDnsAaaaRecordDelete(d *pluginsdk.ResourceData, meta interfac
 		return err
 	}
 
-	options := privatedns.RecordSetsDeleteOperationOptions{IfMatch: utils.String("")}
+	options := privatedns.RecordSetsDeleteOperationOptions{IfMatch: pointer.To("")}
 
 	if _, err := dnsClient.RecordSetsDelete(ctx, *id, options); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)

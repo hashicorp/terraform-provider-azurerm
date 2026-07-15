@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute_test
@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 func TestAccLinuxVirtualMachineScaleSet_authPassword(t *testing.T) {
@@ -126,7 +127,7 @@ func TestAccLinuxVirtualMachineScaleSet_authDisablePasswordAuthUpdate(t *testing
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	steps := []acceptance.TestStep{
 		{
 			// disable it
 			Config: r.authSSHKey(data),
@@ -151,7 +152,13 @@ func TestAccLinuxVirtualMachineScaleSet_authDisablePasswordAuthUpdate(t *testing
 			),
 		},
 		data.ImportStep("admin_password"),
-	})
+	}
+
+	if !features.FivePointOh() {
+		data.ResourceTest(t, r, steps)
+	} else {
+		data.ResourceTestIgnoreRecreate(t, r, steps) // We added a ForceNew to the admin_password field in 5.0, so for now we can ignore the recreate step
+	}
 }
 
 func (r LinuxVirtualMachineScaleSetResource) authPassword(data acceptance.TestData) string {

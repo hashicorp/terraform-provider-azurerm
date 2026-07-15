@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"log"
 	"time"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -66,26 +68,32 @@ func resourceApplicationSecurityGroupCreate(d *pluginsdk.ResourceData, meta inte
 
 	id := applicationsecuritygroups.NewApplicationSecurityGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_application_security_group", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_application_security_group", id.ID())
+		}
 	}
 
 	securityGroup := applicationsecuritygroups.ApplicationSecurityGroup{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
-	if err := client.CreateOrUpdateThenPoll(ctx, id, securityGroup); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, securityGroup, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceApplicationSecurityGroupRead(d, meta)
 }
 
@@ -139,10 +147,13 @@ func resourceApplicationSecurityGroupRead(d *pluginsdk.ResourceData, meta interf
 
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
+	return resourceApplicationSecurityGroupFlatten(d, id, resp.Model)
+}
 
+func resourceApplicationSecurityGroupFlatten(d *pluginsdk.ResourceData, id *applicationsecuritygroups.ApplicationSecurityGroupId, model *applicationsecuritygroups.ApplicationSecurityGroup) error {
 	d.Set("name", id.ApplicationSecurityGroupName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
@@ -162,7 +173,6 @@ func resourceApplicationSecurityGroupDelete(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
-	log.Printf("[DEBUG] Deleting %s..", *id)
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}

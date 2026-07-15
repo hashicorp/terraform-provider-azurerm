@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -15,11 +15,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/packetcaptures"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceVirtualMachinePacketCapture() *pluginsdk.Resource {
@@ -169,15 +169,17 @@ func resourceVirtualMachinePacketCaptureCreate(d *pluginsdk.ResourceData, meta i
 	totalBytesPerSession := d.Get("maximum_bytes_per_session").(int)
 	timeLimitInSeconds := d.Get("maximum_capture_duration_in_seconds").(int)
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_virtual_machine_packet_capture", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_virtual_machine_packet_capture", id.ID())
+		}
 	}
 
 	storageLocation := expandVirtualMachinePacketCaptureStorageLocation(d.Get("storage_location").([]interface{}))
@@ -186,14 +188,14 @@ func resourceVirtualMachinePacketCaptureCreate(d *pluginsdk.ResourceData, meta i
 			Target:                  targetResourceId,
 			TargetType:              pointer.To(packetcaptures.PacketCaptureTargetTypeAzureVM),
 			StorageLocation:         storageLocation,
-			BytesToCapturePerPacket: utils.Int64(int64(bytesToCapturePerPacket)),
-			TimeLimitInSeconds:      utils.Int64(int64(timeLimitInSeconds)),
-			TotalBytesPerSession:    utils.Int64(int64(totalBytesPerSession)),
+			BytesToCapturePerPacket: pointer.To(int64(bytesToCapturePerPacket)),
+			TimeLimitInSeconds:      pointer.To(int64(timeLimitInSeconds)),
+			TotalBytesPerSession:    pointer.To(int64(totalBytesPerSession)),
 			Filters:                 expandVirtualMachinePacketCaptureFilters(d.Get("filter").([]interface{})),
 		},
 	}
 
-	if err := client.CreateThenPoll(ctx, id, payload); err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, id, payload, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -307,11 +309,11 @@ func expandVirtualMachinePacketCaptureFilters(input []interface{}) *[]packetcapt
 		remotePort := inputFilter["remote_port"].(string)
 
 		filter := packetcaptures.PacketCaptureFilter{
-			LocalIPAddress:  utils.String(localIPAddress),
-			LocalPort:       utils.String(localPort),
+			LocalIPAddress:  pointer.To(localIPAddress),
+			LocalPort:       pointer.To(localPort),
 			Protocol:        pointer.To(packetcaptures.PcProtocol(protocol)),
-			RemoteIPAddress: utils.String(remoteIPAddress),
-			RemotePort:      utils.String(remotePort),
+			RemoteIPAddress: pointer.To(remoteIPAddress),
+			RemotePort:      pointer.To(remotePort),
 		}
 		filters = append(filters, filter)
 	}

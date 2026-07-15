@@ -30,6 +30,7 @@ resource "azurerm_key_vault" "example" {
   name                       = "example"
   location                   = azurerm_resource_group.example.location
   resource_group_name        = azurerm_resource_group.example.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "premium"
   soft_delete_retention_days = 7
@@ -90,7 +91,7 @@ resource "azurerm_data_factory_credential_service_principal" "example" {
 
 * `service_principal_id` - (Required) The Client ID of the Service Principal.
 
-* `service_principal_key` - (Required) A `service_principal_key` block as defined below.
+* `service_principal_key` - (Optional) A `service_principal_key` block as defined below.
 
 * `annotations` - (Optional) List of tags that can be used for describing the Data Factory Credential.
 

@@ -1,12 +1,7 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package features
-
-import (
-	"os"
-	"strings"
-)
 
 // nolint gocritic
 // DeprecatedInFivePointOh returns the deprecation message if the provider
@@ -35,5 +30,5 @@ func DeprecatedInFivePointOh(deprecationMessage string) string {
 // Setting `ARM_FIVEPOINTZERO_BETA` will cause irreversible changes
 // to your state.
 func FivePointOh() bool {
-	return strings.EqualFold(os.Getenv("ARM_FIVEPOINTZERO_BETA"), "true")
+	return true
 }

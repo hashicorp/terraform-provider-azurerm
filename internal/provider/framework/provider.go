@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package framework
@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/list"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -199,12 +200,6 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 			},
 
 			// Advanced feature flags
-			"skip_provider_registration": schema.BoolAttribute{
-				Optional:           true,
-				Description:        "Should the AzureRM Provider skip registering all of the Resource Providers that it supports, if they're not already registered?",
-				DeprecationMessage: "This property is deprecated and will be removed in v5.0 of the AzureRM provider. Please use the `resource_provider_registrations` property instead.",
-			},
-
 			"storage_use_azuread": schema.BoolAttribute{
 				Optional:    true,
 				Description: "Should the AzureRM Provider use Azure AD Authentication when accessing the Storage Data Plane APIs?",
@@ -244,6 +239,16 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 					listvalidator.SizeBetween(1, 1),
 				},
 				NestedObject: schema.NestedBlockObject{
+					Attributes: map[string]schema.Attribute{
+						"persist_id_on_create_before_polling_for_completion": schema.BoolAttribute{
+							Optional:    true,
+							Description: "Whether to set the resource ID into state before polling asynchronous operations for completion. Defaults to `false`.",
+						},
+						"skip_import_check_on_create_and_allow_overwriting_existing_resources": schema.BoolAttribute{
+							Optional:    true,
+							Description: "Whether to skip the import check and allow the provider to overwrite existing remote resources if present. Defaults to `false`.",
+						},
+					},
 					Blocks: map[string]schema.Block{
 						"api_management": schema.ListNestedBlock{
 							NestedObject: schema.NestedBlockObject{
@@ -285,6 +290,51 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 								Attributes: map[string]schema.Attribute{
 									"purge_soft_delete_on_destroy": schema.BoolAttribute{
 										Optional: true,
+									},
+								},
+							},
+						},
+						"databricks_workspace": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"force_delete": schema.BoolAttribute{
+										Optional:    true,
+										Description: "When enabled, the managed resource group that contains the Unity Catalog data will be forcibly deleted when the workspace is destroyed, regardless of contents.",
+									},
+								},
+							},
+						},
+						"servicebus": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"auto_delete_subscription_default_rule": schema.BoolAttribute{
+										Optional:    true,
+										Description: "When enabled, the $Default rule is automatically deleted after creating a Service Bus subscription, preventing unfiltered message delivery.",
+									},
+								},
+							},
+						},
+						"enhanced_validation": schema.ListNestedBlock{
+							Validators: []validator.List{
+								listvalidator.SizeAtMost(1),
+							},
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"locations": schema.BoolAttribute{
+										Optional:    true,
+										Description: "Should the AzureRM Provider validate location arguments against the list of supported Azure Locations? When enabled, invalid locations are caught at plan time; when disabled, they are caught at apply time.",
+									},
+									"resource_providers": schema.BoolAttribute{
+										Optional:    true,
+										Description: "Should the AzureRM Provider validate Resource Provider arguments against the list of supported Resource Providers? When enabled, invalid resource providers are caught at plan time; when disabled, they are caught at apply time.",
+									},
+									"preflight_enabled": schema.BoolAttribute{
+										Optional:    true,
+										Description: "Should the AzureRM Provider call the Azure Preflight Validation API at plan time to check the request payload for each Preflight-supported resource is valid. Note: requires valid credentials and external Azure API access at plan-time.",
+									},
+									"preflight_location_fallback": schema.StringAttribute{
+										Optional:    true,
+										Description: "The Azure location to use as a fallback when Preflight Validation is enabled and a resource does not specify a location. This is typically used for resources that derive their location from a dependency that has not yet been created.",
 									},
 								},
 							},
@@ -358,6 +408,98 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 								},
 							},
 						},
+						"machine_learning": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"purge_soft_deleted_workspace_on_destroy": schema.BoolAttribute{
+										Optional: true,
+									},
+								},
+							},
+						},
+						"managed_disk": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"expand_without_downtime": schema.BoolAttribute{
+										Optional: true,
+									},
+								},
+							},
+						},
+						"netapp": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"delete_backups_on_backup_vault_destroy": schema.BoolAttribute{
+										Optional:    true,
+										Description: "When enabled, backups will be deleted when the `azurerm_netapp_backup_vault` resource is destroyed",
+									},
+									"prevent_volume_destruction": schema.BoolAttribute{
+										Description: "When enabled, the volume will not be destroyed, safeguarding from severe data loss",
+										Optional:    true,
+									},
+								},
+							},
+						},
+						"postgresql_flexible_server": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"restart_server_on_configuration_value_change": schema.BoolAttribute{
+										Optional: true,
+									},
+								},
+							},
+						},
+						"recovery_service": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"vm_backup_stop_protection_and_retain_data_on_destroy": schema.BoolAttribute{
+										Optional: true,
+									},
+									"vm_backup_suspend_protection_and_retain_data_on_destroy": schema.BoolAttribute{
+										Optional: true,
+									},
+									"purge_protected_items_from_vault_on_destroy": schema.BoolAttribute{
+										Optional: true,
+									},
+								},
+							},
+						},
+						"recovery_services_vaults": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"recover_soft_deleted_backup_protected_vm": schema.BoolAttribute{
+										Optional: true,
+									},
+								},
+							},
+						},
+						"resource_group": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"prevent_deletion_if_contains_resources": schema.BoolAttribute{
+										Optional: true,
+									},
+								},
+							},
+						},
+						"storage": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"data_plane_available": schema.BoolAttribute{
+										Optional: true,
+									},
+								},
+							},
+						},
+						"subscription": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"prevent_cancellation_on_destroy": schema.BoolAttribute{
+										Optional: true,
+									},
+								},
+							},
+						},
 						"template_deployment": schema.ListNestedBlock{
 							NestedObject: schema.NestedBlockObject{
 								Attributes: map[string]schema.Attribute{
@@ -400,108 +542,6 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 								},
 							},
 						},
-						"resource_group": schema.ListNestedBlock{
-							NestedObject: schema.NestedBlockObject{
-								Attributes: map[string]schema.Attribute{
-									"prevent_deletion_if_contains_resources": schema.BoolAttribute{
-										Optional: true,
-									},
-								},
-							},
-						},
-						"managed_disk": schema.ListNestedBlock{
-							NestedObject: schema.NestedBlockObject{
-								Attributes: map[string]schema.Attribute{
-									"expand_without_downtime": schema.BoolAttribute{
-										Optional: true,
-									},
-								},
-							},
-						},
-						"storage": schema.ListNestedBlock{
-							NestedObject: schema.NestedBlockObject{
-								Attributes: map[string]schema.Attribute{
-									"data_plane_available": schema.BoolAttribute{
-										Optional: true,
-									},
-								},
-							},
-						},
-						"subscription": schema.ListNestedBlock{
-							NestedObject: schema.NestedBlockObject{
-								Attributes: map[string]schema.Attribute{
-									"prevent_cancellation_on_destroy": schema.BoolAttribute{
-										Optional: true,
-									},
-								},
-							},
-						},
-						"postgresql_flexible_server": schema.ListNestedBlock{
-							NestedObject: schema.NestedBlockObject{
-								Attributes: map[string]schema.Attribute{
-									"restart_server_on_configuration_value_change": schema.BoolAttribute{
-										Optional: true,
-									},
-								},
-							},
-						},
-						"machine_learning": schema.ListNestedBlock{
-							NestedObject: schema.NestedBlockObject{
-								Attributes: map[string]schema.Attribute{
-									"purge_soft_deleted_workspace_on_destroy": schema.BoolAttribute{
-										Optional: true,
-									},
-								},
-							},
-						},
-						"recovery_service": schema.ListNestedBlock{
-							NestedObject: schema.NestedBlockObject{
-								Attributes: map[string]schema.Attribute{
-									"vm_backup_stop_protection_and_retain_data_on_destroy": schema.BoolAttribute{
-										Optional: true,
-									},
-									"vm_backup_suspend_protection_and_retain_data_on_destroy": schema.BoolAttribute{
-										Optional: true,
-									},
-									"purge_protected_items_from_vault_on_destroy": schema.BoolAttribute{
-										Optional: true,
-									},
-								},
-							},
-						},
-						"recovery_services_vaults": schema.ListNestedBlock{
-							NestedObject: schema.NestedBlockObject{
-								Attributes: map[string]schema.Attribute{
-									"recover_soft_deleted_backup_protected_vm": schema.BoolAttribute{
-										Optional: true,
-									},
-								},
-							},
-						},
-						"netapp": schema.ListNestedBlock{
-							NestedObject: schema.NestedBlockObject{
-								Attributes: map[string]schema.Attribute{
-									"delete_backups_on_backup_vault_destroy": schema.BoolAttribute{
-										Optional:    true,
-										Description: "When enabled, backups will be deleted when the `azurerm_netapp_backup_vault` resource is destroyed",
-									},
-									"prevent_volume_destruction": schema.BoolAttribute{
-										Description: "When enabled, the volume will not be destroyed, safeguarding from severe data loss",
-										Optional:    true,
-									},
-								},
-							},
-						},
-						"databricks_workspace": schema.ListNestedBlock{
-							NestedObject: schema.NestedBlockObject{
-								Attributes: map[string]schema.Attribute{
-									"force_delete": schema.BoolAttribute{
-										Optional:    true,
-										Description: "When enabled, the managed resource group that contains the Unity Catalog data will be forcibly deleted when the workspace is destroyed, regardless of contents.",
-									},
-								},
-							},
-						},
 					},
 				},
 			},
@@ -513,17 +553,40 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 			Optional:           true,
 			DeprecationMessage: "'graceful_shutdown' has been deprecated and will be removed from v5.0 of the AzureRM provider.",
 		}
+
+		response.Schema.Attributes["skip_provider_registration"] = schema.BoolAttribute{
+			Optional:           true,
+			Description:        "Should the AzureRM Provider skip registering all of the Resource Providers that it supports, if they're not already registered?",
+			DeprecationMessage: "This property is deprecated and will be removed in v5.0 of the AzureRM provider. Please use the `resource_provider_registrations` property instead.",
+		}
+
+		response.Schema.Blocks["enhanced_validation"] = schema.ListNestedBlock{
+			DeprecationMessage: "This block has been deprecated and will be removed in version 5.0 of the AzureRM provider. Please use the `enhanced_validation` block inside the `features` block instead.",
+			Validators: []validator.List{
+				listvalidator.SizeAtMost(1),
+				listvalidator.ConflictsWith(path.MatchRoot("features").AtListIndex(0).AtName("enhanced_validation")),
+			},
+			NestedObject: schema.NestedBlockObject{
+				Attributes: map[string]schema.Attribute{
+					"locations": schema.BoolAttribute{
+						Optional:    true,
+						Description: "Should the AzureRM Provider validate location arguments against the list of supported Azure Locations?",
+					},
+					"resource_providers": schema.BoolAttribute{
+						Optional:    true,
+						Description: "Should the AzureRM Provider validate Resource Provider arguments against the list of supported Resource Providers? When enabled, invalid resource providers are caught at plan time; when disabled, they are caught at apply time.",
+					},
+				},
+			},
+		}
+
+		enhancedValidation := response.Schema.Blocks["features"].(schema.ListNestedBlock).NestedObject.Blocks["enhanced_validation"].(schema.ListNestedBlock)
+		enhancedValidation.Validators = append(enhancedValidation.Validators, listvalidator.ConflictsWith(path.MatchRoot("enhanced_validation")))
+		response.Schema.Blocks["features"].(schema.ListNestedBlock).NestedObject.Blocks["enhanced_validation"] = enhancedValidation
 	}
 }
 
 func (p *azureRmFrameworkProvider) Configure(ctx context.Context, request provider.ConfigureRequest, response *provider.ConfigureResponse) {
-	var data ProviderModel
-
-	response.Diagnostics.Append(request.Config.Get(ctx, &data)...)
-	if response.Diagnostics.HasError() {
-		return
-	}
-
 	if p.V2Provider != nil {
 		v := p.V2Provider.Meta()
 
@@ -533,6 +596,13 @@ func (p *azureRmFrameworkProvider) Configure(ctx context.Context, request provid
 		response.ListResourceData = v
 		response.ActionData = v
 	} else {
+		var data ProviderModel
+
+		response.Diagnostics.Append(request.Config.Get(ctx, &data)...)
+		if response.Diagnostics.HasError() {
+			return
+		}
+
 		p.Load(ctx, &data, request.TerraformVersion, &response.Diagnostics)
 
 		response.DataSourceData = &p.ProviderConfig
@@ -591,7 +661,13 @@ func (p *azureRmFrameworkProvider) ListResources(_ context.Context) []func() lis
 	var output []func() list.ListResource
 
 	for _, service := range pluginsdkprovider.SupportedFrameworkServices() {
-		output = append(output, service.ListResources()...)
+		for _, l := range service.ListResources() {
+			fwl := sdk.FrameworkListResourceWrapper{
+				ResourceMetadata:             sdk.ResourceMetadata{},
+				FrameworkListWrappedResource: l,
+			}
+			output = append(output, fwl.Resource())
+		}
 	}
 
 	return output

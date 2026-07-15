@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -12,7 +12,8 @@ func ContainerRegistryWebhookServiceUri(v interface{}, k string) (warnings []str
 	value := v.(string)
 	if !regexp.MustCompile(`^https?://[^\s]+$`).MatchString(value) {
 		errors = append(errors, fmt.Errorf(
-			"%q must start with http:// or https:// and must not contain whitespaces: %q", k, value))
+			"%q must start with http:// or https:// and must not contain whitespaces: %q", k, value,
+		))
 	}
 
 	return warnings, errors

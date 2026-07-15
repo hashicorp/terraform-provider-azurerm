@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datashare_test
@@ -37,5 +37,5 @@ data "azurerm_data_share_dataset_kusto_cluster" "test" {
   name     = azurerm_data_share_dataset_kusto_cluster.test.name
   share_id = azurerm_data_share_dataset_kusto_cluster.test.share_id
 }
-`, ShareKustoClusterDataSetResource{}.basic(data))
+`, DataShareDatasetKustoClusterResource{}.basic(data))
 }

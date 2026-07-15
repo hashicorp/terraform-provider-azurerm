@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package nginx
@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxdeployment"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/preflight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -77,7 +78,7 @@ type DeploymentModel struct {
 	Location               string                                     `tfschema:"location"`
 	Capacity               int64                                      `tfschema:"capacity"`
 	AutoScaleProfile       []AutoScaleProfile                         `tfschema:"auto_scale_profile"`
-	DiagnoseSupportEnabled bool                                       `tfschema:"diagnose_support_enabled"`
+	DiagnoseSupportEnabled bool                                       `tfschema:"diagnose_support_enabled, removedInNextMajorVersion"`
 	Email                  string                                     `tfschema:"email"`
 	IpAddress              string                                     `tfschema:"ip_address"`
 	LoggingStorageAccount  []LoggingStorageAccount                    `tfschema:"logging_storage_account,removedInNextMajorVersion"`
@@ -188,12 +189,6 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"diagnose_support_enabled": {
-			Type:         pluginsdk.TypeBool,
-			Optional:     true,
-			ValidateFunc: nil,
-		},
-
 		"email": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -265,7 +260,8 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 				[]string{
 					"stable",
 					"preview",
-				}, false),
+				}, false,
+			),
 		},
 
 		"web_application_firewall": {
@@ -324,6 +320,12 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 				},
 			},
 		}
+
+		resource["diagnose_support_enabled"] = &pluginsdk.Schema{
+			Deprecated: "this property is deprecated and will be removed in v5.0, metrics are enabled by default.",
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+		}
 	}
 	return resource
 }
@@ -357,125 +359,137 @@ func (m DeploymentResource) ResourceType() string {
 func (m DeploymentResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.Nginx.NginxDeployment
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Nginx.NginxDeployment
 
 			var model DeploymentModel
-			if err := meta.Decode(&model); err != nil {
+			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
 
-			subscriptionID := meta.Client.Account.SubscriptionId
+			subscriptionID := metadata.Client.Account.SubscriptionId
 			id := nginxdeployment.NewNginxDeploymentID(subscriptionID, model.ResourceGroupName, model.Name)
-			existing, err := client.DeploymentsGet(ctx, id)
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				if err != nil {
-					return fmt.Errorf("retrieving %s: %v", id, err)
-				}
-				return meta.ResourceRequiresImport(m.ResourceType(), id)
-			}
-
-			req := nginxdeployment.NginxDeployment{}
-			req.Name = pointer.To(model.Name)
-			req.Location = pointer.To(model.Location)
-			req.Tags = pointer.FromMapOfStringStrings(model.Tags)
-
-			if model.Sku != "" {
-				sku := nginxdeployment.ResourceSku{Name: model.Sku}
-				req.Sku = &sku
-			}
-
-			prop := &nginxdeployment.NginxDeploymentProperties{}
-
-			if !features.FivePointOh() {
-				if len(model.LoggingStorageAccount) > 0 {
-					prop.Logging = &nginxdeployment.NginxLogging{
-						StorageAccount: &nginxdeployment.NginxStorageAccount{
-							AccountName:   pointer.FromString(model.LoggingStorageAccount[0].Name),
-							ContainerName: pointer.FromString(model.LoggingStorageAccount[0].ContainerName),
-						},
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.DeploymentsGet(ctx, id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					if err != nil {
+						return fmt.Errorf("retrieving %s: %v", id, err)
 					}
+					return metadata.ResourceRequiresImport(m.ResourceType(), id)
 				}
 			}
 
-			prop.EnableDiagnosticsSupport = pointer.FromBool(model.DiagnoseSupportEnabled)
-			prop.NetworkProfile = expandNetworkProfile(model.FrontendPublic, model.FrontendPrivate, model.NetworkInterface)
-
-			isBasicSKU := strings.HasPrefix(model.Sku, "basic")
-			hasScaling := (model.Capacity > 0 || len(model.AutoScaleProfile) > 0)
-			if isBasicSKU && hasScaling {
-				return fmt.Errorf("basic SKUs are incompatible with `capacity` or `auto_scale_profiles`")
-			}
-			if !isBasicSKU && !hasScaling {
-				return fmt.Errorf("scaling is required for `sku` '%s', please provide `capacity` or `auto_scale_profiles`", model.Sku)
-			}
-
-			if model.Capacity > 0 {
-				prop.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
-					Capacity: pointer.FromInt64(model.Capacity),
-				}
-			}
-
-			if autoScaleProfile := model.AutoScaleProfile; len(autoScaleProfile) > 0 {
-				var autoScaleProfiles []nginxdeployment.ScaleProfile
-				for _, profile := range autoScaleProfile {
-					autoScaleProfiles = append(autoScaleProfiles, nginxdeployment.ScaleProfile{
-						Name: profile.Name,
-						Capacity: nginxdeployment.ScaleProfileCapacity{
-							Min: profile.Min,
-							Max: profile.Max,
-						},
-					})
-				}
-				prop.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
-					AutoScaleSettings: &nginxdeployment.NginxDeploymentScalingPropertiesAutoScaleSettings{
-						Profiles: autoScaleProfiles,
-					},
-				}
-			}
-
-			if model.Email != "" {
-				prop.UserProfile = &nginxdeployment.NginxDeploymentUserProfile{
-					PreferredEmail: pointer.To(model.Email),
-				}
-			}
-
-			if model.UpgradeChannel != "" {
-				prop.AutoUpgradeProfile = &nginxdeployment.AutoUpgradeProfile{
-					UpgradeChannel: model.UpgradeChannel,
-				}
-			}
-
-			if len(model.WebApplicationFirewall) > 0 {
-				activationState := nginxdeployment.ActivationStateDisabled
-				if model.WebApplicationFirewall[0].ActivationStateEnabled {
-					activationState = nginxdeployment.ActivationStateEnabled
-				}
-
-				prop.NginxAppProtect = &nginxdeployment.NginxDeploymentPropertiesNginxAppProtect{
-					WebApplicationFirewallSettings: nginxdeployment.WebApplicationFirewallSettings{
-						ActivationState: &activationState,
-					},
-				}
-			}
-
-			req.Properties = prop
-
-			req.Identity, err = identity.ExpandSystemAndUserAssignedMapFromModel(model.Identity)
+			req, err := expandCreateForNginxDeployment(model)
 			if err != nil {
-				return fmt.Errorf("expanding identities: %+v", err)
+				return err
 			}
 
-			err = client.DeploymentsCreateOrUpdateThenPoll(ctx, id, req)
-			if err != nil {
+			if err := client.DeploymentsCreateOrUpdateCallbackThenPoll(ctx, id, req, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %v", id, err)
 			}
 
-			meta.SetID(id)
+			metadata.SetID(id)
 			return nil
 		},
 	}
+}
+
+func expandCreateForNginxDeployment(model DeploymentModel) (nginxdeployment.NginxDeployment, error) {
+	req := nginxdeployment.NginxDeployment{}
+	req.Name = pointer.To(model.Name)
+	req.Location = pointer.To(model.Location)
+	req.Tags = pointer.To(model.Tags)
+
+	if model.Sku != "" {
+		sku := nginxdeployment.ResourceSku{Name: model.Sku}
+		req.Sku = &sku
+	}
+
+	prop := &nginxdeployment.NginxDeploymentProperties{}
+
+	if !features.FivePointOh() {
+		if len(model.LoggingStorageAccount) > 0 {
+			prop.Logging = &nginxdeployment.NginxLogging{
+				StorageAccount: &nginxdeployment.NginxStorageAccount{
+					AccountName:   pointer.To(model.LoggingStorageAccount[0].Name),
+					ContainerName: pointer.To(model.LoggingStorageAccount[0].ContainerName),
+				},
+			}
+		}
+		prop.EnableDiagnosticsSupport = pointer.To(model.DiagnoseSupportEnabled)
+	}
+
+	prop.NetworkProfile = expandNetworkProfile(model.FrontendPublic, model.FrontendPrivate, model.NetworkInterface)
+
+	isBasicSKU := strings.HasPrefix(model.Sku, "basic")
+	hasScaling := model.Capacity > 0 || len(model.AutoScaleProfile) > 0
+	if isBasicSKU && hasScaling {
+		return req, fmt.Errorf("basic SKUs are incompatible with `capacity` or `auto_scale_profiles`")
+	}
+	if !isBasicSKU && !hasScaling {
+		return req, fmt.Errorf("scaling is required for `sku` '%s', please provide `capacity` or `auto_scale_profiles`", model.Sku)
+	}
+
+	if model.Capacity > 0 {
+		prop.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
+			Capacity: pointer.To(model.Capacity),
+		}
+	}
+
+	if autoScaleProfile := model.AutoScaleProfile; len(autoScaleProfile) > 0 {
+		var autoScaleProfiles []nginxdeployment.ScaleProfile
+		for _, profile := range autoScaleProfile {
+			autoScaleProfiles = append(autoScaleProfiles, nginxdeployment.ScaleProfile{
+				Name: profile.Name,
+				Capacity: nginxdeployment.ScaleProfileCapacity{
+					Min: profile.Min,
+					Max: profile.Max,
+				},
+			})
+		}
+		prop.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
+			AutoScaleSettings: &nginxdeployment.NginxDeploymentScalingPropertiesAutoScaleSettings{
+				Profiles: autoScaleProfiles,
+			},
+		}
+	}
+
+	if model.Email != "" {
+		prop.UserProfile = &nginxdeployment.NginxDeploymentUserProfile{
+			PreferredEmail: pointer.To(model.Email),
+		}
+	}
+
+	if model.UpgradeChannel != "" {
+		prop.AutoUpgradeProfile = &nginxdeployment.AutoUpgradeProfile{
+			UpgradeChannel: model.UpgradeChannel,
+		}
+	}
+
+	if len(model.WebApplicationFirewall) > 0 {
+		activationState := nginxdeployment.ActivationStateDisabled
+		if model.WebApplicationFirewall[0].ActivationStateEnabled {
+			activationState = nginxdeployment.ActivationStateEnabled
+		}
+
+		prop.NginxAppProtect = &nginxdeployment.NginxDeploymentPropertiesNginxAppProtect{
+			WebApplicationFirewallSettings: nginxdeployment.WebApplicationFirewallSettings{
+				ActivationState: &activationState,
+			},
+		}
+	}
+
+	req.Properties = prop
+
+	expandedIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(model.Identity)
+	if err != nil {
+		return req, fmt.Errorf("expanding identities: %+v", err)
+	}
+
+	req.Identity = expandedIdentity
+
+	return req, nil
 }
 
 func (m DeploymentResource) Read() sdk.ResourceFunc {
@@ -502,27 +516,27 @@ func (m DeploymentResource) Read() sdk.ResourceFunc {
 			}
 
 			if model := result.Model; model != nil {
-				output.Location = pointer.ToString(model.Location)
-				output.Tags = pointer.ToMapOfStringStrings(model.Tags)
+				output.Location = pointer.From(model.Location)
+				output.Tags = pointer.From(model.Tags)
 				if model.Sku != nil {
 					output.Sku = model.Sku.Name
 				}
 
 				if props := model.Properties; props != nil {
-					output.IpAddress = pointer.ToString(props.IPAddress)
-					output.NginxVersion = pointer.ToString(props.NginxVersion)
-					output.DataplaneAPIEndpoint = pointer.ToString(props.DataplaneApiEndpoint)
-					output.DiagnoseSupportEnabled = pointer.ToBool(props.EnableDiagnosticsSupport)
+					output.IpAddress = pointer.From(props.IPAddress)
+					output.NginxVersion = pointer.From(props.NginxVersion)
+					output.DataplaneAPIEndpoint = pointer.From(props.DataplaneApiEndpoint)
 
 					if !features.FivePointOh() {
 						if props.Logging != nil && props.Logging.StorageAccount != nil {
 							output.LoggingStorageAccount = []LoggingStorageAccount{
 								{
-									Name:          pointer.ToString(props.Logging.StorageAccount.AccountName),
-									ContainerName: pointer.ToString(props.Logging.StorageAccount.ContainerName),
+									Name:          pointer.From(props.Logging.StorageAccount.AccountName),
+									ContainerName: pointer.From(props.Logging.StorageAccount.ContainerName),
 								},
 							}
 						}
+						output.DiagnoseSupportEnabled = pointer.From(props.EnableDiagnosticsSupport)
 					}
 
 					if profile := props.NetworkProfile; profile != nil {
@@ -530,7 +544,7 @@ func (m DeploymentResource) Read() sdk.ResourceFunc {
 							if publicIps := frontend.PublicIPAddresses; publicIps != nil && len(*publicIps) > 0 {
 								output.FrontendPublic = append(output.FrontendPublic, FrontendPublic{})
 								for _, ip := range *publicIps {
-									output.FrontendPublic[0].IpAddress = append(output.FrontendPublic[0].IpAddress, pointer.ToString(ip.Id))
+									output.FrontendPublic[0].IpAddress = append(output.FrontendPublic[0].IpAddress, pointer.From(ip.Id))
 								}
 							}
 
@@ -542,9 +556,9 @@ func (m DeploymentResource) Read() sdk.ResourceFunc {
 									}
 
 									output.FrontendPrivate = append(output.FrontendPrivate, FrontendPrivate{
-										IpAddress:        pointer.ToString(ip.PrivateIPAddress),
+										IpAddress:        pointer.From(ip.PrivateIPAddress),
 										AllocationMethod: method,
-										SubnetId:         pointer.ToString(ip.SubnetId),
+										SubnetId:         pointer.From(ip.SubnetId),
 									})
 								}
 							}
@@ -552,14 +566,14 @@ func (m DeploymentResource) Read() sdk.ResourceFunc {
 
 						if netIf := profile.NetworkInterfaceConfiguration; netIf != nil {
 							output.NetworkInterface = []NetworkInterface{
-								{SubnetId: pointer.ToString(netIf.SubnetId)},
+								{SubnetId: pointer.From(netIf.SubnetId)},
 							}
 						}
 					}
 
 					if scaling := props.ScalingProperties; scaling != nil {
 						if capacity := scaling.Capacity; capacity != nil {
-							output.Capacity = pointer.ToInt64(props.ScalingProperties.Capacity)
+							output.Capacity = pointer.From(props.ScalingProperties.Capacity)
 						}
 						if autoScaleProfiles := scaling.AutoScaleSettings; autoScaleProfiles != nil {
 							profiles := autoScaleProfiles.Profiles
@@ -574,7 +588,7 @@ func (m DeploymentResource) Read() sdk.ResourceFunc {
 					}
 
 					if userProfile := props.UserProfile; userProfile != nil && userProfile.PreferredEmail != nil {
-						output.Email = pointer.ToString(props.UserProfile.PreferredEmail)
+						output.Email = pointer.From(props.UserProfile.PreferredEmail)
 					}
 
 					if props.AutoUpgradeProfile != nil {
@@ -664,7 +678,7 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 			}
 
 			if meta.ResourceData.HasChange("tags") {
-				req.Tags = pointer.FromMapOfStringStrings(model.Tags)
+				req.Tags = pointer.To(model.Tags)
 			}
 
 			if meta.ResourceData.HasChange("identity") {
@@ -678,20 +692,20 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 				if meta.ResourceData.HasChange("logging_storage_account") && len(model.LoggingStorageAccount) > 0 {
 					req.Properties.Logging = &nginxdeployment.NginxLogging{
 						StorageAccount: &nginxdeployment.NginxStorageAccount{
-							AccountName:   pointer.FromString(model.LoggingStorageAccount[0].Name),
-							ContainerName: pointer.FromString(model.LoggingStorageAccount[0].ContainerName),
+							AccountName:   pointer.To(model.LoggingStorageAccount[0].Name),
+							ContainerName: pointer.To(model.LoggingStorageAccount[0].ContainerName),
 						},
 					}
 				}
 			}
 
 			if meta.ResourceData.HasChange("diagnose_support_enabled") {
-				req.Properties.EnableDiagnosticsSupport = pointer.FromBool(model.DiagnoseSupportEnabled)
+				req.Properties.EnableDiagnosticsSupport = pointer.To(model.DiagnoseSupportEnabled)
 			}
 
 			if meta.ResourceData.HasChange("capacity") && model.Capacity > 0 {
 				req.Properties.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
-					Capacity: pointer.FromInt64(model.Capacity),
+					Capacity: pointer.To(model.Capacity),
 				}
 			}
 
@@ -776,4 +790,42 @@ func (m DeploymentResource) Delete() sdk.ResourceFunc {
 
 func (m DeploymentResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return nginxdeployment.ValidateNginxDeploymentID
+}
+
+func (m DeploymentResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			rd := metadata.ResourceDiff
+
+			if metadata.Client.Features.EnhancedValidation.PreflightEnabled {
+				// Only perform preflight validation if there are changes. This avoids validation failures and
+				// additional API calls for resources that are unchanged between plan invocations
+				if len(rd.GetChangedKeysPrefix("")) > 0 || rd.Id() == "" {
+					var model DeploymentModel
+					if err := metadata.DecodeDiff(&model); err != nil {
+						return err
+					}
+
+					req, err := expandCreateForNginxDeployment(model)
+					if err != nil {
+						return err
+					}
+
+					id := nginxdeployment.NewNginxDeploymentID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
+
+					preflightValidate, err := preflight.NewValidationRequest(pointer.To(model.Location), pointer.To(id), "2024-11-01-preview", req)
+					if err != nil {
+						return fmt.Errorf("constructing preflight validation request: %w", err)
+					}
+
+					if err = preflightValidate.ValidateResource(ctx, metadata); err != nil {
+						return err
+					}
+				}
+			}
+
+			return nil
+		},
+	}
 }

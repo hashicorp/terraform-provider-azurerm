@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sentinel
@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2023-12-01-preview/alertrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -142,15 +143,17 @@ func resourceSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *pluginsdk.Resour
 	id := alertrules.NewAlertRuleID(workspaceID.SubscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, name)
 
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("checking for existing Sentinel Alert Rule Ms Security Incident %q: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			resp, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(resp.HttpResponse) {
+					return fmt.Errorf("checking for existing Sentinel Alert Rule Ms Security Incident %q: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(resp.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_sentinel_alert_rule_ms_security_incident", id.ID())
+			if !response.WasNotFound(resp.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_sentinel_alert_rule_ms_security_incident", id.ID())
+			}
 		}
 	}
 
@@ -158,14 +161,14 @@ func resourceSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *pluginsdk.Resour
 		Properties: &alertrules.MicrosoftSecurityIncidentCreationAlertRuleProperties{
 			ProductFilter:    alertrules.MicrosoftSecurityProductName(d.Get("product_filter").(string)),
 			DisplayName:      d.Get("display_name").(string),
-			Description:      utils.String(d.Get("description").(string)),
+			Description:      pointer.To(d.Get("description").(string)),
 			Enabled:          d.Get("enabled").(bool),
 			SeveritiesFilter: expandAlertRuleMsSecurityIncidentSeverityFilter(d.Get("severity_filter").(*pluginsdk.Set).List()),
 		},
 	}
 
 	if v, ok := d.GetOk("alert_rule_template_guid"); ok {
-		param.Properties.AlertRuleTemplateName = utils.String(v.(string))
+		param.Properties.AlertRuleTemplateName = pointer.To(v.(string))
 	}
 
 	if dnf, ok := d.GetOk("display_name_filter"); ok {

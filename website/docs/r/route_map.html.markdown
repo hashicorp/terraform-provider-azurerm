@@ -82,7 +82,7 @@ A `rule` block supports the following:
 
 An `action` block supports the following:
 
-* `parameter` - A `parameter` block as defined below. Required if `type` is anything other than `Drop`.
+* `parameter` - (Optional) A `parameter` block as defined below. Required if `type` is anything other than `Drop`.
 
 * `type` - (Required) The type of the action to be taken. Possible values are `Add`, `Drop`, `Remove`, `Replace` and `Unknown`.
 

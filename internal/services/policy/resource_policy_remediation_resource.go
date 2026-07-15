@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package policy
@@ -128,14 +128,16 @@ func resourceArmResourcePolicyRemediationCreateUpdate(d *pluginsdk.ResourceData,
 	id := remediations.NewScopedRemediationID(resourceId, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.GetAtResource(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id.ID(), err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.GetAtResource(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id.ID(), err)
+				}
 			}
-		}
-		if existing.Model != nil {
-			return tf.ImportAsExistsError("azurerm_resource_policy_remediation", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_resource_policy_remediation", id.ID())
+			}
 		}
 	}
 
@@ -147,7 +149,9 @@ func resourceArmResourcePolicyRemediationCreateUpdate(d *pluginsdk.ResourceData,
 		return fmt.Errorf("creating/updating %s: %+v", id.ID(), err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
 
 	return resourceArmResourcePolicyRemediationRead(d, meta)
 }
@@ -197,7 +201,8 @@ func resourceArmResourcePolicyRemediationDelete(d *pluginsdk.ResourceData, meta 
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if err := waitForRemediationToDelete(ctx,
+	if err := waitForRemediationToDelete(
+		ctx,
 		existing.Model.Properties,
 		id.ID(),
 		d.Timeout(pluginsdk.TimeoutDelete),
@@ -276,21 +281,21 @@ func readRemediationProperties(d *pluginsdk.ResourceData) (prop *remediations.Re
 		Filters: &remediations.RemediationFilters{
 			Locations: utils.ExpandStringSlice(d.Get("location_filters").([]interface{})),
 		},
-		PolicyAssignmentId:          utils.String(d.Get("policy_assignment_id").(string)),
-		PolicyDefinitionReferenceId: utils.String(d.Get("policy_definition_reference_id").(string)),
+		PolicyAssignmentId:          pointer.To(d.Get("policy_assignment_id").(string)),
+		PolicyDefinitionReferenceId: pointer.To(d.Get("policy_definition_reference_id").(string)),
 	}
 	mode := remediations.ResourceDiscoveryMode(d.Get("resource_discovery_mode").(string))
 	prop.ResourceDiscoveryMode = &mode
 	if v := d.Get("failure_percentage").(float64); v != 0 {
 		prop.FailureThreshold = &remediations.RemediationPropertiesFailureThreshold{
-			Percentage: utils.Float(v),
+			Percentage: pointer.To(v),
 		}
 	}
 	if v := d.Get("parallel_deployments").(int); v != 0 {
-		prop.ParallelDeployments = utils.Int64(int64(v))
+		prop.ParallelDeployments = pointer.To(int64(v))
 	}
 	if v := d.Get("resource_count").(int); v != 0 {
-		prop.ResourceCount = utils.Int64(int64(v))
+		prop.ResourceCount = pointer.To(int64(v))
 	}
 	return
 }

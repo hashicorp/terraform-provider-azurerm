@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package loadbalancer
@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -218,7 +219,9 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *pluginsdk.ResourceData, meta 
 			if exists {
 				if id.InboundNatRuleName == *existingNatRule.Name {
 					if d.IsNewResource() {
-						return tf.ImportAsExistsError("azurerm_lb_nat_rule", *existingNatRule.Id)
+						if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+							return tf.ImportAsExistsError("azurerm_lb_nat_rule", *existingNatRule.Id)
+						}
 					}
 
 					// this nat rule is being updated/reapplied remove old copy from the slice
@@ -228,13 +231,18 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *pluginsdk.ResourceData, meta 
 
 			props.InboundNatRules = &natRules
 
-			err := client.CreateOrUpdateThenPoll(ctx, plbId, *model)
-			if err != nil {
-				return fmt.Errorf("updating %s: %+v", id, err)
+			if d.IsNewResource() {
+				if err := client.CreateOrUpdateCallbackThenPoll(ctx, plbId, *model, sdk.SetIDCallback(meta, &id, d)); err != nil {
+					return fmt.Errorf("creating %s: %+v", id, err)
+				}
+				d.SetId(id.ID())
+			} else {
+				if err := client.CreateOrUpdateThenPoll(ctx, plbId, *model); err != nil {
+					return fmt.Errorf("updating %s: %+v", id, err)
+				}
 			}
 		}
 	}
-	d.SetId(id.ID())
 
 	return resourceArmLoadBalancerNatRuleRead(d, meta)
 }
@@ -359,20 +367,19 @@ func resourceArmLoadBalancerNatRuleDelete(d *pluginsdk.ResourceData, meta interf
 
 func expandAzureRmLoadBalancerNatRule(d *pluginsdk.ResourceData, lb *loadbalancers.LoadBalancer, loadBalancerId loadbalancers.LoadBalancerId) (*loadbalancers.InboundNatRule, error) {
 	properties := loadbalancers.InboundNatRulePropertiesFormat{
-		Protocol:    pointer.To(loadbalancers.TransportProtocol(d.Get("protocol").(string))),
-		BackendPort: pointer.To(int64(d.Get("backend_port").(int))),
-	}
-
-	if v, ok := d.GetOk("tcp_reset_enabled"); ok {
-		properties.EnableTcpReset = pointer.To(v.(bool))
+		Protocol:         pointer.To(loadbalancers.TransportProtocol(d.Get("protocol").(string))),
+		BackendPort:      pointer.To(int64(d.Get("backend_port").(int))),
+		EnableFloatingIP: pointer.To(d.Get("floating_ip_enabled").(bool)),
+		EnableTcpReset:   pointer.To(d.Get("tcp_reset_enabled").(bool)),
 	}
 
 	if !features.FivePointOh() {
-		if v, ok := d.GetOk("enable_floating_ip"); ok {
-			properties.EnableFloatingIP = pointer.To(v.(bool))
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "enable_floating_ip") {
+			properties.EnableFloatingIP = pointer.To(d.Get("enable_floating_ip").(bool))
 		}
-		if v, ok := d.GetOk("enable_tcp_reset"); ok {
-			properties.EnableTcpReset = pointer.To(v.(bool))
+
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "enable_tcp_reset") {
+			properties.EnableTcpReset = pointer.To(d.Get("enable_tcp_reset").(bool))
 		}
 	}
 
@@ -396,15 +403,6 @@ func expandAzureRmLoadBalancerNatRule(d *pluginsdk.ResourceData, lb *loadbalance
 		} else {
 			properties.FrontendPortRangeStart = pointer.To(int64(d.Get("frontend_port_start").(int)))
 			properties.FrontendPortRangeEnd = pointer.To(int64(d.Get("frontend_port_end").(int)))
-		}
-	}
-
-	if v, ok := d.GetOk("floating_ip_enabled"); ok {
-		properties.EnableFloatingIP = pointer.To(v.(bool))
-	}
-	if !features.FivePointOh() {
-		if v, ok := d.GetOk("enable_floating_ip"); ok {
-			properties.EnableFloatingIP = pointer.To(v.(bool))
 		}
 	}
 

@@ -56,11 +56,12 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "example"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "example"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 }
 
 resource "azurerm_data_factory_linked_service_key_vault" "test" {
@@ -122,11 +123,11 @@ The following supported arguments are specific to Azure Blob Storage Linked Serv
 
 * `sas_uri` - (Optional) The SAS URI. Conflicts with `connection_string_insecure`, `connection_string` and `service_endpoint`.
 
-* `key_vault_sas_token` - (Optional) A `key_vault_sas_token` block as defined below. Use this argument to store SAS Token in an existing Key Vault. It needs an existing Key Vault Data Factory Linked Service. A `sas_uri` is required.
+* `sas_token_linked_key_vault_key` - (Optional) A `sas_token_linked_key_vault_key` block as defined below. Use this argument to store SAS Token in an existing Key Vault. It needs an existing Key Vault Data Factory Linked Service. A `sas_uri` is required.
 
 ---
 
-A `key_vault_sas_token` block supports the following:
+A `sas_token_linked_key_vault_key` block supports the following:
 
 * `linked_service_name` - (Required) Specifies the name of an existing Key Vault Data Factory Linked Service.
 

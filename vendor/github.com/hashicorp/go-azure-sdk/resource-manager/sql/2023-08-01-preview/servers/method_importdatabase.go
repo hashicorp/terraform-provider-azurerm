@@ -63,9 +63,20 @@ func (c ServersClient) ImportDatabase(ctx context.Context, id commonids.SqlServe
 
 // ImportDatabaseThenPoll performs ImportDatabase then polls until it's completed
 func (c ServersClient) ImportDatabaseThenPoll(ctx context.Context, id commonids.SqlServerId, input ImportNewDatabaseDefinition) error {
+	return c.ImportDatabaseCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ImportDatabaseCallbackThenPoll performs ImportDatabase, runs the optional callback function, then polls until it's completed
+func (c ServersClient) ImportDatabaseCallbackThenPoll(ctx context.Context, id commonids.SqlServerId, input ImportNewDatabaseDefinition, callback func() error) error {
 	result, err := c.ImportDatabase(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ImportDatabase: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

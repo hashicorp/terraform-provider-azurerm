@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud
@@ -456,12 +456,14 @@ func (s SpringCloudGatewayResource) Create() sdk.ResourceFunc {
 			}
 			id := appplatform.NewGatewayID(springId.SubscriptionId, springId.ResourceGroupName, springId.ServiceName, model.Name)
 
-			existing, err := client.GatewaysGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(s.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GatewaysGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(s.ResourceType(), id)
+				}
 			}
 
 			service, err := client.ServicesGet(ctx, *springId)
@@ -496,12 +498,11 @@ func (s SpringCloudGatewayResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			err = client.GatewaysCreateOrUpdateThenPoll(ctx, id, gatewayResource)
-			if err != nil {
+			if err := client.GatewaysCreateOrUpdateCallbackThenPoll(ctx, id, gatewayResource, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}

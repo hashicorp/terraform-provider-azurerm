@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package streamanalytics
@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceStreamAnalyticsStreamInputBlob() *pluginsdk.Resource {
@@ -119,19 +118,20 @@ func resourceStreamAnalyticsStreamInputBlobCreateUpdate(d *pluginsdk.ResourceDat
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Stream Input Blob creation.")
 	id := inputs.NewInputID(subscriptionId, d.Get("resource_group_name").(string), d.Get("stream_analytics_job_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_stream_analytics_stream_input_blob", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_stream_analytics_stream_input_blob", id.ID())
+			}
 		}
 	}
 
@@ -149,20 +149,20 @@ func resourceStreamAnalyticsStreamInputBlobCreateUpdate(d *pluginsdk.ResourceDat
 	}
 
 	props := inputs.Input{
-		Name: utils.String(id.InputName),
+		Name: pointer.To(id.InputName),
 		Properties: &inputs.StreamInputProperties{
 			// Type: streamanalytics.TypeBasicInputPropertiesTypeStream,
 			Datasource: &inputs.BlobStreamInputDataSource{
 				// Type: streamanalytics.TypeBasicStreamInputDataSourceTypeMicrosoftStorageBlob,
 				Properties: &inputs.BlobStreamInputDataSourceProperties{
-					Container:   utils.String(containerName),
-					DateFormat:  utils.String(dateFormat),
-					PathPattern: utils.String(pathPattern),
-					TimeFormat:  utils.String(timeFormat),
+					Container:   pointer.To(containerName),
+					DateFormat:  pointer.To(dateFormat),
+					PathPattern: pointer.To(pathPattern),
+					TimeFormat:  pointer.To(timeFormat),
 					StorageAccounts: &[]inputs.StorageAccount{
 						{
-							AccountName: utils.String(storageAccountName),
-							AccountKey:  utils.String(storageAccountKey),
+							AccountName: pointer.To(storageAccountName),
+							AccountKey:  pointer.To(storageAccountKey),
 						},
 					},
 					AuthenticationMode: pointer.To(inputs.AuthenticationMode(d.Get("authentication_mode").(string))),

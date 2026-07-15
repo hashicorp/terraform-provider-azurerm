@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package custompollers
@@ -9,15 +9,11 @@ import (
 	"log"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/databases"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 )
 
 var _ pollers.PollerType = &dbStatePoller{}
-
-type DatabasesClientInterface interface {
-	Get(ctx context.Context, id databases.DatabaseId) (databases.GetOperationResponse, error)
-}
 
 type dbStatePoller struct {
 	client DatabasesClientInterface

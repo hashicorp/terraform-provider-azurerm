@@ -79,7 +79,7 @@ The following arguments are supported:
 ---
 An `identity` block supports the following:
 
-* `type` - (Optional) The type of managed identity to assign. The only possible value is `SystemAssigned`.
+* `type` - (Required) The type of managed identity to assign. The only possible value is `SystemAssigned`.
 
 ---
 An `authentication_configuration` block supports the following:

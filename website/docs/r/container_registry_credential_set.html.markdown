@@ -57,6 +57,7 @@ resource "azurerm_key_vault" "example" {
   name                       = "examplekeyvault"
   location                   = azurerm_resource_group.example.location
   resource_group_name        = azurerm_resource_group.example.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
@@ -132,6 +133,8 @@ A `authentication_credentials` block supports the following:
 * `password_secret_id` - (Required) The URI of the secret containing the password in a Key Vault.
 
 ~> **Note:** Be aware that you will need to permit the Identity that is created for the Container Registry to have `get` on secrets to the Key Vault, e.g. using the `azurerm_key_vault_access_policy` resource.
+
+---
 
 An `identity` block supports the following:
 

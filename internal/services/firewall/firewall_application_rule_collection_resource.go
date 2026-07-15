@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package firewall
@@ -179,12 +179,12 @@ func resourceFirewallApplicationRuleCollectionCreateUpdate(d *pluginsdk.Resource
 
 	priority := d.Get("priority").(int)
 	newRuleCollection := azurefirewalls.AzureFirewallApplicationRuleCollection{
-		Name: utils.String(name),
+		Name: pointer.To(name),
 		Properties: &azurefirewalls.AzureFirewallApplicationRuleCollectionPropertiesFormat{
 			Action: &azurefirewalls.AzureFirewallRCAction{
 				Type: pointer.To(azurefirewalls.AzureFirewallRCActionType(d.Get("action").(string))),
 			},
-			Priority: utils.Int64(int64(priority)),
+			Priority: pointer.To(int64(priority)),
 			Rules:    applicationRules,
 		},
 	}
@@ -210,15 +210,22 @@ func resourceFirewallApplicationRuleCollectionCreateUpdate(d *pluginsdk.Resource
 
 		ruleCollections[index] = newRuleCollection
 	} else {
+		exists := false
 		if d.IsNewResource() && index != -1 {
-			return tf.ImportAsExistsError("azurerm_firewall_application_rule_collection", id)
+			exists = true
+			if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				return tf.ImportAsExistsError("azurerm_firewall_application_rule_collection", id)
+			}
 		}
 
-		ruleCollections = append(ruleCollections, newRuleCollection)
+		if !exists {
+			ruleCollections = append(ruleCollections, newRuleCollection)
+		}
 	}
 
 	firewall.Model.Properties.ApplicationRuleCollections = &ruleCollections
 
+	// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
 	if err = client.CreateOrUpdateThenPoll(ctx, firewallId, *firewall.Model); err != nil {
 		return fmt.Errorf("creating/updating Application Rule Collection %q in %s: %+v", name, firewallId, err)
 	}
@@ -401,8 +408,8 @@ func expandFirewallApplicationRules(inputs []interface{}) (*[]azurefirewalls.Azu
 		ruleTargetFqdns := rule["target_fqdns"].([]interface{})
 
 		output := azurefirewalls.AzureFirewallApplicationRule{
-			Name:            utils.String(ruleName),
-			Description:     utils.String(ruleDescription),
+			Name:            pointer.To(ruleName),
+			Description:     pointer.To(ruleDescription),
 			SourceAddresses: utils.ExpandStringSlice(ruleSourceAddresses),
 			SourceIPGroups:  utils.ExpandStringSlice(ruleSourceIpGroups),
 			FqdnTags:        utils.ExpandStringSlice(ruleFqdnTags),
@@ -414,7 +421,7 @@ func expandFirewallApplicationRules(inputs []interface{}) (*[]azurefirewalls.Azu
 			protocol := v.(map[string]interface{})
 			port := protocol["port"].(int)
 			ruleProtocol := azurefirewalls.AzureFirewallApplicationRuleProtocol{
-				Port:         utils.Int64(int64(port)),
+				Port:         pointer.To(int64(port)),
 				ProtocolType: pointer.To(azurefirewalls.AzureFirewallApplicationRuleProtocolType(protocol["type"].(string))),
 			}
 			ruleProtocols = append(ruleProtocols, ruleProtocol)

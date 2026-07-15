@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers
@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/kubernetes"
@@ -184,6 +184,24 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 			"azure_policy_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
+			},
+
+			"bootstrap_profile": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"artifact_source": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"container_registry_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 
 			"current_kubernetes_version": {
@@ -590,6 +608,11 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
+
+						"outbound_type": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -742,6 +765,16 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("retrieving User Credentials for %s: %+v", id, err)
 	}
 
+	if model := resp.Model; model != nil {
+		if resp.Model.Sku == nil || resp.Model.Sku.Name == nil {
+			return fmt.Errorf("retrieving %s: SKU information is missing", d.Id())
+		}
+
+		if pointer.From(resp.Model.Sku.Name) == managedclusters.ManagedClusterSKUNameAutomatic {
+			return fmt.Errorf("retrieving %s: azurerm_kubernetes_cluster datasource does not support SKU `Automatic`", d.Id())
+		}
+	}
+
 	d.SetId(id.ID())
 	if model := resp.Model; model != nil {
 		d.Set("name", id.ManagedClusterName)
@@ -789,6 +822,14 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 			agentPoolProfiles := flattenKubernetesClusterDataSourceAgentPoolProfiles(props.AgentPoolProfiles)
 			if err := d.Set("agent_pool_profile", agentPoolProfiles); err != nil {
 				return fmt.Errorf("setting `agent_pool_profile`: %+v", err)
+			}
+
+			bootstrapProfile, err := flattenBootstrapProfile(props.BootstrapProfile)
+			if err != nil {
+				return fmt.Errorf("flattening `bootstrap_profile`: %+v", err)
+			}
+			if err := d.Set("bootstrap_profile", bootstrapProfile); err != nil {
+				return fmt.Errorf("setting `bootstrap_profile`: %+v", err)
 			}
 
 			azureKeyVaultKms := flattenKubernetesClusterDataSourceKeyVaultKms(props.SecurityProfile)
@@ -985,20 +1026,20 @@ func flattenKubernetesClusterCredentials(model *managedclusters.CredentialResult
 			if strings.Contains(rawConfig, "apiserver-id:") || strings.Contains(rawConfig, "exec") {
 				kubeConfigAAD, err := kubernetes.ParseKubeConfigAAD(rawConfig)
 				if err != nil {
-					return utils.String(rawConfig), []interface{}{}
+					return pointer.To(rawConfig), []interface{}{}
 				}
 
 				flattenedKubeConfig = flattenKubernetesClusterDataSourceKubeConfigAAD(*kubeConfigAAD)
 			} else {
 				kubeConfig, err := kubernetes.ParseKubeConfig(rawConfig)
 				if err != nil {
-					return utils.String(rawConfig), []interface{}{}
+					return pointer.To(rawConfig), []interface{}{}
 				}
 
 				flattenedKubeConfig = flattenKubernetesClusterDataSourceKubeConfig(*kubeConfig)
 			}
 
-			return utils.String(rawConfig), flattenedKubeConfig
+			return pointer.To(rawConfig), flattenedKubeConfig
 		}
 	}
 
@@ -1370,6 +1411,8 @@ func flattenKubernetesClusterDataSourceNetworkProfile(profile *managedclusters.C
 		values["load_balancer_sku"] = string(*profile.LoadBalancerSku)
 	}
 
+	values["outbound_type"] = pointer.From(profile.OutboundType)
+
 	return []interface{}{values}
 }
 
@@ -1454,12 +1497,20 @@ func flattenKubernetesClusterDataSourceUpgradeSettings(input *managedclusters.Ag
 		values["max_surge"] = *input.MaxSurge
 	}
 
+	if input.MaxUnavailable != nil {
+		values["max_unavailable"] = *input.MaxUnavailable
+	}
+
 	if input.DrainTimeoutInMinutes != nil {
 		values["drain_timeout_in_minutes"] = *input.DrainTimeoutInMinutes
 	}
 
 	if input.NodeSoakDurationInMinutes != nil {
 		values["node_soak_duration_in_minutes"] = *input.NodeSoakDurationInMinutes
+	}
+
+	if input.UndrainableNodeBehavior != nil {
+		values["undrainable_node_behavior"] = string(*input.UndrainableNodeBehavior)
 	}
 
 	return []interface{}{values}

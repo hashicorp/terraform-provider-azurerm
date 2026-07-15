@@ -86,4 +86,4 @@ terraform import azurerm_automation_connection_classic_certificate.conn1 /subscr
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Automation` - 2023-11-01
+* `Microsoft.Automation` - 2024-10-23

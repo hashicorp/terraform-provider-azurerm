@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package redis
@@ -94,13 +94,15 @@ func (r RedisCacheAccessPolicyAssignmentResource) Create() sdk.ResourceFunc {
 			}
 			id := rediscacheaccesspolicyassignments.NewAccessPolicyAssignmentID(subscriptionId, redisId.ResourceGroupName, redisId.RedisName, model.Name)
 
-			existing, err := client.AccessPolicyAssignmentGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.AccessPolicyAssignmentGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			createInput := rediscacheaccesspolicyassignments.RedisCacheAccessPolicyAssignment{
@@ -115,11 +117,11 @@ func (r RedisCacheAccessPolicyAssignmentResource) Create() sdk.ResourceFunc {
 			locks.ByID(model.RedisCacheID)
 			defer locks.UnlockByID(model.RedisCacheID)
 
-			if err := client.AccessPolicyAssignmentCreateUpdateThenPoll(ctx, id, createInput); err != nil {
-				return fmt.Errorf("failed to create Redis Cache Access Policy Assignment %s in Redis Cache %s in resource group %s: %s", model.Name, redisId.RedisName, redisId.ResourceGroupName, err)
+			if err := client.AccessPolicyAssignmentCreateUpdateCallbackThenPoll(ctx, id, createInput, metadata.SetIDCallback(&id)); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}

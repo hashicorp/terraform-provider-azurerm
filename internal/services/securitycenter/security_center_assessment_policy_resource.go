@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package securitycenter
@@ -146,15 +146,17 @@ func resourceArmSecurityCenterAssessmentPolicyCreate(d *pluginsdk.ResourceData, 
 
 	id := assessmentsmetadata.NewProviderAssessmentMetadataID(subscriptionId, name)
 
-	existing, err := client.GetInSubscription(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.GetInSubscription(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_security_center_assessment_policy", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_security_center_assessment_policy", id.ID())
+		}
 	}
 
 	params := assessmentsmetadata.SecurityAssessmentMetadataResponse{
@@ -169,7 +171,7 @@ func resourceArmSecurityCenterAssessmentPolicyCreate(d *pluginsdk.ResourceData, 
 	if v, ok := d.GetOk("categories"); ok {
 		categories := make([]assessmentsmetadata.Categories, 0)
 		for _, item := range v.(*pluginsdk.Set).List() {
-			categories = append(categories, (assessmentsmetadata.Categories)(item.(string)))
+			categories = append(categories, assessmentsmetadata.Categories(item.(string)))
 		}
 		params.Properties.Categories = &categories
 	}
@@ -296,7 +298,7 @@ func resourceArmSecurityCenterAssessmentPolicyUpdate(d *pluginsdk.ResourceData, 
 	if d.HasChange("threats") {
 		threats := make([]assessmentsmetadata.Threats, 0)
 		for _, item := range d.Get("threats").(*pluginsdk.Set).List() {
-			threats = append(threats, (assessmentsmetadata.Threats)(item.(string)))
+			threats = append(threats, assessmentsmetadata.Threats(item.(string)))
 		}
 		existing.Model.Properties.Threats = &threats
 	}
@@ -306,7 +308,7 @@ func resourceArmSecurityCenterAssessmentPolicyUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	if d.HasChange("remediation_description") {
-		existing.Model.Properties.RemediationDescription = utils.String(d.Get("remediation_description").(string))
+		existing.Model.Properties.RemediationDescription = pointer.To(d.Get("remediation_description").(string))
 	}
 
 	if d.HasChange("user_impact") {

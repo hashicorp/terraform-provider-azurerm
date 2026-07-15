@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managedhsm
@@ -16,15 +16,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsms"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/deletedmanagedhsms"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/managedhsms"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidation "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/custompollers"
 	managedHSMValidation "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -35,7 +36,7 @@ import (
 )
 
 func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Create: resourceArmKeyVaultManagedHardwareSecurityModuleCreate,
 		Read:   resourceArmKeyVaultManagedHardwareSecurityModuleRead,
 		Delete: resourceArmKeyVaultManagedHardwareSecurityModuleDelete,
@@ -153,7 +154,7 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 				RequiredWith: []string{"security_domain_quorum"},
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
-					ValidateFunc: keyVaultValidation.NestedItemId,
+					ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeCertificate),
 				},
 			},
 
@@ -174,6 +175,12 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	if !features.FivePointOh() {
+		r.Schema["security_domain_key_vault_certificate_ids"].Elem.(*pluginsdk.Schema).ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny)
+	}
+
+	return r
 }
 
 func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -183,14 +190,17 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.Resourc
 	defer cancel()
 
 	id := managedhsms.NewManagedHSMID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.ManagedHsmClient.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.ManagedHsmClient.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_key_vault_managed_hardware_security_module", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_key_vault_managed_hardware_security_module", id.ID())
+		}
 	}
 
 	publicNetworkAccessEnabled := managedhsms.PublicNetworkAccessEnabled
@@ -198,13 +208,13 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.Resourc
 		publicNetworkAccessEnabled = managedhsms.PublicNetworkAccessDisabled
 	}
 	hsm := managedhsms.ManagedHsm{
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &managedhsms.ManagedHsmProperties{
 			InitialAdminObjectIds:     utils.ExpandStringSlice(d.Get("admin_object_ids").(*pluginsdk.Set).List()),
 			CreateMode:                pointer.To(managedhsms.CreateModeDefault),
-			EnableSoftDelete:          utils.Bool(true),
-			SoftDeleteRetentionInDays: utils.Int64(int64(d.Get("soft_delete_retention_days").(int))),
-			EnablePurgeProtection:     utils.Bool(d.Get("purge_protection_enabled").(bool)),
+			EnableSoftDelete:          pointer.To(true),
+			SoftDeleteRetentionInDays: pointer.To(int64(d.Get("soft_delete_retention_days").(int))),
+			EnablePurgeProtection:     pointer.To(d.Get("purge_protection_enabled").(bool)),
 			PublicNetworkAccess:       pointer.To(publicNetworkAccessEnabled),
 			NetworkAcls:               expandMHSMNetworkAcls(d.Get("network_acls").([]interface{})),
 		},
@@ -218,10 +228,9 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.Resourc
 		hsm.Properties.TenantId = pointer.To(tenantId)
 	}
 
-	if err := client.ManagedHsmClient.CreateOrUpdateThenPoll(ctx, id, hsm); err != nil {
+	if err := client.ManagedHsmClient.CreateOrUpdateCallbackThenPoll(ctx, id, hsm, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-
 	d.SetId(id.ID())
 
 	dataPlaneUri := ""
@@ -418,12 +427,12 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleDelete(d *pluginsdk.Resourc
 	// the polling operation of purge can not terminate correctly, so we use the custom polling operation of polling delete
 	// try to purge again if managed HSM still exists after 1 minute
 	// for API issue: https://github.com/Azure/azure-rest-api-specs/issues/27138
-	purgeId := managedhsms.NewDeletedManagedHSMID(id.SubscriptionId, loc, id.ManagedHSMName)
-	if _, err := client.ManagedHsmClient.PurgeDeleted(ctx, purgeId); err != nil {
+	purgeId := deletedmanagedhsms.NewDeletedManagedHSMID(id.SubscriptionId, loc, id.ManagedHSMName)
+	if _, err := client.DeletedManagedHsmClient.ManagedHsmsPurgeDeleted(ctx, purgeId); err != nil {
 		return fmt.Errorf("purging %s: %+v", id, err)
 	}
 
-	purgePoller := custompollers.NewHSMPurgePoller(client.ManagedHsmClient, purgeId)
+	purgePoller := custompollers.NewHSMPurgePoller(client.DeletedManagedHsmClient, purgeId)
 	poller := pollers.NewPoller(purgePoller, time.Second*30, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to be purged: %+v", id, err)
@@ -478,11 +487,17 @@ func securityDomainDownload(ctx context.Context, sdClient *kv74.HSMSecurityDomai
 		if !ok {
 			continue
 		}
-		keyID, err := keyVaultParse.ParseNestedItemID(certIDStr)
+
+		nestedItemType := keyvault.NestedItemTypeCertificate
+		if !features.FivePointOh() {
+			nestedItemType = keyvault.NestedItemTypeAny
+		}
+
+		keyID, err := keyvault.ParseNestedItemID(certIDStr, keyvault.VersionTypeVersioned, nestedItemType)
 		if err != nil {
 			return "", fmt.Errorf("parsing %q: %+v", certIDStr, err)
 		}
-		certRes, err := keyClient.GetCertificate(ctx, keyID.KeyVaultBaseUrl, keyID.Name, keyID.Version)
+		certRes, err := keyClient.GetCertificate(ctx, keyID.KeyVaultBaseURL, keyID.Name, keyID.Version)
 		if err != nil {
 			return "", fmt.Errorf("retrieving key %s: %v", certID, err)
 		}

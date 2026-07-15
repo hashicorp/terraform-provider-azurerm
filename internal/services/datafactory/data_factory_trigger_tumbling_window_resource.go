@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory
@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -216,14 +217,16 @@ func resourceDataFactoryTriggerTumblingWindowCreateUpdate(d *pluginsdk.ResourceD
 
 	id := parse.NewTriggerID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
+			if err != nil {
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_data_factory_trigger_tumbling_window", id.ID())
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return tf.ImportAsExistsError("azurerm_data_factory_trigger_tumbling_window", id.ID())
+			}
 		}
 	} else {
 		future, err := client.Stop(ctx, id.ResourceGroup, id.FactoryName, id.Name)
@@ -243,13 +246,13 @@ func resourceDataFactoryTriggerTumblingWindowCreateUpdate(d *pluginsdk.ResourceD
 	props := &datafactory.TumblingWindowTrigger{
 		TumblingWindowTriggerTypeProperties: &datafactory.TumblingWindowTriggerTypeProperties{
 			Frequency:      datafactory.TumblingWindowFrequency(d.Get("frequency").(string)),
-			Interval:       utils.Int32(int32(d.Get("interval").(int))),
-			MaxConcurrency: utils.Int32(int32(d.Get("max_concurrency").(int))),
+			Interval:       pointer.To(int32(d.Get("interval").(int))),
+			MaxConcurrency: pointer.To(int32(d.Get("max_concurrency").(int))),
 			RetryPolicy:    expandDataFactoryTriggerTumblingWindowRetryPolicy(d.Get("retry").([]interface{})),
 			DependsOn:      expandDataFactoryTriggerDependency(d.Get("trigger_dependency").(*pluginsdk.Set).List()),
 			StartTime:      &date.Time{Time: startTime},
 		},
-		Description: utils.String(d.Get("description").(string)),
+		Description: pointer.To(d.Get("description").(string)),
 		Pipeline:    expandDataFactoryTriggerSinglePipeline(d.Get("pipeline").([]interface{})),
 		Type:        datafactory.TypeBasicTriggerTypeTumblingWindowTrigger,
 	}
@@ -283,6 +286,8 @@ func resourceDataFactoryTriggerTumblingWindowCreateUpdate(d *pluginsdk.ResourceD
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	if d.Get("activated").(bool) {
 		future, err := client.Start(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 		if err != nil {
@@ -292,8 +297,6 @@ func resourceDataFactoryTriggerTumblingWindowCreateUpdate(d *pluginsdk.ResourceD
 			return fmt.Errorf("waiting on start %s: %+v", id, err)
 		}
 	}
-
-	d.SetId(id.ID())
 
 	return resourceDataFactoryTriggerTumblingWindowRead(d, meta)
 }
@@ -414,8 +417,8 @@ func expandDataFactoryTriggerTumblingWindowRetryPolicy(input []interface{}) *dat
 
 	raw := input[0].(map[string]interface{})
 	return &datafactory.RetryPolicy{
-		Count:             utils.Int32(int32(raw["count"].(int))),
-		IntervalInSeconds: utils.Int32(int32(raw["interval"].(int))),
+		Count:             pointer.To(int32(raw["count"].(int))),
+		IntervalInSeconds: pointer.To(int32(raw["interval"].(int))),
 	}
 }
 
@@ -427,8 +430,8 @@ func expandDataFactoryTriggerSinglePipeline(input []interface{}) *datafactory.Tr
 	raw := input[0].(map[string]interface{})
 	return &datafactory.TriggerPipelineReference{
 		PipelineReference: &datafactory.PipelineReference{
-			ReferenceName: utils.String(raw["name"].(string)),
-			Type:          utils.String("PipelineReference"),
+			ReferenceName: pointer.To(raw["name"].(string)),
+			Type:          pointer.To("PipelineReference"),
 		},
 		Parameters: raw["parameters"].(map[string]interface{}),
 	}
@@ -447,10 +450,10 @@ func expandDataFactoryTriggerDependency(input []interface{}) *[]datafactory.Basi
 
 		var offset, size *string
 		if v := raw["offset"].(string); v != "" {
-			offset = utils.String(v)
+			offset = pointer.To(v)
 		}
 		if v := raw["size"].(string); v != "" {
-			size = utils.String(v)
+			size = pointer.To(v)
 		}
 
 		if v := raw["trigger_name"].(string); v != "" {
@@ -458,8 +461,8 @@ func expandDataFactoryTriggerDependency(input []interface{}) *[]datafactory.Basi
 				Offset: offset,
 				Size:   size,
 				ReferenceTrigger: &datafactory.TriggerReference{
-					ReferenceName: utils.String(v),
-					Type:          utils.String("TriggerReference"),
+					ReferenceName: pointer.To(v),
+					Type:          pointer.To("TriggerReference"),
 				},
 			}
 		} else {

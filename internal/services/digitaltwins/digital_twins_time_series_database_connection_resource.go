@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package digitaltwins
@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2023-01-31/timeseriesdatabaseconnections"
@@ -18,7 +19,6 @@ import (
 	kustoValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type TimeSeriesDatabaseConnectionModel struct {
@@ -133,11 +133,11 @@ func (m TimeSeriesDatabaseConnectionResource) IDValidationFunc() pluginsdk.Schem
 func (m TimeSeriesDatabaseConnectionResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.DigitalTwins.TimeSeriesDatabaseConnectionsClient
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.DigitalTwins.TimeSeriesDatabaseConnectionsClient
 
 			var model TimeSeriesDatabaseConnectionModel
-			if err := meta.Decode(&model); err != nil {
+			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
 
@@ -148,12 +148,14 @@ func (m TimeSeriesDatabaseConnectionResource) Create() sdk.ResourceFunc {
 
 			id := timeseriesdatabaseconnections.NewTimeSeriesDatabaseConnectionID(digitalTwinsId.SubscriptionId, digitalTwinsId.ResourceGroupName, digitalTwinsId.DigitalTwinsInstanceName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if !response.WasNotFound(existing.HttpResponse) {
-				if err != nil {
-					return fmt.Errorf("retrieving %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					if err != nil {
+						return fmt.Errorf("retrieving %s: %+v", id, err)
+					}
+					return metadata.ResourceRequiresImport(m.ResourceType(), id)
 				}
-				return meta.ResourceRequiresImport(m.ResourceType(), id)
 			}
 
 			properties := timeseriesdatabaseconnections.AzureDataExplorerConnectionProperties{
@@ -166,22 +168,22 @@ func (m TimeSeriesDatabaseConnectionResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.KustoTableName != "" {
-				properties.AdxTableName = utils.String(model.KustoTableName)
+				properties.AdxTableName = pointer.To(model.KustoTableName)
 			}
 
 			if model.EventhubConsumerGroupName != "" {
-				properties.EventHubConsumerGroup = utils.String(model.EventhubConsumerGroupName)
+				properties.EventHubConsumerGroup = pointer.To(model.EventhubConsumerGroupName)
 			}
 
 			req := timeseriesdatabaseconnections.TimeSeriesDatabaseConnection{
 				Properties: properties,
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, req); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, req, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			meta.SetID(id)
+			metadata.SetID(id)
 			return nil
 		},
 	}

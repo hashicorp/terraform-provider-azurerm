@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -34,6 +34,20 @@ func KubernetesAgentPoolName(i interface{}, k string) (warnings []string, errors
 	re := regexp.MustCompile(`^[a-z]{1}[a-z\d]{0,11}$`)
 	if re != nil && !re.MatchString(agentPoolName) {
 		errors = append(errors, fmt.Errorf("the %q must begin with a lowercase letter, contain only lowercase letters and numbers and be between 1 and 12 characters in length, got %q", k, agentPoolName))
+	}
+
+	return warnings, errors
+}
+
+func KubernetesClusterName(i interface{}, k string) (warnings []string, errors []error) {
+	clusterName, ok := i.(string)
+	if !ok {
+		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
+	}
+
+	re := regexp.MustCompile(`^[a-zA-Z0-9]$|^[a-zA-Z0-9][-_a-zA-Z0-9]{0,61}[a-zA-Z0-9]$`)
+	if re != nil && !re.MatchString(clusterName) {
+		errors = append(errors, fmt.Errorf("the %q name must start and end with a letter or number, and can only contain letters, numbers, hyphens, and underscores, and be between 1 and 63 characters in length, got %q", k, clusterName))
 	}
 
 	return warnings, errors

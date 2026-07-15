@@ -120,6 +120,7 @@ resource "azurerm_key_vault" "example" {
   name                        = "mssqltdeexample"
   location                    = azurerm_resource_group.example.location
   resource_group_name         = azurerm_resource_group.example.name
+  rbac_authorization_enabled  = false
   enabled_for_disk_encryption = true
   tenant_id                   = azurerm_user_assigned_identity.example.tenant_id
   soft_delete_retention_days  = 7
@@ -286,6 +287,7 @@ A `long_term_retention_policy` block supports the following:
 * `monthly_retention` - (Optional) The monthly retention policy for an LTR backup in an ISO 8601 format. Valid value is between 1 to 120 months. e.g. `P1Y`, `P1M`, `P4W` or `P30D`. Defaults to `PT0S`.
 * `yearly_retention` - (Optional) The yearly retention policy for an LTR backup in an ISO 8601 format. Valid value is between 1 to 10 years. e.g. `P1Y`, `P12M`, `P52W` or `P365D`. Defaults to `PT0S`.
 * `week_of_year` - (Optional) The week of year to take the yearly backup. Value has to be between `1` and `52`.
+* `immutable_backups_enabled` - (Optional) Specifies if the backups are immutable. Defaults to `false`.
 
 ---
 

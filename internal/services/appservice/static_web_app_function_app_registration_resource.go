@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -95,14 +95,16 @@ func (r StaticWebAppFunctionAppRegistrationResource) Create() sdk.ResourceFunc {
 
 			id := staticsites.NewUserProvidedFunctionAppID(staticAppId.SubscriptionId, staticAppId.ResourceGroupName, staticAppId.StaticSiteName, functionAppId.SiteName)
 
-			existing, err := client.GetUserProvidedFunctionAppForStaticSite(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetUserProvidedFunctionAppForStaticSite(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			backends, err := client.GetLinkedBackends(ctx, *staticAppId)
@@ -123,7 +125,7 @@ func (r StaticWebAppFunctionAppRegistrationResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err = client.RegisterUserProvidedFunctionAppWithStaticSiteThenPoll(ctx, id, payload, staticsites.DefaultRegisterUserProvidedFunctionAppWithStaticSiteOperationOptions()); err != nil {
+			if err := client.RegisterUserProvidedFunctionAppWithStaticSiteCallbackThenPoll(ctx, id, payload, staticsites.DefaultRegisterUserProvidedFunctionAppWithStaticSiteOperationOptions(), metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

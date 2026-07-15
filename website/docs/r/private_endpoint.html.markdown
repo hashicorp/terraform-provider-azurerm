@@ -200,6 +200,8 @@ The following arguments are supported:
 
 * `location` - (Required) The supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
+* `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Private Endpoint should exist. Changing this forces a new resource to be created.
+
 * `subnet_id` - (Required) The ID of the Subnet from which Private IP Addresses will be allocated for this Private Endpoint. Changing this forces a new resource to be created.
 
 * `custom_network_interface_name` - (Optional) The custom name of the network interface attached to the private endpoint. Changing this forces a new resource to be created.
@@ -304,7 +306,7 @@ A `private_dns_zone_configs` block exports:
 
 * `id` - The ID of the Private DNS Zone Config.
 
-* `private_dns_zone_id` - A list of IP Addresses
+* `private_dns_zone_id` - The ID of the Private DNS Zone that the config belongs to.
 
 * `record_sets` - A `record_sets` block as defined below.
 
@@ -312,17 +314,8 @@ A `private_dns_zone_configs` block exports:
 
 A `private_service_connection` block exports:
 
-* `private_ip_address` - (Computed) The private IP address associated with the private endpoint, note that you will have a private IP address assigned to the private endpoint even if the connection request was `Rejected`.
+* `private_ip_address` - The private IP address associated with the private endpoint, note that you will have a private IP address assigned to the private endpoint even if the connection request was `Rejected`.
 
----
-
-An `ip_configuration` block exports:
-
-* `name` - (Required) The Name of the IP Configuration.
-
-* `private_ip_address` - (Required) The static IP address set by this configuration. It is recommended to use the private IP address exported in the `private_service_connection` block to obtain the address associated with the private endpoint.
-
-* `subresource_name` - (Required) The subresource this IP address applies to, which corresponds to the `group_id`.
 
 ---
 

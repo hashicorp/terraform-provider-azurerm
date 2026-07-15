@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package domainservices_test
@@ -8,14 +8,14 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // To generate a suitable cert for AADDS:
@@ -90,7 +90,7 @@ func TestAccActiveDirectoryDomainService_updateWithDatasource(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(replicaSetResourceName).ExistsInAzure(ActiveDirectoryDomainServiceReplicaSetResource{}),
 				check.That(replicaSetResourceName).Key("domain_service_id").MatchesOtherKey(check.That(data.ResourceName).Key("id")),
-				check.That(replicaSetResourceName).Key("location").HasValue(azure.NormalizeLocation(data.Locations.Secondary)),
+				check.That(replicaSetResourceName).Key("location").HasValue(location.Normalize(data.Locations.Secondary)),
 				check.That(replicaSetResourceName).Key("subnet_id").MatchesOtherKey(check.That("azurerm_subnet.aadds_secondary").Key("id")),
 				check.That(replicaSetResourceName).Key("domain_controller_ip_addresses.#").HasValue("2"),
 				check.That(replicaSetResourceName).Key("external_access_ip_address").Exists(),
@@ -103,7 +103,7 @@ func TestAccActiveDirectoryDomainService_updateWithDatasource(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(dataSourceData.ResourceName).Key("deployment_id").Exists(),
 				check.That(dataSourceData.ResourceName).Key("filtered_sync_enabled").HasValue("false"),
-				check.That(dataSourceData.ResourceName).Key("location").HasValue(azure.NormalizeLocation(data.Locations.Primary)),
+				check.That(dataSourceData.ResourceName).Key("location").HasValue(location.Normalize(data.Locations.Primary)),
 				check.That(dataSourceData.ResourceName).Key("notifications.#").HasValue("1"),
 				check.That(dataSourceData.ResourceName).Key("notifications.0.additional_recipients.#").HasValue("2"),
 				check.That(dataSourceData.ResourceName).Key("notifications.0.notify_dc_admins").HasValue("true"),
@@ -174,7 +174,7 @@ func (ActiveDirectoryDomainServiceResource) Exists(ctx context.Context, client *
 		return nil, fmt.Errorf("reading DomainService: %+v", err)
 	}
 
-	return utils.Bool(resp.Model != nil && resp.Model.Id != nil), nil
+	return pointer.To(resp.Model != nil && resp.Model.Id != nil), nil
 }
 
 func (ActiveDirectoryDomainServiceReplicaSetResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -206,11 +206,11 @@ func (ActiveDirectoryDomainServiceReplicaSetResource) Exists(ctx context.Context
 
 	for _, replica := range *props.ReplicaSets {
 		if replica.ReplicaSetId != nil && *replica.ReplicaSetId == id.ReplicaSetName {
-			return utils.Bool(true), nil
+			return pointer.To(true), nil
 		}
 	}
 
-	return utils.Bool(false), nil
+	return pointer.To(false), nil
 }
 
 func (r ActiveDirectoryDomainServiceResource) complete(data acceptance.TestData) string {

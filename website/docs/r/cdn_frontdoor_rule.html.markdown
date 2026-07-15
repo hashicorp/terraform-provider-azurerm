@@ -12,6 +12,8 @@ Manages a Front Door (standard/premium) Rule.
 
 !> **Note:** The Rules resource **must** include a `depends_on` meta-argument which references the `azurerm_cdn_frontdoor_origin` and the `azurerm_cdn_frontdoor_origin_group`.
 
+~> **Note:** This resource cannot be used to manage individual rules for a rule set provisioned in batch mode, to manage rules for a batch mode rule set, use `azurerm_cdn_frontdoor_batch_rule_set`.
+
 ## Example Usage
 
 ```hcl
@@ -149,6 +151,8 @@ The following arguments are supported:
 * `name` - (Required) The name which should be used for this Front Door Rule. Possible values must be between 1 and 260 characters in length, begin with a letter and may contain only letters and numbers. Changing this forces a new Front Door Rule to be created.
 
 * `cdn_frontdoor_rule_set_id` - (Required) The resource ID of the Front Door Rule Set for this Front Door Rule. Changing this forces a new Front Door Rule to be created.
+
+~> **Note:** The `cdn_frontdoor_rule_set_id` must reference a non-batch mode rule set, individual rules for batch mode rule sets cannot be managed by this resource.
 
 * `order` - (Required) The order in which the rules will be applied for the Front Door Endpoint. The order value should be sequential and begin at `1`(e.g. `1`, `2`, `3`...). A Front Door Rule with a lesser order value will be applied before a rule with a greater order value.
 
@@ -644,7 +648,7 @@ For rules that accept values from the standard operator list, the following oper
 | Begins With                | Matches when the value begins with the specified string. | BeginsWith |
 | Ends With                  | Matches when the value ends with the specified string. | EndsWith |
 | RegEx                      | Matches when the value matches the specified regular expression. See `Condition Regular Expressions` below for more details. | RegEx |
-| Wildcard                   | Matches when the request path matches a wildcard expression. See `Condition Wildcard Expression` below for more details. | Wildcard | 
+| Wildcard                   | Matches when the request path matches a wildcard expression. See `Condition Wildcard Expression` below for more details. | Wildcard |
 | Not Any                    | Matches when there is no value. | Any and negateCondition = true |
 | Not Equal                  | Matches when the value does not match the specified string. | Equal and negateCondition : true |
 | Not Contains               | Matches when the value does not contain the specified string. | Contains and negateCondition = true |
@@ -707,10 +711,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Front Door Rule.
+* `create` - (Defaults to 4 hours) Used when creating the Front Door Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Rule.
-* `update` - (Defaults to 30 minutes) Used when updating the Front Door Rule.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Front Door Rule.
+* `update` - (Defaults to 4 hours) Used when updating the Front Door Rule.
+* `delete` - (Defaults to 6 hours) Used when deleting the Front Door Rule.
 
 ## Import
 
@@ -724,4 +728,4 @@ terraform import azurerm_cdn_frontdoor_rule.example /subscriptions/00000000-0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Cdn` - 2024-09-01
+* `Microsoft.Cdn` - 2025-12-01

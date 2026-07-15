@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"log"
 	"time"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -92,15 +94,17 @@ func resourceNetworkInterfaceSecurityGroupAssociationCreate(d *pluginsdk.Resourc
 
 	id := commonids.NewCompositeResourceID(nicId, nsgId)
 
-	if read.Model.Properties.NetworkSecurityGroup != nil {
-		return tf.ImportAsExistsError("azurerm_network_interface_security_group_association", id.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		if read.Model.Properties.NetworkSecurityGroup != nil {
+			return tf.ImportAsExistsError("azurerm_network_interface_security_group_association", id.ID())
+		}
 	}
 
 	read.Model.Properties.NetworkSecurityGroup = &networkinterfaces.NetworkSecurityGroup{
 		Id: pointer.To(nsgId.ID()),
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, *nicId, *read.Model); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, *nicId, *read.Model, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("updating Security Group Association for %s: %+v", *nicId, err)
 	}
 

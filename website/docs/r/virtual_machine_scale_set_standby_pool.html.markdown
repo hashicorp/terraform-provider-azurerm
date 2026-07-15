@@ -59,7 +59,7 @@ The following arguments are supported:
 
 * `elasticity_profile` - (Required) An `elasticity_profile` block as defined below.
 
-* `virtual_machine_state` - (Required) Specifies the desired state of virtual machines in the pool. Possible values are `Running` and `Deallocated`.
+* `virtual_machine_state` - (Required) Specifies the desired state of virtual machines in the pool. Possible values are `Deallocated`, `Hibernated` and `Running`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Standby Pool.
 

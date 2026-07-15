@@ -149,6 +149,7 @@ func (t Value) getTimeout(ctx context.Context, timeoutName string, defaultTimeou
 
 	// No type assertion check is required as the schema guarantees that the object attributes
 	// are types.String.
+	//nolint:forcetypeassert
 	timeout, err := time.ParseDuration(value.(types.String).ValueString())
 	if err != nil {
 		diags.Append(diag.NewErrorDiagnostic(

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package policy
@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/validate"
@@ -32,32 +31,35 @@ func (br assignmentBaseResource) createFunc(resourceName, scopeFieldName string)
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Policy.AssignmentsClient
 			id := policyassignments.NewScopedPolicyAssignmentID(metadata.ResourceData.Get(scopeFieldName).(string), metadata.ResourceData.Get("name").(string))
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError(resourceName, id.ID())
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return tf.ImportAsExistsError(resourceName, id.ID())
+				}
 			}
 
 			assignment := policyassignments.PolicyAssignment{
 				Properties: &policyassignments.PolicyAssignmentProperties{
-					PolicyDefinitionId: utils.String(metadata.ResourceData.Get("policy_definition_id").(string)),
-					DisplayName:        utils.String(metadata.ResourceData.Get("display_name").(string)),
-					Scope:              utils.String(id.Scope),
+					PolicyDefinitionId: pointer.To(metadata.ResourceData.Get("policy_definition_id").(string)),
+					DisplayName:        pointer.To(metadata.ResourceData.Get("display_name").(string)),
+					Scope:              pointer.To(id.Scope),
 					EnforcementMode:    convertEnforcementMode(metadata.ResourceData.Get("enforce").(bool)),
 				},
 			}
 
 			if v := metadata.ResourceData.Get("description").(string); v != "" {
-				assignment.Properties.Description = utils.String(v)
+				assignment.Properties.Description = pointer.To(v)
 			}
 
 			if v := metadata.ResourceData.Get("location").(string); v != "" {
-				assignment.Location = utils.String(azure.NormalizeLocation(v))
+				assignment.Location = pointer.To(location.Normalize(v))
 			}
 
 			if v, ok := metadata.ResourceData.GetOk("identity"); ok {
@@ -113,13 +115,14 @@ func (br assignmentBaseResource) createFunc(resourceName, scopeFieldName string)
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
+			metadata.SetID(id)
+
 			// Policy Assignments are eventually consistent; wait for them to stabilize
 			log.Printf("[DEBUG] Waiting for %s to become available..", id)
 			if err := waitForPolicyAssignmentToStabilize(ctx, client, id, true); err != nil {
 				return fmt.Errorf("waiting for %s to become available: %s", id, err)
 			}
 
-			metadata.SetID(id)
 			return nil
 		},
 		Timeout: 30 * time.Minute,
@@ -252,19 +255,19 @@ func (br assignmentBaseResource) updateFunc() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("description") {
-				update.Properties.Description = utils.String(metadata.ResourceData.Get("description").(string))
+				update.Properties.Description = pointer.To(metadata.ResourceData.Get("description").(string))
 			}
 			if metadata.ResourceData.HasChange("display_name") {
-				update.Properties.DisplayName = utils.String(metadata.ResourceData.Get("display_name").(string))
+				update.Properties.DisplayName = pointer.To(metadata.ResourceData.Get("display_name").(string))
 			}
 			if metadata.ResourceData.HasChange("enforce") {
 				update.Properties.EnforcementMode = convertEnforcementMode(metadata.ResourceData.Get("enforce").(bool))
 			}
 			if metadata.ResourceData.HasChange("location") {
-				update.Location = utils.String(metadata.ResourceData.Get("location").(string))
+				update.Location = pointer.To(metadata.ResourceData.Get("location").(string))
 			}
 			if metadata.ResourceData.HasChange("policy_definition_id") {
-				update.Properties.PolicyDefinitionId = utils.String(metadata.ResourceData.Get("policy_definition_id").(string))
+				update.Properties.PolicyDefinitionId = pointer.To(metadata.ResourceData.Get("policy_definition_id").(string))
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
@@ -548,7 +551,7 @@ func (br assignmentBaseResource) expandNonComplianceMessages(input []interface{}
 				Message: m["content"].(string),
 			}
 			if id := m["policy_definition_reference_id"].(string); id != "" {
-				ncm.PolicyDefinitionReferenceId = utils.String(id)
+				ncm.PolicyDefinitionReferenceId = pointer.To(id)
 			}
 			output = append(output, ncm)
 		}

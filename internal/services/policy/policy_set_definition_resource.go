@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package policy
@@ -237,15 +237,17 @@ func resourceArmPolicySetDefinitionCreate(d *pluginsdk.ResourceData, meta interf
 
 	id := policysetdefinitions.NewProviderPolicySetDefinitionID(subscriptionId, d.Get("name").(string))
 
-	resp, _, err := getPolicySetDefinitionByID(ctx, client, id)
-	if err != nil {
-		if !response.WasNotFound(resp) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		resp, _, err := getPolicySetDefinitionByID(ctx, client, id)
+		if err != nil {
+			if !response.WasNotFound(resp) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(resp) {
-		return tf.ImportAsExistsError("azurerm_policy_set_definition", id.ID())
+		if !response.WasNotFound(resp) {
+			return tf.ImportAsExistsError("azurerm_policy_set_definition", id.ID())
+		}
 	}
 
 	parameters := policysetdefinitions.PolicySetDefinition{
@@ -288,7 +290,7 @@ func resourceArmPolicySetDefinitionCreate(d *pluginsdk.ResourceData, meta interf
 		props.PolicyDefinitionGroups = expandAzureRMPolicySetDefinitionPolicyGroups(v.(*pluginsdk.Set).List())
 	}
 
-	if _, err = client.CreateOrUpdate(ctx, id, parameters); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -303,7 +305,7 @@ func resourceArmPolicySetDefinitionCreate(d *pluginsdk.ResourceData, meta interf
 		ContinuousTargetOccurence: 10,
 	}
 
-	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to become available: %+v", id, err)
 	}
 
@@ -325,15 +327,17 @@ func createForManagementGroup(ctx context.Context, client *policysetdefinitions.
 
 	id := policysetdefinitions.NewProviders2PolicySetDefinitionID(managementGroupId.Name, d.Get("name").(string))
 
-	resp, _, err := getPolicySetDefinitionByID(ctx, client, id)
-	if err != nil {
-		if !response.WasNotFound(resp) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		resp, _, err := getPolicySetDefinitionByID(ctx, client, id)
+		if err != nil {
+			if !response.WasNotFound(resp) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(resp) {
-		return tf.ImportAsExistsError("azurerm_policy_set_definition", id.ID())
+		if !response.WasNotFound(resp) {
+			return tf.ImportAsExistsError("azurerm_policy_set_definition", id.ID())
+		}
 	}
 
 	parameters := policysetdefinitions.PolicySetDefinition{
@@ -1000,13 +1004,15 @@ func (r PolicySetDefinitionResource) Create() sdk.ResourceFunc {
 
 			id := policysetdefinitions.NewProviderPolicySetDefinitionID(subscriptionId, model.Name)
 
-			resp, _, err := getPolicySetDefinition(ctx, client, id)
-			if err != nil && !response.WasNotFound(resp) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				resp, _, err := getPolicySetDefinition(ctx, client, id)
+				if err != nil && !response.WasNotFound(resp) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(resp) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(resp) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := policysetdefinitions.PolicySetDefinition{
@@ -1050,7 +1056,7 @@ func (r PolicySetDefinitionResource) Create() sdk.ResourceFunc {
 				props.PolicyDefinitionGroups = expandPolicyDefinitionGroup(model.PolicyDefinitionGroup)
 			}
 
-			if _, err = client.CreateOrUpdate(ctx, id, parameters); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

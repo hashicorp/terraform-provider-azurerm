@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssql
@@ -49,7 +49,7 @@ func (d MsSqlFailoverGroupDataSource) ResourceType() string {
 }
 
 func (d MsSqlFailoverGroupDataSource) ModelObject() interface{} {
-	return nil
+	return &MsSqlFailoverGroupDataSourceModel{}
 }
 
 func (d MsSqlFailoverGroupDataSource) Arguments() map[string]*pluginsdk.Schema {

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package privatedns_test
@@ -42,5 +42,5 @@ data "azurerm_private_dns_cname_record" "test" {
   resource_group_name = azurerm_resource_group.test.name
   zone_name           = azurerm_private_dns_zone.test.name
 }
-`, PrivateDnsCNameRecordResource{}.basic(data))
+`, PrivateDnsCnameRecordResource{}.basic(data))
 }

@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/accountcapabilityhost"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/accountcapabilityhost"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/cognitiveservicesaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -143,8 +143,8 @@ func (r CognitiveAccountCapabilityHostResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			resource := accountcapabilityhost.CapabilityHostResource{
-				Properties: accountcapabilityhost.CapabilityHost{},
+			resource := accountcapabilityhost.CapabilityHost{
+				Properties: accountcapabilityhost.CapabilityHostProperties{},
 			}
 
 			if model.SubnetId != "" {

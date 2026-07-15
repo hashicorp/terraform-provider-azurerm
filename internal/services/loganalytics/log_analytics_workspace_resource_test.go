@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package loganalytics_test
@@ -256,6 +256,55 @@ func TestAccLogAnalyticsWorkspace_ToggleAllowOnlyResourcePermission(t *testing.T
 	})
 }
 
+func TestAccLogAnalyticsWorkspace_ToggleEnableLocalAuthDeprecated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
+	r := LogAnalyticsWorkspaceResource{}
+
+	if features.FivePointOh() {
+		t.Skip("Skipping since local_authentication_disabled is deprecated in 5.0")
+	}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.localAuthEnabledDeprecated(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("local_authentication_disabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.localAuthEnabledDeprecated(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("local_authentication_disabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+
+		{
+			Config: r.localAuthEnabledDeprecated(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("local_authentication_disabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("local_authentication_disabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLogAnalyticsWorkspace_ToggleEnableLocalAuth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
 	r := LogAnalyticsWorkspaceResource{}
@@ -265,6 +314,7 @@ func TestAccLogAnalyticsWorkspace_ToggleEnableLocalAuth(t *testing.T) {
 			Config: r.localAuthEnabled(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -272,6 +322,7 @@ func TestAccLogAnalyticsWorkspace_ToggleEnableLocalAuth(t *testing.T) {
 			Config: r.localAuthEnabled(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -279,6 +330,15 @@ func TestAccLogAnalyticsWorkspace_ToggleEnableLocalAuth(t *testing.T) {
 			Config: r.localAuthEnabled(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -800,9 +860,8 @@ resource "azurerm_log_analytics_workspace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, useResourceOnlyPermission)
 }
 
-func (LogAnalyticsWorkspaceResource) localAuthEnabled(data acceptance.TestData, localAuthEnabled bool) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
+func (LogAnalyticsWorkspaceResource) localAuthEnabledDeprecated(data acceptance.TestData, localAuthEnabled bool) string {
+	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -821,7 +880,9 @@ resource "azurerm_log_analytics_workspace" "test" {
   local_authentication_disabled = %[4]t
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, !localAuthEnabled)
-	}
+}
+
+func (LogAnalyticsWorkspaceResource) localAuthEnabled(data acceptance.TestData, localAuthEnabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

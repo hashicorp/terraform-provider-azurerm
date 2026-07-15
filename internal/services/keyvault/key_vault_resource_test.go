@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package keyvault_test
@@ -439,9 +439,10 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctest%d"
+  name                       = "acctest%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
@@ -463,7 +464,7 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r KeyVaultResource) requiresImport(data acceptance.TestData) string {
@@ -474,6 +475,7 @@ resource "azurerm_key_vault" "import" {
   name                       = azurerm_key_vault.test.name
   location                   = azurerm_key_vault.test.location
   resource_group_name        = azurerm_key_vault.test.resource_group_name
+  rbac_authorization_enabled = false
   tenant_id                  = azurerm_key_vault.test.tenant_id
   sku_name                   = "premium"
   soft_delete_retention_days = 7
@@ -509,9 +511,10 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                          = "acctest%d"
+  name                          = "acctest%s"
   location                      = azurerm_resource_group.test.location
   resource_group_name           = azurerm_resource_group.test.name
+  rbac_authorization_enabled    = false
   tenant_id                     = data.azurerm_client_config.current.tenant_id
   sku_name                      = "standard"
   soft_delete_retention_days    = 7
@@ -534,7 +537,7 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (KeyVaultResource) networkAclsTemplate(data acceptance.TestData) string {
@@ -582,9 +585,10 @@ func (KeyVaultResource) networkAcls(data acceptance.TestData) string {
 %s
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctest%d"
+  name                       = "acctest%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
@@ -608,7 +612,7 @@ resource "azurerm_key_vault" "test" {
     virtual_network_subnet_ids = [azurerm_subnet.test_a.id, azurerm_subnet.test_b.id]
   }
 }
-`, template, data.RandomInteger)
+`, template, data.RandomString)
 }
 
 func (r KeyVaultResource) networkAclsUpdated(data acceptance.TestData) string {
@@ -616,9 +620,10 @@ func (r KeyVaultResource) networkAclsUpdated(data acceptance.TestData) string {
 %s
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctest%d"
+  name                       = "acctest%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
@@ -643,7 +648,7 @@ resource "azurerm_key_vault" "test" {
     virtual_network_subnet_ids = [azurerm_subnet.test_a.id]
   }
 }
-`, r.networkAclsTemplate(data), data.RandomInteger)
+`, r.networkAclsTemplate(data), data.RandomString)
 }
 
 func (r KeyVaultResource) networkAclsAllowed(data acceptance.TestData) string {
@@ -651,9 +656,10 @@ func (r KeyVaultResource) networkAclsAllowed(data acceptance.TestData) string {
 %s
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctest%d"
+  name                       = "acctest%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
@@ -676,7 +682,7 @@ resource "azurerm_key_vault" "test" {
     bypass         = "AzureServices"
   }
 }
-`, r.networkAclsTemplate(data), data.RandomInteger)
+`, r.networkAclsTemplate(data), data.RandomString)
 }
 
 func (KeyVaultResource) update(data acceptance.TestData) string {
@@ -694,7 +700,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctest%d"
+  name                       = "acctest%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -724,7 +730,7 @@ resource "azurerm_key_vault" "test" {
     environment = "Staging"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (KeyVaultResource) noAccessPolicyBlocks(data acceptance.TestData) string {
@@ -743,7 +749,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctest%d"
+  name                       = "acctest%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -760,7 +766,7 @@ resource "azurerm_key_vault" "test" {
     environment = "Staging"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 	}
 
 	return fmt.Sprintf(`
@@ -777,7 +783,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctest%d"
+  name                       = "acctest%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -794,7 +800,7 @@ resource "azurerm_key_vault" "test" {
     environment = "Staging"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (KeyVaultResource) accessPolicyExplicitZero(data acceptance.TestData) string {
@@ -812,7 +818,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctest%d"
+  name                       = "acctest%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -830,7 +836,7 @@ resource "azurerm_key_vault" "test" {
     environment = "Staging"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (KeyVaultResource) complete(data acceptance.TestData) string {
@@ -848,9 +854,10 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctest%d"
+  name                       = "acctest%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
@@ -879,7 +886,7 @@ resource "azurerm_key_vault" "test" {
     environment = "Production"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (KeyVaultResource) justCert(data acceptance.TestData) string {
@@ -897,9 +904,10 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctest%d"
+  name                       = "acctest%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
@@ -913,7 +921,7 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (KeyVaultResource) accessPolicyUpperLimit(data acceptance.TestData) string {
@@ -939,9 +947,10 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctest%d"
+  name                       = "acctest%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
@@ -950,7 +959,7 @@ resource "azurerm_key_vault" "test" {
 }
 
 %s
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, accessPoliciesConfigs, storageAccountConfigs)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, accessPoliciesConfigs, storageAccountConfigs)
 }
 
 func testAccKeyVault_generateStorageAccountConfigs(accountNum int, rs string) string {
@@ -1008,15 +1017,16 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctest%d"
+  name                       = "acctest%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   purge_protection_enabled   = "%t"
   soft_delete_retention_days = 7
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enabled)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, enabled)
 }
 
 func (KeyVaultResource) softDelete(data acceptance.TestData) string {
@@ -1034,13 +1044,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acctest%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (KeyVaultResource) softDeleteAbsent(data acceptance.TestData) string {
@@ -1082,14 +1093,15 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctest%d"
+  name                       = "acctest%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (KeyVaultResource) purgeProtectionAndSoftDelete(data acceptance.TestData) string {
@@ -1106,15 +1118,16 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctest%d"
+  name                       = "acctest%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
   purge_protection_enabled   = true
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (KeyVaultResource) basicPremiumSKU(data acceptance.TestData) string {
@@ -1132,9 +1145,10 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctest%d"
+  name                       = "acctest%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "premium"
   soft_delete_retention_days = 7
@@ -1156,5 +1170,5 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

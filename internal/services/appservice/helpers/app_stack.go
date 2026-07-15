@@ -1,9 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -78,6 +79,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 						"v7.0",
 						"v8.0",
 						"v9.0",
+						"v10.0",
 					}, false),
 					AtLeastOneOf: windowsApplicationStackConstraint,
 				},
@@ -326,7 +328,7 @@ type ApplicationStackLinux struct {
 	JavaVersion         string `tfschema:"java_version"`
 	JavaServer          string `tfschema:"java_server"`
 	JavaServerVersion   string `tfschema:"java_server_version"`
-	RubyVersion         string `tfschema:"ruby_version"`
+	RubyVersion         string `tfschema:"ruby_version,removedInNextMajorVersion"`
 
 	DockerRegistryUrl      string `tfschema:"docker_registry_url"`
 	DockerRegistryUsername string `tfschema:"docker_registry_username"`
@@ -341,12 +343,15 @@ var linuxApplicationStackConstraint = []string{
 	"site_config.0.application_stack.0.node_version",
 	"site_config.0.application_stack.0.php_version",
 	"site_config.0.application_stack.0.python_version",
-	"site_config.0.application_stack.0.ruby_version",
 	"site_config.0.application_stack.0.go_version",
 }
 
 func linuxApplicationStackSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	if !features.FivePointOh() {
+		linuxApplicationStackConstraint = append(linuxApplicationStackConstraint, "site_config.0.application_stack.0.ruby_version")
+	}
+
+	schema := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Computed: true,
@@ -363,6 +368,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"7.0",
 						"8.0",
 						"9.0",
+						"10.0",
 					}, false),
 					ExactlyOneOf: linuxApplicationStackConstraint,
 				},
@@ -402,6 +408,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"3.11",
 						"3.12",
 						"3.13",
+						"3.14",
 					}, false),
 					ExactlyOneOf: linuxApplicationStackConstraint,
 				},
@@ -416,16 +423,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"18-lts",
 						"20-lts",
 						"22-lts",
-					}, false),
-					ExactlyOneOf: linuxApplicationStackConstraint,
-				},
-
-				"ruby_version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						"2.6", // TODO: 4.0 Deprecated - accepted but not offered in the portal. Remove in 4.0
-						"2.7", // TODO: 4.0 EOL 31/03/2023 https://github.com/Azure/app-service-linux-docs/blob/master/Runtime_Support/ruby_support.md Remove Ruby support in 4.0?
+						"24-lts",
 					}, false),
 					ExactlyOneOf: linuxApplicationStackConstraint,
 				},
@@ -438,6 +436,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"11",
 						"17",
 						"21",
+						"25",
 					}, false),
 					ExactlyOneOf: linuxApplicationStackConstraint,
 					RequiredWith: []string{
@@ -494,10 +493,25 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		schema.Elem.(*pluginsdk.Resource).Schema["ruby_version"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				"2.6", // Deprecated - accepted but not offered in the portal.
+				"2.7", // EOL 31/03/2023 https://github.com/Azure/app-service-linux-docs/blob/master/Runtime_Support/ruby_support.md Remove Ruby support in 4.0?
+			}, false),
+			ExactlyOneOf: linuxApplicationStackConstraint,
+			Deprecated:   "`site_config.application_stack.ruby_version` has been deprecated and will be removed in v5.0 of the AzureRM provider",
+		}
+	}
+
+	return schema
 }
 
 func linuxApplicationStackSchemaComputed() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	schema := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
 		Elem: &pluginsdk.Resource{
@@ -523,11 +537,6 @@ func linuxApplicationStackSchemaComputed() *pluginsdk.Schema {
 				},
 
 				"node_version": { // Discarded by service if JavaVersion is specified
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"ruby_version": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
@@ -570,4 +579,14 @@ func linuxApplicationStackSchemaComputed() *pluginsdk.Schema {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		schema.Elem.(*pluginsdk.Resource).Schema["ruby_version"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeString,
+			Computed:   true,
+			Deprecated: "`site_config.application_stack.ruby_version` has been deprecated and will be removed in v5.0 of the AzureRM provider",
+		}
+	}
+
+	return schema
 }

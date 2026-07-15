@@ -93,7 +93,7 @@ The following arguments are supported:
 
 * `customer_managed_key_enforcement_enabled` - (Optional) Specifies whether the Search Service should enforce that non-customer resources are encrypted. Defaults to `false`.
 
-* `hosting_mode` - (Optional) Specifies the Hosting Mode, which allows for High Density partitions (that allow for up to 1000 indexes) should be supported. Possible values are `highDensity` or `default`. Defaults to `default`. Changing this forces a new Search Service to be created.
+* `hosting_mode` - (Optional) Specifies the Hosting Mode, which allows for High Density partitions (that allow for up to 1000 indexes) should be supported. Possible values are `HighDensity` or `Default`. Defaults to `Default`. Changing this forces a new Search Service to be created.
 
 -> **Note:** `hosting_mode` can only be configured when `sku` is set to `standard3`.
 
@@ -135,6 +135,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `id` - The ID of the Search Service.
 
 * `customer_managed_key_encryption_compliance_status` - Describes whether the search service is compliant or not with respect to having non-customer encrypted resources. If a service has more than one non-customer encrypted resource and `Enforcement` is `enabled` then the service will be marked as `NonCompliant`. If all the resources are customer encrypted, then the service will be marked as `Compliant`.
+
+* `endpoint` - The endpoint used to connect to this Search Service.
 
 * `primary_key` - The Primary Key used for Search Service Administration.
 

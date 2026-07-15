@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package securitycenter
@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
@@ -285,14 +286,16 @@ func resourceIotSecuritySolutionCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	resourceId := parse.NewIotSecuritySolutionID(subscriptionId, resourceGroup, name).ID()
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Security Center Iot Security Solution %q (Resource Group %q): %+v", name, resourceGroup, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, resourceGroup, name)
+			if err != nil {
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("checking for presence of existing Security Center Iot Security Solution %q (Resource Group %q): %+v", name, resourceGroup, err)
+				}
 			}
-		}
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_iot_security_solution", resourceId)
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return tf.ImportAsExistsError("azurerm_iot_security_solution", resourceId)
+			}
 		}
 	}
 
@@ -306,9 +309,9 @@ func resourceIotSecuritySolutionCreateUpdate(d *pluginsdk.ResourceData, meta int
 		unmaskedIPLoggingStatus = security.UnmaskedIPLoggingStatusEnabled
 	}
 	solution := security.IoTSecuritySolutionModel{
-		Location: utils.String(location),
+		Location: pointer.To(location),
 		IoTSecuritySolutionProperties: &security.IoTSecuritySolutionProperties{
-			DisplayName:                  utils.String(d.Get("display_name").(string)),
+			DisplayName:                  pointer.To(d.Get("display_name").(string)),
 			Status:                       status,
 			Export:                       expandIotSecuritySolutionExport(d.Get("events_to_export").(*pluginsdk.Set).List()),
 			IotHubs:                      utils.ExpandStringSlice(d.Get("iothub_ids").(*pluginsdk.Set).List()),
@@ -328,7 +331,7 @@ func resourceIotSecuritySolutionCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	logAnalyticsWorkspaceId := d.Get("log_analytics_workspace_id").(string)
 	if logAnalyticsWorkspaceId != "" {
-		solution.Workspace = utils.String(logAnalyticsWorkspaceId)
+		solution.Workspace = pointer.To(logAnalyticsWorkspaceId)
 	}
 
 	query := d.Get("query_for_resources").(string)
@@ -336,7 +339,7 @@ func resourceIotSecuritySolutionCreateUpdate(d *pluginsdk.ResourceData, meta int
 	if query != "" || len(querySubscriptions) > 0 {
 		if query != "" && len(querySubscriptions) > 0 {
 			solution.UserDefinedResources = &security.UserDefinedResourcesProperties{
-				Query:              utils.String(query),
+				Query:              pointer.To(query),
 				QuerySubscriptions: utils.ExpandStringSlice(querySubscriptions),
 			}
 		} else {
@@ -456,12 +459,12 @@ func expandIotSecuritySolutionAdditionalWorkspace(input []interface{}) *[]securi
 		v := item.(map[string]interface{})
 
 		dataTypes := make([]security.AdditionalWorkspaceDataType, 0)
-		for _, item := range *(utils.ExpandStringSlice(v["data_types"].(*pluginsdk.Set).List())) {
-			dataTypes = append(dataTypes, (security.AdditionalWorkspaceDataType)(item))
+		for _, item := range *utils.ExpandStringSlice(v["data_types"].(*pluginsdk.Set).List()) {
+			dataTypes = append(dataTypes, security.AdditionalWorkspaceDataType(item))
 		}
 
 		results = append(results, security.AdditionalWorkspacesProperties{
-			Workspace: utils.String(v["workspace_id"].(string)),
+			Workspace: pointer.To(v["workspace_id"].(string)),
 			Type:      security.Sentinel,
 			DataTypes: &dataTypes,
 		})
@@ -476,8 +479,8 @@ func expandIotSecuritySolutionDisabledDataSources(input []interface{}) *[]securi
 	}
 
 	disabledDataSources := make([]security.DataSource, 0)
-	for _, item := range *(utils.ExpandStringSlice(input)) {
-		disabledDataSources = append(disabledDataSources, (security.DataSource)(item))
+	for _, item := range *utils.ExpandStringSlice(input) {
+		disabledDataSources = append(disabledDataSources, security.DataSource(item))
 	}
 
 	return &disabledDataSources
@@ -516,7 +519,7 @@ func flattenIotSecuritySolutionAdditionalWorkspace(input *[]security.AdditionalW
 	for _, item := range *input {
 		rawDataTypes := make([]string, 0)
 		for _, item := range *item.DataTypes {
-			rawDataTypes = append(rawDataTypes, (string)(item))
+			rawDataTypes = append(rawDataTypes, string(item))
 		}
 		dataTypes := utils.FlattenStringSlice(&rawDataTypes)
 
@@ -541,7 +544,7 @@ func flattenIotSecuritySolutionDisabledDataSources(input *[]security.DataSource)
 
 	results := make([]string, 0)
 	for _, v := range *input {
-		results = append(results, (string)(v))
+		results = append(results, string(v))
 	}
 
 	return utils.FlattenStringSlice(&results)
