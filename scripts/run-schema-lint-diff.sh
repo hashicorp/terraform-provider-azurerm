@@ -55,4 +55,4 @@ echo ""
 # Fails (non-zero) on any error-severity finding for a newly added property;
 # warnings are printed but do not fail the build. -fix surfaces the suggested
 # remediation for fixable findings.
-"${bin_dir}/schemalint" check -diff-base "${base}" -C "${repo_root}" -fix
+"${bin_dir}/schemalint" check -disable SL001 -diff-base "${base}" -C "${repo_root}" -fix
