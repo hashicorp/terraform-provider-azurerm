@@ -663,6 +663,10 @@ Please follow the format in the example below for listing breaking changes in re
 * The `site_config.min_tls_version` property no longer accepts `1.0` or `1.1` as a value.
 * The `site_config.scm_min_tls_version` property no longer accepts `1.0` or `1.1` as a value.
 
+### `azurerm_maintenance_assignment_virtual_machine_scale_set`
+
+* The `virtual_machine_scale_set_id` property is no longer case-insensitive.
+
 ### `azurerm_monitor_aad_diagnostic_setting`
 
 * The deprecated `enabled_log.retention_policy` block has been removed.
