@@ -103,8 +103,8 @@ func (r *Resource) addGoGenerateEdit(e *editor, resourceName, properties string)
 	if importDecl == nil {
 		return
 	}
-	line := fmt.Sprintf("\n\n//go:generate go run ../../tools/generator-tests resourceidentity -resource-name %s -properties %q",
-		resourceName, properties)
+	line := fmt.Sprintf("\n\n//go:generate go run ../../tools/generator-tests resourceidentity -resource-name %s -service-package-name %s -properties %q",
+		resourceName, r.Package, properties)
 	e.insert(r.offset(importDecl.End()), line)
 }
 

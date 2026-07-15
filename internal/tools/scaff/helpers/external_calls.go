@@ -48,6 +48,14 @@ func GoImports(file string) error {
 	return nil
 }
 
+func GoGenerateResourceIdentity(file string) error {
+	cmd := exec.Command("go", "generate", "-run", "resourceidentity", file)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("running go generate on %s: %v: %s", file, err, string(out))
+	}
+	return nil
+}
+
 // Terrafmt calls (if installed) katbyte/terrafmt to format Terraform
 // configurations in the specified file
 func Terrafmt(path string) error {

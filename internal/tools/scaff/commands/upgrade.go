@@ -258,6 +258,9 @@ func (c UpgradeCommand) run(d *upgradeData) error {
 	if name == "" {
 		name = strings.TrimPrefix(res.TerraformType, d.provider()+"_")
 	}
+	if name == "" {
+		name = strings.TrimSuffix(filepath.Base(d.File), "_resource.go")
+	}
 
 	newSrc, changed, err := res.Upgrade(list_upgrade.UpgradeOptions{
 		AddIdentity:        wantIdentity,
@@ -272,6 +275,13 @@ func (c UpgradeCommand) run(d *upgradeData) error {
 
 	if err := c.applyResource(d, res.Path, newSrc, changed); err != nil {
 		return err
+	}
+
+	// When Resource Identity was added and written, run the go:generate directive
+	// that was just inserted so the identity acceptance test is produced as part
+	// of the upgrade rather than left for a manual `go generate`.
+	if wantIdentity && changed && d.Write && name != "" {
+		c.generateIdentityTest(res.Path, name)
 	}
 
 	if d.List {
@@ -407,6 +417,23 @@ func (c UpgradeCommand) applyResource(d *upgradeData, path string, newSrc []byte
 	}
 	c.Ui.Info(fmt.Sprintf("upgraded %s", path))
 	return nil
+}
+
+// generateIdentityTest runs the resource-identity go:generate directive that the
+// upgrade inserted into path, producing the identity acceptance test. A failure
+// is surfaced as a warning rather than aborting: the resource upgrade has
+// already been written, and the test can be regenerated with `go generate`.
+func (c UpgradeCommand) generateIdentityTest(path, name string) {
+	if err := helpers.GoGenerateResourceIdentity(path); err != nil {
+		c.Ui.Warn(fmt.Sprintf("generating resource identity test for %s: %v", path, err))
+		return
+	}
+	testFile := filepath.Join(filepath.Dir(path), name+"_resource_identity_gen_test.go")
+	if _, err := os.Stat(testFile); err != nil {
+		c.Ui.Warn(fmt.Sprintf("resource identity go:generate directive ran but %s was not produced", testFile))
+		return
+	}
+	c.Ui.Info(fmt.Sprintf("generated %s", testFile))
 }
 
 // generateList renders and writes (or previews) the list resource and its test.

@@ -631,12 +631,13 @@ func rewriteRespModelVar(text, respVar, modelVar string) string {
 	return text
 }
 
-// injectIdentityBeforeFinalReturn inserts a SetResourceIdentityData call before
-// the final return statement of an untyped flatten body.
 func injectIdentityBeforeFinalReturn(body string) string {
 	idx := strings.LastIndex(body, "return ")
 	if idx == -1 {
-		return body + "\nif err := pluginsdk.SetResourceIdentityData(d, id); err != nil {\nreturn err\n}\n"
+		return body + "\nreturn pluginsdk.SetResourceIdentityData(d, id)\n"
+	}
+	if strings.TrimSpace(body[idx:]) == "return nil" {
+		return body[:idx] + "return pluginsdk.SetResourceIdentityData(d, id)"
 	}
 	inject := "if err := pluginsdk.SetResourceIdentityData(d, id); err != nil {\nreturn err\n}\n\n"
 	return body[:idx] + inject + body[idx:]

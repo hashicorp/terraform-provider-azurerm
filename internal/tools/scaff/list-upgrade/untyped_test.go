@@ -132,6 +132,33 @@ func TestUpgrade_UntypedExtractsFlatten(t *testing.T) {
 	}
 }
 
+func TestInjectIdentityBeforeFinalReturn_CollapsesReturnNil(t *testing.T) {
+	body := "\td.Set(\"name\", id.Name)\n\n\treturn nil"
+	got := injectIdentityBeforeFinalReturn(body)
+
+	want := "\td.Set(\"name\", id.Name)\n\n\treturn pluginsdk.SetResourceIdentityData(d, id)"
+	if got != want {
+		t.Errorf("expected the terminal return nil to be folded into the identity write:\n got: %q\nwant: %q", got, want)
+	}
+	if strings.Contains(got, "return nil") {
+		t.Errorf("expected return nil to be removed, got:\n%s", got)
+	}
+	if strings.Contains(got, "if err :=") {
+		t.Errorf("expected no if-err block when collapsing return nil, got:\n%s", got)
+	}
+}
+
+func TestInjectIdentityBeforeFinalReturn_KeepsNonNilReturn(t *testing.T) {
+	body := "\td.Set(\"name\", id.Name)\n\n\treturn tags.FlattenAndSet(d, model.Tags)"
+	got := injectIdentityBeforeFinalReturn(body)
+
+	mustContain(t, got, "if err := pluginsdk.SetResourceIdentityData(d, id); err != nil {")
+	mustContain(t, got, "return tags.FlattenAndSet(d, model.Tags)")
+	if strings.Contains(got, "return pluginsdk.SetResourceIdentityData(d, id)") {
+		t.Errorf("expected a non-nil terminal return to be preserved, not folded, got:\n%s", got)
+	}
+}
+
 func TestAnalyze_UntypedExtraAPI_DetectsContextNeed(t *testing.T) {
 	r, err := Analyze(filepath.Join("testdata", "untyped_extra_api.go"))
 	if err != nil {

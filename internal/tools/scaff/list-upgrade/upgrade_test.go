@@ -43,7 +43,7 @@ func TestUpgrade_TypedPlain_AddsIdentityAndFlatten(t *testing.T) {
 	mustContain(t, got, "return &azuremonitorworkspaces.AccountId{}")
 	mustContain(t, got, "func (r WorkspaceResource) flatten(metadata sdk.ResourceMetaData, id *azuremonitorworkspaces.AccountId, model *azuremonitorworkspaces.AzureMonitorWorkspaceResource) error {")
 	mustContain(t, got, "return r.flatten(metadata, id, resp.Model)")
-	mustContain(t, got, "//go:generate go run ../../tools/generator-tests resourceidentity -resource-name monitor_workspace -properties \"name,resource_group_name\"")
+	mustContain(t, got, "//go:generate go run ../../tools/generator-tests resourceidentity -resource-name monitor_workspace -service-package-name testdata -properties \"name,resource_group_name\"")
 
 	// The flatten body must set identity before encoding, and the model guard
 	// must be collapsed to use the parameter.
