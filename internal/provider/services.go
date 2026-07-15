@@ -98,6 +98,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/orbital"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/orbitalplanetarycomputer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal"
@@ -208,6 +209,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		nginx.Registration{},
 		oracle.Registration{},
 		orbital.Registration{},
+		orbitalplanetarycomputer.Registration{},
 		paloalto.Registration{},
 		policy.Registration{},
 		postgres.Registration{},
@@ -438,6 +440,7 @@ func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
 		notificationhub.Registration{},
 		oracle.Registration{},
 		orbital.Registration{},
+		orbitalplanetarycomputer.Registration{},
 		paloalto.Registration{},
 		policy.Registration{},
 		portal.Registration{},
