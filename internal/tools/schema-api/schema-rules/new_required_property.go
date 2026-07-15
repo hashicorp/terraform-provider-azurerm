@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/providerschema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/providerjson"
 )
 
 // Checks that the Schema Property Type has not changed
@@ -17,7 +17,7 @@ var _ BreakingChangeRule = newRequiredPropertyExistingResource{}
 type newRequiredPropertyExistingResource struct{}
 
 // Check - Checks that a newly introduced property is not marked as Required since this will not be in users configurations.
-func (newRequiredPropertyExistingResource) Check(base providerschema.SchemaJSON, current providerschema.SchemaJSON, propertyName string) *string {
+func (newRequiredPropertyExistingResource) Check(base providerjson.SchemaJSON, current providerjson.SchemaJSON, propertyName string) *string {
 	if base.Type == "" && current.Required {
 		return pointer.To(fmt.Sprintf("new property %q is Required", propertyName))
 	}

@@ -6,10 +6,10 @@ package schema_rules
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/providerschema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/providerjson"
 )
 
-var optionalToRequiredBaseNode = providerschema.SchemaJSON{
+var optionalToRequiredBaseNode = providerjson.SchemaJSON{
 	Type:        "",
 	ConfigMode:  "",
 	Optional:    true,
@@ -23,7 +23,7 @@ var optionalToRequiredBaseNode = providerschema.SchemaJSON{
 	MinItems:    0,
 }
 
-var optionalToRequiredPasses = providerschema.SchemaJSON{
+var optionalToRequiredPasses = providerjson.SchemaJSON{
 	Type:        "",
 	ConfigMode:  "",
 	Optional:    true,
@@ -37,7 +37,7 @@ var optionalToRequiredPasses = providerschema.SchemaJSON{
 	MinItems:    0,
 }
 
-var optionalToRequiredViolates = providerschema.SchemaJSON{
+var optionalToRequiredViolates = providerjson.SchemaJSON{
 	Type:        "",
 	ConfigMode:  "",
 	Optional:    false, // violation

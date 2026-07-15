@@ -12,6 +12,7 @@ on:
     types: ['opened', 'synchronize']
     paths:
       - '.github/workflows/schema-lint.yaml'
+      - '.tfproviderlint/**'
       - 'scripts/run-schema-lint.sh'
       - 'scripts/run-schema-lint-diff.sh'
       - 'internal/services/**/*_resource.go'
@@ -49,4 +50,4 @@ jobs:
           echo "Reproduce locally against the branch you are merging into:"
           echo "  GITHUB_BASE_REF=main bash ./scripts/run-schema-lint-diff.sh"
           echo ""
-          echo "See internal/tools/schema-lint/README.md for the full rule list."
+          echo "See .tfproviderlint/README.md for the full rule list."

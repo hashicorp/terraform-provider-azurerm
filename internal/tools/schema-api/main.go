@@ -13,9 +13,8 @@ import (
 	"syscall"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/providerschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/differ"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/server"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/providerjson"
 )
 
 func main() {
@@ -33,18 +32,18 @@ func main() {
 		os.Exit(1)
 	}
 
-	data := providerschema.LoadData()
+	data := providerjson.LoadData()
 
 	switch {
 	case pointer.From(dumpSchema):
 		{
 			// Call the method to stdout
 			log.Printf("dumping schema for '%s'", *providerName)
-			wrappedProvider := &providerschema.ProviderWrapper{
+			wrappedProvider := &providerjson.ProviderWrapper{
 				ProviderName:  *providerName,
 				SchemaVersion: "1",
 			}
-			if err := providerschema.DumpWithWrapper(wrappedProvider, data); err != nil {
+			if err := providerjson.DumpWithWrapper(wrappedProvider, data); err != nil {
 				log.Fatalf("error dumping provider: %+v", err)
 			}
 
@@ -69,11 +68,11 @@ func main() {
 	case pointer.From(exportSchema) != "":
 		{
 			log.Printf("dumping schema for '%s'", *providerName)
-			wrappedProvider := &providerschema.ProviderWrapper{
+			wrappedProvider := &providerjson.ProviderWrapper{
 				ProviderName:  *providerName,
 				SchemaVersion: "1",
 			}
-			if err := providerschema.WriteWithWrapper(wrappedProvider, data, *exportSchema); err != nil {
+			if err := providerjson.WriteWithWrapper(wrappedProvider, data, *exportSchema); err != nil {
 				log.Fatalf("error writing provider schema for %q to %q: %+v", *providerName, *exportSchema, err)
 			}
 
@@ -96,15 +95,14 @@ func main() {
 	}()
 
 	mux := http.NewServeMux()
-	srv := server.New(data)
 	// paths
-	mux.HandleFunc(server.DataSourcesList, srv.ListDataSources)
-	mux.HandleFunc(server.ResourcesList, srv.ListResources)
+	mux.HandleFunc(providerjson.DataSourcesList, data.ListDataSources)
+	mux.HandleFunc(providerjson.ResourcesList, data.ListResources)
 
-	mux.HandleFunc(server.DataSourcesPath, srv.DataSourcesHandler)
-	mux.HandleFunc(server.ResourcesPath, srv.ResourcesHandler)
+	mux.HandleFunc(providerjson.DataSourcesPath, data.DataSourcesHandler)
+	mux.HandleFunc(providerjson.ResourcesPath, data.ResourcesHandler)
 
-	mux.HandleFunc(server.DumpSchema, srv.DumpAllSchema)
+	mux.HandleFunc(providerjson.DumpSchema, data.DumpAllSchema)
 
 	log.Printf("starting api service on localhost:%d", *apiPort)
 	log.Println(http.ListenAndServe(fmt.Sprintf(":%d", *apiPort), mux))

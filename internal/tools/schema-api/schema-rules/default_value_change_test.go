@@ -6,10 +6,10 @@ package schema_rules
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/providerschema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/providerjson"
 )
 
-var defaultValueChangeStringBase = providerschema.SchemaJSON{
+var defaultValueChangeStringBase = providerjson.SchemaJSON{
 	Type:        "",
 	ConfigMode:  "",
 	Optional:    false,
@@ -23,7 +23,7 @@ var defaultValueChangeStringBase = providerschema.SchemaJSON{
 	MinItems:    0,
 }
 
-var defaultValueChangeStringPasses = providerschema.SchemaJSON{
+var defaultValueChangeStringPasses = providerjson.SchemaJSON{
 	Type:        "",
 	ConfigMode:  "",
 	Optional:    true,
@@ -37,7 +37,7 @@ var defaultValueChangeStringPasses = providerschema.SchemaJSON{
 	MinItems:    0,
 }
 
-var defaultValueChangeStringViolates = providerschema.SchemaJSON{
+var defaultValueChangeStringViolates = providerjson.SchemaJSON{
 	Type:        "",
 	ConfigMode:  "",
 	Optional:    false,
@@ -51,7 +51,7 @@ var defaultValueChangeStringViolates = providerschema.SchemaJSON{
 	MinItems:    0,
 }
 
-var defaultValueChangeIntBase = providerschema.SchemaJSON{
+var defaultValueChangeIntBase = providerjson.SchemaJSON{
 	Type:        "",
 	ConfigMode:  "",
 	Optional:    false,
@@ -65,7 +65,7 @@ var defaultValueChangeIntBase = providerschema.SchemaJSON{
 	MinItems:    0,
 }
 
-var defaultValueChangeIntPasses = providerschema.SchemaJSON{
+var defaultValueChangeIntPasses = providerjson.SchemaJSON{
 	Type:        "",
 	ConfigMode:  "",
 	Optional:    true,
@@ -79,7 +79,7 @@ var defaultValueChangeIntPasses = providerschema.SchemaJSON{
 	MinItems:    0,
 }
 
-var defaultValueChangeIntViolates = providerschema.SchemaJSON{
+var defaultValueChangeIntViolates = providerjson.SchemaJSON{
 	Type:        "",
 	ConfigMode:  "",
 	Optional:    false,
@@ -93,7 +93,7 @@ var defaultValueChangeIntViolates = providerschema.SchemaJSON{
 	MinItems:    0,
 }
 
-var defaultValueChangeFloatBase = providerschema.SchemaJSON{
+var defaultValueChangeFloatBase = providerjson.SchemaJSON{
 	Type:        "",
 	ConfigMode:  "",
 	Optional:    false,
@@ -107,7 +107,7 @@ var defaultValueChangeFloatBase = providerschema.SchemaJSON{
 	MinItems:    0,
 }
 
-var defaultValueChangeFloatPasses = providerschema.SchemaJSON{
+var defaultValueChangeFloatPasses = providerjson.SchemaJSON{
 	Type:        "",
 	ConfigMode:  "",
 	Optional:    true,
@@ -121,7 +121,7 @@ var defaultValueChangeFloatPasses = providerschema.SchemaJSON{
 	MinItems:    0,
 }
 
-var defaultValueChangeFloatViolates = providerschema.SchemaJSON{
+var defaultValueChangeFloatViolates = providerjson.SchemaJSON{
 	Type:        "",
 	ConfigMode:  "",
 	Optional:    false,

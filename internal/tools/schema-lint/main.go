@@ -1,40 +1,42 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-// Command schema-lint is a modular, pluggable linter for the AzureRM provider's
-// resource and data source schemas.
-//
-// In the spirit of a markdown linter, each check is an independent rule that can
-// be enabled, disabled or re-configured via a .schema-lint.json config file or
-// CLI flags. Run `schema-lint list` to see the available rules.
+// Command schemalint is a fast, AST-based linter for the AzureRM provider's
+// resource and data source schemas. It extends the tfproviderlint helper
+// libraries and analysis.Analyzer model, parsing Go source directly (no provider
+// compilation or JSON schema rendering) so it can lint a single file or only the
+// schema properties a pull request changes.
 //
 // Usage:
 //
-//	go run ./internal/tools/schema-lint check                       # lint with defaults
-//	go run ./internal/tools/schema-lint check -rules=SL001,SL005    # run only specific rules
-//	go run ./internal/tools/schema-lint check -disable=SL001        # disable a rule
-//	go run ./internal/tools/schema-lint check -fix                  # include suggested fixes
-//	go run ./internal/tools/schema-lint check -diff base.json       # only lint properties added since base.json
-//	go run ./internal/tools/schema-lint check -format=json          # machine readable output
-//	go run ./internal/tools/schema-lint list                        # list all rules
+//	schemalint list
+//	schemalint check ./internal/services/foo/foo_resource.go
+//	schemalint check ./internal/services/foo
+//	schemalint check -diff-base origin/main
+//	schemalint check -format json ./internal/services/foo
 package main
 
 import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/providerschema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-lint/config"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-lint/engine"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-lint/report"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-lint/lint"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-lint/rules"
 )
 
+// defaultPathspecs restrict diff mode to resource and data source source files,
+// matching the schema-lint workflow's trigger paths.
+var defaultPathspecs = []string{
+	":(glob)internal/services/**/*_resource.go",
+	":(glob)internal/services/**/*_data_source.go",
+	":(glob)internal/services/**/*_datasource.go",
+}
+
 func main() {
 	args := os.Args[1:]
-
 	cmd := "check"
 	if len(args) > 0 && !strings.HasPrefix(args[0], "-") {
 		cmd = args[0]
@@ -54,113 +56,110 @@ func main() {
 }
 
 func runCheck(args []string) int {
-	fs := flag.NewFlagSet("schema-lint check", flag.ExitOnError)
-	configPath := fs.String("config", "", "path to a .schema-lint.json config file (defaults to .schema-lint.json when present)")
-	rulesFlag := fs.String("rules", "all", "comma-separated rule IDs to run, or 'all'")
+	fs := flag.NewFlagSet("check", flag.ContinueOnError)
+	root := fs.String("C", ".", "repository root to resolve targets and run git from")
+	format := fs.String("format", "text", "output format: text or json")
+	fix := fs.Bool("fix", false, "include suggested fixes for fixable findings")
+	diffBase := fs.String("diff-base", "", "only report findings on lines added since this git ref (e.g. origin/main)")
+	rulesFlag := fs.String("rules", "", "comma-separated rule IDs to run (default all)")
 	disableFlag := fs.String("disable", "", "comma-separated rule IDs to disable")
-	resourceFlag := fs.String("resource", "", "comma-separated resource/data source type names to include")
-	skipResourceFlag := fs.String("skip-resource", "", "comma-separated resource/data source type names to skip")
-	formatFlag := fs.String("format", "text", "output format: text or json")
 	failOnError := fs.Bool("fail-on-error", true, "exit non-zero when any error-severity finding is present")
-	fixFlag := fs.Bool("fix", false, "include suggested fixes for fixable findings")
-	diffFlag := fs.String("diff", "", "path to a base schema dump (from schema-api -export); only report findings on properties added since the base")
 
 	if err := fs.Parse(args); err != nil {
-		fmt.Fprintf(os.Stderr, "error parsing flags: %v\n", err)
 		return 2
 	}
 
-	cfg, err := config.Load(*configPath)
+	absRoot, err := filepath.Abs(*root)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error loading config: %v\n", err)
+		fmt.Fprintf(os.Stderr, "error resolving root %q: %v\n", *root, err)
 		return 2
 	}
 
-	// In diff mode, load the base schema so that only newly-added properties are
-	// held to the rules.
-	var baseSchema *providerschema.ProviderSchemaJSON
-	if *diffFlag != "" {
-		wrapper, err := providerschema.LoadWrapperFromFile(*diffFlag)
+	opts := lint.Options{
+		Only:    splitSet(*rulesFlag),
+		Disable: splitSet(*disableFlag),
+	}
+
+	targets := fs.Args()
+	if *diffBase != "" {
+		changes, err := lint.Diff(absRoot, *diffBase, defaultPathspecs)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "error loading base schema %q: %v\n", *diffFlag, err)
+			fmt.Fprintf(os.Stderr, "error computing diff against %q: %v\n", *diffBase, err)
 			return 2
 		}
-		baseSchema = wrapper.ProviderSchema
+		opts.Changes = changes
+		targets = changes.ChangedFiles()
+		if len(targets) == 0 {
+			fmt.Fprintln(os.Stderr, "no changed resource or data source schema files; nothing to lint")
+			return 0
+		}
 	}
 
-	// CLI resource filters override the config file when provided.
-	if v := splitList(*resourceFlag); len(v) > 0 {
-		cfg.IncludeResources = v
-	}
-	if v := splitList(*skipResourceFlag); len(v) > 0 {
-		cfg.SkipResources = v
+	if len(targets) == 0 {
+		fmt.Fprintln(os.Stderr, "error: no targets; provide files/directories or use -diff-base")
+		printHelp()
+		return 2
 	}
 
-	only := splitList(*rulesFlag)
-	if len(only) == 1 && strings.EqualFold(only[0], "all") {
-		only = nil
-	}
-
-	linter := engine.New(nil, engine.Options{
-		Config:       cfg,
-		OnlyRules:    only,
-		DisableRules: splitList(*disableFlag),
-		SuggestFixes: *fixFlag,
-		BaseSchema:   baseSchema,
-	})
-
-	findings, err := linter.Run()
+	findings, err := lint.Run(targets, opts)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error running linter: %v\n", err)
 		return 2
 	}
 
-	if err := report.Write(os.Stdout, findings, report.Format(strings.ToLower(*formatFlag))); err != nil {
-		fmt.Fprintf(os.Stderr, "error writing report: %v\n", err)
-		return 2
+	switch strings.ToLower(*format) {
+	case "json":
+		if err := lint.WriteJSON(os.Stdout, findings); err != nil {
+			fmt.Fprintf(os.Stderr, "error writing report: %v\n", err)
+			return 2
+		}
+	default:
+		lint.WriteText(os.Stdout, findings, absRoot, *fix)
 	}
 
-	if *failOnError && report.Summarize(findings).Errors > 0 {
+	if *failOnError && lint.HasErrors(findings) {
 		return 1
 	}
-
 	return 0
 }
 
 func listRules() {
-	fmt.Println("Available schema-lint rules:")
-	for _, r := range rules.AllRules {
+	fmt.Println("ID     Severity  Fixable  Name")
+	for _, r := range rules.Registry {
 		fixable := ""
-		if rules.Fixable(r) {
-			fixable = " [fixable]"
+		if r.Fixable {
+			fixable = "yes"
 		}
-		fmt.Printf("  %-6s [%-7s] %s%s\n           %s\n", r.ID(), r.DefaultSeverity(), r.Name(), fixable, r.Description())
+		fmt.Printf("%-6s %-9s %-8s %s\n", r.ID, r.Severity, fixable, r.Name)
 	}
 }
 
 func printHelp() {
-	fmt.Print(`USAGE: schema-lint [COMMAND] [OPTIONS]
+	fmt.Fprintln(os.Stderr, `schemalint - AST-based AzureRM schema linter
 
-COMMANDS:
-  check   lint the provider schema (default)
-  list    show the available rules
+Commands:
+  check [flags] [files/dirs...]   lint the given targets (default command)
+  list                            list the available rules
 
-Run "schema-lint check -h" for the available options.
-`)
+Check flags:
+  -C <dir>            repository root (default ".")
+  -format text|json   output format (default "text")
+  -fix                include suggested fixes
+  -diff-base <ref>    lint only lines added since <ref> (e.g. origin/main)
+  -rules <ids>        comma-separated rule IDs to run
+  -disable <ids>      comma-separated rule IDs to disable
+  -fail-on-error      exit non-zero on error findings (default true)`)
 }
 
-func splitList(in string) []string {
-	if strings.TrimSpace(in) == "" {
+func splitSet(s string) map[string]bool {
+	if strings.TrimSpace(s) == "" {
 		return nil
 	}
-
-	parts := strings.Split(in, ",")
-	out := make([]string, 0, len(parts))
-	for _, p := range parts {
-		if p = strings.TrimSpace(p); p != "" {
-			out = append(out, p)
+	out := map[string]bool{}
+	for _, part := range strings.Split(s, ",") {
+		if p := strings.ToUpper(strings.TrimSpace(part)); p != "" {
+			out[p] = true
 		}
 	}
-
 	return out
 }

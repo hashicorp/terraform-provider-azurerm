@@ -6,10 +6,10 @@ package schema_rules
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/providerschema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/providerjson"
 )
 
-var becomeComputedOnlyOptionalBaseNode = providerschema.SchemaJSON{
+var becomeComputedOnlyOptionalBaseNode = providerjson.SchemaJSON{
 	Type:        "",
 	ConfigMode:  "",
 	Optional:    true,
@@ -23,7 +23,7 @@ var becomeComputedOnlyOptionalBaseNode = providerschema.SchemaJSON{
 	MinItems:    0,
 }
 
-var becomeComputedOnlyRequiredBaseNode = providerschema.SchemaJSON{
+var becomeComputedOnlyRequiredBaseNode = providerjson.SchemaJSON{
 	Type:        "",
 	ConfigMode:  "",
 	Optional:    false,
@@ -37,7 +37,7 @@ var becomeComputedOnlyRequiredBaseNode = providerschema.SchemaJSON{
 	MinItems:    0,
 }
 
-var becomeComputedOnlyOptionalPasses = providerschema.SchemaJSON{
+var becomeComputedOnlyOptionalPasses = providerjson.SchemaJSON{
 	Type:        "",
 	ConfigMode:  "",
 	Optional:    true,
@@ -51,7 +51,7 @@ var becomeComputedOnlyOptionalPasses = providerschema.SchemaJSON{
 	MinItems:    0,
 }
 
-var becomeComputedOnlyRequiredPasses = providerschema.SchemaJSON{
+var becomeComputedOnlyRequiredPasses = providerjson.SchemaJSON{
 	Type:        "",
 	ConfigMode:  "",
 	Optional:    false,
@@ -65,7 +65,7 @@ var becomeComputedOnlyRequiredPasses = providerschema.SchemaJSON{
 	MinItems:    0,
 }
 
-var becomeComputedOnlyViolates = providerschema.SchemaJSON{
+var becomeComputedOnlyViolates = providerjson.SchemaJSON{
 	Type:        "",
 	ConfigMode:  "",
 	Optional:    false, // violation
