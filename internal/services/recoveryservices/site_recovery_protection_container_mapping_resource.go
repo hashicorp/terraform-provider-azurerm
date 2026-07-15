@@ -302,7 +302,7 @@ func expandAutoUpdateSettings(input []interface{}) (enabled replicationprotectio
 }
 
 func flattenAutoUpdateSettings(input *replicationprotectioncontainermappings.A2AProtectionContainerMappingDetails) []interface{} {
-	if input == nil || pointer.From(input.AgentAutoUpdateStatus) == replicationprotectioncontainermappings.AgentAutoUpdateStatusEnabled {
+	if input == nil || pointer.From(input.AgentAutoUpdateStatus) == replicationprotectioncontainermappings.AgentAutoUpdateStatusDisabled {
 		return []interface{}{}
 	}
 
