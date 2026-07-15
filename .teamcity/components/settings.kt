@@ -165,7 +165,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "orbital" to testConfiguration(locationOverride = LocationConfiguration("eastus", "southcentralus", "westus2", false), disableTriggers = true),
 
         // `azurerm_geo_catalog` is only available in `canadacentral`, `eastus`, `northcentralus`, `westeurope`, and `uksouth`
-        "orbitalplanetarycomputer" to testConfiguration(locationOverride = LocationConfiguration("uksouth", "eastus2", "westus2", false), disableTriggers = true),
+        "orbitalplanetarycomputer" to testConfiguration(locationOverride = LocationConfiguration("uksouth", "eastus2", "westus2", false)),
 
         "paloalto" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus", "westus", false)),
 
