@@ -161,7 +161,7 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctest-planetarycomputer-%d"
-  location = "%s"
+  location = "uksouth" # Hardcode first as TeamCity location override does not work for newly added service
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger)
 }
