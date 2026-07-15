@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2025-09-01/mongoclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2026-06-01/mongoclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -47,6 +47,7 @@ type MongoClusterResourceModel struct {
 	SourceServerId        string                         `tfschema:"source_server_id"`
 	ComputeTier           string                         `tfschema:"compute_tier"`
 	HighAvailabilityMode  string                         `tfschema:"high_availability_mode"`
+	NetworkBypassMode     string                         `tfschema:"network_bypass_mode"`
 	PublicNetworkAccess   string                         `tfschema:"public_network_access"`
 	PreviewFeatures       []string                       `tfschema:"preview_features"`
 	StorageSizeInGb       int64                          `tfschema:"storage_size_in_gb"`
@@ -255,6 +256,14 @@ func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 
+		"network_bypass_mode": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(mongoclusters.NetworkBypassModeAzureCosmosDB),
+			}, false),
+		},
+
 		"public_network_access": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -359,6 +368,21 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 				},
 			}
 
+			storageTypeConfigured := !metadata.ResourceData.GetRawConfig().AsValueMap()["storage_type"].IsNull()
+
+			switch state.CreateMode {
+			case string(mongoclusters.CreateModePointInTimeRestore), string(mongoclusters.CreateModeGeoReplica):
+				if state.SourceServerId != "" && storageTypeConfigured {
+					source, err := retrieveMongoClusterSource(ctx, client, state.SourceServerId)
+					if err != nil {
+						return err
+					}
+					if err := preventSourceStorageDowngrade(source, state.StorageType); err != nil {
+						return err
+					}
+				}
+			}
+
 			identityVal, err := identity.ExpandUserAssignedMapFromModel(state.Identity)
 			if err != nil {
 				return fmt.Errorf(`expanding "identity": %v`, err)
@@ -366,10 +390,16 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 			// Per the current service API design, they don’t allow setting `userAssignedIdentities` to `nil` in the request payload when the `type` of `identity` is `nil`; otherwise, the API would return an error.
 			// Therefore, we have to use the customized function instead of the common one, since the common function always sets `userAssignedIdentities` to `nil` in the request payload.
 			// Service team confirmed that it will be more flexible, and we will allow `userAssignedIdentities = nil` in the future. Tracking issue: https://github.com/Azure/azure-rest-api-specs/issues/38575
-			if identityVal != nil && identityVal.Type == identity.TypeNone {
-				identityVal = nil
+			if identityVal != nil && identityVal.Type != identity.TypeNone {
+				if identityVal.Type == identity.TypeNone {
+					parameter.Identity = nil
+				} else {
+					parameter.Identity = &identity.LegacySystemAndUserAssignedMap{
+						Type:        identityVal.Type,
+						IdentityIds: identityVal.IdentityIds,
+					}
+				}
 			}
-			parameter.Identity = identityVal
 
 			if state.AdministratorUserName != "" {
 				parameter.Properties.Administrator = &mongoclusters.AdministratorProperties{
@@ -411,6 +441,10 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 				parameter.Properties.HighAvailability = &mongoclusters.HighAvailabilityProperties{
 					TargetMode: pointer.To(mongoclusters.HighAvailabilityMode(state.HighAvailabilityMode)),
 				}
+			}
+
+			if state.NetworkBypassMode != "" {
+				parameter.Properties.NetworkBypassMode = pointer.To(mongoclusters.NetworkBypassMode(state.NetworkBypassMode))
 			}
 
 			parameter.Properties.PublicNetworkAccess = pointer.To(mongoclusters.PublicNetworkAccess(state.PublicNetworkAccess))
@@ -508,6 +542,17 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 				payload.Properties.DataApi = nil
 			}
 
+			networkBypassModeChanged := metadata.ResourceData.HasChange("network_bypass_mode")
+			if networkBypassModeChanged {
+				if state.NetworkBypassMode == "" {
+					if err := updateMongoClusterNetworkBypassMode(ctx, client, *id, mongoclusters.NetworkBypassModeNone); err != nil {
+						return fmt.Errorf("disabling `network_bypass_mode` for %s: %+v", *id, err)
+					}
+				}
+
+				payload.Properties.NetworkBypassMode = pointer.To(mongoclusters.NetworkBypassModeNone)
+			}
+
 			// upgrades involving Free or M25(Burstable) compute tier require first upgrading the compute tier, after which other configurations can be updated.
 			if metadata.ResourceData.HasChange("compute_tier") {
 				payload.Properties.Compute = &mongoclusters.ComputeProperties{
@@ -574,11 +619,24 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 				if err != nil {
 					return fmt.Errorf(`expanding "identity": %v`, err)
 				}
-				payload.Identity = identityVal
+				if identityVal == nil {
+					payload.Identity = nil
+				} else {
+					payload.Identity = &identity.LegacySystemAndUserAssignedMap{
+						Type:        identityVal.Type,
+						IdentityIds: identityVal.IdentityIds,
+					}
+				}
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
+			}
+
+			if networkBypassModeChanged && state.NetworkBypassMode != "" {
+				if err := updateMongoClusterNetworkBypassMode(ctx, client, *id, mongoclusters.NetworkBypassMode(state.NetworkBypassMode)); err != nil {
+					return fmt.Errorf("enabling `network_bypass_mode` for %s: %+v", *id, err)
+				}
 			}
 
 			return nil
@@ -613,11 +671,19 @@ func (r MongoClusterResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
 
-				identity, err := identity.FlattenUserAssignedMapToModel(model.Identity)
+				identityVal, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(model.Identity)
 				if err != nil {
 					return fmt.Errorf("flattening `identity`: %+v", err)
 				}
-				state.Identity = pointer.From(identity)
+				modelUserAssignedList := make([]identity.ModelUserAssigned, 0)
+				if identityVal != nil {
+					for _, assigned := range identityVal {
+						modelUserAssignedList = append(modelUserAssignedList, identity.ModelUserAssigned{
+							Type:        assigned.Type,
+							IdentityIds: assigned.IdentityIds,
+						})
+					}
+				}
 
 				if props := model.Properties; props != nil {
 					// API doesn't return the value of administrator_password
@@ -655,6 +721,9 @@ func (r MongoClusterResource) Read() sdk.ResourceFunc {
 
 					if v := props.HighAvailability; v != nil {
 						state.HighAvailabilityMode = string(pointer.From(v.TargetMode))
+					}
+					if v := props.NetworkBypassMode; v != nil && *v != mongoclusters.NetworkBypassModeNone {
+						state.NetworkBypassMode = string(*v)
 					}
 					state.PublicNetworkAccess = string(pointer.From(props.PublicNetworkAccess))
 
@@ -785,6 +854,10 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 				return fmt.Errorf("`data_api_mode_enabled` can only be set when `create_mode` is `Default`")
 			}
 
+			if err := validateMongoClusterNetworkBypassMode(metadata, state); err != nil {
+				return err
+			}
+
 			// Service team confirmed that `data_api_mode_enabled` can only be updated to `Enabled` after the cluster has been created
 			if oldVal, newVal := metadata.ResourceDiff.GetChange("data_api_mode_enabled"); oldVal.(bool) && !newVal.(bool) && state.CreateMode == string(mongoclusters.CreateModeDefault) {
 				if err := metadata.ResourceDiff.ForceNew("data_api_mode_enabled"); err != nil {
@@ -803,9 +876,106 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 			}
 
+			if metadata.ResourceDiff.Id() != "" {
+				if oldStorageType, newStorageType := metadata.ResourceDiff.GetChange("storage_type"); oldStorageType.(string) != newStorageType.(string) {
+					return fmt.Errorf("`storage_type` cannot be changed in place: online migration between `%s` and `%s` is not supported. To change the storage type, create a new cluster with `create_mode` `PointInTimeRestore` or `GeoReplica` and the desired `storage_type`", mongoclusters.StorageTypePremiumSSD, mongoclusters.StorageTypePremiumSSDvTwo)
+				}
+			}
+
+			if state.StorageType == string(mongoclusters.StorageTypePremiumSSDvTwo) {
+				if state.HighAvailabilityMode == string(mongoclusters.HighAvailabilityModeZoneRedundantPreferred) {
+					return fmt.Errorf("`high_availability_mode` cannot be `%s` when `storage_type` is `%s`", mongoclusters.HighAvailabilityModeZoneRedundantPreferred, mongoclusters.StorageTypePremiumSSDvTwo)
+				}
+
+				if len(state.CustomerManagedKey) > 0 {
+					return fmt.Errorf("`customer_managed_key` cannot be set when `storage_type` is `%s`", mongoclusters.StorageTypePremiumSSDvTwo)
+				}
+
+				if metadata.ResourceDiff.Id() != "" {
+					operations := 0
+					for _, field := range []string{"compute_tier", "storage_size_in_gb", "high_availability_mode"} {
+						if metadata.ResourceDiff.HasChange(field) {
+							operations++
+						}
+					}
+					if operations > 1 {
+						return fmt.Errorf("only one of `compute_tier`, `storage_size_in_gb` or `high_availability_mode` can be changed per update when `storage_type` is `%s`", mongoclusters.StorageTypePremiumSSDvTwo)
+					}
+				}
+			}
+
 			return nil
 		},
 	}
+}
+
+func validateMongoClusterNetworkBypassMode(metadata sdk.ResourceMetaData, state MongoClusterResourceModel) error {
+	rawConfig := metadata.ResourceDiff.GetRawConfig()
+	if !rawConfig.IsKnown() || rawConfig.IsNull() {
+		return nil
+	}
+
+	rawConfigMap := rawConfig.AsValueMap()
+	networkBypassMode := rawConfigMap["network_bypass_mode"]
+	if !networkBypassMode.IsKnown() || networkBypassMode.IsNull() {
+		return nil
+	}
+
+	if !rawConfigMap["public_network_access"].IsKnown() || !rawConfigMap["authentication_methods"].IsKnown() {
+		return nil
+	}
+
+	if state.PublicNetworkAccess != string(mongoclusters.PublicNetworkAccessDisabled) {
+		return fmt.Errorf("`public_network_access` must be `Disabled` when `network_bypass_mode` is `AzureCosmosDB`")
+	}
+
+	if len(state.AuthenticationMethods) != 1 || state.AuthenticationMethods[0] != string(mongoclusters.AuthenticationModeMicrosoftEntraID) {
+		return fmt.Errorf("`authentication_methods` must contain only `MicrosoftEntraID` when `network_bypass_mode` is `AzureCosmosDB`")
+	}
+
+	return nil
+}
+
+func updateMongoClusterNetworkBypassMode(ctx context.Context, client *mongoclusters.MongoClustersClient, id mongoclusters.MongoClusterId, mode mongoclusters.NetworkBypassMode) error {
+	payload := mongoclusters.MongoClusterUpdate{
+		Properties: &mongoclusters.MongoClusterUpdateProperties{
+			NetworkBypassMode: pointer.To(mode),
+		},
+	}
+
+	return client.UpdateThenPoll(ctx, id, payload)
+}
+
+func retrieveMongoClusterSource(ctx context.Context, client *mongoclusters.MongoClustersClient, sourceIdRaw string) (*mongoclusters.MongoCluster, error) {
+	sourceId, err := mongoclusters.ParseMongoClusterID(sourceIdRaw)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := client.Get(ctx, *sourceId)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving source %s: %+v", *sourceId, err)
+	}
+	if resp.Model == nil {
+		return nil, fmt.Errorf("retrieving source %s: `model` was nil", *sourceId)
+	}
+
+	return resp.Model, nil
+}
+
+func sourceStorageType(source *mongoclusters.MongoCluster) string {
+	if source.Properties == nil || source.Properties.Storage == nil {
+		return ""
+	}
+	return pointer.FromEnum(source.Properties.Storage.Type)
+}
+
+func preventSourceStorageDowngrade(source *mongoclusters.MongoCluster, targetStorageType string) error {
+	sourceType := sourceStorageType(source)
+	if sourceType == string(mongoclusters.StorageTypePremiumSSDvTwo) && targetStorageType == string(mongoclusters.StorageTypePremiumSSD) {
+		return fmt.Errorf("`storage_type` cannot be downgraded from the source cluster's storage type `%s` to `%s`", mongoclusters.StorageTypePremiumSSDvTwo, mongoclusters.StorageTypePremiumSSD)
+	}
+	return nil
 }
 
 func expandPreviewFeatures(input []string) *[]mongoclusters.PreviewFeature {
