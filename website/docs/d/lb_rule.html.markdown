@@ -57,7 +57,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `backend_port` - The port used for internal connections on the endpoint.
 
-* `enable_floating_ip` - If Floating IPs are enabled for this Load Balancer Rule
+* `floating_ip_enabled` - If Floating IPs are enabled for this Load Balancer Rule
 
 * `idle_timeout_in_minutes` - Specifies the idle timeout in minutes for TCP connections.
 
@@ -65,7 +65,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `disable_outbound_snat` - If outbound SNAT is enabled for this Load Balancer Rule.
 
-* `enable_tcp_reset` - If TCP Reset is enabled for this Load Balancer Rule.
+* `tcp_reset_enabled` - If TCP Reset is enabled for this Load Balancer Rule.
 
 ## Timeouts
 
