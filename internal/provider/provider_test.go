@@ -235,14 +235,7 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 
 	logging.SetOutput(t)
 
-	var cases []struct {
-		name     string
-		setupEnv func(*testing.T)
-		config   map[string]any
-		expect   features.EnhancedValidationFeatures
-	}
-
-	cases = []struct {
+	cases := []struct {
 		name     string
 		setupEnv func(*testing.T)
 		config   map[string]any
