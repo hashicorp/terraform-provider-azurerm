@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -17,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/applicationgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -1691,7 +1689,7 @@ func dataSourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{
 				return fmt.Errorf("setting `trusted_client_certificate`: %+v", setErr)
 			}
 
-			sslProfiles, err := flattenApplicationGatewayDataSourceSslProfiles(props.SslProfiles)
+			sslProfiles, err := flattenApplicationGatewaySslProfiles(props.SslProfiles)
 			if err != nil {
 				return fmt.Errorf("flattening `ssl_profile`: %+v", err)
 			}
@@ -1728,65 +1726,4 @@ func dataSourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{
 		return tags.FlattenAndSet(d, model.Tags)
 	}
 	return nil
-}
-
-// TODO: 4.0 remove this after the r/app_gateway schema `verify_client_cert_issuer_dn` is changed to `verify_client_certificate_issuer_dn`, and reuse the flatten function in r/app_gateway file.
-func flattenApplicationGatewayDataSourceSslProfiles(input *[]applicationgateways.ApplicationGatewaySslProfile) ([]interface{}, error) {
-	results := make([]interface{}, 0)
-	if input == nil {
-		return results, nil
-	}
-
-	for _, v := range *input {
-		output := map[string]interface{}{}
-		if v.Name == nil {
-			continue
-		}
-
-		name := *v.Name
-
-		if v.Id != nil {
-			output["id"] = *v.Id
-		}
-
-		output["name"] = name
-
-		verifyClientCertIssuerDn := false
-		verifyClientCertificateRevocation := ""
-		if props := v.Properties; props != nil {
-			if clientAuthConfig := props.ClientAuthConfiguration; clientAuthConfig != nil {
-				verifyClientCertIssuerDn = pointer.From(clientAuthConfig.VerifyClientCertIssuerDN)
-				if clientAuthConfig.VerifyClientRevocation != nil && *clientAuthConfig.VerifyClientRevocation != applicationgateways.ApplicationGatewayClientRevocationOptionsNone {
-					verifyClientCertificateRevocation = string(pointer.From(clientAuthConfig.VerifyClientRevocation))
-				}
-			}
-			output["verify_client_certificate_issuer_dn"] = verifyClientCertIssuerDn
-			output["verify_client_certificate_revocation"] = verifyClientCertificateRevocation
-
-			output["ssl_policy"] = flattenApplicationGatewaySslPolicy(props.SslPolicy)
-		}
-
-		if props := v.Properties; props != nil {
-			trustedClientCertificateNames := make([]interface{}, 0)
-			if certs := props.TrustedClientCertificates; certs != nil {
-				for _, cert := range *certs {
-					if cert.Id == nil {
-						continue
-					}
-
-					certId, err := parse.TrustedClientCertificateIDInsensitively(*cert.Id)
-					if err != nil {
-						return nil, err
-					}
-
-					trustedClientCertificateNames = append(trustedClientCertificateNames, certId.Name)
-				}
-			}
-			output["trusted_client_certificate_names"] = trustedClientCertificateNames
-		}
-
-		results = append(results, output)
-	}
-
-	return results, nil
 }

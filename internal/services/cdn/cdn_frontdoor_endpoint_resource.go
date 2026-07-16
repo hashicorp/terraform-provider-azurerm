@@ -7,18 +7,18 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceCdnFrontDoorEndpoint() *pluginsdk.Resource {
@@ -36,7 +36,7 @@ func resourceCdnFrontDoorEndpoint() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.FrontDoorEndpointID(id)
+			_, err := afdendpoints.ParseAfdEndpointID(id)
 			return err
 		}),
 
@@ -52,7 +52,7 @@ func resourceCdnFrontDoorEndpoint() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FrontDoorProfileID,
+				ValidateFunc: afdendpoints.ValidateProfileID,
 			},
 
 			"enabled": {
@@ -72,67 +72,69 @@ func resourceCdnFrontDoorEndpoint() *pluginsdk.Resource {
 }
 
 func resourceCdnFrontDoorEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontDoorEndpointsClient
+	client := meta.(*clients.Client).Cdn.AFDEndpointsClient
+
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	profileRaw := d.Get("cdn_frontdoor_profile_id").(string)
-	profileId, err := parse.FrontDoorProfileID(profileRaw)
+	profileId, err := parse.FrontDoorProfileID(d.Get("cdn_frontdoor_profile_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewFrontDoorEndpointID(profileId.SubscriptionId, profileId.ResourceGroup, profileId.ProfileName, d.Get("name").(string))
+	id := afdendpoints.NewAfdEndpointID(profileId.SubscriptionId, profileId.ResourceGroup, profileId.ProfileName, d.Get("name").(string))
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_cdn_frontdoor_endpoint", id.ID())
 		}
 	}
 
-	props := cdn.AFDEndpoint{
-		Name:     pointer.To(d.Get("name").(string)),
-		Location: pointer.To(location.Normalize("global")),
-		AFDEndpointProperties: &cdn.AFDEndpointProperties{
-			EnabledState: expandEnabledBool(d.Get("enabled").(bool)),
+	enabledState := afdendpoints.EnabledStateEnabled
+	if !d.Get("enabled").(bool) {
+		enabledState = afdendpoints.EnabledStateDisabled
+	}
+
+	props := afdendpoints.AFDEndpoint{
+		Name:     pointer.To(id.AfdEndpointName),
+		Location: "global",
+		Properties: &afdendpoints.AFDEndpointProperties{
+			EnabledState: &enabledState,
 		},
 
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.Create(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, props)
-	if err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, id, props, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the creation of %s: %+v", id, err)
-	}
-
 	d.SetId(id.ID())
+
 	return resourceCdnFrontDoorEndpointRead(d, meta)
 }
 
 func resourceCdnFrontDoorEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontDoorEndpointsClient
+	client := meta.(*clients.Client).Cdn.AFDEndpointsClient
+
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorEndpointID(d.Id())
+	id, err := afdendpoints.ParseAfdEndpointID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
@@ -140,31 +142,44 @@ func resourceCdnFrontDoorEndpointRead(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	d.Set("name", id.AfdEndpointName)
-	d.Set("cdn_frontdoor_profile_id", parse.NewFrontDoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
+	d.Set("cdn_frontdoor_profile_id", afdendpoints.NewProfileID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName).ID())
 
-	if props := resp.AFDEndpointProperties; props != nil {
-		d.Set("enabled", flattenEnabledBool(props.EnabledState))
-		d.Set("host_name", props.HostName)
+	if model := resp.Model; model != nil {
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
+
+		if props := model.Properties; props != nil {
+			d.Set("enabled", pointer.From(props.EnabledState) == afdendpoints.EnabledStateEnabled)
+			d.Set("host_name", props.HostName)
+		}
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceCdnFrontDoorEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontDoorEndpointsClient
+	client := meta.(*clients.Client).Cdn.AFDEndpointsClient
+
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorEndpointID(d.Id())
+	id, err := afdendpoints.ParseAfdEndpointID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	props := cdn.AFDEndpointUpdateParameters{}
+	// TODO: Check if this can be migrated to a PUT upgrade path for consistency with the rest of the provider
+	props := afdendpoints.AFDEndpointUpdateParameters{}
 
 	if d.HasChange("enabled") {
-		props.AFDEndpointPropertiesUpdateParameters = &cdn.AFDEndpointPropertiesUpdateParameters{
-			EnabledState: expandEnabledBool(d.Get("enabled").(bool)),
+		enabledState := afdendpoints.EnabledStateEnabled
+		if !d.Get("enabled").(bool) {
+			enabledState = afdendpoints.EnabledStateDisabled
+		}
+
+		props.Properties = &afdendpoints.AFDEndpointPropertiesUpdateParameters{
+			EnabledState: &enabledState,
 		}
 	}
 
@@ -172,34 +187,26 @@ func resourceCdnFrontDoorEndpointUpdate(d *pluginsdk.ResourceData, meta interfac
 		props.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	future, err := client.Update(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, props)
-	if err != nil {
+	if err := client.UpdateThenPoll(ctx, *id, props); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
-	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the update of %s: %+v", *id, err)
 	}
 
 	return resourceCdnFrontDoorEndpointRead(d, meta)
 }
 
 func resourceCdnFrontDoorEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontDoorEndpointsClient
+	client := meta.(*clients.Client).Cdn.AFDEndpointsClient
+
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorEndpointID(d.Id())
+	id, err := afdendpoints.ParseAfdEndpointID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName)
-	if err != nil {
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 	}
 
 	return nil

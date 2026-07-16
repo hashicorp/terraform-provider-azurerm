@@ -21,7 +21,6 @@ func (e ManagedHSMDataPlaneEndpoint) BaseURI() string {
 }
 
 func ManagedHSMEndpoint(input string, domainSuffix *string) (*ManagedHSMDataPlaneEndpoint, error) {
-	// NOTE: this function can be removed in 4.0
 	uri, err := url.Parse(input)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
