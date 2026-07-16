@@ -11,10 +11,6 @@ package features
 //   - Signify resources which will be Deprecated in 5.0, but not Removed (which will happen in a later release).
 //   - For properties undergoing a rename, where the renamed property will only be introduced in the next release
 func DeprecatedInFivePointOh(deprecationMessage string) string {
-	if !FivePointOh() {
-		return ""
-	}
-
 	return deprecationMessage
 }
 

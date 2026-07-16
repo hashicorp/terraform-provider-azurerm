@@ -12,7 +12,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -161,22 +160,6 @@ func TestResourcesHaveEnabledFieldsMarkedAsBooleans(t *testing.T) {
 	sort.Strings(resourceNames)
 
 	resourceFieldsWhichNeedToBeAddressed := map[string]map[string]struct{}{}
-
-	if !features.FivePointOh() {
-		// These have been addressed but while in 4.x we need to ignore them so the test can pass.
-		resourceFieldsWhichNeedToBeAddressed["azurerm_datadog_monitor_sso_configuration"] = map[string]struct{}{
-			"single_sign_on_enabled": {},
-		}
-		resourceFieldsWhichNeedToBeAddressed["azurerm_kubernetes_cluster"] = map[string]struct{}{
-			"transparent_huge_page_enabled": {},
-		}
-		resourceFieldsWhichNeedToBeAddressed["azurerm_kubernetes_cluster_node_pool"] = map[string]struct{}{
-			"transparent_huge_page_enabled": {},
-		}
-		resourceFieldsWhichNeedToBeAddressed["azurerm_netapp_volume"] = map[string]struct{}{
-			"protocols_enabled": {},
-		}
-	}
 
 	for _, resourceName := range resourceNames {
 		resource := provider.ResourcesMap[resourceName]
@@ -433,11 +416,6 @@ func TestResourcesWithAnEncryptionBlockBehaveConsistently(t *testing.T) {
 
 	resourcesWhichNeedToBeAddressed := map[string]struct{}{}
 
-	if !features.FivePointOh() {
-		resourcesWhichNeedToBeAddressed["azurerm_container_registry"] = struct{}{}
-		resourcesWhichNeedToBeAddressed["azurerm_automation_account"] = struct{}{}
-	}
-
 	for _, resourceName := range resourceNames {
 		resource := provider.ResourcesMap[resourceName]
 
@@ -542,12 +520,6 @@ func TestResourcesDoNotContainLocalAuthenticationDisabled(t *testing.T) {
 	sort.Strings(resourceNames)
 
 	resourcesWhichNeedToBeAddressed := make(map[string]struct{})
-	if !features.FivePointOh() {
-		// These have been addressed but while in 4.x we need to ignore them so the test can pass.
-		resourcesWhichNeedToBeAddressed["azurerm_application_insights"] = struct{}{}
-		resourcesWhichNeedToBeAddressed["azurerm_cosmosdb_account"] = struct{}{}
-		resourcesWhichNeedToBeAddressed["azurerm_log_analytics_workspace"] = struct{}{}
-	}
 
 	for _, resourceName := range resourceNames {
 		resource := provider.ResourcesMap[resourceName]
