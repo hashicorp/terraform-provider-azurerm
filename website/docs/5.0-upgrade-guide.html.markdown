@@ -284,6 +284,10 @@ This deprecated resource has been superseded/retired and has been removed from t
 
 * This deprecated resource has been retired and has been removed from the Azure Provider.
 
+### `azurerm_postgresql_flexible_server`
+
+* The `storage_mb` property no longer accepts `4194304` as a value.
+
 ### `azurerm_postgresql_server_key`
 
 * This deprecated resource has been retired and has been removed from the Azure Provider.
