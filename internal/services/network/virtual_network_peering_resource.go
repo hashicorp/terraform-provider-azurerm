@@ -55,6 +55,14 @@ func resourceVirtualNetworkPeering() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
+			"subscription_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Computed:     true,
+				ValidateFunc: commonids.ValidateSubscriptionID,
+			},
+
 			"virtual_network_name": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
@@ -137,6 +145,9 @@ func resourceVirtualNetworkPeering() *pluginsdk.Resource {
 func resourceVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualNetworkPeerings
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	if v, ok := d.GetOk("subscription_id"); ok && v.(string) != "" {
+		subscriptionId = v.(string)
+	}
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -305,6 +316,7 @@ func resourceVirtualNetworkPeeringFlatten(d *pluginsdk.ResourceData, id *virtual
 	d.Set("name", id.VirtualNetworkPeeringName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("virtual_network_name", id.VirtualNetworkName)
+	d.Set("subscription_id", id.SubscriptionId)
 
 	if model != nil {
 		if peer := model.Properties; peer != nil {

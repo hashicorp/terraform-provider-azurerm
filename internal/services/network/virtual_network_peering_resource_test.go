@@ -37,6 +37,25 @@ func TestAccVirtualNetworkPeering_basic(t *testing.T) {
 	})
 }
 
+func TestAccVirtualNetworkPeering_subscriptionId(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_peering", "test")
+	r := VirtualNetworkPeeringResource{}
+	secondResourceName := "azurerm_virtual_network_peering.test2"
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.subscriptionId(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(secondResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("subscription_id").HasValue(data.Subscriptions.Primary),
+				check.That(secondResourceName).Key("subscription_id").HasValue(data.Subscriptions.Primary),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccVirtualNetworkPeering_withTriggers(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_peering", "test")
 	r := VirtualNetworkPeeringResource{}
@@ -323,4 +342,33 @@ resource "azurerm_virtual_network_peering" "test" {
   remote_subnet_names                    = [azurerm_subnet.test2.name]
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r VirtualNetworkPeeringResource) subscriptionId(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_virtual_network_peering" "test" {
+  name                         = "acctestpeer-1-%[2]d"
+  subscription_id              = "%[3]s"
+  resource_group_name          = azurerm_resource_group.test.name
+  virtual_network_name         = azurerm_virtual_network.test.name
+  remote_virtual_network_id    = azurerm_virtual_network.test2.id
+  allow_virtual_network_access = true
+}
+
+resource "azurerm_virtual_network_peering" "test2" {
+  name                         = "acctestpeer-2-%[2]d"
+  subscription_id              = "%[3]s"
+  resource_group_name          = azurerm_resource_group.test.name
+  virtual_network_name         = azurerm_virtual_network.test2.name
+  remote_virtual_network_id    = azurerm_virtual_network.test.id
+  allow_virtual_network_access = true
+}
+`, template, data.RandomInteger, data.Subscriptions.Primary)
 }
