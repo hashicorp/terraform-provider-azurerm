@@ -27,6 +27,7 @@ func Default() UserFeatures {
 			PurgeSoftDeleteOnDestroy: true,
 		},
 		KeyVault: KeyVaultFeatures{
+			// Standard
 			PurgeSoftDeleteOnDestroy:         true,
 			PurgeSoftDeletedKeysOnDestroy:    true,
 			PurgeSoftDeletedCertsOnDestroy:   true,
@@ -36,7 +37,7 @@ func Default() UserFeatures {
 			RecoverSoftDeletedCerts:          true,
 			RecoverSoftDeletedSecrets:        true,
 
-			// todo 4.0 move all HSM flags into their own features HSMFeatures block
+			// HSM
 			PurgeSoftDeletedHSMsOnDestroy:    true,
 			PurgeSoftDeletedHSMKeysOnDestroy: true,
 			RecoverSoftDeletedHSMKeys:        true,

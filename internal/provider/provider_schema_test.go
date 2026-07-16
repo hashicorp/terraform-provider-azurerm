@@ -252,17 +252,12 @@ func TestResourcesDoNotContainANameFieldWithADefaultOfDefault(t *testing.T) {
 	}
 	sort.Strings(resourceNames)
 
-	// TODO: 4.0 - work through this list
 	resourceFieldsWhichNeedToBeAddressed := map[string]map[string]struct{}{
-		// 1: to be addressed in 4.0
+		// legacy exceptions
 		"azurerm_datadog_monitor_sso_configuration": {
-			// TODO: in 4.0 this resource probably wants embedding within `azurerm_datadog_monitor`
-			// which'll also need the Monitor resource to have Create call Update
 			"name": {},
 		},
 		"azurerm_datadog_monitor_tag_rule": {
-			// TODO: in 4.0 this resource probably wants embedding within `azurerm_datadog_monitor`
-			// which'll also need the Monitor resource to have Create call Update
 			"name": {},
 		},
 

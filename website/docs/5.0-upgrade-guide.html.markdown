@@ -483,7 +483,11 @@ use computed cross-resource references for key arguments.
   
 ### `azurerm_eventgrid_event_subscription`
 
-* Validation for `azure_function.function_id` has been changed to validate for an Azure Function resource ID (case-sensitive) rather than validating for an Azure resource ID.
+* Validation for `azure_function_endpoint.function_id` has been changed to validate for an Azure Function resource ID (case-sensitive) rather than validating for an Azure resource ID.
+* The `eventhub_endpoint_id` property has been removed in favour of the `eventhub_id` property.
+* The `hybrid_connection_endpoint_id` property has been removed in favour of the `hybrid_connection_id` property.
+* The `service_bus_queue_endpoint_id` property has been removed in favour of the `service_bus_queue_id` property.
+* The `service_bus_topic_endpoint_id` property has been removed in favour of the `service_bus_topic_id` property.
 
 ### `azurerm_eventgrid_system_topic`
 
@@ -492,7 +496,11 @@ use computed cross-resource references for key arguments.
 
 ### `azurerm_eventgrid_system_topic_event_subscription`
 
-* Validation for `azure_function.function_id` has been changed to validate for an Azure Function resource ID (case-sensitive) rather than validating for an Azure resource ID.
+* Validation for `azure_function_endpoint.function_id` has been changed to validate for an Azure Function resource ID (case-sensitive) rather than validating for an Azure resource ID.
+* The `eventhub_endpoint_id` property has been removed in favour of the `eventhub_id` property.
+* The `hybrid_connection_endpoint_id` property has been removed in favour of the `hybrid_connection_id` property.
+* The `service_bus_queue_endpoint_id` property has been removed in favour of the `service_bus_queue_id` property.
+* The `service_bus_topic_endpoint_id` property has been removed in favour of the `service_bus_topic_id` property.
 * The deprecated `source_arm_resource_id` property has been removed in favour of the `source_resource_id` property.
 
 ### `azurerm_eventhub`
