@@ -150,7 +150,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validation.IntInSlice([]int{32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4193280, 8388608, 16777216, 33553408}),
+				ValidateFunc: validation.IntInSlice([]int{32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4193280, 4194304, 8388608, 16777216, 33553408}),
 			},
 
 			"storage_tier": {
@@ -545,6 +545,21 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				}
 
 				return nil
+			}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				if diff.GetRawConfig().AsValueMap()["storage_mb"].IsNull() {
+					return nil
+				}
+
+				oldStorageMbRaw, newStorageMbRaw := diff.GetChange("storage_mb")
+				if newStorageMbRaw.(int) != 4194304 {
+					return nil
+				}
+
+				if oldStorageMbRaw.(int) != 4194304 {
+					return errors.New("`storage_mb` value `4194304` is not supported because it disables host caching, use `4193280` instead")
+				}
+
+				return nil
 			},
 		),
 	}
@@ -568,13 +583,6 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				"identity",
 				"customer_managed_key.0.geo_backup_user_assigned_identity_id",
 			},
-		}
-
-		resource.Schema["storage_mb"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: validation.IntInSlice([]int{32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4193280, 4194304, 8388608, 16777216, 33553408}),
 		}
 	}
 
