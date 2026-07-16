@@ -43,7 +43,7 @@ var runNightly = mapOf(
 var serviceTestConfigurationOverrides = mapOf(
 
         // Server is only available in certain locations
-        "analysisservices" to testConfiguration(locationOverride = LocationConfiguration("westus", "northeurope", "southcentralus", true), maxConcurrentBuildsPerBranch = 2, maxConcurrentBuilds = 3),
+        "analysisservices" to testConfiguration(locationOverride = LocationConfiguration("westus", "northeurope", "southcentralus", true)),
 
         // PremiumV2 tier is only available in certain locations `East US 2`, `Australia East`, `Germany West Central`, `Korea Central`, `Norway East` and `UK South`
         "apimanagement" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus2", "westus2", false)),
