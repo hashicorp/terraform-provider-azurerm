@@ -135,7 +135,7 @@ service/dynatrace:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_dynatrace_((.|\n)*)###'
 
 service/elastic:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_elastic_cloud_elasticsearch((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_elastic_cloud_((.|\n)*)###'
 
 service/elasticsan:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_elastic_san((.|\n)*)###'
