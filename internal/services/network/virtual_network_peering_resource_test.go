@@ -52,6 +52,15 @@ func TestAccVirtualNetworkPeering_subscriptionId(t *testing.T) {
 				check.That(secondResourceName).Key("subscription_id").HasValue(data.Subscriptions.Primary),
 			),
 		},
+		{
+			Config: r.subscriptionIdFormat(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(secondResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("subscription_id").HasValue(data.Subscriptions.Primary),
+				check.That(secondResourceName).Key("subscription_id").HasValue(data.Subscriptions.Primary),
+			),
+		},
 		data.ImportStep(),
 	})
 }
@@ -356,6 +365,35 @@ provider "azurerm" {
 resource "azurerm_virtual_network_peering" "test" {
   name                         = "acctestpeer-1-%[2]d"
   subscription_id              = "%[3]s"
+  resource_group_name          = azurerm_resource_group.test.name
+  virtual_network_name         = azurerm_virtual_network.test.name
+  remote_virtual_network_id    = azurerm_virtual_network.test2.id
+  allow_virtual_network_access = true
+}
+
+resource "azurerm_virtual_network_peering" "test2" {
+  name                         = "acctestpeer-2-%[2]d"
+  subscription_id              = "%[3]s"
+  resource_group_name          = azurerm_resource_group.test.name
+  virtual_network_name         = azurerm_virtual_network.test2.name
+  remote_virtual_network_id    = azurerm_virtual_network.test.id
+  allow_virtual_network_access = true
+}
+`, template, data.RandomInteger, data.Subscriptions.Primary)
+}
+
+func (r VirtualNetworkPeeringResource) subscriptionIdFormat(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_virtual_network_peering" "test" {
+  name                         = "acctestpeer-1-%[2]d"
+  subscription_id              = "/subscriptions/%[3]s"
   resource_group_name          = azurerm_resource_group.test.name
   virtual_network_name         = azurerm_virtual_network.test.name
   remote_virtual_network_id    = azurerm_virtual_network.test2.id

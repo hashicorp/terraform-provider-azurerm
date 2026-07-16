@@ -60,7 +60,15 @@ func resourceVirtualNetworkPeering() *pluginsdk.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				Computed:     true,
-				ValidateFunc: commonids.ValidateSubscriptionID,
+				ValidateFunc: validation.Any(validation.IsUUID, commonids.ValidateSubscriptionID),
+				DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+					normOld, err1 := parseSubscriptionId(old)
+					normNew, err2 := parseSubscriptionId(new)
+					if err1 != nil || err2 != nil {
+						return false
+					}
+					return strings.EqualFold(normOld, normNew)
+				},
 			},
 
 			"virtual_network_name": {
@@ -146,7 +154,11 @@ func resourceVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, meta interfa
 	client := meta.(*clients.Client).Network.VirtualNetworkPeerings
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	if v, ok := d.GetOk("subscription_id"); ok && v.(string) != "" {
-		subscriptionId = v.(string)
+		parsed, err := parseSubscriptionId(v.(string))
+		if err != nil {
+			return fmt.Errorf("parsing `subscription_id`: %+v", err)
+		}
+		subscriptionId = parsed
 	}
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -362,4 +374,15 @@ func resourceVirtualNetworkPeeringDelete(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	return err
+}
+
+func parseSubscriptionId(in string) (string, error) {
+	if strings.HasPrefix(strings.ToLower(in), "/subscriptions/") {
+		parsed, err := commonids.ParseSubscriptionID(in)
+		if err != nil {
+			return "", err
+		}
+		return parsed.SubscriptionId, nil
+	}
+	return in, nil
 }
