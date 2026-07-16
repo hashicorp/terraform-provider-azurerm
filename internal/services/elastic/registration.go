@@ -12,6 +12,7 @@ import (
 
 var (
 	_ sdk.FrameworkServiceRegistration               = Registration{}
+	_ sdk.TypedServiceRegistrationWithAGitHubLabel   = Registration{}
 	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
 )
 
@@ -30,6 +31,16 @@ func (r Registration) Name() string {
 func (r Registration) WebsiteCategories() []string {
 	return []string{
 		"Elastic",
+	}
+}
+
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{}
+}
+
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		ElasticCloudServerlessResource{},
 	}
 }
 
@@ -64,5 +75,7 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 }
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
-	return []sdk.FrameworkListWrappedResource{}
+	return []sdk.FrameworkListWrappedResource{
+		&ElasticCloudServerlessListResource{},
+	}
 }
