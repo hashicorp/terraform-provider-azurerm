@@ -2323,6 +2323,7 @@ resource "azurerm_application_gateway" "test" {
     subnet_id = azurerm_subnet.gwtest.id
 
     private_ip_address_allocation = "Static"
+    private_ip_address            = "10.0.3.10"
   }
 
   frontend_port {

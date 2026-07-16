@@ -294,7 +294,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   automatic_os_upgrade_policy {
-    automatic_rollback_disabled  = true
+    automatic_rollback_enabled   = false
     automatic_os_upgrade_enabled = true
   }
 
@@ -347,7 +347,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   automatic_os_upgrade_policy {
-    automatic_rollback_disabled  = false
+    automatic_rollback_enabled   = true
     automatic_os_upgrade_enabled = false
   }
 
