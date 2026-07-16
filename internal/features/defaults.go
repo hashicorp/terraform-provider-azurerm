@@ -59,7 +59,6 @@ func Default() UserFeatures {
 		VirtualMachine: VirtualMachineFeatures{
 			DetachImplicitDataDiskOnDeletion: false,
 			DeleteOSDiskOnDeletion:           true,
-			GracefulShutdown:                 false,
 			SkipShutdownAndForceDelete:       false,
 		},
 		VirtualMachineScaleSet: VirtualMachineScaleSetFeatures{

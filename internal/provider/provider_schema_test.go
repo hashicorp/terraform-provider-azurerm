@@ -290,12 +290,6 @@ func TestResourcesDoNotContainANameFieldWithADefaultOfDefault(t *testing.T) {
 		"azurerm_managed_redis_database": {
 			"name": {},
 		},
-
-		// 3: Deprecated / to be removed in 5.0
-		// TODO 5.0: remove this entry
-		"azurerm_redis_enterprise_database": {
-			"name": {},
-		},
 	}
 
 	for _, resourceName := range resourceNames {

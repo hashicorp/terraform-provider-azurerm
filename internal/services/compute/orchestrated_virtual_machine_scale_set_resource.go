@@ -5,7 +5,6 @@ package compute
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -28,7 +27,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -42,7 +40,7 @@ const (
 )
 
 func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceOrchestratedVirtualMachineScaleSetCreate,
 		Read:   resourceOrchestratedVirtualMachineScaleSetRead,
 		Update: resourceOrchestratedVirtualMachineScaleSetUpdate,
@@ -391,15 +389,6 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 						return nil
 					}
 
-					// TODO: Remove in v5.0
-					if !features.FivePointOh() {
-						vmSizesProvided := len(skuProfile["vm_sizes"].(*pluginsdk.Set).List()) > 0
-						vmSizeProvided := len(skuProfile["virtual_machine_size"].(*pluginsdk.Set).List()) > 0
-						if !vmSizesProvided && !vmSizeProvided {
-							return errors.New("either `vm_sizes` or `virtual_machine_size` must be configured in `sku_profile`")
-						}
-					}
-
 					if vmSizes := skuProfile["virtual_machine_size"].(*pluginsdk.Set).List(); len(vmSizes) > 0 {
 						for _, vmSize := range vmSizes {
 							vmSizeMap := vmSize.(map[string]interface{})
@@ -472,31 +461,6 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			}),
 		),
 	}
-
-	if !features.FivePointOh() {
-		skuProfileSchema := resource.Schema["sku_profile"].Elem.(*pluginsdk.Resource).Schema
-		skuProfileSchema["vm_sizes"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeSet,
-			Optional:      true,
-			Computed:      true,
-			MinItems:      1,
-			ConflictsWith: []string{"sku_profile.0.virtual_machine_size"},
-			Deprecated:    "The `vm_sizes` field has been deprecated and will be removed in v5.0 of the AzureRM Provider. Please use the `virtual_machine_size` block instead.",
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: computeValidate.SkuProfileVMSizeName,
-			},
-		}
-
-		skuProfileVirtualMachineSize := skuProfileSchema["virtual_machine_size"]
-		skuProfileVirtualMachineSize.Required = false
-		skuProfileVirtualMachineSize.Optional = true
-		skuProfileVirtualMachineSize.Computed = true
-		skuProfileVirtualMachineSize.MinItems = 1
-		skuProfileVirtualMachineSize.ConflictsWith = []string{"sku_profile.0.vm_sizes"}
-	}
-
-	return resource
 }
 
 func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -588,7 +552,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	}
 
 	if v, ok := d.GetOk("sku_profile"); ok {
-		props.Properties.SkuProfile = expandOrchestratedVirtualMachineScaleSetSkuProfile(d, v.([]interface{}))
+		props.Properties.SkuProfile = expandOrchestratedVirtualMachineScaleSetSkuProfile(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("capacity_reservation_group_id"); ok {
@@ -970,7 +934,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 
 		if d.HasChange("sku_profile") {
 			updateInstances = true
-			updateProps.SkuProfile = expandOrchestratedVirtualMachineScaleSetSkuProfile(d, d.Get("sku_profile").([]interface{}))
+			updateProps.SkuProfile = expandOrchestratedVirtualMachineScaleSetSkuProfile(d.Get("sku_profile").([]interface{}))
 		}
 
 		if d.HasChange("max_bid_price") {
@@ -1646,7 +1610,7 @@ func resourceOrchestratedVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData,
 	return nil
 }
 
-func expandOrchestratedVirtualMachineScaleSetSkuProfile(d *pluginsdk.ResourceData, input []interface{}) *virtualmachinescalesets.SkuProfile {
+func expandOrchestratedVirtualMachineScaleSetSkuProfile(input []interface{}) *virtualmachinescalesets.SkuProfile {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
@@ -1655,64 +1619,20 @@ func expandOrchestratedVirtualMachineScaleSetSkuProfile(d *pluginsdk.ResourceDat
 	allocationStrategy := v["allocation_strategy"].(string)
 	vmSizes := make([]virtualmachinescalesets.SkuProfileVMSize, 0)
 
-	if !features.FivePointOh() {
-		// In v4.x, we must use GetRawConfig to get only user-configured values, not merged with O+C state
-		rawConfig := d.GetRawConfig()
-		if !rawConfig.IsNull() {
-			if skuProfile := rawConfig.AsValueMap()["sku_profile"]; !skuProfile.IsNull() {
-				if skuProfiles := skuProfile.AsValueSlice(); len(skuProfiles) > 0 && !skuProfiles[0].IsNull() {
-					skuProfileConfig := skuProfiles[0].AsValueMap()
-
-					if vmSizesField := skuProfileConfig["vm_sizes"]; !vmSizesField.IsNull() {
-						vmSizesSlice := vmSizesField.AsValueSet().Values()
-						for _, vmSizeVal := range vmSizesSlice {
-							vmSizes = append(vmSizes, virtualmachinescalesets.SkuProfileVMSize{
-								Name: pointer.To(vmSizeVal.AsString()),
-							})
-						}
-					}
-
-					if vmSizeField := skuProfileConfig["virtual_machine_size"]; !vmSizeField.IsNull() {
-						vmSizeSlice := vmSizeField.AsValueSet().Values()
-						for _, vmSizeVal := range vmSizeSlice {
-							if vmSizeVal.IsNull() {
-								continue
-							}
-
-							vmSizeMap := vmSizeVal.AsValueMap()
-							vmSize := virtualmachinescalesets.SkuProfileVMSize{
-								Name: pointer.To(vmSizeMap["name"].AsString()),
-							}
-
-							if rankVal := vmSizeMap["rank"]; !rankVal.IsNull() {
-								rank, _ := rankVal.AsBigFloat().Int64()
-								vmSize.Rank = pointer.To(rank - 1)
-							}
-
-							vmSizes = append(vmSizes, vmSize)
-						}
-					}
-				}
-			}
+	vmSizeRaw := v["virtual_machine_size"].(*pluginsdk.Set).List()
+	for _, vmSizeRaw := range vmSizeRaw {
+		vmSizeMap := vmSizeRaw.(map[string]interface{})
+		vmSize := virtualmachinescalesets.SkuProfileVMSize{
+			Name: pointer.To(vmSizeMap["name"].(string)),
 		}
-	}
 
-	if features.FivePointOh() {
-		vmSizeRaw := v["virtual_machine_size"].(*pluginsdk.Set).List()
-		for _, vmSizeRaw := range vmSizeRaw {
-			vmSizeMap := vmSizeRaw.(map[string]interface{})
-			vmSize := virtualmachinescalesets.SkuProfileVMSize{
-				Name: pointer.To(vmSizeMap["name"].(string)),
-			}
-
-			// `rank` is optional, so an omitted value decodes to Go's zero value.
-			// Only send it when the user explicitly configured it.
-			if rank := vmSizeMap["rank"].(int); rank > 0 {
-				vmSize.Rank = pointer.To(int64(rank - 1))
-			}
-
-			vmSizes = append(vmSizes, vmSize)
+		// `rank` is optional, so an omitted value decodes to Go's zero value.
+		// Only send it when the user explicitly configured it.
+		if rank := vmSizeMap["rank"].(int); rank > 0 {
+			vmSize.Rank = pointer.To(int64(rank - 1))
 		}
+
+		vmSizes = append(vmSizes, vmSize)
 	}
 
 	return &virtualmachinescalesets.SkuProfile{
@@ -1747,19 +1667,6 @@ func flattenOrchestratedVirtualMachineScaleSetSkuProfile(input *virtualmachinesc
 	}
 
 	result["virtual_machine_size"] = output
-
-	if !features.FivePointOh() {
-		output := make([]string, 0)
-		if input.VMSizes != nil {
-			for _, vmSize := range *input.VMSizes {
-				if vmSize.Name != nil {
-					output = append(output, pointer.From(vmSize.Name))
-				}
-			}
-		}
-
-		result["vm_sizes"] = output
-	}
 
 	return []interface{}{result}
 }

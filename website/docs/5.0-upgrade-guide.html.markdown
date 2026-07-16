@@ -719,6 +719,15 @@ Please follow the format in the example below for listing breaking changes in re
 * The deprecated `managed_resource_group` property has been removed.
 * The deprecated `diagnose_support_enabled` property has been removed.
 
+### `azurerm_orchestrated_virtual_machine_scale_set`
+
+* The deprecated `sku_profile.vm_sizes` property has been removed in favour of the `sku_profile.virtual_machine_size` block.
+* The `os_profile.windows_configuration.enable_automatic_updates` property has been removed in favour of the `os_profile.windows_configuration.automatic_updates_enabled` property.
+* The `network_interface.enable_accelerated_networking` property has been removed in favour of the `network_interface.accelerated_networking_enabled` property.
+* The `network_interface.enable_ip_forwarding` property has been removed in favour of the `network_interface.ip_forwarding_enabled` property.
+* The `data_disk.ultra_ssd_disk_iops_read_write` property has been removed in favour of the `data_disk.disk_iops_read_write` property.
+* The `data_disk.ultra_ssd_disk_mbps_read_write` property has been removed in favour of the `data_disk.disk_mbps_read_write` property.
+
 ### `azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack`
 
 * The `plan_id` property now defaults to `panw-cngfw-payg`.
