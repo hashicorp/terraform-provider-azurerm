@@ -29,7 +29,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securityprofile"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -685,9 +684,9 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 		blockOld, blockNew := d.GetChange("security_profile")
 
 		resolve := func(block interface{}, scalar interface{}) bool {
-			if blockSlice, ok := block.([]interface{}); ok {
-				if values := securityprofile.FromBlock(blockSlice); values != nil && values.HostEncryption != nil {
-					return *values.HostEncryption
+			if blockSlice, ok := block.([]interface{}); ok && len(blockSlice) != 0 {
+				if v, ok := blockSlice[0].(map[string]interface{})["host_encryption_enabled"]; ok {
+					return v.(bool)
 				}
 			}
 

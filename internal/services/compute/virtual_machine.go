@@ -18,7 +18,6 @@ import (
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securityprofile"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -669,67 +668,79 @@ func flattenVirtualMachineGalleryApplication(input *[]virtualmachines.VMGalleryA
 }
 
 func expandVirtualMachineSecurityProfile(d *pluginsdk.ResourceData, securityEncryptionType string) (*virtualmachines.SecurityProfile, error) {
-	values := func() securityprofile.Values {
-		if v, ok := d.GetOk("security_profile"); ok {
-			if values := securityprofile.FromBlock(v.([]interface{})); values != nil {
-				return *values
-			}
+	var encryptionAtHost *bool
+	var securityType *virtualmachines.SecurityTypes
+	var secureBootEnabled *bool
+	var vtpmEnabled *bool
+	securityProfile, securityProfileConfigured := d.GetOk("security_profile")
+	if securityProfileConfigured {
+		item := securityProfile.([]interface{})[0].(map[string]interface{})
+		if v, ok := item["host_encryption_enabled"]; ok {
+			encryptionAtHost = pointer.To(v.(bool))
 		}
-
-		var values securityprofile.Values
-		if !features.FivePointOh() {
-			values.SecureBoot = pointer.To(d.Get("secure_boot_enabled").(bool))
-			values.VTPM = pointer.To(d.Get("vtpm_enabled").(bool))
-			if v, ok := d.GetOk("encryption_at_host_enabled"); ok {
-				values.HostEncryption = pointer.To(v.(bool))
-			}
+		if v, ok := item["security_type"]; ok {
+			securityType = pointer.To(virtualmachines.SecurityTypes(v.(string)))
 		}
-
-		return values
-	}()
+		if v, ok := item["secure_boot_enabled"]; ok {
+			secureBootEnabled = pointer.To(v.(bool))
+		}
+		if v, ok := item["vtpm_enabled"]; ok {
+			vtpmEnabled = pointer.To(v.(bool))
+		}
+	} else if !features.FivePointOh() {
+		secureBootEnabled = pointer.To(d.Get("secure_boot_enabled").(bool))
+		vtpmEnabled = pointer.To(d.Get("vtpm_enabled").(bool))
+		if v, ok := d.GetOk("encryption_at_host_enabled"); ok {
+			encryptionAtHost = pointer.To(v.(bool))
+		}
+	}
 
 	encryptionType := virtualmachines.SecurityEncryptionTypes(securityEncryptionType)
-	if values.HostEncryption != nil && *values.HostEncryption {
+	if encryptionAtHost != nil && *encryptionAtHost {
 		if encryptionType == virtualmachines.SecurityEncryptionTypesDiskWithVMGuestState {
 			return nil, fmt.Errorf("`encryption_at_host_enabled` cannot be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
 		}
 	}
 
-	secureBootEnabled := pointer.From(values.SecureBoot)
-	vtpmEnabled := pointer.From(values.VTPM)
+	secureBoot := pointer.From(secureBootEnabled)
+	vtpm := pointer.From(vtpmEnabled)
 	if encryptionType != "" {
-		if encryptionType == virtualmachines.SecurityEncryptionTypesDiskWithVMGuestState && !secureBootEnabled {
+		if encryptionType == virtualmachines.SecurityEncryptionTypesDiskWithVMGuestState && !secureBoot {
 			return nil, fmt.Errorf("`secure_boot_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
 		}
-		if !vtpmEnabled {
+		if !vtpm {
 			return nil, fmt.Errorf("`vtpm_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is set")
 		}
 
-		const expected = string(virtualmachines.SecurityTypesConfidentialVM)
-		if values.SecurityType == nil {
-			values.SecurityType = pointer.To(expected)
-		} else if *values.SecurityType != expected {
+		const expected = virtualmachines.SecurityTypesConfidentialVM
+		if securityType == nil {
+			securityType = pointer.To(expected)
+		} else if *securityType != expected {
 			return nil, fmt.Errorf("`security_profile.0.security_type` must be set to `%s` when `os_disk.0.security_encryption_type` is set", expected)
 		}
-	} else if secureBootEnabled || vtpmEnabled {
-		if values.SecurityType == nil {
-			values.SecurityType = pointer.To(string(virtualmachines.SecurityTypesTrustedLaunch))
+	} else if secureBoot || vtpm {
+		if securityType == nil {
+			securityType = pointer.To(virtualmachines.SecurityTypesTrustedLaunch)
 		} else {
-			switch v := *values.SecurityType; v {
-			case string(virtualmachines.SecurityTypesConfidentialVM):
-			case string(virtualmachines.SecurityTypesTrustedLaunch):
+			switch v := *securityType; v {
+			case virtualmachines.SecurityTypesConfidentialVM:
+			case virtualmachines.SecurityTypesTrustedLaunch:
 			default:
 				return nil, fmt.Errorf("`security_profile.0.security_type` must not be set to `%s` when `secure_boot_enabled` or `vtpm_enabled` are set to true", v)
 			}
 		}
 	}
 
+	if !securityProfileConfigured && encryptionType == "" && encryptionAtHost == nil && !secureBoot && !vtpm {
+		return nil, nil
+	}
+
 	return &virtualmachines.SecurityProfile{
-		EncryptionAtHost: values.HostEncryption,
-		SecurityType:     (*virtualmachines.SecurityTypes)(values.SecurityType),
+		EncryptionAtHost: encryptionAtHost,
+		SecurityType:     securityType,
 		UefiSettings: &virtualmachines.UefiSettings{
-			SecureBootEnabled: values.SecureBoot,
-			VTpmEnabled:       values.VTPM,
+			SecureBootEnabled: secureBootEnabled,
+			VTpmEnabled:       vtpmEnabled,
 		},
 	}, nil
 }
@@ -739,10 +750,15 @@ func flattenVirtualMachineSecurityProfile(profile *virtualmachines.SecurityProfi
 		return []interface{}{}
 	}
 
-	return securityprofile.ToBlock(securityprofile.Values{
-		HostEncryption: profile.EncryptionAtHost,
-		SecurityType:   (*string)(profile.SecurityType),
-		SecureBoot:     profile.UefiSettings.SecureBootEnabled,
-		VTPM:           profile.UefiSettings.VTpmEnabled,
-	})
+	securityProfile := map[string]interface{}{
+		"host_encryption_enabled": pointer.From(profile.EncryptionAtHost),
+		"security_type":           string(pointer.From(profile.SecurityType)),
+	}
+
+	if profile.UefiSettings != nil {
+		securityProfile["secure_boot_enabled"] = pointer.From(profile.UefiSettings.SecureBootEnabled)
+		securityProfile["vtpm_enabled"] = pointer.From(profile.UefiSettings.VTpmEnabled)
+	}
+
+	return []interface{}{securityProfile}
 }
