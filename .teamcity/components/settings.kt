@@ -9,6 +9,12 @@ var defaultStartHour = 23
 // specifies the default level of parallelism per-service-package
 var defaultParallelism = 20
 
+// specifies the default number of concurrent builds allowed per-service-package
+var defaultMaxConcurrentBuilds = 1
+
+// specifies the default number of concurrent builds allowed per-branch per-service-package
+var defaultMaxConcurrentBuildsPerBranch = 1
+
 // specifies the default build timeout in hours
 var defaultTimeout = 12
 
@@ -37,7 +43,7 @@ var runNightly = mapOf(
 var serviceTestConfigurationOverrides = mapOf(
 
         // Server is only available in certain locations
-        "analysisservices" to testConfiguration(locationOverride = LocationConfiguration("westus", "northeurope", "southcentralus", true)),
+        "analysisservices" to testConfiguration(locationOverride = LocationConfiguration("westus", "northeurope", "southcentralus", true), maxConcurrentBuildsPerBranch = 2, maxConcurrentBuilds = 3),
 
         // PremiumV2 tier is only available in certain locations `East US 2`, `Australia East`, `Germany West Central`, `Korea Central`, `Norway East` and `UK South`
         "apimanagement" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus2", "westus2", false)),

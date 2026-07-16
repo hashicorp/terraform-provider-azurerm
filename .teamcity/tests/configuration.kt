@@ -126,4 +126,19 @@ class ConfigurationTests {
             )
         }
     }
+
+    @Test
+    fun serviceBuildsShouldLimitConcurrentBuildsByDefault() {
+        val project = AzureRM("public", TestConfiguration())
+        project.buildTypes.forEach { bt ->
+            // Skip cache and PR builds - the concurrency limit applies to service packages
+            if (bt.id.toString().contains("AZURERM_CACHE_PUBLIC") || bt.id.toString().contains("AZURERM_PR_PUBLIC")) {
+                return@forEach
+            }
+            assertTrue(
+                "Build '${bt.id}' should limit concurrent builds to 1 by default, but was ${bt.maxRunningBuilds}",
+                bt.maxRunningBuilds == 1
+            )
+        }
+    }
 }
