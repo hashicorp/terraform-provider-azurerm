@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud
@@ -179,12 +179,14 @@ func (s SpringCloudAPIPortalResource) Create() sdk.ResourceFunc {
 			}
 			id := appplatform.NewApiPortalID(springId.SubscriptionId, springId.ResourceGroupName, springId.ServiceName, model.Name)
 
-			existing, err := client.ApiPortalsGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(s.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.ApiPortalsGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(s.ResourceType(), id)
+				}
 			}
 
 			service, err := client.ServicesGet(ctx, *springId)
@@ -217,12 +219,12 @@ func (s SpringCloudAPIPortalResource) Create() sdk.ResourceFunc {
 					Capacity: pointer.To(model.InstanceCount),
 				},
 			}
-			err = client.ApiPortalsCreateOrUpdateThenPoll(ctx, id, apiPortalResource)
-			if err != nil {
+
+			if err := client.ApiPortalsCreateOrUpdateCallbackThenPoll(ctx, id, apiPortalResource, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}

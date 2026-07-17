@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -12,10 +12,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/natgateways"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/subnets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/subnets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -56,7 +57,7 @@ func resourceSubnetNatGatewayAssociation() *pluginsdk.Resource {
 }
 
 func resourceSubnetNatGatewayAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.Subnets
+	client := meta.(*clients.Client).Network.Subnets
 	vnetClient := meta.(*clients.Client).Network.VirtualNetworks
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -89,9 +90,11 @@ func resourceSubnetNatGatewayAssociationCreate(d *pluginsdk.ResourceData, meta i
 	if model := subnet.Model; model != nil {
 		if props := model.Properties; props != nil {
 			// check if the resources are imported
-			if gateway := props.NatGateway; gateway != nil {
-				if gateway.Id != nil && model.Id != nil {
-					return tf.ImportAsExistsError("azurerm_subnet_nat_gateway_association", *model.Id)
+			if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				if gateway := props.NatGateway; gateway != nil {
+					if gateway.Id != nil && model.Id != nil {
+						return tf.ImportAsExistsError("azurerm_subnet_nat_gateway_association", *model.Id)
+					}
 				}
 			}
 			props.NatGateway = &subnets.SubResource{
@@ -100,9 +103,11 @@ func resourceSubnetNatGatewayAssociationCreate(d *pluginsdk.ResourceData, meta i
 		}
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, *subnetId, *subnet.Model); err != nil {
+	// TODO: migrate this resource to a composite ID
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, *subnetId, *subnet.Model, sdk.SetIDCallback(meta, subnetId, d)); err != nil {
 		return fmt.Errorf("updating NAT Gateway Association for %s: %+v", *subnetId, err)
 	}
+	d.SetId(subnetId.ID())
 
 	timeout, _ := ctx.Deadline()
 
@@ -129,13 +134,11 @@ func resourceSubnetNatGatewayAssociationCreate(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("waiting for provisioning state of virtual network for NAT Gateway Association for %s: %+v", *subnetId, err)
 	}
 
-	d.SetId(subnetId.ID())
-
 	return resourceSubnetNatGatewayAssociationRead(d, meta)
 }
 
 func resourceSubnetNatGatewayAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.Subnets
+	client := meta.(*clients.Client).Network.Subnets
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -180,7 +183,7 @@ func resourceSubnetNatGatewayAssociationRead(d *pluginsdk.ResourceData, meta int
 }
 
 func resourceSubnetNatGatewayAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.Subnets
+	client := meta.(*clients.Client).Network.Subnets
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

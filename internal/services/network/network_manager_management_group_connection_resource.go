@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkmanagers"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkmanagerconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkmanagerconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	managementParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
 	managementValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
@@ -98,13 +98,16 @@ func (r ManagerManagementGroupConnectionResource) Create() sdk.ResourceFunc {
 			}
 
 			id := networkmanagerconnections.NewProviders2NetworkManagerConnectionID(managementGroupId.Name, model.Name)
-			existing, err := client.ManagementGroupNetworkManagerConnectionsGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.ManagementGroupNetworkManagerConnectionsGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			managerConnection := networkmanagerconnections.NetworkManagerConnection{

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -19,17 +19,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name dedicated_host -service-package-name compute -properties "name" -compare-values "subscription_id:dedicated_host_group_id,resource_group_name:dedicated_host_group_id,host_group_name:dedicated_host_group_id"
 
 func resourceDedicatedHost() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceDedicatedHostCreate,
 		Read:   resourceDedicatedHostRead,
 		Update: resourceDedicatedHostUpdate,
@@ -134,17 +135,29 @@ func resourceDedicatedHost() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					// TODO: remove `None` in 4.0 in favour of this field being set to an empty string (since it's optional)
-					string(dedicatedhosts.DedicatedHostLicenseTypesNone),
 					string(dedicatedhosts.DedicatedHostLicenseTypesWindowsServerHybrid),
 					string(dedicatedhosts.DedicatedHostLicenseTypesWindowsServerPerpetual),
 				}, false),
-				Default: string(dedicatedhosts.DedicatedHostLicenseTypesNone),
 			},
 
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["license_type"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(dedicatedhosts.DedicatedHostLicenseTypesNone),
+				string(dedicatedhosts.DedicatedHostLicenseTypesWindowsServerHybrid),
+				string(dedicatedhosts.DedicatedHostLicenseTypesWindowsServerPerpetual),
+			}, false),
+			Default: string(dedicatedhosts.DedicatedHostLicenseTypesNone),
+		}
+	}
+
+	return resource
 }
 
 func resourceDedicatedHostCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -158,7 +171,7 @@ func resourceDedicatedHostCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	id := commonids.NewDedicatedHostID(hostGroupId.SubscriptionId, hostGroupId.ResourceGroupName, hostGroupId.HostGroupName, d.Get("name").(string))
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id, dedicatedhosts.DefaultGetOperationOptions())
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -170,25 +183,32 @@ func resourceDedicatedHostCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 	}
 
-	licenseType := dedicatedhosts.DedicatedHostLicenseTypes(d.Get("license_type").(string))
 	payload := dedicatedhosts.DedicatedHost{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &dedicatedhosts.DedicatedHostProperties{
-			AutoReplaceOnFailure: utils.Bool(d.Get("auto_replace_on_failure").(bool)),
-			LicenseType:          &licenseType,
-			PlatformFaultDomain:  utils.Int64(int64(d.Get("platform_fault_domain").(int))),
+			AutoReplaceOnFailure: pointer.To(d.Get("auto_replace_on_failure").(bool)),
+			LicenseType:          pointer.To(dedicatedhosts.DedicatedHostLicenseTypesNone),
+			PlatformFaultDomain:  pointer.To(int64(d.Get("platform_fault_domain").(int))),
 		},
 		Sku: dedicatedhosts.Sku{
-			Name: utils.String(d.Get("sku_name").(string)),
+			Name: pointer.To(d.Get("sku_name").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+	if v := d.Get("license_type").(string); v != "" {
+		payload.Properties.LicenseType = pointer.ToEnum[dedicatedhosts.DedicatedHostLicenseTypes](v)
+	}
+
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceDedicatedHostRead(d, meta)
 }
 
@@ -221,7 +241,16 @@ func resourceDedicatedHostRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		d.Set("sku_name", model.Sku.Name)
 		if props := model.Properties; props != nil {
 			d.Set("auto_replace_on_failure", props.AutoReplaceOnFailure)
-			d.Set("license_type", string(pointer.From(props.LicenseType)))
+
+			if !features.FivePointOh() {
+				d.Set("license_type", pointer.FromEnum(props.LicenseType))
+			} else {
+				licenseType := pointer.FromEnum(props.LicenseType)
+				if licenseType == string(dedicatedhosts.DedicatedHostLicenseTypesNone) {
+					licenseType = ""
+				}
+				d.Set("license_type", licenseType)
+			}
 
 			platformFaultDomain := 0
 			if props.PlatformFaultDomain != nil {
@@ -253,11 +282,14 @@ func resourceDedicatedHostUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	if d.HasChanges("auto_replace_on_failure", "license_type") {
 		payload.Properties = &dedicatedhosts.DedicatedHostProperties{}
 		if d.HasChange("auto_replace_on_failure") {
-			payload.Properties.AutoReplaceOnFailure = utils.Bool(d.Get("auto_replace_on_failure").(bool))
+			payload.Properties.AutoReplaceOnFailure = pointer.To(d.Get("auto_replace_on_failure").(bool))
 		}
 		if d.HasChange("license_type") {
-			licenseType := dedicatedhosts.DedicatedHostLicenseTypes(d.Get("license_type").(string))
-			payload.Properties.LicenseType = &licenseType
+			licenseType := dedicatedhosts.DedicatedHostLicenseTypesNone
+			if v := d.Get("license_type").(string); v != "" {
+				licenseType = dedicatedhosts.DedicatedHostLicenseTypes(v)
+			}
+			payload.Properties.LicenseType = pointer.To(licenseType)
 		}
 	}
 

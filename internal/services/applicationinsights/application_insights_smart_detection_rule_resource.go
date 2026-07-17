@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package applicationinsights
@@ -100,8 +100,6 @@ func resourceApplicationInsightsSmartDetectionRuleUpdate(d *pluginsdk.ResourceDa
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Application Insights Smart Detection Rule update.")
-
 	// The Smart Detection Rule name from the UI doesn't match what the API accepts.
 	// We'll have the user submit what the name looks like in the UI and convert it behind the scenes to match what the API accepts
 	name := convertUiNameToApiName(d.Get("name"))
@@ -120,8 +118,7 @@ func resourceApplicationInsightsSmartDetectionRuleUpdate(d *pluginsdk.ResourceDa
 		CustomEmails:                   utils.ExpandStringSlice(d.Get("additional_email_recipients").(*pluginsdk.Set).List()),
 	}
 
-	_, err = client.ProactiveDetectionConfigurationsUpdate(ctx, id, smartDetectionRuleProperties)
-	if err != nil {
+	if _, err = client.ProactiveDetectionConfigurationsUpdate(ctx, id, smartDetectionRuleProperties); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -139,8 +136,6 @@ func resourceApplicationInsightsSmartDetectionRuleRead(d *pluginsdk.ResourceData
 	if err != nil {
 		return err
 	}
-
-	log.Printf("[DEBUG] Reading AzureRM Application Insights Smart Detection Rule %s", id)
 
 	resp, err := client.ProactiveDetectionConfigurationsGet(ctx, *id)
 	if err != nil {
@@ -196,8 +191,7 @@ func resourceApplicationInsightsSmartDetectionRuleDelete(d *pluginsdk.ResourceDa
 	}
 
 	// Application Insights defaults all the Smart Detection Rules so if a user wants to delete a rule, we'll update it back to it's default values.
-	_, err = client.ProactiveDetectionConfigurationsUpdate(ctx, *id, smartDetectionRuleProperties)
-	if err != nil {
+	if _, err = client.ProactiveDetectionConfigurationsUpdate(ctx, *id, smartDetectionRuleProperties); err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return nil
 		}

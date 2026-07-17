@@ -21,7 +21,7 @@ type ValueSet struct {
 	// ValueSet is just a thin wrapper around a set.Set with our value-oriented
 	// "rules" applied. We do this so that the caller can work in terms of
 	// cty.Value objects even though the set internals use the raw values.
-	s set.Set[interface{}]
+	s set.Set[any]
 }
 
 // NewValueSet creates and returns a new ValueSet with the given element type.
@@ -29,7 +29,7 @@ func NewValueSet(ety Type) ValueSet {
 	return newValueSet(set.NewSet(newSetRules(ety)))
 }
 
-func newValueSet(s set.Set[interface{}]) ValueSet {
+func newValueSet(s set.Set[any]) ValueSet {
 	return ValueSet{
 		s: s,
 	}

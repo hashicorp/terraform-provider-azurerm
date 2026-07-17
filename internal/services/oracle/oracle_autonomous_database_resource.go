@@ -1,4 +1,5 @@
-// Copyright © 2024, Oracle and/or its affiliates. All rights reserved
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
 
 package oracle
 
@@ -12,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/autonomousdatabases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/autonomousdatabases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -47,6 +48,7 @@ type AutonomousDatabaseRegularResourceModel struct {
 	NationalCharacterSet         string                          `tfschema:"national_character_set"`
 	SubnetId                     string                          `tfschema:"subnet_id"`
 	VnetId                       string                          `tfschema:"virtual_network_id"`
+	AllowedIps                   []string                        `tfschema:"allowed_ips"`
 
 	// Optional
 	CustomerContacts []string `tfschema:"customer_contacts"`
@@ -70,7 +72,6 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Sensitive:    true,
-			ForceNew:     true,
 			ValidateFunc: validate.AutonomousDatabasePassword,
 		},
 
@@ -114,13 +115,10 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 		},
 
 		"db_workload": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(autonomousdatabases.WorkloadTypeDW),
-				string(autonomousdatabases.WorkloadTypeOLTP),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(autonomousdatabases.PossibleValuesForWorkloadType(), false),
 		},
 
 		"display_name": {
@@ -138,12 +136,6 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 		"auto_scaling_for_storage_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Required: true,
-		},
-
-		"mtls_connection_required": {
-			Type:     pluginsdk.TypeBool,
-			Required: true,
-			ForceNew: true,
 		},
 
 		"license_model": {
@@ -192,20 +184,6 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"subnet_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: commonids.ValidateSubnetID,
-		},
-
-		"virtual_network_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: commonids.ValidateVirtualNetworkID,
-		},
-
 		// Optional
 		"customer_contacts": {
 			Type:     pluginsdk.TypeList,
@@ -214,7 +192,36 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 			ForceNew: true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
-				ValidateFunc: validate.CustomerContactEmail,
+				ValidateFunc: validation.IsEmailAddress,
+			},
+		},
+
+		"mtls_connection_required": {
+			Type:     pluginsdk.TypeBool,
+			Required: true,
+			ForceNew: true,
+		},
+
+		"subnet_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: commonids.ValidateSubnetID,
+		},
+
+		"virtual_network_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: commonids.ValidateVirtualNetworkID,
+		},
+
+		"allowed_ips": {
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.IsIPv4Address,
 			},
 		},
 
@@ -250,43 +257,58 @@ func (r AutonomousDatabaseRegularResource) Create() sdk.ResourceFunc {
 				model.ResourceGroupName,
 				model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+
+			properties := &autonomousdatabases.AutonomousDatabaseProperties{
+				AdminPassword:                  pointer.To(model.AdminPassword),
+				BackupRetentionPeriodInDays:    pointer.To(model.BackupRetentionPeriodInDays),
+				CharacterSet:                   pointer.To(model.CharacterSet),
+				ComputeCount:                   pointer.To(model.ComputeCount),
+				ComputeModel:                   pointer.To(autonomousdatabases.ComputeModel(model.ComputeModel)),
+				DataBaseType:                   "Regular",
+				DataStorageSizeInTbs:           pointer.To(model.DataStorageSizeInTbs),
+				DbWorkload:                     pointer.To(autonomousdatabases.WorkloadType(model.DbWorkload)),
+				DbVersion:                      pointer.To(model.DbVersion),
+				DisplayName:                    pointer.To(model.DisplayName),
+				IsAutoScalingEnabled:           pointer.To(model.AutoScalingEnabled),
+				IsAutoScalingForStorageEnabled: pointer.To(model.AutoScalingForStorageEnabled),
+				IsMtlsConnectionRequired:       pointer.To(model.MtlsConnectionRequired),
+				LicenseModel:                   pointer.To(autonomousdatabases.LicenseModel(model.LicenseModel)),
+				NcharacterSet:                  pointer.To(model.NationalCharacterSet),
+				WhitelistedIPs:                 pointer.To(model.AllowedIps),
+			}
+
+			if len(model.CustomerContacts) > 0 {
+				properties.CustomerContacts = pointer.To(expandAdbsCustomerContacts(model.CustomerContacts))
+			}
+
+			if model.SubnetId != "" {
+				properties.SubnetId = pointer.To(model.SubnetId)
+			}
+
+			if model.VnetId != "" {
+				properties.VnetId = pointer.To(model.VnetId)
 			}
 
 			param := autonomousdatabases.AutonomousDatabase{
-				Name:     pointer.To(model.Name),
-				Location: location.Normalize(model.Location),
-				Tags:     pointer.To(model.Tags),
-				Properties: &autonomousdatabases.AutonomousDatabaseProperties{
-					AdminPassword:                  pointer.To(model.AdminPassword),
-					BackupRetentionPeriodInDays:    pointer.To(model.BackupRetentionPeriodInDays),
-					CharacterSet:                   pointer.To(model.CharacterSet),
-					ComputeCount:                   pointer.To(model.ComputeCount),
-					ComputeModel:                   pointer.To(autonomousdatabases.ComputeModel(model.ComputeModel)),
-					CustomerContacts:               pointer.To(expandAdbsCustomerContacts(model.CustomerContacts)),
-					DataBaseType:                   "Regular",
-					DataStorageSizeInTbs:           pointer.To(model.DataStorageSizeInTbs),
-					DbWorkload:                     pointer.To(autonomousdatabases.WorkloadType(model.DbWorkload)),
-					DbVersion:                      pointer.To(model.DbVersion),
-					DisplayName:                    pointer.To(model.DisplayName),
-					IsAutoScalingEnabled:           pointer.To(model.AutoScalingEnabled),
-					IsAutoScalingForStorageEnabled: pointer.To(model.AutoScalingForStorageEnabled),
-					IsMtlsConnectionRequired:       pointer.To(model.MtlsConnectionRequired),
-					LicenseModel:                   pointer.To(autonomousdatabases.LicenseModel(model.LicenseModel)),
-					NcharacterSet:                  pointer.To(model.NationalCharacterSet),
-					SubnetId:                       pointer.To(model.SubnetId),
-					VnetId:                         pointer.To(model.VnetId),
-				},
+				Name:       pointer.To(model.Name),
+				Location:   location.Normalize(model.Location),
+				Tags:       pointer.To(model.Tags),
+				Properties: properties,
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, param, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
+			metadata.SetID(id)
 
 			if len(model.LongTermBackUpSchedule) > 0 {
 				backupUpdate := autonomousdatabases.AutonomousDatabaseUpdate{
@@ -298,8 +320,6 @@ func (r AutonomousDatabaseRegularResource) Create() sdk.ResourceFunc {
 					return fmt.Errorf("configuring backup schedule for %s: %+v", id, err)
 				}
 			}
-
-			metadata.SetID(id)
 			return nil
 		},
 	}
@@ -320,14 +340,15 @@ func (r AutonomousDatabaseRegularResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding err: %+v", err)
 			}
 
-			_, err = client.Get(ctx, *id)
-			if err != nil {
+			if _, err = client.Get(ctx, *id); err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			// Check what needs to be updated
 			needsGeneralUpdate := r.hasGeneralUpdates(metadata)
 			needsBackupScheduleUpdate := metadata.ResourceData.HasChange("long_term_backup_schedule")
+			needsPasswordUpdate := metadata.ResourceData.HasChange("admin_password")
+			needsBackupRetentionDaysUpdate := metadata.ResourceData.HasChange("backup_retention_period_in_days")
 
 			// Step 1: Handle general updates (everything except backup schedule)
 			if needsGeneralUpdate {
@@ -337,9 +358,6 @@ func (r AutonomousDatabaseRegularResource) Update() sdk.ResourceFunc {
 
 				if metadata.ResourceData.HasChange("tags") {
 					generalUpdate.Tags = pointer.To(model.Tags)
-				}
-				if metadata.ResourceData.HasChange("backup_retention_period_in_days") {
-					generalUpdate.Properties.BackupRetentionPeriodInDays = pointer.To(model.BackupRetentionPeriodInDays)
 				}
 				if metadata.ResourceData.HasChange("data_storage_size_in_tbs") {
 					generalUpdate.Properties.DataStorageSizeInTbs = pointer.To(model.DataStorageSizeInTbs)
@@ -353,9 +371,37 @@ func (r AutonomousDatabaseRegularResource) Update() sdk.ResourceFunc {
 				if metadata.ResourceData.HasChange("auto_scaling_for_storage_enabled") {
 					generalUpdate.Properties.IsAutoScalingForStorageEnabled = pointer.To(model.AutoScalingForStorageEnabled)
 				}
+				if metadata.ResourceData.HasChange("allowed_ips") {
+					generalUpdate.Properties.WhitelistedIPs = pointer.To(model.AllowedIps)
+				}
 
 				if err := client.UpdateThenPoll(ctx, *id, generalUpdate); err != nil {
 					return fmt.Errorf("updating general properties for %s: %+v", *id, err)
+				}
+			}
+
+			// update password
+			if needsPasswordUpdate {
+				passwordUpdate := autonomousdatabases.AutonomousDatabaseUpdate{
+					Properties: &autonomousdatabases.AutonomousDatabaseUpdateProperties{
+						AdminPassword: pointer.To(model.AdminPassword),
+					},
+				}
+
+				if err := client.UpdateThenPoll(ctx, *id, passwordUpdate); err != nil {
+					return fmt.Errorf("updating Admin password for %s: %+v", *id, err)
+				}
+			}
+
+			if needsBackupRetentionDaysUpdate {
+				backupRetentionDaysUpdate := autonomousdatabases.AutonomousDatabaseUpdate{
+					Properties: &autonomousdatabases.AutonomousDatabaseUpdateProperties{
+						BackupRetentionPeriodInDays: pointer.To(model.BackupRetentionPeriodInDays),
+					},
+				}
+
+				if err := client.UpdateThenPoll(ctx, *id, backupRetentionDaysUpdate); err != nil {
+					return fmt.Errorf("updating `backup_retention_period_in_days` for %s: %+v", *id, err)
 				}
 			}
 
@@ -410,7 +456,7 @@ func (AutonomousDatabaseRegularResource) Read() sdk.ResourceFunc {
 				state.AutoScalingForStorageEnabled = pointer.From(props.IsAutoScalingForStorageEnabled)
 				state.CharacterSet = pointer.From(props.CharacterSet)
 				state.ComputeCount = pointer.From(props.ComputeCount)
-				state.ComputeModel = string(pointer.From(props.ComputeModel))
+				state.ComputeModel = pointer.FromEnum(props.ComputeModel)
 				state.CustomerContacts = flattenAdbsCustomerContacts(props.CustomerContacts)
 				state.DataStorageSizeInTbs = pointer.From(props.DataStorageSizeInTbs)
 				state.DbWorkload = string(pointer.From(props.DbWorkload))
@@ -418,14 +464,15 @@ func (AutonomousDatabaseRegularResource) Read() sdk.ResourceFunc {
 				state.DisplayName = pointer.From(props.DisplayName)
 				state.LicenseModel = string(pointer.From(props.LicenseModel))
 				state.Location = result.Model.Location
-				state.Name = pointer.ToString(result.Model.Name)
+				state.MtlsConnectionRequired = pointer.From(props.IsMtlsConnectionRequired)
+				state.Name = pointer.From(result.Model.Name)
 				state.NationalCharacterSet = pointer.From(props.NcharacterSet)
 				state.SubnetId = pointer.From(props.SubnetId)
 				state.Tags = pointer.From(result.Model.Tags)
 				state.VnetId = pointer.From(props.VnetId)
 				state.LongTermBackUpSchedule = FlattenLongTermBackUpScheduleDetails(props.LongTermBackupSchedule)
+				state.AllowedIps = pointer.From(props.WhitelistedIPs)
 			}
-
 			return metadata.Encode(&state)
 		},
 	}
@@ -490,9 +537,9 @@ func expandLongTermBackupSchedule(input []LongTermBackUpScheduleDetails) *autono
 
 func (r AutonomousDatabaseRegularResource) hasGeneralUpdates(metadata sdk.ResourceMetaData) bool {
 	return metadata.ResourceData.HasChange("tags") ||
-		metadata.ResourceData.HasChange("backup_retention_period_in_days") ||
 		metadata.ResourceData.HasChange("data_storage_size_in_tbs") ||
 		metadata.ResourceData.HasChange("compute_count") ||
 		metadata.ResourceData.HasChange("auto_scaling_enabled") ||
-		metadata.ResourceData.HasChange("auto_scaling_for_storage_enabled")
+		metadata.ResourceData.HasChange("auto_scaling_for_storage_enabled") ||
+		metadata.ResourceData.HasChange("allowed_ips")
 }

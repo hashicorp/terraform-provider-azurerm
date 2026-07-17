@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -104,8 +104,8 @@ func ManagedEnvironmentName(i interface{}, k string) (warnings []string, errors 
 		return
 	}
 
-	if matched := regexp.MustCompile(`^([a-zA-Z])[a-zA-Z0-9-]{0,58}[a-z]?$`).Match([]byte(v)); !matched || strings.HasSuffix(v, "-") {
-		errors = append(errors, fmt.Errorf("%q must consist of lower case alphanumeric characters or '-', start with an alphabetic character, and end with an alphanumeric character. The length must not be more than 60 characters", k))
+	if matched := regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9-]{1,58}[a-zA-Z0-9]?$`).Match([]byte(v)); !matched || strings.HasSuffix(v, "-") {
+		errors = append(errors, fmt.Errorf("%q must consist of alphanumeric characters or '-', and may not start or end with '-'. The length must at least 2 and not be more than 60 characters", k))
 	}
 
 	return

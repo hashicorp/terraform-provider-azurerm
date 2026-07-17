@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package iothub
@@ -136,7 +136,9 @@ func resourceArmIotHubEnrichmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 		if existingEnrichment.Key != nil {
 			if strings.EqualFold(*existingEnrichment.Key, enrichmentKey) {
 				if d.IsNewResource() {
-					return tf.ImportAsExistsError("azurerm_iothub_enrichment", id.ID())
+					if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+						return tf.ImportAsExistsError("azurerm_iothub_enrichment", id.ID())
+					}
 				}
 				enrichments = append(enrichments, enrichment)
 				alreadyExists = true
@@ -149,7 +151,7 @@ func resourceArmIotHubEnrichmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 	if d.IsNewResource() {
 		enrichments = append(enrichments, enrichment)
 	} else if !alreadyExists {
-		return fmt.Errorf("Unable to find Enrichment %q defined for IotHub %q (Resource Group %q)", enrichmentKey, iothubName, resourceGroup)
+		return fmt.Errorf("unable to find Enrichment %q defined for IotHub %q (Resource Group %q)", enrichmentKey, iothubName, resourceGroup)
 	}
 	routing.Enrichments = &enrichments
 
@@ -158,11 +160,11 @@ func resourceArmIotHubEnrichmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("creating/updating IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
 	}
 
+	d.SetId(id.ID())
+
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for the completion of the creating/updating of IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
 	}
-
-	d.SetId(id.ID())
 
 	return resourceArmIotHubEnrichmentRead(d, meta)
 }

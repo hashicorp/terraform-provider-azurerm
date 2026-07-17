@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn
@@ -8,8 +8,9 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
-	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
-	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2024-02-01/webapplicationfirewallpolicies"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rules"
+	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/azuresdkhacks"
@@ -57,39 +58,13 @@ func expandResourceReference(input string) *cdn.ResourceReference {
 	}
 
 	return &cdn.ResourceReference{
-		ID: utils.String(input),
+		ID: pointer.To(input),
 	}
 }
 
 func flattenOriginGroupResourceReference(input *cdn.ResourceReference) (string, error) {
 	if input != nil && input.ID != nil {
 		id, err := parse.FrontDoorOriginGroupIDInsensitively(*input.ID)
-		if err != nil {
-			return "", err
-		}
-
-		return id.ID(), nil
-	}
-
-	return "", nil
-}
-
-func flattenSecretResourceReference(input *cdn.ResourceReference) (string, error) {
-	if input != nil && input.ID != nil {
-		id, err := parse.FrontDoorSecretIDInsensitively(*input.ID)
-		if err != nil {
-			return "", err
-		}
-
-		return id.ID(), nil
-	}
-
-	return "", nil
-}
-
-func flattenDNSZoneResourceReference(input *cdn.ResourceReference) (string, error) {
-	if input != nil && input.ID != nil {
-		id, err := dnsValidate.ParseDnsZoneIDInsensitively(*input.ID)
 		if err != nil {
 			return "", err
 		}
@@ -221,7 +196,7 @@ func expandCustomDomainActivatedResourceArray(input []interface{}) *[]cdn.Activa
 	for _, customDomain := range input {
 		if id, err := parse.FrontDoorCustomDomainID(customDomain.(string)); err == nil {
 			results = append(results, cdn.ActivatedResourceReference{
-				ID: utils.String(id.ID()),
+				ID: pointer.To(id.ID()),
 			})
 		}
 	}
@@ -578,4 +553,16 @@ func expandCustomDomains(input []interface{}) ([]interface{}, error) {
 	}
 
 	return out, nil
+}
+
+const RuleCacheBehaviorDisabled = "Disabled"
+
+func PossibleValuesForRuleCacheBehavior() []string {
+	return []string{
+		string(rules.RuleCacheBehaviorHonorOrigin),
+		string(rules.RuleCacheBehaviorOverrideAlways),
+		string(rules.RuleCacheBehaviorOverrideIfOriginMissing),
+		// Exposed `Disabled` as a valid value for provider issue #19008.
+		RuleCacheBehaviorDisabled,
+	}
 }

@@ -81,7 +81,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the IoT Hub Device Update Account.
 * `read` - (Defaults to 5 minutes) Used when retrieving the IoT Hub Device Update Account.
@@ -100,4 +100,4 @@ terraform import azurerm_iothub_device_update_account.example /subscriptions/000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DeviceUpdate`: 2022-10-01
+* `Microsoft.DeviceUpdate` - 2022-10-01

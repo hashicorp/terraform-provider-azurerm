@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -11,9 +11,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualnetworkgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworkgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -140,14 +141,16 @@ func resourceVirtualNetworkGatewayNatRuleCreate(d *pluginsdk.ResourceData, meta 
 
 	id := virtualnetworkgateways.NewVirtualNetworkGatewayNatRuleID(subscriptionId, d.Get("resource_group_name").(string), vnetGatewayId.VirtualNetworkGatewayName, d.Get("name").(string))
 
-	existing, err := client.VirtualNetworkGatewayNatRulesGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.VirtualNetworkGatewayNatRulesGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_virtual_network_gateway_nat_rule", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_virtual_network_gateway_nat_rule", id.ID())
+		}
 	}
 
 	props := virtualnetworkgateways.VirtualNetworkGatewayNatRule{
@@ -164,7 +167,7 @@ func resourceVirtualNetworkGatewayNatRuleCreate(d *pluginsdk.ResourceData, meta 
 		props.Properties.IPConfigurationId = pointer.To(v.(string))
 	}
 
-	if err := client.VirtualNetworkGatewayNatRulesCreateOrUpdateThenPoll(ctx, id, props); err != nil {
+	if err := client.VirtualNetworkGatewayNatRulesCreateOrUpdateCallbackThenPoll(ctx, id, props, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 

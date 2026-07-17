@@ -8,105 +8,113 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/threatintelligence"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/azuresdkhacks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // The GET request after creation may be returned with HTTP 404 in a period.
 // Tracked by https://github.com/Azure/azure-rest-api-specs/issues/35551
 var (
-	_ pollers.PollerType = &threatIntelligenceIndicatorPooler{}
-	_ pollers.PollerType = &threatIntelligenceIndicatorUpdatePooler{}
+	_ pollers.PollerType = &threatIntelligenceIndicatorPoller{}
+	_ pollers.PollerType = &threatIntelligenceIndicatorUpdatePoller{}
 )
 
-const concistentRequestNumber = 10
+const consistentRequestCount = 10
 
-type threatIntelligenceIndicatorPooler struct {
-	client       azuresdkhacks.ThreatIntelligenceIndicatorClient
-	id           parse.ThreatIntelligenceIndicatorId
-	succeededCnt int
+type threatIntelligenceIndicatorPoller struct {
+	client              *threatintelligence.ThreatIntelligenceClient
+	id                  threatintelligence.IndicatorId
+	successfulPollCount int
 }
 
-type threatIntelligenceIndicatorUpdatePooler struct {
-	client         azuresdkhacks.ThreatIntelligenceIndicatorClient
-	id             parse.ThreatIntelligenceIndicatorId
-	succeededCnt   int
-	lastUpdateTime string
+type threatIntelligenceIndicatorUpdatePoller struct {
+	client              *threatintelligence.ThreatIntelligenceClient
+	id                  threatintelligence.IndicatorId
+	successfulPollCount int
+	lastUpdatedTimeUtc  string
 }
 
-var (
-	pollingSuccess = pollers.PollResult{
+func NewThreatIntelligenceIndicatorPoller(client *threatintelligence.ThreatIntelligenceClient, id threatintelligence.IndicatorId) *threatIntelligenceIndicatorPoller {
+	return &threatIntelligenceIndicatorPoller{
+		client: client,
+		id:     id,
+	}
+}
+
+func (p *threatIntelligenceIndicatorPoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
+	resp, err := p.client.IndicatorGet(ctx, p.id)
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return &pollers.PollResult{
+				PollInterval: 5 * time.Second,
+				Status:       pollers.PollingStatusInProgress,
+			}, nil
+		}
+		return nil, fmt.Errorf("retrieving %s: %+v", p.id, err)
+	}
+
+	if p.successfulPollCount < consistentRequestCount {
+		p.successfulPollCount++
+		return &pollers.PollResult{
+			PollInterval: 5 * time.Second,
+			Status:       pollers.PollingStatusInProgress,
+		}, nil
+	}
+
+	return &pollers.PollResult{
 		PollInterval: 5 * time.Second,
 		Status:       pollers.PollingStatusSucceeded,
+	}, nil
+}
+
+func NewThreatIntelligenceIndicatorUpdatePoller(client *threatintelligence.ThreatIntelligenceClient, id threatintelligence.IndicatorId, lastUpdatedTimeUtc string) *threatIntelligenceIndicatorUpdatePoller {
+	return &threatIntelligenceIndicatorUpdatePoller{
+		client:             client,
+		id:                 id,
+		lastUpdatedTimeUtc: lastUpdatedTimeUtc,
+	}
+}
+
+func (p *threatIntelligenceIndicatorUpdatePoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
+	resp, err := p.client.IndicatorGet(ctx, p.id)
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return &pollers.PollResult{
+				PollInterval: 5 * time.Second,
+				Status:       pollers.PollingStatusInProgress,
+			}, nil
+		}
+		return &pollers.PollResult{
+			Status: pollers.PollingStatusFailed,
+		}, fmt.Errorf("retrieving %s: %+v", p.id, err)
 	}
 
-	pollingFailed = pollers.PollResult{
-		Status: pollers.PollingStatusFailed,
+	model, ok := resp.Model.(threatintelligence.ThreatIntelligenceIndicatorModel)
+	if !ok {
+		return &pollers.PollResult{
+			Status: pollers.PollingStatusFailed,
+		}, fmt.Errorf("retrieving %s: type mismatch, got %T", p.id, resp.Model)
 	}
 
-	pollingInProgress = pollers.PollResult{
-		HttpResponse: nil,
+	if model.Properties == nil {
+		return &pollers.PollResult{
+			Status: pollers.PollingStatusFailed,
+		}, fmt.Errorf("retrieving %s: `properties` was nil", p.id)
+	}
+
+	if model.Properties.LastUpdatedTimeUtc != nil && *model.Properties.LastUpdatedTimeUtc != p.lastUpdatedTimeUtc {
+		p.successfulPollCount++
+		if p.successfulPollCount > consistentRequestCount {
+			return &pollers.PollResult{
+				PollInterval: 5 * time.Second,
+				Status:       pollers.PollingStatusSucceeded,
+			}, nil
+		}
+	}
+
+	return &pollers.PollResult{
 		PollInterval: 5 * time.Second,
 		Status:       pollers.PollingStatusInProgress,
-	}
-)
-
-func NewThreatIntelligenceIndicatorPoller(client azuresdkhacks.ThreatIntelligenceIndicatorClient, id parse.ThreatIntelligenceIndicatorId) *threatIntelligenceIndicatorPooler {
-	return &threatIntelligenceIndicatorPooler{
-		client:       client,
-		id:           id,
-		succeededCnt: 0,
-	}
-}
-
-func (p *threatIntelligenceIndicatorPooler) Poll(ctx context.Context) (*pollers.PollResult, error) {
-	resp, err := p.client.Get(ctx, p.id.ResourceGroup, p.id.WorkspaceName, p.id.IndicatorName)
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return &pollingInProgress, nil
-		}
-		return nil, fmt.Errorf("retrieving %s, %+v", p.id, err)
-	}
-
-	if p.succeededCnt < concistentRequestNumber {
-		p.succeededCnt++
-		return &pollingInProgress, nil
-	}
-
-	return &pollingSuccess, nil
-}
-
-func NewThreatIntelligenceIndicatorUpdatePoller(client azuresdkhacks.ThreatIntelligenceIndicatorClient, id parse.ThreatIntelligenceIndicatorId, lastUpdateTime string) *threatIntelligenceIndicatorUpdatePooler {
-	return &threatIntelligenceIndicatorUpdatePooler{
-		client:         client,
-		id:             id,
-		succeededCnt:   0,
-		lastUpdateTime: lastUpdateTime,
-	}
-}
-
-func (p *threatIntelligenceIndicatorUpdatePooler) Poll(ctx context.Context) (*pollers.PollResult, error) {
-	resp, err := p.client.Get(ctx, p.id.ResourceGroup, p.id.WorkspaceName, p.id.IndicatorName)
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return &pollingInProgress, nil
-		}
-		return &pollingFailed, fmt.Errorf("retrieving %s, %+v", p.id, err)
-	}
-
-	model, ok := resp.Value.AsThreatIntelligenceIndicatorModel()
-	if !ok {
-		return &pollingFailed, fmt.Errorf("retrieving %s: type mismatch", p.id)
-	}
-
-	if model.LastUpdatedTimeUtc != nil && model.LastUpdatedTimeUtc != &p.lastUpdateTime {
-		p.succeededCnt++
-		if p.succeededCnt > concistentRequestNumber {
-			return &pollingSuccess, nil
-		}
-	}
-
-	return &pollingInProgress, nil
+	}, nil
 }

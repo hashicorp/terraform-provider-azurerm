@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package pluginsdk
@@ -12,11 +12,7 @@ import (
 // without introducing a merge conflict into every PR.
 
 type (
-	BasicMapReader    = schema.BasicMapReader
-	DiscriminatedType = struct {
-		Field string
-		Value string
-	}
+	BasicMapReader         = schema.BasicMapReader
 	MapFieldReader         = schema.MapFieldReader
 	MapFieldWriter         = schema.MapFieldWriter
 	Resource               = schema.Resource

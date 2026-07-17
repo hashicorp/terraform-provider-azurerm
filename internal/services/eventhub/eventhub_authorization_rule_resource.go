@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package eventhub
@@ -81,19 +81,19 @@ func resourceEventHubAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM EventHub Authorization Rule creation.")
-
 	id := eventhubs.NewEventhubAuthorizationRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("eventhub_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := eventhubsClient.GetAuthorizationRule(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := eventhubsClient.GetAuthorizationRule(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_eventhub_authorization_rule", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_eventhub_authorization_rule", id.ID())
+			}
 		}
 	}
 
@@ -121,7 +121,7 @@ func resourceEventHubAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, me
 			if response.WasNotFound(read.HttpResponse) {
 				return pluginsdk.RetryableError(fmt.Errorf("expected %s to be created but was in non existent state, retrying", id))
 			}
-			return pluginsdk.NonRetryableError(fmt.Errorf("Expected %s was not be found", id))
+			return pluginsdk.NonRetryableError(fmt.Errorf("expected %s was not found", id))
 		}
 
 		d.SetId(id.ID())

@@ -1,10 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package acceptance
 
 import (
 	"fmt"
+	"hash/fnv"
 	"math"
 	"math/rand"
 	"os"
@@ -12,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/vcr"
 )
 
 const (
@@ -20,9 +22,17 @@ const (
 )
 
 func init() {
-	// unit testing
+	// unit testing via go-vcr
 	if os.Getenv("TF_ACC") == "" {
 		return
+	}
+
+	if os.Getenv("TC_TEST_VIA_VCR") == "replay" {
+		// Override real subscription IDs with placeholders so we natively use the placeholders during replay. This
+		// is required for the ImportStep to work
+		os.Setenv("ARM_SUBSCRIPTION_ID", vcr.SubscriptionPlaceholder)
+		os.Setenv("ARM_SUBSCRIPTION_ID_ALT", vcr.SubscriptionPlaceholderAlt)
+		os.Setenv("ARM_SUBSCRIPTION_ID_ALT2", vcr.SubscriptionPlaceholderAlt2)
 	}
 }
 
@@ -57,11 +67,51 @@ type TestData struct {
 	resourceLabel string
 }
 
+// vcrRandTimeInt produces a stable 18-digit integer from a hash of the test name.
+// It mimics the YYMMddHHmmsshhRRRR shape of RandTimeInt but is deterministic.
+func vcrRandTimeInt(testName string) int {
+	h := fnv.New64a()
+	h.Write([]byte(testName))
+	u := h.Sum64()
+
+	// Use a fixed date prefix so the result is always 18 digits and never time-dependent.
+	// We use 20450101 (8 digits) followed by 10 digits from the hash.
+	const fixedPrefix = "20450101"
+	postfix := fmt.Sprintf("%010d", u%10000000000)
+	i, _ := strconv.Atoi(fixedPrefix + postfix)
+	return i
+}
+
+// vcrRandString produces a stable random string from the provided rng.
+func vcrRandString(rng *rand.Rand, strlen int) string {
+	result := make([]byte, strlen)
+	for i := range result {
+		result[i] = charSetAlphaNum[rng.Intn(len(charSetAlphaNum))]
+	}
+	return string(result)
+}
+
 // BuildTestData generates some test data for the given resource
 func BuildTestData(t *testing.T, resourceType string, resourceLabel string) TestData {
+	var randomInt int
+	var randomString string
+	if os.Getenv("TC_TEST_VIA_VCR") != "" {
+		// In VCR mode, seed from the test name so all random values are
+		// stable across runs. Both values share the same rng so they are
+		// deterministic relative to each other as well.
+		h := fnv.New64a()
+		h.Write([]byte(t.Name()))
+		rng := rand.New(rand.NewSource(int64(h.Sum64())))
+		randomInt = vcrRandTimeInt(t.Name())
+		randomString = vcrRandString(rng, 5)
+	} else {
+		randomInt = RandTimeInt()
+		randomString = randString(5)
+	}
+
 	testData := TestData{
-		RandomInteger:   RandTimeInt(),
-		RandomString:    randString(5),
+		RandomInteger:   randomInt,
+		RandomString:    randomString,
 		ResourceName:    fmt.Sprintf("%s.%s", resourceType, resourceLabel),
 		EnvironmentName: EnvironmentName(),
 		MetadataURL:     os.Getenv("ARM_METADATA_HOSTNAME"),

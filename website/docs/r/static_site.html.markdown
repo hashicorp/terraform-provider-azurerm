@@ -10,7 +10,7 @@ description: |-
 
 Manages an App Service Static Site.
 
--> **Note:** The `azurerm_static_site` resource is deprecated in favour of `azurerm_static_web_app` and will be removed in a future major release.
+!> **Note:** This resource has been superseded by `azurerm_static_web_app` and will be removed in version 5.0 of the AzureRM provider.
 
 -> **Note:** After the Static Site is provisioned, you'll need to associate your target repository, which contains your web app, to the Static Site, by following the [Azure Static Site document](https://docs.microsoft.com/azure/static-web-apps/github-actions-workflow).
 
@@ -81,7 +81,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Static Web App.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Static Web App.

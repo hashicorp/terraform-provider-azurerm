@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/connectivityconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/connectivityconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -21,14 +21,17 @@ type ManagerConnectivityConfigurationDataSource struct{}
 var _ sdk.DataSource = ManagerConnectivityConfigurationDataSource{}
 
 type ManagerConnectivityConfigurationDataSourceModel struct {
-	Name                         string                                          `tfschema:"name"`
-	NetworkManagerId             string                                          `tfschema:"network_manager_id"`
-	AppliesToGroups              []ConnectivityGroupItemModel                    `tfschema:"applies_to_group"`
-	ConnectivityTopology         connectivityconfigurations.ConnectivityTopology `tfschema:"connectivity_topology"`
-	DeleteExistingPeeringEnabled bool                                            `tfschema:"delete_existing_peering_enabled"`
-	Description                  string                                          `tfschema:"description"`
-	Hub                          []HubModel                                      `tfschema:"hub"`
-	GlobalMeshEnabled            bool                                            `tfschema:"global_mesh_enabled"`
+	Name                                string                                          `tfschema:"name"`
+	NetworkManagerId                    string                                          `tfschema:"network_manager_id"`
+	AppliesToGroups                     []ConnectivityGroupItemModel                    `tfschema:"applies_to_group"`
+	ConnectedGroupAddressOverlapEnabled bool                                            `tfschema:"connected_group_address_overlap_enabled"`
+	ConnectedGroupPrivateEndpointsScale string                                          `tfschema:"connected_group_private_endpoints_scale"`
+	ConnectivityTopology                connectivityconfigurations.ConnectivityTopology `tfschema:"connectivity_topology"`
+	DeleteExistingPeeringEnabled        bool                                            `tfschema:"delete_existing_peering_enabled"`
+	Description                         string                                          `tfschema:"description"`
+	GlobalMeshEnabled                   bool                                            `tfschema:"global_mesh_enabled"`
+	Hub                                 []HubModel                                      `tfschema:"hub"`
+	PeeringEnforcementEnabled           bool                                            `tfschema:"peering_enforcement_enabled"`
 }
 
 func (r ManagerConnectivityConfigurationDataSource) ResourceType() string {
@@ -85,6 +88,16 @@ func (r ManagerConnectivityConfigurationDataSource) Attributes() map[string]*plu
 			},
 		},
 
+		"connected_group_address_overlap_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
+		"connected_group_private_endpoints_scale": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"connectivity_topology": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -119,6 +132,11 @@ func (r ManagerConnectivityConfigurationDataSource) Attributes() map[string]*plu
 		},
 
 		"global_mesh_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
+		"peering_enforcement_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
@@ -160,6 +178,13 @@ func (r ManagerConnectivityConfigurationDataSource) Read() sdk.ResourceFunc {
 					state.GlobalMeshEnabled = flattenConnectivityConfIsGlobal(properties.IsGlobal)
 					state.Hub = flattenHubModel(properties.Hubs)
 					state.Description = pointer.From(properties.Description)
+					state.ConnectedGroupAddressOverlapEnabled = true
+
+					if properties.ConnectivityCapabilities != nil {
+						state.ConnectedGroupAddressOverlapEnabled = flattenConnectedGroupAddressOverlap(properties.ConnectivityCapabilities.ConnectedGroupAddressOverlap)
+						state.ConnectedGroupPrivateEndpointsScale = string(properties.ConnectivityCapabilities.ConnectedGroupPrivateEndpointsScale)
+						state.PeeringEnforcementEnabled = flattenPeeringEnforcement(properties.ConnectivityCapabilities.PeeringEnforcement)
+					}
 				}
 			}
 

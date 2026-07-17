@@ -1,11 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssql
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -121,33 +120,33 @@ func resourceMsSqlServerExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resource
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for MsSql Server Extended Auditing Policy creation.")
-
 	serverId, err := commonids.ParseSqlServerID(d.Get("server_id").(string))
 	if err != nil {
 		return err
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.ExtendedServerBlobAuditingPoliciesGet(ctx, *serverId)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("retrieving MsSql Server Extended Auditing Policy %s: %+v", serverId, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.ExtendedServerBlobAuditingPoliciesGet(ctx, *serverId)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("retrieving MsSql Server Extended Auditing Policy %s: %+v", serverId, err)
+				}
 			}
-		}
 
-		// if state is not disabled, we should import it.
-		if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" && existing.Model.Properties != nil && existing.Model.Properties.State != blobauditing.BlobAuditingPolicyStateDisabled {
-			return tf.ImportAsExistsError("azurerm_mssql_server_extended_auditing_policy", *existing.Model.Id)
+			// if state is not disabled, we should import it.
+			if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" && existing.Model.Properties != nil && existing.Model.Properties.State != blobauditing.BlobAuditingPolicyStateDisabled {
+				return tf.ImportAsExistsError("azurerm_mssql_server_extended_auditing_policy", *existing.Model.Id)
+			}
 		}
 	}
 
 	params := blobauditing.ExtendedServerBlobAuditingPolicy{
 		Properties: &blobauditing.ExtendedServerBlobAuditingPolicyProperties{
-			StorageEndpoint:             utils.String(d.Get("storage_endpoint").(string)),
-			IsStorageSecondaryKeyInUse:  utils.Bool(d.Get("storage_account_access_key_is_secondary").(bool)),
-			RetentionDays:               utils.Int64(int64(d.Get("retention_in_days").(int))),
-			IsAzureMonitorTargetEnabled: utils.Bool(d.Get("log_monitoring_enabled").(bool)),
+			StorageEndpoint:             pointer.To(d.Get("storage_endpoint").(string)),
+			IsStorageSecondaryKeyInUse:  pointer.To(d.Get("storage_account_access_key_is_secondary").(bool)),
+			RetentionDays:               pointer.To(int64(d.Get("retention_in_days").(int))),
+			IsAzureMonitorTargetEnabled: pointer.To(d.Get("log_monitoring_enabled").(bool)),
 		},
 	}
 
@@ -162,7 +161,7 @@ func resourceMsSqlServerExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resource
 	}
 
 	if v, ok := d.GetOk("storage_account_access_key"); ok {
-		params.Properties.StorageAccountAccessKey = utils.String(v.(string))
+		params.Properties.StorageAccountAccessKey = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("predicate_expression"); ok {

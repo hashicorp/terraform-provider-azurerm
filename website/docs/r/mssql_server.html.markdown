@@ -86,6 +86,7 @@ resource "azurerm_key_vault" "example" {
   name                        = "mssqltdeexample"
   location                    = azurerm_resource_group.example.location
   resource_group_name         = azurerm_resource_group.example.name
+  rbac_authorization_enabled  = false
   enabled_for_disk_encryption = true
   tenant_id                   = azurerm_user_assigned_identity.example.tenant_id
   soft_delete_retention_days  = 7
@@ -121,7 +122,7 @@ resource "azurerm_key_vault_key" "example" {
 
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -223,7 +224,7 @@ A `identity` block exports the following:
 
 ### Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 1 hour) Used when creating the Microsoft SQL Server.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Microsoft SQL Server.
@@ -242,4 +243,4 @@ terraform import azurerm_mssql_server.example /subscriptions/00000000-0000-0000-
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Sql`: 2023-08-01-preview
+* `Microsoft.Sql` - 2023-08-01-preview

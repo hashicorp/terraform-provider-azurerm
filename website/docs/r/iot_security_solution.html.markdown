@@ -38,7 +38,7 @@ resource "azurerm_iot_security_solution" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -64,7 +64,7 @@ The following arguments are supported:
 
 * `log_unmasked_ips_enabled` - (Optional) Should IP addressed be unmasked in the log? Defaults to `false`.
 
-* `recommendations_enabled` - (Optional) A `recommendations_enabled` block of options to enable or disable as defined below.
+* `recommendations` - (Optional) A `recommendations` block as defined below.
 
 * `query_for_resources` - (Optional) An Azure Resource Graph query used to set the resources monitored.
 
@@ -82,7 +82,7 @@ The `additional_workspace` block supports the following:
 
 ---
 
-A `recommendations_enabled` block supports the following:
+A `recommendations` block supports the following:
 
 * `acr_authentication` - (Optional) Is Principal Authentication enabled for the ACR repository? Defaults to `true`.
 
@@ -124,7 +124,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Iot Security Solution.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Iot Security Solution.

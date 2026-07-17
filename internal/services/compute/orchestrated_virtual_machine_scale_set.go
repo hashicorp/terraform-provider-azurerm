@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -11,7 +11,9 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networksecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
@@ -70,7 +72,7 @@ func OrchestratedVirtualMachineScaleSetWindowsConfigurationSchema() *pluginsdk.S
 
 				"additional_unattend_content": additionalUnattendContentSchema(),
 
-				// TODO 4.0: change this from enable_* to *_enabled
+				// TODO 5.0: change this from enable_* to *_enabled
 				"enable_automatic_updates": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
@@ -284,6 +286,28 @@ func OrchestratedVirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schem
 
 				"ip_configuration": orchestratedVirtualMachineScaleSetIPConfigurationSchema(),
 
+				"auxiliary_mode": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						// None is not exposed.
+						string(virtualmachinescalesets.NetworkInterfaceAuxiliaryModeAcceleratedConnections),
+						string(virtualmachinescalesets.NetworkInterfaceAuxiliaryModeFloating),
+					}, false),
+				},
+
+				"auxiliary_sku": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						// None is not exposed.
+						string(virtualmachinescalesets.NetworkInterfaceAuxiliarySkuAEight),
+						string(virtualmachinescalesets.NetworkInterfaceAuxiliarySkuAFour),
+						string(virtualmachinescalesets.NetworkInterfaceAuxiliarySkuAOne),
+						string(virtualmachinescalesets.NetworkInterfaceAuxiliarySkuATwo),
+					}, false),
+				},
+
 				"dns_servers": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
@@ -293,14 +317,14 @@ func OrchestratedVirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schem
 					},
 				},
 
-				// TODO 4.0: change this from enable_* to *_enabled
+				// TODO 5.0: change this from enable_* to *_enabled
 				"enable_accelerated_networking": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
 				},
 
-				// TODO 4.0: change this from enable_* to *_enabled
+				// TODO 5.0: change this from enable_* to *_enabled
 				"enable_ip_forwarding": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
@@ -318,6 +342,8 @@ func OrchestratedVirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schem
 					Optional: true,
 					Default:  false,
 				},
+
+				"tags": commonschema.Tags(),
 			},
 		},
 	}
@@ -560,7 +586,7 @@ func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 					Default:  false,
 				},
 
-				// TODO rename `ultra_ssd_disk_iops_read_write` to `disk_iops_read_write` in 4.0
+				// TODO rename `ultra_ssd_disk_iops_read_write` to `disk_iops_read_write` in 5.0
 				"ultra_ssd_disk_iops_read_write": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
@@ -568,7 +594,7 @@ func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 					Computed:     true,
 				},
 
-				// TODO rename `ultra_ssd_disk_mbps_read_write` to `disk_mbps_read_write` in 4.0
+				// TODO rename `ultra_ssd_disk_mbps_read_write` to `disk_mbps_read_write` in 5.0
 				"ultra_ssd_disk_mbps_read_write": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
@@ -1016,8 +1042,8 @@ func expandWindowsConfigurationAdditionalUnattendContent(input []interface{}) *[
 			Content:     pointer.To(raw["content"].(string)),
 
 			// no other possible values
-			PassName:      pointer.To(virtualmachinescalesets.PassNamesOobeSystem),
-			ComponentName: pointer.To(virtualmachinescalesets.ComponentNamesMicrosoftNegativeWindowsNegativeShellNegativeSetup),
+			PassName:      pointer.To(virtualmachinescalesets.PassNameOobeSystem),
+			ComponentName: pointer.To(virtualmachinescalesets.ComponentNameMicrosoftNegativeWindowsNegativeShellNegativeSetup),
 		})
 	}
 
@@ -1057,11 +1083,21 @@ func ExpandOrchestratedVirtualMachineScaleSetNetworkInterface(input []interface{
 			},
 		}
 
+		if auxiliaryMode := raw["auxiliary_mode"].(string); auxiliaryMode != "" {
+			config.Properties.AuxiliaryMode = pointer.To(virtualmachinescalesets.NetworkInterfaceAuxiliaryMode(auxiliaryMode))
+		}
+
+		if auxiliarySku := raw["auxiliary_sku"].(string); auxiliarySku != "" {
+			config.Properties.AuxiliarySku = pointer.To(virtualmachinescalesets.NetworkInterfaceAuxiliarySku(auxiliarySku))
+		}
+
 		if nsgId := raw["network_security_group_id"].(string); nsgId != "" {
 			config.Properties.NetworkSecurityGroup = &virtualmachinescalesets.SubResource{
 				Id: pointer.To(nsgId),
 			}
 		}
+
+		config.Tags = tags.Expand(raw["tags"].(map[string]interface{}))
 
 		output = append(output, config)
 	}
@@ -1193,11 +1229,21 @@ func ExpandOrchestratedVirtualMachineScaleSetNetworkInterfaceUpdate(input []inte
 			},
 		}
 
+		if auxiliaryMode := raw["auxiliary_mode"].(string); auxiliaryMode != "" {
+			config.Properties.AuxiliaryMode = pointer.To(virtualmachinescalesets.NetworkInterfaceAuxiliaryMode(auxiliaryMode))
+		}
+
+		if auxiliarySku := raw["auxiliary_sku"].(string); auxiliarySku != "" {
+			config.Properties.AuxiliarySku = pointer.To(virtualmachinescalesets.NetworkInterfaceAuxiliarySku(auxiliarySku))
+		}
+
 		if nsgId := raw["network_security_group_id"].(string); nsgId != "" {
 			config.Properties.NetworkSecurityGroup = &virtualmachinescalesets.SubResource{
 				Id: pointer.To(nsgId),
 			}
 		}
+
+		config.Tags = tags.Expand(raw["tags"].(map[string]interface{}))
 
 		output = append(output, config)
 	}
@@ -1345,7 +1391,10 @@ func ExpandOrchestratedVirtualMachineScaleSetOSDisk(input []interface{}, osType 
 
 		// these have to be hard-coded so there's no point exposing them
 		CreateOption: virtualmachinescalesets.DiskCreateOptionTypesFromImage,
-		OsType:       pointer.To(osType),
+	}
+
+	if len(osType) > 0 {
+		disk.OsType = pointer.To(osType)
 	}
 
 	if diskEncryptionSetId := raw["disk_encryption_set_id"].(string); diskEncryptionSetId != "" {
@@ -1458,7 +1507,7 @@ func expandOrchestratedVirtualMachineScaleSetExtensions(input []interface{}) (ex
 		}
 
 		protectedSettingsFromKeyVault := expandProtectedSettingsFromKeyVaultVMSS(extensionRaw["protected_settings_from_key_vault"].([]interface{}))
-		extensionProps.ProtectedSettingsFromKeyVault = (protectedSettingsFromKeyVault)
+		extensionProps.ProtectedSettingsFromKeyVault = protectedSettingsFromKeyVault
 
 		if val, ok := extensionRaw["protected_settings"]; ok && val.(string) != "" {
 			if protectedSettingsFromKeyVault != nil {
@@ -1818,11 +1867,19 @@ func FlattenOrchestratedVirtualMachineScaleSetNetworkInterface(input *[]virtualm
 
 	results := make([]interface{}, 0)
 	for _, v := range *input {
-		var networkSecurityGroupId string
+		var auxiliaryMode, auxiliarySku, networkSecurityGroupId string
 		var enableAcceleratedNetworking, enableIPForwarding, primary bool
 		var dnsServers []interface{}
 		var ipConfigurations []interface{}
 		if props := v.Properties; props != nil {
+			if props.AuxiliaryMode != nil && *props.AuxiliaryMode != virtualmachinescalesets.NetworkInterfaceAuxiliaryModeNone {
+				auxiliaryMode = string(pointer.From(props.AuxiliaryMode))
+			}
+
+			if props.AuxiliarySku != nil && *props.AuxiliarySku != virtualmachinescalesets.NetworkInterfaceAuxiliarySkuNone {
+				auxiliarySku = string(pointer.From(props.AuxiliarySku))
+			}
+
 			if props.NetworkSecurityGroup != nil && props.NetworkSecurityGroup.Id != nil {
 				networkSecurityGroupId = *props.NetworkSecurityGroup.Id
 			}
@@ -1851,12 +1908,15 @@ func FlattenOrchestratedVirtualMachineScaleSetNetworkInterface(input *[]virtualm
 
 		results = append(results, map[string]interface{}{
 			"name":                          v.Name,
+			"auxiliary_mode":                auxiliaryMode,
+			"auxiliary_sku":                 auxiliarySku,
 			"dns_servers":                   dnsServers,
 			"enable_accelerated_networking": enableAcceleratedNetworking,
 			"enable_ip_forwarding":          enableIPForwarding,
 			"ip_configuration":              ipConfigurations,
 			"network_security_group_id":     networkSecurityGroupId,
 			"primary":                       primary,
+			"tags":                          tags.Flatten(v.Tags),
 		})
 	}
 

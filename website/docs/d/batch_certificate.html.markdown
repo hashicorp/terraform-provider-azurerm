@@ -11,6 +11,8 @@ description: |-
 
 Use this data source to access information about an existing certificate in a Batch Account.
 
+-> **Note:** The `azurerm_batch_certificate` data source has been deprecated due to Azure retiring the Azure Batch Account Certificates Feature, and will be removed in v5.0 of the AzureRM provider.
+
 ## Example Usage
 
 ```hcl
@@ -25,7 +27,7 @@ output "thumbprint" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the Batch certificate.
 
@@ -49,7 +51,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the certificate.
 
@@ -57,4 +59,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Batch`: 2024-07-01
+* `Microsoft.Batch` - 2024-07-01

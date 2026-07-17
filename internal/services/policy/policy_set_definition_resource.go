@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package policy
@@ -50,6 +50,35 @@ func resourceArmPolicySetDefinition() *pluginsdk.Resource {
 		},
 
 		Schema: resourcePolicySetDefinitionSchema(),
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+			// `parameters` cannot have values removed so we'll ForceNew if there are less parameters between Terraform runs
+			if d.HasChange("parameters") {
+				oldParametersRaw, newParametersRaw := d.GetChange("parameters")
+				if oldParametersString := oldParametersRaw.(string); oldParametersString != "" {
+					newParametersString := newParametersRaw.(string)
+					if newParametersString == "" {
+						return d.ForceNew("parameters")
+					}
+
+					oldParameters, err := expandParameterDefinitionsValue(oldParametersString)
+					if err != nil {
+						return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
+					}
+
+					newParameters, err := expandParameterDefinitionsValue(newParametersString)
+					if err != nil {
+						return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
+					}
+
+					if len(*newParameters) < len(*oldParameters) {
+						return d.ForceNew("parameters")
+					}
+				}
+			}
+
+			return nil
+		}),
 	}
 }
 
@@ -208,15 +237,17 @@ func resourceArmPolicySetDefinitionCreate(d *pluginsdk.ResourceData, meta interf
 
 	id := policysetdefinitions.NewProviderPolicySetDefinitionID(subscriptionId, d.Get("name").(string))
 
-	resp, _, err := getPolicySetDefinitionByID(ctx, client, id)
-	if err != nil {
-		if !response.WasNotFound(resp) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		resp, _, err := getPolicySetDefinitionByID(ctx, client, id)
+		if err != nil {
+			if !response.WasNotFound(resp) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(resp) {
-		return tf.ImportAsExistsError("azurerm_policy_set_definition", id.ID())
+		if !response.WasNotFound(resp) {
+			return tf.ImportAsExistsError("azurerm_policy_set_definition", id.ID())
+		}
 	}
 
 	parameters := policysetdefinitions.PolicySetDefinition{
@@ -248,7 +279,7 @@ func resourceArmPolicySetDefinitionCreate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	if v, ok := d.GetOk("policy_definition_reference"); ok {
-		definitions, err := expandAzureRMPolicySetDefinitionPolicyDefinitions(v.([]interface{}))
+		definitions, err := expandAzureRMPolicySetDefinitionPolicyDefinitions(v.([]interface{}), d)
 		if err != nil {
 			return fmt.Errorf("expanding `policy_definition_reference`: %+v", err)
 		}
@@ -259,7 +290,7 @@ func resourceArmPolicySetDefinitionCreate(d *pluginsdk.ResourceData, meta interf
 		props.PolicyDefinitionGroups = expandAzureRMPolicySetDefinitionPolicyGroups(v.(*pluginsdk.Set).List())
 	}
 
-	if _, err = client.CreateOrUpdate(ctx, id, parameters); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -274,7 +305,7 @@ func resourceArmPolicySetDefinitionCreate(d *pluginsdk.ResourceData, meta interf
 		ContinuousTargetOccurence: 10,
 	}
 
-	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to become available: %+v", id, err)
 	}
 
@@ -296,15 +327,17 @@ func createForManagementGroup(ctx context.Context, client *policysetdefinitions.
 
 	id := policysetdefinitions.NewProviders2PolicySetDefinitionID(managementGroupId.Name, d.Get("name").(string))
 
-	resp, _, err := getPolicySetDefinitionByID(ctx, client, id)
-	if err != nil {
-		if !response.WasNotFound(resp) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		resp, _, err := getPolicySetDefinitionByID(ctx, client, id)
+		if err != nil {
+			if !response.WasNotFound(resp) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(resp) {
-		return tf.ImportAsExistsError("azurerm_policy_set_definition", id.ID())
+		if !response.WasNotFound(resp) {
+			return tf.ImportAsExistsError("azurerm_policy_set_definition", id.ID())
+		}
 	}
 
 	parameters := policysetdefinitions.PolicySetDefinition{
@@ -336,7 +369,7 @@ func createForManagementGroup(ctx context.Context, client *policysetdefinitions.
 	}
 
 	if v, ok := d.GetOk("policy_definition_reference"); ok {
-		definitions, err := expandAzureRMPolicySetDefinitionPolicyDefinitions(v.([]interface{}))
+		definitions, err := expandAzureRMPolicySetDefinitionPolicyDefinitions(v.([]interface{}), d)
 		if err != nil {
 			return fmt.Errorf("expanding `policy_definition_reference`: %+v", err)
 		}
@@ -461,7 +494,7 @@ func resourceArmPolicySetDefinitionUpdate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	if d.HasChange("policy_definition_reference") {
-		definitions, err := expandAzureRMPolicySetDefinitionPolicyDefinitions(d.Get("policy_definition_reference").([]interface{}))
+		definitions, err := expandAzureRMPolicySetDefinitionPolicyDefinitions(d.Get("policy_definition_reference").([]interface{}), d)
 		if err != nil {
 			return fmt.Errorf("expanding `policy_definition_reference`: %+v", err)
 		}
@@ -548,7 +581,7 @@ func updateForManagementGroup(ctx context.Context, client *policysetdefinitions.
 	}
 
 	if d.HasChange("policy_definition_reference") {
-		definitions, err := expandAzureRMPolicySetDefinitionPolicyDefinitions(d.Get("policy_definition_reference").([]interface{}))
+		definitions, err := expandAzureRMPolicySetDefinitionPolicyDefinitions(d.Get("policy_definition_reference").([]interface{}), d)
 		if err != nil {
 			return fmt.Errorf("expanding `policy_definition_reference`: %+v", err)
 		}
@@ -755,10 +788,10 @@ func deleteForManagementGroup(ctx context.Context, client *policysetdefinitions.
 	return nil
 }
 
-func expandAzureRMPolicySetDefinitionPolicyDefinitions(input []interface{}) ([]policysetdefinitions.PolicyDefinitionReference, error) {
+func expandAzureRMPolicySetDefinitionPolicyDefinitions(input []interface{}, resourceData *pluginsdk.ResourceData) ([]policysetdefinitions.PolicyDefinitionReference, error) {
 	result := make([]policysetdefinitions.PolicyDefinitionReference, 0)
 
-	for _, item := range input {
+	for idx, item := range input {
 		v := item.(map[string]interface{})
 
 		var parameters map[string]policysetdefinitions.ParameterValuesValue
@@ -778,7 +811,21 @@ func expandAzureRMPolicySetDefinitionPolicyDefinitions(input []interface{}) ([]p
 
 		// The API returns an error if we send an empty string
 		if version := v["version"].(string); version != "" {
-			reference.DefinitionVersion = pointer.To(v["version"].(string))
+			path := fmt.Sprintf("policy_definition_reference.%d.version", idx)
+
+			// We need to check the version value using RawConfig due to how Terraform manages blocks with computed nested items.
+			// E.g. in a list of 3 `policy_definition_reference` blocks, if the middle (index 1) block is removed
+			// the `version` argument contains the value from state as it's considered unchanged. However, due to the "shifted"
+			// indexes, the `version` previously computed/returned by Azure may be incorrect for the `policy_definition_id`
+			// it is now associated with, leading to a 400 Bad Request error from Azure.
+			rawVersion, diags := resourceData.GetRawConfigAt(sdk.ConstructCtyPath(path))
+			if diags.HasError() {
+				return nil, fmt.Errorf("retrieving value at path `%s`: %+v", path, diags)
+			}
+
+			if !rawVersion.IsNull() {
+				reference.DefinitionVersion = pointer.To(v["version"].(string))
+			}
 		}
 
 		result = append(result, reference)
@@ -871,6 +918,7 @@ type PolicySetDefinitionResourceModel struct {
 var (
 	_ sdk.ResourceWithUpdate         = PolicySetDefinitionResource{}
 	_ sdk.ResourceWithStateMigration = PolicySetDefinitionResource{}
+	_ sdk.ResourceWithCustomizeDiff  = PolicySetDefinitionResource{}
 )
 
 func (r PolicySetDefinitionResource) StateUpgraders() sdk.StateUpgradeData {
@@ -956,13 +1004,15 @@ func (r PolicySetDefinitionResource) Create() sdk.ResourceFunc {
 
 			id := policysetdefinitions.NewProviderPolicySetDefinitionID(subscriptionId, model.Name)
 
-			resp, _, err := getPolicySetDefinition(ctx, client, id)
-			if err != nil && !response.WasNotFound(resp) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				resp, _, err := getPolicySetDefinition(ctx, client, id)
+				if err != nil && !response.WasNotFound(resp) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(resp) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(resp) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := policysetdefinitions.PolicySetDefinition{
@@ -995,7 +1045,7 @@ func (r PolicySetDefinitionResource) Create() sdk.ResourceFunc {
 			}
 
 			if len(model.PolicyDefinitionReference) > 0 {
-				expandedDefinitions, err := expandPolicyDefinitionReference(model.PolicyDefinitionReference)
+				expandedDefinitions, err := expandPolicyDefinitionReference(model.PolicyDefinitionReference, metadata)
 				if err != nil {
 					return fmt.Errorf("expanding `policy_definition_reference`: %+v", err)
 				}
@@ -1006,7 +1056,7 @@ func (r PolicySetDefinitionResource) Create() sdk.ResourceFunc {
 				props.PolicyDefinitionGroups = expandPolicyDefinitionGroup(model.PolicyDefinitionGroup)
 			}
 
-			if _, err = client.CreateOrUpdate(ctx, id, parameters); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -1140,7 +1190,7 @@ func (r PolicySetDefinitionResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("policy_definition_reference") {
-				expandedDefinitions, err := expandPolicyDefinitionReference(config.PolicyDefinitionReference)
+				expandedDefinitions, err := expandPolicyDefinitionReference(config.PolicyDefinitionReference, metadata)
 				if err != nil {
 					return fmt.Errorf("expanding `policy_definition_reference`: %+v", err)
 				}
@@ -1192,4 +1242,37 @@ func getPolicySetDefinition(ctx context.Context, client *policysetdefinitions.Po
 	}
 
 	return resp.HttpResponse, resp.Model, err
+}
+
+func (r PolicySetDefinitionResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 10 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			if metadata.ResourceDiff.HasChange("parameters") {
+				oldParametersRaw, newParametersRaw := metadata.ResourceDiff.GetChange("parameters")
+				if oldParametersString := oldParametersRaw.(string); oldParametersString != "" {
+					newParametersString := newParametersRaw.(string)
+					if newParametersString == "" {
+						return metadata.ResourceDiff.ForceNew("parameters")
+					}
+
+					oldParameters, err := expandParameterDefinitionsValue(oldParametersString)
+					if err != nil {
+						return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
+					}
+
+					newParameters, err := expandParameterDefinitionsValue(newParametersString)
+					if err != nil {
+						return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
+					}
+
+					if len(*newParameters) < len(*oldParameters) {
+						return metadata.ResourceDiff.ForceNew("parameters")
+					}
+				}
+			}
+
+			return nil
+		},
+	}
 }

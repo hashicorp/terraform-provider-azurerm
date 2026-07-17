@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package costmanagement
@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/scheduledactions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/views"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -24,7 +25,7 @@ type CostManagementScheduledActionResource struct{}
 var _ sdk.Resource = CostManagementScheduledActionResource{}
 
 func (r CostManagementScheduledActionResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	resource := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -48,7 +49,7 @@ func (r CostManagementScheduledActionResource) Arguments() map[string]*pluginsdk
 		"email_subject": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringLenBetween(1, 70),
+			ValidateFunc: validation.StringLenBetween(1, 50),
 		},
 
 		"email_addresses": {
@@ -124,6 +125,12 @@ func (r CostManagementScheduledActionResource) Arguments() map[string]*pluginsdk
 			ValidateFunc: validation.IsRFC3339Time,
 		},
 	}
+
+	if !features.FivePointOh() {
+		resource["email_subject"].ValidateFunc = validation.StringLenBetween(1, 70)
+	}
+
+	return resource
 }
 
 func (r CostManagementScheduledActionResource) Attributes() map[string]*pluginsdk.Schema {
@@ -154,15 +161,17 @@ func (r CostManagementScheduledActionResource) Create() sdk.ResourceFunc {
 			}
 			id := scheduledactions.NewScopedScheduledActionID(viewId.Scope, metadata.ResourceData.Get("name").(string))
 
-			existing, err := client.GetByScope(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetByScope(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				if !response.WasNotFound(existing.HttpResponse) {
+					return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				}
 			}
 
 			var daysOfWeek []scheduledactions.DaysOfWeek
@@ -184,8 +193,8 @@ func (r CostManagementScheduledActionResource) Create() sdk.ResourceFunc {
 				Frequency:    scheduledactions.ScheduleFrequency(metadata.ResourceData.Get("frequency").(string)),
 				WeeksOfMonth: &weeksOfMonth,
 				DaysOfWeek:   &daysOfWeek,
-				HourOfDay:    utils.Int64(int64(metadata.ResourceData.Get("hour_of_day").(int))),
-				DayOfMonth:   utils.Int64(int64(metadata.ResourceData.Get("day_of_month").(int))),
+				HourOfDay:    pointer.To(int64(metadata.ResourceData.Get("hour_of_day").(int))),
+				DayOfMonth:   pointer.To(int64(metadata.ResourceData.Get("day_of_month").(int))),
 				StartDate:    metadata.ResourceData.Get("start_date").(string),
 				EndDate:      metadata.ResourceData.Get("end_date").(string),
 			}
@@ -199,10 +208,10 @@ func (r CostManagementScheduledActionResource) Create() sdk.ResourceFunc {
 					FileDestination: &scheduledactions.FileDestination{
 						FileFormats: &[]scheduledactions.FileFormat{},
 					},
-					NotificationEmail: utils.String(metadata.ResourceData.Get("email_address_sender").(string)),
+					NotificationEmail: pointer.To(metadata.ResourceData.Get("email_address_sender").(string)),
 					Notification: scheduledactions.NotificationProperties{
 						Subject: metadata.ResourceData.Get("email_subject").(string),
-						Message: utils.String(metadata.ResourceData.Get("message").(string)),
+						Message: pointer.To(metadata.ResourceData.Get("message").(string)),
 						To:      *utils.ExpandStringSlice(metadata.ResourceData.Get("email_addresses").([]interface{})),
 					},
 					Schedule: schedule,
@@ -327,7 +336,7 @@ func (r CostManagementScheduledActionResource) Update() sdk.ResourceFunc {
 				}
 
 				if metadata.ResourceData.HasChange("email_address_sender") {
-					model.Properties.NotificationEmail = utils.String(metadata.ResourceData.Get("email_address_sender").(string))
+					model.Properties.NotificationEmail = pointer.To(metadata.ResourceData.Get("email_address_sender").(string))
 				}
 
 				if metadata.ResourceData.HasChange("email_subject") {
@@ -339,7 +348,7 @@ func (r CostManagementScheduledActionResource) Update() sdk.ResourceFunc {
 				}
 
 				if metadata.ResourceData.HasChange("message") {
-					model.Properties.Notification.Message = utils.String(metadata.ResourceData.Get("message").(string))
+					model.Properties.Notification.Message = pointer.To(metadata.ResourceData.Get("message").(string))
 				}
 
 				if metadata.ResourceData.HasChange("frequency") {
@@ -377,11 +386,11 @@ func (r CostManagementScheduledActionResource) Update() sdk.ResourceFunc {
 				}
 
 				if metadata.ResourceData.HasChange("hour_of_day") {
-					model.Properties.Schedule.HourOfDay = utils.Int64(int64(metadata.ResourceData.Get("hour_of_day").(int)))
+					model.Properties.Schedule.HourOfDay = pointer.To(int64(metadata.ResourceData.Get("hour_of_day").(int)))
 				}
 
 				if metadata.ResourceData.HasChange("day_of_month") {
-					model.Properties.Schedule.DayOfMonth = utils.Int64(int64(metadata.ResourceData.Get("day_of_month").(int)))
+					model.Properties.Schedule.DayOfMonth = pointer.To(int64(metadata.ResourceData.Get("day_of_month").(int)))
 				}
 
 				if _, err = client.CreateOrUpdateByScope(ctx, *id, *model, scheduledactions.CreateOrUpdateByScopeOperationOptions{}); err != nil {

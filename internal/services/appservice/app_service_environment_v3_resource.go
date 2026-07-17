@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -13,14 +13,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualnetworks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/appserviceenvironments"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/preflight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 const KindASEV3 = "ASEV3"
@@ -63,8 +62,9 @@ type AppServiceV3InboundDependencies struct {
 type AppServiceEnvironmentV3Resource struct{}
 
 var (
-	_ sdk.Resource           = AppServiceEnvironmentV3Resource{}
-	_ sdk.ResourceWithUpdate = AppServiceEnvironmentV3Resource{}
+	_ sdk.Resource                  = AppServiceEnvironmentV3Resource{}
+	_ sdk.ResourceWithUpdate        = AppServiceEnvironmentV3Resource{}
+	_ sdk.ResourceWithCustomizeDiff = AppServiceEnvironmentV3Resource{}
 )
 
 func (r AppServiceEnvironmentV3Resource) Arguments() map[string]*pluginsdk.Schema {
@@ -148,7 +148,7 @@ func (r AppServiceEnvironmentV3Resource) Arguments() map[string]*pluginsdk.Schem
 			},
 		},
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 	}
 }
 
@@ -279,34 +279,26 @@ func (r AppServiceEnvironmentV3Resource) Create() sdk.ResourceFunc {
 			}
 
 			id := commonids.NewAppServiceEnvironmentID(subscriptionId, model.ResourceGroup, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil {
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
+				}
 				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
 				}
 			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
-			}
 
-			envelope := appserviceenvironments.AppServiceEnvironmentResource{
-				Kind:     pointer.To(KindASEV3),
-				Location: location.Normalize(vnetLoc),
-				Properties: &appserviceenvironments.AppServiceEnvironment{
-					DedicatedHostCount:        pointer.To(model.DedicatedHostCount),
-					ClusterSettings:           expandClusterSettingsModel(model.ClusterSetting),
-					InternalLoadBalancingMode: pointer.To(appserviceenvironments.LoadBalancingMode(model.InternalLoadBalancingMode)),
-					VirtualNetwork: appserviceenvironments.VirtualNetworkProfile{
-						Id: model.SubnetId,
-					},
-					ZoneRedundant: pointer.To(model.ZoneRedundant),
-				},
-				Tags: pointer.To(model.Tags),
-			}
+			envelope := expandCreateForAppServiceEnvironmentV3(model, vnetLoc)
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, envelope); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, envelope, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
+
+			metadata.SetID(id)
 
 			// Networking config cannot be sent in the initial create and must be updated post-creation.
 			aseNetworkConfig := appserviceenvironments.AseV3NetworkingConfiguration{
@@ -339,10 +331,109 @@ func (r AppServiceEnvironmentV3Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("waiting for Network Update for %s to complete: %+v", id, err)
 			}
 
-			metadata.SetID(id)
 			return nil
 		},
 	}
+}
+
+func expandCreateForAppServiceEnvironmentV3(model AppServiceEnvironmentV3Model, vnetLoc string) appserviceenvironments.AppServiceEnvironmentResource {
+	return appserviceenvironments.AppServiceEnvironmentResource{
+		Kind:     pointer.To(KindASEV3),
+		Location: location.Normalize(vnetLoc),
+		Properties: &appserviceenvironments.AppServiceEnvironment{
+			DedicatedHostCount:        pointer.To(model.DedicatedHostCount),
+			ClusterSettings:           expandClusterSettingsModel(model.ClusterSetting),
+			InternalLoadBalancingMode: pointer.To(appserviceenvironments.LoadBalancingMode(model.InternalLoadBalancingMode)),
+			VirtualNetwork: appserviceenvironments.VirtualNetworkProfile{
+				Id: model.SubnetId,
+			},
+			ZoneRedundant: pointer.To(model.ZoneRedundant),
+		},
+		Tags: pointer.To(model.Tags),
+	}
+}
+
+func (r AppServiceEnvironmentV3Resource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			rd := metadata.ResourceDiff
+			if rd == nil {
+				return nil
+			}
+
+			// Only run preflight validation when it's enabled and the diff contains changes (or this is a new resource).
+			if metadata.Client.Features.EnhancedValidation.PreflightEnabled {
+				if len(rd.GetChangedKeysPrefix("")) > 0 || rd.Id() == "" {
+					var model AppServiceEnvironmentV3Model
+					if err := metadata.DecodeDiff(&model); err != nil {
+						return err
+					}
+
+					vnetLoc, skip := resolvePreflightVnetLocation(ctx, metadata, model)
+					if skip {
+						return nil
+					}
+
+					req := expandCreateForAppServiceEnvironmentV3(model, vnetLoc)
+					id := commonids.NewAppServiceEnvironmentID(metadata.Client.Account.SubscriptionId, model.ResourceGroup, model.Name)
+
+					preflightValidate, err := preflight.NewValidationRequest(pointer.To(vnetLoc), pointer.To(id), "2023-01-01", req)
+					if err != nil {
+						return fmt.Errorf("constructing preflight validation request: %w", err)
+					}
+
+					if err = preflightValidate.ValidateResource(ctx, metadata); err != nil {
+						return err
+					}
+				}
+			}
+
+			return nil
+		},
+	}
+}
+
+// resolvePreflightVnetLocation determines the Virtual Network location used for preflight
+// validation. It returns skip=true when validation should be gracefully skipped (e.g. the
+// subnet_id is not yet known, or the Virtual Network doesn't exist and no location fallback
+// is configured).
+func resolvePreflightVnetLocation(ctx context.Context, metadata sdk.ResourceMetaData, model AppServiceEnvironmentV3Model) (vnetLoc string, skip bool) {
+	if model.SubnetId == "" {
+		return "", false
+	}
+
+	subnet, err := commonids.ParseSubnetID(model.SubnetId)
+	if err != nil {
+		metadata.Logger.Info(fmt.Sprintf("skipping preflight validation for %q: 'subnet_id' unknown", model.Name))
+		return "", true
+	}
+
+	vnetId := commonids.NewVirtualNetworkID(subnet.SubscriptionId, subnet.ResourceGroupName, subnet.VirtualNetworkName)
+
+	vnet, err := metadata.Client.Network.VirtualNetworks.Get(ctx, vnetId, virtualnetworks.DefaultGetOperationOptions())
+	if err != nil {
+		if !response.WasNotFound(vnet.HttpResponse) {
+			return "", true
+		}
+
+		// The VNet doesn't exist yet, so we can't determine its location. Rely on the configured
+		// fallback if one is available, otherwise gracefully skip preflight validation.
+		fallback := metadata.Client.Features.EnhancedValidation.LocationFallback
+		if fallback == nil {
+			metadata.Logger.Info(fmt.Sprintf("skipping preflight validation for %q: Virtual Network %q not found and no location fallback configured", model.Name, vnetId.ID()))
+			return "", true
+		}
+
+		metadata.Logger.Info(fmt.Sprintf("Virtual Network %q not found, relying on location fallback for preflight validation", vnetId.ID()))
+		return *fallback, false
+	}
+
+	if vnet.Model == nil || vnet.Model.Location == nil {
+		return "", true
+	}
+
+	return *vnet.Model.Location, false
 }
 
 func (r AppServiceEnvironmentV3Resource) Read() sdk.ResourceFunc {
@@ -437,7 +528,7 @@ func (r AppServiceEnvironmentV3Resource) Delete() sdk.ResourceFunc {
 }
 
 func (r AppServiceEnvironmentV3Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.AppServiceEnvironmentID
+	return commonids.ValidateAppServiceEnvironmentID
 }
 
 func (r AppServiceEnvironmentV3Resource) Update() sdk.ResourceFunc {
@@ -451,7 +542,6 @@ func (r AppServiceEnvironmentV3Resource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Info("Decoding state...")
 			var state AppServiceEnvironmentV3Model
 			if err := metadata.Decode(&state); err != nil {
 				return err
@@ -464,10 +554,8 @@ func (r AppServiceEnvironmentV3Resource) Update() sdk.ResourceFunc {
 
 			model := existing.Model
 			if model == nil {
-				return fmt.Errorf("reading %s for update: model was nil", *id)
+				return fmt.Errorf("retrieving %s: model was nil", *id)
 			}
-
-			metadata.Logger.Infof("updating %s", id)
 
 			if metadata.ResourceData.HasChange("cluster_setting") {
 				model.Properties.ClusterSettings = expandClusterSettingsModel(state.ClusterSetting)
@@ -475,6 +563,10 @@ func (r AppServiceEnvironmentV3Resource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("tags") {
 				model.Tags = pointer.To(state.Tags)
+			}
+
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
+				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
 			aseNetworkConfig := appserviceenvironments.AseV3NetworkingConfiguration{
@@ -505,10 +597,6 @@ func (r AppServiceEnvironmentV3Resource) Update() sdk.ResourceFunc {
 
 			if _, err := updateWait.WaitForStateContext(ctx); err != nil {
 				return fmt.Errorf("waiting for Network Update for %s to complete: %+v", *id, err)
-			}
-
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
-				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
 			return nil
@@ -543,8 +631,8 @@ func expandClusterSettingsModel(input []ClusterSettingModel) *[]appserviceenviro
 
 	for _, v := range input {
 		clusterSettings = append(clusterSettings, appserviceenvironments.NameValuePair{
-			Name:  utils.String(v.Name),
-			Value: utils.String(v.Value),
+			Name:  pointer.To(v.Name),
+			Value: pointer.To(v.Value),
 		})
 	}
 
@@ -559,9 +647,6 @@ func flattenInboundNetworkDependencies(ctx context.Context, client *appserviceen
 
 	results := make([]AppServiceV3InboundDependencies, 0, len(inboundNetworking.Items))
 	for _, v := range inboundNetworking.Items {
-		if err != nil {
-			return nil, fmt.Errorf("reading Inbound Network dependencies for %s: %+v", id, err)
-		}
 		result := AppServiceV3InboundDependencies{
 			Description: pointer.From(v.Description),
 		}

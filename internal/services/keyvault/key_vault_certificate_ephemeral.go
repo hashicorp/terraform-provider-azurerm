@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package keyvault
@@ -16,14 +16,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk/frameworkhelpers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"golang.org/x/crypto/pkcs12"
@@ -65,7 +66,7 @@ func (e *KeyVaultCertificateEphemeralResource) Schema(_ context.Context, _ ephem
 			"name": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					frameworkhelpers.WrappedStringValidator{
+					typehelpers.WrappedStringValidator{
 						Func: validation.StringIsNotEmpty,
 					},
 				},
@@ -74,7 +75,7 @@ func (e *KeyVaultCertificateEphemeralResource) Schema(_ context.Context, _ ephem
 			"key_vault_id": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					frameworkhelpers.WrappedStringValidator{
+					typehelpers.WrappedStringValidator{
 						Func: commonids.ValidateKeyVaultID,
 					},
 				},
@@ -84,7 +85,7 @@ func (e *KeyVaultCertificateEphemeralResource) Schema(_ context.Context, _ ephem
 				Optional: true,
 				Computed: true,
 				Validators: []validator.String{
-					frameworkhelpers.WrappedStringValidator{
+					typehelpers.WrappedStringValidator{
 						Func: validation.StringIsNotEmpty,
 					},
 				},
@@ -151,7 +152,7 @@ func (e *KeyVaultCertificateEphemeralResource) Open(ctx context.Context, req eph
 		return
 	}
 
-	id, err := parse.ParseNestedItemID(*response.ID)
+	id, err := keyvault.ParseNestedItemID(pointer.From(response.ID), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeCertificate)
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(resp, "", err)
 		return
@@ -175,7 +176,7 @@ func (e *KeyVaultCertificateEphemeralResource) Open(ctx context.Context, req eph
 
 	data.Hex = types.StringValue(certificateData)
 
-	pfx, err := client.GetSecret(ctx, id.KeyVaultBaseUrl, id.Name, id.Version)
+	pfx, err := client.GetSecret(ctx, id.KeyVaultBaseURL, id.Name, id.Version)
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("retrieving certificate %q from %s", data.Name.ValueString(), keyVaultID), err)
 		return

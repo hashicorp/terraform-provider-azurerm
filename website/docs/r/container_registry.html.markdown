@@ -130,7 +130,7 @@ resource "azurerm_role_assignment" "example" {
 
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -160,13 +160,15 @@ The following arguments are supported:
 
 * `quarantine_policy_enabled` - (Optional) Boolean value that indicates whether quarantine policy is enabled.
 
-* `retention_policy_in_days` - (Optional) The number of days to retain and untagged manifest after which it gets purged. Defaults to `7`.
+* `retention_policy_in_days` - (Optional) The number of days to retain and untagged manifest after which it gets purged.
 
 * `trust_policy_enabled` - (Optional) Boolean value that indicated whether trust policy is enabled. Defaults to `false`.
 
 * `zone_redundancy_enabled` - (Optional) Whether zone redundancy is enabled for this Container Registry? Changing this forces a new resource to be created. Defaults to `false`.
 
 * `export_policy_enabled` - (Optional) Boolean value that indicates whether export policy is enabled. Defaults to `true`. In order to set it to `false`, make sure the `public_network_access_enabled` is also set to `false`.
+
+* `azuread_authentication_as_arm_policy_enabled` - (Optional) Whether to use Azure Resource Manager audience token for this Container Registry? Defaults to `true`.
 
 ~> **Note:** `quarantine_policy_enabled`, `retention_policy_in_days`, `trust_policy_enabled`, `export_policy_enabled` and `zone_redundancy_enabled` are only supported on resources with the `Premium` SKU.
 
@@ -179,6 +181,10 @@ The following arguments are supported:
 * `data_endpoint_enabled` - (Optional) Whether to enable dedicated data endpoints for this Container Registry? This is only supported on resources with the `Premium` SKU.
 
 * `network_rule_bypass_option` - (Optional) Whether to allow trusted Azure services to access a network-restricted Container Registry? Possible values are `None` and `AzureServices`. Defaults to `AzureServices`.
+
+* `network_rule_bypass_for_tasks_enabled` - (Optional) Whether to allow Container Registry Tasks to access a network-restricted Container Registry? Defaults to `false`.
+
+* `role_assignment_mode` - (Optional) The role assignment mode of this Container Registry. Possible values are `AbacRepositoryPermissions` and `LegacyRegistryPermissions`. Defaults to `LegacyRegistryPermissions`.
 
 ---
 
@@ -248,6 +254,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `admin_password` - The Password associated with the Container Registry Admin account - if the admin account is enabled.
 
+* `data_endpoint_host_names` - A set of data endpoint hostnames associated with the container registry if data endpoints are enabled. 
+
 * `identity` - An `identity` block as defined below.
 
 ---
@@ -264,7 +272,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Container Registry.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container Registry.
@@ -283,4 +291,4 @@ terraform import azurerm_container_registry.example /subscriptions/00000000-0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ContainerRegistry`: 2023-11-01-preview
+* `Microsoft.ContainerRegistry` - 2025-11-01

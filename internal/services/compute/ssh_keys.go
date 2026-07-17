@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -11,12 +11,42 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
+
+func SSHKeysSchemaVM() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeSet,
+		Optional: true,
+		ForceNew: true,
+		Set:      SSHKeySchemaHash,
+		ConflictsWith: []string{
+			"os_managed_disk_id",
+		},
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"public_key": {
+					Type:             pluginsdk.TypeString,
+					Required:         true,
+					ForceNew:         true,
+					ValidateFunc:     validate.SSHKey,
+					DiffSuppressFunc: suppress.SSHKey,
+				},
+
+				"username": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
 
 func SSHKeysSchema(isVirtualMachine bool) *pluginsdk.Schema {
 	// the SSH Keys for a Virtual Machine cannot be changed once provisioned:
@@ -168,8 +198,8 @@ func SSHKeySchemaHash(v interface{}) int {
 		if err != nil {
 			log.Printf("[DEBUG] error normalising ssh key %q: %+v", m["public_key"].(string), err)
 		}
-		buf.WriteString(fmt.Sprintf("%s-", *normalisedKey))
-		buf.WriteString(fmt.Sprintf("%s", m["username"]))
+		fmt.Fprintf(&buf, "%s-", *normalisedKey)
+		fmt.Fprintf(&buf, "%s", m["username"])
 	}
 
 	return pluginsdk.HashString(buf.String())

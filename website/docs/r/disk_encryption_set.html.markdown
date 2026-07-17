@@ -24,6 +24,7 @@ resource "azurerm_key_vault" "example" {
   name                        = "des-example-keyvault"
   location                    = azurerm_resource_group.example.location
   resource_group_name         = azurerm_resource_group.example.name
+  rbac_authorization_enabled  = false
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "premium"
   enabled_for_disk_encryption = true
@@ -122,6 +123,7 @@ resource "azurerm_key_vault" "example" {
   name                        = "des-example-keyvault"
   location                    = azurerm_resource_group.example.location
   resource_group_name         = azurerm_resource_group.example.name
+  rbac_authorization_enabled  = false
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "premium"
   enabled_for_disk_encryption = true
@@ -208,7 +210,7 @@ resource "azurerm_role_assignment" "example-disk" {
 
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -227,7 +229,7 @@ The following arguments are supported:
 -> **Note:** A KeyVault or Managed HSM using [enable_rbac_authorization](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault#enable_rbac_authorization) requires to use `azurerm_role_assignment` to assign the role `Key Vault Crypto Service Encryption User` to this Disk Encryption Set.
 In this case, `azurerm_key_vault_access_policy` is not needed.
 
-* `managed_hsm_key_id` - (Optional) Key ID of a key in a managed HSM.  Exactly one of `managed_hsm_key_id`, `key_vault_key_id` must be specified.
+* `managed_hsm_key_id` - (Optional) Key ID of a key in a managed HSM. Exactly one of `managed_hsm_key_id`, `key_vault_key_id` must be specified.
 
 * `auto_key_rotation_enabled` - (Optional) Boolean flag to specify whether Azure Disk Encryption Set automatically rotates the encryption Key to latest version or not. Possible values are `true` or `false`. Defaults to `false`.
 
@@ -271,7 +273,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 1 hour) Used when creating the Disk Encryption Set.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Disk Encryption Set.
@@ -290,4 +292,4 @@ terraform import azurerm_disk_encryption_set.example /subscriptions/00000000-000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Compute`: 2022-03-02
+* `Microsoft.Compute` - 2022-03-02

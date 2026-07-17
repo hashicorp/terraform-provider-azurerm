@@ -18,6 +18,8 @@ type Credentials struct {
 	ClientID string
 	// TenantID specifies the Azure Active Directory Tenant to connect to, which must be a valid UUID.
 	TenantID string
+	// ForceAuthAtTenant forces the Authoriser to obtain tokens at the Tenant scope rather than limiting to Subscription - Currently only meaningful for CLI based authentication
+	ForceAuthAtTenant bool
 
 	// EnableAuthenticatingUsingAzureCLI specifies whether Azure CLI authentication should be checked.
 	EnableAuthenticatingUsingAzureCLI bool
@@ -46,6 +48,9 @@ type Credentials struct {
 
 	// CustomManagedIdentityAPIVersion specifies the API version to use for IMDS.
 	CustomManagedIdentityAPIVersion string
+
+	// CustomManagedIdentityHeaders specifies the headers when requesting token
+	CustomManagedIdentityHeaders map[string][]string
 
 	// Enables OIDC authentication (federated client credentials).
 	EnableAuthenticationUsingOIDC bool

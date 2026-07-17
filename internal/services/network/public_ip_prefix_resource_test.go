@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -6,15 +6,15 @@ package network_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/publicipprefixes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/publicipprefixes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type PublicIpPrefixResource struct{}
@@ -43,7 +43,7 @@ func (PublicIpPrefixResource) Destroy(ctx context.Context, client *clients.Clien
 		return nil, fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func TestAccPublicIpPrefix_basic(t *testing.T) {
@@ -69,10 +69,30 @@ func TestAccPublicIpPrefix_globalTier(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.sku_tier(data, string(publicipprefixes.PublicIPPrefixSkuTierGlobal)),
+			Config: r.sku_tier(data, string(publicipprefixes.PublicIPPrefixSkuNameStandard), string(publicipprefixes.PublicIPPrefixSkuTierGlobal)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku").HasValue(string(publicipprefixes.PublicIPPrefixSkuNameStandard)),
 				check.That(data.ResourceName).Key("sku_tier").HasValue(string(publicipprefixes.PublicIPPrefixSkuTierGlobal)),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccPublicIpPrefix_customIpPrefix(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
+	r := PublicIpPrefixResource{}
+
+	if os.Getenv("ARM_TEST_CUSTOM_IP_PREFIX_ID") == "" {
+		t.Skip("ARM_TEST_CUSTOM_IP_PREFIX_ID env var not set")
+	}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.customIpPrefix(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -85,9 +105,10 @@ func TestAccPublicIpPrefix_regionalTier(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.sku_tier(data, string(publicipprefixes.PublicIPPrefixSkuTierRegional)),
+			Config: r.sku_tier(data, string(publicipprefixes.PublicIPPrefixSkuNameStandard), string(publicipprefixes.PublicIPPrefixSkuTierRegional)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku").HasValue(string(publicipprefixes.PublicIPPrefixSkuNameStandard)),
 				check.That(data.ResourceName).Key("sku_tier").HasValue(string(publicipprefixes.PublicIPPrefixSkuTierRegional)),
 			),
 		},
@@ -374,7 +395,7 @@ resource "azurerm_public_ip_prefix" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (PublicIpPrefixResource) sku_tier(data acceptance.TestData, tier string) string {
+func (PublicIpPrefixResource) sku_tier(data acceptance.TestData, sku string, tier string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -389,9 +410,10 @@ resource "azurerm_public_ip_prefix" "test" {
   resource_group_name = azurerm_resource_group.test.name
   name                = "acctestpublicipprefix-%d"
   location            = azurerm_resource_group.test.location
+  sku                 = "%s"
   sku_tier            = "%s"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, tier)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku, tier)
 }
 
 func (PublicIpPrefixResource) zonesSingle(data acceptance.TestData) string {
@@ -432,4 +454,27 @@ resource "azurerm_public_ip_prefix" "test" {
   zones               = ["1", "2", "3"]
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (PublicIpPrefixResource) customIpPrefix(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_public_ip_prefix" "test" {
+  name                = "acctestpublicipprefix-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_version          = "IPv6"
+  custom_ip_prefix_id = "%[3]s"
+  prefix_length       = 127
+  zones               = ["1"]
+}
+`, data.RandomInteger, data.Locations.Primary, os.Getenv("ARM_TEST_CUSTOM_IP_PREFIX_ID"))
 }

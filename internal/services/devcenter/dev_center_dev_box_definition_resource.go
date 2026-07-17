@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package devcenter
@@ -35,6 +35,7 @@ type DevCenterDevBoxDefinitionResourceModel struct {
 	Name             string            `tfschema:"name"`
 	Location         string            `tfschema:"location"`
 	DevCenterId      string            `tfschema:"dev_center_id"`
+	HibernateSupport bool              `tfschema:"hibernate_support_enabled"`
 	ImageReferenceId string            `tfschema:"image_reference_id"`
 	SkuName          string            `tfschema:"sku_name"`
 	Tags             map[string]string `tfschema:"tags"`
@@ -60,6 +61,12 @@ func (r DevCenterDevBoxDefinitionResource) Arguments() map[string]*pluginsdk.Sch
 		"location": commonschema.Location(),
 
 		"dev_center_id": commonschema.ResourceIDReferenceRequiredForceNew(&devboxdefinitions.DevCenterId{}),
+
+		"hibernate_support_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
 
 		"image_reference_id": commonschema.ResourceIDReferenceRequired(&images.GalleryImageId{}),
 
@@ -96,15 +103,22 @@ func (r DevCenterDevBoxDefinitionResource) Create() sdk.ResourceFunc {
 
 			id := devboxdefinitions.NewDevCenterDevBoxDefinitionID(subscriptionId, devCenterId.ResourceGroupName, devCenterId.DevCenterName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					}
+				}
+
 				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
 				}
 			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			hs := devboxdefinitions.HibernateSupportDisabled
+			if model.HibernateSupport {
+				hs = devboxdefinitions.HibernateSupportEnabled
 			}
 
 			parameters := devboxdefinitions.DevBoxDefinition{
@@ -113,12 +127,13 @@ func (r DevCenterDevBoxDefinitionResource) Create() sdk.ResourceFunc {
 					ImageReference: &devboxdefinitions.ImageReference{
 						Id: pointer.To(model.ImageReferenceId),
 					},
-					Sku: expandDevCenterDevBoxDefinitionSku(model.SkuName),
+					HibernateSupport: pointer.To(hs),
+					Sku:              expandDevCenterDevBoxDefinitionSku(model.SkuName),
 				},
 				Tags: pointer.To(model.Tags),
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -160,6 +175,8 @@ func (r DevCenterDevBoxDefinitionResource) Read() sdk.ResourceFunc {
 					if v := props.ImageReference; v != nil {
 						state.ImageReferenceId = pointer.From(v.Id)
 					}
+
+					state.HibernateSupport = pointer.From(props.HibernateSupport) == devboxdefinitions.HibernateSupportEnabled
 
 					if v := props.Sku; v != nil {
 						state.SkuName = flattenDevCenterDevBoxDefinition(props.Sku)
@@ -216,6 +233,14 @@ func (r DevCenterDevBoxDefinitionResource) Update() sdk.ResourceFunc {
 				parameters.Properties.ImageReference = &devboxdefinitions.ImageReference{
 					Id: pointer.To(model.ImageReferenceId),
 				}
+			}
+
+			if metadata.ResourceData.HasChange("hibernate_support_enabled") {
+				hs := devboxdefinitions.HibernateSupportDisabled
+				if model.HibernateSupport {
+					hs = devboxdefinitions.HibernateSupportEnabled
+				}
+				parameters.Properties.HibernateSupport = pointer.To(hs)
 			}
 
 			if metadata.ResourceData.HasChange("sku_name") {

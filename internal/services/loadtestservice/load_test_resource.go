@@ -4,6 +4,7 @@ package loadtestservice
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -22,8 +23,8 @@ import (
 )
 
 var (
-	_ sdk.Resource           = LoadTestResource{}
-	_ sdk.ResourceWithUpdate = LoadTestResource{}
+	_ sdk.ResourceWithUpdate        = LoadTestResource{}
+	_ sdk.ResourceWithCustomizeDiff = LoadTestResource{}
 )
 
 type LoadTestResource struct{}
@@ -126,6 +127,25 @@ func (r LoadTestResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
+func (r LoadTestResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 10 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			var model LoadTestResourceSchema
+			if err := metadata.DecodeDiff(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			// If these values are not yet known, we want to avoid returning an error and will instead handle it in the Create/Update methods
+			if metadata.IsKnownAt("encryption.0.identity.0.identity_id") && metadata.IsWhollyKnownAt("identity.0.identity_ids") {
+				return r.EnsureEncryptionIdentityIDExistsInIdentity(model)
+			}
+
+			return nil
+		},
+	}
+}
+
 func (r LoadTestResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -140,14 +160,16 @@ func (r LoadTestResource) Create() sdk.ResourceFunc {
 
 			id := loadtests.NewLoadTestID(subscriptionId, config.ResourceGroupName, config.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			var payload loadtests.LoadTestResource
@@ -155,7 +177,7 @@ func (r LoadTestResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("mapping schema model to sdk model: %+v", err)
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -251,6 +273,29 @@ func (r LoadTestResource) Update() sdk.ResourceFunc {
 	}
 }
 
+func (r LoadTestResource) EnsureEncryptionIdentityIDExistsInIdentity(model LoadTestResourceSchema) error {
+	if len(model.Encryption) == 1 && len(model.Encryption[0].Identity) == 1 && model.Encryption[0].Identity[0].Type == string(loadtests.TypeUserAssigned) {
+		msg := "when `encryption.identity.type` is set to `UserAssigned`, the `encryption.identity.identity_id` provided must also be specified in the `identity.identity_ids` list"
+		if len(model.Identity) == 0 {
+			return errors.New(msg)
+		}
+
+		existsInIdentity := false
+		for _, id := range model.Identity[0].IdentityIds {
+			if id == model.Encryption[0].Identity[0].IdentityID {
+				existsInIdentity = true
+				break
+			}
+		}
+
+		if !existsInIdentity {
+			return errors.New(msg)
+		}
+	}
+
+	return nil
+}
+
 // nolint unparam
 func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestProperties(input LoadTestResourceSchema, output *loadtests.LoadTestProperties) error {
 	output.Description = &input.Description
@@ -304,6 +349,10 @@ func (r LoadTestResource) mapLoadTestPropertiesToLoadTestResourceSchema(input lo
 }
 
 func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestResource(input LoadTestResourceSchema, output *loadtests.LoadTestResource) error {
+	if err := r.EnsureEncryptionIdentityIDExistsInIdentity(input); err != nil {
+		return err
+	}
+
 	identity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(input.Identity)
 	if err != nil {
 		return fmt.Errorf("expanding Legacy SystemAndUserAssigned Identity: %+v", err)
@@ -355,17 +404,5 @@ func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestResourceUpdate(inpu
 	output.Properties = &loadtests.LoadTestResourceUpdateProperties{
 		Description: pointer.To(input.Description),
 	}
-	return nil
-}
-
-// nolint: unused
-func (r LoadTestResource) mapLoadTestResourceUpdateToLoadTestResourceSchema(input loadtests.LoadTestResourceUpdate, output *LoadTestResourceSchema) error {
-	identity, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(input.Identity)
-	if err != nil {
-		return fmt.Errorf("flattening Legacy SystemAndUserAssigned Identity: %+v", err)
-	}
-	output.Identity = identity
-
-	output.Tags = tags.Flatten(input.Tags)
 	return nil
 }

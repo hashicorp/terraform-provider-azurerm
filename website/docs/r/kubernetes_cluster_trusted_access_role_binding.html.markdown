@@ -22,6 +22,7 @@ resource "azurerm_key_vault" "example" {
   name                       = "example"
   location                   = azurerm_resource_group.example.location
   resource_group_name        = azurerm_resource_group.example.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.example.tenant_id
   sku_name                   = "example-value"
   soft_delete_retention_days = "example-value"
@@ -103,7 +104,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Kubernetes Cluster Trusted Access Role Binding.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Kubernetes Cluster Trusted Access Role Binding.
@@ -127,4 +128,4 @@ terraform import azurerm_kubernetes_cluster_trusted_access_role_binding.example 
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ContainerService`: 2025-02-01
+* `Microsoft.ContainerService` - 2025-10-01

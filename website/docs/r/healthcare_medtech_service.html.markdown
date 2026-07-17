@@ -61,7 +61,7 @@ resource "azurerm_healthcare_medtech_service" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -109,7 +109,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 90 minutes) Used when creating the Healthcare Med Tech Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Healthcare Med Tech Service.
@@ -128,4 +128,4 @@ terraform import azurerm_healthcare_medtech_service.example /subscriptions/12345
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.HealthcareApis`: 2022-12-01
+* `Microsoft.HealthcareApis` - 2022-12-01

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -18,14 +18,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/jackofallops/kermit/sdk/web/2022-09-01/web"
 )
 
 const (
@@ -64,6 +63,7 @@ type FunctionAppFlexConsumptionModel struct {
 	RuntimeVersion                string                                         `tfschema:"runtime_version"`
 	MaximumInstanceCount          int64                                          `tfschema:"maximum_instance_count"`
 	InstanceMemoryInMB            int64                                          `tfschema:"instance_memory_in_mb"`
+	HttpConcurrency               int64                                          `tfschema:"http_concurrency"`
 	AlwaysReady                   []FunctionAppAlwaysReady                       `tfschema:"always_ready"`
 	SiteConfig                    []helpers.SiteConfigFunctionAppFlexConsumption `tfschema:"site_config"`
 	Identity                      []identity.ModelSystemAssignedUserAssigned     `tfschema:"identity"`
@@ -188,7 +188,13 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Default:      100,
-			ValidateFunc: validation.IntBetween(40, 1000),
+			ValidateFunc: validation.IntBetween(1, 1000),
+		},
+
+		"http_concurrency": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			ValidateFunc: validation.IntBetween(1, 1000),
 		},
 
 		// the name is always being lower-cased by the api: https://github.com/Azure/azure-rest-api-specs/issues/33095
@@ -240,11 +246,11 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 		"client_certificate_mode": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  web.ClientCertModeOptional,
+			Default:  webapps.ClientCertModeOptional,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(web.ClientCertModeOptional),
-				string(web.ClientCertModeRequired),
-				string(web.ClientCertModeOptionalInteractiveUser),
+				string(webapps.ClientCertModeOptional),
+				string(webapps.ClientCertModeRequired),
+				string(webapps.ClientCertModeOptionalInteractiveUser),
 			}, false),
 			Description: "The mode of the Function App's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser` ",
 		},
@@ -299,7 +305,7 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 			Description:  "The local path and filename of the Zip packaged application to deploy to this Function App. **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`.",
 		},
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 	}
 }
 
@@ -404,13 +410,15 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("the sku name is %s which is not valid for a flex consumption function app", *planSKU)
 			}
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			checkName, err := resourcesClient.CheckNameAvailability(ctx, commonids.NewSubscriptionID(subscriptionId), availabilityRequest)
@@ -480,6 +488,14 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 				MaximumInstanceCount: &functionAppFlexConsumption.MaximumInstanceCount,
 			}
 
+			if functionAppFlexConsumption.HttpConcurrency >= 1 {
+				scaleAndConcurrencyConfig.Triggers = &webapps.FunctionsScaleAndConcurrencyTriggers{
+					HTTP: &webapps.FunctionsScaleAndConcurrencyTriggersHTTP{
+						PerInstanceConcurrency: &functionAppFlexConsumption.HttpConcurrency,
+					},
+				}
+			}
+
 			flexFunctionAppConfig := &webapps.FunctionAppConfig{
 				Deployment:          storageDeployment,
 				Runtime:             &runtime,
@@ -519,13 +535,15 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 
 			if functionAppFlexConsumption.VirtualNetworkSubnetID != "" {
 				siteEnvelope.Properties.VirtualNetworkSubnetId = pointer.To(functionAppFlexConsumption.VirtualNetworkSubnetID)
+				locks.ByID(functionAppFlexConsumption.VirtualNetworkSubnetID)
+				defer locks.UnlockByID(functionAppFlexConsumption.VirtualNetworkSubnetID)
 			}
 
 			if functionAppFlexConsumption.ClientCertExclusionPaths != "" {
 				siteEnvelope.Properties.ClientCertExclusionPaths = pointer.To(functionAppFlexConsumption.ClientCertExclusionPaths)
 			}
 
-			if err = client.CreateOrUpdateThenPoll(ctx, id, siteEnvelope); err != nil {
+			if err = client.CreateOrUpdateCallbackThenPoll(ctx, id, siteEnvelope, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -722,6 +740,9 @@ func (r FunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 						state.AlwaysReady = FlattenAlwaysReadyConfiguration(faConfigScale.AlwaysReady)
 						state.InstanceMemoryInMB = pointer.From(faConfigScale.InstanceMemoryMB)
 						state.MaximumInstanceCount = pointer.From(faConfigScale.MaximumInstanceCount)
+						if faConfigScale.Triggers != nil && faConfigScale.Triggers.HTTP != nil {
+							state.HttpConcurrency = pointer.From(faConfigScale.Triggers.HTTP.PerInstanceConcurrency)
+						}
 					}
 				}
 
@@ -758,8 +779,6 @@ func (r FunctionAppFlexConsumptionResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-
-			metadata.Logger.Infof("deleting %s", *id)
 
 			delOptions := webapps.DeleteOperationOptions{
 				DeleteEmptyServerFarm: pointer.To(false),
@@ -821,6 +840,9 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 					model.Properties.VirtualNetworkSubnetId = empty
 				} else {
 					model.Properties.VirtualNetworkSubnetId = pointer.To(subnetId)
+
+					locks.ByID(subnetId)
+					defer locks.UnlockByID(subnetId)
 				}
 			}
 
@@ -897,12 +919,38 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 				model.Properties.SiteConfig = siteConfig
 			}
 
+			if metadata.ResourceData.HasChange("maximum_instance_count") {
+				model.Properties.FunctionAppConfig.ScaleAndConcurrency.MaximumInstanceCount = pointer.To(state.MaximumInstanceCount)
+			}
+
+			if metadata.ResourceData.HasChange("instance_memory_in_mb") {
+				model.Properties.FunctionAppConfig.ScaleAndConcurrency.InstanceMemoryMB = pointer.To(state.InstanceMemoryInMB)
+			}
+
 			if metadata.ResourceData.HasChange("always_ready") {
 				arc, err := ExpandAlwaysReadyConfiguration(state.AlwaysReady, state.MaximumInstanceCount)
 				if err != nil {
 					return fmt.Errorf("expanding `always_ready` for %s: %+v", id, err)
 				}
 				model.Properties.FunctionAppConfig.ScaleAndConcurrency.AlwaysReady = arc
+			}
+
+			if metadata.ResourceData.HasChange("maximum_instance_count") {
+				model.Properties.FunctionAppConfig.ScaleAndConcurrency.MaximumInstanceCount = &state.MaximumInstanceCount
+			}
+
+			if metadata.ResourceData.HasChange("http_concurrency") {
+				if state.HttpConcurrency > 0 {
+					model.Properties.FunctionAppConfig.ScaleAndConcurrency.Triggers = &webapps.FunctionsScaleAndConcurrencyTriggers{
+						HTTP: &webapps.FunctionsScaleAndConcurrencyTriggersHTTP{
+							PerInstanceConcurrency: &state.HttpConcurrency,
+						},
+					}
+				} else {
+					model.Properties.FunctionAppConfig.ScaleAndConcurrency.Triggers = &webapps.FunctionsScaleAndConcurrencyTriggers{
+						HTTP: nil,
+					}
+				}
 			}
 
 			if metadata.ResourceData.HasChange("runtime_name") {
@@ -988,17 +1036,7 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 				authUpdate := helpers.ExpandAuthSettings(state.AuthSettings)
 				// (@jackofallops) - in the case of a removal of this block, we need to zero these settings
 				if authUpdate.Properties == nil {
-					authUpdate.Properties = &webapps.SiteAuthSettingsProperties{
-						Enabled:                           pointer.To(false),
-						ClientSecret:                      pointer.To(""),
-						ClientSecretSettingName:           pointer.To(""),
-						ClientSecretCertificateThumbprint: pointer.To(""),
-						GoogleClientSecret:                pointer.To(""),
-						FacebookAppSecret:                 pointer.To(""),
-						GitHubClientSecret:                pointer.To(""),
-						TwitterConsumerSecret:             pointer.To(""),
-						MicrosoftAccountClientSecret:      pointer.To(""),
-					}
+					authUpdate.Properties = helpers.DefaultAuthSettingsProperties()
 				}
 				if _, err := client.UpdateAuthSettings(ctx, *id, *authUpdate); err != nil {
 					return fmt.Errorf("updating Auth Settings for %s: %+v", id, err)
@@ -1007,6 +1045,10 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("auth_settings_v2") {
 				authV2Update := helpers.ExpandAuthV2Settings(state.AuthV2Settings)
+				// (@toddgiguere) - in the case of a removal of this block, we need to zero these settings
+				if authV2Update.Properties == nil {
+					authV2Update.Properties = helpers.DefaultAuthV2SettingsProperties()
+				}
 				if _, err := client.UpdateAuthSettingsV2(ctx, *id, *authV2Update); err != nil {
 					return fmt.Errorf("updating AuthV2 Settings for %s: %+v", id, err)
 				}

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package teststep
@@ -73,6 +73,10 @@ func (c configurationDirectory) HasTerraformBlock(ctx context.Context) (bool, er
 	}
 
 	return contains, nil
+}
+
+func (c configurationDirectory) WriteQuery(ctx context.Context, dest string) error {
+	panic("WriteQuery not supported for configurationDirectory")
 }
 
 // Write copies all files from directory to destination.

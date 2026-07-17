@@ -85,6 +85,12 @@ The following arguments are supported:
 
 * `connectivity_topology` - (Required) Specifies the connectivity topology type. Possible values are `HubAndSpoke` and `Mesh`.
 
+* `connected_group_address_overlap_enabled` - (Optional) Whether connected group address overlap is enabled. Defaults to `true`.
+
+~> **Note:** Changing `connected_group_address_overlap_enabled` from `true` to `false` forces a new Network Manager Connectivity Configuration to be created because the Azure API does not support this modification.
+
+* `connected_group_private_endpoints_scale` - (Optional) Specifies the scale of private endpoints allowed in the connected group. Possible values are `Standard` and `HighScale`. Defaults to `Standard`.
+
 * `delete_existing_peering_enabled` - (Optional) Indicates whether to remove current existing Virtual Network Peering in the Connectivity Configuration affected scope. Possible values are `true` and `false`.
 
 * `description` - (Optional) A description of the Connectivity Configuration.
@@ -92,6 +98,8 @@ The following arguments are supported:
 * `global_mesh_enabled` - (Optional) Indicates whether to global mesh is supported. Possible values are `true` and `false`. 
 
 * `hub` - (Optional) A `hub` block as defined below.
+
+* `peering_enforcement_enabled` - (Optional) Whether peering enforcement is enabled. Defaults to `false`.
  
 ---
 
@@ -123,7 +131,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Network Manager Connectivity Configuration.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Network Manager Connectivity Configuration.
@@ -142,4 +150,4 @@ terraform import azurerm_network_manager_connectivity_configuration.example /sub
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network`: 2024-05-01
+* `Microsoft.Network` - 2025-01-01

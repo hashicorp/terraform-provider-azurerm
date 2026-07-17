@@ -136,7 +136,7 @@ resource "azurerm_role_assignment" "example" {
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Datadog Monitor.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Datadog Monitor.
@@ -155,4 +155,4 @@ terraform import azurerm_datadog_monitor.example /subscriptions/00000000-0000-00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Datadog`: 2021-03-01
+* `Microsoft.Datadog` - 2021-03-01

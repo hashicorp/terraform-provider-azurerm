@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package client
@@ -44,7 +44,7 @@ func (Client) DataPlaneOperationSupportingOnlySharedKeyAuth() DataPlaneOperation
 	}
 }
 
-func (c Client) configureDataPlane(ctx context.Context, clientName, resourceIdentifier string, baseClient client.BaseClient, account AccountDetails, operation DataPlaneOperation) error {
+func (c *Client) configureDataPlane(ctx context.Context, clientName, resourceIdentifier string, baseClient client.BaseClient, account AccountDetails, operation DataPlaneOperation) error {
 	if operation.SupportsAadAuthentication && c.authConfigForAzureAD != nil {
 		api := c.authConfigForAzureAD.Environment.Storage.WithResourceIdentifier(resourceIdentifier)
 		storageAuth, err := auth.NewAuthorizerFromCredentials(ctx, *c.authConfigForAzureAD, api)
@@ -57,7 +57,7 @@ func (c Client) configureDataPlane(ctx context.Context, clientName, resourceIden
 	}
 
 	if operation.SupportsSharedKeyAuthentication {
-		accountKey, err := account.AccountKey(ctx, c)
+		accountKey, err := account.AccountKey(ctx, *c)
 		if err != nil {
 			return fmt.Errorf("retrieving Storage Account Key: %s", err)
 		}

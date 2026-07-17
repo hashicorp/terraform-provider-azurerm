@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package streamanalytics
@@ -143,13 +143,15 @@ func (r StreamInputEventHubV2Resource) Create() sdk.ResourceFunc {
 			}
 			id := inputs.NewInputID(subscriptionId, streamingJobStruct.ResourceGroupName, streamingJobStruct.StreamingJobName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			props := &inputs.EventHubStreamInputDataSourceProperties{
@@ -274,12 +276,7 @@ func (r StreamInputEventHubV2Resource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					input, ok := props.(inputs.InputProperties) // nolint: gosimple
-					if !ok {
-						return fmt.Errorf("converting %s to an Input", *id)
-					}
-
-					streamInput, ok := input.(inputs.StreamInputProperties)
+					streamInput, ok := props.(inputs.StreamInputProperties)
 					if !ok {
 						return fmt.Errorf("converting %s to a Stream Input", *id)
 					}
@@ -350,8 +347,6 @@ func (r StreamInputEventHubV2Resource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("deleting %s", *id)
-
 			if resp, err := client.Delete(ctx, *id); err != nil {
 				if !response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("deleting %s: %+v", *id, err)
@@ -381,12 +376,7 @@ func (r StreamInputEventHubV2Resource) CustomImporter() sdk.ResourceRunFunc {
 
 		props := resp.Model.Properties
 
-		input, ok := props.(inputs.InputProperties) // nolint: gosimple
-		if !ok {
-			return fmt.Errorf("specified resource is not an Input: %+v", err)
-		}
-
-		streamInput, ok := input.(inputs.StreamInputProperties)
+		streamInput, ok := props.(inputs.StreamInputProperties)
 		if !ok {
 			return fmt.Errorf("specified resource is not a Stream Input: %+v", err)
 		}

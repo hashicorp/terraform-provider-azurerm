@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
@@ -17,15 +17,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/managedcassandras"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceCassandraCluster() *pluginsdk.Resource {
@@ -36,7 +34,7 @@ func resourceCassandraCluster() *pluginsdk.Resource {
 		Delete: resourceCassandraClusterDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.CassandraClusterID(id)
+			_, err := managedcassandras.ParseCassandraClusterID(id)
 			return err
 		}),
 
@@ -133,6 +131,8 @@ func resourceCassandraCluster() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"3.11",
 					"4.0",
+					"4.1",
+					"5.0",
 				}, false),
 			},
 
@@ -151,14 +151,16 @@ func resourceCassandraClusterCreate(d *pluginsdk.ResourceData, meta interface{})
 	name := d.Get("name").(string)
 	id := managedcassandras.NewCassandraClusterID(subscriptionId, resourceGroupName, name)
 
-	existing, err := client.CassandraClustersGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.CassandraClustersGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_cosmosdb_cassandra_cluster", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_cosmosdb_cassandra_cluster", id.ID())
+		}
 	}
 
 	expandedIdentity, err := expandCassandraClusterIdentity(d.Get("identity").([]interface{}))
@@ -170,14 +172,14 @@ func resourceCassandraClusterCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	body := managedcassandras.ClusterResource{
 		Identity: expandedIdentity,
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &managedcassandras.ClusterResourceProperties{
 			AuthenticationMethod:          &authenticationMethod,
-			CassandraVersion:              utils.String(d.Get("version").(string)),
-			DelegatedManagementSubnetId:   utils.String(d.Get("delegated_management_subnet_id").(string)),
-			HoursBetweenBackups:           utils.Int64(int64(d.Get("hours_between_backups").(int))),
-			InitialCassandraAdminPassword: utils.String(d.Get("default_admin_password").(string)),
-			RepairEnabled:                 utils.Bool(d.Get("repair_enabled").(bool)),
+			CassandraVersion:              pointer.To(d.Get("version").(string)),
+			DelegatedManagementSubnetId:   pointer.To(d.Get("delegated_management_subnet_id").(string)),
+			HoursBetweenBackups:           pointer.To(int64(d.Get("hours_between_backups").(int))),
+			InitialCassandraAdminPassword: pointer.To(d.Get("default_admin_password").(string)),
+			RepairEnabled:                 pointer.To(d.Get("repair_enabled").(bool)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -194,7 +196,7 @@ func resourceCassandraClusterCreate(d *pluginsdk.ResourceData, meta interface{})
 		body.Properties.ExternalSeedNodes = expandCassandraClusterExternalSeedNode(v.([]interface{}))
 	}
 
-	err = client.CassandraClustersCreateUpdateThenPoll(ctx, id, body)
+	err = client.CassandraClustersCreateUpdateCallbackThenPoll(ctx, id, body, sdk.SetIDCallback(meta, &id, d))
 	if err != nil {
 		return fmt.Errorf("creating %q: %+v", id, err)
 	}
@@ -287,14 +289,14 @@ func resourceCassandraClusterUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	body := managedcassandras.ClusterResource{
 		Identity: expandedIdentity,
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &managedcassandras.ClusterResourceProperties{
 			AuthenticationMethod:          &authenticationMethod,
-			CassandraVersion:              utils.String(d.Get("version").(string)),
-			DelegatedManagementSubnetId:   utils.String(d.Get("delegated_management_subnet_id").(string)),
-			HoursBetweenBackups:           utils.Int64(int64(d.Get("hours_between_backups").(int))),
-			InitialCassandraAdminPassword: utils.String(d.Get("default_admin_password").(string)),
-			RepairEnabled:                 utils.Bool(d.Get("repair_enabled").(bool)),
+			CassandraVersion:              pointer.To(d.Get("version").(string)),
+			DelegatedManagementSubnetId:   pointer.To(d.Get("delegated_management_subnet_id").(string)),
+			HoursBetweenBackups:           pointer.To(int64(d.Get("hours_between_backups").(int))),
+			InitialCassandraAdminPassword: pointer.To(d.Get("default_admin_password").(string)),
+			RepairEnabled:                 pointer.To(d.Get("repair_enabled").(bool)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -387,7 +389,7 @@ func expandCassandraClusterCertificate(input []interface{}) *[]managedcassandras
 
 	for _, pem := range input {
 		result := managedcassandras.Certificate{
-			Pem: utils.String(pem.(string)),
+			Pem: pointer.To(pem.(string)),
 		}
 		results = append(results, result)
 	}
@@ -400,7 +402,7 @@ func expandCassandraClusterExternalSeedNode(input []interface{}) *[]managedcassa
 
 	for _, ipAddress := range input {
 		result := managedcassandras.SeedNode{
-			IPAddress: utils.String(ipAddress.(string)),
+			IPAddress: pointer.To(ipAddress.(string)),
 		}
 		results = append(results, result)
 	}

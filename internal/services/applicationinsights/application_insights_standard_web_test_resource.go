@@ -1,5 +1,7 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name application_insights_standard_web_test -test-name basicConfig -properties "name,resource_group_name" -service-package-name applicationinsights -known-values "subscription_id:data.Subscriptions.Primary"
 
 package applicationinsights
 
@@ -7,6 +9,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -14,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	webtests "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -25,6 +29,7 @@ import (
 var (
 	_ sdk.ResourceWithUpdate        = ApplicationInsightsStandardWebTestResource{}
 	_ sdk.ResourceWithCustomizeDiff = ApplicationInsightsStandardWebTestResource{}
+	_ sdk.ResourceWithIdentity      = ApplicationInsightsStandardWebTestResource{}
 )
 
 type ApplicationInsightsStandardWebTestResource struct{}
@@ -303,6 +308,10 @@ func (ApplicationInsightsStandardWebTestResource) ResourceType() string {
 	return "azurerm_application_insights_standard_web_test"
 }
 
+func (ApplicationInsightsStandardWebTestResource) Identity() resourceids.ResourceId {
+	return &webtests.WebTestId{}
+}
+
 func (r ApplicationInsightsStandardWebTestResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -319,12 +328,14 @@ func (r ApplicationInsightsStandardWebTestResource) Create() sdk.ResourceFunc {
 
 			id := webtests.NewWebTestID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			existing, err := client.WebTestsGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.WebTestsGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			validations := expandApplicationInsightsStandardWebTestValidations(model.ValidationRules)
@@ -369,6 +380,9 @@ func (r ApplicationInsightsStandardWebTestResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -477,19 +491,22 @@ func (ApplicationInsightsStandardWebTestResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				tags := pointer.From(model.Tags)
-				appInsightsId := ""
 				for i := range tags {
 					if strings.HasPrefix(i, "hidden-link") {
-						appInsightsId = strings.Split(i, ":")[1]
+						appInsightsId := strings.Split(i, ":")[1]
+
+						parsedAppInsightsId, err := webtests.ParseComponentIDInsensitively(appInsightsId)
+						if err != nil {
+							// there might be more than one hidden-link https://github.com/hashicorp/terraform-provider-azurerm/issues/27994
+							log.Printf("[DEBUG] Error parsing hidden-link id: %+v", err)
+							delete(tags, i)
+							continue
+						}
+						state.ApplicationInsightsID = parsedAppInsightsId.ID()
 						delete(tags, i)
 					}
 				}
 
-				parsedAppInsightsId, err := webtests.ParseComponentIDInsensitively(appInsightsId)
-				if err != nil {
-					return fmt.Errorf("parsing `application_insights_id` for %s: %+v", *id, err)
-				}
-				state.ApplicationInsightsID = parsedAppInsightsId.ID()
 				state.Tags = tags
 				state.Location = location.Normalize(model.Location)
 
@@ -510,6 +527,9 @@ func (ApplicationInsightsStandardWebTestResource) Read() sdk.ResourceFunc {
 				}
 			}
 
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
+			}
 			return metadata.Encode(&state)
 		},
 	}
@@ -527,8 +547,7 @@ func (ApplicationInsightsStandardWebTestResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			_, err = client.WebTestsDelete(ctx, *id)
-			if err != nil {
+			if _, err = client.WebTestsDelete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
@@ -575,8 +594,8 @@ func expandApplicationInsightsStandardWebTestRequestHeaders(input []HeaderModel)
 
 	for _, v := range input {
 		h := webtests.HeaderField{
-			Key:   utils.String(v.Name),
-			Value: utils.String(v.Value),
+			Key:   pointer.To(v.Name),
+			Value: pointer.To(v.Value),
 		}
 		headers = append(headers, h)
 	}

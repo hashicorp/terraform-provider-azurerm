@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datadog
@@ -8,6 +8,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/monitorsresource"
@@ -15,11 +17,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datadog/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // @tombuildsstuff: in 4.0 consider inlining this within the `azurerm_datadog_monitors` resource
@@ -61,7 +61,7 @@ func resourceDatadogSingleSignOnConfigurations() *pluginsdk.Resource {
 			"enterprise_application_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validate.DatadogEnterpriseApplicationID,
+				ValidateFunc: validation.IsUUID,
 			},
 
 			"single_sign_on": {
@@ -112,14 +112,17 @@ func resourceDatadogSingleSignOnConfigurationsCreate(d *pluginsdk.ResourceData, 
 	}
 
 	id := singlesignon.NewSingleSignOnConfigurationID(monitorId.SubscriptionId, monitorId.ResourceGroupName, monitorId.MonitorName, d.Get("name").(string))
-	existing, err := client.ConfigurationsGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.ConfigurationsGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_datadog_monitor_sso_configuration", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_datadog_monitor_sso_configuration", id.ID())
+		}
 	}
 
 	payload := singlesignon.DatadogSingleSignOnResource{
@@ -134,7 +137,7 @@ func resourceDatadogSingleSignOnConfigurationsCreate(d *pluginsdk.ResourceData, 
 		payload.Properties.SingleSignOnState = pointer.To(singlesignon.SingleSignOnStates(d.Get("single_sign_on_enabled").(string)))
 	}
 
-	if err := client.ConfigurationsCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+	if err := client.ConfigurationsCreateOrUpdateCallbackThenPoll(ctx, id, payload, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -223,7 +226,7 @@ func resourceDatadogSingleSignOnConfigurationsDelete(d *pluginsdk.ResourceData, 
 	payload := singlesignon.DatadogSingleSignOnResource{
 		Properties: &singlesignon.DatadogSingleSignOnProperties{
 			SingleSignOnState: pointer.To(singlesignon.SingleSignOnStatesDisable),
-			EnterpriseAppId:   utils.String(""),
+			EnterpriseAppId:   pointer.To(""),
 		},
 	}
 

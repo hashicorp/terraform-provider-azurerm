@@ -75,7 +75,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Azure Relay Namespace Authorization Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Azure Relay Namespace Authorization Rule.
@@ -94,4 +94,4 @@ terraform import azurerm_relay_namespace_authorization_rule.example /subscriptio
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Relay`: 2021-11-01
+* `Microsoft.Relay` - 2021-11-01

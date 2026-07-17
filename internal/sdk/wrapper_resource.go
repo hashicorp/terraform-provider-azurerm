@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sdk
@@ -38,6 +38,10 @@ func (rw *ResourceWrapper) Resource() (*schema.Resource, error) {
 	}
 
 	modelObj := rw.resource.ModelObject()
+	// TODO: this should probably return an error when modelObj is nil, but currently 16 typed resources
+	// return nil because they use metadata.ResourceData directly instead of a typed model.
+	// Once those resources are migrated to use metadata.Decode/Encode with a proper model struct,
+	// this nil check should be replaced with an error.
 	if modelObj != nil {
 		if err := ValidateModelObject(modelObj); err != nil {
 			return nil, fmt.Errorf("validating model for %q: %+v", rw.resource.ResourceType(), err)
@@ -186,11 +190,6 @@ and we recommend using the %[2]q resource instead.
 		resource.Identity = &schema.ResourceIdentity{
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(resourceId, idType),
 		}
-		if v, ok := rw.resource.(ResourceWithIdentityDiscriminatedType); ok {
-			resource.Identity = &schema.ResourceIdentity{
-				SchemaFunc: pluginsdk.GenerateIdentitySchemaWithDiscriminatedType(resourceId, v.DiscriminatedType().Field, idType),
-			}
-		}
 
 		resource.Importer = pluginsdk.ImporterValidatingIdentityThen(resourceId, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
 			if v, ok := rw.resource.(ResourceWithCustomImporter); ok {
@@ -235,4 +234,14 @@ func diagnosticsWrapper(in func(ctx context.Context, d *schema.ResourceData, met
 
 		return out
 	}
+}
+
+func WrappedResource(resource Resource) *pluginsdk.Resource {
+	wrapper := NewResourceWrapper(resource)
+	wrappedResource, err := wrapper.Resource()
+	if err != nil {
+		panic(err)
+	}
+
+	return wrappedResource
 }

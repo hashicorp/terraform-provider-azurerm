@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualnetworks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
@@ -96,9 +96,11 @@ func resourceVirtualNetworkDnsServersCreate(d *pluginsdk.ResourceData, meta inte
 
 	vnet.Model.Properties.DhcpOptions.DnsServers = utils.ExpandStringSlice(d.Get("dns_servers").([]interface{}))
 
+	// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
 	if err := client.CreateOrUpdateThenPoll(ctx, *vnetId, *vnet.Model); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
+	d.SetId(id.ID())
 
 	timeout, _ := ctx.Deadline()
 
@@ -113,7 +115,6 @@ func resourceVirtualNetworkDnsServersCreate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("waiting for provisioning state of virtual network for %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
 	return resourceVirtualNetworkDnsServersRead(d, meta)
 }
 

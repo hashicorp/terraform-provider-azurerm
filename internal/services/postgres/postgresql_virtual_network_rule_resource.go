@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package postgres
@@ -9,17 +9,18 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/virtualnetworkrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourcePostgreSQLVirtualNetworkRule() *pluginsdk.Resource {
@@ -39,6 +40,8 @@ func resourcePostgreSQLVirtualNetworkRule() *pluginsdk.Resource {
 			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
+
+		DeprecationMessage: "The `azurerm_postgresql_virtual_network_rule` resource is deprecated and will be removed in v5.0 of the AzureRM Provider. Azure Database for PostgreSQL Single Server and its sub resources have been retired as of 2025-03-28. For more information, see https://techcommunity.microsoft.com/blog/adforpostgresql/retiring-azure-database-for-postgresql-single-server-in-2025/3783783.",
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -79,31 +82,42 @@ func resourcePostgreSQLVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceData,
 	defer cancel()
 
 	id := virtualnetworkrules.NewVirtualNetworkRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_postgresql_virtual_network_rule", id.ID())
+	if d.IsNewResource() {
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+			}
+
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_postgresql_virtual_network_rule", id.ID())
+			}
 		}
 	}
 
 	parameters := virtualnetworkrules.VirtualNetworkRule{
 		Properties: &virtualnetworkrules.VirtualNetworkRuleProperties{
 			VirtualNetworkSubnetId:           d.Get("subnet_id").(string),
-			IgnoreMissingVnetServiceEndpoint: utils.Bool(d.Get("ignore_missing_vnet_service_endpoint").(bool)),
+			IgnoreMissingVnetServiceEndpoint: pointer.To(d.Get("ignore_missing_vnet_service_endpoint").(bool)),
 		},
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
 	// Wait for the provisioning state to become ready
+	// TODO: check whether this can be removed now that this resource uses `go-azure-sdk` polling methods
 	log.Printf("[DEBUG] Waiting for %s to become ready", id)
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"Initializing", "InProgress", "Unknown", "ResponseNotFound"},
@@ -123,7 +137,6 @@ func resourcePostgreSQLVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceData,
 		return fmt.Errorf("waiting for %s to be created or updated: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
 	return resourcePostgreSQLVirtualNetworkRuleRead(d, meta)
 }
 
@@ -184,7 +197,6 @@ func postgreSQLVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, cli
 		resp, err := client.Get(ctx, id)
 		if err != nil {
 			if response.WasNotFound(resp.HttpResponse) {
-				log.Printf("[DEBUG] Retrieving %s returned 404.", id)
 				return nil, "ResponseNotFound", nil
 			}
 
@@ -193,13 +205,11 @@ func postgreSQLVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, cli
 
 		if model := resp.Model; model != nil {
 			if props := model.Properties; props != nil && props.State != nil {
-				log.Printf("[DEBUG] Retrieving %s returned Status %s", id, string(*props.State))
 				return resp, string(*props.State), nil
 			}
 		}
 
 		// Valid response was returned but VirtualNetworkRuleProperties was nil. Basically the rule exists, but with no properties for some reason. Assume Unknown instead of returning error.
-		log.Printf("[DEBUG] Retrieving %s returned empty `properties``", id)
 		return resp, "Unknown", nil
 	}
 }

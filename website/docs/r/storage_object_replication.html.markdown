@@ -79,6 +79,8 @@ The following arguments are supported:
 
 * `rules` - (Required) One or more `rules` blocks as defined below.
 
+* `metrics_enabled` - (Optional) Whether metrics are enabled for this object replication. Defaults to `false`.
+
 ---
 
 A `rules` block supports the following:
@@ -103,7 +105,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Storage Object Replication.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Storage Object Replication.
@@ -122,4 +124,4 @@ terraform import azurerm_storage_object_replication.example /subscriptions/00000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Storage`: 2023-05-01
+* `Microsoft.Storage` - 2025-08-01

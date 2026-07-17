@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package policy
@@ -31,7 +31,10 @@ type ManagementGroupPolicySetDefinitionResourceModel struct {
 	PolicyDefinitionGroup     []PolicyDefinitionGroupModel     `tfschema:"policy_definition_group"`
 }
 
-var _ sdk.ResourceWithUpdate = ManagementGroupPolicySetDefinitionResource{}
+var (
+	_ sdk.ResourceWithUpdate        = ManagementGroupPolicySetDefinitionResource{}
+	_ sdk.ResourceWithCustomizeDiff = ManagementGroupPolicySetDefinitionResource{}
+)
 
 func (r ManagementGroupPolicySetDefinitionResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -118,13 +121,15 @@ func (r ManagementGroupPolicySetDefinitionResource) Create() sdk.ResourceFunc {
 
 			id := policysetdefinitions.NewProviders2PolicySetDefinitionID(managementGroupID.GroupId, model.Name)
 
-			existing, err := client.GetAtManagementGroup(ctx, id, policysetdefinitions.DefaultGetAtManagementGroupOperationOptions())
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetAtManagementGroup(ctx, id, policysetdefinitions.DefaultGetAtManagementGroupOperationOptions())
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := policysetdefinitions.PolicySetDefinition{
@@ -157,7 +162,7 @@ func (r ManagementGroupPolicySetDefinitionResource) Create() sdk.ResourceFunc {
 			}
 
 			if len(model.PolicyDefinitionReference) > 0 {
-				expandedDefinitions, err := expandPolicyDefinitionReference(model.PolicyDefinitionReference)
+				expandedDefinitions, err := expandPolicyDefinitionReference(model.PolicyDefinitionReference, metadata)
 				if err != nil {
 					return fmt.Errorf("expanding `policy_definition_reference`: %+v", err)
 				}
@@ -303,7 +308,7 @@ func (r ManagementGroupPolicySetDefinitionResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("policy_definition_reference") {
-				expandedDefinitions, err := expandPolicyDefinitionReference(config.PolicyDefinitionReference)
+				expandedDefinitions, err := expandPolicyDefinitionReference(config.PolicyDefinitionReference, metadata)
 				if err != nil {
 					return fmt.Errorf("expanding `policy_definition_reference`: %+v", err)
 				}
@@ -345,4 +350,37 @@ func (r ManagementGroupPolicySetDefinitionResource) Delete() sdk.ResourceFunc {
 
 func (r ManagementGroupPolicySetDefinitionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return policysetdefinitions.ValidateProviders2PolicySetDefinitionID
+}
+
+func (r ManagementGroupPolicySetDefinitionResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 10 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			if metadata.ResourceDiff.HasChange("parameters") {
+				oldParametersRaw, newParametersRaw := metadata.ResourceDiff.GetChange("parameters")
+				if oldParametersString := oldParametersRaw.(string); oldParametersString != "" {
+					newParametersString := newParametersRaw.(string)
+					if newParametersString == "" {
+						return metadata.ResourceDiff.ForceNew("parameters")
+					}
+
+					oldParameters, err := expandParameterDefinitionsValue(oldParametersString)
+					if err != nil {
+						return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
+					}
+
+					newParameters, err := expandParameterDefinitionsValue(newParametersString)
+					if err != nil {
+						return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
+					}
+
+					if len(*newParameters) < len(*oldParameters) {
+						return metadata.ResourceDiff.ForceNew("parameters")
+					}
+				}
+			}
+
+			return nil
+		},
+	}
 }

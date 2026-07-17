@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package streamanalytics_test
@@ -184,6 +184,23 @@ func TestAccStreamAnalyticsJob_standardV2(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.standardV2(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("Test"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStreamAnalyticsJob_Msi(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_job", "test")
+	r := StreamAnalyticsJobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.jobStorageAccount_Msi(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
@@ -531,4 +548,52 @@ QUERY
 
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r StreamAnalyticsJobResource) jobStorageAccount_Msi(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_stream_analytics_job" "test" {
+  name                = "acctestjob-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  streaming_units     = 3
+
+  job_storage_account {
+    authentication_mode = "Msi"
+    account_name        = azurerm_storage_account.test.name
+  }
+
+  tags = {
+    environment = "Test"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  transformation_query = <<QUERY
+    SELECT *
+    INTO [YourOutputAlias]
+    FROM [YourInputAlias]
+QUERY
+
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

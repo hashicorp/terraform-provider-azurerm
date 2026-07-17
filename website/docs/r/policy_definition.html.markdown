@@ -60,7 +60,7 @@ PARAMETERS
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -82,7 +82,7 @@ The following arguments are supported:
 
 * `metadata` - (Optional) The metadata for the policy definition. This is a JSON string representing additional metadata that should be stored with the policy definition.
 
-* `parameters` - (Optional) Parameters for the policy definition. This field is a JSON string that allows you to parameterize your policy definition.
+* `parameters` - (Optional) Parameters for the policy definition. This field is a JSON string that allows you to parameterize your policy definition. Reducing the number of parameters forces a new resource to be created.
 
 ## Attributes Reference
 
@@ -94,7 +94,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Policy Definition.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Policy Definition.

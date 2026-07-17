@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package loadbalancer
@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceArmLoadBalancerNatPool() *pluginsdk.Resource {
@@ -166,7 +165,9 @@ func resourceArmLoadBalancerNatPoolCreateUpdate(d *pluginsdk.ResourceData, meta 
 		if exists {
 			if id.InboundNatPoolName == *existingNatPool.Name {
 				if d.IsNewResource() {
-					return tf.ImportAsExistsError("azurerm_lb_nat_pool", *existingNatPool.Id)
+					if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+						return tf.ImportAsExistsError("azurerm_lb_nat_pool", *existingNatPool.Id)
+					}
 				}
 
 				// this pool is being updated/reapplied remove old copy from the slice
@@ -176,13 +177,15 @@ func resourceArmLoadBalancerNatPoolCreateUpdate(d *pluginsdk.ResourceData, meta 
 
 		model.Properties.InboundNatPools = &natPools
 
-		err = client.CreateOrUpdateThenPoll(ctx, plbId, *model)
-		if err != nil {
+		// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
+		if err = client.CreateOrUpdateThenPoll(ctx, plbId, *model); err != nil {
 			return fmt.Errorf("creating/updating %s : %+v", id, err)
 		}
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
 
 	return resourceArmLoadBalancerNatPoolRead(d, meta)
 }
@@ -301,11 +304,11 @@ func expandAzureRmLoadBalancerNatPool(d *pluginsdk.ResourceData, lb *loadbalance
 	}
 
 	if v, ok := d.GetOk("floating_ip_enabled"); ok {
-		properties.EnableFloatingIP = utils.Bool(v.(bool))
+		properties.EnableFloatingIP = pointer.To(v.(bool))
 	}
 
 	if v, ok := d.GetOk("tcp_reset_enabled"); ok {
-		properties.EnableTcpReset = utils.Bool(v.(bool))
+		properties.EnableTcpReset = pointer.To(v.(bool))
 	}
 
 	properties.IdleTimeoutInMinutes = pointer.To(int64(d.Get("idle_timeout_in_minutes").(int)))

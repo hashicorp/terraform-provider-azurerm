@@ -1,0 +1,14 @@
+<!--
+ Copyright IBM Corp. 2014, 2025
+ SPDX-License-Identifier: MPL-2.0
+-->
+
+<policies>
+  <inbound>
+    <set-variable name="userHeader" value="@(context.Request.Headers.GetValueOrDefault("X-User-Header", "default"))" />
+    <find-and-replace from="token" to="userid" />
+    <set-header name="X-New-Header" exists-action="override">
+      <value>@("new-value")</value>
+    </set-header>
+  </inbound>
+</policies>

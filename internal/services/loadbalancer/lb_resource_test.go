@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package loadbalancer_test
@@ -174,13 +174,6 @@ func TestAccAzureRMLoadBalancer_zonesSingle(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.standard(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
 			Config: r.zonesSingle(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -189,6 +182,29 @@ func TestAccAzureRMLoadBalancer_zonesSingle(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.zonesSingleUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
+func TestAccAzureRMLoadBalancer_zonesSingleRemoved(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
+	r := LoadBalancer{}
+
+	// NOTE: Azure only allows removal of frontend config by recreating (destroy/create) the loadbalancer
+	// This test will cause a recreate scenario on purpose.
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
+		{
+			Config: r.zonesSingle(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.zonesSingleRemove(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -317,11 +333,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_lb" "test" {
-  name                = "acctest-loadbalancer-%d"
+  name                = "acctestlb-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
-  sku_tier            = "Global"
+  sku_tier            = "Regional"
 
   tags = {
     Environment = "production"
@@ -366,14 +382,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                = "test-ip-%d"
+  name                = "acctest-ip-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
 }
 
 resource "azurerm_public_ip" "test1" {
-  name                = "another-test-ip-%d"
+  name                = "acctest-ip2-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
@@ -385,12 +401,12 @@ resource "azurerm_lb" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   frontend_ip_configuration {
-    name                 = "one-%d"
+    name                 = "acctest-fe1-%d"
     public_ip_address_id = azurerm_public_ip.test.id
   }
 
   frontend_ip_configuration {
-    name                 = "two-%d"
+    name                 = "acctest-fe2-%d"
     public_ip_address_id = azurerm_public_ip.test1.id
   }
 }
@@ -409,14 +425,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                = "test-ip-%d"
+  name                = "acctest-ip-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
 }
 
 resource "azurerm_public_ip" "test1" {
-  name                = "another-test-ip-%d"
+  name                = "acctest-ip2-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
@@ -428,7 +444,7 @@ resource "azurerm_lb" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   frontend_ip_configuration {
-    name                 = "one-%d"
+    name                 = "acctest-fe1-%d"
     public_ip_address_id = azurerm_public_ip.test.id
   }
 }
@@ -447,7 +463,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip_prefix" "test" {
-  name                = "test-ip-prefix-%d"
+  name                = "acctest-ip-prefix-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   prefix_length       = 31
@@ -479,7 +495,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                = "test-ip-%d"
+  name                = "acctest-ip-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
@@ -491,7 +507,7 @@ resource "azurerm_lb" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   frontend_ip_configuration {
-    name                 = "one-%d"
+    name                 = "acctest-fe1-%d"
     public_ip_address_id = azurerm_public_ip.test.id
   }
 }
@@ -611,6 +627,7 @@ resource "azurerm_lb" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "Standard"
+  sku_tier            = "Regional"
 
   frontend_ip_configuration {
     name                          = "Internal"
@@ -654,6 +671,7 @@ resource "azurerm_lb" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "Standard"
+  sku_tier            = "Regional"
 
   frontend_ip_configuration {
     name                          = "Internal"
@@ -661,7 +679,48 @@ resource "azurerm_lb" "test" {
     private_ip_address_version    = "IPv4"
     private_ip_address            = "10.0.2.7"
     subnet_id                     = azurerm_subnet.test.id
+    zones                         = ["1"]
   }
+
+  tags = {
+    Environment = "production"
+    Purpose     = "AcceptanceTests"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r LoadBalancer) zonesSingleRemove(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-lb-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctvn-%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctsub-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_lb" "test" {
+  name                = "acctestlb-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard"
+  sku_tier            = "Regional"
 }
 `, data.RandomInteger, data.Locations.Primary)
 }

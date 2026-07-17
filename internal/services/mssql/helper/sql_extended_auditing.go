@@ -1,12 +1,12 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package helper
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func FlattenSqlServerBlobAuditingPolicies(extendedServerBlobAuditingPolicy *sql.ExtendedServerBlobAuditingPolicy, d *pluginsdk.ResourceData) []interface{} {
@@ -36,7 +36,7 @@ func FlattenSqlServerBlobAuditingPolicies(extendedServerBlobAuditingPolicy *sql.
 	}
 
 	var storageAccountSubscriptionId string
-	if extendedServerBlobAuditingPolicy.ExtendedServerBlobAuditingPolicyProperties.StorageAccountSubscriptionID != nil && extendedServerBlobAuditingPolicy.StorageAccountSubscriptionID.String() != "00000000-0000-0000-0000-000000000000" {
+	if extendedServerBlobAuditingPolicy.StorageAccountSubscriptionID != nil && extendedServerBlobAuditingPolicy.StorageAccountSubscriptionID.String() != "00000000-0000-0000-0000-000000000000" {
 		storageAccountSubscriptionId = extendedServerBlobAuditingPolicy.StorageAccountSubscriptionID.String()
 	}
 
@@ -62,15 +62,15 @@ func ExpandMsSqlDBBlobAuditingPolicies(input []interface{}) *sql.ExtendedDatabas
 
 	ExtendedDatabaseBlobAuditingPolicyProperties := sql.ExtendedDatabaseBlobAuditingPolicyProperties{
 		State:                       sql.BlobAuditingPolicyStateEnabled,
-		StorageAccountAccessKey:     utils.String(dbBlobAuditingPolicies["storage_account_access_key"].(string)),
-		StorageEndpoint:             utils.String(dbBlobAuditingPolicies["storage_endpoint"].(string)),
-		IsAzureMonitorTargetEnabled: utils.Bool(dbBlobAuditingPolicies["log_monitoring_enabled"].(bool)),
+		StorageAccountAccessKey:     pointer.To(dbBlobAuditingPolicies["storage_account_access_key"].(string)),
+		StorageEndpoint:             pointer.To(dbBlobAuditingPolicies["storage_endpoint"].(string)),
+		IsAzureMonitorTargetEnabled: pointer.To(dbBlobAuditingPolicies["log_monitoring_enabled"].(bool)),
 	}
 	if v, ok := dbBlobAuditingPolicies["storage_account_access_key_is_secondary"]; ok {
-		ExtendedDatabaseBlobAuditingPolicyProperties.IsStorageSecondaryKeyInUse = utils.Bool(v.(bool))
+		ExtendedDatabaseBlobAuditingPolicyProperties.IsStorageSecondaryKeyInUse = pointer.To(v.(bool))
 	}
 	if v, ok := dbBlobAuditingPolicies["retention_in_days"]; ok {
-		ExtendedDatabaseBlobAuditingPolicyProperties.RetentionDays = utils.Int32(int32(v.(int)))
+		ExtendedDatabaseBlobAuditingPolicyProperties.RetentionDays = pointer.To(int32(v.(int)))
 	}
 
 	return &ExtendedDatabaseBlobAuditingPolicyProperties

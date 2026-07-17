@@ -61,7 +61,7 @@ resource "azurerm_backup_policy_vm" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -72,6 +72,10 @@ The following arguments are supported:
 * `recovery_vault_name` - (Required) Specifies the name of the Recovery Services Vault to use. Changing this forces a new resource to be created.
 
 * `backup` - (Required) Configures the Policy backup frequency, times & days as documented in the `backup` block below.
+
+* `consistency_type` - (Optional) The consistency type for the backup policy. The only possible value is `OnlyCrashConsistent`.
+
+~> **Note:** `consistency_type` can only be specified when `policy_type` is `V2`.
 
 * `policy_type` - (Optional) Type of the Backup Policy. Possible values are `V1` and `V2` where `V2` stands for the Enhanced Policy. Defaults to `V1`. Changing this forces a new resource to be created.
 
@@ -190,7 +194,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the VM Backup Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the VM Backup Policy.

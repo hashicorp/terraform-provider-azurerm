@@ -86,7 +86,7 @@ A `job_target` block supports the following:
 
 * `job_credential_id` - (Optional) The ID of the job credential to use during execution of jobs.
 
-~> **Note:** This is required when `membership_type` is `Include`, unless `database_name` is set.
+~> **Note:** This is required when `membership_type` is `Include`, unless `database_name` is set or the target resource is configured to use a managed identity for authentication.
 
 * `membership_type` - (Optional) The membership type for this job target. Possible values are `Include` and `Exclude`. Defaults to `Include`.
 
@@ -106,7 +106,7 @@ A `job_target` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Elastic Job Target Groups.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Elastic Job Target Groups.
@@ -125,4 +125,4 @@ terraform import azurerm_mssql_job_target_group.example /subscriptions/00000000-
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Sql`: 2023-08-01-preview
+* `Microsoft.Sql` - 2023-08-01-preview

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package check
@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-lint/schema"
 )
 
 type resource struct {
@@ -39,12 +40,13 @@ func newSet(val string) set {
 	return res
 }
 
-func AzurermAllResources(service, skipService string, resources, skipResources string) Resources {
+func AzurermAllResources(service, skipService string, resources, skipResources string, fileList string) Resources {
 	var (
 		rps              = newSet(service)
 		skipRPs          = newSet(skipService)
 		resourcesMap     = newSet(resources)
 		skipResourcesMap = newSet(skipResources)
+		files            = newSet(fileList)
 	)
 
 	shouldSkipRP := func(name string) bool {
@@ -67,6 +69,13 @@ func AzurermAllResources(service, skipService string, resources, skipResources s
 		return false
 	}
 
+	shouldSkipFile := func(path string) bool {
+		if len(files) > 0 && !files.Exists(path) {
+			return true
+		}
+		return false
+	}
+
 	var res Resources
 	for _, r := range provider.SupportedTypedServices() {
 		name := r.Name()
@@ -77,6 +86,14 @@ func AzurermAllResources(service, skipService string, resources, skipResources s
 			if shouldSKipResource(svc.ResourceType()) {
 				continue
 			}
+
+			filePath := schema.FileForResource(svc.Create().Func)
+			// Skip deprecated resources, as some of these don't have documents
+			sch := schema.NewResource(svc, svc.ResourceType())
+			if shouldSkipFile(filePath) || sch.IsDeprecated() {
+				continue
+			}
+
 			res.resources = append(res.resources, resource{
 				name:   svc.ResourceType(),
 				schema: svc,
@@ -93,6 +110,14 @@ func AzurermAllResources(service, skipService string, resources, skipResources s
 			if shouldSKipResource(name) {
 				continue
 			}
+
+			filePath := schema.FileForResource(svc.Read, svc.ReadContext) //nolint:staticcheck
+			// Skip deprecated resources, as some of these don't have documents
+			sch := schema.NewResource(svc, name)
+			if shouldSkipFile(filePath) || sch.IsDeprecated() {
+				continue
+			}
+
 			res.resources = append(res.resources, resource{
 				name:   name,
 				schema: svc,

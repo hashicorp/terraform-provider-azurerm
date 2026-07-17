@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package devcenter
@@ -31,12 +31,13 @@ func (r DevCenterResource) ModelObject() interface{} {
 }
 
 type DevCenterResourceSchema struct {
-	DevCenterUri      string                                     `tfschema:"dev_center_uri"`
-	Identity          []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	Location          string                                     `tfschema:"location"`
-	Name              string                                     `tfschema:"name"`
-	ResourceGroupName string                                     `tfschema:"resource_group_name"`
-	Tags              map[string]interface{}                     `tfschema:"tags"`
+	DevCenterUri                  string                                     `tfschema:"dev_center_uri"`
+	Identity                      []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	Location                      string                                     `tfschema:"location"`
+	Name                          string                                     `tfschema:"name"`
+	ResourceGroupName             string                                     `tfschema:"resource_group_name"`
+	ProjectCatalogItemSyncEnabled bool                                       `tfschema:"project_catalog_item_sync_enabled"`
+	Tags                          map[string]interface{}                     `tfschema:"tags"`
 }
 
 func (r DevCenterResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -56,8 +57,13 @@ func (r DevCenterResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
-		"identity":            commonschema.SystemAssignedUserAssignedIdentityOptional(),
-		"tags":                commonschema.Tags(),
+		"project_catalog_item_sync_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+		"tags":     commonschema.Tags(),
 	}
 }
 
@@ -85,14 +91,16 @@ func (r DevCenterResource) Create() sdk.ResourceFunc {
 
 			id := devcenters.NewDevCenterID(subscriptionId, config.ResourceGroupName, config.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			var payload devcenters.DevCenter
@@ -100,7 +108,7 @@ func (r DevCenterResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("mapping schema model to sdk model: %+v", err)
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -215,6 +223,14 @@ func (r DevCenterResource) mapDevCenterResourceSchemaToDevCenter(input DevCenter
 		output.Properties = &devcenters.DevCenterProperties{}
 	}
 
+	catalogItemSyncEnableStatus := devcenters.CatalogItemSyncEnableStatusDisabled
+	if input.ProjectCatalogItemSyncEnabled {
+		catalogItemSyncEnableStatus = devcenters.CatalogItemSyncEnableStatusEnabled
+	}
+	output.Properties.ProjectCatalogSettings = &devcenters.DevCenterProjectCatalogSettings{
+		CatalogItemSyncEnableStatus: pointer.To(catalogItemSyncEnableStatus),
+	}
+
 	return nil
 }
 
@@ -233,6 +249,10 @@ func (r DevCenterResource) mapDevCenterToDevCenterResourceSchema(input devcenter
 	}
 
 	output.DevCenterUri = pointer.From(input.Properties.DevCenterUri)
+
+	if v := input.Properties.ProjectCatalogSettings; v != nil {
+		output.ProjectCatalogItemSyncEnabled = pointer.From(v.CatalogItemSyncEnableStatus) == devcenters.CatalogItemSyncEnableStatusEnabled
+	}
 
 	return nil
 }

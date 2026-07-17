@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package costmanagement
@@ -105,12 +105,15 @@ func (r AnomalyAlertResource) Create() sdk.ResourceFunc {
 			}
 			id := scheduledactions.NewScopedScheduledActionID(subscriptionId, metadata.ResourceData.Get("name").(string))
 
-			existing, err := client.GetByScope(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetByScope(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			emailAddressesRaw := metadata.ResourceData.Get("email_addresses").(*pluginsdk.Set).List()
@@ -140,7 +143,7 @@ func (r AnomalyAlertResource) Create() sdk.ResourceFunc {
 					NotificationEmail: &notificationEmail,
 					Notification: scheduledactions.NotificationProperties{
 						Subject: metadata.ResourceData.Get("email_subject").(string),
-						Message: utils.String(metadata.ResourceData.Get("message").(string)),
+						Message: pointer.To(metadata.ResourceData.Get("message").(string)),
 						To:      *emailAddresses,
 					},
 					Schedule: schedule,
@@ -209,7 +212,7 @@ func (r AnomalyAlertResource) Update() sdk.ResourceFunc {
 					NotificationEmail: &notificationEmail,
 					Notification: scheduledactions.NotificationProperties{
 						Subject: metadata.ResourceData.Get("email_subject").(string),
-						Message: utils.String(metadata.ResourceData.Get("message").(string)),
+						Message: pointer.To(metadata.ResourceData.Get("message").(string)),
 						To:      *emailAddresses,
 					},
 					Schedule: schedule,
@@ -273,8 +276,7 @@ func (AnomalyAlertResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			_, err = client.DeleteByScope(ctx, *id)
-			if err != nil {
+			if _, err = client.DeleteByScope(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 

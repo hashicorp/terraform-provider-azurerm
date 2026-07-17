@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2020, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package tf5muxserver
@@ -30,26 +30,8 @@ func (s *muxServer) UpgradeResourceIdentity(ctx context.Context, req *tfprotov5.
 		}, nil
 	}
 
-	// TODO: Remove and call server.UpgradeResourceIdentity below directly once interface becomes required.
-	//nolint:staticcheck // Intentionally verifying interface implementation
-	resourceIdentityServer, ok := server.(tfprotov5.ProviderServerWithResourceIdentity)
-	if !ok {
-		resp := &tfprotov5.UpgradeResourceIdentityResponse{
-			Diagnostics: []*tfprotov5.Diagnostic{
-				{
-					Severity: tfprotov5.DiagnosticSeverityError,
-					Summary:  "UpgradeResourceIdentity Not Implemented",
-					Detail: "A UpgradeResourceIdentity call was received by the provider, however the provider does not implement UpgradeResourceIdentity. " +
-						"Either upgrade the provider to a version that implements UpgradeResourceIdentity or this is a bug in Terraform that should be reported to the Terraform maintainers.",
-				},
-			},
-		}
-
-		return resp, nil
-	}
-
 	ctx = logging.Tfprotov5ProviderServerContext(ctx, server)
 	logging.MuxTrace(ctx, "calling downstream server")
 
-	return resourceIdentityServer.UpgradeResourceIdentity(ctx, req)
+	return server.UpgradeResourceIdentity(ctx, req)
 }

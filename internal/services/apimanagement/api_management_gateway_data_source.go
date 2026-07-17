@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -9,8 +9,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apimanagementservice"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/gateway"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -89,8 +89,7 @@ func dataSourceApiManagementGatewayRead(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if resp.Model != nil {
-		_, err = gateway.ParseGatewayID(*resp.Model.Id)
-		if err != nil {
+		if _, err = gateway.ParseGatewayID(*resp.Model.Id); err != nil {
 			return fmt.Errorf("parsing Gateway ID %q", *resp.Model.Id)
 		}
 	}

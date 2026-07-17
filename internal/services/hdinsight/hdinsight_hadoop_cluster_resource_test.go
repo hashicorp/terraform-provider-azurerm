@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package hdinsight_test
@@ -8,12 +8,14 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type HDInsightHadoopClusterResource struct{}
@@ -806,7 +808,7 @@ func (r HDInsightHadoopClusterResource) Exists(ctx context.Context, clients *cli
 		return nil, fmt.Errorf("retrieving Hadoop %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r HDInsightHadoopClusterResource) basic(data acceptance.TestData) string {
@@ -1884,7 +1886,8 @@ resource "azurerm_network_security_group" "test" {
 }
 
 func (HDInsightHadoopClusterResource) template(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -1907,7 +1910,32 @@ resource "azurerm_storage_container" "test" {
   storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+		`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-hdi-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "acctest"
+  storage_account_id    = azurerm_storage_account.test.id
+  container_access_type = "private"
+}
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (HDInsightHadoopClusterResource) gen2template(data acceptance.TestData) string {

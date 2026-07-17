@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute_test
@@ -28,6 +28,7 @@ func TestAccDataSourceMarketplaceAgreement_basic(t *testing.T) {
 		{
 			Config: r.basic(offer),
 			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("accepted").Exists(),
 				check.That(data.ResourceName).Key("license_text_link").Exists(),
 				check.That(data.ResourceName).Key("privacy_policy_link").Exists(),
 			),

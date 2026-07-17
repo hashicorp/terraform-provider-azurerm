@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -11,7 +11,7 @@ func ApplicationDefinitionDescription(v interface{}, k string) (warnings []strin
 	value := v.(string)
 
 	if len(value) > 200 {
-		errors = append(errors, fmt.Errorf("%q should not exceed 200 characters in length.", k))
+		errors = append(errors, fmt.Errorf("%q should not exceed 200 characters in length", k))
 	}
 
 	return warnings, errors

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package md
@@ -70,7 +70,7 @@ func fileResource(path string) string {
 }
 
 func docDir() string {
-	file, _ := util.FuncFileLine(utils.Int32)
+	file, _ := util.FuncFileLine(utils.ExpandStringSlice)
 	return path.Join(path.Dir(path.Dir(file)), "website", "docs")
 }
 
@@ -79,4 +79,9 @@ func ResourceDir() string {
 		docRDir = path.Join(docDir(), "r")
 	}
 	return docRDir
+}
+
+// DocDir returns the base documentation directory
+func DocDir() string {
+	return docDir()
 }

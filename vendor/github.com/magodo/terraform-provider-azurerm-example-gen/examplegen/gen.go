@@ -16,7 +16,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/hashicorp/hcl2/hclwrite"
+	"github.com/hashicorp/hcl/v2/hclwrite"
 	"golang.org/x/tools/go/packages"
 	"golang.org/x/tools/imports"
 )
@@ -208,8 +208,11 @@ func (infos TestFuncInfos) GenPrintTestCase() (string, error) {
 }
 
 func (info TestFuncInfo) GenPrintTestCaseFdecl() (*ast.FuncDecl, error) {
-	// We keep the content of the target function body until the invocation of the "ResourceTest", which is typically doing the setup.
-	var resourceTestCall *ast.CallExpr
+	// We keep the content of the target function body until the invocation of the "ResourceTest"/"DataSourceTest", which is typically doing the setup.
+	var (
+		resourceTestCall   *ast.CallExpr
+		dataSourceTestCall *ast.CallExpr
+	)
 	var stmts []ast.Stmt
 	for _, stmt := range info.fdecl.Body.List {
 		exprstmt, ok := stmt.(*ast.ExprStmt)
@@ -227,25 +230,43 @@ func (info TestFuncInfo) GenPrintTestCaseFdecl() (*ast.FuncDecl, error) {
 			stmts = append(stmts, stmt)
 			continue
 		}
-		if selexpr.Sel.Name != "ResourceTest" {
-			stmts = append(stmts, stmt)
-			continue
+		if selexpr.Sel.Name == "ResourceTest" {
+			resourceTestCall = callexpr
+			break
 		}
-		resourceTestCall = callexpr
-		break
+		if selexpr.Sel.Name == "DataSourceTest" {
+			dataSourceTestCall = callexpr
+			break
+		}
+		stmts = append(stmts, stmt)
+		continue
 	}
 
-	if resourceTestCall == nil {
-		return nil, fmt.Errorf("no ResourceTest call found")
+	if resourceTestCall == nil && dataSourceTestCall == nil {
+		return nil, fmt.Errorf("no ResourceTest/DataSourceTest call found")
 	}
 
 	// Look for the first test step and record the assignment to the "Config", which is then used as the config generation invocation.
-	if len(resourceTestCall.Args) != 3 {
-		return nil, fmt.Errorf("ResourceTest doesn't have 3 arguments")
-	}
-	teststeps, ok := resourceTestCall.Args[2].(*ast.CompositeLit)
-	if !ok {
-		return nil, fmt.Errorf("test steps are not defined as a composite literal")
+	var teststeps *ast.CompositeLit
+
+	if resourceTestCall != nil {
+		if len(resourceTestCall.Args) != 3 {
+			return nil, fmt.Errorf("ResourceTest doesn't have 3 arguments")
+		}
+		var ok bool
+		teststeps, ok = resourceTestCall.Args[2].(*ast.CompositeLit)
+		if !ok {
+			return nil, fmt.Errorf("test steps are not defined as a composite literal")
+		}
+	} else {
+		if len(dataSourceTestCall.Args) != 2 {
+			return nil, fmt.Errorf("DataSourceTest doesn't have 2 arguments")
+		}
+		var ok bool
+		teststeps, ok = dataSourceTestCall.Args[1].(*ast.CompositeLit)
+		if !ok {
+			return nil, fmt.Errorf("test steps are not defined as a composite literal")
+		}
 	}
 	if len(teststeps.Elts) == 0 {
 		return nil, fmt.Errorf("there is no test step defined")
@@ -257,9 +278,6 @@ func (info TestFuncInfo) GenPrintTestCaseFdecl() (*ast.FuncDecl, error) {
 	var configcallexpr *ast.CallExpr
 	switch firstteststep := teststeps.Elts[0].(type) {
 	case *ast.CompositeLit:
-		if !ok {
-			return nil, fmt.Errorf("the first test step is not defined as a composite literal")
-		}
 		for _, elt := range firstteststep.Elts {
 			elt, ok := elt.(*ast.KeyValueExpr)
 			if !ok {
