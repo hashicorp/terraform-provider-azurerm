@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -192,20 +191,15 @@ resource "azurerm_data_factory_pipeline" "test" {
 }
 
 func (r PipelineResource) complete(data acceptance.TestData) string {
-	metricsFieldName := "monitor_metrics_after_duration"
-	if !features.FivePointOh() {
-		metricsFieldName = "moniter_metrics_after_duration"
-	}
-
 	return fmt.Sprintf(`
 %[1]s
 
 resource "azurerm_data_factory_pipeline" "test" {
-  name            = "acctest%[2]d"
-  data_factory_id = azurerm_data_factory.test.id
-  annotations     = ["test1", "test2", "test3"]
-  description     = "test description"
-  %[3]s           = "00:01:00"
+  name                           = "acctest%[2]d"
+  data_factory_id                = azurerm_data_factory.test.id
+  annotations                    = ["test1", "test2", "test3"]
+  description                    = "test description"
+  monitor_metrics_after_duration = "00:01:00"
 
   parameters = {
     test = "testparameter"
@@ -269,7 +263,7 @@ resource "azurerm_data_factory_pipeline" "test" {
 ]
 JSON
 }
-`, r.template(data), data.RandomInteger, metricsFieldName)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r PipelineResource) update(data acceptance.TestData) string {

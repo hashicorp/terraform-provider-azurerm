@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/pipelines"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -113,26 +112,6 @@ func resourceDataFactoryPipeline() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FivePointOh() {
-		resource.Schema["moniter_metrics_after_duration"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			// NOTE: O+C as the value might be changed during read from renamed property
-			Computed:      true,
-			ValidateFunc:  validation.StringIsNotEmpty,
-			ConflictsWith: []string{"monitor_metrics_after_duration"},
-			Deprecated:    "`moniter_metrics_after_duration` has been deprecated in favour of `monitor_metrics_after_duration` and will be removed in v5.0 of the AzureRM Provider",
-		}
-		resource.Schema["monitor_metrics_after_duration"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			// NOTE: O+C as the value might be changed during read from renamed property
-			Computed:      true,
-			ValidateFunc:  validation.StringIsNotEmpty,
-			ConflictsWith: []string{"moniter_metrics_after_duration"},
-		}
-	}
-
 	return resource
 }
 
@@ -221,16 +200,6 @@ func resourceDataFactoryPipelineCreateUpdate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	if !features.FivePointOh() {
-		if !pluginsdk.IsExplicitlyNullInConfig(d, "moniter_metrics_after_duration") {
-			payload.Properties.Policy = &pipelines.PipelinePolicy{
-				ElapsedTimeMetric: &pipelines.PipelineElapsedTimeMetricPolicy{
-					Duration: pointer.To(d.Get("moniter_metrics_after_duration")),
-				},
-			}
-		}
-	}
-
 	if v, ok := d.GetOk("folder"); ok {
 		payload.Properties.Folder = &pipelines.PipelineFolder{
 			Name: pointer.To(v.(string)),
@@ -296,9 +265,6 @@ func resourceDataFactoryPipelineRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 
 		d.Set("monitor_metrics_after_duration", elapsedTimeMetricDuration)
-		if !features.FivePointOh() {
-			d.Set("moniter_metrics_after_duration", elapsedTimeMetricDuration)
-		}
 
 		if folder := props.Folder; folder != nil {
 			d.Set("folder", pointer.From(folder.Name))
