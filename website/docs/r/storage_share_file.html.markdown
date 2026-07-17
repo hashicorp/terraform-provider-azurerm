@@ -59,6 +59,8 @@ The following arguments are supported:
 
 ~> **Note:** The content specified with `source_content` can not be empty.
 
+~> **Note:** The content specified with `source_content` is written to a temporary file on the local system before being uploaded, which may require sufficient available disk space for large content.
+
 * `content_type` - (Optional) The content type of the share file. Defaults to `application/octet-stream`.
 
 * `content_md5` - (Optional) The MD5 sum of the file contents. Changing this forces a new resource to be created.
