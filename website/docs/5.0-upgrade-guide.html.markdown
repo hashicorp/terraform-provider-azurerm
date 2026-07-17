@@ -741,7 +741,7 @@ Please follow the format in the example below for listing breaking changes in re
 
 ### `azurerm_postgresql_flexible_server`
 
-* The `storage_mb` property no longer accepts `4194304` for new servers or when resizing existing servers.
+* The `storage_mb` property no longer accepts `4194304` when creating new servers with `create_mode = Default`, or when resizing existing servers.
 
 ### `azurerm_powerbi_embedded`
 
