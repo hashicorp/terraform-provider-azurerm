@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Whether the auto upgrade profile is enabled. Defaults to `true`.
 
-* `node_image_selection_type` - (Optional) The node image selection type for the auto upgrade profile. Possible values are `Consistent` and `Latest`.
+* `node_image_selection_type` - (Optional) The node image selection type for the auto upgrade profile. When omitted, no node image selection preference is sent to Azure. Possible values are `Consistent` and `Latest`.
 
 * `update_strategy_id` - (Optional) The ID of the Fleet Update Strategy to use for this auto upgrade profile.
 

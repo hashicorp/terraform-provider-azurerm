@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 package containers_test
 
 import (
@@ -24,6 +27,7 @@ func TestAccKubernetesFleetAutoUpgradeProfile_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("node_image_selection_type").HasValue(""),
 			),
 		},
 		data.ImportStep(),
