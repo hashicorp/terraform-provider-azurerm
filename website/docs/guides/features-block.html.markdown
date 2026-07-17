@@ -59,6 +59,10 @@ provider "azurerm" {
       preflight_location_fallback = "westeurope"
     }
 
+    servicebus {
+      auto_delete_subscription_default_rule = false
+    }
+
     key_vault {
       purge_soft_delete_on_destroy    = true
       recover_soft_deleted_key_vaults = true
@@ -151,6 +155,8 @@ The `features` block supports the following:
 
 * `enhanced_validation` - (Optional) An `enhanced_validation` block as defined below.
 
+* `servicebus` - (Optional) A `servicebus` block as defined below.
+
 * `key_vault` - (Optional) A `key_vault` block as defined below.
 
 * `log_analytics_workspace` - (Optional) A `log_analytics_workspace` block as defined below.
@@ -226,6 +232,12 @@ The `enhanced_validation` block supports the following:
 * `preflight_location_fallback` - (Optional) The Azure location to use as a fallback when Preflight Validation is enabled and a resource does not specify a location. This is typically used for resources that derive their location from a dependency that has not yet been created. This can also be sourced from the `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATION_FALLBACK` Environment Variable.
 
 * `resource_providers` - (Optional) Should the AzureRM Provider validate Resource Provider arguments against the list of supported Resource Providers? When enabled, invalid resource providers are caught at `terraform plan` time; when disabled, they are caught at `terraform apply` time when Azure rejects the request. This can also be sourced from the `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS` Environment Variable. Defaults to `true` in version 4.x and `false` in version 5.0+.
+
+---
+
+The `servicebus` block supports the following:
+
+* `auto_delete_subscription_default_rule` - (Optional) Should the `$Default` rule be automatically deleted after creating an `azurerm_servicebus_subscription`? This prevents unfiltered messages from being delivered during the window between subscription creation and custom rule application. Defaults to `false`.
 
 ---
 

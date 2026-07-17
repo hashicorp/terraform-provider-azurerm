@@ -27,7 +27,7 @@ import (
 )
 
 func resourceMapsAccount() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceMapsAccountCreate,
 		Read:   resourceMapsAccountRead,
 		Update: resourceMapsAccountUpdate,
@@ -129,8 +129,6 @@ func resourceMapsAccount() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	return resource
 }
 
 func resourceMapsAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -159,13 +157,8 @@ func resourceMapsAccountCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("expanding `data_store`: %+v", err)
 	}
 
-	loc := "global"
-	if v, ok := d.GetOk("location"); ok {
-		loc = location.Normalize(v.(string))
-	}
-
 	parameters := accounts.MapsAccount{
-		Location: loc,
+		Location: location.Normalize(d.Get("location").(string)),
 		Sku: accounts.Sku{
 			Name: accounts.Name(d.Get("sku_name").(string)),
 		},
@@ -177,9 +170,7 @@ func resourceMapsAccountCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		},
 	}
 
-	// setting anything into identity returns a 400 Bad Request error if the location of the maps account is `global` which is
-	// what we were defaulting to previously - when `location` becomes Required in 4.0 we can remove this check and set
-	// identity in the payload like we do elsewhere
+	// setting anything into identity returns a 400 Bad Request error if the location of the maps account is `global`
 	if v, ok := d.GetOk("identity"); ok {
 		identityExpanded, err := identity.ExpandSystemAndUserAssignedMap(v.([]interface{}))
 		if err != nil {

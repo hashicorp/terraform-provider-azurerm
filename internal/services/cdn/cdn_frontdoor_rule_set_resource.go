@@ -4,10 +4,12 @@
 package cdn
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rulesets"
@@ -30,9 +32,31 @@ func resourceCdnFrontDoorRuleSet() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(6 * time.Hour),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := rulesets.ParseRuleSetID(id)
 			return err
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
+			client := meta.(*clients.Client).Cdn.FrontDoorRuleSetsClient
+
+			id, _ := rulesets.ParseRuleSetID(d.Id())
+			resp, err := client.Get(ctx, *id)
+			if err != nil {
+				return nil, fmt.Errorf("retrieving %s: %+v", id, err)
+			}
+
+			if resp.Model == nil {
+				return nil, fmt.Errorf("retrieving %s: `model` was nil`", id)
+			}
+
+			if resp.Model.Properties == nil {
+				return nil, fmt.Errorf("retrieving %s: `properties` was nil`", id)
+			}
+
+			if pointer.From(resp.Model.Properties.BatchMode) {
+				return nil, fmt.Errorf("%s was provisioned using batch mode and cannot be managed by this resource, use `azurerm_cdn_frontdoor_batch_rule_set` instead", id)
+			}
+
+			return []*pluginsdk.ResourceData{d}, nil
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
