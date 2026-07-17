@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -1014,21 +1013,17 @@ resource "azurerm_virtual_network" "test" {
 }
 
 func (VirtualNetworkResource) subnet(data acceptance.TestData) string {
-	serviceEndpointSubnet1 := `service_endpoints = ["Microsoft.Sql", "Microsoft.Storage"]`
-	serviceEndpointSubnet2 := `service_endpoints = ["Microsoft.Storage"]`
-	if features.FivePointOh() {
-		serviceEndpointSubnet1 = `
+	serviceEndpointSubnet1 := `
     service_endpoint {
       service = "Microsoft.Sql"
     }
     service_endpoint {
       service = "Microsoft.Storage"
     }`
-		serviceEndpointSubnet2 = `
+	serviceEndpointSubnet2 := `
     service_endpoint {
       service = "Microsoft.Storage"
     }`
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1096,13 +1091,10 @@ resource "azurerm_virtual_network" "test" {
 }
 
 func (VirtualNetworkResource) subnetUpdated(data acceptance.TestData) string {
-	serviceEndpointConfig := `service_endpoints = ["Microsoft.Storage"]`
-	if features.FivePointOh() {
-		serviceEndpointConfig = `
+	serviceEndpointConfig := `
     service_endpoint {
       service = "Microsoft.Storage"
     }`
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

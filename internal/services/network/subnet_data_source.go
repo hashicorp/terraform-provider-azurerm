@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/subnets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -98,17 +97,6 @@ func dataSourceSubnet() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FivePointOh() {
-		resource.Schema["service_endpoints"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeList,
-			Computed:   true,
-			Deprecated: "The `service_endpoints` list of strings will be replaced by a `service_endpoints` block in v5.0 of the AzureRM Provider.",
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
-		}
-	}
-
 	return resource
 }
 
@@ -166,14 +154,8 @@ func dataSourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 			d.Set("route_table_id", routeTableId)
 
-			if !features.FivePointOh() {
-				if err := d.Set("service_endpoints", flattenSubnetServiceEndpoints(props.ServiceEndpoints)); err != nil {
-					return fmt.Errorf("setting `service_endpoints`: %+v", err)
-				}
-			} else {
-				if err := d.Set("service_endpoints", flattenSubnetServiceEndpoint(props.ServiceEndpoints)); err != nil {
-					return fmt.Errorf("setting `service_endpoints`: %+v", err)
-				}
+			if err := d.Set("service_endpoints", flattenSubnetServiceEndpoint(props.ServiceEndpoints)); err != nil {
+				return fmt.Errorf("setting `service_endpoints`: %+v", err)
 			}
 		}
 	}

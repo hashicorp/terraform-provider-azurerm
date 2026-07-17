@@ -26,7 +26,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -362,21 +361,6 @@ func resourceSubnet() *pluginsdk.Resource {
 				Computed: true,
 			},
 		},
-	}
-
-	if !features.FivePointOh() {
-		resource.Schema["service_endpoints"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
-			// NOTE: O+C to allow the deprecated `service_endpoints` property and `service_endpoint` block to coexist in v4
-			Computed:      true,
-			Elem:          &pluginsdk.Schema{Type: pluginsdk.TypeString},
-			Set:           pluginsdk.HashString,
-			Deprecated:    "The `service_endpoints` property has been superseded by the `service_endpoint` block and will be removed in v5.0 of the AzureRM Provider.",
-			ConflictsWith: []string{"service_endpoint"},
-		}
-		resource.Schema["service_endpoint"].ConflictsWith = []string{"service_endpoints"}
-		resource.Schema["service_endpoint"].Computed = true
 	}
 
 	return resource
@@ -776,13 +760,6 @@ func resourceSubnetFlatten(d *pluginsdk.ResourceData, id commonids.SubnetId, sub
 			d.Set("private_endpoint_network_policies", string(pointer.From(props.PrivateEndpointNetworkPolicies)))
 			d.Set("private_link_service_network_policies_enabled", flattenSubnetNetworkPolicy(string(pointer.From(props.PrivateLinkServiceNetworkPolicies))))
 			d.Set("sharing_scope", pointer.FromEnum(props.SharingScope))
-
-			if !features.FivePointOh() {
-				serviceEndpoints := flattenSubnetServiceEndpoints(props.ServiceEndpoints)
-				if err := d.Set("service_endpoints", serviceEndpoints); err != nil {
-					return fmt.Errorf("setting `service_endpoints`: %+v", err)
-				}
-			}
 
 			serviceEndpoint := flattenSubnetServiceEndpoint(props.ServiceEndpoints)
 			if err := d.Set("service_endpoint", serviceEndpoint); err != nil {

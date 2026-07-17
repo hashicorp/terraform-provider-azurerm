@@ -9,7 +9,6 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 type SubnetDataSource struct{}
@@ -257,18 +256,6 @@ data "azurerm_subnet" "test" {
 }
 
 func (SubnetDataSource) serviceEndpoints(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-%s
-
-data "azurerm_subnet" "test" {
-  name                 = azurerm_subnet.test.name
-  virtual_network_name = azurerm_subnet.test.virtual_network_name
-  resource_group_name  = azurerm_subnet.test.resource_group_name
-}
-`, SubnetResource{}.serviceEndpointsUpdated(data))
-	}
-
 	return fmt.Sprintf(`
 %s
 
