@@ -198,6 +198,9 @@ func TestAccSiteRecoveryReplicatedVm_zone2zone(t *testing.T) {
 			Config: r.zone2zone(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_interface.0.ip_configuration.#").HasValue("1"),
+				check.That(data.ResourceName).Key("network_interface.0.ip_configuration.0.name").HasValue(fmt.Sprintf("vm-%d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("network_interface.0.ip_configuration.0.target_subnet_name").HasValue(fmt.Sprintf("snet-%d", data.RandomInteger)),
 			),
 		},
 		data.ImportStep(),
