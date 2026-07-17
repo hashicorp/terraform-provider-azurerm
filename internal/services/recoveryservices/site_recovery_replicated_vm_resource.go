@@ -43,7 +43,7 @@ import (
 )
 
 func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceSiteRecoveryReplicatedItemCreate,
 		Read:   resourceSiteRecoveryReplicatedItemRead,
 		Update: resourceSiteRecoveryReplicatedItemUpdate,
@@ -298,8 +298,6 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	return resource
 }
 
 func resourceSiteRecoveryReplicatedVMCustomizeDiff(_ context.Context, diff *pluginsdk.ResourceDiff, _ interface{}) error {
@@ -365,8 +363,9 @@ func networkInterfaceResource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"failover_test_static_ip": {

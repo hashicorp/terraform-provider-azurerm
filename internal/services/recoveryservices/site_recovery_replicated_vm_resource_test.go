@@ -850,7 +850,7 @@ resource "azurerm_public_ip" "test-source" {
   allocation_method   = "Static"
   location            = azurerm_resource_group.source.location
   resource_group_name = azurerm_resource_group.source.name
-  sku                 = "Basic"
+  sku                 = "Standard"
 }
 
 resource "azurerm_public_ip" "test-source-2" {
@@ -858,7 +858,7 @@ resource "azurerm_public_ip" "test-source-2" {
   allocation_method   = "Static"
   location            = azurerm_resource_group.source.location
   resource_group_name = azurerm_resource_group.source.name
-  sku                 = "Basic"
+  sku                 = "Standard"
 }
 
 resource "azurerm_public_ip" "test-recovery" {
@@ -866,7 +866,7 @@ resource "azurerm_public_ip" "test-recovery" {
   allocation_method   = "Static"
   location            = azurerm_resource_group.recovery.location
   resource_group_name = azurerm_resource_group.recovery.name
-  sku                 = "Basic"
+  sku                 = "Standard"
 }
 
 resource "azurerm_public_ip" "test-recovery-2" {
@@ -874,7 +874,7 @@ resource "azurerm_public_ip" "test-recovery-2" {
   allocation_method   = "Static"
   location            = azurerm_resource_group.recovery.location
   resource_group_name = azurerm_resource_group.recovery.name
-  sku                 = "Basic"
+  sku                 = "Standard"
 }
 
 
@@ -948,7 +948,7 @@ resource "azurerm_public_ip" "tfo" {
   allocation_method   = "Static"
   location            = azurerm_resource_group.test2.location
   resource_group_name = azurerm_resource_group.test2.name
-  sku                 = "Basic"
+  sku                 = "Standard"
 }
 
 resource "azurerm_site_recovery_replicated_vm" "test" {
@@ -3050,7 +3050,7 @@ resource "azurerm_public_ip" "tfo" {
   allocation_method   = "Static"
   location            = azurerm_resource_group.recovery.location
   resource_group_name = azurerm_resource_group.recovery.name
-  sku                 = "Basic"
+  sku                 = "Standard"
 }
 
 
