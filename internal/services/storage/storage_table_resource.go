@@ -4,7 +4,6 @@
 package storage
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -126,7 +125,6 @@ func resourceStorageTable() *pluginsdk.Resource {
 		r.Schema["storage_account_name"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			ValidateFunc: validate.StorageAccountName,
 			ExactlyOneOf: []string{"storage_account_id", "storage_account_name"},
 			Deprecated:   "the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider.",
@@ -135,31 +133,11 @@ func resourceStorageTable() *pluginsdk.Resource {
 		r.Schema["storage_account_id"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			ValidateFunc: commonids.ValidateStorageAccountID,
 			ExactlyOneOf: []string{"storage_account_id", "storage_account_name"},
 		}
 
-		r.CustomizeDiff = func(ctx context.Context, diff *pluginsdk.ResourceDiff, i interface{}) error {
-			if strings.HasPrefix(diff.Id(), "/subscriptions/") && diff.HasChange("storage_account_id") {
-				return diff.ForceNew("storage_account_id")
-			}
-
-			if diff.Id() != "" && !strings.HasPrefix(diff.Id(), "/subscriptions/") && diff.HasChange("storage_account_name") {
-				oldAccountId, _ := diff.GetChange("storage_account_id")
-				oldName, newName := diff.GetChange("storage_account_name")
-
-				if oldAccountId.(string) != "" && newName.(string) != "" {
-					return diff.ForceNew("storage_account_name")
-				}
-
-				if oldName.(string) != "" && newName.(string) != "" {
-					return diff.ForceNew("storage_account_name")
-				}
-			}
-
-			return nil
-		}
+		r.CustomizeDiff = helpers.LegacyStorageAccountResourceCustomizeDiff
 		r.SchemaVersion = 2
 		r.StateUpgraders = pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.TableV0ToV1{},

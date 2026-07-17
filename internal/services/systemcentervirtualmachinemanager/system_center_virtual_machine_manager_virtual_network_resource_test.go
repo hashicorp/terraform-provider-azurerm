@@ -28,10 +28,11 @@ func TestAccSystemCenterVirtualMachineManagerVirtualNetworkSequential(t *testing
 
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"scvmmVirtualNetwork": {
-			"basic":          testAccSystemCenterVirtualMachineManagerVirtualNetwork_basic,
-			"requiresImport": testAccSystemCenterVirtualMachineManagerVirtualNetwork_requiresImport,
-			"complete":       testAccSystemCenterVirtualMachineManagerVirtualNetwork_complete,
-			"update":         testAccSystemCenterVirtualMachineManagerVirtualNetwork_update,
+			"basic":            testAccSystemCenterVirtualMachineManagerVirtualNetwork_basic,
+			"requiresImport":   testAccSystemCenterVirtualMachineManagerVirtualNetwork_requiresImport,
+			"complete":         testAccSystemCenterVirtualMachineManagerVirtualNetwork_complete,
+			"update":           testAccSystemCenterVirtualMachineManagerVirtualNetwork_update,
+			"resourceIdentity": testAccSystemCenterVirtualMachineManagerVirtualNetwork_resourceIdentity,
 		},
 	})
 }

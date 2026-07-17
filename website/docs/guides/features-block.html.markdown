@@ -52,6 +52,17 @@ provider "azurerm" {
       force_delete = false
     }
 
+    enhanced_validation {
+      locations                   = true
+      resource_providers          = true
+      preflight_enabled           = false
+      preflight_location_fallback = "westeurope"
+    }
+
+    servicebus {
+      auto_delete_subscription_default_rule = false
+    }
+
     key_vault {
       purge_soft_delete_on_destroy    = true
       recover_soft_deleted_key_vaults = true
@@ -142,6 +153,10 @@ The `features` block supports the following:
 
 * `databricks_workspace` - (Optional) A `databricks_workspace` block as defined below.
 
+* `enhanced_validation` - (Optional) An `enhanced_validation` block as defined below.
+
+* `servicebus` - (Optional) A `servicebus` block as defined below.
+
 * `key_vault` - (Optional) A `key_vault` block as defined below.
 
 * `log_analytics_workspace` - (Optional) A `log_analytics_workspace` block as defined below.
@@ -203,6 +218,26 @@ The `cognitive_account` block supports the following:
 The `databricks_workspace` block supports the following:
 
 * `force_delete` - (Optional) Should the managed resource group that contains the Unity Catalog data be forcibly deleted when the `azurerm_databricks_workspace` is destroyed? Defaults to `false`.
+
+---
+
+The `enhanced_validation` block supports the following:
+
+* `locations` - (Optional) Should the AzureRM Provider validate location arguments against the list of supported Azure Locations? When enabled, invalid locations are caught at `terraform plan` time; when disabled, they are caught at `terraform apply` time when Azure rejects the request. This can also be sourced from the `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` Environment Variable. Defaults to `true` in version 4.x and `false` in version 5.0+.
+
+* `preflight_enabled` - (Optional) Should the AzureRM Provider call the Azure Preflight Validation API at plan time to check the request payload for each supported resource is valid? Requires valid credentials and external Azure API access at plan time. This can also be sourced from the `ARM_PROVIDER_ENHANCED_VALIDATION_PREFLIGHT_ENABLED` Environment Variable. Defaults to `false`.
+
+~> **Note:** Preflight Validation is a "Best Effort" feature and is not guaranteed to be 100% accurate. Terraform will attempt to validate the request payload against the Azure API based on known values for the resource from the configuration. References to resources or values that is not known at plan time are sent as empty or null values.
+
+* `preflight_location_fallback` - (Optional) The Azure location to use as a fallback when Preflight Validation is enabled and a resource does not specify a location. This is typically used for resources that derive their location from a dependency that has not yet been created. This can also be sourced from the `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATION_FALLBACK` Environment Variable.
+
+* `resource_providers` - (Optional) Should the AzureRM Provider validate Resource Provider arguments against the list of supported Resource Providers? When enabled, invalid resource providers are caught at `terraform plan` time; when disabled, they are caught at `terraform apply` time when Azure rejects the request. This can also be sourced from the `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS` Environment Variable. Defaults to `true` in version 4.x and `false` in version 5.0+.
+
+---
+
+The `servicebus` block supports the following:
+
+* `auto_delete_subscription_default_rule` - (Optional) Should the `$Default` rule be automatically deleted after creating an `azurerm_servicebus_subscription`? This prevents unfiltered messages from being delivered during the window between subscription creation and custom rule application. Defaults to `false`.
 
 ---
 

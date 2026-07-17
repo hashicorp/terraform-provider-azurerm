@@ -108,15 +108,21 @@ The following arguments are supported:
 
 * `app_service_plan_id` - (Required) The ID of the App Service Plan within which to create this Logic App.
 
-* `storage_account_name` - (Required) The backend storage account name which will be used by this Logic App (e.g. for Stateful workflows data). Changing this forces a new resource to be created.
+* `storage_account_name` - (Optional) The backend storage account name which will be used by this Logic App (e.g. for Stateful workflows data). Exactly one of `storage_account_name` or `storage_key_vault_secret_id` must be specified.
 
-* `storage_account_access_key` - (Required) The access key which will be used to access the backend storage account for the Logic App.
+* `storage_account_access_key` - (Optional) The access key which will be used to access the backend storage account for the Logic App. Required when `storage_account_name` is specified. Conflicts with `storage_key_vault_secret_id`.
+
+* `storage_key_vault_secret_id` - (Optional) The Key Vault Secret ID, optionally including version, that contains the connection string to the backend storage account for the Logic App. Exactly one of `storage_account_name` or `storage_key_vault_secret_id` must be specified.
+
+~> **Note:** When using `storage_key_vault_secret_id`, a `key_vault_reference_identity_id` must be set and the corresponding identity must have `Get` and `List` secret permissions on the Key Vault.
+
+~> **Note:** `storage_key_vault_secret_id` used without a version will use the latest version of the secret, however, the service can take up to 24h to pick up a rotation of the latest version. See the [official docs](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#rotation) for more information.
 
 ---
 
 * `app_settings` - (Optional) A map of key-value pairs for [App Settings](https://docs.microsoft.com/azure/azure-functions/functions-app-settings) and custom values.
 
-~> **Note:** There are a number of application settings that will be managed for you by this resource type and *shouldn't* be configured separately as part of the app_settings you specify.  `AzureWebJobsStorage` is filled based on `storage_account_name` and `storage_account_access_key`. `WEBSITE_CONTENTSHARE` is detailed below. `FUNCTIONS_EXTENSION_VERSION` is filled based on `version`. `APP_KIND` is set to workflowApp and `AzureFunctionsJobHost__extensionBundle__id` and `AzureFunctionsJobHost__extensionBundle__version` are set as detailed below.
+~> **Note:** There are a number of application settings that will be managed for you by this resource type and *shouldn't* be configured separately as part of the app_settings you specify.  `AzureWebJobsStorage` is filled based on `storage_account_name` and `storage_account_access_key`, or from `storage_key_vault_secret_id` when using a Key Vault reference. `WEBSITE_CONTENTSHARE` is detailed below. `FUNCTIONS_EXTENSION_VERSION` is filled based on `version`. `APP_KIND` is set to workflowApp and `AzureFunctionsJobHost__extensionBundle__id` and `AzureFunctionsJobHost__extensionBundle__version` are set as detailed below.
 
 * `use_extension_bundle` - (Optional) Should the logic app use the bundled extension package? If true, then application settings for `AzureFunctionsJobHost__extensionBundle__id` and `AzureFunctionsJobHost__extensionBundle__version` will be created. Defaults to `true`.
 
