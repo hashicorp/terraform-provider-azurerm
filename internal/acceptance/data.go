@@ -93,6 +93,8 @@ func vcrRandString(rng *rand.Rand, strlen int) string {
 
 // BuildTestData generates some test data for the given resource
 func BuildTestData(t *testing.T, resourceType string, resourceLabel string) TestData {
+	initGracefulStop(t)
+
 	var randomInt int
 	var randomString string
 	if os.Getenv("TC_TEST_VIA_VCR") != "" {
