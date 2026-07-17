@@ -10,7 +10,9 @@ BETA_VERSION_ENV_VAR="%env.BETA_VERSION_ENV_VAR%"
 TEAMCITY_BUILD_BRANCH="%teamcity.build.branch%"
 LABEL_SUCCESS="%env.LABEL_SUCCESS%"
 LABEL_FAILURE="%env.LABEL_FAILURE%"
-
+LABEL_OUTDATED="%env.LABEL_OUTDATED%"
+LABEL_NEW_FAILURE="%env.LABEL_NEW_FAILURE%"
+APPLY_TESTING_LABELS_ENABLED="%env.APPLY_TESTING_LABELS_ENABLED%"
 
 if [ "$POST_GITHUB_COMMENT" != "true" ]; then
   echo "GitHub commenting disabled — skipping."
@@ -63,22 +65,43 @@ remove_label() {
 set_testing_label() {
   local label="$1"
   if [ "$label" = "$LABEL_SUCCESS" ]; then
+    remove_label "$LABEL_OUTDATED"
     remove_label "$LABEL_FAILURE"
+    remove_label "$LABEL_NEW_FAILURE"
     apply_label "$LABEL_SUCCESS"
   elif [ "$label" = "$LABEL_FAILURE" ]; then
+    remove_label "$LABEL_OUTDATED"
     remove_label "$LABEL_SUCCESS"
+    remove_label "$LABEL_NEW_FAILURE"
     apply_label "$LABEL_FAILURE"
+  elif [ "$label" = "$LABEL_NEW_FAILURE" ]; then
+    remove_label "$LABEL_OUTDATED"
+    remove_label "$LABEL_SUCCESS"
+    remove_label "$LABEL_FAILURE"
+    apply_label "$LABEL_NEW_FAILURE"
   fi
 }
 
 # Fetch test results for this build from the TeamCity REST API
-TEST_RESULTS=$(curl -s \
+TEAMCITY_ERROR=""
+RAW_TEST_RESULTS_JSON=$(curl -sS -f \
   -H "Authorization: Bearer $TEAMCITY_TOKEN" \
   -H "Accept: application/json" \
-  "%teamcity.serverUrl%/app/rest/testOccurrences?locator=build:(id:$BUILD_ID),count:100000&fields=testOccurrence(name,status,duration)" \
-  | jq -r '.testOccurrence[]
+  "%teamcity.serverUrl%/app/rest/testOccurrences?locator=build:(id:$BUILD_ID),count:100000&fields=testOccurrence(name,status,duration)")
+
+if [ $? -ne 0 ] || [ -z "$RAW_TEST_RESULTS_JSON" ]; then
+  TEAMCITY_ERROR="Failed to fetch test results from TeamCity for build $BUILD_ID."
+  TEST_RESULTS=""
+else
+  TEST_RESULTS=$(echo "$RAW_TEST_RESULTS_JSON" | jq -r '(.testOccurrence // [])[]
       | select(.status == "SUCCESS" or .status == "FAILURE")
       | "\(.name)|\(if .status == "SUCCESS" then "PASS" else "FAIL" end)|\((.duration // 0) / 1000)|"')
+
+  if [ $? -ne 0 ]; then
+    TEAMCITY_ERROR="Failed to parse TeamCity test results for build $BUILD_ID."
+    TEST_RESULTS=""
+  fi
+fi
 
 PASS_COUNT=$(echo "$TEST_RESULTS" | awk -F'|' '{if($2=="PASS") print}' | wc -l | tr -d ' ')
 FAIL_COUNT=$(echo "$TEST_RESULTS" | awk -F'|' '{if($2=="FAIL") print}' | wc -l | tr -d ' ')
@@ -87,7 +110,7 @@ TOTAL=$((PASS_COUNT + FAIL_COUNT))
 # Fetch main branch test results early to identify new failures for comment marking
 NEW_FAILURES=""
 MAIN_TEST_RESULTS=""
-if [ "$FAIL_COUNT" -gt 0 ]; then
+if [ -z "$TEAMCITY_ERROR" ] && [ "$FAIL_COUNT" -gt 0 ]; then
   echo "Fetching main branch test results for comparison..."
 
   # Get the latest successful build on main branch
@@ -135,7 +158,16 @@ BUILD_HOURS=$((BUILD_DURATION / 3600))
 BUILD_MINUTES=$(((BUILD_DURATION % 3600) / 60))
 BUILD_SECONDS=$((BUILD_DURATION % 60))
 
-COMMENT="Build: [$BUILD_ID](%teamcity.serverUrl%/viewLog.html?buildId=$BUILD_ID)
+if [ -n "$TEAMCITY_ERROR" ]; then
+  COMMENT="Build: [$BUILD_ID](%teamcity.serverUrl%/viewLog.html?buildId=$BUILD_ID)
+PR: #$PR_NUMBER
+
+**TeamCity Error:** $TEAMCITY_ERROR
+
+Unable to collect test details for this run. Please check TeamCity build logs.
+"
+else
+  COMMENT="Build: [$BUILD_ID](%teamcity.serverUrl%/viewLog.html?buildId=$BUILD_ID)
 PR: #$PR_NUMBER
 
 **Total:** $TOTAL
@@ -177,15 +209,16 @@ $1 == "" { next }
 }
 ')
 
-COMMENT+="$TABLE_ROWS"
+  COMMENT+="$TABLE_ROWS"
 
-COMMENT+="</table>
+  COMMENT+="</table>
 </details>
 "
+fi
 
 # Fetch PR author if there are failures
 AUTHOR_MESSAGE=""
-if [ "$FAIL_COUNT" -gt 0 ]; then
+if [ -z "$TEAMCITY_ERROR" ] && [ "$FAIL_COUNT" -gt 0 ]; then
   PR_AUTHOR=$(github_api_request "/pulls/${PR_NUMBER}" \
   | jq -r '.user.login')
 
@@ -269,25 +302,29 @@ curl -s -X POST \
   "https://api.github.com/repos/$GITHUB_REPO/issues/${PR_NUMBER}/comments" \
   -d "{\"body\": $(jq -Rs . <<< "$COMMENT")}"
 
-echo "Applying labels..."
+if [ "$APPLY_TESTING_LABELS_ENABLED" = "true" ]; then
+  echo "Applying labels..."
 
-# If no failures, apply teamcity-passed label
-if [ "$FAIL_COUNT" -eq 0 ]; then
-  echo "No test failures detected"
-  set_testing_label "$LABEL_SUCCESS"
-  exit 0
+  if [ -n "$TEAMCITY_ERROR" ]; then
+    echo "Skipping label application due to TeamCity error"
+    exit 0
+  fi
+
+  # If no failures, apply teamcity-passed label
+  if [ "$FAIL_COUNT" -eq 0 ]; then
+    echo "No test failures detected"
+    set_testing_label "$LABEL_SUCCESS"
+    exit 0
+  fi
+
+  # If there are failures, determine label based on earlier analysis
+  if [ -z "$NEW_FAILURES" ]; then
+    echo "All failed tests also exist in main branch"
+    set_testing_label "$LABEL_FAILURE"
+  else
+    echo "Found new test failures not present in main branch"
+    set_testing_label "$LABEL_NEW_FAILURE"
+  fi
+
+  echo "Label application complete"
 fi
-
-# If there are failures, determine label based on earlier analysis
-if [ -z "$MAIN_TEST_RESULTS" ]; then
-  echo "Could not fetch main branch results - applying '$LABEL_FAILURE' label as precaution..."
-  set_testing_label "$LABEL_FAILURE"
-elif [ -z "$NEW_FAILURES" ]; then
-  echo "All failed tests also exist in main branch"
-  set_testing_label "$LABEL_SUCCESS"
-else
-  echo "Found new test failures not present in main branch"
-  set_testing_label "$LABEL_FAILURE"
-fi
-
-echo "Label application complete"

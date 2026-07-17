@@ -13,6 +13,8 @@ func Default() UserFeatures {
 		EnhancedValidation: EnhancedValidationFeatures{
 			Locations:         !FivePointOh(),
 			ResourceProviders: !FivePointOh(),
+			PreflightEnabled:  false,
+			LocationFallback:  nil,
 		},
 		AppConfiguration: AppConfigurationFeatures{
 			PurgeSoftDeleteOnDestroy: true,
@@ -89,6 +91,9 @@ func Default() UserFeatures {
 		},
 		DatabricksWorkspace: DatabricksWorkspaceFeatures{
 			ForceDelete: false,
+		},
+		ServiceBus: ServiceBusFeatures{
+			AutoDeleteSubscriptionDefaultRule: false,
 		},
 	}
 }

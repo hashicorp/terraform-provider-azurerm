@@ -654,7 +654,6 @@ func TestAccLinuxFunctionApp_elasticPremiumCompleteWithVnetProperties(t *testing
 	})
 }
 
-// TODO 4.0 remove post 4.0
 func TestAccLinuxFunctionApp_elasticPremiumComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
 	r := LinuxFunctionAppResource{}
@@ -3864,7 +3863,6 @@ resource "azurerm_linux_function_app" "test" {
 `, r.storageContainerTemplate(data, SkuElasticPremiumPlan), data.RandomInteger)
 }
 
-// TODO 4.0 remove this test case as it's replaced by vNetIntegration_subnet1WithVnetProperties
 func (r LinuxFunctionAppResource) elasticComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -4300,6 +4298,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acctestkv-%[2]s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
@@ -4381,6 +4380,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acctestkv-%[2]s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
@@ -4527,7 +4527,7 @@ func (r LinuxFunctionAppResource) storageContainerTemplate(data acceptance.TestD
 
 resource "azurerm_storage_container" "test" {
   name                  = "test"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -5093,7 +5093,7 @@ resource "azurerm_user_assigned_identity" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "test"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 

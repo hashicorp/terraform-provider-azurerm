@@ -81,7 +81,7 @@ func (r DataProtectionBackupInstanceDataLakeStorageResource) Arguments() map[str
 			Type:     pluginsdk.TypeSet,
 			Required: true,
 			MinItems: 1,
-			MaxItems: 100,
+			MaxItems: 1000,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 				ValidateFunc: validation.All(
