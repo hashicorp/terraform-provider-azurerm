@@ -18,31 +18,6 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_virtual_network" "example" {
-  name                = "example-vnet"
-  address_space       = ["192.168.0.0/16"]
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-}
-
-resource "azurerm_subnet" "example" {
-  name                 = "example-subnet"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["192.168.1.0/24"]
-
-  delegation {
-    name = "app-delegation"
-
-    service_delegation {
-      name = "Microsoft.App/environments"
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-      ]
-    }
-  }
-}
-
 resource "azurerm_cosmosdb_account" "example" {
   name                = "example-cosmos"
   location            = azurerm_resource_group.example.location
@@ -83,12 +58,6 @@ resource "azurerm_storage_account" "example" {
   account_replication_type = "LRS"
 }
 
-resource "azurerm_storage_container" "example" {
-  name                  = "example-container"
-  storage_account_name  = azurerm_storage_account.example.name
-  container_access_type = "private"
-}
-
 resource "azurerm_cognitive_account" "example" {
   name                       = "example-account"
   location                   = azurerm_resource_group.example.location
@@ -116,10 +85,9 @@ resource "azurerm_cognitive_account" "aisvc" {
   }
 }
 
-resource "azurerm_cognitive_account_connection" "cosmos" {
+resource "azurerm_cognitive_account_connection_entra_id" "cosmos" {
   name                 = "example-conn-cosmos"
   cognitive_account_id = azurerm_cognitive_account.example.id
-  auth_type            = "AAD"
   category             = "CosmosDb"
   target               = azurerm_cosmosdb_account.example.endpoint
 
@@ -130,23 +98,22 @@ resource "azurerm_cognitive_account_connection" "cosmos" {
   }
 }
 
-resource "azurerm_cognitive_account_connection" "storage" {
+resource "azurerm_cognitive_account_connection_account_managed_identity" "storage" {
   name                 = "example-conn-storage"
   cognitive_account_id = azurerm_cognitive_account.example.id
-  auth_type            = "AAD"
-  category             = "AzureBlob"
+  category             = "AzureStorageAccount"
   target               = azurerm_storage_account.example.primary_blob_endpoint
 
   metadata = {
-    containerName = azurerm_storage_container.example.name
-    accountName   = azurerm_storage_account.example.name
+    ApiType    = "Azure"
+    ResourceId = azurerm_storage_account.example.id
+    location   = azurerm_resource_group.example.location
   }
 }
 
-resource "azurerm_cognitive_account_connection" "search" {
+resource "azurerm_cognitive_account_connection_entra_id" "search" {
   name                 = "example-conn-search"
   cognitive_account_id = azurerm_cognitive_account.example.id
-  auth_type            = "AAD"
   category             = "CognitiveSearch"
   target               = "https://${azurerm_search_service.example.name}.search.windows.net"
 
@@ -157,10 +124,9 @@ resource "azurerm_cognitive_account_connection" "search" {
   }
 }
 
-resource "azurerm_cognitive_account_connection" "aisvc" {
+resource "azurerm_cognitive_account_connection_api_key" "aisvc" {
   name                 = "example-conn-aisvc"
   cognitive_account_id = azurerm_cognitive_account.example.id
-  auth_type            = "ApiKey"
   category             = "AIServices"
   target               = azurerm_cognitive_account.aisvc.endpoint
   api_key              = azurerm_cognitive_account.aisvc.primary_access_key
@@ -175,11 +141,10 @@ resource "azurerm_cognitive_account_connection" "aisvc" {
 resource "azurerm_cognitive_account_capability_host" "example" {
   name                       = "example-capability-host"
   cognitive_account_id       = azurerm_cognitive_account.example.id
-  subnet_id                  = azurerm_subnet.example.id
-  ai_services_connections    = [azurerm_cognitive_account_connection.aisvc.name]
-  storage_connections        = [azurerm_cognitive_account_connection.storage.name]
-  thread_storage_connections = [azurerm_cognitive_account_connection.cosmos.name]
-  vector_store_connections   = [azurerm_cognitive_account_connection.search.name]
+  ai_services_connections    = [azurerm_cognitive_account_connection_api_key.aisvc.name]
+  storage_connections        = [azurerm_cognitive_account_connection_account_managed_identity.storage.name]
+  thread_storage_connections = [azurerm_cognitive_account_connection_entra_id.cosmos.name]
+  vector_store_connections   = [azurerm_cognitive_account_connection_entra_id.search.name]
 }
 ```
 
@@ -201,8 +166,6 @@ The following arguments are supported:
 
 ~> **Note:** A maximum of 1 Storage connection can be specified.
 
-* `subnet_id` - (Optional) The ID of the Subnet. Changing this forces a new resource to be created.
-
 * `thread_storage_connections` - (Optional) A list of Thread Storage connection names. Changing this forces a new resource to be created.
 
 ~> **Note:** A maximum of 1 Thread Storage connection can be specified.
@@ -219,7 +182,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Cognitive Account Capability Host.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Cognitive Account Capability Host.
@@ -232,3 +195,9 @@ Cognitive Account Capability Hosts can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_cognitive_account_capability_host.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.CognitiveServices/accounts/account1/capabilityHosts/capabilityHost1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.CognitiveServices` - 2026-03-01

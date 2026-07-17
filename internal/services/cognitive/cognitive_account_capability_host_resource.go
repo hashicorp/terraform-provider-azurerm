@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cognitive
@@ -10,8 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/accountcapabilityhost"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/cognitiveservicesaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -20,19 +20,27 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.Resource = CognitiveAccountCapabilityHostResource{}
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name cognitive_account_capability_host -properties "name" -compare-values "subscription_id:cognitive_account_id,resource_group_name:cognitive_account_id,account_name:cognitive_account_id" -test-name "basic" -test-expect-non-empty
+
+var (
+	_ sdk.Resource             = CognitiveAccountCapabilityHostResource{}
+	_ sdk.ResourceWithIdentity = CognitiveAccountCapabilityHostResource{}
+)
 
 type CognitiveAccountCapabilityHostModel struct {
 	AiServicesConnections    []string `tfschema:"ai_services_connections"`
 	CognitiveAccountId       string   `tfschema:"cognitive_account_id"`
 	Name                     string   `tfschema:"name"`
 	StorageConnections       []string `tfschema:"storage_connections"`
-	SubnetId                 string   `tfschema:"subnet_id"`
 	ThreadStorageConnections []string `tfschema:"thread_storage_connections"`
 	VectorStoreConnections   []string `tfschema:"vector_store_connections"`
 }
 
 type CognitiveAccountCapabilityHostResource struct{}
+
+func (r CognitiveAccountCapabilityHostResource) Identity() resourceids.ResourceId {
+	return new(accountcapabilityhost.CapabilityHostId)
+}
 
 func (r CognitiveAccountCapabilityHostResource) ResourceType() string {
 	return "azurerm_cognitive_account_capability_host"
@@ -57,6 +65,11 @@ func (r CognitiveAccountCapabilityHostResource) Arguments() map[string]*pluginsd
 
 		"cognitive_account_id": commonschema.ResourceIDReferenceRequiredForceNew(&cognitiveservicesaccounts.AccountId{}),
 
+		// The Foundry Agent Service backend currently only accepts zero or exactly one non-empty
+		// entry per connection field (see CreateCapabilityHostRequestDtoValidator), but the REST API
+		// and SDK type these as `*[]string`. They are kept as lists here, with `MaxItems: 1` enforcing
+		// the current backend restriction, so no breaking schema change is required if Azure later
+		// allows more than one connection.
 		"ai_services_connections": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -77,13 +90,6 @@ func (r CognitiveAccountCapabilityHostResource) Arguments() map[string]*pluginsd
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
-		},
-
-		"subnet_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: commonids.ValidateSubnetID,
 		},
 
 		"thread_storage_connections": {
@@ -144,11 +150,9 @@ func (r CognitiveAccountCapabilityHostResource) Create() sdk.ResourceFunc {
 			}
 
 			resource := accountcapabilityhost.CapabilityHost{
-				Properties: accountcapabilityhost.CapabilityHostProperties{},
-			}
-
-			if model.SubnetId != "" {
-				resource.Properties.CustomerSubnet = pointer.To(model.SubnetId)
+				Properties: accountcapabilityhost.CapabilityHostProperties{
+					CapabilityHostKind: pointer.To(accountcapabilityhost.CapabilityHostKindAgents),
+				},
 			}
 
 			if len(model.AiServicesConnections) > 0 {
@@ -172,6 +176,9 @@ func (r CognitiveAccountCapabilityHostResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 
 			return nil
 		},
@@ -197,30 +204,7 @@ func (r CognitiveAccountCapabilityHostResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			state := CognitiveAccountCapabilityHostModel{
-				Name:               id.CapabilityHostName,
-				CognitiveAccountId: cognitiveservicesaccounts.NewAccountID(id.SubscriptionId, id.ResourceGroupName, id.AccountName).ID(),
-			}
-
-			if model := resp.Model; model != nil {
-				props := model.Properties
-
-				state.AiServicesConnections = pointer.From(props.AiServicesConnections)
-				state.StorageConnections = pointer.From(props.StorageConnections)
-				state.ThreadStorageConnections = pointer.From(props.ThreadStorageConnections)
-				state.VectorStoreConnections = pointer.From(props.VectorStoreConnections)
-
-				if props.CustomerSubnet != nil && *props.CustomerSubnet != "" {
-					subnetId, err := commonids.ParseSubnetIDInsensitively(*props.CustomerSubnet)
-					if err != nil {
-						return err
-					}
-					state.SubnetId = subnetId.ID()
-				}
-
-			}
-
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
 }
@@ -247,4 +231,26 @@ func (r CognitiveAccountCapabilityHostResource) Delete() sdk.ResourceFunc {
 			return nil
 		},
 	}
+}
+
+func (r CognitiveAccountCapabilityHostResource) flatten(metadata sdk.ResourceMetaData, id *accountcapabilityhost.CapabilityHostId, model *accountcapabilityhost.CapabilityHost) error {
+	state := CognitiveAccountCapabilityHostModel{
+		Name:               id.CapabilityHostName,
+		CognitiveAccountId: cognitiveservicesaccounts.NewAccountID(id.SubscriptionId, id.ResourceGroupName, id.AccountName).ID(),
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	if model != nil {
+		props := model.Properties
+
+		state.AiServicesConnections = pointer.From(props.AiServicesConnections)
+		state.StorageConnections = pointer.From(props.StorageConnections)
+		state.ThreadStorageConnections = pointer.From(props.ThreadStorageConnections)
+		state.VectorStoreConnections = pointer.From(props.VectorStoreConnections)
+	}
+
+	return metadata.Encode(&state)
 }

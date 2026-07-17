@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cognitive_test
@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type CognitiveAccountCapabilityHostTestResource struct{}
+type CognitiveAccountCapabilityHostResource struct{}
 
 func TestAccCognitiveAccountCapabilityHost_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_capability_host", "test")
-	r := CognitiveAccountCapabilityHostTestResource{}
+	r := CognitiveAccountCapabilityHostResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccCognitiveAccountCapabilityHost_basic(t *testing.T) {
 
 func TestAccCognitiveAccountCapabilityHost_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_capability_host", "test")
-	r := CognitiveAccountCapabilityHostTestResource{}
+	r := CognitiveAccountCapabilityHostResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccCognitiveAccountCapabilityHost_requiresImport(t *testing.T) {
 
 func TestAccCognitiveAccountCapabilityHost_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_capability_host", "test")
-	r := CognitiveAccountCapabilityHostTestResource{}
+	r := CognitiveAccountCapabilityHostResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -63,7 +63,7 @@ func TestAccCognitiveAccountCapabilityHost_complete(t *testing.T) {
 	})
 }
 
-func (r CognitiveAccountCapabilityHostTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r CognitiveAccountCapabilityHostResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := accountcapabilityhost.ParseCapabilityHostID(state.ID)
 	if err != nil {
 		return nil, err
@@ -77,7 +77,7 @@ func (r CognitiveAccountCapabilityHostTestResource) Exists(ctx context.Context, 
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r CognitiveAccountCapabilityHostTestResource) basic(data acceptance.TestData) string {
+func (r CognitiveAccountCapabilityHostResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -92,7 +92,7 @@ resource "azurerm_cognitive_account_capability_host" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CognitiveAccountCapabilityHostTestResource) requiresImport(data acceptance.TestData) string {
+func (r CognitiveAccountCapabilityHostResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -103,38 +103,13 @@ resource "azurerm_cognitive_account_capability_host" "import" {
 `, r.basic(data))
 }
 
-func (r CognitiveAccountCapabilityHostTestResource) complete(data acceptance.TestData) string {
+func (r CognitiveAccountCapabilityHostResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 %[1]s
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctest-vnet-%[2]d"
-  address_space       = ["192.168.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctest-subnet-%[2]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["192.168.1.0/24"]
-
-  delegation {
-    name = "app-delegation"
-
-    service_delegation {
-      name = "Microsoft.App/environments"
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-      ]
-    }
-  }
-}
 
 resource "azurerm_cosmosdb_account" "test" {
   name                = "acctest-cosmos-%[3]s"
@@ -176,12 +151,6 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 }
 
-resource "azurerm_storage_container" "test" {
-  name                  = "acctestcsc%[3]s"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_cognitive_account" "aisvc" {
   name                  = "acctest-aisvc-%[2]d"
   location              = azurerm_resource_group.test.location
@@ -195,10 +164,9 @@ resource "azurerm_cognitive_account" "aisvc" {
   }
 }
 
-resource "azurerm_cognitive_account_connection" "cosmos" {
-  name                 = "acctest-conn-cosmos-%[2]d"
+resource "azurerm_cognitive_account_connection_entra_id" "cosmos" {
+  name                 = "acctest-conn-cosmos-%[3]s"
   cognitive_account_id = azurerm_cognitive_account.test.id
-  auth_type            = "AAD"
   category             = "CosmosDb"
   target               = azurerm_cosmosdb_account.test.endpoint
 
@@ -209,22 +177,22 @@ resource "azurerm_cognitive_account_connection" "cosmos" {
   }
 }
 
-resource "azurerm_cognitive_account_connection" "storage" {
-  name                 = "acctest-conn-storage-%[2]d"
+resource "azurerm_cognitive_account_connection_account_managed_identity" "storage" {
+  name                 = "acctest-conn-storage-%[3]s"
   cognitive_account_id = azurerm_cognitive_account.test.id
-  auth_type            = "AAD"
-  category             = "AzureBlob"
+  category             = "AzureStorageAccount"
   target               = azurerm_storage_account.test.primary_blob_endpoint
+
   metadata = {
-    containerName = azurerm_storage_container.test.name
-    accountName   = azurerm_storage_account.test.name
+    ApiType    = "Azure"
+    ResourceId = azurerm_storage_account.test.id
+    location   = azurerm_resource_group.test.location
   }
 }
 
-resource "azurerm_cognitive_account_connection" "search" {
-  name                 = "acctest-conn-search-%[2]d"
+resource "azurerm_cognitive_account_connection_entra_id" "search" {
+  name                 = "acctest-conn-search-%[3]s"
   cognitive_account_id = azurerm_cognitive_account.test.id
-  auth_type            = "AAD"
   category             = "CognitiveSearch"
   target               = "https://${azurerm_search_service.test.name}.search.windows.net"
 
@@ -235,10 +203,9 @@ resource "azurerm_cognitive_account_connection" "search" {
   }
 }
 
-resource "azurerm_cognitive_account_connection" "aisvc" {
-  name                 = "acctest-conn-aisvc-%[2]d"
+resource "azurerm_cognitive_account_connection_api_key" "aisvc" {
+  name                 = "acctest-conn-aisvc-%[3]s"
   cognitive_account_id = azurerm_cognitive_account.test.id
-  auth_type            = "ApiKey"
   category             = "AIServices"
   target               = azurerm_cognitive_account.aisvc.endpoint
   api_key              = azurerm_cognitive_account.aisvc.primary_access_key
@@ -250,10 +217,9 @@ resource "azurerm_cognitive_account_connection" "aisvc" {
   }
 }
 
-resource "azurerm_cognitive_account_connection" "aisvc2" {
-  name                 = "acctest-conn-aisvc-2-%[2]d"
+resource "azurerm_cognitive_account_connection_api_key" "aisvc2" {
+  name                 = "acctest-conn-aisvc2-%[3]s"
   cognitive_account_id = azurerm_cognitive_account.test.id
-  auth_type            = "ApiKey"
   category             = "AIServices"
   target               = azurerm_cognitive_account.aisvc.endpoint
   api_key              = azurerm_cognitive_account.aisvc.primary_access_key
@@ -268,16 +234,15 @@ resource "azurerm_cognitive_account_connection" "aisvc2" {
 resource "azurerm_cognitive_account_capability_host" "test" {
   name                       = "acctest-ch-%[2]d"
   cognitive_account_id       = azurerm_cognitive_account.test.id
-  subnet_id                  = azurerm_subnet.test.id
-  ai_services_connections    = [azurerm_cognitive_account_connection.aisvc.name]
-  storage_connections        = [azurerm_cognitive_account_connection.storage.name]
-  thread_storage_connections = [azurerm_cognitive_account_connection.cosmos.name]
-  vector_store_connections   = [azurerm_cognitive_account_connection.search.name]
+  ai_services_connections    = [azurerm_cognitive_account_connection_api_key.aisvc.name]
+  storage_connections        = [azurerm_cognitive_account_connection_account_managed_identity.storage.name]
+  thread_storage_connections = [azurerm_cognitive_account_connection_entra_id.cosmos.name]
+  vector_store_connections   = [azurerm_cognitive_account_connection_entra_id.search.name]
 }
 `, r.template(data), data.RandomInteger, data.RandomString)
 }
 
-func (r CognitiveAccountCapabilityHostTestResource) template(data acceptance.TestData) string {
+func (r CognitiveAccountCapabilityHostResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cognitive-%[1]d"
