@@ -27,13 +27,13 @@ func initGracefulStop(t *testing.T) {
 		}
 
 		ch := make(chan os.Signal, 1)
-		signal.Notify(ch, syscall.SIGTERM)
+		signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
 
 		go func() {
 			sig := <-ch
 			gracefulStopRequested.Store(true)
-			signal.Reset(syscall.SIGTERM)
-			t.Logf("[WARN] SIGTERM received: finishing in-progress tests and skipping the rest; send it again to force stop", sig)
+			signal.Reset(syscall.SIGINT, syscall.SIGTERM)
+			t.Logf("[WARN] signal %q received: finishing in-progress tests and skipping the rest; send it again to force stop", sig)
 		}()
 	})
 }
