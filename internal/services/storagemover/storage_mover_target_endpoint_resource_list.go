@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/endpoints"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/storagemovers"
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/list/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -42,7 +41,7 @@ func (StorageMoverTargetEndpointListResource) ListResourceConfigSchema(_ context
 			"storage_mover_id": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					typehelpers.WrappedStringValidator{Func: storagemovers.ValidateStorageMoverID},
+					typehelpers.WrappedStringValidator{Func: endpoints.ValidateStorageMoverID},
 				},
 			},
 		},
@@ -59,13 +58,13 @@ func (StorageMoverTargetEndpointListResource) List(ctx context.Context, request 
 		return
 	}
 
-	storageMoverID, err := storagemovers.ParseStorageMoverID(data.StorageMoverId.ValueString())
+	storageMoverID, err := endpoints.ParseStorageMoverID(data.StorageMoverId.ValueString())
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("parsing Storage Mover ID for `%s`", StorageMoverTargetEndpointResource{}.ResourceType()), err)
 		return
 	}
 
-	resp, err := client.ListComplete(ctx, endpoints.NewStorageMoverID(storageMoverID.SubscriptionId, storageMoverID.ResourceGroupName, storageMoverID.StorageMoverName))
+	resp, err := client.ListComplete(ctx, *storageMoverID)
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", StorageMoverTargetEndpointResource{}.ResourceType()), err)
 		return
