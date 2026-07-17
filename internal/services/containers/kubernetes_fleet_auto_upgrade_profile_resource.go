@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 package containers
 
 import (
@@ -206,7 +209,13 @@ func (r KubernetesFleetAutoUpgradeProfileResource) flatten(metadata sdk.Resource
 	if model != nil {
 		if props := model.Properties; props != nil {
 			state.Channel = string(props.Channel)
-			state.UpdateStrategyId = pointer.From(props.UpdateStrategyId)
+			if props.UpdateStrategyId != nil {
+				updateStrategyId, err := fleetupdatestrategies.ParseUpdateStrategyID(*props.UpdateStrategyId)
+				if err != nil {
+					return err
+				}
+				state.UpdateStrategyId = updateStrategyId.ID()
+			}
 			if props.Disabled != nil {
 				state.Enabled = !*props.Disabled
 			}
@@ -264,14 +273,6 @@ func (r KubernetesFleetAutoUpgradeProfileResource) Update() sdk.ResourceFunc {
 					}
 				} else {
 					payload.Properties.NodeImageSelection = nil
-				}
-			}
-
-			if metadata.ResourceData.HasChange("update_strategy_id") {
-				if config.UpdateStrategyId != "" {
-					payload.Properties.UpdateStrategyId = pointer.To(config.UpdateStrategyId)
-				} else {
-					payload.Properties.UpdateStrategyId = nil
 				}
 			}
 
