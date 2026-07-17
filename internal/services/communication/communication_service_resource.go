@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2026-03-18/communicationservices"
@@ -37,10 +38,11 @@ func (CommunicationServiceResource) Identity() resourceids.ResourceId {
 }
 
 type CommunicationServiceResourceModel struct {
-	Name              string            `tfschema:"name"`
-	ResourceGroupName string            `tfschema:"resource_group_name"`
-	DataLocation      string            `tfschema:"data_location"`
-	Tags              map[string]string `tfschema:"tags"`
+	Name              string                                     `tfschema:"name"`
+	ResourceGroupName string                                     `tfschema:"resource_group_name"`
+	DataLocation      string                                     `tfschema:"data_location"`
+	Identity          []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	Tags              map[string]string                          `tfschema:"tags"`
 
 	PrimaryConnectionString   string `tfschema:"primary_connection_string"`
 	SecondaryConnectionString string `tfschema:"secondary_connection_string"`
@@ -93,6 +95,8 @@ func (CommunicationServiceResource) Arguments() map[string]*pluginsdk.Schema {
 				"usgov",
 			}, false),
 		},
+
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"tags": commonschema.Tags(),
 	}
@@ -203,6 +207,12 @@ func (r CommunicationServiceResource) Create() sdk.ResourceFunc {
 				Tags: pointer.To(model.Tags),
 			}
 
+			expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(model.Identity)
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
+			}
+			param.Identity = expandedIdentity
+
 			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, param, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -248,6 +258,14 @@ func (r CommunicationServiceResource) Update() sdk.ResourceFunc {
 			}
 
 			existing.Model.Properties = &props
+
+			if metadata.ResourceData.HasChange("identity") {
+				expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(model.Identity)
+				if err != nil {
+					return fmt.Errorf("expanding `identity`: %+v", err)
+				}
+				commService.Identity = expandedIdentity
+			}
 
 			if metadata.ResourceData.HasChange("tags") {
 				commService.Tags = pointer.To(model.Tags)
@@ -297,6 +315,12 @@ func (CommunicationServiceResource) Read() sdk.ResourceFunc {
 					state.DataLocation = props.DataLocation
 					state.HostName = pointer.From(props.HostName)
 				}
+
+				flattenedIdentity, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(model.Identity)
+				if err != nil {
+					return fmt.Errorf("flattening `identity`: %+v", err)
+				}
+				state.Identity = flattenedIdentity
 
 				state.Tags = pointer.From(model.Tags)
 			}
