@@ -567,6 +567,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `parent_id` property has been removed in favour of the `user_assigned_identity_id` property.
 
+### `azurerm_iot_security_solution`
+
+* The `recommendations_enabled` property has been removed in favour of the `recommendations` property.
+
 ### `azurerm_key_vault`
 
 * The deprecated `contact` property has been removed as it is no longer supported by the resource.
@@ -773,7 +777,12 @@ Please follow the format in the example below for listing breaking changes in re
 
 ### `azurerm_servicebus_namespace`
 
-* The property `minimum_tls_version` no longer accepts `1.0` or `1.1` as a value.
+* The `minimum_tls_version` property no longer accepts `1.0` or `1.1` as a value.
+
+### `azurerm_site_recovery_protection_container_mapping`
+
+* The `automatic_update.enabled` property has been removed. To disable, omit the `automatic_update` block.
+* The `automatic_update.automation_account_id` property is now required.
 
 ### `azurerm_spring_cloud_connection`
 
@@ -829,6 +838,14 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_mssql_virtual_machine`
 
 * The deprecated `auto_backup.encryption_enabled` property has been removed.
+
+### `azurerm_virtual_network_gateway`
+
+* The deprecated `enable_bgp` property has been removed in favour of the `bgp_enabled` property.
+
+### `azurerm_virtual_network_gateway_connection`
+
+* The deprecated `enable_bgp` property has been removed in favour of the `bgp_enabled` property.
 
 ### `azurerm_windows_function_app`
 
