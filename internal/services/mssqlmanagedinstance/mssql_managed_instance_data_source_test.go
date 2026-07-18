@@ -25,6 +25,7 @@ func TestAccDataSourceMsSqlManagedInstance_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
 				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
 				check.That(data.ResourceName).Key("dns_zone").Exists(),
+				check.That(data.ResourceName).Key("pricing_model").HasValue("Regular"),
 			),
 		},
 	})
