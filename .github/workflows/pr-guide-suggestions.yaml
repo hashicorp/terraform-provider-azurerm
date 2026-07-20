@@ -60,7 +60,7 @@ jobs:
           if [ -z "$(printf '%s' "$output" | tr -d '[:space:]')" ]; then
             output="No newly added schema properties required linting."
           fi
-          max=100
+          max=2000
           if [ "${#output}" -gt "$max" ]; then
             output="${output:0:$max}"$'\n''... (truncated, see the workflow run for the full output)'
           fi
