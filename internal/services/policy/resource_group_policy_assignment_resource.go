@@ -6,6 +6,7 @@ package policy
 import (
 	"regexp"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/validate"
 	resourceValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
@@ -28,20 +29,20 @@ func (r ResourceGroupAssignmentResource) IDValidationFunc() pluginsdk.SchemaVali
 }
 
 type ResourceGroupAssignmentModel struct {
-	Name                 string                                `tfschema:"name"`
-	ResourceGroupId      string                                `tfschema:"resource_group_id"`
-	PolicyDefinitionId   string                                `tfschema:"policy_definition_id"`
-	Description          string                                `tfschema:"description"`
-	DisplayName          string                                `tfschema:"display_name"`
-	Location             string                                `tfschema:"location"`
-	Enforce              bool                                  `tfschema:"enforce"`
-	Metadata             string                                `tfschema:"metadata"`
-	Parameters           string                                `tfschema:"parameters"`
-	NotScopes            []string                              `tfschema:"not_scopes"`
-	Identity             []assignmentIdentityModel             `tfschema:"identity"`
-	NonComplianceMessage []assignmentNonComplianceMessageModel `tfschema:"non_compliance_message"`
-	Overrides            []assignmentOverrideModel             `tfschema:"overrides"`
-	ResourceSelectors    []assignmentResourceSelectorModel     `tfschema:"resource_selectors"`
+	Name                 string                                     `tfschema:"name"`
+	ResourceGroupId      string                                     `tfschema:"resource_group_id"`
+	PolicyDefinitionId   string                                     `tfschema:"policy_definition_id"`
+	Description          string                                     `tfschema:"description"`
+	DisplayName          string                                     `tfschema:"display_name"`
+	Location             string                                     `tfschema:"location"`
+	Enforce              bool                                       `tfschema:"enforce"`
+	Metadata             string                                     `tfschema:"metadata"`
+	Parameters           string                                     `tfschema:"parameters"`
+	NotScopes            []string                                   `tfschema:"not_scopes"`
+	Identity             []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	NonComplianceMessage []assignmentNonComplianceMessageModel      `tfschema:"non_compliance_message"`
+	Overrides            []assignmentOverrideModel                  `tfschema:"overrides"`
+	ResourceSelectors    []assignmentResourceSelectorModel          `tfschema:"resource_selectors"`
 }
 
 func (r ResourceGroupAssignmentResource) ModelObject() interface{} {

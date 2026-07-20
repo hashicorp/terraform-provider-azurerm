@@ -25,7 +25,6 @@ import (
 
 type assignmentBaseResource struct{}
 
-
 type assignmentNonComplianceMessageModel struct {
 	Content                     string `tfschema:"content"`
 	PolicyDefinitionReferenceId string `tfschema:"policy_definition_reference_id"`
@@ -57,7 +56,7 @@ type assignmentBaseModel struct {
 	Metadata             string                                    `tfschema:"metadata"`
 	Parameters           string                                    `tfschema:"parameters"`
 	NotScopes            []string                                  `tfschema:"not_scopes"`
-	Identity             *identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	Identity             []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	NonComplianceMessage []assignmentNonComplianceMessageModel     `tfschema:"non_compliance_message"`
 	Overrides            []assignmentOverrideModel                 `tfschema:"overrides"`
 	ResourceSelectors    []assignmentResourceSelectorModel         `tfschema:"resource_selectors"`
@@ -105,7 +104,7 @@ func (br assignmentBaseResource) createFunc(resourceName, scopeFieldName string)
 				assignment.Location = pointer.To(location.Normalize(config.Location))
 			}
 
-			if config.Identity != nil {
+			if len(config.Identity) > 0 {
 				if assignment.Location == nil {
 					return fmt.Errorf("`location` must be set when `identity` is assigned")
 				}
@@ -233,7 +232,9 @@ func (br assignmentBaseResource) readFunc(scopeFieldName string) sdk.ResourceFun
 			if err != nil {
 				return fmt.Errorf("FlattenSystemOrUserAssignedMapToModel: %+v", err)
 			}
-			state.Identity = identityIns
+			if identityIns != nil {
+				state.Identity = *identityIns
+			}
 
 			if props := respModel.Properties; props != nil {
 				state.Description = pointer.From(props.Description)
@@ -566,16 +567,16 @@ func (br assignmentBaseResource) attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (br assignmentBaseResource) flattenNonComplianceMessages(input *[]policyassignments.NonComplianceMessage) []interface{} {
+func (br assignmentBaseResource) flattenNonComplianceMessages(input *[]policyassignments.NonComplianceMessage) []assignmentNonComplianceMessageModel {
 	if input == nil {
-		return []interface{}{}
+		return make([]assignmentNonComplianceMessageModel, 0)
 	}
 
-	results := make([]interface{}, 0)
+	results := make([]assignmentNonComplianceMessageModel, 0, len(*input))
 	for _, v := range *input {
-		results = append(results, map[string]interface{}{
-			"content":                        v.Message,
-			"policy_definition_reference_id": pointer.From(v.PolicyDefinitionReferenceId),
+		results = append(results, assignmentNonComplianceMessageModel{
+			Content:                     v.Message,
+			PolicyDefinitionReferenceId: pointer.From(v.PolicyDefinitionReferenceId),
 		})
 	}
 
@@ -680,9 +681,9 @@ func (br assignmentBaseResource) flattenSelectors(selectors *[]policyassignments
 	res := make([]assignmentOverrideSelectorModel, 0, len(*selectors))
 	for _, s := range *selectors {
 		item := assignmentOverrideSelectorModel{
-			In:     pointer.From(s.In),
-			NotIn:  pointer.From(s.NotIn),
-			Kind:   string(pointer.From(s.Kind)),
+			In:    pointer.From(s.In),
+			NotIn: pointer.From(s.NotIn),
+			Kind:  string(pointer.From(s.Kind)),
 		}
 		res = append(res, item)
 	}
