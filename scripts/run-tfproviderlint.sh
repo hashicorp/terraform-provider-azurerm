@@ -7,7 +7,7 @@
 
 function on_failure {
   echo ""
-  echo "==> tflint failed!"
+  echo "==> tfproviderlint failed!"
   echo "    Common causes:"
   echo "    - Schema definition issues (e.g. missing Required/Optional, invalid types)"
   echo "    - Acceptance test formatting issues (run: terrafmt fmt -f <file>)"

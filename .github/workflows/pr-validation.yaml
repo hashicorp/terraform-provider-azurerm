@@ -370,7 +370,7 @@ jobs:
 
   # ------------------------------------------
 
-  tflint:
+  tfproviderlint:
     needs: [paths-filter, depscheck, fmtcheck, shellcheck, website-lint, document-validate]
     if: |
       always() && 
@@ -387,32 +387,32 @@ jobs:
           go-version-file: ./.go-version
       - run: bash scripts/gogetcookie.sh
       - run: make tools
-      - run: make tflint
+      - run: make tfproviderlint
       - name: Guidance on failure
         if: failure()
         run: |
           echo "::error::Terraform Schema Linting failed."
           echo ""
-          echo "Run 'make tflint' locally to reproduce and fix the errors."
+          echo "Run 'make tfproviderlint' locally to reproduce and fix the errors."
           echo "This check validates Terraform schema definitions in your resource and data source code."
           echo "Common issues include: missing descriptions, incorrect type definitions,"
           echo "or schema validation rules that don't match the API."
 
-  tflint-save-artifacts:
-    needs: tflint
-    if: always() && needs.tflint.result == 'failure'
+  tfproviderlint-save-artifacts:
+    needs: tfproviderlint
+    if: always() && needs.tfproviderlint.result == 'failure'
     uses: ./.github/workflows/save-artifacts.yaml
 
-  tflint-on-fail:
-    needs: tflint
-    if: always() && needs.tflint.result == 'failure'
+  tfproviderlint-on-fail:
+    needs: tfproviderlint
+    if: always() && needs.tfproviderlint.result == 'failure'
     uses: ./.github/workflows/comment-ci-failure.yaml
     with:
       check_name: "Terraform Schema Linting"
 
-  tflint-on-success:
-    needs: tflint
-    if: success() && needs.tflint.result == 'success'
+  tfproviderlint-on-success:
+    needs: tfproviderlint
+    if: success() && needs.tfproviderlint.result == 'success'
     uses: ./.github/workflows/comment-ci-failure-outdated.yaml
     with:
       check_name: "Terraform Schema Linting"
