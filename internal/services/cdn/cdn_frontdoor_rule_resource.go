@@ -4,6 +4,7 @@
 package cdn
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -39,9 +40,33 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(6 * time.Hour),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := rules.ParseRuleID(id)
 			return err
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
+			client := meta.(*clients.Client).Cdn.FrontDoorRuleSetsClient
+
+			id, _ := rules.ParseRuleID(d.Id())
+			ruleSetID := rulesets.NewRuleSetID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName, id.RuleSetName)
+
+			resp, err := client.Get(ctx, ruleSetID)
+			if err != nil {
+				return nil, fmt.Errorf("retrieving %s: %+v", ruleSetID, err)
+			}
+
+			if resp.Model == nil {
+				return nil, fmt.Errorf("retrieving %s: `model` was nil`", id)
+			}
+
+			if resp.Model.Properties == nil {
+				return nil, fmt.Errorf("retrieving %s: `properties` was nil`", id)
+			}
+
+			if pointer.From(resp.Model.Properties.BatchMode) {
+				return nil, fmt.Errorf("the parent ruleset (%s) was provisioned using batch mode, and individual rules for this cannot be managed by this resource, use `azurerm_cdn_frontdoor_batch_rule_set` instead, or create a non-batch Rule Set with `azurerm_cdn_frontdoor_rule_set`", ruleSetID)
+			}
+
+			return []*pluginsdk.ResourceData{d}, nil
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -619,6 +644,7 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 
 func resourceCdnFrontDoorRuleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorRulesClient
+	ruleSetsClient := meta.(*clients.Client).Cdn.FrontDoorRuleSetsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -628,6 +654,23 @@ func resourceCdnFrontDoorRuleCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	id := rules.NewRuleID(ruleSetId.SubscriptionId, ruleSetId.ResourceGroupName, ruleSetId.ProfileName, ruleSetId.RuleSetName, d.Get("name").(string))
+
+	ruleSet, err := ruleSetsClient.Get(ctx, *ruleSetId)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", ruleSetId, err)
+	}
+
+	if ruleSet.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", ruleSetId)
+	}
+
+	if ruleSet.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", ruleSetId)
+	}
+
+	if pointer.From(ruleSet.Model.Properties.BatchMode) {
+		return fmt.Errorf("the parent ruleset (%s) was provisioned using batch mode, and individual rules for this cannot be managed by this resource, use `azurerm_cdn_frontdoor_batch_rule_set` instead, or create a non-batch Rule Set with `azurerm_cdn_frontdoor_rule_set`", ruleSetId)
+	}
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		result, err := client.Get(ctx, id)

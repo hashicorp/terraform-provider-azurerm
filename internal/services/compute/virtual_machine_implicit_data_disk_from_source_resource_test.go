@@ -318,37 +318,28 @@ resource "azurerm_network_interface" "test" {
   }
 }
 
-resource "azurerm_virtual_machine" "test" {
-  name                  = "acctvm-%d"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  network_interface_ids = [azurerm_network_interface.test.id]
-  vm_size               = "Standard_F2"
+resource "azurerm_linux_virtual_machine" "test" {
+  name                            = "acctvm-%d"
+  location                        = azurerm_resource_group.test.location
+  resource_group_name             = azurerm_resource_group.test.name
+  network_interface_ids           = [azurerm_network_interface.test.id]
+  size                            = "Standard_F2"
+  computer_name                   = "hn%d"
+  admin_username                  = "testadmin"
+  admin_password                  = "Password1234!"
+  disable_password_authentication = false
 
-  delete_os_disk_on_termination = true
-
-  storage_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-server-jammy"
     sku       = "22_04-lts"
     version   = "latest"
   }
 
-  storage_os_disk {
-    name              = "myosdisk1"
-    caching           = "ReadWrite"
-    create_option     = "FromImage"
-    managed_disk_type = "Standard_LRS"
-  }
-
-  os_profile {
-    computer_name  = "hn%d"
-    admin_username = "testadmin"
-    admin_password = "Password1234!"
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
+  os_disk {
+    name                 = "myosdisk1"
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
   }
 }
 
@@ -463,7 +454,7 @@ func (r VirtualMachineImplicitDataDiskFromSourceResource) basic(data acceptance.
 
 resource "azurerm_virtual_machine_implicit_data_disk_from_source" "test" {
   name               = "acctestVMIDD-%d"
-  virtual_machine_id = azurerm_virtual_machine.test.id
+  virtual_machine_id = azurerm_linux_virtual_machine.test.id
   lun                = "0"
   create_option      = "Copy"
   disk_size_gb       = 20
@@ -527,37 +518,28 @@ resource "azurerm_network_interface" "test" {
   }
 }
 
-resource "azurerm_virtual_machine" "test" {
-  name                  = "acctvm-%[1]d"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  network_interface_ids = [azurerm_network_interface.test.id]
-  vm_size               = "%[3]s"
+resource "azurerm_linux_virtual_machine" "test" {
+  name                            = "acctvm-%[1]d"
+  location                        = azurerm_resource_group.test.location
+  resource_group_name             = azurerm_resource_group.test.name
+  network_interface_ids           = [azurerm_network_interface.test.id]
+  size                            = "%[3]s"
+  computer_name                   = "hn%[1]d"
+  admin_username                  = "testadmin"
+  admin_password                  = "Password1234!"
+  disable_password_authentication = false
 
-  delete_os_disk_on_termination = true
-
-  storage_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-server-jammy"
     sku       = "22_04-lts"
     version   = "latest"
   }
 
-  storage_os_disk {
-    name              = "myosdisk1"
-    caching           = "ReadWrite"
-    create_option     = "FromImage"
-    managed_disk_type = "Standard_LRS"
-  }
-
-  os_profile {
-    computer_name  = "hn%[1]d"
-    admin_username = "testadmin"
-    admin_password = "Password1234!"
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
+  os_disk {
+    name                 = "myosdisk1"
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
   }
 }
 
@@ -580,7 +562,7 @@ resource "azurerm_snapshot" "test" {
 
 resource "azurerm_virtual_machine_implicit_data_disk_from_source" "test" {
   name               = "acctestVMIDD-%[1]d"
-  virtual_machine_id = azurerm_virtual_machine.test.id
+  virtual_machine_id = azurerm_linux_virtual_machine.test.id
   lun                = "0"
   create_option      = "Copy"
   disk_size_gb       = %[4]d
@@ -629,37 +611,28 @@ resource "azurerm_network_interface" "test" {
   }
 }
 
-resource "azurerm_virtual_machine" "test" {
-  name                  = "acctvm-%d"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  network_interface_ids = [azurerm_network_interface.test.id]
-  vm_size               = "Standard_F2"
+resource "azurerm_linux_virtual_machine" "test" {
+  name                            = "acctvm-%d"
+  location                        = azurerm_resource_group.test.location
+  resource_group_name             = azurerm_resource_group.test.name
+  network_interface_ids           = [azurerm_network_interface.test.id]
+  size                            = "Standard_F2"
+  computer_name                   = "hn%d"
+  admin_username                  = "testadmin"
+  admin_password                  = "Password1234!"
+  disable_password_authentication = false
 
-  delete_os_disk_on_termination = true
-
-  storage_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-server-jammy"
     sku       = "22_04-lts"
     version   = "latest"
   }
 
-  storage_os_disk {
-    name              = "myosdisk1"
-    caching           = "ReadWrite"
-    create_option     = "FromImage"
-    managed_disk_type = "Standard_LRS"
-  }
-
-  os_profile {
-    computer_name  = "hn%d"
-    admin_username = "testadmin"
-    admin_password = "Password1234!"
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
+  os_disk {
+    name                 = "myosdisk1"
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
   }
 
   identity {
@@ -678,7 +651,7 @@ resource "azurerm_managed_disk" "test" {
 
 resource "azurerm_virtual_machine_implicit_data_disk_from_source" "test" {
   name               = "acctestVMIDD-%d"
-  virtual_machine_id = azurerm_virtual_machine.test.id
+  virtual_machine_id = azurerm_linux_virtual_machine.test.id
   lun                = "0"
   create_option      = "Copy"
   disk_size_gb       = 20
@@ -693,7 +666,7 @@ func (r VirtualMachineImplicitDataDiskFromSourceResource) multipleDisks(data acc
 
 resource "azurerm_virtual_machine_implicit_data_disk_from_source" "first" {
   name               = "acctestVMIDD-%d"
-  virtual_machine_id = azurerm_virtual_machine.test.id
+  virtual_machine_id = azurerm_linux_virtual_machine.test.id
   lun                = "0"
   create_option      = "Copy"
   disk_size_gb       = 20
@@ -719,7 +692,7 @@ resource "azurerm_snapshot" "second" {
 
 resource "azurerm_virtual_machine_implicit_data_disk_from_source" "second" {
   name               = "acctestVMIDD2-%d"
-  virtual_machine_id = azurerm_virtual_machine.test.id
+  virtual_machine_id = azurerm_linux_virtual_machine.test.id
   lun                = "20"
   caching            = "ReadOnly"
   create_option      = "Copy"
@@ -735,7 +708,7 @@ func (r VirtualMachineImplicitDataDiskFromSourceResource) readOnly(data acceptan
 
 resource "azurerm_virtual_machine_implicit_data_disk_from_source" "test" {
   name               = "acctestVMIDD-%d"
-  virtual_machine_id = azurerm_virtual_machine.test.id
+  virtual_machine_id = azurerm_linux_virtual_machine.test.id
   lun                = "0"
   caching            = "ReadOnly"
   create_option      = "Copy"
@@ -751,7 +724,7 @@ func (r VirtualMachineImplicitDataDiskFromSourceResource) readWrite(data accepta
 
 resource "azurerm_virtual_machine_implicit_data_disk_from_source" "test" {
   name               = "acctestVMIDD-%d"
-  virtual_machine_id = azurerm_virtual_machine.test.id
+  virtual_machine_id = azurerm_linux_virtual_machine.test.id
   lun                = "0"
   caching            = "ReadWrite"
   create_option      = "Copy"
@@ -801,37 +774,28 @@ resource "azurerm_network_interface" "test" {
   }
 }
 
-resource "azurerm_virtual_machine" "test" {
-  name                  = "acctvm-%d"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  network_interface_ids = [azurerm_network_interface.test.id]
-  vm_size               = "Standard_M8ms"
+resource "azurerm_linux_virtual_machine" "test" {
+  name                            = "acctvm-%d"
+  location                        = azurerm_resource_group.test.location
+  resource_group_name             = azurerm_resource_group.test.name
+  network_interface_ids           = [azurerm_network_interface.test.id]
+  size                            = "Standard_M8ms"
+  computer_name                   = "hn%d"
+  admin_username                  = "testadmin"
+  admin_password                  = "Password1234!"
+  disable_password_authentication = false
 
-  delete_os_disk_on_termination = true
-
-  storage_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-server-jammy"
     sku       = "22_04-lts"
     version   = "latest"
   }
 
-  storage_os_disk {
-    name              = "myosdisk1"
-    caching           = "ReadWrite"
-    create_option     = "FromImage"
-    managed_disk_type = "Premium_LRS"
-  }
-
-  os_profile {
-    computer_name  = "hn%d"
-    admin_username = "testadmin"
-    admin_password = "Password1234!"
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
+  os_disk {
+    name                 = "myosdisk1"
+    caching              = "ReadWrite"
+    storage_account_type = "Premium_LRS"
   }
 }
 
@@ -854,7 +818,7 @@ resource "azurerm_snapshot" "test" {
 
 resource "azurerm_virtual_machine_implicit_data_disk_from_source" "test" {
   name                      = "acctestVMIDD-%d"
-  virtual_machine_id        = azurerm_virtual_machine.test.id
+  virtual_machine_id        = azurerm_linux_virtual_machine.test.id
   lun                       = "0"
   create_option             = "Copy"
   disk_size_gb              = 20
@@ -904,37 +868,28 @@ resource "azurerm_network_interface" "test" {
   }
 }
 
-resource "azurerm_virtual_machine" "test" {
-  name                  = "acctvm-%d"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  network_interface_ids = [azurerm_network_interface.test.id]
-  vm_size               = "Standard_F2"
+resource "azurerm_linux_virtual_machine" "test" {
+  name                            = "acctvm-%d"
+  location                        = azurerm_resource_group.test.location
+  resource_group_name             = azurerm_resource_group.test.name
+  network_interface_ids           = [azurerm_network_interface.test.id]
+  size                            = "Standard_F2"
+  computer_name                   = "hn%d"
+  admin_username                  = "testadmin"
+  admin_password                  = "Password1234!"
+  disable_password_authentication = false
 
-  delete_os_disk_on_termination = true
-
-  storage_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-server-jammy"
     sku       = "22_04-lts"
     version   = "latest"
   }
 
-  storage_os_disk {
-    name              = "myosdisk1"
-    caching           = "ReadWrite"
-    create_option     = "FromImage"
-    managed_disk_type = "Standard_LRS"
-  }
-
-  os_profile {
-    computer_name  = "hn%d"
-    admin_username = "testadmin"
-    admin_password = "Password1234!"
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
+  os_disk {
+    name                 = "myosdisk1"
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
   }
 }
 
@@ -1005,38 +960,28 @@ resource "azurerm_network_interface" "test" {
   }
 }
 
-resource "azurerm_virtual_machine" "test" {
-  name                  = "acctestvm%d"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  network_interface_ids = [azurerm_network_interface.test.id]
-  vm_size               = "Standard_F4"
+resource "azurerm_linux_virtual_machine" "test" {
+  name                            = "acctestvm%d"
+  location                        = azurerm_resource_group.test.location
+  resource_group_name             = azurerm_resource_group.test.name
+  network_interface_ids           = [azurerm_network_interface.test.id]
+  size                            = "Standard_F4"
+  computer_name                   = "testvm"
+  admin_username                  = "tfuser123"
+  admin_password                  = "Password1234!"
+  disable_password_authentication = false
 
-  delete_os_disk_on_termination    = true
-  delete_data_disks_on_termination = true
-
-  storage_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-server-jammy"
     sku       = "22_04-lts"
     version   = "latest"
   }
 
-  os_profile {
-    computer_name  = "testvm"
-    admin_username = "tfuser123"
-    admin_password = "Password1234!"
-  }
-
-  storage_os_disk {
-    name              = "myosdisk1"
-    caching           = "ReadWrite"
-    create_option     = "FromImage"
-    managed_disk_type = "Standard_LRS"
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
+  os_disk {
+    name                 = "myosdisk1"
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
   }
 
   tags = {
@@ -1046,7 +991,7 @@ resource "azurerm_virtual_machine" "test" {
 
 resource "azurerm_virtual_machine_extension" "test" {
   name                 = "random-script"
-  virtual_machine_id   = azurerm_virtual_machine.test.id
+  virtual_machine_id   = azurerm_linux_virtual_machine.test.id
   publisher            = "Microsoft.Azure.Extensions"
   type                 = "CustomScript"
   type_handler_version = "2.0"
@@ -1087,7 +1032,7 @@ resource "azurerm_snapshot" "test" {
 
 resource "azurerm_virtual_machine_implicit_data_disk_from_source" "test" {
   name               = "acctestVMIDD-%d"
-  virtual_machine_id = azurerm_virtual_machine.test.id
+  virtual_machine_id = azurerm_linux_virtual_machine.test.id
   lun                = "11"
   caching            = "ReadWrite"
   create_option      = "Copy"

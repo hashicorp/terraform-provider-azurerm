@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
@@ -555,10 +556,12 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 								"identity": {
-									// TODO - 4.0: this should be `user_assigned_identity_id`?
-									Type:         pluginsdk.TypeString,
-									Optional:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									ValidateFunc: validation.Any(
+										validation.StringInSlice([]string{"[system]"}, false),
+										commonids.ValidateUserAssignedIdentityID,
+									),
 								},
 							},
 						},

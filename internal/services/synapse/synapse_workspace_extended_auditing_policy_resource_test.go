@@ -354,11 +354,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctest-EH-%[2]d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  partition_count     = 2
-  message_retention   = 1
+  name              = "acctest-EH-%[2]d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 1
 }
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
@@ -383,19 +382,15 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   enabled_log {
     category = "SQLSecurityAuditEvents"
-
-    retention_policy {
-      enabled = false
-    }
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
   }
 
   // metric will return all disabled categories
   lifecycle {
-    ignore_changes = [metric]
+    ignore_changes = [enabled_metric]
   }
 }
 
@@ -417,19 +412,15 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   enabled_log {
     category = "SQLSecurityAuditEvents"
-
-    retention_policy {
-      enabled = false
-    }
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
   }
 
   // metric will return all disabled categories
   lifecycle {
-    ignore_changes = [metric]
+    ignore_changes = [enabled_metric]
   }
 }
 
@@ -452,22 +443,17 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
   eventhub_name                  = azurerm_eventhub.test.name
 
-
   enabled_log {
     category = "SQLSecurityAuditEvents"
-
-    retention_policy {
-      enabled = false
-    }
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
   }
 
   // metric will return all disabled categories
   lifecycle {
-    ignore_changes = [metric]
+    ignore_changes = [enabled_metric]
   }
 
 }
@@ -489,22 +475,17 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
   eventhub_name                  = azurerm_eventhub.test.name
 
-
   enabled_log {
     category = "SQLSecurityAuditEvents"
-
-    retention_policy {
-      enabled = false
-    }
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
   }
 
   // metric will return all disabled categories
   lifecycle {
-    ignore_changes = [metric]
+    ignore_changes = [enabled_metric]
   }
 
 }

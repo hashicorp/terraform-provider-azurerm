@@ -157,7 +157,7 @@ func TestAccCdnFrontDoorCustomDomain_cipherSuites_validation(t *testing.T) {
 	data.ResourceTest(t, r, testSteps)
 }
 
-func TestAccCdnFrontDoorCustomDomain_managedCertificate_validation(t *testing.T) {
+func TestAccCdnFrontDoorCustomDomain_managedCertificate_hostNameConstraints(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
 	r := CdnFrontDoorCustomDomainResource{}
 	r.preCheck(t)
@@ -168,9 +168,12 @@ func TestAccCdnFrontDoorCustomDomain_managedCertificate_validation(t *testing.T)
 			ExpectError: regexp.MustCompile("`host_name` cannot be longer than 64 characters when `tls\\.certificate_type` is `ManagedCertificate`"),
 		},
 		{
-			Config:      r.managedCertificateWildcardDomain(data),
-			ExpectError: regexp.MustCompile("`host_name` cannot be a wildcard domain when `tls\\.certificate_type` is `ManagedCertificate`"),
+			Config: r.managedCertificateWildcardDomain(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -442,6 +445,66 @@ resource "azurerm_dns_txt_record" "validation" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, dnsZoneName, dnsZoneRG, childZoneSuffix)
+}
+
+func (r CdnFrontDoorCustomDomainResource) templateWildcard(data acceptance.TestData) string {
+	dnsZoneName := os.Getenv("ARM_TEST_DNS_ZONE")
+	dnsZoneRG := os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP")
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cdn-afdx-%[1]d"
+  location = "%[2]s"
+}
+
+data "azurerm_dns_zone" "test" {
+  name                = "%[3]s"
+  resource_group_name = "%[4]s"
+}
+
+locals {
+  # Create a delegated child zone inside the test RG.
+  # NOTE: ARM_TEST_DNS_ZONE / ARM_TEST_DATA_RESOURCE_GROUP must refer to a real, delegated parent zone.
+  child_zone_label = "%[5]s"
+  child_zone_name  = join(".", [local.child_zone_label, data.azurerm_dns_zone.test.name])
+}
+
+resource "azurerm_dns_zone" "child" {
+  name                = local.child_zone_name
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_dns_ns_record" "delegation" {
+  name                = local.child_zone_label
+  resource_group_name = data.azurerm_dns_zone.test.resource_group_name
+  zone_name           = data.azurerm_dns_zone.test.name
+  ttl                 = 300
+
+  records = azurerm_dns_zone.child.name_servers
+}
+
+resource "azurerm_cdn_frontdoor_profile" "test" {
+  name                = "acctestcdnfdprofile-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Standard_AzureFrontDoor"
+}
+
+resource "azurerm_dns_txt_record" "validation" {
+  depends_on = [azurerm_dns_ns_record.delegation]
+
+  name                = "_dnsauth"
+  zone_name           = azurerm_dns_zone.child.name
+  resource_group_name = azurerm_resource_group.test.name
+  ttl                 = 300
+
+  record {
+    value = azurerm_cdn_frontdoor_custom_domain.test.validation_token
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, dnsZoneName, dnsZoneRG, data.RandomString)
 }
 
 func (r CdnFrontDoorCustomDomainResource) validationTemplate(data acceptance.TestData) string {
@@ -880,5 +943,5 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
     minimum_version  = "TLS12"
   }
 }
-`, r.validationTemplate(data), data.RandomInteger)
+`, r.templateWildcard(data), data.RandomInteger)
 }

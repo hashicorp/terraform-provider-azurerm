@@ -52,8 +52,11 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 			},
 
 			"ip_range_filter": {
-				Type:     pluginsdk.TypeString,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
 			},
 
 			"free_tier_enabled": {
@@ -279,7 +282,7 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 		if props := model.Properties; props != nil {
 			d.Set("offer_type", string(pointer.From(props.DatabaseAccountOfferType)))
-			d.Set("ip_range_filter", common.CosmosDBIpRulesToIpRangeFilterDataSource(props.IPRules))
+			d.Set("ip_range_filter", common.CosmosDBIpRulesToIpRangeFilter(props.IPRules))
 			d.Set("endpoint", props.DocumentEndpoint)
 			d.Set("is_virtual_network_filter_enabled", props.IsVirtualNetworkFilterEnabled)
 			d.Set("free_tier_enabled", props.EnableFreeTier)

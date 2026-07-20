@@ -27,6 +27,7 @@ type UserFeatures struct {
 	TemplateDeployment       TemplateDeploymentFeatures
 	VirtualMachine           VirtualMachineFeatures
 	VirtualMachineScaleSet   VirtualMachineScaleSetFeatures
+	ServiceBus               ServiceBusFeatures
 }
 
 type CognitiveAccountFeatures struct {
@@ -131,4 +132,8 @@ type NetAppFeatures struct {
 
 type DatabricksWorkspaceFeatures struct {
 	ForceDelete bool
+}
+
+type ServiceBusFeatures struct {
+	AutoDeleteSubscriptionDefaultRule bool
 }

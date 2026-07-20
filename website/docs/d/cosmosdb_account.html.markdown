@@ -49,7 +49,7 @@ The following attributes are exported:
 
 ~> **Note:** The CosmosDB service always uses the latest version of the specified key.
 
-* `ip_range_filter` - The current IP Filter for this CosmosDB account
+* `ip_range_filter` - The IP ranges associated with this CosmosDB account.
 
 * `free_tier_enabled` - If Free Tier pricing option is enabled for this CosmosDB Account. You can have up to one free tier Azure Cosmos DB account per Azure subscription.
 

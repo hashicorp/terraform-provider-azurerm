@@ -4851,9 +4851,6 @@ func flattenApplicationGatewaySslProfiles(input *[]applicationgateways.Applicati
 			}
 			output["trusted_client_certificate_names"] = trustedClientCertificateNames
 			output["verify_client_certificate_issuer_dn"] = verifyClientCertIssuerDn
-			if !features.FivePointOh() {
-				output["verify_client_cert_issuer_dn"] = verifyClientCertIssuerDn
-			}
 			output["verify_client_certificate_revocation"] = verifyClientCertificateRevocation
 		}
 

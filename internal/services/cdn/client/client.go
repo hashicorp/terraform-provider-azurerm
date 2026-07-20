@@ -19,29 +19,26 @@ import (
 )
 
 type Client struct {
-	FrontDoorEndpointsClient        *cdnFrontDoorSdk.AFDEndpointsClient
-	FrontDoorOriginGroupsClient     *cdnFrontDoorSdk.AFDOriginGroupsClient
-	FrontDoorOriginsClient          *cdnFrontDoorSdk.AFDOriginsClient
-	FrontDoorCustomDomainsClient    *cdnFrontDoorSdk.AFDCustomDomainsClient
 	AFDCustomDomainsClient          *afddomains.AFDDomainsClient
+	AFDEndpointsClient              *afdendpoints.AFDEndpointsClient
 	FrontDoorSecurityPoliciesClient *securitypolicies.SecurityPoliciesClient
-	FrontDoorRoutesClient           *cdnFrontDoorSdk.RoutesClient
 	FrontDoorRulesClient            *rules.RulesClient
 	FrontDoorProfilesClient         *profiles.ProfilesClient
-	FrontDoorSecretsClient          *cdnFrontDoorSdk.SecretsClient
 	FrontDoorRuleSetsClient         *rulesets.RuleSetsClient
 	FrontDoorFirewallPoliciesClient *waf.WebApplicationFirewallPoliciesClient
-	CustomDomainsClient             *cdnSdk.CustomDomainsClient
-	EndpointsClient                 *cdnSdk.EndpointsClient
-	ProfilesClient                  *cdnSdk.ProfilesClient
 
-	AFDEndpointsClient *afdendpoints.AFDEndpointsClient
+	// TODO: migrate to go-azure-sdk
+	FrontDoorOriginGroupsClient  *cdnFrontDoorSdk.AFDOriginGroupsClient
+	FrontDoorOriginsClient       *cdnFrontDoorSdk.AFDOriginsClient
+	FrontDoorCustomDomainsClient *cdnFrontDoorSdk.AFDCustomDomainsClient
+	FrontDoorRoutesClient        *cdnFrontDoorSdk.RoutesClient
+	FrontDoorSecretsClient       *cdnFrontDoorSdk.SecretsClient
+	CustomDomainsClient          *cdnSdk.CustomDomainsClient
+	EndpointsClient              *cdnSdk.EndpointsClient
+	ProfilesClient               *cdnSdk.ProfilesClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-	frontDoorEndpointsClient := cdnFrontDoorSdk.NewAFDEndpointsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&frontDoorEndpointsClient.Client, o.ResourceManagerAuthorizer)
-
 	frontDoorOriginGroupsClient := cdnFrontDoorSdk.NewAFDOriginGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&frontDoorOriginGroupsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -106,23 +103,23 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	o.Configure(afdEndpointsClient.Client, o.Authorizers.ResourceManager)
 
 	client := Client{
-		FrontDoorEndpointsClient:        &frontDoorEndpointsClient,
-		FrontDoorOriginGroupsClient:     &frontDoorOriginGroupsClient,
-		FrontDoorOriginsClient:          &frontDoorOriginsClient,
-		FrontDoorCustomDomainsClient:    &frontDoorCustomDomainsClient,
 		AFDCustomDomainsClient:          afdCustomDomainsClient,
+		AFDEndpointsClient:              afdEndpointsClient,
 		FrontDoorSecurityPoliciesClient: frontDoorSecurityPoliciesClient,
-		FrontDoorRoutesClient:           &frontDoorRoutesClient,
 		FrontDoorRulesClient:            frontDoorRulesClient,
 		FrontDoorProfilesClient:         frontDoorProfilesClient,
-		FrontDoorSecretsClient:          &frontDoorPolicySecretsClient,
 		FrontDoorRuleSetsClient:         frontDoorRuleSetsClient,
 		FrontDoorFirewallPoliciesClient: &frontDoorFirewallPoliciesClient,
-		CustomDomainsClient:             &customDomainsClient,
-		EndpointsClient:                 &endpointsClient,
-		ProfilesClient:                  &profilesClient,
 
-		AFDEndpointsClient: afdEndpointsClient,
+		// TODO: migrate to go-azure-sdk
+		FrontDoorOriginGroupsClient:  &frontDoorOriginGroupsClient,
+		FrontDoorOriginsClient:       &frontDoorOriginsClient,
+		FrontDoorCustomDomainsClient: &frontDoorCustomDomainsClient,
+		FrontDoorRoutesClient:        &frontDoorRoutesClient,
+		FrontDoorSecretsClient:       &frontDoorPolicySecretsClient,
+		CustomDomainsClient:          &customDomainsClient,
+		EndpointsClient:              &endpointsClient,
+		ProfilesClient:               &profilesClient,
 	}
 
 	return &client, nil

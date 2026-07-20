@@ -69,6 +69,7 @@ type Features struct {
 	TemplateDeployment       types.List `tfsdk:"template_deployment"`
 	VirtualMachine           types.List `tfsdk:"virtual_machine"`
 	VirtualMachineScaleSet   types.List `tfsdk:"virtual_machine_scale_set"`
+	ServiceBus               types.List `tfsdk:"servicebus"`
 }
 
 // FeaturesAttributes and the other block attribute vars are required for unit testing on the Load func
@@ -97,6 +98,7 @@ var FeaturesAttributes = map[string]attr.Type{
 	"template_deployment":        types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(TemplateDeploymentAttributes)),
 	"virtual_machine":            types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(VirtualMachineAttributes)),
 	"virtual_machine_scale_set":  types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(VirtualMachineScaleSetAttributes)),
+	"servicebus":                 types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(ServiceBusAttributes)),
 }
 
 type APIManagement struct {
@@ -293,6 +295,14 @@ type DatabricksWorkspace struct {
 
 var DatabricksWorkspaceAttributes = map[string]attr.Type{
 	"force_delete": types.BoolType,
+}
+
+type ServiceBus struct {
+	AutoDeleteSubscriptionDefaultRule types.Bool `tfsdk:"auto_delete_subscription_default_rule"`
+}
+
+var ServiceBusAttributes = map[string]attr.Type{
+	"auto_delete_subscription_default_rule": types.BoolType,
 }
 
 type EnhancedValidationModel struct {
