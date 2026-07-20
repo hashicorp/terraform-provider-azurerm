@@ -47,19 +47,19 @@ type assignmentResourceSelectorModel struct {
 }
 
 type assignmentBaseModel struct {
-	Name                 string                                    `tfschema:"name"`
-	PolicyDefinitionId   string                                    `tfschema:"policy_definition_id"`
-	Description          string                                    `tfschema:"description"`
-	DisplayName          string                                    `tfschema:"display_name"`
-	Location             string                                    `tfschema:"location"`
-	Enforce              bool                                      `tfschema:"enforce"`
-	Metadata             string                                    `tfschema:"metadata"`
-	Parameters           string                                    `tfschema:"parameters"`
-	NotScopes            []string                                  `tfschema:"not_scopes"`
+	Name                 string                                     `tfschema:"name"`
+	PolicyDefinitionId   string                                     `tfschema:"policy_definition_id"`
+	Description          string                                     `tfschema:"description"`
+	DisplayName          string                                     `tfschema:"display_name"`
+	Location             string                                     `tfschema:"location"`
+	Enforce              bool                                       `tfschema:"enforce"`
+	Metadata             string                                     `tfschema:"metadata"`
+	Parameters           string                                     `tfschema:"parameters"`
+	NotScopes            []string                                   `tfschema:"not_scopes"`
 	Identity             []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	NonComplianceMessage []assignmentNonComplianceMessageModel     `tfschema:"non_compliance_message"`
-	Overrides            []assignmentOverrideModel                 `tfschema:"overrides"`
-	ResourceSelectors    []assignmentResourceSelectorModel         `tfschema:"resource_selectors"`
+	NonComplianceMessage []assignmentNonComplianceMessageModel      `tfschema:"non_compliance_message"`
+	Overrides            []assignmentOverrideModel                  `tfschema:"overrides"`
+	ResourceSelectors    []assignmentResourceSelectorModel          `tfschema:"resource_selectors"`
 }
 
 func (br assignmentBaseResource) createFunc(resourceName, scopeFieldName string) sdk.ResourceFunc {
