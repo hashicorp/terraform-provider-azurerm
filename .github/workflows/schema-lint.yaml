@@ -5,7 +5,7 @@ name: Schema Lint
 
 permissions:
   contents: read
-  pull-requests: read
+  pull-requests: write
 
 on:
   pull_request:
@@ -36,18 +36,72 @@ jobs:
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: ./.go-version
-      - run: bash ./scripts/run-schema-lint-diff.sh
-      - name: Guidance on failure
-        if: failure()
+      - name: Run schema lint
+        id: lint
+        shell: bash
+        run: |
+          set +e
+          bash ./scripts/run-schema-lint-diff.sh > schema-lint-output.txt 2>&1
+          code=$?
+          cat schema-lint-output.txt
+          echo "exit_code=${code}" >> "$GITHUB_OUTPUT"
+          exit 0
+      - name: Build schema lint comment
+        if: ${{ always() && steps.lint.outcome == 'success' }}
+        shell: bash
+        env:
+          EXIT_CODE: ${{ steps.lint.outputs.exit_code }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          BASE_REF: ${{ github.base_ref }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          output=$(sed -E 's/\x1b\[[0-9;]*m//g' schema-lint-output.txt \
+            | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g')
+          if [ -z "$(printf '%s' "$output" | tr -d '[:space:]')" ]; then
+            output="No newly added schema properties required linting."
+          fi
+          max=100
+          if [ "${#output}" -gt "$max" ]; then
+            output="${output:0:$max}"$'\n''... (truncated, see the workflow run for the full output)'
+          fi
+          if [ "$EXIT_CODE" = "0" ]; then
+            heading="### 🧹 Schema Lint — ✅ Passed"
+            details_open=""
+          else
+            heading="### 🧹 Schema Lint — ❌ Failed"
+            details_open=" open"
+          fi
+          {
+            echo "$heading"
+            echo ""
+            echo "Result for commit \`${HEAD_SHA:0:7}\` · [workflow run](${RUN_URL})"
+            echo ""
+            echo "<details${details_open}><summary>Linter output</summary>"
+            echo "<pre><code>${output}</code></pre>"
+            echo "</details>"
+            if [ "$EXIT_CODE" != "0" ]; then
+              echo ""
+              echo "> One or more newly added schema properties violate a schema-lint rule. Correct the property (auto-fixable naming findings can be applied with the linter's \`-fix\` flag); if the change is intentional, add a \`//nolint\` (or \`//nolint:<RULE>\`) comment to the property, or a maintainer can apply the \`schema-accepted\` label to bypass this check."
+              echo ">"
+              echo "> Reproduce locally: \`GITHUB_BASE_REF=${BASE_REF} bash ./scripts/run-schema-lint-diff.sh\`"
+            fi
+          } > schema-lint-comment.md
+      - name: Comment schema lint results
+        if: ${{ always() && steps.lint.outcome == 'success' }}
+        continue-on-error: true
+        uses: marocchino/sticky-pull-request-comment@5770ad5eb8f42dd2c4f34da00c94c5381e49af88 # v3.0.5
+        with:
+          header: schema-lint
+          path: schema-lint-comment.md
+      - name: Fail if schema lint reported findings
+        if: ${{ steps.lint.outputs.exit_code != '0' }}
         run: |
           echo "::error::Schema lint failed for a newly added schema property."
           echo ""
-          echo "This PR adds one or more schema properties that violate a"
-          echo "schema-lint rule. Please correct the schema property or defend"
-          echo "the change in the PR description and a maintainer may apply the"
-          echo "schema-accepted label to the PR to bypass this check."
-          echo ""
-          echo "Reproduce locally against the branch you are merging into:"
-          echo "  GITHUB_BASE_REF=main bash ./scripts/run-schema-lint-diff.sh"
+          echo "This PR adds one or more schema properties that violate a schema-lint"
+          echo "rule. See the schema-lint comment on the pull request for details, or"
+          echo "reproduce locally against the branch you are merging into:"
+          echo "  GITHUB_BASE_REF=${GITHUB_BASE_REF:-main} bash ./scripts/run-schema-lint-diff.sh"
           echo ""
           echo "See internal/tools/schema-lint/README.md for the full rule list."
+          exit 1

@@ -44,7 +44,7 @@ func checkSL009(res *schematree.Result, report ReportFunc) {
 			preferred := prefix + "_in_" + unit
 			report(n,
 				fmt.Sprintf("property %q uses a bare unit suffix; prefer the %q naming convention (%q)", n.Path, "_in_"+unit, preferred),
-				fmt.Sprintf("rename %q to %q", n.Name, preferred),
+				&Fix{Suggestion: fmt.Sprintf("rename %q to %q", n.Name, preferred), Rename: preferred},
 			)
 			break
 		}

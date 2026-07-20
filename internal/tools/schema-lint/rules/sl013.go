@@ -27,11 +27,11 @@ func checkSL013(res *schematree.Result, report ReportFunc) {
 		}
 
 		if !hasValidation(n.Schema) {
-			report(n, fmt.Sprintf("ID reference %q has no validation; use a resource-specific ID validator (e.g. a commonids Validate...ID function) or validation.IsUUID", n.Path), "")
+			report(n, fmt.Sprintf("ID reference %q has no validation; use a resource-specific ID validator (e.g. a commonids Validate...ID function) or validation.IsUUID", n.Path), nil)
 			continue
 		}
 		if isSelectorFunc(n.Schema.FieldValue(fieldValidateFunc), "StringIsNotEmpty") {
-			report(n, fmt.Sprintf("ID reference %q uses weak validation (accepts arbitrary strings); use a resource-specific ID validator or validation.IsUUID", n.Path), "")
+			report(n, fmt.Sprintf("ID reference %q uses weak validation (accepts arbitrary strings); use a resource-specific ID validator or validation.IsUUID", n.Path), nil)
 		}
 	}
 }

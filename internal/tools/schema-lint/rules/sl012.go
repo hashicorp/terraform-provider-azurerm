@@ -32,7 +32,7 @@ func checkSL012(res *schematree.Result, report ReportFunc) {
 			}
 			report(n,
 				fmt.Sprintf("property %q has a redundant %q suffix (%q)", n.Path, suffix, preferred),
-				fmt.Sprintf("rename %q to %q", n.Name, preferred),
+				&Fix{Suggestion: fmt.Sprintf("rename %q to %q", n.Name, preferred), Rename: preferred},
 			)
 			break
 		}

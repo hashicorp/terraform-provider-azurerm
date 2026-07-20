@@ -14,10 +14,11 @@ import (
 
 // finding is a rule diagnostic resolved to its property path for assertions.
 type finding struct {
-	rule string
-	path string
-	msg  string
-	fix  string
+	rule   string
+	path   string
+	msg    string
+	fix    string
+	rename string
 }
 
 // wrap embeds schema-map entries in a minimal native resource so the source
@@ -49,8 +50,13 @@ func runRule(t *testing.T, rule *Rule, src string) []finding {
 	res := schematree.Build(fset, []*ast.File{file})
 
 	var out []finding
-	rule.Check(res, func(n *schematree.Node, message, fix string) {
-		out = append(out, finding{rule: rule.ID, path: n.Path, msg: message, fix: fix})
+	rule.Check(res, func(n *schematree.Node, message string, fix *Fix) {
+		f := finding{rule: rule.ID, path: n.Path, msg: message}
+		if fix != nil {
+			f.fix = fix.Suggestion
+			f.rename = fix.Rename
+		}
+		out = append(out, f)
 	})
 	return out
 }

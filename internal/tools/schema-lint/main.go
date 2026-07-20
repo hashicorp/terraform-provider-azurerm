@@ -59,7 +59,7 @@ func runCheck(args []string) int {
 	fs := flag.NewFlagSet("check", flag.ContinueOnError)
 	root := fs.String("C", ".", "repository root to resolve targets and run git from")
 	format := fs.String("format", "text", "output format: text or json")
-	fix := fs.Bool("fix", false, "include suggested fixes for fixable findings")
+	fix := fs.Bool("fix", false, "apply auto-fixable fixes (property renames) to files in place")
 	diffBase := fs.String("diff-base", "", "only report findings on lines added since this git ref (e.g. origin/main)")
 	rulesFlag := fs.String("rules", "", "comma-separated rule IDs to run (default all)")
 	disableFlag := fs.String("disable", "", "comma-separated rule IDs to disable")
@@ -107,6 +107,17 @@ func runCheck(args []string) int {
 		return 2
 	}
 
+	if *fix {
+		applied, err := lint.Apply(findings)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error applying fixes: %v\n", err)
+			return 2
+		}
+		lint.WriteApplied(os.Stderr, applied, absRoot)
+		// The renames are now applied; report only what still needs manual work.
+		findings = lint.Unfixed(findings)
+	}
+
 	switch strings.ToLower(*format) {
 	case "json":
 		if err := lint.WriteJSON(os.Stdout, findings); err != nil {
@@ -114,7 +125,7 @@ func runCheck(args []string) int {
 			return 2
 		}
 	default:
-		lint.WriteText(os.Stdout, findings, absRoot, *fix)
+		lint.WriteText(os.Stdout, findings, absRoot)
 	}
 
 	if *failOnError && lint.HasErrors(findings) {
@@ -144,7 +155,7 @@ Commands:
 Check flags:
   -C <dir>            repository root (default ".")
   -format text|json   output format (default "text")
-  -fix                include suggested fixes
+  -fix                apply auto-fixable fixes (property renames) in place
   -diff-base <ref>    lint only lines added since <ref> (e.g. origin/main)
   -rules <ids>        comma-separated rule IDs to run
   -disable <ids>      comma-separated rule IDs to disable

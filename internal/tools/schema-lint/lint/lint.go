@@ -34,6 +34,9 @@ type Finding struct {
 	Column   int            `json:"column"`
 	Message  string         `json:"message"`
 	Fix      string         `json:"fix,omitempty"`
+	// Rename, when non-nil, is an auto-applicable fix that -w performs by
+	// replacing every quoted occurrence of the old name with the new one.
+	Rename *Rename `json:"rename,omitempty"`
 }
 
 // Options configures a lint run.
@@ -57,25 +60,38 @@ func Run(targets []string, opts Options) ([]Finding, error) {
 
 	fset := token.NewFileSet()
 	byDir := make(map[string][]*ast.File)
+	sources := make(map[string][]string)
+	var allFiles []*ast.File
 	for _, f := range files {
-		parsed, err := parser.ParseFile(fset, f, nil, parser.ParseComments)
+		src, err := os.ReadFile(f)
+		if err != nil {
+			return nil, fmt.Errorf("reading %s: %w", f, err)
+		}
+		parsed, err := parser.ParseFile(fset, f, src, parser.ParseComments)
 		if err != nil {
 			return nil, fmt.Errorf("parsing %s: %w", f, err)
 		}
+		sources[f] = strings.Split(string(src), "\n")
+		allFiles = append(allFiles, parsed)
 		dir := filepath.Dir(f)
 		byDir[dir] = append(byDir[dir], parsed)
 	}
+
+	nolint := buildNolintIndex(fset, allFiles, sources)
 
 	var findings []Finding
 	for _, dir := range sortedKeys(byDir) {
 		res := schematree.Build(fset, byDir[dir])
 		for _, r := range active {
-			r.Check(res, func(n *schematree.Node, message, fix string) {
+			r.Check(res, func(n *schematree.Node, message string, fix *rules.Fix) {
 				if opts.Changes != nil && !changedInSpan(opts.Changes, fset, n) {
 					return
 				}
 				pos := fset.Position(n.Key.Pos())
-				findings = append(findings, Finding{
+				if nolint.suppressed(pos.Filename, pos.Line, r.ID) {
+					return
+				}
+				f := Finding{
 					RuleID:   r.ID,
 					RuleName: r.Name,
 					Severity: r.Severity,
@@ -86,8 +102,14 @@ func Run(targets []string, opts Options) ([]Finding, error) {
 					Line:     pos.Line,
 					Column:   pos.Column,
 					Message:  message,
-					Fix:      fix,
-				})
+				}
+				if fix != nil {
+					f.Fix = fix.Suggestion
+					if fix.Rename != "" {
+						f.Rename = &Rename{From: n.Name, To: fix.Rename}
+					}
+				}
+				findings = append(findings, f)
 			})
 		}
 	}

@@ -28,7 +28,7 @@ func checkSL003(res *schematree.Result, report ReportFunc) {
 
 		report(n,
 			fmt.Sprintf("property %q (%s) sets MinItems/MaxItems, which only apply to TypeList/TypeSet", n.Path, n.Schema.ValueType()),
-			fmt.Sprintf("remove MinItems/MaxItems from %q", n.Path),
+			&Fix{Suggestion: fmt.Sprintf("remove MinItems/MaxItems from %q", n.Path)},
 		)
 	}
 }

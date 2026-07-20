@@ -28,6 +28,6 @@ func checkSL007(res *schematree.Result, report ReportFunc) {
 			continue
 		}
 
-		report(n, fmt.Sprintf("array property %q does not set MaxItems; declare MinItems/MaxItems based on the API constraints", n.Path), "")
+		report(n, fmt.Sprintf("array property %q does not set MaxItems; declare MinItems/MaxItems based on the API constraints", n.Path), nil)
 	}
 }

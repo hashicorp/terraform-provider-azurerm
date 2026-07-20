@@ -24,6 +24,6 @@ func checkSL001(res *schematree.Result, report ReportFunc) {
 		if n.Schema.Declares(fieldDescription) && !emptyStringLiteral(n.Schema.FieldValue(fieldDescription)) {
 			continue
 		}
-		report(n, fmt.Sprintf("property %q is missing a description", n.Path), "")
+		report(n, fmt.Sprintf("property %q is missing a description", n.Path), nil)
 	}
 }

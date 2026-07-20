@@ -19,6 +19,8 @@ func TestSL010(t *testing.T) {
 		t.Error("expected SL010 on vm_count")
 	} else if !strings.Contains(f.fix, `"virtual_machine_count"`) {
 		t.Errorf("expected expansion to virtual_machine_count, got %q", f.fix)
+	} else if f.rename != "virtual_machine_count" {
+		t.Errorf("expected auto-fix rename to virtual_machine_count, got %q", f.rename)
 	}
 	if !flagged(fs, "max_size") {
 		t.Error("expected SL010 on max_size")

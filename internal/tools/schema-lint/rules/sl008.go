@@ -33,6 +33,6 @@ func checkSL008(res *schematree.Result, report ReportFunc) {
 			continue
 		}
 
-		report(n, fmt.Sprintf("argument %q uses the sku_* format; with multiple sku_* arguments, prefer a single `sku` block", n.Path), "")
+		report(n, fmt.Sprintf("argument %q uses the sku_* format; with multiple sku_* arguments, prefer a single `sku` block", n.Path), nil)
 	}
 }

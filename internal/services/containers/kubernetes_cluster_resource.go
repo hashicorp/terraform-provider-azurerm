@@ -235,7 +235,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"api_server_access_profile": {
+			"api_server_access": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -274,7 +274,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"auto_scaler_profile": {
+			"auto_scaler": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
@@ -317,27 +317,27 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Default:  false,
 						},
 
-						"max_graceful_termination_sec": {
+						"max_graceful_termination_in_sec": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Computed: true,
 						},
 
-						"max_node_provisioning_time": {
+						"maximum_node_provisioning_time": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Default:      "15m",
 							ValidateFunc: containerValidate.Duration,
 						},
 
-						"max_unready_nodes": {
+						"maximum_unready_nodes": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Default:      3,
 							ValidateFunc: validation.IntAtLeast(0),
 						},
 
-						"max_unready_percentage": {
+						"maximum_unready_percentage": {
 							Type:         pluginsdk.TypeFloat,
 							Optional:     true,
 							Default:      45,
@@ -399,7 +399,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Computed: true,
 						},
 
-						"empty_bulk_delete_max": {
+						"empty_bulk_delete_maximum": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Computed: true,
@@ -504,7 +504,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"http_proxy_config": {
+			"http_proxy": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -541,7 +541,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"image_cleaner_interval_hours": {
+			"image_cleaner_interval_in_hours": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(24, 2160),
@@ -604,7 +604,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
-			"kube_admin_config": {
+			"kube_admin": {
 				Type:      pluginsdk.TypeList,
 				Computed:  true,
 				Sensitive: true,
@@ -650,7 +650,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 
-			"kube_config": {
+			"kube": {
 				Type:      pluginsdk.TypeList,
 				Computed:  true,
 				Sensitive: true,
@@ -750,7 +750,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"linux_profile": {
+			"linux": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -782,7 +782,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
-			"bootstrap_profile": {
+			"bootstrap": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				// Note: O+C because the API returns a default value for `bootstrapProfile` when it is omitted in the API request
@@ -1122,7 +1122,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
-			"network_profile": {
+			"network": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
@@ -1251,7 +1251,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							}, false),
 						},
 
-						"load_balancer_profile": {
+						"load_balancer": {
 							Type:     pluginsdk.TypeList,
 							MaxItems: 1,
 							ForceNew: true,
@@ -1330,7 +1330,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							},
 						},
 
-						"nat_gateway_profile": {
+						"nat_gateway": {
 							Type:     pluginsdk.TypeList,
 							MaxItems: 1,
 							ForceNew: true,
@@ -1490,7 +1490,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"service_mesh_profile": {
+			"service_mesh": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -1590,7 +1590,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"storage_profile": {
+			"storage": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -1652,7 +1652,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
-			"windows_profile": {
+			"windows": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
@@ -1699,7 +1699,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
-			"workload_autoscaler_profile": {
+			"workload_autoscaler": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -1725,7 +1725,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			"node_provisioning_profile": {
+			"node_provisioning": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
@@ -1762,10 +1762,10 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 	}
 
 	if !features.FivePointOh() {
-		resource.Schema["node_provisioning_profile"].Required = false
+		resource.Schema["node_provisioning"].Required = false
 		// NOTE: O+C The API returns default values here even if not set in the request
-		resource.Schema["node_provisioning_profile"].Optional = true
-		resource.Schema["node_provisioning_profile"].Computed = true
+		resource.Schema["node_provisioning"].Optional = true
+		resource.Schema["node_provisioning"].Computed = true
 
 		resource.Schema["default_node_pool"].Elem.(*pluginsdk.Resource).Schema["linux_os_config"].Elem.(*pluginsdk.Resource).Schema["transparent_huge_page"] = &pluginsdk.Schema{
 			Type:          pluginsdk.TypeString,
@@ -1853,7 +1853,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	dnsPrefix := d.Get("dns_prefix").(string)
 	kubernetesVersion := d.Get("kubernetes_version").(string)
 
-	linuxProfileRaw := d.Get("linux_profile").([]interface{})
+	linuxProfileRaw := d.Get("linux").([]interface{})
 	linuxProfile := expandKubernetesClusterLinuxProfile(linuxProfileRaw)
 
 	// NOTE: we /could/ validate the default node pool version here - but since the entire cluster deployment
@@ -1882,7 +1882,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	networkProfileRaw := d.Get("network_profile").([]interface{})
+	networkProfileRaw := d.Get("network").([]interface{})
 	networkProfile, err := expandKubernetesClusterNetworkProfile(networkProfileRaw, d)
 	if err != nil {
 		return err
@@ -1900,13 +1900,13 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	t := d.Get("tags").(map[string]interface{})
 
-	windowsProfileRaw := d.Get("windows_profile").([]interface{})
+	windowsProfileRaw := d.Get("windows").([]interface{})
 	windowsProfile := expandKubernetesClusterWindowsProfile(windowsProfileRaw)
 
-	workloadAutoscalerProfileRaw := d.Get("workload_autoscaler_profile").([]interface{})
+	workloadAutoscalerProfileRaw := d.Get("workload_autoscaler").([]interface{})
 	workloadAutoscalerProfile := expandKubernetesClusterWorkloadAutoscalerProfile(workloadAutoscalerProfileRaw, d)
 
-	nodeProvisioningProfileRaw := d.Get("node_provisioning_profile").([]interface{})
+	nodeProvisioningProfileRaw := d.Get("node_provisioning").([]interface{})
 	nodeProvisioningProfile := expandKubernetesClusterNodeProvisioningProfile(nodeProvisioningProfileRaw)
 
 	apiAccessProfile := expandKubernetesClusterAPIAccessProfile(d)
@@ -1916,16 +1916,16 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	nodeResourceGroup := d.Get("node_resource_group").(string)
 
-	autoScalerProfileRaw := d.Get("auto_scaler_profile").([]interface{})
+	autoScalerProfileRaw := d.Get("auto_scaler").([]interface{})
 	autoScalerProfile := expandKubernetesClusterAutoScalerProfile(autoScalerProfileRaw)
 
 	azureMonitorKubernetesMetricsRaw := d.Get("monitor_metrics").([]interface{})
 	azureMonitorProfile := expandKubernetesClusterAzureMonitorProfile(azureMonitorKubernetesMetricsRaw)
 
-	bootstrapProfileRaw := d.Get("bootstrap_profile").([]interface{})
+	bootstrapProfileRaw := d.Get("bootstrap").([]interface{})
 	bootstrapProfile := expandBootstrapProfile(bootstrapProfileRaw)
 
-	httpProxyConfigRaw := d.Get("http_proxy_config").([]interface{})
+	httpProxyConfigRaw := d.Get("http_proxy").([]interface{})
 	httpProxyConfig := expandKubernetesClusterHttpProxyConfig(httpProxyConfigRaw)
 
 	enableOidcIssuer := d.Get("oidc_issuer_enabled").(bool)
@@ -1937,7 +1937,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	storageProfileRaw := d.Get("storage_profile").([]interface{})
+	storageProfileRaw := d.Get("storage").([]interface{})
 	storageProfile := expandStorageProfile(storageProfileRaw)
 
 	upgradeOverrideSettingRaw := d.Get("upgrade_override").([]interface{})
@@ -1965,7 +1965,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	if d.Get("image_cleaner_enabled").(bool) {
 		securityProfile.ImageCleaner = &managedclusters.ManagedClusterSecurityProfileImageCleaner{
 			Enabled:       pointer.To(d.Get("image_cleaner_enabled").(bool)),
-			IntervalHours: pointer.To(int64(d.Get("image_cleaner_interval_hours").(int))),
+			IntervalHours: pointer.To(int64(d.Get("image_cleaner_interval_in_hours").(int))),
 		}
 	}
 
@@ -2100,7 +2100,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		parameters.Properties.IngressProfile = ingressProfile
 	}
 
-	if serviceMeshProfile := expandKubernetesClusterServiceMeshProfile(d.Get("service_mesh_profile").([]interface{}), &managedclusters.ServiceMeshProfile{}); serviceMeshProfile != nil {
+	if serviceMeshProfile := expandKubernetesClusterServiceMeshProfile(d.Get("service_mesh").([]interface{}), &managedclusters.ServiceMeshProfile{}); serviceMeshProfile != nil {
 		parameters.Properties.ServiceMeshProfile = serviceMeshProfile
 	}
 
@@ -2259,16 +2259,16 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.Model.Properties.AddonProfiles = addonProfiles
 	}
 
-	if d.HasChange("run_command_enabled") || d.HasChange("private_cluster_public_fqdn_enabled") || d.HasChange("api_server_access_profile") {
+	if d.HasChange("run_command_enabled") || d.HasChange("private_cluster_public_fqdn_enabled") || d.HasChange("api_server_access") {
 		updateCluster = true
 
 		apiServerProfile := expandKubernetesClusterAPIAccessProfile(d)
 		existing.Model.Properties.ApiServerAccessProfile = apiServerProfile
 	}
 
-	if d.HasChange("auto_scaler_profile") {
+	if d.HasChange("auto_scaler") {
 		updateCluster = true
-		autoScalerProfileRaw := d.Get("auto_scaler_profile").([]interface{})
+		autoScalerProfileRaw := d.Get("auto_scaler").([]interface{})
 
 		autoScalerProfile := expandKubernetesClusterAutoScalerProfile(autoScalerProfileRaw)
 		existing.Model.Properties.AutoScalerProfile = autoScalerProfile
@@ -2282,9 +2282,9 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.Model.Properties.AzureMonitorProfile = azureMonitorProfile
 	}
 
-	if d.HasChange("linux_profile") {
+	if d.HasChange("linux") {
 		updateCluster = true
-		linuxProfileRaw := d.Get("linux_profile").([]interface{})
+		linuxProfileRaw := d.Get("linux").([]interface{})
 		linuxProfile := expandKubernetesClusterLinuxProfile(linuxProfileRaw)
 		existing.Model.Properties.LinuxProfile = linuxProfile
 	}
@@ -2303,7 +2303,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.Model.Properties.MetricsProfile = metricsProfile
 	}
 
-	if d.HasChange("network_profile") {
+	if d.HasChange("network") {
 		updateCluster = true
 
 		if existing.Model.Properties.NetworkProfile == nil {
@@ -2468,9 +2468,9 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			existing.Model.Properties.NetworkProfile.AdvancedNetworking = expandKubernetesClusterAdvancedNetworking(d.Get("network_profile.0.advanced_networking").([]interface{}), d)
 		}
 	}
-	if d.HasChange("service_mesh_profile") {
+	if d.HasChange("service_mesh") {
 		updateCluster = true
-		if serviceMeshProfile := expandKubernetesClusterServiceMeshProfile(d.Get("service_mesh_profile").([]interface{}), existing.Model.Properties.ServiceMeshProfile); serviceMeshProfile != nil {
+		if serviceMeshProfile := expandKubernetesClusterServiceMeshProfile(d.Get("service_mesh").([]interface{}), existing.Model.Properties.ServiceMeshProfile); serviceMeshProfile != nil {
 			existing.Model.Properties.ServiceMeshProfile = serviceMeshProfile
 		}
 	}
@@ -2481,9 +2481,9 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.Model.Tags = tags.Expand(t)
 	}
 
-	if d.HasChange("windows_profile") {
+	if d.HasChange("windows") {
 		updateCluster = true
-		windowsProfileRaw := d.Get("windows_profile").([]interface{})
+		windowsProfileRaw := d.Get("windows").([]interface{})
 		windowsProfile := expandKubernetesClusterWindowsProfile(windowsProfileRaw)
 		existing.Model.Properties.WindowsProfile = windowsProfile
 	}
@@ -2540,9 +2540,9 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.Model.Properties.AutoUpgradeProfile.NodeOSUpgradeChannel = pointer.To(managedclusters.NodeOSUpgradeChannel(d.Get(nodeOsUpgradeChannel).(string)))
 	}
 
-	if d.HasChange("http_proxy_config") {
+	if d.HasChange("http_proxy") {
 		updateCluster = true
-		httpProxyConfigRaw := d.Get("http_proxy_config").([]interface{})
+		httpProxyConfigRaw := d.Get("http_proxy").([]interface{})
 		httpProxyConfig := expandKubernetesClusterHttpProxyConfig(httpProxyConfigRaw)
 		existing.Model.Properties.HTTPProxyConfig = httpProxyConfig
 	}
@@ -2583,16 +2583,16 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.Model.Properties.SecurityProfile.Defender = microsoftDefender
 	}
 
-	if d.HasChanges("storage_profile") {
+	if d.HasChanges("storage") {
 		updateCluster = true
-		storageProfileRaw := d.Get("storage_profile").([]interface{})
+		storageProfileRaw := d.Get("storage").([]interface{})
 		clusterStorageProfile := expandStorageProfile(storageProfileRaw)
 		existing.Model.Properties.StorageProfile = clusterStorageProfile
 	}
 
-	if d.HasChange("workload_autoscaler_profile") {
+	if d.HasChange("workload_autoscaler") {
 		updateCluster = true
-		workloadAutoscalerProfileRaw := d.Get("workload_autoscaler_profile").([]interface{})
+		workloadAutoscalerProfileRaw := d.Get("workload_autoscaler").([]interface{})
 		workloadAutoscalerProfile := expandKubernetesClusterWorkloadAutoscalerProfile(workloadAutoscalerProfileRaw, d)
 		if workloadAutoscalerProfile == nil {
 			existing.Model.Properties.WorkloadAutoScalerProfile = &managedclusters.ManagedClusterWorkloadAutoScalerProfile{
@@ -2612,9 +2612,9 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	if d.HasChange("node_provisioning_profile") {
+	if d.HasChange("node_provisioning") {
 		updateCluster = true
-		nodeProvisioningProfileRaw := d.Get("node_provisioning_profile").([]interface{})
+		nodeProvisioningProfileRaw := d.Get("node_provisioning").([]interface{})
 		nodeProvisioningProfile := expandKubernetesClusterNodeProvisioningProfile(nodeProvisioningProfileRaw)
 		existing.Model.Properties.NodeProvisioningProfile = nodeProvisioningProfile
 	}
@@ -2630,19 +2630,19 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	if d.HasChange("image_cleaner_enabled") || d.HasChange("image_cleaner_interval_hours") {
+	if d.HasChange("image_cleaner_enabled") || d.HasChange("image_cleaner_interval_in_hours") {
 		updateCluster = true
 		if existing.Model.Properties.SecurityProfile == nil {
 			existing.Model.Properties.SecurityProfile = &managedclusters.ManagedClusterSecurityProfile{}
 		}
 		existing.Model.Properties.SecurityProfile.ImageCleaner = &managedclusters.ManagedClusterSecurityProfileImageCleaner{
 			Enabled:       pointer.To(d.Get("image_cleaner_enabled").(bool)),
-			IntervalHours: pointer.To(int64(d.Get("image_cleaner_interval_hours").(int))),
+			IntervalHours: pointer.To(int64(d.Get("image_cleaner_interval_in_hours").(int))),
 		}
 	}
 
-	if d.HasChange("bootstrap_profile") {
-		bootstrapProfileRaw := d.Get("bootstrap_profile").([]interface{})
+	if d.HasChange("bootstrap") {
+		bootstrapProfileRaw := d.Get("bootstrap").([]interface{})
 		profile := expandBootstrapProfile(bootstrapProfileRaw)
 
 		// If profile is removed in the config, we should set ArtifactSource to Direct as it's the default value in the service side.
@@ -3010,7 +3010,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			privateDnsZoneId := ""
 
 			apiServerAccessProfile := flattenKubernetesClusterAPIAccessProfile(props.ApiServerAccessProfile)
-			if err := d.Set("api_server_access_profile", apiServerAccessProfile); err != nil {
+			if err := d.Set("api_server_access", apiServerAccessProfile); err != nil {
 				return fmt.Errorf("setting `api_server_access_profile`: %+v", err)
 			}
 			if accessProfile := props.ApiServerAccessProfile; accessProfile != nil {
@@ -3053,7 +3053,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			if err != nil {
 				return err
 			}
-			if err := d.Set("auto_scaler_profile", autoScalerProfile); err != nil {
+			if err := d.Set("auto_scaler", autoScalerProfile); err != nil {
 				return fmt.Errorf("setting `auto_scaler_profile`: %+v", err)
 			}
 
@@ -3063,7 +3063,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 
 			serviceMeshProfile := flattenKubernetesClusterAzureServiceMeshProfile(props.ServiceMeshProfile)
-			if err := d.Set("service_mesh_profile", serviceMeshProfile); err != nil {
+			if err := d.Set("service_mesh", serviceMeshProfile); err != nil {
 				return fmt.Errorf("setting `service_mesh_profile`: %+v", err)
 			}
 
@@ -3088,12 +3088,12 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 
 			linuxProfile := flattenKubernetesClusterLinuxProfile(props.LinuxProfile)
-			if err := d.Set("linux_profile", linuxProfile); err != nil {
+			if err := d.Set("linux", linuxProfile); err != nil {
 				return fmt.Errorf("setting `linux_profile`: %+v", err)
 			}
 
 			networkProfile := flattenKubernetesClusterNetworkProfile(props.NetworkProfile)
-			if err := d.Set("network_profile", networkProfile); err != nil {
+			if err := d.Set("network", networkProfile); err != nil {
 				return fmt.Errorf("setting `network_profile`: %+v", err)
 			}
 
@@ -3119,7 +3119,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 
 			windowsProfile := flattenKubernetesClusterWindowsProfile(props.WindowsProfile, d)
-			if err := d.Set("windows_profile", windowsProfile); err != nil {
+			if err := d.Set("windows", windowsProfile); err != nil {
 				return fmt.Errorf("setting `windows_profile`: %+v", err)
 			}
 
@@ -3129,12 +3129,12 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 
 			workloadAutoscalerProfile := flattenKubernetesClusterWorkloadAutoscalerProfile(props.WorkloadAutoScalerProfile)
-			if err := d.Set("workload_autoscaler_profile", workloadAutoscalerProfile); err != nil {
+			if err := d.Set("workload_autoscaler", workloadAutoscalerProfile); err != nil {
 				return fmt.Errorf("setting `workload_autoscaler_profile`: %+v", err)
 			}
 
 			nodeProvisioningProfile := flattenKubernetesClusterNodeProvisioningProfile(props.NodeProvisioningProfile)
-			if err := d.Set("node_provisioning_profile", nodeProvisioningProfile); err != nil {
+			if err := d.Set("node_provisioning", nodeProvisioningProfile); err != nil {
 				return fmt.Errorf("setting `node_provisioning_profile`: %+v", err)
 			}
 
@@ -3149,12 +3149,12 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 					d.Set("image_cleaner_enabled", props.SecurityProfile.ImageCleaner.Enabled)
 				}
 				if props.SecurityProfile.ImageCleaner.IntervalHours != nil {
-					d.Set("image_cleaner_interval_hours", props.SecurityProfile.ImageCleaner.IntervalHours)
+					d.Set("image_cleaner_interval_in_hours", props.SecurityProfile.ImageCleaner.IntervalHours)
 				}
 			}
 
 			httpProxyConfig := flattenKubernetesClusterHttpProxyConfig(props)
-			if err := d.Set("http_proxy_config", httpProxyConfig); err != nil {
+			if err := d.Set("http_proxy", httpProxyConfig); err != nil {
 				return fmt.Errorf("setting `http_proxy_config`: %+v", err)
 			}
 
@@ -3205,7 +3205,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 
 			d.Set("kube_admin_config_raw", adminKubeConfigRaw)
-			if err := d.Set("kube_admin_config", adminKubeConfig); err != nil {
+			if err := d.Set("kube_admin", adminKubeConfig); err != nil {
 				return fmt.Errorf("setting `kube_admin_config`: %+v", err)
 			}
 
@@ -3215,7 +3215,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			if err != nil {
 				return fmt.Errorf("flattening `bootstrap_profile`: %+v", err)
 			}
-			if err := d.Set("bootstrap_profile", bootstrapProfile); err != nil {
+			if err := d.Set("bootstrap", bootstrapProfile); err != nil {
 				return fmt.Errorf("setting `bootstrap_profile`: %+v", err)
 			}
 		}
@@ -3230,7 +3230,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 		kubeConfigRaw, kubeConfig := flattenKubernetesClusterCredentials(credentials.Model, "clusterUser")
 		d.Set("kube_config_raw", kubeConfigRaw)
-		if err := d.Set("kube_config", kubeConfig); err != nil {
+		if err := d.Set("kube", kubeConfig); err != nil {
 			return fmt.Errorf("setting `kube_config`: %+v", err)
 		}
 
@@ -3439,7 +3439,7 @@ func expandKubernetesClusterAPIAccessProfile(d *pluginsdk.ResourceData) *managed
 		DisableRunCommand:              pointer.To(!d.Get("run_command_enabled").(bool)),
 	}
 
-	apiServerAccessProfileRaw := d.Get("api_server_access_profile").([]interface{})
+	apiServerAccessProfileRaw := d.Get("api_server_access").([]interface{})
 	if len(apiServerAccessProfileRaw) == 0 || apiServerAccessProfileRaw[0] == nil {
 		return apiAccessProfile
 	}
@@ -3680,9 +3680,9 @@ func expandKubernetesClusterNetworkProfile(input []interface{}, d *pluginsdk.Res
 		return nil, fmt.Errorf("`network_mode` cannot be set if `network_plugin` is not `azure`")
 	}
 	networkPolicy := config["network_policy"].(string)
-	loadBalancerProfileRaw := config["load_balancer_profile"].([]interface{})
+	loadBalancerProfileRaw := config["load_balancer"].([]interface{})
 	loadBalancerSku := config["load_balancer_sku"].(string)
-	natGatewayProfileRaw := config["nat_gateway_profile"].([]interface{})
+	natGatewayProfileRaw := config["nat_gateway"].([]interface{})
 	outboundType := config["outbound_type"].(string)
 	ipVersions, err := expandIPVersions(config["ip_versions"].([]interface{}))
 	if err != nil {
@@ -4075,8 +4075,8 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 		"dns_service_ip":        dnsServiceIP,
 		"network_data_plane":    networkDataPlane,
 		"load_balancer_sku":     string(*sku),
-		"load_balancer_profile": lbProfiles,
-		"nat_gateway_profile":   ngwProfiles,
+		"load_balancer": lbProfiles,
+		"nat_gateway":   ngwProfiles,
 		"ip_versions":           ipVersions,
 		"network_plugin":        networkPlugin,
 		"network_plugin_mode":   networkPluginMode,
@@ -4298,10 +4298,10 @@ func flattenKubernetesClusterAutoScalerProfile(profile *managedclusters.ManagedC
 			"daemonset_eviction_for_occupied_nodes_enabled": daemonsetEvictionForOccupiedNodes,
 			"expander":                              expander,
 			"ignore_daemonsets_utilization_enabled": ignoreDaemonsetsUtilization,
-			"max_graceful_termination_sec":          maxGracefulTerminationSec,
-			"max_node_provisioning_time":            maxNodeProvisionTime,
-			"max_unready_nodes":                     maxUnreadyNodes,
-			"max_unready_percentage":                maxUnreadyPercentage,
+			"max_graceful_termination_in_sec":          maxGracefulTerminationSec,
+			"maximum_node_provisioning_time":            maxNodeProvisionTime,
+			"maximum_unready_nodes":                     maxUnreadyNodes,
+			"maximum_unready_percentage":                maxUnreadyPercentage,
 			"new_pod_scale_up_delay":                newPodScaleUpDelay,
 			"scale_down_delay_after_add":            scaleDownDelayAfterAdd,
 			"scale_down_delay_after_delete":         scaleDownDelayAfterDelete,
@@ -4309,7 +4309,7 @@ func flattenKubernetesClusterAutoScalerProfile(profile *managedclusters.ManagedC
 			"scale_down_unneeded":                   scaleDownUnneededTime,
 			"scale_down_unready":                    scaleDownUnreadyTime,
 			"scale_down_utilization_threshold":      scaleDownUtilizationThreshold,
-			"empty_bulk_delete_max":                 emptyBulkDeleteMax,
+			"empty_bulk_delete_maximum":                 emptyBulkDeleteMax,
 			"scan_interval":                         scanInterval,
 			"skip_nodes_with_local_storage":         skipNodesWithLocalStorage,
 			"skip_nodes_with_system_pods":           skipNodesWithSystemPods,
@@ -4329,10 +4329,10 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *managedclust
 	daemonsetEvictionForOccupiedNodes := config["daemonset_eviction_for_occupied_nodes_enabled"].(bool)
 	expander := config["expander"].(string)
 	ignoreDaemonsetsUtilization := config["ignore_daemonsets_utilization_enabled"].(bool)
-	maxGracefulTerminationSec := config["max_graceful_termination_sec"].(string)
-	maxNodeProvisionTime := config["max_node_provisioning_time"].(string)
-	maxUnreadyNodes := fmt.Sprint(config["max_unready_nodes"].(int))
-	maxUnreadyPercentage := fmt.Sprint(config["max_unready_percentage"].(float64))
+	maxGracefulTerminationSec := config["max_graceful_termination_in_sec"].(string)
+	maxNodeProvisionTime := config["maximum_node_provisioning_time"].(string)
+	maxUnreadyNodes := fmt.Sprint(config["maximum_unready_nodes"].(int))
+	maxUnreadyPercentage := fmt.Sprint(config["maximum_unready_percentage"].(float64))
 	newPodScaleUpDelay := config["new_pod_scale_up_delay"].(string)
 	scaleDownDelayAfterAdd := config["scale_down_delay_after_add"].(string)
 	scaleDownDelayAfterDelete := config["scale_down_delay_after_delete"].(string)
@@ -4340,7 +4340,7 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *managedclust
 	scaleDownUnneededTime := config["scale_down_unneeded"].(string)
 	scaleDownUnreadyTime := config["scale_down_unready"].(string)
 	scaleDownUtilizationThreshold := config["scale_down_utilization_threshold"].(string)
-	emptyBulkDeleteMax := config["empty_bulk_delete_max"].(string)
+	emptyBulkDeleteMax := config["empty_bulk_delete_maximum"].(string)
 	scanInterval := config["scan_interval"].(string)
 	skipNodesWithLocalStorage := config["skip_nodes_with_local_storage"].(bool)
 	skipNodesWithSystemPods := config["skip_nodes_with_system_pods"].(bool)

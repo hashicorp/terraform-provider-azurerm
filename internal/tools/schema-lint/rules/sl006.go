@@ -39,6 +39,6 @@ func checkSL006(res *schematree.Result, report ReportFunc) {
 			continue
 		}
 
-		report(n, fmt.Sprintf("block %q has no required fields and no AtLeastOneOf/ExactlyOneOf; add conditional validation so it cannot be configured empty", n.Path), "")
+		report(n, fmt.Sprintf("block %q has no required fields and no AtLeastOneOf/ExactlyOneOf; add conditional validation so it cannot be configured empty", n.Path), nil)
 	}
 }

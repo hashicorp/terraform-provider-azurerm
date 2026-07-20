@@ -34,7 +34,7 @@ func checkSL002(res *schematree.Result, report ReportFunc) {
 			fix = fmt.Sprintf("replace the block %q with a single top-level boolean %q", n.Path, n.Name+"_enabled")
 		}
 
-		report(n, msg, fix)
+		report(n, msg, &Fix{Suggestion: fix})
 	}
 }
 

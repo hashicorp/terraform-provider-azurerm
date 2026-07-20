@@ -7,8 +7,8 @@
 // Each rule is a *Rule bundling its stable ID, human name, severity and a Check
 // function. A check reports findings against schema nodes; the driver anchors
 // each finding at the property's map key so that line-based diff filtering
-// matches the changed property. Fixable rules pass a non-empty suggestion, which
-// the driver surfaces only when requested.
+// matches the changed property. Fixable rules pass a *Fix; a Fix carrying a
+// Rename is applied in place by -fix, others are only printed as suggestions.
 package rules
 
 import (
@@ -28,9 +28,18 @@ const (
 	Warning Severity = "warning"
 )
 
-// ReportFunc records a rule finding against a schema node, with an optional fix
-// suggestion.
-type ReportFunc func(n *schematree.Node, message, fix string)
+// Fix describes how to remediate a finding. Suggestion is a human-readable
+// summary printed with each finding. When Rename is non-empty the fix is
+// auto-applicable: -fix renames the property by replacing every quoted
+// occurrence of its current name with Rename throughout the file (its schema
+// key, d.Get/d.Set calls, tfschema tags and cross-field references).
+type Fix struct {
+	Suggestion string
+	Rename     string
+}
+
+// ReportFunc records a rule finding against a schema node, with an optional fix.
+type ReportFunc func(n *schematree.Node, message string, fix *Fix)
 
 // Rule bundles a check's metadata with the function that runs it.
 type Rule struct {

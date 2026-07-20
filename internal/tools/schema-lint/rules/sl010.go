@@ -18,9 +18,6 @@ var sl010 = &Rule{
 	Check:    checkSL010,
 }
 
-// abbreviations maps a name segment to its preferred expansion. Standard
-// acronyms the provider keeps as-is (id, ip, os, sku, dns, url, cidr, ...) are
-// intentionally excluded.
 var abbreviations = map[string]string{
 	"vm":            "virtual_machine",
 	"vmss":          "virtual_machine_scale_set",
@@ -28,6 +25,10 @@ var abbreviations = map[string]string{
 	"vnet":          "virtual_network",
 	"nsg":           "network_security_group",
 	"nic":           "network_interface",
+	"fqdn":          "fully_qualified_domain_name",
+	"rt":            "route_table",
+	"lb":            "load_balancer",
+	"waf":           "web_application_firewall",
 	"sec":           "seconds",
 	"addr":          "address",
 	"msg":           "message",
@@ -36,7 +37,7 @@ var abbreviations = map[string]string{
 	"db":            "database",
 	"dbs":           "databases",
 	"mgmt":          "management",
-	"min":           "minutes/minimum",
+	"min":           "minimum",
 	"hr":            "hours",
 	"max":           "maximum",
 	"svc":           "service",
@@ -66,7 +67,7 @@ func checkSL010(res *schematree.Result, report ReportFunc) {
 		preferred := strings.Join(segments, "_")
 		report(n,
 			fmt.Sprintf("property %q uses an abbreviation; prefer full words (%q)", n.Path, preferred),
-			fmt.Sprintf("rename %q to %q", n.Name, preferred),
+			&Fix{Suggestion: fmt.Sprintf("rename %q to %q", n.Name, preferred), Rename: preferred},
 		)
 	}
 }

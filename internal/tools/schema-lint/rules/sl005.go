@@ -24,9 +24,9 @@ func checkSL005(res *schematree.Result, report ReportFunc) {
 
 		switch n.Schema.ValueType() {
 		case typeString:
-			report(n, fmt.Sprintf("string property %q has no validation; add a ValidateFunc (StringIsNotEmpty at minimum)", n.Path), "")
+			report(n, fmt.Sprintf("string property %q has no validation; add a ValidateFunc (StringIsNotEmpty at minimum)", n.Path), nil)
 		case typeInt, typeFloat:
-			report(n, fmt.Sprintf("numeric property %q has no validation; specify a valid range at minimum", n.Path), "")
+			report(n, fmt.Sprintf("numeric property %q has no validation; specify a valid range at minimum", n.Path), nil)
 		}
 	}
 }

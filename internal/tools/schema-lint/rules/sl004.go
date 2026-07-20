@@ -41,7 +41,7 @@ func checkSL004(res *schematree.Result, report ReportFunc) {
 			continue
 		}
 
-		report(n, fmt.Sprintf("property %q accepts %s via validation; omit these values (use Terraform null) and normalise in Create/Read", n.Path, strings.Join(accepted, ", ")), "")
+		report(n, fmt.Sprintf("property %q accepts %s via validation; omit these values (use Terraform null) and normalise in Create/Read", n.Path, strings.Join(accepted, ", ")), nil)
 	}
 }
 

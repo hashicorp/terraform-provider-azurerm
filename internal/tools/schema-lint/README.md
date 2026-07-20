@@ -23,7 +23,7 @@ go run ./internal/tools/schema-lint check internal/services/foo/foo_resource.go
 # lint a directory tree
 go run ./internal/tools/schema-lint check internal/services/foo
 
-# include suggested fixes for fixable findings
+# apply auto-fixable fixes (property renames) in place
 go run ./internal/tools/schema-lint check -fix internal/services/foo
 
 # run or disable specific rules
@@ -50,7 +50,7 @@ go build -o /tmp/schemalint ./internal/tools/schema-lint
 |------|---------|-------------|
 | `-C` | `.` | repository root; targets and `git` run relative to it |
 | `-format` | `text` | output format: `text` or `json` |
-| `-fix` | `false` | include suggested fixes for fixable findings |
+| `-fix` | `false` | apply auto-fixable fixes (property renames) to files in place (see [Applying fixes](#applying-fixes)) |
 | `-diff-base` | | only report findings on lines added since this git ref (see [Diff mode](#diff-mode)) |
 | `-rules` | | comma-separated rule IDs to run (default: all) |
 | `-disable` | | comma-separated rule IDs to disable (takes precedence) |
@@ -120,6 +120,73 @@ block is linted while its siblings are not.
 GITHUB_BASE_REF=main bash ./scripts/run-schema-lint-diff.sh
 ```
 
+## Applying fixes
+
+By default the linter is read-only: it reports findings (with a suggested
+remediation for each fixable one) but does not touch your files. Pass `-fix` to
+*apply* the auto-fixable findings in place. Today the naming rules
+(`SL009`–`SL012`) are auto-applicable: each is a **rename**, and applying it
+replaces every quoted occurrence of the property name across the file — not just
+the schema map key, but also its `d.Get`/`d.Set` calls, `tfschema` struct tags
+and `AtLeastOneOf`/`ExactlyOneOf`/`ConflictsWith` cross-references:
+
+```bash
+# rename "vm_count" -> "virtual_machine_count" everywhere in the file
+go run ./internal/tools/schema-lint check -rules SL010 -fix internal/services/foo/foo_resource.go
+```
+
+```text
+fixed internal/services/foo/foo_resource.go: renamed "vm_count" → "virtual_machine_count"
+
+applied 1 fix(es)
+```
+
+Details and caveats:
+
+- Replacement is anchored on the surrounding double quotes, so `"vm_count"` is
+  changed while superstrings like `"vm_count_total"`, bare words in comments and
+  the Go field identifier (`VmCount`) are left untouched. Rename the Go field
+  yourself if you want it to match.
+- Every quoted occurrence in the file is replaced. If two blocks happen to share
+  a child name, both are renamed; review the diff.
+- Non-rename fixable findings (`SL002` flatten, `SL003` remove limits) are
+  structural and are **not** auto-applied — `-fix` reports them as remaining
+  work.
+- `-fix` writes files in place; run it on a clean working tree so you can review
+  the change with `git diff`. Re-run the linter afterwards to converge on any
+  follow-on findings and to reformat with `gofmt`/`goimports` if needed.
+
+## Suppressing a finding
+
+When a rule fires on a property that is intentionally written that way, add a
+`// nolint` comment to silence it. This mirrors the golangci-lint convention;
+both `//nolint` (the gofmt-stable machine form) and `// nolint` are accepted:
+
+- `// nolint` — suppress **every** rule for the property.
+- `// nolint:SL001` — suppress only `SL001`.
+- `// nolint:SL001,SL010` — suppress the listed rules (rule IDs are
+  case-insensitive; a trailing `// explanation` is ignored).
+
+The directive attaches to the property whose map key is on the **same line**
+(trailing the key) or on the line **immediately below** a directive that stands
+on its own line. Findings are reported at the property's key, so place the
+directive there — the key line or the line above it:
+
+```go
+// trailing the property's key line
+"any_value": { // nolint:SL005
+    Type:     pluginsdk.TypeString,
+    Optional: true,
+},
+
+// on its own line directly above the property
+// nolint:SL001
+"location": commonschema.Location(),
+```
+
+A directive on a block's key suppresses findings for that block only; nested
+properties are suppressed by placing a directive on each of them.
+
 ## Adding a rule
 
 1. Add a `slNNN.go` file in `rules/` defining a `*Rule` with a `Check` function
@@ -141,5 +208,14 @@ GITHUB_BASE_REF=main bash ./scripts/run-schema-lint-diff.sh
 2. Register it by appending to `Registry` in [rules/rules.go](rules/rules.go).
 3. Add a table-driven test alongside it (see the existing `rules/slNNN_test.go`).
 
-To make a rule fixable, set `Fixable: true` and pass a non-empty suggestion as
-the last argument to `report`; it is surfaced by `-fix`.
+To make a rule fixable, set `Fixable: true` and pass a `*Fix` as the last
+argument to `report` (pass `nil` when there is no fix). A `Fix` with only a
+`Suggestion` is printed as the remediation hint; a `Fix` that also sets `Rename`
+to the new property name is auto-applied by `-fix`:
+
+```go
+report(n, msg, &Fix{
+    Suggestion: fmt.Sprintf("rename %q to %q", n.Name, preferred),
+    Rename:     preferred,
+})
+```

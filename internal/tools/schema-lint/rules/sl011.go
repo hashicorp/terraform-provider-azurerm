@@ -33,7 +33,7 @@ func checkSL011(res *schematree.Result, report ReportFunc) {
 
 		report(n,
 			fmt.Sprintf("boolean property %q has a redundant \"is_\" prefix (%q)", n.Path, preferred),
-			fmt.Sprintf("rename %q to %q", n.Name, preferred),
+			&Fix{Suggestion: fmt.Sprintf("rename %q to %q", n.Name, preferred), Rename: preferred},
 		)
 	}
 }
