@@ -210,6 +210,23 @@ func TestAccSnapshot_trustedLaunch(t *testing.T) {
 	})
 }
 
+func TestAccSnapshot_copyStart(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_snapshot", "target")
+	r := SnapshotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.copyStart(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("create_option").HasValue("CopyStart"),
+				check.That(data.ResourceName).Key("completion_percent").HasValue("100"),
+			),
+		},
+		data.ImportStep("source_resource_id"),
+	})
+}
+
 func (t SnapshotResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := snapshots.ParseSnapshotID(state.ID)
 	if err != nil {
@@ -782,4 +799,53 @@ resource "azurerm_snapshot" "test" {
   public_network_access_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (t SnapshotResource) copyStart(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "source" {
+  name     = "acctestRG-snap-src-%d"
+  location = "%s"
+}
+
+resource "azurerm_managed_disk" "source" {
+  name                 = "acctestdisk-src-%d"
+  location             = azurerm_resource_group.source.location
+  resource_group_name  = azurerm_resource_group.source.name
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 1
+}
+
+resource "azurerm_snapshot" "source" {
+  name                = "acctestsnap-src-%d"
+  location            = azurerm_resource_group.source.location
+  resource_group_name = azurerm_resource_group.source.name
+  create_option       = "Copy"
+  source_uri          = azurerm_managed_disk.source.id
+  incremental_enabled = true
+}
+
+resource "azurerm_resource_group" "target" {
+  name     = "acctestRG-snap-tgt-%d"
+  location = "%s"
+}
+
+resource "azurerm_snapshot" "target" {
+  name                          = "acctestsnap-tgt-%d"
+  location                      = azurerm_resource_group.target.location
+  resource_group_name           = azurerm_resource_group.target.name
+  create_option                 = "CopyStart"
+  source_resource_id            = azurerm_snapshot.source.id
+  incremental_enabled           = true
+  public_network_access_enabled = false
+}
+`, data.RandomInteger, data.Locations.Primary,
+		data.RandomInteger, data.RandomInteger,
+		data.RandomInteger, data.Locations.Secondary,
+		data.RandomInteger)
 }

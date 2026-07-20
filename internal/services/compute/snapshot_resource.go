@@ -68,8 +68,14 @@ func resourceSnapshot() *pluginsdk.Resource {
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(snapshots.DiskCreateOptionCopy),
+					string(snapshots.DiskCreateOptionCopyStart),
 					string(snapshots.DiskCreateOptionImport),
 				}, false),
+			},
+
+			"completion_percent": {
+				Type:     pluginsdk.TypeFloat,
+				Computed: true,
 			},
 
 			"incremental_enabled": {
@@ -219,6 +225,30 @@ func resourceSnapshotCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("creating %s: %+v", id, err)
 		}
 		d.SetId(id.ID())
+
+		// When `create_option` is `CopyStart` the API returns as soon as the copy
+		// operation has been initiated, however the resulting snapshot is not usable
+		// until the background copy has completed. Wait for `CompletionPercent` to
+		// reach 100 so that downstream resources (e.g. `azurerm_managed_disk`) don't
+		// consume an incomplete snapshot.
+		if createOption == string(snapshots.DiskCreateOptionCopyStart) {
+			log.Printf("[DEBUG] Waiting for the copy of %s to complete", id)
+			timeout := 30 * time.Minute
+			if deadline, ok := ctx.Deadline(); ok {
+				timeout = time.Until(deadline)
+			}
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending:    []string{"Copying"},
+				Target:     []string{"Complete"},
+				Refresh:    snapshotCopyCompletionRefreshFunc(ctx, client, id),
+				MinTimeout: 30 * time.Second,
+				Timeout:    timeout,
+			}
+
+			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for the copy of %s to complete: %+v", id, err)
+			}
+		}
 	} else {
 		if err := client.CreateOrUpdateThenPoll(ctx, id, properties); err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
@@ -260,6 +290,12 @@ func resourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.Set("create_option", string(data.CreateOption))
 			d.Set("storage_account_id", data.StorageAccountId)
 			d.Set("disk_access_id", pointer.From(props.DiskAccessId))
+
+			completionPercent := float64(0)
+			if props.CompletionPercent != nil {
+				completionPercent = *props.CompletionPercent
+			}
+			d.Set("completion_percent", completionPercent)
 
 			diskSizeGb := 0
 			if props.DiskSizeGB != nil {
@@ -319,4 +355,25 @@ func resourceSnapshotDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	return nil
+}
+
+func snapshotCopyCompletionRefreshFunc(ctx context.Context, client *snapshots.SnapshotsClient, id snapshots.SnapshotId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		resp, err := client.Get(ctx, id)
+		if err != nil {
+			return nil, "", fmt.Errorf("polling for the copy status of %s: %+v", id, err)
+		}
+
+		completionPercent := float64(0)
+		if model := resp.Model; model != nil && model.Properties != nil {
+			completionPercent = pointer.From(model.Properties.CompletionPercent)
+		}
+
+		log.Printf("[DEBUG] Snapshot %s copy completion is at %.1f%%", id, completionPercent)
+		if completionPercent < 100 {
+			return resp, "Copying", nil
+		}
+
+		return resp, "Complete", nil
+	}
 }
