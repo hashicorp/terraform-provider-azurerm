@@ -1489,46 +1489,6 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FivePointOh() {
-		resource.Schema["backend_http_settings"].Elem.(*pluginsdk.Resource).Schema["authentication_certificate"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
-			},
-			Deprecated: "`backend_http_settings.authentication_certificate` has been deprecated in accordance with the deprecation of Application Gateway V1 and will be removed in v5.0 of the AzureRM Provider. Refer to https://aka.ms/V1retirement.",
-		}
-
-		resource.Schema["authentication_certificate"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
-			},
-			Deprecated: "`authentication_certificate` has been deprecated in accordance with the deprecation of Application Gateway V1 and will be removed in v5.0 of the AzureRM Provider. Refer to https://aka.ms/V1retirement.",
-		}
-	}
-
 	return resource
 }
 
@@ -1566,12 +1526,6 @@ func dataSourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{
 		}
 
 		if props := model.Properties; props != nil {
-			if !features.FivePointOh() {
-				if err = d.Set("authentication_certificate", flattenApplicationGatewayAuthenticationCertificates(props.AuthenticationCertificates, d)); err != nil {
-					return fmt.Errorf("setting `authentication_certificate`: %+v", err)
-				}
-			}
-
 			if err = d.Set("trusted_root_certificate", flattenApplicationGatewayTrustedRootCertificates(props.TrustedRootCertificates, d)); err != nil {
 				return fmt.Errorf("setting `trusted_root_certificate`: %+v", err)
 			}
