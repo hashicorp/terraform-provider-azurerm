@@ -43,6 +43,7 @@ resource "azurerm_key_vault" "example" {
   name                       = "example-keyvault"
   location                   = azurerm_resource_group.example.location
   resource_group_name        = azurerm_resource_group.example.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "premium"
   soft_delete_retention_days = 7
@@ -148,9 +149,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Front Door Secret.
+* `create` - (Defaults to 4 hours) Used when creating the Front Door Secret.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Secret.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Front Door Secret.
+* `delete` - (Defaults to 6 hours) Used when deleting the Front Door Secret.
 
 ## Import
 

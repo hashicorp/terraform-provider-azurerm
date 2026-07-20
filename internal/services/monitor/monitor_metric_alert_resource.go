@@ -19,6 +19,7 @@ import (
 	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	webtests "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-03-01/metricalerts"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -29,6 +30,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name monitor_metric_alert -service-package-name monitor -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 func resourceMonitorMetricAlert() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceMonitorMetricAlertCreateUpdate,
@@ -36,10 +39,11 @@ func resourceMonitorMetricAlert() *pluginsdk.Resource {
 		Update: resourceMonitorMetricAlertCreateUpdate,
 		Delete: resourceMonitorMetricAlertDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := metricalerts.ParseMetricAlertID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&metricalerts.MetricAlertId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&metricalerts.MetricAlertId{}),
+		},
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
@@ -396,15 +400,17 @@ func resourceMonitorMetricAlertCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	id := metricalerts.NewMetricAlertID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing Monitor %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing Monitor %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_monitor_metric_alert", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_monitor_metric_alert", id.ID())
+			}
 		}
 	}
 
@@ -486,6 +492,10 @@ func resourceMonitorMetricAlertCreateUpdate(d *pluginsdk.ResourceData, meta inte
 
 	d.SetId(id.ID())
 
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceMonitorMetricAlertRead(d, meta)
 }
 
@@ -509,10 +519,18 @@ func resourceMonitorMetricAlertRead(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("getting Monitor %s: %+v", *id, err)
 	}
 
+	if err := resourceMonitorMetricAlertFlatten(d, id, resp.Model); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func resourceMonitorMetricAlertFlatten(d *pluginsdk.ResourceData, id *metricalerts.MetricAlertId, model *metricalerts.MetricAlertResource) error {
 	d.Set("name", id.MetricAlertName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		props := model.Properties
 		d.Set("enabled", props.Enabled)
 		d.Set("auto_mitigate", props.AutoMitigate)
@@ -558,12 +576,12 @@ func resourceMonitorMetricAlertRead(d *pluginsdk.ResourceData, meta interface{})
 		d.Set("target_resource_type", props.TargetResourceType)
 		d.Set("target_resource_location", props.TargetResourceRegion)
 
-		if err = d.Set("tags", utils.FlattenPtrMapStringString(model.Tags)); err != nil {
+		if err := d.Set("tags", utils.FlattenPtrMapStringString(model.Tags)); err != nil {
 			return err
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceMonitorMetricAlertDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -905,9 +923,9 @@ func flattenMonitorMetricAlertAction(input *[]metricalerts.MetricAlertAction) (r
 func resourceMonitorMetricAlertActionHash(input interface{}) int {
 	var buf bytes.Buffer
 	if v, ok := input.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%s-", v["action_group_id"].(string)))
+		fmt.Fprintf(&buf, "%s-", v["action_group_id"].(string))
 		if m, ok := v["webhook_properties"].(map[string]interface{}); ok && m != nil {
-			buf.WriteString(fmt.Sprintf("%v-", m))
+			fmt.Fprintf(&buf, "%v-", m)
 		}
 	}
 	return pluginsdk.HashString(buf.String())

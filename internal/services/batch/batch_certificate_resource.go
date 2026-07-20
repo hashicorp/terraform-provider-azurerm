@@ -110,8 +110,6 @@ func resourceBatchCertificateCreate(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure Batch certificate creation.")
-
 	cert := d.Get("certificate").(string)
 	format := d.Get("format").(string)
 	password := d.Get("password").(string)
@@ -124,7 +122,7 @@ func resourceBatchCertificateCreate(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -136,6 +134,7 @@ func resourceBatchCertificateCreate(d *pluginsdk.ResourceData, meta interface{})
 			return tf.ImportAsExistsError("azurerm_batch_certificate", id.ID())
 		}
 	}
+
 	certificateProperties := certificate.CertificateCreateOrUpdateProperties{
 		Data:                cert,
 		Format:              pointer.To(certificate.CertificateFormat(format)),
@@ -217,8 +216,6 @@ func resourceBatchCertificateUpdate(d *pluginsdk.ResourceData, meta interface{})
 	client := meta.(*clients.Client).Batch.CertificateClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Azure Batch certificate update.")
 
 	id, err := certificate.ParseCertificateID(d.Id())
 	if err != nil {

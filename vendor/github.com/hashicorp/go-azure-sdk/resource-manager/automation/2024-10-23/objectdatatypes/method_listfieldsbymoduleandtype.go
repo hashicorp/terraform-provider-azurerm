@@ -15,7 +15,24 @@ import (
 type ListFieldsByModuleAndTypeOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *TypeFieldListResult
+	Model        *[]TypeField
+}
+
+type ListFieldsByModuleAndTypeCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []TypeField
+}
+
+type ListFieldsByModuleAndTypeCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListFieldsByModuleAndTypeCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListFieldsByModuleAndType ...
@@ -26,6 +43,7 @@ func (c ObjectDataTypesClient) ListFieldsByModuleAndType(ctx context.Context, id
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListFieldsByModuleAndTypeCustomPager{},
 		Path:       fmt.Sprintf("%s/fields", id.ID()),
 	}
 
@@ -35,7 +53,7 @@ func (c ObjectDataTypesClient) ListFieldsByModuleAndType(ctx context.Context, id
 	}
 
 	var resp *client.Response
-	resp, err = req.Execute(ctx)
+	resp, err = req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData
 		result.HttpResponse = resp.Response
@@ -44,11 +62,44 @@ func (c ObjectDataTypesClient) ListFieldsByModuleAndType(ctx context.Context, id
 		return
 	}
 
-	var model TypeFieldListResult
-	result.Model = &model
-	if err = resp.Unmarshal(result.Model); err != nil {
+	var values struct {
+		Values *[]TypeField `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
+	result.Model = values.Values
+
+	return
+}
+
+// ListFieldsByModuleAndTypeComplete retrieves all the results into a single object
+func (c ObjectDataTypesClient) ListFieldsByModuleAndTypeComplete(ctx context.Context, id ModuleObjectDataTypeId) (ListFieldsByModuleAndTypeCompleteResult, error) {
+	return c.ListFieldsByModuleAndTypeCompleteMatchingPredicate(ctx, id, TypeFieldOperationPredicate{})
+}
+
+// ListFieldsByModuleAndTypeCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c ObjectDataTypesClient) ListFieldsByModuleAndTypeCompleteMatchingPredicate(ctx context.Context, id ModuleObjectDataTypeId, predicate TypeFieldOperationPredicate) (result ListFieldsByModuleAndTypeCompleteResult, err error) {
+	items := make([]TypeField, 0)
+
+	resp, err := c.ListFieldsByModuleAndType(ctx, id)
+	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	result = ListFieldsByModuleAndTypeCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
 	return
 }

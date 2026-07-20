@@ -241,7 +241,8 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 				if len(model.NotificationRules) == 1 {
 					if len(model.NotificationRules[0].EligibleAssignments) == 1 {
 						if len(model.NotificationRules[0].EligibleAssignments[0].AdminNotifications) == 1 {
-							updatedRules = append(updatedRules,
+							updatedRules = append(
+								updatedRules,
 								expandNotificationSettings(
 									notificationAdminAdminEligibility,
 									model.NotificationRules[0].EligibleAssignments[0].AdminNotifications[0],
@@ -261,7 +262,8 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 				if len(model.NotificationRules) == 1 {
 					if len(model.NotificationRules[0].ActiveAssignments) == 1 {
 						if len(model.NotificationRules[0].ActiveAssignments[0].AdminNotifications) == 1 {
-							updatedRules = append(updatedRules,
+							updatedRules = append(
+								updatedRules,
 								expandNotificationSettings(
 									notificationAdminAdminAssignment,
 									model.NotificationRules[0].ActiveAssignments[0].AdminNotifications[0],
@@ -281,7 +283,8 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 				if len(model.NotificationRules) == 1 {
 					if len(model.NotificationRules[0].EligibleActivations) == 1 {
 						if len(model.NotificationRules[0].EligibleActivations[0].AdminNotifications) == 1 {
-							updatedRules = append(updatedRules,
+							updatedRules = append(
+								updatedRules,
 								expandNotificationSettings(
 									notificationAdminEndUserAssignment,
 									model.NotificationRules[0].EligibleActivations[0].AdminNotifications[0],
@@ -301,7 +304,8 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 				if len(model.NotificationRules) == 1 {
 					if len(model.NotificationRules[0].EligibleAssignments) == 1 {
 						if len(model.NotificationRules[0].EligibleAssignments[0].ApproverNotifications) == 1 {
-							updatedRules = append(updatedRules,
+							updatedRules = append(
+								updatedRules,
 								expandNotificationSettings(
 									notificationApproverAdminEligibility,
 									model.NotificationRules[0].EligibleAssignments[0].ApproverNotifications[0],
@@ -321,7 +325,8 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 				if len(model.NotificationRules) == 1 {
 					if len(model.NotificationRules[0].ActiveAssignments) == 1 {
 						if len(model.NotificationRules[0].ActiveAssignments[0].ApproverNotifications) == 1 {
-							updatedRules = append(updatedRules,
+							updatedRules = append(
+								updatedRules,
 								expandNotificationSettings(
 									notificationApproverAdminAssignment,
 									model.NotificationRules[0].ActiveAssignments[0].ApproverNotifications[0],
@@ -341,7 +346,8 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 				if len(model.NotificationRules) == 1 {
 					if len(model.NotificationRules[0].EligibleActivations) == 1 {
 						if len(model.NotificationRules[0].EligibleActivations[0].ApproverNotifications) == 1 {
-							updatedRules = append(updatedRules,
+							updatedRules = append(
+								updatedRules,
 								expandNotificationSettings(
 									notificationApproverEndUserAssignment,
 									model.NotificationRules[0].EligibleActivations[0].ApproverNotifications[0],
@@ -361,7 +367,8 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 				if len(model.NotificationRules) == 1 {
 					if len(model.NotificationRules[0].EligibleAssignments) == 1 {
 						if len(model.NotificationRules[0].EligibleAssignments[0].AssigneeNotifications) == 1 {
-							updatedRules = append(updatedRules,
+							updatedRules = append(
+								updatedRules,
 								expandNotificationSettings(
 									notificationRequestorAdminEligibility,
 									model.NotificationRules[0].EligibleAssignments[0].AssigneeNotifications[0],
@@ -381,7 +388,8 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 				if len(model.NotificationRules) == 1 {
 					if len(model.NotificationRules[0].ActiveAssignments) == 1 {
 						if len(model.NotificationRules[0].ActiveAssignments[0].AssigneeNotifications) == 1 {
-							updatedRules = append(updatedRules,
+							updatedRules = append(
+								updatedRules,
 								expandNotificationSettings(
 									notificationRequestorAdminAssignment,
 									model.NotificationRules[0].ActiveAssignments[0].AssigneeNotifications[0],
@@ -401,7 +409,8 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 				if len(model.NotificationRules) == 1 {
 					if len(model.NotificationRules[0].EligibleActivations) == 1 {
 						if len(model.NotificationRules[0].EligibleActivations[0].AssigneeNotifications) == 1 {
-							updatedRules = append(updatedRules,
+							updatedRules = append(
+								updatedRules,
 								expandNotificationSettings(
 									notificationRequestorEndUserAssignment,
 									model.NotificationRules[0].EligibleActivations[0].AssigneeNotifications[0],

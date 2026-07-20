@@ -16,7 +16,7 @@ tools:
 	go install github.com/katbyte/terrafmt@latest
 	go install golang.org/x/tools/cmd/goimports@latest
 	go install mvdan.cc/gofumpt@latest
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin v2.4.0
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin v2.12.2
 
 build: fmtcheck generate
 	go install
@@ -39,9 +39,9 @@ fmtcheck:
 
 terrafmt:
 	@echo "==> Fixing acceptance test terraform blocks code with terrafmt..."
-	@find internal | egrep "_test.go" | sort | while read f; do terrafmt fmt -f $$f; done
+	@terrafmt fmt -f -p "*_test.go" ./internal
 	@echo "==> Fixing website terraform blocks code with terrafmt..."
-	@find . | egrep html.markdown | sort | while read f; do terrafmt fmt $$f; done
+	@terrafmt fmt -p "*.html.markdown" .
 
 generate: tools
 	go generate ./internal/services/...
@@ -88,7 +88,7 @@ golangci-fix:
 	@echo "==> Fixing source code with all golangci linters..."
 	golangci-lint run ./... --fix
 
-test: fmtcheck
+test:
 	@TEST=$(TEST) ./scripts/run-gradually-deprecated.sh
 	@TEST=$(TEST) ./scripts/run-test.sh
 
@@ -100,13 +100,13 @@ test-compile:
 	fi
 	go test -c $(TEST) $(TESTARGS)
 
-testacc: fmtcheck
+testacc:
 	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout $(TESTTIMEOUT) -ldflags="-X=github.com/hashicorp/terraform-provider-azurerm/version.ProviderVersion=acc"
 
-acctests: fmtcheck
+acctests:
 	TF_ACC=1 go test -v ./internal/services/$(SERVICE) $(TESTARGS) -timeout $(TESTTIMEOUT) -ldflags="-X=github.com/hashicorp/terraform-provider-azurerm/version.ProviderVersion=acc"
 
-debugacc: fmtcheck
+debugacc:
 	TF_ACC=1 dlv test $(TEST) --headless --listen=:2345 --api-version=2 -- -test.v $(TESTARGS)
 
 prepare:

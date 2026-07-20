@@ -14,5 +14,7 @@ type StorageTableWrapper interface {
 	Delete(ctx context.Context, tableName string) error
 	Exists(ctx context.Context, tableName string) (*bool, error)
 	GetACLs(ctx context.Context, tableName string) (*[]tables.SignedIdentifier, error)
+	GetServiceProperties(ctx context.Context) (*tables.StorageServiceProperties, error)
 	UpdateACLs(ctx context.Context, tableName string, acls []tables.SignedIdentifier) error
+	UpdateServiceProperties(ctx context.Context, properties tables.StorageServiceProperties) error
 }

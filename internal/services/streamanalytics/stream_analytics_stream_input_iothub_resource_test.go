@@ -117,7 +117,6 @@ func (r StreamAnalyticsStreamInputIoTHubResource) Exists(ctx context.Context, cl
 }
 
 func (r StreamAnalyticsStreamInputIoTHubResource) avro(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -135,11 +134,10 @@ resource "azurerm_stream_analytics_stream_input_iothub" "test" {
     type = "Avro"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsStreamInputIoTHubResource) csv(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -159,11 +157,10 @@ resource "azurerm_stream_analytics_stream_input_iothub" "test" {
     field_delimiter = ","
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsStreamInputIoTHubResource) json(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -182,11 +179,10 @@ resource "azurerm_stream_analytics_stream_input_iothub" "test" {
     encoding = "UTF8"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsStreamInputIoTHubResource) updated(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -204,11 +200,10 @@ resource "azurerm_stream_analytics_stream_input_iothub" "test" {
     type = "Avro"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsStreamInputIoTHubResource) requiresImport(data acceptance.TestData) string {
-	template := r.json(data)
 	return fmt.Sprintf(`
 %s
 
@@ -227,7 +222,7 @@ resource "azurerm_stream_analytics_stream_input_iothub" "import" {
     encoding = azurerm_stream_analytics_stream_input_iothub.test.serialization.0.encoding
   }
 }
-`, template)
+`, r.json(data))
 }
 
 func (r StreamAnalyticsStreamInputIoTHubResource) template(data acceptance.TestData) string {

@@ -140,14 +140,17 @@ func resourceAttestationProviderCreate(d *pluginsdk.ResourceData, meta interface
 	defer cancel()
 
 	id := attestationproviders.NewAttestationProvidersID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := attestationClients.ProviderClient.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of exisiting %s: %+v", id, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := attestationClients.ProviderClient.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of exisiting %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_attestation_provider", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_attestation_provider", id.ID())
+		}
 	}
 
 	props := attestationproviders.AttestationServiceCreationParams{
@@ -372,12 +375,12 @@ func resourceAttestationProviderDelete(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func expandArmAttestationProviderJSONWebKeySet(pem string) *attestationproviders.JsonWebKeySet {
+func expandArmAttestationProviderJSONWebKeySet(pem string) *attestationproviders.JSONWebKeySet {
 	if len(pem) == 0 {
 		return nil
 	}
 
-	result := attestationproviders.JsonWebKeySet{
+	result := attestationproviders.JSONWebKeySet{
 		Keys: expandArmAttestationProviderJSONWebKeyArray(pem),
 	}
 

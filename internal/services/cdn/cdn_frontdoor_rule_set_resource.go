@@ -4,13 +4,15 @@
 package cdn
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rulesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rulesets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
@@ -25,14 +27,36 @@ func resourceCdnFrontDoorRuleSet() *pluginsdk.Resource {
 		Delete: resourceCdnFrontDoorRuleSetDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(4 * time.Hour),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(6 * time.Hour),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := rulesets.ParseRuleSetID(id)
 			return err
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
+			client := meta.(*clients.Client).Cdn.FrontDoorRuleSetsClient
+
+			id, _ := rulesets.ParseRuleSetID(d.Id())
+			resp, err := client.Get(ctx, *id)
+			if err != nil {
+				return nil, fmt.Errorf("retrieving %s: %+v", id, err)
+			}
+
+			if resp.Model == nil {
+				return nil, fmt.Errorf("retrieving %s: `model` was nil`", id)
+			}
+
+			if resp.Model.Properties == nil {
+				return nil, fmt.Errorf("retrieving %s: `properties` was nil`", id)
+			}
+
+			if pointer.From(resp.Model.Properties.BatchMode) {
+				return nil, fmt.Errorf("%s was provisioned using batch mode and cannot be managed by this resource, use `azurerm_cdn_frontdoor_batch_rule_set` instead", id)
+			}
+
+			return []*pluginsdk.ResourceData{d}, nil
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -64,20 +88,21 @@ func resourceCdnFrontDoorRuleSetCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	id := rulesets.NewRuleSetID(profile.SubscriptionId, profile.ResourceGroupName, profile.ProfileName, d.Get("name").(string))
-	// if d.IsNewResource() {
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
+		}
+
 		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
+			return tf.ImportAsExistsError("azurerm_cdn_frontdoor_rule_set", id.ID())
 		}
 	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_cdn_frontdoor_rule_set", id.ID())
-	}
-	// }
-	if _, err = client.Create(ctx, id); err != nil {
+	if _, err = client.Create(ctx, id, rulesets.RuleSet{}); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 

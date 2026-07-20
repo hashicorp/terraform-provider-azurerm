@@ -54,7 +54,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
   name                = "example-vmss"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  sku                 = "Standard_F2"
+  sku                 = "Standard_D4_v5"
   instances           = 1
   admin_username      = "adminuser"
 
@@ -102,7 +102,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
 -> **Note:** If you are using AutoScaling, you may wish to use [Terraform's `ignore_changes` functionality](https://developer.hashicorp.com/terraform/language/block/resource#ignore_changes) to ignore changes to this field.
 
-* `sku` - (Required) The Virtual Machine SKU for the Scale Set, such as `Standard_F2`.
+* `sku` - (Required) The Virtual Machine SKU for the Scale Set, such as `Standard_D4_v5`.
 
 * `network_interface` - (Required) One or more `network_interface` blocks as defined below.
 
@@ -326,9 +326,9 @@ A `data_disk` block supports the following:
 
 -> **Note:** Disk Encryption Sets are in Public Preview in a limited set of regions
 
-* `ultra_ssd_disk_iops_read_write` - (Optional) Specifies the Read-Write IOPS for this Data Disk. Only settable when `storage_account_type` is `PremiumV2_LRS` or `UltraSSD_LRS`.
+* `disk_iops_read_write` - (Optional) Specifies the Read-Write IOPS for this Data Disk. Only settable when `storage_account_type` is `PremiumV2_LRS` or `UltraSSD_LRS`.
 
-* `ultra_ssd_disk_mbps_read_write` - (Optional) Specifies the bandwidth in MB per second for this Data Disk. Only settable when `storage_account_type` is `PremiumV2_LRS` or `UltraSSD_LRS`.
+* `disk_mbps_read_write` - (Optional) Specifies the bandwidth in MB per second for this Data Disk. Only settable when `storage_account_type` is `PremiumV2_LRS` or `UltraSSD_LRS`.
 
 * `write_accelerator_enabled` - (Optional) Should Write Accelerator be enabled for this Data Disk? Defaults to `false`.
 
@@ -645,4 +645,4 @@ terraform import azurerm_linux_virtual_machine_scale_set.example /subscriptions/
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Compute` - 2024-11-01
+* `Microsoft.Compute` - 2025-04-01

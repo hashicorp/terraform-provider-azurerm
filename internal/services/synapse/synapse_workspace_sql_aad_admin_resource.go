@@ -77,6 +77,8 @@ func resourceSynapseWorkspaceSqlAADAdminCreateUpdate(d *pluginsdk.ResourceData, 
 	workspaceName := workspaceId.Name
 	workspaceResourceGroup := workspaceId.ResourceGroup
 
+	// TODO: import check
+
 	aadAdmin := &synapse.WorkspaceAadAdminInfo{
 		AadAdminProperties: &synapse.AadAdminProperties{
 			TenantID:          pointer.To(d.Get("tenant_id").(string)),
@@ -91,12 +93,14 @@ func resourceSynapseWorkspaceSqlAADAdminCreateUpdate(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("updating Synapse Workspace %q Sql AAD Admin (Resource Group %q): %+v", workspaceName, workspaceResourceGroup, err)
 	}
 
+	if d.IsNewResource() {
+		id := parse.NewWorkspaceSqlAADAdminID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, "activeDirectory")
+		d.SetId(id.ID())
+	}
+
 	if err = workspaceAadAdminsCreateOrUpdateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting on updating for Synapse Workspace %q Sql AAD Admin (Resource Group %q): %+v", workspaceName, workspaceResourceGroup, err)
 	}
-
-	id := parse.NewWorkspaceSqlAADAdminID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, "activeDirectory")
-	d.SetId(id.ID())
 
 	return resourceSynapseWorkspaceSqlAADAdminRead(d, meta)
 }

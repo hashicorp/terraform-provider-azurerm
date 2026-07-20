@@ -122,15 +122,17 @@ func resourceDnsCaaRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	id := recordsets.NewRecordTypeID(subscriptionId, resGroup, zoneName, recordsets.RecordTypeCAA, name)
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing DNS CAA Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing DNS CAA Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_dns_caa_record", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_dns_caa_record", id.ID())
+			}
 		}
 	}
 
@@ -268,9 +270,9 @@ func resourceDnsCaaRecordHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%d-", m["flags"].(int)))
-		buf.WriteString(fmt.Sprintf("%s-", m["tag"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["value"].(string)))
+		fmt.Fprintf(&buf, "%d-", m["flags"].(int))
+		fmt.Fprintf(&buf, "%s-", m["tag"].(string))
+		fmt.Fprintf(&buf, "%s-", m["value"].(string))
 	}
 
 	return pluginsdk.HashString(buf.String())

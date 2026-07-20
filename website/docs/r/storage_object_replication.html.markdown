@@ -79,6 +79,8 @@ The following arguments are supported:
 
 * `rules` - (Required) One or more `rules` blocks as defined below.
 
+* `metrics_enabled` - (Optional) Whether metrics are enabled for this object replication. Defaults to `false`.
+
 ---
 
 A `rules` block supports the following:
@@ -122,4 +124,4 @@ terraform import azurerm_storage_object_replication.example /subscriptions/00000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Storage` - 2025-06-01
+* `Microsoft.Storage` - 2025-08-01

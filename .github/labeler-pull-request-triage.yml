@@ -424,6 +424,11 @@ service/notifications:
   - any-glob-to-any-file:
     - internal/services/notificationhub/**/*
 
+service/oracle:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/oracle/**/*
+
 service/orbital:
 - changed-files:
   - any-glob-to-any-file:

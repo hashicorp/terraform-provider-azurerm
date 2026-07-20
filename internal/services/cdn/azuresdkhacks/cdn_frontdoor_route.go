@@ -60,7 +60,8 @@ func (client CdnFrontDoorRoutesWorkaroundClient) UpdatePreparer(ctx context.Cont
 		autorest.WithBaseURL(client.sdkClient.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cdn/profiles/{profileName}/afdEndpoints/{endpointName}/routes/{routeName}", pathParameters),
 		autorest.WithJSON(routeUpdateProperties),
-		autorest.WithQueryParameters(queryParameters))
+		autorest.WithQueryParameters(queryParameters),
+	)
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2017, 2025
 
 // Package svchost deals with the representations of the so-called "friendly
 // hostnames" that we use to represent systems that provide Terraform-native
@@ -58,6 +58,7 @@ func ForDisplay(given string) string {
 	if colonPos := strings.Index(given, ":"); colonPos != -1 {
 		given, portPortion = given[:colonPos], given[colonPos:]
 	}
+	//nolint:errcheck
 	portPortion, _ = normalizePortPortion(portPortion)
 
 	ascii, err := displayProfile.ToASCII(given)

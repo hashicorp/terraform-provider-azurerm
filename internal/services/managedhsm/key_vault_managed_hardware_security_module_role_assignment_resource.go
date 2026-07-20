@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roledefinitions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsms"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/managedhsms"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/migration"
@@ -146,12 +146,15 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) Create() sdk.ResourceFunc {
 			defer locks.UnlockByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
 
 			id := parse.NewManagedHSMDataPlaneRoleAssignmentID(endpoint.ManagedHSMName, endpoint.DomainSuffix, config.Scope, config.Name)
-			existing, err := client.Get(ctx, endpoint.BaseURI(), config.Scope, config.Name)
-			if !utils.ResponseWasNotFound(existing.Response) {
-				if err != nil {
-					return fmt.Errorf("retrieving %s: %v", id.ID(), err)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, endpoint.BaseURI(), config.Scope, config.Name)
+				if !utils.ResponseWasNotFound(existing.Response) {
+					if err != nil {
+						return fmt.Errorf("retrieving %s: %v", id.ID(), err)
+					}
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
 				}
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
 			var param keyvault.RoleAssignmentCreateParameters

@@ -5,7 +5,6 @@ package maps
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -28,7 +27,7 @@ import (
 )
 
 func resourceMapsAccount() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceMapsAccountCreate,
 		Read:   resourceMapsAccountRead,
 		Update: resourceMapsAccountUpdate,
@@ -130,8 +129,6 @@ func resourceMapsAccount() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	return resource
 }
 
 func resourceMapsAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -140,19 +137,19 @@ func resourceMapsAccountCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Maps Account creation.")
-
 	id := accounts.NewAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_maps_account", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_maps_account", id.ID())
+		}
 	}
 
 	dataStores, err := expandDataStore(d.Get("data_store").([]interface{}))
@@ -160,13 +157,8 @@ func resourceMapsAccountCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("expanding `data_store`: %+v", err)
 	}
 
-	loc := "global"
-	if v, ok := d.GetOk("location"); ok {
-		loc = location.Normalize(v.(string))
-	}
-
 	parameters := accounts.MapsAccount{
-		Location: loc,
+		Location: location.Normalize(d.Get("location").(string)),
 		Sku: accounts.Sku{
 			Name: accounts.Name(d.Get("sku_name").(string)),
 		},
@@ -178,9 +170,7 @@ func resourceMapsAccountCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		},
 	}
 
-	// setting anything into identity returns a 400 Bad Request error if the location of the maps account is `global` which is
-	// what we were defaulting to previously - when `location` becomes Required in 4.0 we can remove this check and set
-	// identity in the payload like we do elsewhere
+	// setting anything into identity returns a 400 Bad Request error if the location of the maps account is `global`
 	if v, ok := d.GetOk("identity"); ok {
 		identityExpanded, err := identity.ExpandSystemAndUserAssignedMap(v.([]interface{}))
 		if err != nil {
@@ -193,14 +183,15 @@ func resourceMapsAccountCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
+	// TODO: add a Pandora workaround for this
 	// These should actually be LROs, but they're not, custom poller is required until https://github.com/Azure/azure-rest-api-specs/issues/29501 is resolved
 	pollerType := custompollers.NewMapsAccountPoller(client, id)
 	poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 	if err := poller.PollUntilDone(ctx); err != nil {
 		return err
 	}
-
-	d.SetId(id.ID())
 
 	return resourceMapsAccountRead(d, meta)
 }
@@ -209,8 +200,6 @@ func resourceMapsAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	client := meta.(*clients.Client).Maps.AccountsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for AzureRM Maps Account creation.")
 
 	id, err := accounts.ParseAccountID(d.Id())
 	if err != nil {

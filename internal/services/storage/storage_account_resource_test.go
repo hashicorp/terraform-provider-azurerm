@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-06-01/storageaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/storageaccounts"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -212,7 +212,8 @@ func TestAccStorageAccount_blobConnectionString(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(check.That(data.ResourceName).ExistsInAzure(r),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("primary_blob_connection_string").Exists(),
 			),
 		},
@@ -1853,7 +1854,7 @@ func TestAccStorageAccount_invalidAccountKindForAccessTier(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.invalidAccountKindForAccessTier(data),
-			ExpectError: regexp.MustCompile("`access_tier` is only available for accounts of kind set to one of:"),
+			ExpectError: regexp.MustCompile("`access_tier` is only available for accounts where `kind` is set to one of:"),
 		},
 	})
 }
@@ -4406,6 +4407,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acctestkv%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   purge_protection_enabled   = true
@@ -4507,6 +4509,7 @@ resource "azurerm_key_vault" "update" {
   name                       = "acctestkvu%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   purge_protection_enabled   = true
@@ -4735,6 +4738,7 @@ resource "azurerm_key_vault" "remotetest" {
   name                       = "acctestkvr%s"
   location                   = azurerm_resource_group.remotetest.location
   resource_group_name        = azurerm_resource_group.remotetest.name
+  rbac_authorization_enabled = false
   tenant_id                  = "%s"
   sku_name                   = "standard"
   purge_protection_enabled   = true
@@ -5415,6 +5419,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acc%[3]d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7

@@ -84,15 +84,18 @@ func (t ApplicationLoadBalancerResource) Create() sdk.ResourceFunc {
 			}
 
 			id := trafficcontrollerinterface.NewTrafficControllerID(subscriptionId, config.ResourceGroupName, config.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(t.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(t.ResourceType(), id)
+				}
 			}
 
 			payload := trafficcontrollerinterface.TrafficController{
@@ -100,11 +103,11 @@ func (t ApplicationLoadBalancerResource) Create() sdk.ResourceFunc {
 				Tags:     pointer.To(config.Tags),
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}

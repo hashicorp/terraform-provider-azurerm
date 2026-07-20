@@ -41,7 +41,7 @@ type CostManagementScheduledActionModel struct {
 var _ sdk.Resource = CostManagementScheduledActionResource{}
 
 func (r CostManagementScheduledActionResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	resource := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -69,15 +69,9 @@ func (r CostManagementScheduledActionResource) Arguments() map[string]*pluginsdk
 		},
 
 		"email_subject": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			// adding 2026/04 api limitations behind 5.0 flag incase existing resources are still allowed with previous limits
-			ValidateFunc: func() pluginsdk.SchemaValidateFunc {
-				if features.FivePointOh() {
-					return validation.StringLenBetween(1, 50)
-				}
-				return validation.StringLenBetween(1, 70)
-			}(),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringLenBetween(1, 50),
 		},
 
 		"email_addresses": {
@@ -153,6 +147,12 @@ func (r CostManagementScheduledActionResource) Arguments() map[string]*pluginsdk
 			ValidateFunc: validation.IsRFC3339Time,
 		},
 	}
+
+	if !features.FivePointOh() {
+		resource["email_subject"].ValidateFunc = validation.StringLenBetween(1, 70)
+	}
+
+	return resource
 }
 
 func (r CostManagementScheduledActionResource) Attributes() map[string]*pluginsdk.Schema {
@@ -188,15 +188,17 @@ func (r CostManagementScheduledActionResource) Create() sdk.ResourceFunc {
 			}
 			id := scheduledactions.NewScopedScheduledActionID(viewId.Scope, config.Name)
 
-			existing, err := client.GetByScope(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetByScope(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				if !response.WasNotFound(existing.HttpResponse) {
+					return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				}
 			}
 
 			var daysOfWeek []scheduledactions.DaysOfWeek

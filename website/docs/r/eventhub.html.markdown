@@ -44,7 +44,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the EventHub resource. Changing this forces a new resource to be created.
 
-* `namespace_id` - (Optional) Specifies the ID of the EventHub Namespace.
+* `namespace_id` - (Required) Specifies the ID of the EventHub Namespace. Changing this forces a new resource to be created.
 
 * `partition_count` - (Required) Specifies the current number of shards on the Event Hub.
 
@@ -101,6 +101,14 @@ A `destination` block supports the following:
 * `blob_container_name` - (Required) The name of the Container within the Blob Storage Account where messages should be archived.
 
 * `storage_account_id` - (Required) The ID of the Blob Storage Account where messages should be archived.
+
+* `storage_authentication_type` - (Optional) The identity used to authenticate the Blob Storage Account where messages should be archived. Possible values are `StorageSAS`, `SystemAssigned` or `UserAssigned`. Defaults to `StorageSAS`.
+
+* `storage_authentication_id` - (Optional) The id of the User Assigned Identity that is used to authenticate the Blob Storage Account where messages should be archived. 
+
+~> **Note:** The `SystemAssigned` or `UserAssigned` managed identity must be `enabled` on the parent eventhub namespace, in order for the capture feature to be configured.
+
+~> **Note:** The managed identity used by the capture feature must be granted the `Storage Blob Data Contributor` role.
 
 ## Attributes Reference
 

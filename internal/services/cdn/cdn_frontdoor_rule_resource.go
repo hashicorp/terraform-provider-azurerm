@@ -4,16 +4,20 @@
 package cdn
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rulesets"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-09-01/rules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rulesets"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/custompollers"
 	cdnFrontDoorRuleActions "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/frontdoorruleactions"
 	cdnFrontDoorRuleConditions "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/frontdoorruleconditions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
@@ -30,15 +34,39 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 		Delete: resourceCdnFrontDoorRuleDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(4 * time.Hour),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(4 * time.Hour),
+			Delete: pluginsdk.DefaultTimeout(6 * time.Hour),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := rules.ParseRuleID(id)
 			return err
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
+			client := meta.(*clients.Client).Cdn.FrontDoorRuleSetsClient
+
+			id, _ := rules.ParseRuleID(d.Id())
+			ruleSetID := rulesets.NewRuleSetID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName, id.RuleSetName)
+
+			resp, err := client.Get(ctx, ruleSetID)
+			if err != nil {
+				return nil, fmt.Errorf("retrieving %s: %+v", ruleSetID, err)
+			}
+
+			if resp.Model == nil {
+				return nil, fmt.Errorf("retrieving %s: `model` was nil`", id)
+			}
+
+			if resp.Model.Properties == nil {
+				return nil, fmt.Errorf("retrieving %s: `properties` was nil`", id)
+			}
+
+			if pointer.From(resp.Model.Properties.BatchMode) {
+				return nil, fmt.Errorf("the parent ruleset (%s) was provisioned using batch mode, and individual rules for this cannot be managed by this resource, use `azurerm_cdn_frontdoor_batch_rule_set` instead, or create a non-batch Rule Set with `azurerm_cdn_frontdoor_rule_set`", ruleSetID)
+			}
+
+			return []*pluginsdk.ResourceData{d}, nil
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -319,7 +347,12 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         schemaCdnFrontDoorOperatorEqualOnly(),
+									"operator": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										Default:      string(rules.RequestMethodOperatorEqual),
+										ValidateFunc: validation.StringInSlice(rules.PossibleValuesForRequestMethodOperator(), false),
+									},
 									"negate_condition": schemaCdnFrontDoorNegateCondition(),
 									"match_values":     schemaCdnFrontDoorRequestMethodMatchValues(),
 								},
@@ -415,7 +448,12 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         schemaCdnFrontDoorOperatorEqualOnly(),
+									"operator": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										Default:      string(rules.RequestSchemeMatchConditionParametersOperatorEqual),
+										ValidateFunc: validation.StringInSlice(rules.PossibleValuesForRequestSchemeMatchConditionParametersOperator(), false),
+									},
 									"negate_condition": schemaCdnFrontDoorNegateCondition(),
 									"match_values":     schemaCdnFrontDoorProtocolMatchValues(),
 								},
@@ -471,7 +509,12 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         schemaCdnFrontDoorOperatorEqualOnly(),
+									"operator": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										Default:      string(rules.HTTPVersionOperatorEqual),
+										ValidateFunc: validation.StringInSlice(rules.PossibleValuesForHTTPVersionOperator(), false),
+									},
 									"negate_condition": schemaCdnFrontDoorNegateCondition(),
 									"match_values":     schemaCdnFrontDoorHttpVersionMatchValues(),
 								},
@@ -505,7 +548,12 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         schemaCdnFrontDoorOperatorEqualOnly(),
+									"operator": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										Default:      string(rules.IsDeviceOperatorEqual),
+										ValidateFunc: validation.StringInSlice(rules.PossibleValuesForIsDeviceOperator(), false),
+									},
 									"negate_condition": schemaCdnFrontDoorNegateCondition(),
 									"match_values":     schemaCdnFrontDoorIsDeviceMatchValues(),
 								},
@@ -571,7 +619,12 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"operator":         schemaCdnFrontDoorOperatorEqualOnly(),
+									"operator": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										Default:      string(rules.SslProtocolOperatorEqual),
+										ValidateFunc: validation.StringInSlice(rules.PossibleValuesForSslProtocolOperator(), false),
+									},
 									"negate_condition": schemaCdnFrontDoorNegateCondition(),
 									"match_values":     schemaCdnFrontDoorSslProtocolMatchValues(),
 								},
@@ -591,6 +644,7 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 
 func resourceCdnFrontDoorRuleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorRulesClient
+	ruleSetsClient := meta.(*clients.Client).Cdn.FrontDoorRuleSetsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -601,15 +655,34 @@ func resourceCdnFrontDoorRuleCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	id := rules.NewRuleID(ruleSetId.SubscriptionId, ruleSetId.ResourceGroupName, ruleSetId.ProfileName, ruleSetId.RuleSetName, d.Get("name").(string))
 
-	result, err := client.Get(ctx, id)
+	ruleSet, err := ruleSetsClient.Get(ctx, *ruleSetId)
 	if err != nil {
-		if !response.WasNotFound(result.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
-		}
+		return fmt.Errorf("retrieving %s: %+v", ruleSetId, err)
 	}
 
-	if !response.WasNotFound(result.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_cdn_frontdoor_rule", id.ID())
+	if ruleSet.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", ruleSetId)
+	}
+
+	if ruleSet.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", ruleSetId)
+	}
+
+	if pointer.From(ruleSet.Model.Properties.BatchMode) {
+		return fmt.Errorf("the parent ruleset (%s) was provisioned using batch mode, and individual rules for this cannot be managed by this resource, use `azurerm_cdn_frontdoor_batch_rule_set` instead, or create a non-batch Rule Set with `azurerm_cdn_frontdoor_rule_set`", ruleSetId)
+	}
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		result, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(result.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
+		}
+
+		if !response.WasNotFound(result.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_cdn_frontdoor_rule", id.ID())
+		}
 	}
 
 	matchProcessingBehaviorValue := pointer.To(rules.MatchProcessingBehavior(d.Get("behavior_on_match").(string)))
@@ -635,8 +708,7 @@ func resourceCdnFrontDoorRuleCreate(d *pluginsdk.ResourceData, meta interface{})
 		},
 	}
 
-	err = client.CreateThenPoll(ctx, id, props)
-	if err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, id, props, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -763,6 +835,12 @@ func resourceCdnFrontDoorRuleDelete(d *pluginsdk.ResourceData, meta interface{})
 	err = client.DeleteThenPoll(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
+	}
+
+	pollerType := custompollers.NewFrontDoorRuleDeletePoller(client, *id)
+	poller := pollers.NewPoller(pollerType, 30*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+	if err := poller.PollUntilDone(ctx); err != nil {
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil
