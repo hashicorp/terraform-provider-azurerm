@@ -26,6 +26,12 @@ fun TestConfiguration() : ClientConfiguration {
         "terraformazuretestacc@example.com",
         "hashicorp/terraform-provider-azurerm",
         "gitPat",
-        "env.ARM_FIVEPOINTZERO_BETA"
+        "teamcityToken",
+        "env.ARM_FIVEPOINTZERO_BETA",
+        "teamcity-passed",
+        "teamcity-failed",
+        "teamcity-outdated",
+        "teamcity-new-failure",
+        false
     )
 }

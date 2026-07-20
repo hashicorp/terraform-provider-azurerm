@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2020, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package tf5serverlogging
@@ -16,12 +16,14 @@ func ServerCapabilities(ctx context.Context, capabilities *tfprotov5.ServerCapab
 		logging.KeyServerCapabilityGetProviderSchemaOptional: false,
 		logging.KeyServerCapabilityMoveResourceState:         false,
 		logging.KeyServerCapabilityPlanDestroy:               false,
+		logging.KeyServerCapabilityGenerateResourceConfig:    false,
 	}
 
 	if capabilities != nil {
 		responseFields[logging.KeyServerCapabilityGetProviderSchemaOptional] = capabilities.GetProviderSchemaOptional
 		responseFields[logging.KeyServerCapabilityMoveResourceState] = capabilities.MoveResourceState
 		responseFields[logging.KeyServerCapabilityPlanDestroy] = capabilities.PlanDestroy
+		responseFields[logging.KeyServerCapabilityGenerateResourceConfig] = capabilities.GenerateResourceConfig
 	}
 
 	logging.ProtocolTrace(ctx, "Announced server capabilities", responseFields)

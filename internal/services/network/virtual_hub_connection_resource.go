@@ -292,7 +292,11 @@ func resourceVirtualHubConnectionRead(d *pluginsdk.ResourceData, meta interface{
 			d.Set("internet_security_enabled", props.EnableInternetSecurity)
 			remoteVirtualNetworkId := ""
 			if props.RemoteVirtualNetwork != nil && props.RemoteVirtualNetwork.Id != nil {
-				remoteVirtualNetworkId = *props.RemoteVirtualNetwork.Id
+				parsedRemoteVirtualNetworkId, err := commonids.ParseVirtualNetworkIDInsensitively(*props.RemoteVirtualNetwork.Id)
+				if err != nil {
+					return err
+				}
+				remoteVirtualNetworkId = parsedRemoteVirtualNetworkId.ID()
 			}
 			d.Set("remote_virtual_network_id", remoteVirtualNetworkId)
 

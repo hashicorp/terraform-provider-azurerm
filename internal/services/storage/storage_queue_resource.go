@@ -4,7 +4,6 @@
 package storage
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -107,29 +106,7 @@ func resourceStorageQueue() *pluginsdk.Resource {
 			Deprecated: "the `resource_manager_id` property has been deprecated in favour of `id` and will be removed in version 5.0 of the Provider.",
 		}
 
-		r.CustomizeDiff = func(ctx context.Context, diff *pluginsdk.ResourceDiff, i interface{}) error {
-			// Resource Manager ID in use, but change to `storage_account_id` should recreate
-			if strings.HasPrefix(diff.Id(), "/subscriptions/") && diff.HasChange("storage_account_id") {
-				return diff.ForceNew("storage_account_id")
-			}
-
-			// using legacy Data Plane ID but attempting to change the storage_account_name should recreate
-			if diff.Id() != "" && !strings.HasPrefix(diff.Id(), "/subscriptions/") && diff.HasChange("storage_account_name") {
-				// converting from storage_account_id to the deprecated storage_account_name is not supported
-				oldAccountId, _ := diff.GetChange("storage_account_id")
-				oldName, newName := diff.GetChange("storage_account_name")
-
-				if oldAccountId.(string) != "" && newName.(string) != "" {
-					return diff.ForceNew("storage_account_name")
-				}
-
-				if oldName.(string) != "" && newName.(string) != "" {
-					return diff.ForceNew("storage_account_name")
-				}
-			}
-
-			return nil
-		}
+		r.CustomizeDiff = helpers.LegacyStorageAccountResourceCustomizeDiff
 	}
 
 	return r
@@ -314,9 +291,20 @@ func resourceStorageQueueRead(d *pluginsdk.ResourceData, meta interface{}) error
 					return err
 				}
 
-				account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
-				if err != nil {
-					return fmt.Errorf("retrieving Account %q for Queue %q: %v", id.AccountId.AccountName, id.QueueName, err)
+				var account *client.AccountDetails
+				if meta.(*clients.Client).Storage.StorageUseAzureAD {
+					// Note: The Resource Group Name is intentionally left empty here because it is not known
+					// in this 4.x legacy fallback path. This is safe because when Azure AD authentication is used,
+					// the downstream Data Plane client builder entirely bypasses fetching Storage Account access keys
+					// via the Management Plane (which is the only operation that requires the Resource Group Name).
+					account = &client.AccountDetails{
+						StorageAccountId: commonids.NewStorageAccountID(subscriptionId, "", id.AccountId.AccountName),
+					}
+				} else {
+					account, err = storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
+					if err != nil {
+						return fmt.Errorf("retrieving Account %q for Queue %q: %v", id.AccountId.AccountName, id.QueueName, err)
+					}
 				}
 				if account == nil {
 					log.Printf("[WARN] Unable to determine Resource Group for Storage Queue %q (Account %s) - assuming removed & removing from state", id.QueueName, id.AccountId.AccountName)
@@ -430,9 +418,20 @@ func resourceStorageQueueDelete(d *pluginsdk.ResourceData, meta interface{}) err
 			return err
 		}
 
-		account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
-		if err != nil {
-			return fmt.Errorf("retrieving Account %q for Queue %q: %s", id.AccountId.AccountName, id.QueueName, err)
+		var account *client.AccountDetails
+		if meta.(*clients.Client).Storage.StorageUseAzureAD {
+			// Note: The Resource Group Name is intentionally left empty here because it is not known
+			// in this 4.x legacy fallback path. This is safe because when Azure AD authentication is used,
+			// the downstream Data Plane client builder entirely bypasses fetching Storage Account access keys
+			// via the Management Plane (which is the only operation that requires the Resource Group Name).
+			account = &client.AccountDetails{
+				StorageAccountId: commonids.NewStorageAccountID(subscriptionId, "", id.AccountId.AccountName),
+			}
+		} else {
+			account, err = storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
+			if err != nil {
+				return fmt.Errorf("retrieving Account %q for Queue %q: %s", id.AccountId.AccountName, id.QueueName, err)
+			}
 		}
 		if account == nil {
 			log.Printf("[WARN] Unable to determine Resource Group for Storage Queue %q (Account %s) - assuming removed & removing from state", id.QueueName, id.AccountId.AccountName)

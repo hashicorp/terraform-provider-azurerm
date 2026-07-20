@@ -806,7 +806,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_password = "QAZwsx123"
   storage_mb             = 65536
   storage_tier           = "%s"
-  version                = "12"
+  version                = "16"
   sku_name               = "GP_Standard_D2s_v3"
   zone                   = "2"
 }
@@ -823,7 +823,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
   storage_mb             = 65536
-  version                = "12"
+  version                = "16"
   sku_name               = "GP_Standard_D2s_v3"
   zone                   = "2"
 }
@@ -840,7 +840,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
   storage_mb             = %s
-  version                = "12"
+  version                = "16"
   sku_name               = "GP_Standard_D2s_v3"
   zone                   = "2"
 }
@@ -857,7 +857,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   location               = azurerm_resource_group.test.location
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
-  version                = "12"
+  version                = "16"
   sku_name               = "GP_Standard_D2s_v3"
   zone                   = "2"
 }
@@ -874,7 +874,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   location               = azurerm_resource_group.test.location
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
-  version                = "12"
+  version                = "16"
   sku_name               = "GP_Standard_DC2ads_v5"
   zone                   = "2"
 }
@@ -921,7 +921,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_login          = "adminTerraform"
   administrator_password       = "QAZwsx123"
   storage_mb                   = 32768
-  version                      = "12"
+  version                      = "16"
   sku_name                     = "GP_Standard_D2s_v3"
   zone                         = "1"
   geo_redundant_backup_enabled = true
@@ -1010,7 +1010,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   location                      = azurerm_resource_group.test.location
   administrator_login           = "adminTerraform"
   administrator_password        = "QAZwsx123"
-  version                       = "13"
+  version                       = "16"
   backup_retention_days         = 7
   storage_mb                    = 32768
   delegated_subnet_id           = azurerm_subnet.test.id
@@ -1087,7 +1087,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   location                      = azurerm_resource_group.test.location
   administrator_login           = "adminTerraform"
   administrator_password        = "123wsxQAZ"
-  version                       = "13"
+  version                       = "16"
   backup_retention_days         = 10
   storage_mb                    = 65536
   storage_tier                  = "P6"
@@ -1127,7 +1127,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   location               = azurerm_resource_group.test.location
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
-  version                = "12"
+  version                = "16"
   storage_mb             = 32768
   sku_name               = "GP_Standard_D2s_v3"
   zone                   = "2"
@@ -1151,7 +1151,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   location               = azurerm_resource_group.test.location
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
-  version                = "12"
+  version                = "16"
   storage_mb             = 32768
   sku_name               = "GP_Standard_D2s_v3"
   zone                   = "2"
@@ -1175,7 +1175,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   location               = azurerm_resource_group.test.location
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
-  version                = "12"
+  version                = "16"
   storage_mb             = 32768
   sku_name               = "MO_Standard_E2s_v3"
   zone                   = "2"
@@ -1207,7 +1207,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   name                   = "acctest-fs-%d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
-  version                = "12"
+  version                = "16"
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
   zone                   = "%s"
@@ -1237,7 +1237,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   name                   = "acctest-fs-%d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
-  version                = "12"
+  version                = "16"
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
   zone                   = "%s"
@@ -1265,7 +1265,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_login          = "adminTerraform"
   administrator_password       = "QAZwsx123"
   storage_mb                   = 32768
-  version                      = "12"
+  version                      = "16"
   sku_name                     = "GP_Standard_D2s_v3"
   zone                         = "2"
   backup_retention_days        = 7
@@ -1293,7 +1293,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
   storage_mb             = 32768
-  version                = "12"
+  version                = "16"
   sku_name               = "GP_Standard_D2s_v3"
   zone                   = "1"
 
@@ -1346,7 +1346,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   location               = azurerm_resource_group.test.location
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
-  version                = "12"
+  version                = "16"
   sku_name               = "GP_Standard_D2s_v3"
   zone                   = "2"
 
@@ -1383,6 +1383,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acctestkv%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   purge_protection_enabled   = true
@@ -1431,7 +1432,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
   storage_mb             = 32768
-  version                = "12"
+  version                = "16"
   sku_name               = "B_Standard_B1ms"
   zone                   = "1"
 
@@ -1459,7 +1460,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
   storage_mb             = 32768
-  version                = "12"
+  version                = "16"
   sku_name               = "B_Standard_B1ms"
   zone                   = "1"
 
@@ -1526,6 +1527,7 @@ resource "azurerm_key_vault" "test2" {
   name                       = "acctestkv2%s"
   location                   = azurerm_resource_group.test2.location
   resource_group_name        = azurerm_resource_group.test2.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   purge_protection_enabled   = true
@@ -1568,7 +1570,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_login          = "adminTerraform"
   administrator_password       = "QAZwsx123"
   storage_mb                   = 32768
-  version                      = "12"
+  version                      = "16"
   sku_name                     = "B_Standard_B1ms"
   zone                         = "2"
   geo_redundant_backup_enabled = true
@@ -1607,6 +1609,7 @@ resource "azurerm_key_vault" "test2" {
   name                       = "acctestkv2%s"
   location                   = azurerm_resource_group.test2.location
   resource_group_name        = azurerm_resource_group.test2.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   purge_protection_enabled   = true
@@ -1649,7 +1652,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_login          = "adminTerraform"
   administrator_password       = "QAZwsx123"
   storage_mb                   = 32768
-  version                      = "12"
+  version                      = "16"
   sku_name                     = "B_Standard_B1ms"
   zone                         = "2"
   geo_redundant_backup_enabled = true
@@ -1681,7 +1684,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_password = "QAZwsx123"
   storage_mb             = 32768
   auto_grow_enabled      = %t
-  version                = "12"
+  version                = "16"
   sku_name               = "GP_Standard_D2s_v3"
   zone                   = "2"
 }
@@ -1700,7 +1703,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_password = "QAZwsx123"
   storage_mb             = 65536
   storage_tier           = "P4"
-  version                = "12"
+  version                = "16"
   sku_name               = "GP_Standard_D2s_v3"
   zone                   = "2"
 }
@@ -1719,7 +1722,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_password = "QAZwsx123"
   storage_mb             = %s
   storage_tier           = "%s"
-  version                = "12"
+  version                = "16"
   sku_name               = "GP_Standard_D2s_v3"
   zone                   = "2"
 }
@@ -1735,7 +1738,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   location                      = azurerm_resource_group.test.location
   administrator_login           = "adminTerraform"
   administrator_password        = "QAZwsx123"
-  version                       = "12"
+  version                       = "16"
   sku_name                      = "GP_Standard_D2s_v3"
   zone                          = "2"
   public_network_access_enabled = %t
@@ -1756,7 +1759,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_login               = "adminTerraform"
   administrator_password_wo         = ephemeral.azurerm_key_vault_secret.test.value
   administrator_password_wo_version = %[4]d
-  version                           = "12"
+  version                           = "16"
   sku_name                          = "GP_Standard_D2s_v3"
   zone                              = "2"
 }

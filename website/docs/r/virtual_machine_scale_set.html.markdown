@@ -105,7 +105,7 @@ resource "azurerm_virtual_machine_scale_set" "example" {
   health_probe_id = azurerm_lb_probe.example.id
 
   sku {
-    name     = "Standard_F2"
+    name     = "Standard_D4_v5"
     tier     = "Standard"
     capacity = 2
   }
@@ -211,7 +211,7 @@ resource "azurerm_virtual_machine_scale_set" "example" {
   upgrade_policy_mode = "Manual"
 
   sku {
-    name     = "Standard_F2"
+    name     = "Standard_D4_v5"
     tier     = "Standard"
     capacity = 2
   }
@@ -608,4 +608,4 @@ terraform import azurerm_virtual_machine_scale_set.scaleset1 /subscriptions/0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Compute` - 2024-11-01
+* `Microsoft.Compute` - 2025-04-01

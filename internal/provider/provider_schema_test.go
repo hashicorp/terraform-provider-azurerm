@@ -12,7 +12,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -160,30 +159,7 @@ func TestResourcesHaveEnabledFieldsMarkedAsBooleans(t *testing.T) {
 	}
 	sort.Strings(resourceNames)
 
-	// TODO: 4.0 - work through this list
-	resourceFieldsWhichNeedToBeAddressed := map[string]map[string]struct{}{
-		// 1: Fields which require renaming etc
-		"azurerm_iot_security_solution": {
-			// this is a list of recommendations
-			"recommendations_enabled": {},
-		},
-	}
-
-	if !features.FivePointOh() {
-		// These have been addressed but while in 4.x we need to ignore them so the test can pass.
-		resourceFieldsWhichNeedToBeAddressed["azurerm_datadog_monitor_sso_configuration"] = map[string]struct{}{
-			"single_sign_on_enabled": {},
-		}
-		resourceFieldsWhichNeedToBeAddressed["azurerm_kubernetes_cluster"] = map[string]struct{}{
-			"transparent_huge_page_enabled": {},
-		}
-		resourceFieldsWhichNeedToBeAddressed["azurerm_kubernetes_cluster_node_pool"] = map[string]struct{}{
-			"transparent_huge_page_enabled": {},
-		}
-		resourceFieldsWhichNeedToBeAddressed["azurerm_netapp_volume"] = map[string]struct{}{
-			"protocols_enabled": {},
-		}
-	}
+	resourceFieldsWhichNeedToBeAddressed := map[string]map[string]struct{}{}
 
 	for _, resourceName := range resourceNames {
 		resource := provider.ResourcesMap[resourceName]
@@ -289,28 +265,24 @@ func TestResourcesDoNotContainANameFieldWithADefaultOfDefault(t *testing.T) {
 			// which'll also need the Monitor resource to have Create call Update
 			"name": {},
 		},
+
+		// @sreallymatt: The Spring Cloud service is being retired, so there is no sense in updating these at this stage.
 		"azurerm_spring_cloud_accelerator": {
-			// TODO: in 4.0 this resource probably wants embedding within `azurerm_spring_cloud_service`
 			"name": {},
 		},
 		"azurerm_spring_cloud_api_portal": {
-			// TODO: in 4.0 this resource probably wants embedding within `azurerm_spring_cloud_service`
 			"name": {},
 		},
 		"azurerm_spring_cloud_application_live_view": {
-			// TODO: in 4.0 this resource probably wants embedding within `azurerm_spring_cloud_service`
 			"name": {},
 		},
 		"azurerm_spring_cloud_configuration_service": {
-			// TODO: in 4.0 this resource probably wants embedding within `azurerm_spring_cloud_service`
 			"name": {},
 		},
 		"azurerm_spring_cloud_dev_tool_portal": {
-			// TODO: in 4.0 this resource probably wants embedding within `azurerm_spring_cloud_service`
 			"name": {},
 		},
 		"azurerm_spring_cloud_gateway": {
-			// TODO: in 4.0 this resource probably wants embedding within `azurerm_spring_cloud_service`
 			"name": {},
 		},
 
@@ -319,12 +291,8 @@ func TestResourcesDoNotContainANameFieldWithADefaultOfDefault(t *testing.T) {
 			"name": {},
 		},
 
-		// 3: Deprecated / to be removed in 4.0
-		"azurerm_cosmosdb_notebook_workspace": {
-			"name": {},
-		},
-
-		// 4: Deprecated / to be removed in 5.0
+		// 3: Deprecated / to be removed in 5.0
+		// TODO 5.0: remove this entry
 		"azurerm_redis_enterprise_database": {
 			"name": {},
 		},
@@ -448,11 +416,6 @@ func TestResourcesWithAnEncryptionBlockBehaveConsistently(t *testing.T) {
 
 	resourcesWhichNeedToBeAddressed := map[string]struct{}{}
 
-	if !features.FivePointOh() {
-		resourcesWhichNeedToBeAddressed["azurerm_container_registry"] = struct{}{}
-		resourcesWhichNeedToBeAddressed["azurerm_automation_account"] = struct{}{}
-	}
-
 	for _, resourceName := range resourceNames {
 		resource := provider.ResourcesMap[resourceName]
 
@@ -556,12 +519,7 @@ func TestResourcesDoNotContainLocalAuthenticationDisabled(t *testing.T) {
 	}
 	sort.Strings(resourceNames)
 
-	// TODO: 4.0 - work through this list
-	resourcesWhichNeedToBeAddressed := map[string]struct{}{
-		"azurerm_application_insights":    {},
-		"azurerm_cosmosdb_account":        {},
-		"azurerm_log_analytics_workspace": {},
-	}
+	resourcesWhichNeedToBeAddressed := make(map[string]struct{})
 
 	for _, resourceName := range resourceNames {
 		resource := provider.ResourcesMap[resourceName]

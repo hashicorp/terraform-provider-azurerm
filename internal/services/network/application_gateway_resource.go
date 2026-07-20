@@ -4858,9 +4858,6 @@ func flattenApplicationGatewaySslProfiles(input *[]applicationgateways.Applicati
 			}
 			output["trusted_client_certificate_names"] = trustedClientCertificateNames
 			output["verify_client_certificate_issuer_dn"] = verifyClientCertIssuerDn
-			if !features.FivePointOh() {
-				output["verify_client_cert_issuer_dn"] = verifyClientCertIssuerDn
-			}
 			output["verify_client_certificate_revocation"] = verifyClientCertificateRevocation
 		}
 
@@ -5517,13 +5514,13 @@ func applicationGatewayHttpListnerHash(v interface{}) int {
 			buf.WriteString(v.(string))
 		}
 		if hostNames, ok := m["host_names"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", hostNames.(*pluginsdk.Set).List()))
+			fmt.Fprintf(&buf, "%s-", hostNames.(*pluginsdk.Set).List())
 		}
 		if v, ok := m["ssl_certificate_name"]; ok {
 			buf.WriteString(v.(string))
 		}
 		if v, ok := m["require_sni"]; ok {
-			buf.WriteString(fmt.Sprintf("%t", v.(bool)))
+			fmt.Fprintf(&buf, "%t", v.(bool))
 		}
 		if v, ok := m["firewall_policy_id"]; ok {
 			buf.WriteString(strings.ToLower(v.(string)))
@@ -5555,10 +5552,10 @@ func applicationGatewayBackendSettingsHash(v interface{}) int {
 
 	if m, ok := v.(map[string]interface{}); ok {
 		buf.WriteString(m["name"].(string))
-		buf.WriteString(fmt.Sprintf("%d", m["port"].(int)))
+		fmt.Fprintf(&buf, "%d", m["port"].(int))
 		buf.WriteString(m["protocol"].(string))
 		buf.WriteString(m["cookie_based_affinity"].(string))
-		buf.WriteString(fmt.Sprintf("%t", m["dedicated_backend_connection_enabled"].(bool)))
+		fmt.Fprintf(&buf, "%t", m["dedicated_backend_connection_enabled"].(bool))
 
 		if v, ok := m["path"]; ok {
 			buf.WriteString(v.(string))
@@ -5573,10 +5570,10 @@ func applicationGatewayBackendSettingsHash(v interface{}) int {
 			buf.WriteString(v.(string))
 		}
 		if v, ok := m["pick_host_name_from_backend_address"]; ok {
-			buf.WriteString(fmt.Sprintf("%t", v.(bool)))
+			fmt.Fprintf(&buf, "%t", v.(bool))
 		}
 		if v, ok := m["request_timeout"]; ok {
-			buf.WriteString(fmt.Sprintf("%d", v.(int)))
+			fmt.Fprintf(&buf, "%d", v.(int))
 		}
 		if !features.FivePointOh() {
 			if authCert, ok := m["authentication_certificate"].([]interface{}); ok {
@@ -5595,18 +5592,18 @@ func applicationGatewayBackendSettingsHash(v interface{}) int {
 					continue
 				}
 				config := ac.(map[string]interface{})
-				buf.WriteString(fmt.Sprintf("%t", config["enabled"].(bool)))
-				buf.WriteString(fmt.Sprintf("%d", config["drain_timeout_sec"].(int)))
+				fmt.Fprintf(&buf, "%t", config["enabled"].(bool))
+				fmt.Fprintf(&buf, "%d", config["drain_timeout_sec"].(int))
 			}
 		}
 		if trustedRootCertificateNames, ok := m["trusted_root_certificate_names"]; ok {
-			buf.WriteString(fmt.Sprintf("%s", trustedRootCertificateNames.([]interface{})))
+			fmt.Fprintf(&buf, "%s", trustedRootCertificateNames.([]interface{}))
 		}
 		if v, ok := m["certificate_chain_validation_enabled"]; ok {
-			buf.WriteString(fmt.Sprintf("%t", v.(bool)))
+			fmt.Fprintf(&buf, "%t", v.(bool))
 		}
 		if v, ok := m["sni_validation_enabled"]; ok {
-			buf.WriteString(fmt.Sprintf("%t", v.(bool)))
+			fmt.Fprintf(&buf, "%t", v.(bool))
 		}
 		if v, ok := m["sni_name"]; ok {
 			buf.WriteString(v.(string))
@@ -5641,10 +5638,10 @@ func applicationGatewayBackendAddressPool(v interface{}) int {
 		buf.WriteString(m["name"].(string))
 
 		if fqdns, ok := m["fqdns"]; ok {
-			buf.WriteString(fmt.Sprintf("%s", fqdns.(*pluginsdk.Set).List()))
+			fmt.Fprintf(&buf, "%s", fqdns.(*pluginsdk.Set).List())
 		}
 		if ips, ok := m["ip_addresses"]; ok {
-			buf.WriteString(fmt.Sprintf("%s", ips.(*pluginsdk.Set).List()))
+			fmt.Fprintf(&buf, "%s", ips.(*pluginsdk.Set).List())
 		}
 	}
 
@@ -5657,24 +5654,24 @@ func applicationGatewayProbeHash(v interface{}) int {
 		buf.WriteString(m["name"].(string))
 		buf.WriteString(m["protocol"].(string))
 		buf.WriteString(m["path"].(string))
-		buf.WriteString(fmt.Sprintf("%d", m["interval"].(int)))
-		buf.WriteString(fmt.Sprintf("%d", m["timeout"].(int)))
-		buf.WriteString(fmt.Sprintf("%d", m["unhealthy_threshold"].(int)))
+		fmt.Fprintf(&buf, "%d", m["interval"].(int))
+		fmt.Fprintf(&buf, "%d", m["timeout"].(int))
+		fmt.Fprintf(&buf, "%d", m["unhealthy_threshold"].(int))
 
 		if v, ok := m["host"]; ok {
 			buf.WriteString(v.(string))
 		}
 		if v, ok := m["port"]; ok {
-			buf.WriteString(fmt.Sprintf("%d", v.(int)))
+			fmt.Fprintf(&buf, "%d", v.(int))
 		}
 		if v, ok := m["pick_host_name_from_backend_http_settings"]; ok {
-			buf.WriteString(fmt.Sprintf("%t", v.(bool)))
+			fmt.Fprintf(&buf, "%t", v.(bool))
 		}
 		if v, ok := m["minimum_servers"]; ok {
-			buf.WriteString(fmt.Sprintf("%d", v.(int)))
+			fmt.Fprintf(&buf, "%d", v.(int))
 		}
 		if v, ok := m["proxy_protocol_header_enabled"]; ok {
-			buf.WriteString(fmt.Sprintf("%t", v.(bool)))
+			fmt.Fprintf(&buf, "%t", v.(bool))
 		}
 		if match, ok := m["match"]; ok {
 			if attrs := match.([]interface{}); len(attrs) == 1 && attrs[0] != nil {
@@ -5685,7 +5682,7 @@ func applicationGatewayProbeHash(v interface{}) int {
 				// Only include in hash if it's not the default
 				defaultMatch := body == "" && len(statusCodes) == 1 && statusCodes[0].(string) == "200-399"
 				if !defaultMatch {
-					buf.WriteString(fmt.Sprintf("%s-%+v", body, statusCodes))
+					fmt.Fprintf(&buf, "%s-%+v", body, statusCodes)
 				}
 			}
 		}
@@ -5712,7 +5709,7 @@ func applicationGatewayListenerHash(v interface{}) int {
 		}
 
 		if hostNames, ok := m["host_names"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", hostNames.(*pluginsdk.Set).List()))
+			fmt.Fprintf(&buf, "%s-", hostNames.(*pluginsdk.Set).List())
 		}
 	}
 
@@ -5727,7 +5724,7 @@ func applicationGatewayRoutingRuleHash(v interface{}) int {
 		buf.WriteString(m["backend_address_pool_name"].(string))
 		buf.WriteString(m["backend_name"].(string))
 		buf.WriteString(m["listener_name"].(string))
-		buf.WriteString(fmt.Sprintf("%d", m["priority"].(int)))
+		fmt.Fprintf(&buf, "%d", m["priority"].(int))
 	}
 
 	return pluginsdk.HashString(buf.String())

@@ -181,28 +181,6 @@ func TestAccLinuxVirtualMachineScaleSet_extensionsAutomaticUpgradeWithHealthExte
 	})
 }
 
-func TestAccLinuxVirtualMachineScaleSet_extensionAutomaticUpgradeUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
-	r := LinuxVirtualMachineScaleSetResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.extensionsWithHealthExtension(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password", "extension.0.protected_settings"),
-		{
-			Config: r.extensionsAutomaticUpgradeWithHealthExtension(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password", "extension.0.protected_settings"),
-	})
-}
-
 func TestAccLinuxVirtualMachineScaleSet_extensionWithTimeBudget(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
@@ -788,58 +766,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) extensionsWithHealthExtension(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                            = "acctestvmss-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_F2"
-  instances                       = 1
-  admin_username                  = "adminuser"
-  admin_password                  = "P@ssword1234!"
-  disable_password_authentication = false
-  upgrade_mode                    = "Automatic"
-
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
-    version   = "latest"
-  }
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-  network_interface {
-    name    = "example"
-    primary = true
-    ip_configuration {
-      name      = "internal"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
-    }
-  }
-  extension {
-    name                       = "HealthExtension"
-    publisher                  = "Microsoft.ManagedServices"
-    type                       = "ApplicationHealthLinux"
-    type_handler_version       = "1.0"
-    auto_upgrade_minor_version = true
-    settings = jsonencode({
-      protocol = "https"
-      port     = 443
-    })
-  }
-  tags = {
-    accTest = "true"
-  }
-}
-`, r.template(data), data.RandomInteger)
-}
-
 func (r LinuxVirtualMachineScaleSetResource) extensionsAutomaticUpgradeWithHealthExtension(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
@@ -1293,12 +1219,13 @@ data "azurerm_client_config" "current" {}
 resource "azurerm_key_vault" "test" {
   count = 2
 
-  name                   = "acctestkv${count.index}%[3]s"
-  location               = azurerm_resource_group.test.location
-  resource_group_name    = azurerm_resource_group.test.name
-  tenant_id              = data.azurerm_client_config.current.tenant_id
-  sku_name               = "standard"
-  enabled_for_deployment = true
+  name                       = "acctestkv${count.index}%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  enabled_for_deployment     = true
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id

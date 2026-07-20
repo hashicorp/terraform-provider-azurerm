@@ -206,7 +206,8 @@ func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_customizeDiffValidatio
 
 	// TODO: Remove in v5.0 - These test steps are for deprecated vm_sizes functionality
 	if !features.FivePointOh() {
-		testSteps = append(testSteps,
+		testSteps = append(
+			testSteps,
 			acceptance.TestStep{
 				Config:      r.skuProfileNeitherFieldProvided(data),
 				ExpectError: regexp.MustCompile("either `vm_sizes` or `virtual_machine_size` must be configured in `sku_profile`"),

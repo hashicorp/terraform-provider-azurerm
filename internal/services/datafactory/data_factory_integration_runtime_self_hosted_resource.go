@@ -289,9 +289,9 @@ func resourceDataFactoryIntegrationRuntimeSelfHostedRbacAuthorizationHash(v inte
 	if m, ok := v.(map[string]interface{}); ok {
 		if v, ok := m["resource_id"]; ok {
 			if !features.FivePointOh() {
-				buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(v.(string))))
+				fmt.Fprintf(&buf, "%s-", strings.ToLower(v.(string)))
 			} else {
-				buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+				fmt.Fprintf(&buf, "%s-", v.(string))
 			}
 		}
 	}
