@@ -21,17 +21,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type assignmentBaseResource struct{}
 
-type assignmentIdentityModel struct {
-	Type        string   `tfschema:"type"`
-	IdentityIds []string `tfschema:"identity_ids"`
-	PrincipalId string   `tfschema:"principal_id"`
-	TenantId    string   `tfschema:"tenant_id"`
-}
 
 type assignmentNonComplianceMessageModel struct {
 	Content                     string `tfschema:"content"`
@@ -54,19 +47,20 @@ type assignmentResourceSelectorModel struct {
 	Selectors []assignmentOverrideSelectorModel `tfschema:"selectors"`
 }
 
-// assignmentBaseModel contains only the simple fields shared across all policy assignment resources.
-// Complex nested fields (identity, non_compliance_message, overrides, resource_selectors) remain
-// on ResourceData as they use expand/flatten helpers that expect []interface{}.
 type assignmentBaseModel struct {
-	Name               string   `tfschema:"name"`
-	PolicyDefinitionId string   `tfschema:"policy_definition_id"`
-	Description        string   `tfschema:"description"`
-	DisplayName        string   `tfschema:"display_name"`
-	Location           string   `tfschema:"location"`
-	Enforce            bool     `tfschema:"enforce"`
-	Metadata           string   `tfschema:"metadata"`
-	Parameters         string   `tfschema:"parameters"`
-	NotScopes          []string `tfschema:"not_scopes"`
+	Name                 string                                    `tfschema:"name"`
+	PolicyDefinitionId   string                                    `tfschema:"policy_definition_id"`
+	Description          string                                    `tfschema:"description"`
+	DisplayName          string                                    `tfschema:"display_name"`
+	Location             string                                    `tfschema:"location"`
+	Enforce              bool                                      `tfschema:"enforce"`
+	Metadata             string                                    `tfschema:"metadata"`
+	Parameters           string                                    `tfschema:"parameters"`
+	NotScopes            []string                                  `tfschema:"not_scopes"`
+	Identity             *identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	NonComplianceMessage []assignmentNonComplianceMessageModel     `tfschema:"non_compliance_message"`
+	Overrides            []assignmentOverrideModel                 `tfschema:"overrides"`
+	ResourceSelectors    []assignmentResourceSelectorModel         `tfschema:"resource_selectors"`
 }
 
 func (br assignmentBaseResource) createFunc(resourceName, scopeFieldName string) sdk.ResourceFunc {
@@ -111,11 +105,11 @@ func (br assignmentBaseResource) createFunc(resourceName, scopeFieldName string)
 				assignment.Location = pointer.To(location.Normalize(config.Location))
 			}
 
-			if v, ok := metadata.ResourceData.GetOk("identity"); ok {
+			if config.Identity != nil {
 				if assignment.Location == nil {
 					return fmt.Errorf("`location` must be set when `identity` is assigned")
 				}
-				identityIns, err := identity.ExpandSystemOrUserAssignedMap(v.([]interface{}))
+				identityIns, err := identity.ExpandSystemOrUserAssignedMapFromModel(config.Identity)
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
@@ -148,16 +142,16 @@ func (br assignmentBaseResource) createFunc(resourceName, scopeFieldName string)
 				assignment.Properties.NotScopes = &config.NotScopes
 			}
 
-			if msgs := metadata.ResourceData.Get("non_compliance_message").([]interface{}); len(msgs) > 0 {
-				assignment.Properties.NonComplianceMessages = br.expandNonComplianceMessages(msgs)
+			if len(config.NonComplianceMessage) > 0 {
+				assignment.Properties.NonComplianceMessages = br.expandNonComplianceMessages(config.NonComplianceMessage)
 			}
 
-			if overrides := metadata.ResourceData.Get("overrides").([]interface{}); len(overrides) > 0 {
-				assignment.Properties.Overrides = br.expandOverrides(overrides)
+			if len(config.Overrides) > 0 {
+				assignment.Properties.Overrides = br.expandOverrides(config.Overrides)
 			}
 
-			if rs := metadata.ResourceData.Get("resource_selectors").([]interface{}); len(rs) > 0 {
-				assignment.Properties.ResourceSelectors = br.expandResourceSelectors(rs)
+			if len(config.ResourceSelectors) > 0 {
+				assignment.Properties.ResourceSelectors = br.expandResourceSelectors(config.ResourceSelectors)
 			}
 
 			if _, err := client.Create(ctx, id, assignment); err != nil {
@@ -235,26 +229,20 @@ func (br assignmentBaseResource) readFunc(scopeFieldName string) sdk.ResourceFun
 			// lintignore:R001
 			metadata.ResourceData.Set(scopeFieldName, id.Scope)
 
-			identityIns, err := identity.FlattenSystemOrUserAssignedMap(respModel.Identity)
+			identityIns, err := identity.FlattenSystemOrUserAssignedMapToModel(respModel.Identity)
 			if err != nil {
-				return fmt.Errorf("FlattenSystemOrUserAssignedMap: %+v", err)
+				return fmt.Errorf("FlattenSystemOrUserAssignedMapToModel: %+v", err)
 			}
-			if err = metadata.ResourceData.Set("identity", identityIns); err != nil {
-				return fmt.Errorf("setting `identity`: %+v", err)
-			}
+			state.Identity = identityIns
 
 			if props := respModel.Properties; props != nil {
 				state.Description = pointer.From(props.Description)
 				state.DisplayName = pointer.From(props.DisplayName)
-				if mode := props.EnforcementMode; mode != nil {
-					state.Enforce = (*props.EnforcementMode) == policyassignments.EnforcementModeDefault
-				}
-				if props.NotScopes != nil {
-					state.NotScopes = *props.NotScopes
-				}
+				state.Enforce = pointer.From(props.EnforcementMode) == policyassignments.EnforcementModeDefault
+				state.NotScopes = pointer.From(props.NotScopes)
 				state.PolicyDefinitionId = pointer.From(props.PolicyDefinitionId)
 
-				metadata.ResourceData.Set("non_compliance_message", br.flattenNonComplianceMessages(props.NonComplianceMessages))
+				state.NonComplianceMessage = br.flattenNonComplianceMessages(props.NonComplianceMessages)
 
 				state.Metadata = flattenJSON(pointer.From(props.Metadata))
 
@@ -264,8 +252,8 @@ func (br assignmentBaseResource) readFunc(scopeFieldName string) sdk.ResourceFun
 				}
 				state.Parameters = flattenedParameters
 
-				metadata.ResourceData.Set("overrides", br.flattenOverrides(props.Overrides))
-				metadata.ResourceData.Set("resource_selectors", br.flattenResourceSelectors(props.ResourceSelectors))
+				state.Overrides = br.flattenOverrides(props.Overrides)
+				state.ResourceSelectors = br.flattenResourceSelectors(props.ResourceSelectors)
 			}
 
 			return metadata.Encode(&state)
@@ -327,8 +315,7 @@ func (br assignmentBaseResource) updateFunc() sdk.ResourceFunc {
 				if update.Location == nil {
 					return fmt.Errorf("`location` must be set when `identity` is assigned")
 				}
-				identityRaw := metadata.ResourceData.Get("identity").([]interface{})
-				identityIns, err := identity.ExpandSystemOrUserAssignedMap(identityRaw)
+				identityIns, err := identity.ExpandSystemOrUserAssignedMapFromModel(config.Identity)
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
@@ -356,7 +343,7 @@ func (br assignmentBaseResource) updateFunc() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("non_compliance_message") {
-				update.Properties.NonComplianceMessages = br.expandNonComplianceMessages(metadata.ResourceData.Get("non_compliance_message").([]interface{}))
+				update.Properties.NonComplianceMessages = br.expandNonComplianceMessages(config.NonComplianceMessage)
 			}
 
 			if metadata.ResourceData.HasChange("parameters") {
@@ -372,11 +359,11 @@ func (br assignmentBaseResource) updateFunc() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("overrides") {
-				update.Properties.Overrides = br.expandOverrides(metadata.ResourceData.Get("overrides").([]interface{}))
+				update.Properties.Overrides = br.expandOverrides(config.Overrides)
 			}
 
 			if metadata.ResourceData.HasChange("resource_selectors") {
-				update.Properties.ResourceSelectors = br.expandResourceSelectors(metadata.ResourceData.Get("resource_selectors").([]interface{}))
+				update.Properties.ResourceSelectors = br.expandResourceSelectors(config.ResourceSelectors)
 			}
 
 			// NOTE: there isn't an Update endpoint
@@ -595,113 +582,89 @@ func (br assignmentBaseResource) flattenNonComplianceMessages(input *[]policyass
 	return results
 }
 
-func (br assignmentBaseResource) expandNonComplianceMessages(input []interface{}) *[]policyassignments.NonComplianceMessage {
+func (br assignmentBaseResource) expandNonComplianceMessages(input []assignmentNonComplianceMessageModel) *[]policyassignments.NonComplianceMessage {
 	if len(input) == 0 {
 		return nil
 	}
 
 	output := make([]policyassignments.NonComplianceMessage, 0)
 	for _, v := range input {
-		if m, ok := v.(map[string]interface{}); ok {
-			ncm := policyassignments.NonComplianceMessage{
-				Message: m["content"].(string),
-			}
-			if id := m["policy_definition_reference_id"].(string); id != "" {
-				ncm.PolicyDefinitionReferenceId = pointer.To(id)
-			}
-			output = append(output, ncm)
+		ncm := policyassignments.NonComplianceMessage{
+			Message: v.Content,
 		}
+		if id := v.PolicyDefinitionReferenceId; id != "" {
+			ncm.PolicyDefinitionReferenceId = pointer.To(id)
+		}
+		output = append(output, ncm)
 	}
 
 	return &output
 }
 
-func (br assignmentBaseResource) expandOverrides(overrides []interface{}) *[]policyassignments.Override {
+func (br assignmentBaseResource) expandOverrides(overrides []assignmentOverrideModel) *[]policyassignments.Override {
 	if len(overrides) == 0 {
 		return nil
 	}
 
 	var res []policyassignments.Override
 	for _, v := range overrides {
-		if m, ok := v.(map[string]interface{}); ok {
-			var item policyassignments.Override
-			item.Value = pointer.To(m["value"].(string))
-			item.Kind = pointer.To(policyassignments.OverrideKindPolicyEffect)
-			item.Selectors = br.expandSelectors(m["selectors"].([]interface{}))
-			res = append(res, item)
-		}
+		var item policyassignments.Override
+		item.Value = pointer.To(v.Value)
+		item.Kind = pointer.To(policyassignments.OverrideKindPolicyEffect)
+		item.Selectors = br.expandSelectors(v.Selectors)
+		res = append(res, item)
 	}
 
 	return &res
 }
 
-func (br assignmentBaseResource) expandStringSlice(in interface{}) (res []string) {
-	if in == nil {
-		return nil
-	}
-	if slice, ok := in.([]interface{}); ok {
-		for _, v := range slice {
-			if v != nil {
-				res = append(res, v.(string))
-			} else {
-				res = append(res, "")
-			}
-		}
-	}
-	return res
-}
-
-func (br assignmentBaseResource) expandSelectors(i []interface{}) *[]policyassignments.Selector {
+func (br assignmentBaseResource) expandSelectors(i []assignmentOverrideSelectorModel) *[]policyassignments.Selector {
 	if len(i) == 0 {
 		return nil
 	}
 
 	var res []policyassignments.Selector
 	for _, v := range i {
-		if m, ok := v.(map[string]interface{}); ok {
-			var item policyassignments.Selector
-			item.Kind = pointer.To(policyassignments.SelectorKind(m["kind"].(string)))
-			if in := br.expandStringSlice(m["in"]); len(in) > 0 {
-				item.In = pointer.To(in)
-			}
-			if notIn := br.expandStringSlice(m["not_in"]); len(notIn) > 0 {
-				item.NotIn = pointer.To(notIn)
-			}
-			res = append(res, item)
+		var item policyassignments.Selector
+		item.Kind = pointer.To(policyassignments.SelectorKind(v.Kind))
+		if len(v.In) > 0 {
+			item.In = pointer.To(v.In)
 		}
+		if len(v.NotIn) > 0 {
+			item.NotIn = pointer.To(v.NotIn)
+		}
+		res = append(res, item)
 	}
 
 	return &res
 }
 
-func (br assignmentBaseResource) expandResourceSelectors(rs []interface{}) *[]policyassignments.ResourceSelector {
+func (br assignmentBaseResource) expandResourceSelectors(rs []assignmentResourceSelectorModel) *[]policyassignments.ResourceSelector {
 	if len(rs) == 0 {
 		return nil
 	}
 
 	var res []policyassignments.ResourceSelector
 	for _, v := range rs {
-		if m, ok := v.(map[string]interface{}); ok {
-			var item policyassignments.ResourceSelector
-			item.Name = pointer.To(m["name"].(string))
-			item.Selectors = br.expandSelectors(m["selectors"].([]interface{}))
-			res = append(res, item)
-		}
+		var item policyassignments.ResourceSelector
+		item.Name = pointer.To(v.Name)
+		item.Selectors = br.expandSelectors(v.Selectors)
+		res = append(res, item)
 	}
 
 	return &res
 }
 
-func (br assignmentBaseResource) flattenOverrides(overrides *[]policyassignments.Override) interface{} {
+func (br assignmentBaseResource) flattenOverrides(overrides *[]policyassignments.Override) []assignmentOverrideModel {
 	if overrides == nil || len(*overrides) == 0 {
-		return nil
+		return make([]assignmentOverrideModel, 0)
 	}
 
-	res := make([]interface{}, 0, len(*overrides))
+	res := make([]assignmentOverrideModel, 0, len(*overrides))
 	for _, o := range *overrides {
-		item := map[string]interface{}{
-			"value":     pointer.From(o.Value),
-			"selectors": br.flattenSelectors(o.Selectors),
+		item := assignmentOverrideModel{
+			Value:     pointer.From(o.Value),
+			Selectors: br.flattenSelectors(o.Selectors),
 		}
 		res = append(res, item)
 	}
@@ -709,17 +672,17 @@ func (br assignmentBaseResource) flattenOverrides(overrides *[]policyassignments
 	return res
 }
 
-func (br assignmentBaseResource) flattenSelectors(selectors *[]policyassignments.Selector) interface{} {
+func (br assignmentBaseResource) flattenSelectors(selectors *[]policyassignments.Selector) []assignmentOverrideSelectorModel {
 	if selectors == nil || len(*selectors) == 0 {
-		return nil
+		return make([]assignmentOverrideSelectorModel, 0)
 	}
 
-	res := make([]interface{}, 0, len(*selectors))
+	res := make([]assignmentOverrideSelectorModel, 0, len(*selectors))
 	for _, s := range *selectors {
-		item := map[string]interface{}{
-			"in":     utils.FlattenStringSlice(s.In),
-			"not_in": utils.FlattenStringSlice(s.NotIn),
-			"kind":   string(pointer.From(s.Kind)),
+		item := assignmentOverrideSelectorModel{
+			In:     pointer.From(s.In),
+			NotIn:  pointer.From(s.NotIn),
+			Kind:   string(pointer.From(s.Kind)),
 		}
 		res = append(res, item)
 	}
@@ -727,16 +690,16 @@ func (br assignmentBaseResource) flattenSelectors(selectors *[]policyassignments
 	return res
 }
 
-func (br assignmentBaseResource) flattenResourceSelectors(selectors *[]policyassignments.ResourceSelector) interface{} {
+func (br assignmentBaseResource) flattenResourceSelectors(selectors *[]policyassignments.ResourceSelector) []assignmentResourceSelectorModel {
 	if selectors == nil || *selectors == nil {
-		return nil
+		return make([]assignmentResourceSelectorModel, 0)
 	}
 
-	res := make([]interface{}, 0, len(*selectors))
+	res := make([]assignmentResourceSelectorModel, 0, len(*selectors))
 	for _, v := range *selectors {
-		item := map[string]interface{}{
-			"name":      pointer.From(v.Name),
-			"selectors": br.flattenSelectors(v.Selectors),
+		item := assignmentResourceSelectorModel{
+			Name:      pointer.From(v.Name),
+			Selectors: br.flattenSelectors(v.Selectors),
 		}
 		res = append(res, item)
 	}
