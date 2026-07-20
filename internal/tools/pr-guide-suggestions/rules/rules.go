@@ -1,8 +1,9 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-// Package rules implements the schema-lint checks (SL001-SL013) as plain checks
-// over the syntactic schema tree produced by the schematree package.
+// Package rules implements the pr-guide-suggestions checks (SL001-SL013) as
+// plain checks over the syntactic schema tree produced by the schematree
+// package.
 //
 // Each rule is a *Rule bundling its stable ID, human name, severity and a Check
 // function. A check reports findings against schema nodes; the driver anchors
@@ -16,8 +17,8 @@ import (
 	"go/token"
 	"strconv"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-lint/astutil"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-lint/schematree"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/pr-guide-suggestions/astutil"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/pr-guide-suggestions/schematree"
 )
 
 // Severity classifies a finding for reporting and the process exit code.

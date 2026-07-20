@@ -9,7 +9,7 @@ import (
 	"go/token"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-lint/schematree"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/pr-guide-suggestions/schematree"
 )
 
 // finding is a rule diagnostic resolved to its property path for assertions.

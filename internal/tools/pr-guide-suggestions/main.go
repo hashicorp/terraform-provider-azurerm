@@ -1,19 +1,19 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-// Command schemalint is a fast, AST-based linter for the AzureRM provider's
-// resource and data source schemas. It extends the tfproviderlint helper
-// libraries and analysis.Analyzer model, parsing Go source directly (no provider
-// compilation or JSON schema rendering) so it can lint a single file or only the
-// schema properties a pull request changes.
+// Command pr-guide-suggestions is a fast, AST-based linter for the AzureRM
+// provider's resource and data source schemas. It extends the tfproviderlint
+// helper libraries and analysis.Analyzer model, parsing Go source directly (no
+// provider compilation or JSON schema rendering) so it can lint a single file or
+// only the schema properties a pull request changes.
 //
 // Usage:
 //
-//	schemalint list
-//	schemalint check ./internal/services/foo/foo_resource.go
-//	schemalint check ./internal/services/foo
-//	schemalint check -diff-base origin/main
-//	schemalint check -format json ./internal/services/foo
+//	pr-guide-suggestions list
+//	pr-guide-suggestions check ./internal/services/foo/foo_resource.go
+//	pr-guide-suggestions check ./internal/services/foo
+//	pr-guide-suggestions check -diff-base origin/main
+//	pr-guide-suggestions check -format json ./internal/services/foo
 package main
 
 import (
@@ -23,12 +23,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-lint/lint"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-lint/rules"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/pr-guide-suggestions/lint"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/pr-guide-suggestions/rules"
 )
 
 // defaultPathspecs restrict diff mode to resource and data source files,
-// matching the schema-lint workflow's trigger paths.
+// matching the pr-guide-suggestions workflow's trigger paths.
 var defaultPathspecs = []string{
 	":(glob)internal/services/**/*_resource.go",
 	":(glob)internal/services/**/*_data_source.go",
@@ -146,7 +146,7 @@ func listRules() {
 }
 
 func printHelp() {
-	fmt.Fprintln(os.Stderr, `schemalint - AST-based AzureRM schema linter
+	fmt.Fprintln(os.Stderr, `pr-guide-suggestions - AST-based AzureRM schema linter
 
 Commands:
   check [flags] [files/dirs...]   lint the given targets (default command)

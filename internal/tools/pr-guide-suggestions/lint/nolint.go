@@ -10,7 +10,7 @@ import (
 )
 
 // nolintKeyword is the directive, modelled on the golangci-lint //nolint
-// convention, that silences schema-lint findings for a property. A bare
+// convention, that silences pr-guide-suggestions findings for a property. A bare
 // //nolint suppresses every rule; //nolint:SL001,SL002 suppresses only the
 // listed rules (rule IDs are matched case-insensitively).
 const nolintKeyword = "nolint"

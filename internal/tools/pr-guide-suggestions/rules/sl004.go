@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-lint/astutil"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-lint/schematree"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/pr-guide-suggestions/astutil"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/pr-guide-suggestions/schematree"
 )
 
 var sl004 = &Rule{

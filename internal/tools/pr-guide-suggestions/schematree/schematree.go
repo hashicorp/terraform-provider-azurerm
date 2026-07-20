@@ -16,7 +16,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-lint/astutil"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/pr-guide-suggestions/astutil"
 )
 
 // Result is the set of property nodes discovered in a package.

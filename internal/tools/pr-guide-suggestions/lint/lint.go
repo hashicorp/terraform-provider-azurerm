@@ -17,8 +17,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-lint/rules"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-lint/schematree"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/pr-guide-suggestions/rules"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/pr-guide-suggestions/schematree"
 )
 
 // Finding is a single rule violation with enough context to report it.

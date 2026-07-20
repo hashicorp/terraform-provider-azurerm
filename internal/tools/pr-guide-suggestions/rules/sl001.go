@@ -6,7 +6,7 @@ package rules
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-lint/schematree"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/pr-guide-suggestions/schematree"
 )
 
 var sl001 = &Rule{

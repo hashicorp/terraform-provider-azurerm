@@ -12,10 +12,11 @@
 #
 # Mechanics:
 #   1. Resolve the base branch.
-#   2. Build the linter from internal/tools/schema-lint.
-#   3. Run `schemalint check -diff-base <base>` against the current checkout,
-#      which parses the changed Go source directly (no provider build or JSON
-#      schema export) and reports only findings on properties added since base.
+#   2. Build the linter from internal/tools/pr-guide-suggestions.
+#   3. Run `pr-guide-suggestions check -diff-base <base>` against the current
+#      checkout, which parses the changed Go source directly (no provider build
+#      or JSON schema export) and reports only findings on properties added since
+#      base.
 
 set -euo pipefail
 
@@ -33,7 +34,7 @@ if git rev-parse --verify --quiet "origin/${base_ref}" >/dev/null; then
 elif git rev-parse --verify --quiet "${base_ref}" >/dev/null; then
   base="${base_ref}"
 else
-  echo "::warning::Could not resolve base branch '${base_ref}'; skipping schema-lint diff."
+  echo "::warning::Could not resolve base branch '${base_ref}'; skipping pr-guide-suggestions diff."
   exit 0
 fi
 echo "    base = ${base} ($(git rev-parse "${base}"))"
@@ -46,10 +47,10 @@ cleanup() {
 trap cleanup EXIT
 
 echo "==> Building the schema linter..."
-go build -o "${bin_dir}/schemalint" ./internal/tools/schema-lint
+go build -o "${bin_dir}/pr-guide-suggestions" ./internal/tools/pr-guide-suggestions
 
 echo ""
 echo "==> Linting schema properties added since '${base_ref}'..."
 echo ""
 
-"${bin_dir}/schemalint" check -disable SL001 -diff-base "${base}" -C "${repo_root}"
+"${bin_dir}/pr-guide-suggestions" check -disable SL001 -diff-base "${base}" -C "${repo_root}"

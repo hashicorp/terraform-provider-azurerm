@@ -1,10 +1,10 @@
-# schema-lint — AST-based schema linter
+# pr-guide-suggestions — AST-based schema linter
 
 A fast, AST-based linter for the AzureRM provider's **resource** and **data
-source** schemas. It implements the schema-lint rules (`SL001`–`SL013`) as
+source** schemas. It implements the pr-guide-suggestions rules (`SL001`–`SL013`) as
 small checks over a syntactic schema tree built with the standard `go/ast`.
 
-It is a normal package of the provider module (at `internal/tools/schema-lint`)
+It is a normal package of the provider module (at `internal/tools/pr-guide-suggestions`)
 with **no external dependencies** — only the Go standard library — so it adds
 nothing to the provider's `go.mod` or vendor tree and needs no build of the
 provider itself.
@@ -15,33 +15,33 @@ Run it from the repository root:
 
 ```bash
 # list the available rules
-go run ./internal/tools/schema-lint list
+go run ./internal/tools/pr-guide-suggestions list
 
 # lint a single file
-go run ./internal/tools/schema-lint check internal/services/foo/foo_resource.go
+go run ./internal/tools/pr-guide-suggestions check internal/services/foo/foo_resource.go
 
 # lint a directory tree
-go run ./internal/tools/schema-lint check internal/services/foo
+go run ./internal/tools/pr-guide-suggestions check internal/services/foo
 
 # apply auto-fixable fixes (property renames) in place
-go run ./internal/tools/schema-lint check -fix internal/services/foo
+go run ./internal/tools/pr-guide-suggestions check -fix internal/services/foo
 
 # run or disable specific rules
-go run ./internal/tools/schema-lint check -rules SL002,SL007 internal/services/foo
-go run ./internal/tools/schema-lint check -disable SL001 internal/services/foo
+go run ./internal/tools/pr-guide-suggestions check -rules SL002,SL007 internal/services/foo
+go run ./internal/tools/pr-guide-suggestions check -disable SL001 internal/services/foo
 
 # machine-readable output
-go run ./internal/tools/schema-lint check -format json internal/services/foo
+go run ./internal/tools/pr-guide-suggestions check -format json internal/services/foo
 
 # lint only the schema properties added since a base branch (see Diff mode)
-go run ./internal/tools/schema-lint check -diff-base origin/main
+go run ./internal/tools/pr-guide-suggestions check -diff-base origin/main
 ```
 
 Or build a binary once and reuse it:
 
 ```bash
-go build -o /tmp/schemalint ./internal/tools/schema-lint
-/tmp/schemalint check internal/services/foo/foo_resource.go
+go build -o /tmp/pr-guide-suggestions ./internal/tools/pr-guide-suggestions
+/tmp/pr-guide-suggestions check internal/services/foo/foo_resource.go
 ```
 
 ### Flags (`check`)
@@ -117,7 +117,7 @@ line. A brand new resource is linted in full; a new child added to a pre-existin
 block is linted while its siblings are not.
 
 ```bash
-GITHUB_BASE_REF=main bash ./scripts/run-schema-lint-diff.sh
+GITHUB_BASE_REF=main bash ./scripts/run-pr-guide-suggestions-diff.sh
 ```
 
 ## Applying fixes
@@ -132,7 +132,7 @@ and `AtLeastOneOf`/`ExactlyOneOf`/`ConflictsWith` cross-references:
 
 ```bash
 # rename "vm_count" -> "virtual_machine_count" everywhere in the file
-go run ./internal/tools/schema-lint check -rules SL010 -fix internal/services/foo/foo_resource.go
+go run ./internal/tools/pr-guide-suggestions check -rules SL010 -fix internal/services/foo/foo_resource.go
 ```
 
 ```text
