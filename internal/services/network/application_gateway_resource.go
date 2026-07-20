@@ -110,7 +110,7 @@ func sslProfileSchema(computed bool) *pluginsdk.Schema {
 }
 
 func resourceApplicationGateway() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create:   resourceApplicationGatewayCreate,
 		Read:     resourceApplicationGatewayRead,
 		Update:   resourceApplicationGatewayUpdate,
@@ -1756,8 +1756,6 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(applicationGatewayCustomizeDiff),
 	}
-
-	return resource
 }
 
 func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {

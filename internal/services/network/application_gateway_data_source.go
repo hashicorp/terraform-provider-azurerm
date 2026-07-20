@@ -21,7 +21,7 @@ import (
 )
 
 func dataSourceApplicationGateway() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Read: dataSourceApplicationGatewayRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -1488,8 +1488,6 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
-
-	return resource
 }
 
 func dataSourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
