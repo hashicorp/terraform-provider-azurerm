@@ -96,6 +96,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		VirtualMachineImplicitDataDiskFromSourceResource{},
+		VirtualMachineScaleSetManagedDiskResource{},
 		VirtualMachineRunCommandResource{},
 		GalleryApplicationResource{},
 		GalleryApplicationVersionResource{},
@@ -126,5 +127,7 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 }
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
-	return []sdk.FrameworkListWrappedResource{}
+	return []sdk.FrameworkListWrappedResource{
+		VirtualMachineScaleSetManagedDiskResourceList{},
+	}
 }

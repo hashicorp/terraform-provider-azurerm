@@ -4,3 +4,5 @@
 package compute
 
 var VirtualMachineResourceName = "azurerm_virtual_machine"
+
+var VirtualMachineScaleSetResourceName = "azurerm_virtual_machine_scale_set"
