@@ -170,6 +170,8 @@ The following arguments are supported:
 
 * `vnet_content_share_enabled` - (Optional) Specifies whether allow routing traffic between the Logic App and Storage Account content share through a virtual network. Defaults to `false`.
 
+* `vnet_application_traffic_enabled`  - (Optional) Should the traffic for the application be routed over virtual network enabled. Defaults to `false`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---

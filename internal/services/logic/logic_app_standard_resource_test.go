@@ -195,6 +195,22 @@ func TestAccLogicAppStandard_siteConfigVnetRouteAllEnabled(t *testing.T) {
 	})
 }
 
+func TestAccLogicAppStandard_vnetRouteConfigEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	r := LogicAppStandardResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.vnetRouteConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.vnet_route_all_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLogicAppStandard_appSettingsVnetRouteAllEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
 	r := LogicAppStandardResource{}
@@ -1655,6 +1671,25 @@ resource "azurerm_logic_app_standard" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
   site_config {
     vnet_route_all_enabled = true
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LogicAppStandardResource) vnetRouteConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_logic_app_standard" "test" {
+  name                             = "acctest-%d-func"
+  location                         = azurerm_resource_group.test.location
+  resource_group_name              = azurerm_resource_group.test.name
+  app_service_plan_id              = azurerm_service_plan.test.id
+  storage_account_name             = azurerm_storage_account.test.name
+  storage_account_access_key       = azurerm_storage_account.test.primary_access_key
+  vnet_application_traffic_enabled = true
+
+  site_config {
   }
 }
 `, r.template(data), data.RandomInteger)
