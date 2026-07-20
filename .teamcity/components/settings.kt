@@ -10,10 +10,10 @@ var defaultStartHour = 23
 var defaultParallelism = 20
 
 // specifies the default number of concurrent builds allowed per-service-package
-var defaultMaxConcurrentBuilds = 1
+var defaultMaxConcurrentBuilds = 5
 
 // specifies the default number of concurrent builds allowed per-branch per-service-package
-var defaultMaxConcurrentBuildsPerBranch = 1
+var defaultMaxConcurrentBuildsPerBranch = 2
 
 // specifies the default build timeout in hours
 var defaultTimeout = 12
