@@ -17,7 +17,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2025-05-01/webapps"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/migration"
@@ -29,44 +30,45 @@ import (
 type LinuxWebAppResource struct{}
 
 type LinuxWebAppModel struct {
-	Name                               string                                     `tfschema:"name"`
-	ResourceGroup                      string                                     `tfschema:"resource_group_name"`
-	Location                           string                                     `tfschema:"location"`
-	ServicePlanId                      string                                     `tfschema:"service_plan_id"`
-	AppSettings                        map[string]string                          `tfschema:"app_settings"`
-	StickySettings                     []helpers.StickySettings                   `tfschema:"sticky_settings"`
-	AuthSettings                       []helpers.AuthSettings                     `tfschema:"auth_settings"`
-	AuthV2Settings                     []helpers.AuthV2Settings                   `tfschema:"auth_settings_v2"`
-	Backup                             []helpers.Backup                           `tfschema:"backup"`
-	ClientAffinityEnabled              bool                                       `tfschema:"client_affinity_enabled"`
-	ClientCertEnabled                  bool                                       `tfschema:"client_certificate_enabled"`
-	ClientCertMode                     string                                     `tfschema:"client_certificate_mode"`
-	ClientCertExclusionPaths           string                                     `tfschema:"client_certificate_exclusion_paths"`
-	Enabled                            bool                                       `tfschema:"enabled"`
-	HttpsOnly                          bool                                       `tfschema:"https_only"`
-	VirtualNetworkBackupRestoreEnabled bool                                       `tfschema:"virtual_network_backup_restore_enabled"`
-	VirtualNetworkSubnetID             string                                     `tfschema:"virtual_network_subnet_id"`
-	KeyVaultReferenceIdentityID        string                                     `tfschema:"key_vault_reference_identity_id"`
-	LogsConfig                         []helpers.LogsConfig                       `tfschema:"logs"`
-	SiteConfig                         []helpers.SiteConfigLinux                  `tfschema:"site_config"`
-	StorageAccounts                    []helpers.StorageAccount                   `tfschema:"storage_account"`
-	ConnectionStrings                  []helpers.ConnectionString                 `tfschema:"connection_string"`
-	ZipDeployFile                      string                                     `tfschema:"zip_deploy_file"`
-	Tags                               map[string]string                          `tfschema:"tags"`
-	CustomDomainVerificationId         string                                     `tfschema:"custom_domain_verification_id"`
-	HostingEnvId                       string                                     `tfschema:"hosting_environment_id"`
-	DefaultHostname                    string                                     `tfschema:"default_hostname"`
-	Kind                               string                                     `tfschema:"kind"`
-	Identity                           []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	OutboundIPAddresses                string                                     `tfschema:"outbound_ip_addresses"`
-	OutboundIPAddressList              []string                                   `tfschema:"outbound_ip_address_list"`
-	PossibleOutboundIPAddresses        string                                     `tfschema:"possible_outbound_ip_addresses"`
-	PossibleOutboundIPAddressList      []string                                   `tfschema:"possible_outbound_ip_address_list"`
-	PublicNetworkAccess                bool                                       `tfschema:"public_network_access_enabled"`
-	PublishingDeployBasicAuthEnabled   bool                                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
-	PublishingFTPBasicAuthEnabled      bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
-	SiteCredentials                    []helpers.SiteCredential                   `tfschema:"site_credential"`
-	VnetImagePullEnabled               bool                                       `tfschema:"vnet_image_pull_enabled"`
+	Name                                    string                                     `tfschema:"name"`
+	ResourceGroup                           string                                     `tfschema:"resource_group_name"`
+	Location                                string                                     `tfschema:"location"`
+	ServicePlanId                           string                                     `tfschema:"service_plan_id"`
+	AppSettings                             map[string]string                          `tfschema:"app_settings"`
+	StickySettings                          []helpers.StickySettings                   `tfschema:"sticky_settings"`
+	AuthSettings                            []helpers.AuthSettings                     `tfschema:"auth_settings"`
+	AuthV2Settings                          []helpers.AuthV2Settings                   `tfschema:"auth_settings_v2"`
+	Backup                                  []helpers.Backup                           `tfschema:"backup"`
+	ClientAffinityEnabled                   bool                                       `tfschema:"client_affinity_enabled"`
+	ClientCertEnabled                       bool                                       `tfschema:"client_certificate_enabled"`
+	ClientCertMode                          string                                     `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths                string                                     `tfschema:"client_certificate_exclusion_paths"`
+	Enabled                                 bool                                       `tfschema:"enabled"`
+	HttpsOnly                               bool                                       `tfschema:"https_only"`
+	VirtualNetworkBackupRestoreEnabled      bool                                       `tfschema:"virtual_network_backup_restore_enabled"`
+	VirtualNetworkSubnetID                  string                                     `tfschema:"virtual_network_subnet_id"`
+	KeyVaultReferenceIdentityID             string                                     `tfschema:"key_vault_reference_identity_id"`
+	LogsConfig                              []helpers.LogsConfig                       `tfschema:"logs"`
+	SiteConfig                              []helpers.SiteConfigLinux                  `tfschema:"site_config"`
+	StorageAccounts                         []helpers.StorageAccount                   `tfschema:"storage_account"`
+	ConnectionStrings                       []helpers.ConnectionString                 `tfschema:"connection_string"`
+	ZipDeployFile                           string                                     `tfschema:"zip_deploy_file"`
+	Tags                                    map[string]string                          `tfschema:"tags"`
+	CustomDomainVerificationId              string                                     `tfschema:"custom_domain_verification_id"`
+	HostingEnvId                            string                                     `tfschema:"hosting_environment_id"`
+	DefaultHostname                         string                                     `tfschema:"default_hostname"`
+	Kind                                    string                                     `tfschema:"kind"`
+	Identity                                []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	OutboundIPAddresses                     string                                     `tfschema:"outbound_ip_addresses"`
+	OutboundIPAddressList                   []string                                   `tfschema:"outbound_ip_address_list"`
+	PossibleOutboundIPAddresses             string                                     `tfschema:"possible_outbound_ip_addresses"`
+	PossibleOutboundIPAddressList           []string                                   `tfschema:"possible_outbound_ip_address_list"`
+	PublicNetworkAccess                     bool                                       `tfschema:"public_network_access_enabled"`
+	PublishingDeployBasicAuthEnabled        bool                                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
+	PublishingFTPBasicAuthEnabled           bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
+	SiteCredentials                         []helpers.SiteCredential                   `tfschema:"site_credential"`
+	VnetImagePullEnabled                    bool                                       `tfschema:"vnet_image_pull_enabled"`
+	VirtualNetworkApplicationTrafficEnabled bool                                       `tfschema:"virtual_network_application_traffic_enabled"`
 }
 
 var _ sdk.ResourceWithUpdate = LinuxWebAppResource{}
@@ -78,7 +80,7 @@ var _ sdk.ResourceWithCustomizeDiff = LinuxWebAppResource{}
 var _ sdk.ResourceWithStateMigration = LinuxWebAppResource{}
 
 func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	args := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -170,6 +172,12 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
+		"virtual_network_application_traffic_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"key_vault_reference_identity_id": {
@@ -215,6 +223,14 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.FivePointOh() {
+		args["virtual_network_application_traffic_enabled"].Computed = true
+		args["virtual_network_application_traffic_enabled"].Default = nil
+		args["virtual_network_application_traffic_enabled"].ConflictsWith = []string{"site_config.0.vnet_route_all_enabled"}
+	}
+
+	return args
 }
 
 func (r LinuxWebAppResource) Attributes() map[string]*pluginsdk.Schema {
@@ -379,18 +395,32 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 				Identity: expandedIdentity,
 				Tags:     pointer.To(webApp.Tags),
 				Properties: &webapps.SiteProperties{
-					ServerFarmId:             pointer.To(webApp.ServicePlanId),
-					Enabled:                  pointer.To(webApp.Enabled),
-					HTTPSOnly:                pointer.To(webApp.HttpsOnly),
-					SiteConfig:               siteConfig,
-					ClientAffinityEnabled:    pointer.To(webApp.ClientAffinityEnabled),
-					ClientCertEnabled:        pointer.To(webApp.ClientCertEnabled),
-					ClientCertMode:           pointer.To(webapps.ClientCertMode(webApp.ClientCertMode)),
-					VnetBackupRestoreEnabled: pointer.To(webApp.VirtualNetworkBackupRestoreEnabled),
-					VnetImagePullEnabled:     pointer.To(webApp.VnetImagePullEnabled),
-					VnetRouteAllEnabled:      siteConfig.VnetRouteAllEnabled,
+					ServerFarmId:          pointer.To(webApp.ServicePlanId),
+					Enabled:               pointer.To(webApp.Enabled),
+					HTTPSOnly:             pointer.To(webApp.HttpsOnly),
+					SiteConfig:            siteConfig,
+					ClientAffinityEnabled: pointer.To(webApp.ClientAffinityEnabled),
+					ClientCertEnabled:     pointer.To(webApp.ClientCertEnabled),
+					ClientCertMode:        pointer.To(webapps.ClientCertMode(webApp.ClientCertMode)),
+					OutboundVnetRouting: &webapps.OutboundVnetRouting{
+						ImagePullTraffic:     pointer.To(webApp.VnetImagePullEnabled),
+						BackupRestoreTraffic: pointer.To(webApp.VirtualNetworkBackupRestoreEnabled),
+						ApplicationTraffic:   pointer.To(webApp.VirtualNetworkApplicationTrafficEnabled),
+					},
 				},
 			}
+
+			if !features.FivePointOh() {
+				rawSiteVnetRouting, err := metadata.GetRawConfigAt("site_config.0.vnet_route_all_enabled")
+				if err != nil {
+					return err
+				}
+
+				if !rawSiteVnetRouting.IsNull() {
+					siteEnvelope.Properties.OutboundVnetRouting.ApplicationTraffic = siteConfig.VnetRouteAllEnabled
+				}
+			}
+
 			pna := helpers.PublicNetworkAccessEnabled
 			if !webApp.PublicNetworkAccess {
 				pna = helpers.PublicNetworkAccessDisabled
@@ -495,26 +525,22 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			if !webApp.PublishingDeployBasicAuthEnabled {
-				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
-					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
-						Allow: false,
-					},
-				}
-				if _, err := client.UpdateScmAllowed(ctx, id, sitePolicy); err != nil {
-					return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", id, err)
-				}
+			sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
+				Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
+					Allow: webApp.PublishingDeployBasicAuthEnabled,
+				},
+			}
+			if _, err := client.UpdateScmAllowed(ctx, id, sitePolicy); err != nil {
+				return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", id, err)
 			}
 
-			if !webApp.PublishingFTPBasicAuthEnabled {
-				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
-					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
-						Allow: false,
-					},
-				}
-				if _, err := client.UpdateFtpAllowed(ctx, id, sitePolicy); err != nil {
-					return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", id, err)
-				}
+			sitePolicyFtp := webapps.CsmPublishingCredentialsPoliciesEntity{
+				Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
+					Allow: webApp.PublishingFTPBasicAuthEnabled,
+				},
+			}
+			if _, err := client.UpdateFtpAllowed(ctx, id, sitePolicyFtp); err != nil {
+				return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", id, err)
 			}
 
 			return nil
@@ -628,6 +654,7 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 					Tags:              pointer.From(model.Tags),
 				}
 
+				siteConfig := helpers.SiteConfigLinux{}
 				if props := model.Properties; props != nil {
 					state.ClientAffinityEnabled = pointer.From(props.ClientAffinityEnabled)
 					state.ClientCertEnabled = pointer.From(props.ClientCertEnabled)
@@ -643,11 +670,19 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 					state.PossibleOutboundIPAddresses = pointer.From(props.PossibleOutboundIPAddresses)
 					state.PossibleOutboundIPAddressList = strings.Split(pointer.From(props.PossibleOutboundIPAddresses), ",")
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
-					state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.VnetBackupRestoreEnabled)
-					state.VnetImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
 					servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(pointer.From(props.ServerFarmId))
 					if err != nil {
 						return err
+					}
+					siteConfig.Flatten(webAppSiteConfig.Model.Properties)
+					siteConfig.SetHealthCheckEvictionTime(state.AppSettings)
+					if props.OutboundVnetRouting != nil {
+						state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.OutboundVnetRouting.BackupRestoreTraffic)
+						state.VnetImagePullEnabled = pointer.From(props.OutboundVnetRouting.ImagePullTraffic)
+						state.VirtualNetworkApplicationTrafficEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
+						if !features.FivePointOh() {
+							siteConfig.VnetRouteAllEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
+						}
 					}
 					state.ServicePlanId = servicePlanId.ID()
 
@@ -671,10 +706,6 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 
 				state.PublishingFTPBasicAuthEnabled = basicAuthFTP
 				state.PublishingDeployBasicAuthEnabled = basicAuthWebDeploy
-
-				siteConfig := helpers.SiteConfigLinux{}
-				siteConfig.Flatten(webAppSiteConfig.Model.Properties)
-				siteConfig.SetHealthCheckEvictionTime(state.AppSettings)
 
 				if helpers.FxStringHasPrefix(siteConfig.LinuxFxVersion, helpers.FxStringPrefixDocker) {
 					siteConfig.DecodeDockerAppStack(state.AppSettings)
@@ -830,7 +861,6 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 				if err != nil {
 					return err
 				}
-				model.Properties.VnetRouteAllEnabled = model.Properties.SiteConfig.VnetRouteAllEnabled
 			}
 
 			if metadata.ResourceData.HasChange("public_network_access_enabled") {
@@ -844,12 +874,24 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 				model.Properties.SiteConfig.PublicNetworkAccess = model.Properties.PublicNetworkAccess
 			}
 
+			vnetRoutingProps := &webapps.OutboundVnetRouting{}
+			if model.Properties.OutboundVnetRouting != nil {
+				vnetRoutingProps = model.Properties.OutboundVnetRouting
+			}
 			if metadata.ResourceData.HasChange("virtual_network_backup_restore_enabled") {
-				model.Properties.VnetBackupRestoreEnabled = pointer.To(state.VirtualNetworkBackupRestoreEnabled)
+				vnetRoutingProps.BackupRestoreTraffic = pointer.To(state.VirtualNetworkBackupRestoreEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("vnet_image_pull_enabled") {
-				model.Properties.VnetImagePullEnabled = pointer.To(state.VnetImagePullEnabled)
+				vnetRoutingProps.ImagePullTraffic = pointer.To(state.VnetImagePullEnabled)
+			}
+
+			if metadata.ResourceData.HasChange("virtual_network_application_traffic_enabled") {
+				vnetRoutingProps.ApplicationTraffic = pointer.To(state.VirtualNetworkApplicationTrafficEnabled)
+			}
+
+			if !features.FivePointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
+				vnetRoutingProps.ApplicationTraffic = &sc.VnetRouteAllEnabled
 			}
 
 			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {
@@ -864,6 +906,8 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 					model.Properties.VirtualNetworkSubnetId = pointer.To(subnetId)
 				}
 			}
+
+			model.Properties.OutboundVnetRouting = vnetRoutingProps
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
 				return fmt.Errorf("updating Linux %s: %+v", id, err)

@@ -571,6 +571,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The `recommendations_enabled` property has been removed in favour of the `recommendations` property.
 
+### `azurerm_function_app_flex_consumption`
+
+* The deprecated `site_config.vnet_route_all_enabled` property has been removed in favour of the `virtual_network_application_traffic_enabled` property.
+
 ### `azurerm_key_vault`
 
 * The deprecated `contact` property has been removed as it is no longer supported by the resource.
@@ -623,6 +627,7 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_linux_function_app`
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+* The deprecated `site_config.vnet_route_all_enabled` property has been removed in favour of the `virtual_network_application_traffic_enabled` property.
 
 ### `azurerm_linux_function_app_slot`
 
@@ -632,16 +637,19 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `data_disk.ultra_ssd_disk_iops_read_write` property has been removed in favour of the `data_disk.disk_iops_read_write` property.
 * The deprecated `data_disk.ultra_ssd_disk_mbps_read_write` property has been removed in favour of the `data_disk.disk_mbps_read_write` property.
+* The deprecated `site_config.vnet_route_all_enabled` property has been removed in favour of the `virtual_network_application_traffic_enabled` property.
 
 ### `azurerm_linux_web_app`
 
-* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
 * The `site_config.application_stack.ruby_version` property has been removed.
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+* The deprecated `site_config.vnet_route_all_enabled` property has been removed in favour of the `virtual_network_application_traffic_enabled` property.
 
 ### `azurerm_linux_web_app_slot`
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
 * The `site_config.application_stack.ruby_version` property has been removed.
+* The deprecated `site_config.vnet_route_all_enabled` property has been removed in favour of the `virtual_network_application_traffic_enabled` property.
 
 ### `azurerm_local_network_gateway`
 
@@ -846,10 +854,12 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_windows_function_app`
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+* The deprecated `site_config.vnet_route_all_enabled` property has been removed in favour of the `virtual_network_application_traffic_enabled` property.
 
 ### `azurerm_windows_function_app_slot`
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+* The deprecated `site_config.vnet_route_all_enabled` property has been removed in favour of the `virtual_network_application_traffic_enabled` property.
 
 ### `azurerm_windows_virtual_machine`
 
@@ -864,11 +874,13 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
 * The `virtual_network_image_pull_enabled` property now defaults to `false`.
+* The deprecated `site_config.vnet_route_all_enabled` property has been removed in favour of the `virtual_network_application_traffic_enabled` property.
 
 ### `azurerm_windows_web_app_slot`
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
 * The `virtual_network_image_pull_enabled` property now defaults to `false`.
+* The deprecated `site_config.vnet_route_all_enabled` property has been removed in favour of the `virtual_network_application_traffic_enabled` property.
 
 ## Breaking Changes in Data Sources
 
@@ -944,10 +956,6 @@ Please follow the format in the example below for listing breaking changes in da
 
 * The deprecated `enable_floating_ip` property has been removed in favour of the `floating_ip_enabled` property.
 * The deprecated `enable_tcp_reset` property has been removed in favour of the `tcp_reset_enabled` property.
-
-### `azurerm_linux_web_app`
-
-* The `site_config.application_stack.ruby_version` property has been removed.
 
 ### `azurerm_logic_app_standard`
 

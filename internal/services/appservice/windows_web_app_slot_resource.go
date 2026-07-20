@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2025-05-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -30,42 +30,43 @@ import (
 type WindowsWebAppSlotResource struct{}
 
 type WindowsWebAppSlotModel struct {
-	Name                               string                                     `tfschema:"name"`
-	AppServiceId                       string                                     `tfschema:"app_service_id"`
-	ServicePlanID                      string                                     `tfschema:"service_plan_id"`
-	AppSettings                        map[string]string                          `tfschema:"app_settings"`
-	AuthSettings                       []helpers.AuthSettings                     `tfschema:"auth_settings"`
-	AuthV2Settings                     []helpers.AuthV2Settings                   `tfschema:"auth_settings_v2"`
-	Backup                             []helpers.Backup                           `tfschema:"backup"`
-	ClientAffinityEnabled              bool                                       `tfschema:"client_affinity_enabled"`
-	ClientCertEnabled                  bool                                       `tfschema:"client_certificate_enabled"`
-	ClientCertMode                     string                                     `tfschema:"client_certificate_mode"`
-	ClientCertExclusionPaths           string                                     `tfschema:"client_certificate_exclusion_paths"`
-	Enabled                            bool                                       `tfschema:"enabled"`
-	HttpsOnly                          bool                                       `tfschema:"https_only"`
-	Identity                           []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	KeyVaultReferenceIdentityID        string                                     `tfschema:"key_vault_reference_identity_id"`
-	LogsConfig                         []helpers.LogsConfig                       `tfschema:"logs"`
-	PublicNetworkAccess                bool                                       `tfschema:"public_network_access_enabled"`
-	PublishingDeployBasicAuthEnabled   bool                                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
-	PublishingFTPBasicAuthEnabled      bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
-	SiteConfig                         []helpers.SiteConfigWindowsWebAppSlot      `tfschema:"site_config"`
-	StorageAccounts                    []helpers.StorageAccount                   `tfschema:"storage_account"`
-	ConnectionStrings                  []helpers.ConnectionString                 `tfschema:"connection_string"`
-	CustomDomainVerificationId         string                                     `tfschema:"custom_domain_verification_id"`
-	HostingEnvId                       string                                     `tfschema:"hosting_environment_id"`
-	DefaultHostname                    string                                     `tfschema:"default_hostname"`
-	Kind                               string                                     `tfschema:"kind"`
-	OutboundIPAddresses                string                                     `tfschema:"outbound_ip_addresses"`
-	OutboundIPAddressList              []string                                   `tfschema:"outbound_ip_address_list"`
-	PossibleOutboundIPAddresses        string                                     `tfschema:"possible_outbound_ip_addresses"`
-	PossibleOutboundIPAddressList      []string                                   `tfschema:"possible_outbound_ip_address_list"`
-	SiteCredentials                    []helpers.SiteCredential                   `tfschema:"site_credential"`
-	ZipDeployFile                      string                                     `tfschema:"zip_deploy_file"`
-	Tags                               map[string]string                          `tfschema:"tags"`
-	VirtualNetworkBackupRestoreEnabled bool                                       `tfschema:"virtual_network_backup_restore_enabled"`
-	VirtualNetworkImagePullEnabled     bool                                       `tfschema:"virtual_network_image_pull_enabled"`
-	VirtualNetworkSubnetID             string                                     `tfschema:"virtual_network_subnet_id"`
+	Name                                    string                                     `tfschema:"name"`
+	AppServiceId                            string                                     `tfschema:"app_service_id"`
+	ServicePlanID                           string                                     `tfschema:"service_plan_id"`
+	AppSettings                             map[string]string                          `tfschema:"app_settings"`
+	AuthSettings                            []helpers.AuthSettings                     `tfschema:"auth_settings"`
+	AuthV2Settings                          []helpers.AuthV2Settings                   `tfschema:"auth_settings_v2"`
+	Backup                                  []helpers.Backup                           `tfschema:"backup"`
+	ClientAffinityEnabled                   bool                                       `tfschema:"client_affinity_enabled"`
+	ClientCertEnabled                       bool                                       `tfschema:"client_certificate_enabled"`
+	ClientCertMode                          string                                     `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths                string                                     `tfschema:"client_certificate_exclusion_paths"`
+	Enabled                                 bool                                       `tfschema:"enabled"`
+	HttpsOnly                               bool                                       `tfschema:"https_only"`
+	Identity                                []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	KeyVaultReferenceIdentityID             string                                     `tfschema:"key_vault_reference_identity_id"`
+	LogsConfig                              []helpers.LogsConfig                       `tfschema:"logs"`
+	PublicNetworkAccess                     bool                                       `tfschema:"public_network_access_enabled"`
+	PublishingDeployBasicAuthEnabled        bool                                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
+	PublishingFTPBasicAuthEnabled           bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
+	SiteConfig                              []helpers.SiteConfigWindowsWebAppSlot      `tfschema:"site_config"`
+	StorageAccounts                         []helpers.StorageAccount                   `tfschema:"storage_account"`
+	ConnectionStrings                       []helpers.ConnectionString                 `tfschema:"connection_string"`
+	CustomDomainVerificationId              string                                     `tfschema:"custom_domain_verification_id"`
+	HostingEnvId                            string                                     `tfschema:"hosting_environment_id"`
+	DefaultHostname                         string                                     `tfschema:"default_hostname"`
+	Kind                                    string                                     `tfschema:"kind"`
+	OutboundIPAddresses                     string                                     `tfschema:"outbound_ip_addresses"`
+	OutboundIPAddressList                   []string                                   `tfschema:"outbound_ip_address_list"`
+	PossibleOutboundIPAddresses             string                                     `tfschema:"possible_outbound_ip_addresses"`
+	PossibleOutboundIPAddressList           []string                                   `tfschema:"possible_outbound_ip_address_list"`
+	SiteCredentials                         []helpers.SiteCredential                   `tfschema:"site_credential"`
+	ZipDeployFile                           string                                     `tfschema:"zip_deploy_file"`
+	Tags                                    map[string]string                          `tfschema:"tags"`
+	VirtualNetworkBackupRestoreEnabled      bool                                       `tfschema:"virtual_network_backup_restore_enabled"`
+	VirtualNetworkImagePullEnabled          bool                                       `tfschema:"virtual_network_image_pull_enabled"`
+	VirtualNetworkSubnetID                  string                                     `tfschema:"virtual_network_subnet_id"`
+	VirtualNetworkApplicationTrafficEnabled bool                                       `tfschema:"virtual_network_application_traffic_enabled"`
 }
 
 var (
@@ -224,6 +225,12 @@ func (r WindowsWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			ValidateFunc: commonids.ValidateSubnetID,
 		},
+
+		"virtual_network_application_traffic_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
 	}
 
 	if !features.FivePointOh() {
@@ -232,6 +239,10 @@ func (r WindowsWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Computed: true,
 		}
+
+		s["virtual_network_application_traffic_enabled"].Computed = true
+		s["virtual_network_application_traffic_enabled"].Default = nil
+		s["virtual_network_application_traffic_enabled"].ConflictsWith = []string{"site_config.0.vnet_route_all_enabled"}
 	}
 
 	return s
@@ -376,8 +387,10 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 					ClientCertEnabled:        pointer.To(webAppSlot.ClientCertEnabled),
 					ClientCertMode:           pointer.To(webapps.ClientCertMode(webAppSlot.ClientCertMode)),
 					ClientCertExclusionPaths: pointer.To(webAppSlot.ClientCertExclusionPaths),
-					VnetBackupRestoreEnabled: pointer.To(webAppSlot.VirtualNetworkBackupRestoreEnabled),
-					VnetRouteAllEnabled:      siteConfig.VnetRouteAllEnabled,
+					OutboundVnetRouting: &webapps.OutboundVnetRouting{
+						BackupRestoreTraffic: pointer.To(webAppSlot.VirtualNetworkBackupRestoreEnabled),
+						ApplicationTraffic:   pointer.To(webAppSlot.VirtualNetworkApplicationTrafficEnabled),
+					},
 				},
 			}
 
@@ -388,10 +401,18 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 				}
 
 				if !rawVnetImagePullEnabled.IsNull() {
-					siteEnvelope.Properties.VnetImagePullEnabled = pointer.To(webAppSlot.VirtualNetworkImagePullEnabled)
+					siteEnvelope.Properties.OutboundVnetRouting.ImagePullTraffic = pointer.To(webAppSlot.VirtualNetworkImagePullEnabled)
+				}
+
+				rawSiteVnetRouting, err := metadata.GetRawConfigAt("site_config.0.vnet_route_all_enabled")
+				if err != nil {
+					return err
+				}
+				if !rawSiteVnetRouting.IsNull() {
+					siteEnvelope.Properties.OutboundVnetRouting.ApplicationTraffic = siteConfig.VnetRouteAllEnabled
 				}
 			} else {
-				siteEnvelope.Properties.VnetImagePullEnabled = pointer.To(webAppSlot.VirtualNetworkImagePullEnabled)
+				siteEnvelope.Properties.OutboundVnetRouting.ImagePullTraffic = pointer.To(webAppSlot.VirtualNetworkImagePullEnabled)
 			}
 
 			if differentServicePlanToParent {
@@ -505,26 +526,22 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			if !webAppSlot.PublishingDeployBasicAuthEnabled {
-				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
-					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
-						Allow: false,
-					},
-				}
-				if _, err := client.UpdateScmAllowedSlot(ctx, id, sitePolicy); err != nil {
-					return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", id, err)
-				}
+			sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
+				Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
+					Allow: webAppSlot.PublishingDeployBasicAuthEnabled,
+				},
+			}
+			if _, err := client.UpdateScmAllowedSlot(ctx, id, sitePolicy); err != nil {
+				return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", id, err)
 			}
 
-			if !webAppSlot.PublishingFTPBasicAuthEnabled {
-				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
-					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
-						Allow: false,
-					},
-				}
-				if _, err := client.UpdateFtpAllowedSlot(ctx, id, sitePolicy); err != nil {
-					return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", id, err)
-				}
+			sitePolicyFtp := webapps.CsmPublishingCredentialsPoliciesEntity{
+				Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
+					Allow: webAppSlot.PublishingFTPBasicAuthEnabled,
+				},
+			}
+			if _, err := client.UpdateFtpAllowedSlot(ctx, id, sitePolicyFtp); err != nil {
+				return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", id, err)
 			}
 
 			return nil
@@ -645,6 +662,17 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 				StorageAccounts:   helpers.FlattenStorageAccounts(storageAccounts.Model),
 			}
 
+			currentStack := ""
+			if m := siteMetadata.Model; m != nil && m.Properties != nil {
+				p := *m.Properties
+				if v, ok := p["CURRENT_STACK"]; ok {
+					currentStack = v
+				}
+			}
+
+			siteConfig := helpers.SiteConfigWindowsWebAppSlot{}
+			siteConfig.Flatten(webAppSiteSlotConfig.Model.Properties, currentStack)
+
 			if model := webAppSlot.Model; model != nil {
 				state.Kind = pointer.From(model.Kind)
 				state.Tags = pointer.From(model.Tags)
@@ -663,8 +691,15 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 					state.PossibleOutboundIPAddresses = pointer.From(props.PossibleOutboundIPAddresses)
 					state.PossibleOutboundIPAddressList = strings.Split(pointer.From(props.PossibleOutboundIPAddresses), ",")
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
-					state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.VnetBackupRestoreEnabled)
-					state.VirtualNetworkImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
+
+					if props.OutboundVnetRouting != nil {
+						state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.OutboundVnetRouting.BackupRestoreTraffic)
+						state.VirtualNetworkImagePullEnabled = pointer.From(props.OutboundVnetRouting.ImagePullTraffic)
+						state.VirtualNetworkApplicationTrafficEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
+						if !features.FivePointOh() {
+							siteConfig.VnetRouteAllEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
+						}
+					}
 
 					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
 						hostingEnvId, err := commonids.ParseAppServiceEnvironmentIDInsensitively(*hostingEnv.Id)
@@ -694,16 +729,7 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 				state.PublishingDeployBasicAuthEnabled = basicAuthWebDeploy
 
 				state.AppSettings = helpers.FlattenWebStringDictionary(appSettings.Model)
-				currentStack := ""
-				if m := siteMetadata.Model; m != nil && m.Properties != nil {
-					p := *m.Properties
-					if v, ok := p["CURRENT_STACK"]; ok {
-						currentStack = v
-					}
-				}
 
-				siteConfig := helpers.SiteConfigWindowsWebAppSlot{}
-				siteConfig.Flatten(webAppSiteSlotConfig.Model.Properties, currentStack)
 				siteConfig.SetHealthCheckEvictionTime(state.AppSettings)
 				state.AppSettings = siteConfig.ParseNodeVersion(state.AppSettings)
 
@@ -873,7 +899,14 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 				if err != nil {
 					return err
 				}
-				model.Properties.VnetRouteAllEnabled = model.Properties.SiteConfig.VnetRouteAllEnabled
+			}
+
+			vnetRoutingProps := &webapps.OutboundVnetRouting{}
+			if model.Properties.OutboundVnetRouting != nil {
+				vnetRoutingProps = model.Properties.OutboundVnetRouting
+			}
+			if !features.FivePointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
+				vnetRoutingProps.ApplicationTraffic = &sc.VnetRouteAllEnabled
 			}
 
 			if metadata.ResourceData.HasChange("public_network_access_enabled") {
@@ -888,11 +921,15 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("virtual_network_backup_restore_enabled") {
-				model.Properties.VnetBackupRestoreEnabled = pointer.To(state.VirtualNetworkBackupRestoreEnabled)
+				vnetRoutingProps.BackupRestoreTraffic = pointer.To(state.VirtualNetworkBackupRestoreEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("virtual_network_image_pull_enabled") {
-				model.Properties.VnetImagePullEnabled = pointer.To(state.VirtualNetworkImagePullEnabled)
+				vnetRoutingProps.ImagePullTraffic = pointer.To(state.VirtualNetworkImagePullEnabled)
+			}
+
+			if metadata.ResourceData.HasChange("virtual_network_application_traffic_enabled") {
+				vnetRoutingProps.ApplicationTraffic = pointer.To(state.VirtualNetworkApplicationTrafficEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {
@@ -907,6 +944,8 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 					model.Properties.VirtualNetworkSubnetId = pointer.To(subnetId)
 				}
 			}
+
+			model.Properties.OutboundVnetRouting = vnetRoutingProps
 
 			if err := client.CreateOrUpdateSlotThenPoll(ctx, *id, model); err != nil {
 				return fmt.Errorf("updating Windows %s: %+v", *id, err)

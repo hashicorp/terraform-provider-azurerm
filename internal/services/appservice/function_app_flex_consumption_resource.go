@@ -17,7 +17,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2025-05-01/webapps"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
@@ -66,17 +67,19 @@ type FunctionAppFlexConsumptionModel struct {
 	HttpConcurrency               int64                                          `tfschema:"http_concurrency"`
 	AlwaysReady                   []FunctionAppAlwaysReady                       `tfschema:"always_ready"`
 	SiteConfig                    []helpers.SiteConfigFunctionAppFlexConsumption `tfschema:"site_config"`
+	SiteUpdateStrategy            string                                         `tfschema:"site_update_strategy"`
 	Identity                      []identity.ModelSystemAssignedUserAssigned     `tfschema:"identity"`
 	Tags                          map[string]string                              `tfschema:"tags"`
 
-	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
-	DefaultHostname               string   `tfschema:"default_hostname"`
-	HostingEnvId                  string   `tfschema:"hosting_environment_id"`
-	Kind                          string   `tfschema:"kind"`
-	OutboundIPAddresses           string   `tfschema:"outbound_ip_addresses"`
-	OutboundIPAddressList         []string `tfschema:"outbound_ip_address_list"`
-	PossibleOutboundIPAddresses   string   `tfschema:"possible_outbound_ip_addresses"`
-	PossibleOutboundIPAddressList []string `tfschema:"possible_outbound_ip_address_list"`
+	CustomDomainVerificationId              string   `tfschema:"custom_domain_verification_id"`
+	DefaultHostname                         string   `tfschema:"default_hostname"`
+	HostingEnvId                            string   `tfschema:"hosting_environment_id"`
+	Kind                                    string   `tfschema:"kind"`
+	OutboundIPAddresses                     string   `tfschema:"outbound_ip_addresses"`
+	OutboundIPAddressList                   []string `tfschema:"outbound_ip_address_list"`
+	PossibleOutboundIPAddresses             string   `tfschema:"possible_outbound_ip_addresses"`
+	PossibleOutboundIPAddressList           []string `tfschema:"possible_outbound_ip_address_list"`
+	VirtualNetworkApplicationTrafficEnabled bool     `tfschema:"virtual_network_application_traffic_enabled"`
 
 	SiteCredentials []helpers.SiteCredential `tfschema:"site_credential"`
 }
@@ -101,7 +104,7 @@ func (r FunctionAppFlexConsumptionResource) IDValidationFunc() pluginsdk.SchemaV
 }
 
 func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -221,6 +224,13 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 
 		"site_config": helpers.SiteConfigSchemaFunctionAppFlexConsumption(),
 
+		"site_update_strategy": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(webapps.SiteUpdateStrategyTypeRecreate),
+			ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForSiteUpdateStrategyType(), false),
+		},
+
 		"sticky_settings": helpers.StickySettingsSchema(),
 
 		"app_settings": {
@@ -305,8 +315,22 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 			Description:  "The local path and filename of the Zip packaged application to deploy to this Function App. **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`.",
 		},
 
+		"virtual_network_application_traffic_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.FivePointOh() {
+		s["virtual_network_application_traffic_enabled"].Computed = true
+		s["virtual_network_application_traffic_enabled"].Default = nil
+		s["virtual_network_application_traffic_enabled"].ConflictsWith = []string{"site_config.0.vnet_route_all_enabled"}
+	}
+
+	return s
 }
 
 func (r FunctionAppFlexConsumptionResource) Attributes() map[string]*pluginsdk.Schema {
@@ -496,10 +520,14 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			siteUpdateType := webapps.SiteUpdateStrategyType(functionAppFlexConsumption.SiteUpdateStrategy)
 			flexFunctionAppConfig := &webapps.FunctionAppConfig{
 				Deployment:          storageDeployment,
 				Runtime:             &runtime,
 				ScaleAndConcurrency: &scaleAndConcurrencyConfig,
+				SiteUpdateStrategy: &webapps.FunctionsSiteUpdateStrategy{
+					Type: &siteUpdateType,
+				},
 			}
 
 			siteConfig, err := helpers.ExpandSiteConfigFunctionFlexConsumptionApp(functionAppFlexConsumption.SiteConfig, nil, metadata, false, storageString, storageConnStringForFCApp)
@@ -522,7 +550,21 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 					FunctionAppConfig: flexFunctionAppConfig,
 					ClientCertEnabled: pointer.To(functionAppFlexConsumption.ClientCertEnabled),
 					ClientCertMode:    pointer.To(webapps.ClientCertMode(functionAppFlexConsumption.ClientCertMode)),
+					OutboundVnetRouting: &webapps.OutboundVnetRouting{
+						ApplicationTraffic: pointer.To(functionAppFlexConsumption.VirtualNetworkApplicationTrafficEnabled),
+					},
 				},
+			}
+
+			if !features.FivePointOh() {
+				rawSiteVnetRouting, err := metadata.GetRawConfigAt("site_config.0.vnet_route_all_enabled")
+				if err != nil {
+					return err
+				}
+
+				if !rawSiteVnetRouting.IsNull() {
+					siteEnvelope.Properties.OutboundVnetRouting.ApplicationTraffic = siteConfig.VnetRouteAllEnabled
+				}
 			}
 
 			pna := helpers.PublicNetworkAccessEnabled
@@ -716,6 +758,12 @@ func (r FunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 				if err != nil {
 					return fmt.Errorf("retrieving Site Config for %s: %+v", id, err)
 				}
+				if model.Properties.OutboundVnetRouting != nil {
+					state.VirtualNetworkApplicationTrafficEnabled = pointer.From(model.Properties.OutboundVnetRouting.ApplicationTraffic)
+					if !features.FivePointOh() {
+						siteConfig.VnetRouteAllEnabled = state.VirtualNetworkApplicationTrafficEnabled
+					}
+				}
 				state.SiteConfig = []helpers.SiteConfigFunctionAppFlexConsumption{*siteConfig}
 
 				if functionAppConfig := props.FunctionAppConfig; functionAppConfig != nil {
@@ -743,6 +791,10 @@ func (r FunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 						if faConfigScale.Triggers != nil && faConfigScale.Triggers.HTTP != nil {
 							state.HttpConcurrency = pointer.From(faConfigScale.Triggers.HTTP.PerInstanceConcurrency)
 						}
+					}
+
+					if faConfigSiteUpdate := functionAppConfig.SiteUpdateStrategy; faConfigSiteUpdate != nil {
+						state.SiteUpdateStrategy = string(pointer.From(faConfigSiteUpdate.Type))
 					}
 				}
 
@@ -919,6 +971,18 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 				model.Properties.SiteConfig = siteConfig
 			}
 
+			vnetRoutingProps := &webapps.OutboundVnetRouting{}
+			if model.Properties.OutboundVnetRouting != nil {
+				vnetRoutingProps = model.Properties.OutboundVnetRouting
+			}
+			if metadata.ResourceData.HasChange("virtual_network_application_traffic_enabled") {
+				vnetRoutingProps.ApplicationTraffic = pointer.To(state.VirtualNetworkApplicationTrafficEnabled)
+			}
+
+			if !features.FivePointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
+				vnetRoutingProps.ApplicationTraffic = siteConfig.VnetRouteAllEnabled
+			}
+
 			if metadata.ResourceData.HasChange("maximum_instance_count") {
 				model.Properties.FunctionAppConfig.ScaleAndConcurrency.MaximumInstanceCount = pointer.To(state.MaximumInstanceCount)
 			}
@@ -953,6 +1017,13 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 				}
 			}
 
+			if metadata.ResourceData.HasChange("site_update_strategy") {
+				siteUpdateType := webapps.SiteUpdateStrategyType(state.SiteUpdateStrategy)
+				model.Properties.FunctionAppConfig.SiteUpdateStrategy = &webapps.FunctionsSiteUpdateStrategy{
+					Type: &siteUpdateType,
+				}
+			}
+
 			if metadata.ResourceData.HasChange("runtime_name") {
 				runtimeName := webapps.RuntimeName(state.RuntimeName)
 				model.Properties.FunctionAppConfig.Runtime.Name = pointer.To(runtimeName)
@@ -963,6 +1034,7 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 			}
 
 			model.Properties.SiteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, state.AppSettings)
+			model.Properties.OutboundVnetRouting = vnetRoutingProps
 
 			if metadata.ResourceData.HasChange("public_network_access_enabled") {
 				pna := helpers.PublicNetworkAccessEnabled
