@@ -67,7 +67,7 @@ func resourceVirtualNetwork() *pluginsdk.Resource {
 }
 
 func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
-	resourceSchema := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -305,21 +305,9 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"service": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										"Microsoft.AzureActiveDirectory",
-										"Microsoft.AzureCosmosDB",
-										"Microsoft.CognitiveServices",
-										"Microsoft.ContainerRegistry",
-										"Microsoft.EventHub",
-										"Microsoft.KeyVault",
-										"Microsoft.ServiceBus",
-										"Microsoft.Sql",
-										"Microsoft.Storage",
-										"Microsoft.Storage.Global",
-										"Microsoft.Web",
-									}, false),
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validate.SubnetServiceEndpointName(),
 								},
 								"network_identifier": {
 									Type:         pluginsdk.TypeString,
@@ -356,8 +344,6 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
-
-	return resourceSchema
 }
 
 func resourceVirtualNetworkCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -625,7 +611,7 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("subnet") {
-		subnetList, routeTables, err := expandVirtualNetworkSubnets(ctx, *client, d.Get("subnet").(*pluginsdk.Set).List(), *id, d)
+		subnetList, routeTables, err := expandVirtualNetworkSubnets(ctx, *client, d.Get("subnet").(*pluginsdk.Set).List(), *id)
 		if err != nil {
 			return fmt.Errorf("expanding `subnet`: %+v", err)
 		}
@@ -754,7 +740,7 @@ func expandVirtualNetworkEncryption(input []interface{}) *virtualnetworks.Virtua
 	}
 }
 
-func expandVirtualNetworkSubnets(ctx context.Context, client virtualnetworks.VirtualNetworksClient, input []interface{}, id commonids.VirtualNetworkId, d *pluginsdk.ResourceData) (*[]virtualnetworks.Subnet, *[]string, error) {
+func expandVirtualNetworkSubnets(ctx context.Context, client virtualnetworks.VirtualNetworksClient, input []interface{}, id commonids.VirtualNetworkId) (*[]virtualnetworks.Subnet, *[]string, error) {
 	subnets := make([]virtualnetworks.Subnet, 0)
 	routeTables := make([]string, 0)
 
@@ -1273,11 +1259,9 @@ func flattenVirtualNetworkSubnetServiceEndpoint(serviceEndpoints *[]virtualnetwo
 		item := map[string]interface{}{
 			"service": pointer.From(endpoint.Service),
 		}
-		networkIdentifier := ""
 		if endpoint.NetworkIdentifier != nil {
-			networkIdentifier = pointer.From(endpoint.NetworkIdentifier.Id)
+			item["network_identifier"] = pointer.From(endpoint.NetworkIdentifier.Id)
 		}
-		item["network_identifier"] = networkIdentifier
 		endpoints = append(endpoints, item)
 	}
 

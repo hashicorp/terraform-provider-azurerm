@@ -419,7 +419,8 @@ func TestAccVirtualNetwork_serviceEndpointBlock(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.serviceEndpointBlock(data),
+			// remove them
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1013,17 +1014,6 @@ resource "azurerm_virtual_network" "test" {
 }
 
 func (VirtualNetworkResource) subnet(data acceptance.TestData) string {
-	serviceEndpointSubnet1 := `
-    service_endpoint {
-      service = "Microsoft.Sql"
-    }
-    service_endpoint {
-      service = "Microsoft.Storage"
-    }`
-	serviceEndpointSubnet2 := `
-    service_endpoint {
-      service = "Microsoft.Storage"
-    }`
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1051,7 +1041,13 @@ resource "azurerm_virtual_network" "test" {
     address_prefixes                              = ["10.0.1.0/24", "ace:cab:deca::/64"]
     private_link_service_network_policies_enabled = false
     private_endpoint_network_policies             = "Enabled"
-    %[3]s
+
+    service_endpoint {
+      service = "Microsoft.Sql"
+    }
+    service_endpoint {
+      service = "Microsoft.Storage"
+    }
     service_endpoint_policy_ids = [azurerm_subnet_service_endpoint_storage_policy.test.id]
 
     delegation {
@@ -1069,7 +1065,10 @@ resource "azurerm_virtual_network" "test" {
     name                                          = "subnet2"
     address_prefixes                              = ["10.0.2.0/24"]
     private_link_service_network_policies_enabled = false
-    %[4]s
+
+    service_endpoint {
+      service = "Microsoft.Storage"
+    }
     service_endpoint_policy_ids = [azurerm_subnet_service_endpoint_storage_policy.test.id]
 
     delegation {
@@ -1087,14 +1086,10 @@ resource "azurerm_virtual_network" "test" {
     environment = "Production"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, serviceEndpointSubnet1, serviceEndpointSubnet2)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (VirtualNetworkResource) subnetUpdated(data acceptance.TestData) string {
-	serviceEndpointConfig := `
-    service_endpoint {
-      service = "Microsoft.Storage"
-    }`
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1123,7 +1118,10 @@ resource "azurerm_virtual_network" "test" {
     default_outbound_access_enabled               = false
     private_link_service_network_policies_enabled = true
     private_endpoint_network_policies             = "Enabled"
-    %[3]s
+
+    service_endpoint {
+      service = "Microsoft.Storage"
+    }
 
     delegation {
       name = "first"
@@ -1140,7 +1138,7 @@ resource "azurerm_virtual_network" "test" {
     environment = "Production"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, serviceEndpointConfig)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (VirtualNetworkResource) subnetRouteTable(data acceptance.TestData) string {

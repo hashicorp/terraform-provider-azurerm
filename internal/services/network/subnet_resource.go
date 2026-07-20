@@ -28,6 +28,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -112,7 +113,7 @@ var subnetDelegationServiceNames = []string{
 }
 
 func resourceSubnet() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create:   resourceSubnetCreate,
 		Read:     resourceSubnetRead,
 		Update:   resourceSubnetUpdate,
@@ -183,21 +184,9 @@ func resourceSubnet() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"service": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"Microsoft.AzureActiveDirectory",
-								"Microsoft.AzureCosmosDB",
-								"Microsoft.CognitiveServices",
-								"Microsoft.ContainerRegistry",
-								"Microsoft.EventHub",
-								"Microsoft.KeyVault",
-								"Microsoft.ServiceBus",
-								"Microsoft.Sql",
-								"Microsoft.Storage",
-								"Microsoft.Storage.Global",
-								"Microsoft.Web",
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validate.SubnetServiceEndpointName(),
 						},
 						"network_identifier": {
 							Type:         pluginsdk.TypeString,
@@ -362,8 +351,6 @@ func resourceSubnet() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	return resource
 }
 
 func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -909,11 +896,9 @@ func flattenSubnetServiceEndpoint(serviceEndpoints *[]subnets.ServiceEndpointPro
 		item := map[string]interface{}{
 			"service": pointer.From(endpoint.Service),
 		}
-		networkIdentifier := ""
 		if endpoint.NetworkIdentifier != nil {
-			networkIdentifier = pointer.From(endpoint.NetworkIdentifier.Id)
+			item["network_identifier"] = pointer.From(endpoint.NetworkIdentifier.Id)
 		}
-		item["network_identifier"] = networkIdentifier
 		endpoints = append(endpoints, item)
 	}
 

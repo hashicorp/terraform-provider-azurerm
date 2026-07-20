@@ -506,7 +506,8 @@ func TestAccSubnet_serviceEndpointBlock(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.serviceEndpointBlock(data),
+			// remove them
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),

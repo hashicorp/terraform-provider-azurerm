@@ -20,7 +20,7 @@ import (
 )
 
 func dataSourceSubnet() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Read: dataSourceSubnetRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -78,7 +78,7 @@ func dataSourceSubnet() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"service_endpoints": {
+			"service_endpoint": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
@@ -96,8 +96,6 @@ func dataSourceSubnet() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	return resource
 }
 
 func dataSourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -154,8 +152,8 @@ func dataSourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 			d.Set("route_table_id", routeTableId)
 
-			if err := d.Set("service_endpoints", flattenSubnetServiceEndpoint(props.ServiceEndpoints)); err != nil {
-				return fmt.Errorf("setting `service_endpoints`: %+v", err)
+			if err := d.Set("service_endpoint", flattenSubnetServiceEndpoint(props.ServiceEndpoints)); err != nil {
+				return fmt.Errorf("setting `service_endpoint`: %+v", err)
 			}
 		}
 	}
