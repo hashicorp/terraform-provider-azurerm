@@ -922,6 +922,13 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
 * The `virtual_network_image_pull_enabled` property now defaults to `false`.
 
+### `azurerm_hdinsight_interactive_query_cluster`
+
+* The `storage_account` block's `storage_resource_id` property has been renamed to `storage_account_id` to align it with other resource naming.
+* The `storage_account` block's `storage_container_id` property has been renamed to `storage_container_url` to make it clear that this value needs to be the Data Plane URL of the container, not the ARM ID.
+* The `storage_account_gen2` block's `storage_resource_id` property has been renamed to `storage_account_id` to align with other resource naming.
+* The `storage_account_gen2` block's `managed_identity_resource_id` property has been renamed to `user_assigned_identity_id` to align with other resource naming.
+
 ## Breaking Changes in Data Sources
 
 ### `azurerm_api_management`
