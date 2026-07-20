@@ -30,6 +30,18 @@ resource "azurerm_subnet" "example_primary_subnet" {
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example_primary_vnet.name
   address_prefixes     = ["10.0.1.0/24"]
+
+  delegation {
+    name = "delegation"
+
+    service_delegation {
+      name = "Oracle.Database/networkAttachments"
+      actions = [
+        "Microsoft.Network/networkinterfaces/*",
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+      ]
+    }
+  }
 }
 
 resource "azurerm_virtual_network" "example_dr_vnet" {
@@ -44,6 +56,18 @@ resource "azurerm_subnet" "example_dr_subnet" {
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example_dr_vnet.name
   address_prefixes     = ["10.1.1.0/24"]
+
+  delegation {
+    name = "delegation"
+
+    service_delegation {
+      name = "Oracle.Database/networkAttachments"
+      actions = [
+        "Microsoft.Network/networkinterfaces/*",
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+      ]
+    }
+  }
 }
 
 resource "azurerm_oracle_autonomous_database" "example_primary" {
@@ -96,7 +120,7 @@ The following arguments are supported:
 
 * `subnet_id` - (Required) The ID of the subnet in the target region. Changing this forces a new resource to be created.
 
-* `replicate_automatic_backups_enabled` - (Optional) If true, 7 days of backups are replicated across regions. Default value `false`. Changing this forces a new resource to be created.
+* `replicate_automatic_backups_enabled` - (Optional) If true, 7 days of backups are replicated across regions. Defaults to `false`. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags assigned to the resource. Changing this forces a new resource to be created.
 

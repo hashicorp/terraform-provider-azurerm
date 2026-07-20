@@ -240,7 +240,7 @@ func (AutonomousDatabaseRegularResource) Attributes() map[string]*pluginsdk.Sche
 }
 
 func (AutonomousDatabaseRegularResource) ModelObject() interface{} {
-	return &AutonomousDatabaseRegularResource{}
+	return &AutonomousDatabaseRegularResourceModel{}
 }
 
 func (AutonomousDatabaseRegularResource) ResourceType() string {
