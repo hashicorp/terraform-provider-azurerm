@@ -444,10 +444,6 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			if state.NetworkBypassMode != "" {
-				parameter.Properties.NetworkBypassMode = pointer.To(mongoclusters.NetworkBypassMode(state.NetworkBypassMode))
-			}
-
 			parameter.Properties.PublicNetworkAccess = pointer.To(mongoclusters.PublicNetworkAccess(state.PublicNetworkAccess))
 
 			if state.StorageSizeInGb != 0 {
@@ -477,6 +473,13 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 			metadata.SetID(id)
+
+			// `network_bypass_mode` can only be configured after the resource is created
+			if state.NetworkBypassMode != "" {
+				if err := updateMongoClusterNetworkBypassMode(ctx, client, id, mongoclusters.NetworkBypassMode(state.NetworkBypassMode)); err != nil {
+					return fmt.Errorf("enabling `network_bypass_mode` for %s: %+v", id, err)
+				}
+			}
 
 			// `data_api_mode_enabled` can only be enabled after the resource is created
 			if state.CreateMode == string(mongoclusters.CreateModeDefault) && state.DataApiModeEnabled {

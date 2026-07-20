@@ -243,6 +243,22 @@ func TestAccMongoCluster_networkBypassMode(t *testing.T) {
 			),
 		},
 		data.ImportStep("create_mode"),
+		{
+			Config: r.networkBypassModeDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_bypass_mode").HasValue(""),
+			),
+		},
+		data.ImportStep("create_mode"),
+		{
+			Config: r.networkBypassMode(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_bypass_mode").HasValue("AzureCosmosDB"),
+			),
+		},
+		data.ImportStep("create_mode"),
 	})
 }
 
@@ -627,6 +643,25 @@ resource "azurerm_mongo_cluster" "test" {
   version                = "7.0"
   authentication_methods = ["MicrosoftEntraID"]
   network_bypass_mode    = "AzureCosmosDB"
+  public_network_access  = "Disabled"
+}
+`, r.template(data, data.Locations.Primary), data.RandomInteger)
+}
+
+func (r MongoClusterResource) networkBypassModeDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mongo_cluster" "test" {
+  name                   = "acctest-mc%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  shard_count            = "1"
+  compute_tier           = "M30"
+  high_availability_mode = "Disabled"
+  storage_size_in_gb     = "32"
+  version                = "7.0"
+  authentication_methods = ["MicrosoftEntraID"]
   public_network_access  = "Disabled"
 }
 `, r.template(data, data.Locations.Primary), data.RandomInteger)
