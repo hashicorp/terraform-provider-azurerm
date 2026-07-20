@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	providerfeatures "github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -381,42 +380,6 @@ func azureProvider(supportLegacyTestSuite bool, testName string) *schema.Provide
 
 	p.ConfigureContextFunc = providerConfigure(p, testName)
 
-	if !providerfeatures.FivePointOh() {
-		p.Schema["resource_provider_registrations"].DefaultFunc = schema.EnvDefaultFunc("ARM_RESOURCE_PROVIDER_REGISTRATIONS", resourceproviders.ProviderRegistrationsLegacy)
-
-		p.Schema["skip_provider_registration"] = &schema.Schema{
-			Type:        schema.TypeBool,
-			Optional:    true,
-			DefaultFunc: schema.EnvDefaultFunc("ARM_SKIP_PROVIDER_REGISTRATION", nil),
-			Description: "Should the AzureRM Provider skip registering all of the Resource Providers that it supports, if they're not already registered?",
-			Deprecated:  "This property is deprecated and will be removed in v5.0 of the AzureRM provider. Please use the `resource_provider_registrations` property instead.",
-		}
-
-		p.Schema["enhanced_validation"] = &schema.Schema{
-			Type:          schema.TypeList,
-			Optional:      true,
-			MaxItems:      1,
-			ConflictsWith: []string{"features.0.enhanced_validation"},
-			Deprecated:    "This block has been deprecated and will be removed in version 5.0 of the AzureRM provider. Please use the `enhanced_validation` block inside the `features` block instead.",
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
-					"locations": {
-						Type:        schema.TypeBool,
-						Optional:    true,
-						DefaultFunc: schema.EnvDefaultFunc("ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS", providerfeatures.EnhancedValidationLocationsEnabled()),
-						Description: "Should the AzureRM Provider validate location arguments against the list of supported Azure Locations?",
-					},
-					"resource_providers": {
-						Type:        schema.TypeBool,
-						Optional:    true,
-						DefaultFunc: schema.EnvDefaultFunc("ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS", providerfeatures.EnhancedValidationResourceProvidersEnabled()),
-						Description: "Should the AzureRM Provider validate Resource Provider arguments against the list of supported Resource Providers? When enabled, invalid resource providers are caught at plan time; when disabled, they are caught at apply time.",
-					},
-				},
-			},
-		}
-	}
-
 	return p
 }
 
@@ -537,15 +500,6 @@ func providerConfigure(p *schema.Provider, testName string) schema.ConfigureCont
 func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData, authConfig *auth.Credentials, testName string) (*clients.Client, diag.Diagnostics) {
 	providerRegistrations := d.Get("resource_provider_registrations").(string)
 
-	if !providerfeatures.FivePointOh() {
-		if d.Get("skip_provider_registration").(bool) {
-			if providerRegistrations != resourceproviders.ProviderRegistrationsLegacy {
-				return nil, diag.Errorf("provider property `skip_provider_registration` cannot be set at the same time as `resource_provider_registrations`, please remove `skip_provider_registration` from your configuration or unset the `ARM_SKIP_PROVIDER_REGISTRATION` environment variable")
-			}
-			providerRegistrations = resourceproviders.ProviderRegistrationsNone
-		}
-	}
-
 	requiredResourceProviders, err := resourceproviders.GetResourceProvidersSet(providerRegistrations)
 	if err != nil {
 		return nil, diag.FromErr(err)
@@ -558,25 +512,8 @@ func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData
 	requiredResourceProviders.Merge(additionalProvidersToRegister)
 
 	features := expandFeatures(d.Get("features").([]interface{}))
-	// In 4.x, validate that the legacy and specific enhanced validation env vars don't conflict
-	if !providerfeatures.FivePointOh() {
-		if err := providerfeatures.ValidateEnhancedValidationEnvVars(); err != nil {
-			return nil, diag.FromErr(err)
-		}
 
-		if raw, ok := d.GetOk("enhanced_validation"); ok {
-			items := raw.([]interface{})
-			if len(items) > 0 && items[0] != nil {
-				evRaw := items[0].(map[string]interface{})
-				if v, ok := evRaw["locations"]; ok {
-					features.EnhancedValidation.Locations = v.(bool)
-				}
-				if v, ok := evRaw["resource_providers"]; ok {
-					features.EnhancedValidation.ResourceProviders = v.(bool)
-				}
-			}
-		}
-	} else if os.Getenv("ARM_PROVIDER_ENHANCED_VALIDATION") != "" {
+	if os.Getenv("ARM_PROVIDER_ENHANCED_VALIDATION") != "" {
 		return nil, diag.Errorf("the environment variable `ARM_PROVIDER_ENHANCED_VALIDATION` has been removed in v5.0 of the AzureRM Provider - please use the `enhanced_validation` block inside the `features` block or the replacement environment variables `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` and `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS` instead")
 	}
 

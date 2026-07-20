@@ -473,6 +473,21 @@ func TestAccCdnFrontDoorRule_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccCdnFrontDoorRule_importBatchRule(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: CdnFrontdoorBatchRuleSetResource{}.disableCacheAndNoOriginGroup(data),
+		},
+		{
+			Config:      r.batchRuleImport(data),
+			ExpectError: regexp.MustCompile("was provisioned using batch mode, and individual rules for this cannot be managed by this resource"),
+		},
+	})
+}
+
 func TestAccCdnFrontDoorRule_complete_unattachedRoute(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}
@@ -1386,6 +1401,30 @@ resource "azurerm_cdn_frontdoor_rule" "import" {
 
 }
 `, config)
+}
+
+func (r CdnFrontDoorRuleResource) batchRuleImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+import {
+  id = "${azurerm_cdn_frontdoor_batch_rule_set.test.id}/rules/${azurerm_cdn_frontdoor_batch_rule_set.test.rule.0.name}"
+  to = azurerm_cdn_frontdoor_rule.test
+}
+
+resource "azurerm_cdn_frontdoor_rule" "test" {
+  name                      = "accTestRule%[2]d"
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_batch_rule_set.test.id
+
+  order = 0
+
+  actions {
+    route_configuration_override_action {
+      cache_behavior = "Disabled"
+    }
+  }
+}
+`, CdnFrontdoorBatchRuleSetResource{}.basicUnattachedRoute(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorRuleResource) complete(data acceptance.TestData, attachRoute bool) string {

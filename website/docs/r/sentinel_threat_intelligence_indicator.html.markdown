@@ -172,3 +172,11 @@ Sentinel Threat Intelligence Indicators can be imported using the `resource id`,
 ```shell
 terraform import azurerm_sentinel_threat_intelligence_indicator.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourcegroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/providers/Microsoft.SecurityInsights/threatIntelligence/main/indicators/indicator1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.OperationalInsights` - 2022-10-01-preview
+
+* `Microsoft.SecurityInsights` - 2022-10-01-preview

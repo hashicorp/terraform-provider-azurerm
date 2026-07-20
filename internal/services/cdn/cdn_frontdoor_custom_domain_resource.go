@@ -720,10 +720,6 @@ func frontDoorCustomDomainHostNameCustomizeDiff(_ context.Context, diff *plugins
 		return errors.New("`host_name` cannot be longer than 64 characters when `tls.certificate_type` is `ManagedCertificate`")
 	}
 
-	if strings.HasPrefix(hostName, "*.") {
-		return errors.New("`host_name` cannot be a wildcard domain when `tls.certificate_type` is `ManagedCertificate`")
-	}
-
 	return nil
 }
 
