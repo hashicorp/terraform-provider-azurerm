@@ -56,13 +56,14 @@ jobs:
           BASE_REF: ${{ github.base_ref }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          output=$(sed -E 's/\x1b\[[0-9;]*m//g' pr-guide-suggestions-output.txt \
-            | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g')
-          if [ -z "$(printf '%s' "$output" | tr -d '[:space:]')" ] && [ "$EXIT_CODE" = "0" ]; then
+          raw=$(sed -E 's/\x1b\[[0-9;]*m//g' pr-guide-suggestions-output.txt)
+          if echo "$raw" | grep -qE '^(no changed resource|0 finding)'; then
             echo "has_suggestions=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           echo "has_suggestions=true" >> "$GITHUB_OUTPUT"
+          output=$(printf '%s' "$raw" \
+            | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g')
           max=10000
           if [ "${#output}" -gt "$max" ]; then
             output="${output:0:$max}"$'\n''... (truncated, see the workflow run for the full output)'
