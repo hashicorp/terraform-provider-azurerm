@@ -55,6 +55,7 @@ func TestExpandFeatures(t *testing.T) {
 					RecoverSoftDeletedKeyVaults:      true,
 					RecoverSoftDeletedSecrets:        true,
 					RecoverSoftDeletedHSMKeys:        true,
+					SetValueWoVersionOnImport:        false,
 				},
 				LogAnalyticsWorkspace: features.LogAnalyticsWorkspaceFeatures{
 					PermanentlyDeleteOnDestroy: false,
@@ -149,6 +150,7 @@ func TestExpandFeatures(t *testing.T) {
 							"recover_soft_deleted_key_vaults":                             true,
 							"recover_soft_deleted_secrets":                                true,
 							"recover_soft_deleted_hardware_security_module_keys":          true,
+							"set_value_wo_version_on_import":                              false,
 						},
 					},
 					"log_analytics_workspace": []interface{}{

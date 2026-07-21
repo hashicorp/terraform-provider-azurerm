@@ -268,6 +268,7 @@ func defaultFeaturesList() types.List {
 		"recover_soft_deleted_key_vaults":                         basetypes.NewBoolNull(),
 		"recover_soft_deleted_keys":                               basetypes.NewBoolNull(),
 		"recover_soft_deleted_secrets":                            basetypes.NewBoolNull(),
+		"set_value_wo_version_on_import":                          basetypes.NewBoolNull(),
 	})
 	keyVaultList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(KeyVaultAttributes), []attr.Value{keyVault})
 
