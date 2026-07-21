@@ -1664,6 +1664,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Required: true,
 							ForceNew: true,
 						},
+						// This needs to become Required in 4.0 - omitting it isn't accepted by the API
 						"admin_password": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
