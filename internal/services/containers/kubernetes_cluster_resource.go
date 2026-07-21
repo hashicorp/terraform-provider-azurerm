@@ -235,6 +235,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
+			// nolint
 			"api_server_access": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
