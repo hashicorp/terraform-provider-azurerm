@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-04-15/afdcustomdomains"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afddomains"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
@@ -73,8 +73,8 @@ func resourceCdnFrontDoorCustomDomainAssociationCreate(d *pluginsdk.ResourceData
 
 	id := parse.NewFrontDoorCustomDomainAssociationID(cdId.SubscriptionId, cdId.ResourceGroup, cdId.ProfileName, cdId.CustomDomainName)
 
-	customDomainId := afdcustomdomains.NewCustomDomainID(cdId.SubscriptionId, cdId.ResourceGroup, cdId.ProfileName, cdId.CustomDomainName)
-	existing, err := client.Get(ctx, customDomainId)
+	customDomainId := afddomains.NewCustomDomainID(cdId.SubscriptionId, cdId.ResourceGroup, cdId.ProfileName, cdId.CustomDomainName)
+	existing, err := client.AFDCustomDomainsGet(ctx, customDomainId)
 	if err != nil {
 		if response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("creating %s: %s was not found", id, cdId)
@@ -106,8 +106,8 @@ func resourceCdnFrontDoorCustomDomainAssociationRead(d *pluginsdk.ResourceData, 
 		return err
 	}
 
-	customDomainId := afdcustomdomains.NewCustomDomainID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.AssociationName)
-	resp, err := client.Get(ctx, customDomainId)
+	customDomainId := afddomains.NewCustomDomainID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.AssociationName)
+	resp, err := client.AFDCustomDomainsGet(ctx, customDomainId)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
@@ -133,8 +133,8 @@ func resourceCdnFrontDoorCustomDomainAssociationUpdate(d *pluginsdk.ResourceData
 
 		id := parse.NewFrontDoorCustomDomainAssociationID(cdId.SubscriptionId, cdId.ResourceGroup, cdId.ProfileName, cdId.CustomDomainName)
 
-		customDomainId := afdcustomdomains.NewCustomDomainID(cdId.SubscriptionId, cdId.ResourceGroup, cdId.ProfileName, cdId.CustomDomainName)
-		existing, err := client.Get(ctx, customDomainId)
+		customDomainId := afddomains.NewCustomDomainID(cdId.SubscriptionId, cdId.ResourceGroup, cdId.ProfileName, cdId.CustomDomainName)
+		existing, err := client.AFDCustomDomainsGet(ctx, customDomainId)
 		if err != nil {
 			if response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("updating %s: %s was not found", id, cdId)

@@ -25,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/jackofallops/kermit/sdk/web/2022-09-01/web"
 )
 
 const (
@@ -247,11 +246,11 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 		"client_certificate_mode": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  web.ClientCertModeOptional,
+			Default:  webapps.ClientCertModeOptional,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(web.ClientCertModeOptional),
-				string(web.ClientCertModeRequired),
-				string(web.ClientCertModeOptionalInteractiveUser),
+				string(webapps.ClientCertModeOptional),
+				string(webapps.ClientCertModeRequired),
+				string(webapps.ClientCertModeOptionalInteractiveUser),
 			}, false),
 			Description: "The mode of the Function App's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser` ",
 		},

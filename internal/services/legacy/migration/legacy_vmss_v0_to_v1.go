@@ -10,7 +10,7 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -253,7 +253,6 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 					},
-					// TODO 4.0: change this from enable_* to *_enabled
 					"enable_automatic_upgrades": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
@@ -736,10 +735,10 @@ func resourceArmVirtualMachineScaleSetOsProfileWindowsConfigHash(v interface{}) 
 
 	if m, ok := v.(map[string]interface{}); ok {
 		if v, ok := m["provision_vm_agent"]; ok {
-			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+			fmt.Fprintf(&buf, "%t-", v.(bool))
 		}
 		if v, ok := m["enable_automatic_upgrades"]; ok {
-			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+			fmt.Fprintf(&buf, "%t-", v.(bool))
 		}
 	}
 
@@ -750,7 +749,7 @@ func resourceArmVirtualMachineScaleSetOsProfileLinuxConfigHash(v interface{}) in
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%t-", m["disable_password_authentication"].(bool)))
+		fmt.Fprintf(&buf, "%t-", m["disable_password_authentication"].(bool))
 	}
 
 	return pluginsdk.HashString(buf.String())
@@ -760,8 +759,8 @@ func resourceArmVirtualMachineScaleSetNetworkConfigurationHash(v interface{}) in
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
-		buf.WriteString(fmt.Sprintf("%t-", m["primary"].(bool)))
+		fmt.Fprintf(&buf, "%s-", m["name"].(string))
+		fmt.Fprintf(&buf, "%t-", m["primary"].(bool))
 	}
 
 	return pluginsdk.HashString(buf.String())
@@ -771,10 +770,10 @@ func resourceArmVirtualMachineScaleSetStorageProfileOsDiskHash(v interface{}) in
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
+		fmt.Fprintf(&buf, "%s-", m["name"].(string))
 
 		if v, ok := m["vhd_containers"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(*pluginsdk.Set).List()))
+			fmt.Fprintf(&buf, "%s-", v.(*pluginsdk.Set).List())
 		}
 	}
 
@@ -786,19 +785,19 @@ func resourceArmVirtualMachineScaleSetStorageProfileImageReferenceHash(v interfa
 
 	if m, ok := v.(map[string]interface{}); ok {
 		if v, ok := m["publisher"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+			fmt.Fprintf(&buf, "%s-", v.(string))
 		}
 		if v, ok := m["offer"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+			fmt.Fprintf(&buf, "%s-", v.(string))
 		}
 		if v, ok := m["sku"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+			fmt.Fprintf(&buf, "%s-", v.(string))
 		}
 		if v, ok := m["version"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+			fmt.Fprintf(&buf, "%s-", v.(string))
 		}
 		if v, ok := m["id"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+			fmt.Fprintf(&buf, "%s-", v.(string))
 		}
 	}
 
@@ -809,17 +808,17 @@ func resourceArmVirtualMachineScaleSetExtensionHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["publisher"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["type"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["type_handler_version"].(string)))
+		fmt.Fprintf(&buf, "%s-", m["name"].(string))
+		fmt.Fprintf(&buf, "%s-", m["publisher"].(string))
+		fmt.Fprintf(&buf, "%s-", m["type"].(string))
+		fmt.Fprintf(&buf, "%s-", m["type_handler_version"].(string))
 
 		if v, ok := m["auto_upgrade_minor_version"]; ok {
-			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+			fmt.Fprintf(&buf, "%t-", v.(bool))
 		}
 
 		if v, ok := m["provision_after_extensions"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(*pluginsdk.Set).List()))
+			fmt.Fprintf(&buf, "%s-", v.(*pluginsdk.Set).List())
 		}
 
 		// we need to ensure the whitespace is consistent
@@ -829,7 +828,7 @@ func resourceArmVirtualMachineScaleSetExtensionHash(v interface{}) int {
 			if err == nil {
 				serialisedSettings, err := pluginsdk.FlattenJsonToString(expandedSettings)
 				if err == nil {
-					buf.WriteString(fmt.Sprintf("%s-", serialisedSettings))
+					fmt.Fprintf(&buf, "%s-", serialisedSettings)
 				}
 			}
 		}

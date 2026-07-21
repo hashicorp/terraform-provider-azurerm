@@ -464,7 +464,26 @@ func TestAccWindowsVirtualMachine_otherUserData(t *testing.T) {
 	})
 }
 
-func TestAccWindowsVirtualMachine_otherEnableAutomaticUpdatesDefault(t *testing.T) {
+func TestAccWindowsVirtualMachine_otherEnableAutomaticUpdatesDefaultLegacy(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as `enable_automatic_updates` is removed in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherEnableAutomaticUpdatesDefault(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("automatic_updates_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
+func TestAccWindowsVirtualMachine_otherAutomaticUpdatesEnabledDefault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
@@ -2618,10 +2637,11 @@ func (r WindowsVirtualMachineResource) otherSecretTemplate(data acceptance.TestD
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestkeyvault%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
+  name                       = "acctestkeyvault%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
 
   sku_name                        = "standard"
   enabled_for_template_deployment = true
@@ -3210,11 +3230,12 @@ func (r WindowsVirtualMachineResource) otherWinRMHTTPS(data acceptance.TestData)
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestkv%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  sku_name            = "standard"
-  tenant_id           = data.azurerm_client_config.current.tenant_id
+  name                       = "acctestkv%s"
+  resource_group_name        = "${azurerm_resource_group.test.name}"
+  rbac_authorization_enabled = false
+  location                   = "${azurerm_resource_group.test.location}"
+  sku_name                   = "standard"
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id

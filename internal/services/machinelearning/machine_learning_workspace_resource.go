@@ -237,6 +237,16 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			"storage_account_access_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  workspaces.SystemDatastoresAuthModeAccessKey,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(workspaces.SystemDatastoresAuthModeAccessKey),
+					string(workspaces.SystemDatastoresAuthModeIdentity),
+				}, false),
+			},
+
 			"serverless_compute": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -315,8 +325,7 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 			Name: d.Get("sku_name").(string),
 			Tier: pointer.To(workspaces.SkuTier(d.Get("sku_name").(string))),
 		},
-		Kind: pointer.To(d.Get("kind").(string)),
-
+		Kind:     pointer.To(d.Get("kind").(string)),
 		Identity: expandedIdentity,
 		Properties: &workspaces.WorkspaceProperties{
 			ApplicationInsights:            pointer.To(d.Get("application_insights_id").(string)),
@@ -327,6 +336,7 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 			PublicNetworkAccess:            pointer.To(networkAccessBehindVnetEnabled),
 			EnableServiceSideCMKEncryption: pointer.To(d.Get("service_side_encryption_enabled").(bool)),
 			StorageAccount:                 pointer.To(d.Get("storage_account_id").(string)),
+			SystemDatastoresAuthMode:       pointer.ToEnum[workspaces.SystemDatastoresAuthMode](d.Get("storage_account_access_type").(string)),
 			V1LegacyMode:                   pointer.To(d.Get("v1_legacy_mode_enabled").(bool)),
 		},
 	}
@@ -474,6 +484,10 @@ func resourceMachineLearningWorkspaceUpdate(d *pluginsdk.ResourceData, meta inte
 		payload.Properties.V1LegacyMode = pointer.To(d.Get("v1_legacy_mode_enabled").(bool))
 	}
 
+	if d.HasChange("storage_account_access_type") {
+		payload.Properties.SystemDatastoresAuthMode = pointer.ToEnum[workspaces.SystemDatastoresAuthMode](d.Get("storage_account_access_type").(string))
+	}
+
 	if d.HasChange("serverless_compute") {
 		serverlessCompute := expandMachineLearningWorkspaceServerlessCompute(d.Get("serverless_compute").([]interface{}))
 		if serverlessCompute != nil {
@@ -566,6 +580,7 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("public_network_access_enabled", *props.PublicNetworkAccess == workspaces.PublicNetworkAccessEnabled)
 			d.Set("service_side_encryption_enabled", props.EnableServiceSideCMKEncryption)
 			d.Set("v1_legacy_mode_enabled", props.V1LegacyMode)
+			d.Set("storage_account_access_type", pointer.FromEnum(props.SystemDatastoresAuthMode))
 			d.Set("workspace_id", props.WorkspaceId)
 			d.Set("managed_network", flattenMachineLearningWorkspaceManagedNetwork(props.ManagedNetwork, props.ProvisionNetworkNow))
 			d.Set("serverless_compute", flattenMachineLearningWorkspaceServerlessCompute(props.ServerlessComputeSettings))

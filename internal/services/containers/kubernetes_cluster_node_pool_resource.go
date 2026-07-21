@@ -461,6 +461,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ValidateFunc: validation.StringInSlice([]string{
+				string(agentpools.WorkloadRuntimeKataVMIsolation),
 				string(agentpools.WorkloadRuntimeOCIContainer),
 				string(agentpools.WorkloadRuntimeWasmWasi),
 			}, false),

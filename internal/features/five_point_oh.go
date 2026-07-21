@@ -3,11 +3,6 @@
 
 package features
 
-import (
-	"os"
-	"strings"
-)
-
 // nolint gocritic
 // DeprecatedInFivePointOh returns the deprecation message if the provider
 // is running in 5.0 mode - otherwise returns an empty string (such that
@@ -16,10 +11,6 @@ import (
 //   - Signify resources which will be Deprecated in 5.0, but not Removed (which will happen in a later release).
 //   - For properties undergoing a rename, where the renamed property will only be introduced in the next release
 func DeprecatedInFivePointOh(deprecationMessage string) string {
-	if !FivePointOh() {
-		return ""
-	}
-
 	return deprecationMessage
 }
 
@@ -35,5 +26,5 @@ func DeprecatedInFivePointOh(deprecationMessage string) string {
 // Setting `ARM_FIVEPOINTZERO_BETA` will cause irreversible changes
 // to your state.
 func FivePointOh() bool {
-	return strings.EqualFold(os.Getenv("ARM_FIVEPOINTZERO_BETA"), "true")
+	return true
 }
