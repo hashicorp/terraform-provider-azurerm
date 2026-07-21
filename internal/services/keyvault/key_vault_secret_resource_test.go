@@ -134,6 +134,7 @@ func TestAccKeyVaultSecret_writeOnlyValueWithoutReadPermission(t *testing.T) {
 					check.That(data.ResourceName).Key("value_wo_version").HasValue("1"),
 				),
 			},
+			data.ImportStep(),
 			// Add the "Get" permission before deleting secrets
 			// because deleting secrets appears to require the "Get" permission
 			// even if GetSecret is not called explicitly
@@ -468,7 +469,11 @@ resource "azurerm_key_vault_secret" "test" {
 func (r KeyVaultSecretResource) writeOnlyValueWithoutReadPermission(data acceptance.TestData, secret string, version int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    key_vault {
+      set_value_wo_version_on_import = true
+    }
+  }
 }
 
 %s
