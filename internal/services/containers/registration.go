@@ -79,6 +79,7 @@ func (r Registration) Resources() []sdk.Resource {
 		ContainerRegistryCredentialSetResource{},
 		ContainerRegistryTaskScheduleResource{},
 		ContainerRegistryTokenPasswordResource{},
+		KubernetesAutomaticClusterResource{},
 		KubernetesClusterDeploymentSafeguardResource{},
 		KubernetesClusterExtensionResource{},
 		KubernetesFleetManagerResource{},
@@ -107,5 +108,7 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 }
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
-	return []sdk.FrameworkListWrappedResource{}
+	return []sdk.FrameworkListWrappedResource{
+		KubernetesAutomaticClusterListResource{},
+	}
 }

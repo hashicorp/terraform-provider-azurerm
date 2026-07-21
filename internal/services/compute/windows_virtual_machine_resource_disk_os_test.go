@@ -745,6 +745,7 @@ resource "azurerm_key_vault" "test" {
   name                        = "acctestkv%s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
+  rbac_authorization_enabled  = false
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "standard"
   purge_protection_enabled    = true
@@ -1215,6 +1216,8 @@ resource "azurerm_windows_virtual_machine" "test" {
   size                = "Standard_DC2as_v5"
   admin_username      = "adminuser"
   admin_password      = "P@$$w0rd1234!"
+  patch_mode          = "AutomaticByPlatform"
+
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -1261,6 +1264,8 @@ resource "azurerm_windows_virtual_machine" "test" {
   size                = "Standard_DC2as_v5"
   admin_username      = "adminuser"
   admin_password      = "P@$$w0rd1234!"
+  patch_mode          = "AutomaticByPlatform"
+
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -1293,6 +1298,7 @@ resource "azurerm_key_vault" "test" {
   name                        = "acctestkv%[3]s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
+  rbac_authorization_enabled  = false
   sku_name                    = "premium"
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   enabled_for_disk_encryption = true

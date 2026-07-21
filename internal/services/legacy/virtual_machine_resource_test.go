@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/blobs"
 )
 
 type VirtualMachineResource struct{}
@@ -239,49 +238,6 @@ func (VirtualMachineResource) deallocate(ctx context.Context, client *clients.Cl
 	return nil
 }
 
-func (VirtualMachineResource) unmanagedDiskExistsInContainer(blobName string, shouldExist bool) acceptance.ClientCheckFunc {
-	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
-		defer cancel()
-
-		accountName := state.Attributes["storage_account_name"]
-		containerName := state.Attributes["name"]
-
-		account, err := clients.Storage.FindAccount(ctx, clients.Account.SubscriptionId, accountName)
-		if err != nil {
-			return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %s", accountName, blobName, containerName, err)
-		}
-		if account == nil {
-			return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
-		}
-
-		client, err := clients.Storage.BlobsDataPlaneClient(ctx, *account, clients.Storage.DataPlaneOperationSupportingAnyAuthMethod())
-		if err != nil {
-			return fmt.Errorf("building Blobs Client: %s", err)
-		}
-
-		input := blobs.GetPropertiesInput{}
-		props, err := client.GetProperties(ctx, containerName, blobName, input)
-		if err != nil {
-			if response.WasNotFound(props.HttpResponse) {
-				if !shouldExist {
-					return nil
-				}
-
-				return fmt.Errorf("The Blob for the Unmanaged Disk %q should exist in the Container %q but it didn't!", blobName, containerName)
-			}
-
-			return fmt.Errorf("retrieving properties for Blob %q (Container %q): %s", blobName, containerName, err)
-		}
-
-		if !shouldExist {
-			return fmt.Errorf("The Blob for the Unmanaged Disk %q shouldn't exist in the Container %q but it did!", blobName, containerName)
-		}
-
-		return nil
-	}
-}
-
 func (VirtualMachineResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := virtualmachines.ParseVirtualMachineID(state.ID)
 	if err != nil {
@@ -306,26 +262,26 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%d"
+  name                = "acctvn-%[1]d"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%d"
+  name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_network_interface" "test" {
-  name                = "acctni-%d"
+  name                = "acctni-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -336,26 +292,15 @@ resource "azurerm_network_interface" "test" {
   }
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_virtual_machine" "test" {
-  name                  = "acctvm-%d"
+  name                  = "acctvm-%[1]d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   network_interface_ids = [azurerm_network_interface.test.id]
   vm_size               = "Standard_D1_v2"
+
+  delete_os_disk_on_termination    = true
+  delete_data_disks_on_termination = true
 
   storage_image_reference {
     publisher = "MicrosoftWindowsServer"
@@ -365,10 +310,10 @@ resource "azurerm_virtual_machine" "test" {
   }
 
   storage_os_disk {
-    name          = "myosdisk1"
-    vhd_uri       = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-    caching       = "ReadWrite"
-    create_option = "FromImage"
+    name              = "osd-%[1]d"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
   }
 
   os_profile {
@@ -381,7 +326,7 @@ resource "azurerm_virtual_machine" "test" {
     timezone = "Pacific Standard Time"
   }
 }
-		`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+		`, data.RandomInteger, data.Locations.Primary)
 	}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -389,26 +334,26 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%d"
+  name                = "acctvn-%[1]d"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%d"
+  name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_network_interface" "test" {
-  name                = "acctni-%d"
+  name                = "acctni-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -419,26 +364,15 @@ resource "azurerm_network_interface" "test" {
   }
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_id    = azurerm_storage_account.test.id
-  container_access_type = "private"
-}
-
 resource "azurerm_virtual_machine" "test" {
-  name                  = "acctvm-%d"
+  name                  = "acctvm-%[1]d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   network_interface_ids = [azurerm_network_interface.test.id]
   vm_size               = "Standard_D1_v2"
+
+  delete_os_disk_on_termination    = true
+  delete_data_disks_on_termination = true
 
   storage_image_reference {
     publisher = "MicrosoftWindowsServer"
@@ -448,10 +382,10 @@ resource "azurerm_virtual_machine" "test" {
   }
 
   storage_os_disk {
-    name          = "myosdisk1"
-    vhd_uri       = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-    caching       = "ReadWrite"
-    create_option = "FromImage"
+    name              = "osd-%[1]d"
+    managed_disk_type = "Standard_LRS"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
   }
 
   os_profile {
@@ -464,7 +398,7 @@ resource "azurerm_virtual_machine" "test" {
     timezone = "Pacific Standard Time"
   }
 }
-	`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+	`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (VirtualMachineResource) systemAssignedIdentity(data acceptance.TestData) string {
@@ -475,26 +409,26 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%d"
+  name                = "acctvn-%[1]d"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%d"
+  name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_network_interface" "test" {
-  name                = "acctni-%d"
+  name                = "acctni-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -505,30 +439,15 @@ resource "azurerm_network_interface" "test" {
   }
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_virtual_machine" "test" {
-  name                  = "acctvm-%d"
+  name                  = "acctvm-%[1]d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   network_interface_ids = [azurerm_network_interface.test.id]
   vm_size               = "Standard_D1_v2"
+
+  delete_os_disk_on_termination    = true
+  delete_data_disks_on_termination = true
 
   storage_image_reference {
     publisher = "Canonical"
@@ -538,15 +457,15 @@ resource "azurerm_virtual_machine" "test" {
   }
 
   storage_os_disk {
-    name          = "myosdisk1"
-    vhd_uri       = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-    caching       = "ReadWrite"
-    create_option = "FromImage"
-    disk_size_gb  = "45"
+    name              = "osd-%[1]d"
+    managed_disk_type = "Standard_LRS"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    disk_size_gb      = "45"
   }
 
   os_profile {
-    computer_name  = "hn%d"
+    computer_name  = "hn%[1]d"
     admin_username = "testadmin"
     admin_password = "Password1234!"
   }
@@ -564,7 +483,7 @@ resource "azurerm_virtual_machine" "test" {
     type = "SystemAssigned"
   }
 }
-		`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+		`, data.RandomInteger, data.Locations.Primary)
 	}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -572,26 +491,26 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%d"
+  name                = "acctvn-%[1]d"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%d"
+  name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_network_interface" "test" {
-  name                = "acctni-%d"
+  name                = "acctni-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -602,30 +521,15 @@ resource "azurerm_network_interface" "test" {
   }
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_id    = azurerm_storage_account.test.id
-  container_access_type = "private"
-}
-
 resource "azurerm_virtual_machine" "test" {
-  name                  = "acctvm-%d"
+  name                  = "acctvm-%[1]d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   network_interface_ids = [azurerm_network_interface.test.id]
   vm_size               = "Standard_D1_v2"
+
+  delete_os_disk_on_termination    = true
+  delete_data_disks_on_termination = true
 
   storage_image_reference {
     publisher = "Canonical"
@@ -635,15 +539,15 @@ resource "azurerm_virtual_machine" "test" {
   }
 
   storage_os_disk {
-    name          = "myosdisk1"
-    vhd_uri       = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-    caching       = "ReadWrite"
-    create_option = "FromImage"
-    disk_size_gb  = "45"
+    name              = "osd-%[1]d"
+    managed_disk_type = "Standard_LRS"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    disk_size_gb      = "45"
   }
 
   os_profile {
-    computer_name  = "hn%d"
+    computer_name  = "hn%[1]d"
     admin_username = "testadmin"
     admin_password = "Password1234!"
   }
@@ -661,7 +565,7 @@ resource "azurerm_virtual_machine" "test" {
     type = "SystemAssigned"
   }
 }
-	`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+	`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (VirtualMachineResource) userAssignedIdentity(data acceptance.TestData) string {
@@ -672,26 +576,26 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%d"
+  name                = "acctvn-%[1]d"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%d"
+  name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_network_interface" "test" {
-  name                = "acctni-%d"
+  name                = "acctni-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -702,37 +606,22 @@ resource "azurerm_network_interface" "test" {
   }
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
-  name = "acctest%s"
+  name = "acctest%[3]s"
 }
 
 resource "azurerm_virtual_machine" "test" {
-  name                  = "acctvm-%d"
+  name                  = "acctvm-%[1]d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   network_interface_ids = [azurerm_network_interface.test.id]
   vm_size               = "Standard_D1_v2"
+
+  delete_os_disk_on_termination    = true
+  delete_data_disks_on_termination = true
 
   storage_image_reference {
     publisher = "Canonical"
@@ -742,15 +631,15 @@ resource "azurerm_virtual_machine" "test" {
   }
 
   storage_os_disk {
-    name          = "myosdisk1"
-    vhd_uri       = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-    caching       = "ReadWrite"
-    create_option = "FromImage"
-    disk_size_gb  = "45"
+    name              = "osd-%[1]d"
+    managed_disk_type = "Standard_LRS"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    disk_size_gb      = "45"
   }
 
   os_profile {
-    computer_name  = "hn%d"
+    computer_name  = "hn%[1]d"
     admin_username = "testadmin"
     admin_password = "Password1234!"
   }
@@ -769,7 +658,7 @@ resource "azurerm_virtual_machine" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 }
-		`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
+		`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 	}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -777,26 +666,26 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%d"
+  name                = "acctvn-%[1]d"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%d"
+  name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_network_interface" "test" {
-  name                = "acctni-%d"
+  name                = "acctni-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -807,37 +696,22 @@ resource "azurerm_network_interface" "test" {
   }
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_id    = azurerm_storage_account.test.id
-  container_access_type = "private"
-}
-
 resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
-  name = "acctest%s"
+  name = "acctest%[3]s"
 }
 
 resource "azurerm_virtual_machine" "test" {
-  name                  = "acctvm-%d"
+  name                  = "acctvm-%[1]d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   network_interface_ids = [azurerm_network_interface.test.id]
   vm_size               = "Standard_D1_v2"
+
+  delete_os_disk_on_termination    = true
+  delete_data_disks_on_termination = true
 
   storage_image_reference {
     publisher = "Canonical"
@@ -847,15 +721,15 @@ resource "azurerm_virtual_machine" "test" {
   }
 
   storage_os_disk {
-    name          = "myosdisk1"
-    vhd_uri       = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-    caching       = "ReadWrite"
-    create_option = "FromImage"
-    disk_size_gb  = "45"
+    name              = "osd-%[1]d"
+    managed_disk_type = "Standard_LRS"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    disk_size_gb      = "45"
   }
 
   os_profile {
-    computer_name  = "hn%d"
+    computer_name  = "hn%[1]d"
     admin_username = "testadmin"
     admin_password = "Password1234!"
   }
@@ -874,7 +748,7 @@ resource "azurerm_virtual_machine" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 }
-	`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (VirtualMachineResource) multipleAssignedIdentity(data acceptance.TestData) string {
@@ -885,26 +759,26 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%d"
+  name                = "acctvn-%[1]d"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%d"
+  name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_network_interface" "test" {
-  name                = "acctni-%d"
+  name                = "acctni-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -915,36 +789,21 @@ resource "azurerm_network_interface" "test" {
   }
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctest%s"
+  name                = "acctest%[3]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_virtual_machine" "test" {
-  name                  = "acctvm-%d"
+  name                  = "acctvm-%[1]d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   network_interface_ids = [azurerm_network_interface.test.id]
   vm_size               = "Standard_D1_v2"
+
+  delete_os_disk_on_termination    = true
+  delete_data_disks_on_termination = true
 
   storage_image_reference {
     publisher = "Canonical"
@@ -954,15 +813,15 @@ resource "azurerm_virtual_machine" "test" {
   }
 
   storage_os_disk {
-    name          = "myosdisk1"
-    vhd_uri       = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-    caching       = "ReadWrite"
-    create_option = "FromImage"
-    disk_size_gb  = "45"
+    name              = "osd-%[1]d"
+    managed_disk_type = "Standard_LRS"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    disk_size_gb      = "45"
   }
 
   os_profile {
-    computer_name  = "hn%d"
+    computer_name  = "hn%[1]d"
     admin_username = "testadmin"
     admin_password = "Password1234!"
   }
@@ -981,7 +840,7 @@ resource "azurerm_virtual_machine" "test" {
     cost-center = "Ops"
   }
 }
-		`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
+		`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 	}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -989,26 +848,26 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%d"
+  name                = "acctvn-%[1]d"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%d"
+  name                 = "acctsub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_network_interface" "test" {
-  name                = "acctni-%d"
+  name                = "acctni-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -1019,36 +878,21 @@ resource "azurerm_network_interface" "test" {
   }
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_id    = azurerm_storage_account.test.id
-  container_access_type = "private"
-}
-
 resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctest%s"
+  name                = "acctest%[3]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_virtual_machine" "test" {
-  name                  = "acctvm-%d"
+  name                  = "acctvm-%[1]d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   network_interface_ids = [azurerm_network_interface.test.id]
   vm_size               = "Standard_D1_v2"
+
+  delete_os_disk_on_termination    = true
+  delete_data_disks_on_termination = true
 
   storage_image_reference {
     publisher = "Canonical"
@@ -1058,15 +902,15 @@ resource "azurerm_virtual_machine" "test" {
   }
 
   storage_os_disk {
-    name          = "myosdisk1"
-    vhd_uri       = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-    caching       = "ReadWrite"
-    create_option = "FromImage"
-    disk_size_gb  = "45"
+    name              = "osd-%[1]d"
+    managed_disk_type = "Standard_LRS"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    disk_size_gb      = "45"
   }
 
   os_profile {
-    computer_name  = "hn%d"
+    computer_name  = "hn%[1]d"
     admin_username = "testadmin"
     admin_password = "Password1234!"
   }
@@ -1085,7 +929,7 @@ resource "azurerm_virtual_machine" "test" {
     cost-center = "Ops"
   }
 }
-	`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (VirtualMachineResource) ppg(data acceptance.TestData) string {
@@ -1126,24 +970,6 @@ resource "azurerm_network_interface" "test" {
   }
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_proximity_placement_group" "test" {
   name                = "accPPG-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -1157,6 +983,9 @@ resource "azurerm_virtual_machine" "test" {
   network_interface_ids = [azurerm_network_interface.test.id]
   vm_size               = "Standard_D1_v2"
 
+  delete_os_disk_on_termination    = true
+  delete_data_disks_on_termination = true
+
   storage_image_reference {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-server-jammy"
@@ -1165,11 +994,11 @@ resource "azurerm_virtual_machine" "test" {
   }
 
   storage_os_disk {
-    name          = "myosdisk1"
-    vhd_uri       = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-    caching       = "ReadWrite"
-    create_option = "FromImage"
-    disk_size_gb  = "45"
+    name              = "osd-%[1]d"
+    managed_disk_type = "Standard_LRS"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    disk_size_gb      = "45"
   }
 
   os_profile {
@@ -1227,24 +1056,6 @@ resource "azurerm_network_interface" "test" {
   }
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_id    = azurerm_storage_account.test.id
-  container_access_type = "private"
-}
-
 resource "azurerm_proximity_placement_group" "test" {
   name                = "accPPG-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -1258,6 +1069,9 @@ resource "azurerm_virtual_machine" "test" {
   network_interface_ids = [azurerm_network_interface.test.id]
   vm_size               = "Standard_D1_v2"
 
+  delete_os_disk_on_termination    = true
+  delete_data_disks_on_termination = true
+
   storage_image_reference {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-server-jammy"
@@ -1266,11 +1080,11 @@ resource "azurerm_virtual_machine" "test" {
   }
 
   storage_os_disk {
-    name          = "myosdisk1"
-    vhd_uri       = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-    caching       = "ReadWrite"
-    create_option = "FromImage"
-    disk_size_gb  = "45"
+    name              = "osd-%[1]d"
+    managed_disk_type = "Standard_LRS"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    disk_size_gb      = "45"
   }
 
   os_profile {

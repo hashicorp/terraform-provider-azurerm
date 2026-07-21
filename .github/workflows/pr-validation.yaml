@@ -44,7 +44,7 @@ jobs:
       examples: ${{ steps.filter.outputs.examples }}
       vendor: ${{ steps.filter.outputs.vendor }}
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
       - uses: dorny/paths-filter@d1c1ffe0248fe513906c8e24db8ea791d46f8590 # v3
         id: filter
         with:
@@ -74,7 +74,7 @@ jobs:
     if: needs.paths-filter.outputs.vendor == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: ./.go-version
@@ -115,7 +115,7 @@ jobs:
     if: needs.paths-filter.outputs.go == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: ./.go-version
@@ -154,7 +154,7 @@ jobs:
     if: needs.paths-filter.outputs.scripts == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
       - name: Run ShellCheck
         run: make shellcheck
       - name: Guidance on failure
@@ -192,7 +192,7 @@ jobs:
     if: needs.paths-filter.outputs.website == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: ./.go-version
@@ -233,7 +233,7 @@ jobs:
   document-validate:
     runs-on: custom-linux-large
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
           go-version-file: ./.go-version
@@ -281,7 +281,7 @@ jobs:
       (needs.website-lint.result == 'success' || needs.website-lint.result == 'skipped')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: ./.go-version
@@ -327,15 +327,17 @@ jobs:
       (needs.website-lint.result == 'success' || needs.website-lint.result == 'skipped')
     runs-on: custom-linux-large
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: ./.go-version
-      - uses: golangci/golangci-lint-action@82606bf257cbaff209d206a39f5134f0cfbfd2ee # v9
+      - uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
         with:
-          version: 'v2.4.0'
-          install-mode: 'goinstall'
-          args: -v ./...
+          version: 'v2.12.2'
+          # Use the default 'binary' install mode: it downloads the pre-built
+          # release binary instead of compiling golangci-lint from source
+          # (goinstall), which is significantly faster for a pinned version.
+          args: ./...
       - name: Guidance on failure
         if: failure()
         run: |
@@ -379,7 +381,7 @@ jobs:
       (needs.website-lint.result == 'success' || needs.website-lint.result == 'skipped')
     runs-on: custom-linux-medium
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: ./.go-version
@@ -428,7 +430,7 @@ jobs:
       (needs.website-lint.result == 'success' || needs.website-lint.result == 'skipped')
     runs-on: custom-linux-large
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: ./.go-version
@@ -475,7 +477,7 @@ jobs:
     runs-on: custom-linux-xl
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           cache-dependency-path: go.mod
@@ -536,7 +538,7 @@ jobs:
       (needs.website-lint.result == 'success' || needs.website-lint.result == 'skipped')
     runs-on: custom-linux-small
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: ./.go-version
