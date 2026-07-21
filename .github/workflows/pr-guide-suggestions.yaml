@@ -79,9 +79,11 @@ jobs:
             echo "<details${details_open}><summary>Linter output</summary>"
             echo "<pre><code>${output}</code></pre>"
             echo "</details>"
+            echo ""
+            echo "See the [Provider Contribution Guidelines](https://hashicorp.github.io/terraform-provider-azurerm/topics/reference-naming/) for the provider's schema conventions."
             if [ "$EXIT_CODE" != "0" ]; then
               echo ""
-              echo "> One or more newly added schema properties violate a pr-guide-suggestions rule. Correct the property (auto-fixable naming findings can be applied with the linter's \`-fix\` flag); if the change is intentional, add a \`//nolint\` (or \`//nolint:<RULE>\`) comment to the property, or a maintainer can apply the \`schema-accepted\` label to bypass this check."
+              echo "> One or more newly added schema properties violate a pr-guide-suggestions rule. Correct the property (auto-fixable naming findings can be applied with the linter's \`-fix\` flag); if the change is intentional, a maintainer can apply the \`schema-accepted\` label to bypass this check."
               echo ">"
               echo "> Reproduce locally: \`GITHUB_BASE_REF=${BASE_REF} bash ./scripts/run-pr-guide-suggestions-diff.sh\`"
             fi

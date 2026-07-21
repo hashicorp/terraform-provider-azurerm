@@ -156,37 +156,6 @@ Details and caveats:
   the change with `git diff`. Re-run the linter afterwards to converge on any
   follow-on findings and to reformat with `gofmt`/`goimports` if needed.
 
-## Suppressing a finding
-
-When a rule fires on a property that is intentionally written that way, add a
-`// nolint` comment to silence it. This mirrors the golangci-lint convention;
-both `//nolint` (the gofmt-stable machine form) and `// nolint` are accepted:
-
-- `// nolint` — suppress **every** rule for the property.
-- `// nolint:SL001` — suppress only `SL001`.
-- `// nolint:SL001,SL010` — suppress the listed rules (rule IDs are
-  case-insensitive; a trailing `// explanation` is ignored).
-
-The directive attaches to the property whose map key is on the **same line**
-(trailing the key) or on the line **immediately below** a directive that stands
-on its own line. Findings are reported at the property's key, so place the
-directive there — the key line or the line above it:
-
-```go
-// trailing the property's key line
-"any_value": { // nolint:SL005
-    Type:     pluginsdk.TypeString,
-    Optional: true,
-},
-
-// on its own line directly above the property
-// nolint:SL001
-"location": commonschema.Location(),
-```
-
-A directive on a block's key suppresses findings for that block only; nested
-properties are suppressed by placing a directive on each of them.
-
 ## Adding a rule
 
 1. Add a `slNNN.go` file in `rules/` defining a `*Rule` with a `Check` function

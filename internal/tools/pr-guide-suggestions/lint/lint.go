@@ -60,24 +60,14 @@ func Run(targets []string, opts Options) ([]Finding, error) {
 
 	fset := token.NewFileSet()
 	byDir := make(map[string][]*ast.File)
-	sources := make(map[string][]string)
-	var allFiles []*ast.File
 	for _, f := range files {
-		src, err := os.ReadFile(f)
-		if err != nil {
-			return nil, fmt.Errorf("reading %s: %w", f, err)
-		}
-		parsed, err := parser.ParseFile(fset, f, src, parser.ParseComments)
+		parsed, err := parser.ParseFile(fset, f, nil, parser.ParseComments)
 		if err != nil {
 			return nil, fmt.Errorf("parsing %s: %w", f, err)
 		}
-		sources[f] = strings.Split(string(src), "\n")
-		allFiles = append(allFiles, parsed)
 		dir := filepath.Dir(f)
 		byDir[dir] = append(byDir[dir], parsed)
 	}
-
-	nolint := buildNolintIndex(fset, allFiles, sources)
 
 	var findings []Finding
 	for _, dir := range sortedKeys(byDir) {
@@ -88,9 +78,6 @@ func Run(targets []string, opts Options) ([]Finding, error) {
 					return
 				}
 				pos := fset.Position(n.Key.Pos())
-				if nolint.suppressed(pos.Filename, pos.Line, r.ID) {
-					return
-				}
 				f := Finding{
 					RuleID:   r.ID,
 					RuleName: r.Name,
