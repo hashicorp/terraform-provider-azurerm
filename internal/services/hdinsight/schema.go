@@ -50,6 +50,7 @@ func SchemaHDInsightTls() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeString,
 		Optional: true,
+		Computed: true,
 		ForceNew: true,
 		ValidateFunc: validation.StringInSlice([]string{
 			"1.0",

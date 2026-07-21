@@ -819,11 +819,11 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  cluster_version     = "4.0"
+  cluster_version     = "5.1"
   tier                = "Standard"
 
   component_version {
-    hadoop = "3.1"
+    hadoop = "3.3"
   }
 
   gateway {
@@ -832,27 +832,27 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   }
 
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_url = azurerm_storage_container.test.url
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
 
   roles {
     head_node {
-      vm_size  = "Standard_D3_V2"
+      vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size               = "Standard_D4_V2"
+      vm_size               = "Standard_A4_V2"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 2
     }
 
     zookeeper_node {
-      vm_size  = "Standard_D3_V2"
+      vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
