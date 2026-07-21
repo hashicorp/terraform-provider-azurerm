@@ -56,6 +56,11 @@ func realMain(args []string) int {
 				Ui: ui,
 			}, nil
 		},
+		"typed-upgrade": func() (cli.Command, error) {
+			return &commands.TypedUpgradeCommand{
+				Ui: ui,
+			}, nil
+		},
 		"regen": func() (cli.Command, error) {
 			return &commands.RegenCommand{
 				Ui: ui,

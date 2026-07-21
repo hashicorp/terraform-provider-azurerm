@@ -22,6 +22,7 @@ It exposes the following commands:
 | `generate`       | Generate a typed resource (and optionally a data source / list resource).           |
 | `regen`          | Re-apply a `.scaffold.hcl` schema customization and rewrite the generated files.    |
 | `upgrade`        | Upgrade an existing resource to support List (adds identity + flatten).             |
+| `typed-upgrade`  | Convert a native Plugin SDK resource to the Typed SDK wrapper (`internal/sdk`).     |
 | `servicepackage` | Create a new service package directory and scaffold `registration.go` + `client/`.  |
 | `document`       | Generate provider documentation for a resource or data source.                      |
 | `config`         | Write a local `.scaff.hcl` config file with defaults for the options below.         |
@@ -226,6 +227,66 @@ In an HCL input file `list` defaults to `true`, so a block need only set
 
 > **Note:** when running against real service directories, keep `write = false`
 > (dry run) until you've reviewed the output. Writing applies changes in place.
+
+### Typed Upgrade
+
+Converts a native Plugin SDK resource (`func resourceX() *pluginsdk.Resource`)
+to the Typed SDK wrapper (`type XResource struct{}` implementing `sdk.Resource`).
+
+The command performs a **dry run by default**, printing the plan and field
+breakdown; pass `-write` to apply.
+
+What the command does automatically:
+
+- Generates the `type XResource struct{}` resource, model struct, `Arguments()` /
+  `Attributes()` methods (preserving the original schema text verbatim), and
+  `Create` / `Read` / `Update` / `Delete` typed `sdk.ResourceFunc` wrappers.
+- Migrates the most mechanical patterns in each CRUD body:
+  - `meta.(*clients.Client).X` → `metadata.Client.X`
+  - `d.SetId(` / `d.Id()` / `d.Get(` / `d.Set(` / `d.HasChange(` →
+    `metadata.ResourceData.*`
+  - `d.SetId("") + return nil` → `return metadata.MarkAsGone(id)`
+  - `return resourceXRead(d, meta)` → `return nil`
+  - timeout context setup lines removed (ctx already carries the timeout)
+- Renames the original file to `*_legacy.go`.
+- Updates `registration.go`: adds the struct to `Resources()` and removes the
+  terraform type key from `SupportedResources()`.
+- Runs `goimports` on the generated file (when available on `$PATH`).
+
+What requires manual cleanup afterwards:
+
+- Replace remaining `metadata.ResourceData.Get/Set` calls with model fields
+  (following the TODO comments left by the command).
+- Delete `*_legacy.go` once all CRUD logic has been migrated.
+- Verify `IDValidationFunc()` points to the correct validate function.
+- Carry over `StateUpgraders` / `CustomizeDiff` if the TODO stubs are present.
+
+#### Options
+
+| Flag                        | Description                                                                  |
+| --------------------------- | ---------------------------------------------------------------------------- |
+| `-file`                     | (Required) path to the untyped resource file to convert.                     |
+| `-terraform-type`           | Override the derived Terraform type string, e.g. `azurerm_maps_creator`.     |
+| `-write`                    | Write changes to disk (default: dry run).                                    |
+| `-overwrite`                | Overwrite existing generated / legacy files.                                 |
+| `-update-registration`      | Update `registration.go` (default `true`).                                   |
+| `-registration`             | Explicit path to `registration.go`; derived from the resource file otherwise.|
+
+#### Example
+
+```sh
+# Dry run — report the plan without writing anything:
+go run ./internal/tools/scaff typed-upgrade \
+  -file internal/services/maps/maps_creator_resource.go
+
+# Apply:
+go run ./internal/tools/scaff typed-upgrade \
+  -file internal/services/maps/maps_creator_resource.go -write
+```
+
+> **Note:** always review the generated file and the `*_legacy.go` before
+> deleting it. The TODO comments in the generated CRUD methods mark every
+> location that needs manual model-field migration.
 
 ### Service Package
 
