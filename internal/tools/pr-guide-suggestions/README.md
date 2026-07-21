@@ -143,12 +143,15 @@ applied 1 fix(es)
 
 Details and caveats:
 
-- Replacement is anchored on the surrounding double quotes, so `"vm_count"` is
-  changed while superstrings like `"vm_count_total"`, bare words in comments and
-  the Go field identifier (`VmCount`) are left untouched. Rename the Go field
-  yourself if you want it to match.
-- Every quoted occurrence in the file is replaced. If two blocks happen to share
-  a child name, both are renamed; review the diff.
+- Replacement matches the name as a whole **path segment** inside string
+  literals — bounded by a double quote or a dot — so both the standalone key
+  (`"vm_count"`) and dotted cross-field references (`"vm_count.0.child"` in
+  `AtLeastOneOf`/`ConflictsWith`/`d.Get`) are updated, while superstrings like
+  `"vm_count_total"`, bare words in comments and the Go field identifier
+  (`VmCount`) are left untouched. Rename the Go field yourself if you want it to
+  match.
+- Every matching occurrence in the file is replaced. If two blocks happen to
+  share a child name, both are renamed; review the diff.
 - Non-rename fixable findings (`SL002` flatten, `SL003` remove limits) are
   structural and are **not** auto-applied — `-fix` reports them as remaining
   work.

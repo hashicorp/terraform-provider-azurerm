@@ -89,6 +89,57 @@ func read(d *pluginsdk.ResourceData) {
 	}
 }
 
+// TestApplyRenamesDottedPathReferences confirms a rename also updates dotted
+// cross-field references where the property is a path segment (e.g.
+// AtLeastOneOf: []string{"network_profile.0.security_enabled"}), not just the
+// standalone "network_profile" schema key.
+func TestApplyRenamesDottedPathReferences(t *testing.T) {
+	src := `package x
+
+func r() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Schema: map[string]*pluginsdk.Schema{
+			"network_profile": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"security_enabled": {
+							Type:         pluginsdk.TypeBool,
+							Optional:     true,
+							AtLeastOneOf: []string{"network_profile.0.observability_enabled", "network_profile.0.security_enabled"},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func read(d *pluginsdk.ResourceData) {
+	_ = d.Get("network_profile.0.security_enabled")
+}
+`
+	out, applied := applySrc(t, src)
+
+	if len(applied) != 1 || applied[0].From != "network_profile" || applied[0].To != "network" {
+		t.Fatalf("expected one network_profile->network rename, got %+v", applied)
+	}
+	for _, want := range []string{
+		`"network": {`,
+		`"network.0.observability_enabled"`,
+		`"network.0.security_enabled"`,
+		`d.Get("network.0.security_enabled")`,
+	} {
+		if !strings.Contains(out, want) {
+			t.Errorf("expected rewritten file to contain %q\n---\n%s", want, out)
+		}
+	}
+	if strings.Contains(out, "network_profile") {
+		t.Errorf("no network_profile reference should remain\n---\n%s", out)
+	}
+}
+
 // TestApplyLeavesNonRenamableFindings confirms Apply only touches rename fixes
 // and reports the rest as unfixed.
 func TestApplyLeavesNonRenamableFindings(t *testing.T) {

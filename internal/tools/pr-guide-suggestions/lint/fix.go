@@ -6,14 +6,9 @@ package lint
 import (
 	"fmt"
 	"os"
-	"strings"
+	"regexp"
 )
 
-// Rename is an auto-applicable fix that renames a property by replacing every
-// quoted occurrence of From with To in the file. Anchoring on the surrounding
-// double quotes keeps the replacement scoped to the property name as it appears
-// in the schema key, d.Get/d.Set calls, tfschema tags and cross-field
-// references, without touching unrelated substrings.
 type Rename struct {
 	From string `json:"from"`
 	To   string `json:"to"`
@@ -61,11 +56,12 @@ func Apply(findings []Finding) ([]AppliedRename, error) {
 			if e.from == "" || e.to == "" || e.from == e.to || done[e.from] {
 				continue
 			}
-			quotedFrom := `"` + e.from + `"`
-			if !strings.Contains(text, quotedFrom) {
+			re := regexp.MustCompile(`([".])` + regexp.QuoteMeta(e.from) + `([".])`)
+			replaced := re.ReplaceAllString(text, `${1}`+e.to+`${2}`)
+			if replaced == text {
 				continue
 			}
-			text = strings.ReplaceAll(text, quotedFrom, `"`+e.to+`"`)
+			text = replaced
 			done[e.from] = true
 			applied = append(applied, AppliedRename{File: file, From: e.from, To: e.to})
 		}
