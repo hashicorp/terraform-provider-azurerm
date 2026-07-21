@@ -38,7 +38,7 @@ type typedUpgradeData struct {
 }
 
 func (d *typedUpgradeData) parseArgs(args []string) error {
-	set := flag.NewFlagSet("typed-upgrade", flag.ExitOnError)
+	set := flag.NewFlagSet("upgrade typed", flag.ExitOnError)
 	set.StringVar(&d.File, "file", "", "(Required) path to the existing untyped resource .go file to convert")
 	set.StringVar(&d.TerraformType, "terraform-type", "", "(Optional) Terraform resource type override, e.g. \"azurerm_maps_creator\"; derived from the constructor name when omitted")
 	set.StringVar(&d.ARMType, "arm-type", "", "(Optional) ARM resource type, e.g. \"Microsoft.Maps/accounts\"; enables Pandora IR resolution for nested block expand/flatten generation")
@@ -61,7 +61,7 @@ func (d *typedUpgradeData) parseArgs(args []string) error {
 }
 
 func (c TypedUpgradeCommand) Help() string {
-	return `Usage: scaff typed-upgrade [options]
+	return `Usage: scaff upgrade typed [options]
 
   Converts a native Plugin SDK resource (func resourceX() *pluginsdk.Resource)
   to the Typed SDK wrapper (type XResource struct{} implementing sdk.Resource).

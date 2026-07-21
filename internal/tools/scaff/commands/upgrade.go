@@ -85,7 +85,7 @@ type upgradeBlock struct {
 }
 
 func (d *upgradeData) parseArgs(args []string) error {
-	set := flag.NewFlagSet("upgrade", flag.ExitOnError)
+	set := flag.NewFlagSet("upgrade list", flag.ExitOnError)
 	set.StringVar(&d.File, "file", "", "(Required) path to the existing resource .go file to upgrade")
 	set.StringVar(&d.ARMType, "arm-type", "", "(Optional) ARM resource type, e.g. \"Microsoft.Monitor/accounts\"; used to resolve list operations and the SDK read model")
 	set.StringVar(&d.Service, "service", "", "(Optional) explicit Pandora service name, e.g. \"Monitor\"")
@@ -672,8 +672,8 @@ func (c UpgradeCommand) printDiff(path string, proposed []byte) {
 
 func (c UpgradeCommand) Help() string {
 	return `
-Usage: scaff upgrade -file <path> [options]
-       scaff upgrade -input <file.hcl>
+Usage: scaff upgrade list -file <path> [options]
+       scaff upgrade list -input <file.hcl>
 
 Upgrades an existing typed resource so it can support List. It adds Resource
 Identity and refactors Read into a reusable flatten method when those are
@@ -684,14 +684,14 @@ and prints the proposed changes.
 
 Examples:
   # Report what an upgrade would do (read only):
-  $ scaff upgrade -file internal/services/monitor/monitor_workspace_resource.go
+  $ scaff upgrade list -file internal/services/monitor/monitor_workspace_resource.go
 
   # Make a resource list-ready and generate the list resource:
-  $ scaff upgrade -file internal/services/monitor/monitor_workspace_resource.go \
+  $ scaff upgrade list -file internal/services/monitor/monitor_workspace_resource.go \
       -service Monitor -resource AzureMonitorWorkspaces -list -write
 
   # Upgrade one or more resources described in an HCL file:
-  $ scaff upgrade -input internal/tools/scaff/examples/upgrade.hcl
+  $ scaff upgrade list -input internal/tools/scaff/examples/upgrade.hcl
 `
 }
 

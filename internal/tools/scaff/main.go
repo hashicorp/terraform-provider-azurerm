@@ -51,12 +51,12 @@ func realMain(args []string) int {
 				Ui: ui,
 			}, nil
 		},
-		"upgrade": func() (cli.Command, error) {
+		"upgrade list": func() (cli.Command, error) {
 			return &commands.UpgradeCommand{
 				Ui: ui,
 			}, nil
 		},
-		"typed-upgrade": func() (cli.Command, error) {
+		"upgrade typed": func() (cli.Command, error) {
 			return &commands.TypedUpgradeCommand{
 				Ui: ui,
 			}, nil
