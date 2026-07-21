@@ -13,8 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 )
 
-// The GET request after creation may be returned with HTTP 404 in a period.
-// Tracked by https://github.com/Azure/azure-rest-api-specs/issues/35551
 var (
 	_ pollers.PollerType = &threatIntelligenceIndicatorPoller{}
 	_ pollers.PollerType = &threatIntelligenceIndicatorUpdatePoller{}

@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/threatintelligence"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -108,7 +107,7 @@ func (r ThreatIntelligenceIndicator) IDValidationFunc() pluginsdk.SchemaValidate
 }
 
 func (r ThreatIntelligenceIndicator) Arguments() map[string]*pluginsdk.Schema {
-	res := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"workspace_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -311,12 +310,6 @@ func (r ThreatIntelligenceIndicator) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.IsRFC3339Time,
 		},
 	}
-
-	if !features.FivePointOh() {
-		res["display_name"].ForceNew = false
-	}
-
-	return res
 }
 
 func (r ThreatIntelligenceIndicator) Attributes() map[string]*pluginsdk.Schema {
@@ -519,7 +512,8 @@ func (r ThreatIntelligenceIndicator) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			// The creation request shall be a LRO, otherwise the GET request after creation may be returned with HTTP 404.
+			// Indicator creation should be an LRO, but the API currently does not support it. Polling is required because
+			// the resource may return 404 responses for some time after creation.
 			// Tracked by https://github.com/Azure/azure-rest-api-specs/issues/35551
 			pollerType := custompollers.NewThreatIntelligenceIndicatorPoller(client, *id)
 			poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
@@ -665,7 +659,7 @@ func (r ThreatIntelligenceIndicator) Update() sdk.ResourceFunc {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
-			// The GET result may be inconsistent with update in a period, similar to the issue on creation.
+			// Similar to creation, the updated version may not be available for some time after the request completes.
 			pollerType := custompollers.NewThreatIntelligenceIndicatorUpdatePoller(client, *id, lastUpdatedTimeUtc)
 			poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 			if err := poller.PollUntilDone(ctx); err != nil {
