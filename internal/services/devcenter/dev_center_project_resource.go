@@ -181,15 +181,14 @@ func (r DevCenterProjectResource) Read() sdk.ResourceFunc {
 					schema.DevCenterUri = pointer.From(props.DevCenterUri)
 					schema.MaximumDevBoxesPerUser = pointer.From(props.MaxDevBoxesPerUser)
 
-					devCenterId := pointer.From(props.DevCenterId)
-					if devCenterId != "" {
-						parsedDevCenterId, err := devcenters.ParseDevCenterIDInsensitively(devCenterId)
-						if err != nil {
-							return fmt.Errorf("parsing `dev_center_id`: %+v", err)
-						}
-						devCenterId = parsedDevCenterId.ID()
+					if devCenterId := pointer.From(props.DevCenterId); devCenterId != "" {
+					
+					parsedDevCenterId, err := devcenters.ParseDevCenterIDInsensitively(devCenterId)
+					if err != nil {
+						return fmt.Errorf("parsing `dev_center_id`: %+v", err)
 					}
-					schema.DevCenterId = devCenterId
+					schema.DevCenterId = parsedDevCenterId.ID()
+					}
 				}
 			}
 
