@@ -261,13 +261,19 @@ func (r MachineLearningRegistryResource) CustomizeDiff() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			for _, region := range model.ReplicationRegion {
-				if location.Normalize(region.Location) == location.Normalize(model.Location) {
-					return fmt.Errorf("`replication_region` cannot contain the primary `location`: `%s`", model.Location)
+			rawConfig := metadata.ResourceDiff.GetRawConfig().AsValueMap()
+			locationKnown := rawConfig["location"].IsWhollyKnown()
+			replicationRegionsKnown := rawConfig["replication_region"].IsNull() || rawConfig["replication_region"].IsWhollyKnown()
+
+			if locationKnown && replicationRegionsKnown {
+				for _, region := range model.ReplicationRegion {
+					if location.Normalize(region.Location) == location.Normalize(model.Location) {
+						return fmt.Errorf("`replication_region` cannot contain the primary `location`: `%s`", model.Location)
+					}
 				}
 			}
 
-			if metadata.ResourceDiff.Id() != "" {
+			if metadata.ResourceDiff.Id() != "" && replicationRegionsKnown {
 				oldVal, newVal := metadata.ResourceDiff.GetChange("replication_region")
 				oldRegions := oldVal.([]interface{})
 				newRegions := newVal.([]interface{})
@@ -349,7 +355,7 @@ func (r MachineLearningRegistryResource) Create() sdk.ResourceFunc {
 
 			param.Identity = expandedIdentity
 
-			if err := client.RegistriesCreateOrUpdateThenPoll(ctx, id, param); err != nil {
+			if err := client.RegistriesCreateOrUpdateCallbackThenPoll(ctx, id, param, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
