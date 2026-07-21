@@ -60,15 +60,15 @@ jobs:
           if [ -z "$(printf '%s' "$output" | tr -d '[:space:]')" ]; then
             output="No newly added schema properties required linting."
           fi
-          max=2000
+          max=10000
           if [ "${#output}" -gt "$max" ]; then
             output="${output:0:$max}"$'\n''... (truncated, see the workflow run for the full output)'
           fi
           if [ "$EXIT_CODE" = "0" ]; then
-            heading="### 🧹 PR Guide Suggestions — ✅ Passed"
+            heading="### PR Guide Suggestions"
             details_open=""
           else
-            heading="### 🧹 PR Guide Suggestions — ❌ Failed"
+            heading="### PR Guide Suggestions"
             details_open=" open"
           fi
           {
@@ -101,7 +101,7 @@ jobs:
           echo "This PR adds one or more schema properties that violate a pr-guide-suggestions"
           echo "rule. See the pr-guide-suggestions comment on the pull request for details, or"
           echo "reproduce locally against the branch you are merging into:"
-          echo "  GITHUB_BASE_REF=${GITHUB_BASE_REF:-main} bash ./scripts/run-pr-guide-suggestions-diff.sh"
+          echo "  GITHUB_BASE_REF=main bash ./scripts/run-pr-guide-suggestions-diff.sh"
           echo ""
           echo "See internal/tools/pr-guide-suggestions/README.md for the full rule list."
           exit 1
