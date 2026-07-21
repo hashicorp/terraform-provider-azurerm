@@ -47,6 +47,7 @@ jobs:
           echo "exit_code=${code}" >> "$GITHUB_OUTPUT"
           exit 0
       - name: Build pr-guide-suggestions comment
+        id: build_comment
         if: ${{ always() && steps.lint.outcome == 'success' }}
         shell: bash
         env:
@@ -57,22 +58,22 @@ jobs:
         run: |
           output=$(sed -E 's/\x1b\[[0-9;]*m//g' pr-guide-suggestions-output.txt \
             | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g')
-          if [ -z "$(printf '%s' "$output" | tr -d '[:space:]')" ]; then
-            output="No newly added schema properties required linting."
+          if [ -z "$(printf '%s' "$output" | tr -d '[:space:]')" ] && [ "$EXIT_CODE" = "0" ]; then
+            echo "has_suggestions=false" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
+          echo "has_suggestions=true" >> "$GITHUB_OUTPUT"
           max=10000
           if [ "${#output}" -gt "$max" ]; then
             output="${output:0:$max}"$'\n''... (truncated, see the workflow run for the full output)'
           fi
           if [ "$EXIT_CODE" = "0" ]; then
-            heading="### PR Guide Suggestions"
             details_open=""
           else
-            heading="### PR Guide Suggestions"
             details_open=" open"
           fi
           {
-            echo "$heading"
+            echo "### PR Guide Suggestions"
             echo ""
             echo "Result for commit \`${HEAD_SHA:0:7}\` · [workflow run](${RUN_URL})"
             echo ""
@@ -88,8 +89,15 @@ jobs:
               echo "> Reproduce locally: \`GITHUB_BASE_REF=${BASE_REF} bash ./scripts/run-pr-guide-suggestions-diff.sh\`"
             fi
           } > pr-guide-suggestions-comment.md
+      - name: Delete pr-guide-suggestions comment when clean
+        if: ${{ always() && steps.lint.outcome == 'success' && steps.build_comment.outputs.has_suggestions == 'false' }}
+        continue-on-error: true
+        uses: marocchino/sticky-pull-request-comment@5770ad5eb8f42dd2c4f34da00c94c5381e49af88 # v3.0.5
+        with:
+          header: pr-guide-suggestions
+          delete: true
       - name: Comment pr-guide-suggestions results
-        if: ${{ always() && steps.lint.outcome == 'success' }}
+        if: ${{ always() && steps.lint.outcome == 'success' && steps.build_comment.outputs.has_suggestions == 'true' }}
         continue-on-error: true
         uses: marocchino/sticky-pull-request-comment@5770ad5eb8f42dd2c4f34da00c94c5381e49af88 # v3.0.5
         with:
