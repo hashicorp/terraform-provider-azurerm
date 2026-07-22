@@ -164,8 +164,8 @@ func (r DevCenterNetworkConnectionResource) Create() sdk.ResourceFunc {
 			}
 
 			getOperationResponse, _ := client.Get(ctx, id)
-			fmt.Println("debug0", getOperationResponse.Model.Properties.ProvisioningState)
-			fmt.Println("debug1", getOperationResponse.Model.Properties.HealthCheckStatus)
+			fmt.Println("debug0", *getOperationResponse.Model.Properties.ProvisioningState)
+			fmt.Println("debug1", *getOperationResponse.Model.Properties.HealthCheckStatus)
 
 			getHealthDetailsOperationResponse, _ := client.GetHealthDetails(ctx, id)
 			for _, healthCheck := range *getHealthDetailsOperationResponse.Model.Properties.HealthChecks {
