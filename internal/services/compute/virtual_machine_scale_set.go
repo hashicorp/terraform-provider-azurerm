@@ -2261,18 +2261,12 @@ func expandVirtualMachineScaleSetSecurityProfile(d *pluginsdk.ResourceData, secu
 		if v, ok := item["vtpm_enabled"]; ok {
 			vtpmEnabled = pointer.To(v.(bool))
 		}
-	} else if !features.FivePointOh() {
-		secureBootEnabled = pointer.To(d.Get("secure_boot_enabled").(bool))
-		vtpmEnabled = pointer.To(d.Get("vtpm_enabled").(bool))
-		if v, ok := d.GetOk("encryption_at_host_enabled"); ok {
-			encryptionAtHost = pointer.To(v.(bool))
-		}
 	}
 
 	encryptionType := virtualmachinescalesets.SecurityEncryptionTypes(securityEncryptionType)
 	if encryptionAtHost != nil && *encryptionAtHost {
 		if encryptionType == virtualmachinescalesets.SecurityEncryptionTypesDiskWithVMGuestState {
-			return nil, fmt.Errorf("`encryption_at_host_enabled` cannot be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
+			return nil, fmt.Errorf("`security_profile.0.host_encryption_enabled` cannot be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
 		}
 	}
 
@@ -2280,10 +2274,10 @@ func expandVirtualMachineScaleSetSecurityProfile(d *pluginsdk.ResourceData, secu
 	vtpm := pointer.From(vtpmEnabled)
 	if encryptionType != "" {
 		if encryptionType == virtualmachinescalesets.SecurityEncryptionTypesDiskWithVMGuestState && !secureBoot {
-			return nil, fmt.Errorf("`secure_boot_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
+			return nil, fmt.Errorf("`security_profile.0.secure_boot_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
 		}
 		if !vtpm {
-			return nil, fmt.Errorf("`vtpm_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is set")
+			return nil, fmt.Errorf("`security_profile.0.vtpm_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is set")
 		}
 
 		const expected = virtualmachinescalesets.SecurityTypesConfidentialVM
@@ -2300,7 +2294,7 @@ func expandVirtualMachineScaleSetSecurityProfile(d *pluginsdk.ResourceData, secu
 			case virtualmachinescalesets.SecurityTypesConfidentialVM:
 			case virtualmachinescalesets.SecurityTypesTrustedLaunch:
 			default:
-				return nil, fmt.Errorf("`security_profile.0.security_type` must not be set to `%s` when `secure_boot_enabled` or `vtpm_enabled` are set to true", v)
+				return nil, fmt.Errorf("`security_profile.0.security_type` must not be set to `%s` when `security_profile.0.secure_boot_enabled` or `security_profile.0.vtpm_enabled` are set to true", v)
 			}
 		}
 	}

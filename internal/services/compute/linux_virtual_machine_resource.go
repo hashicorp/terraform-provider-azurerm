@@ -487,41 +487,6 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 	}
 
 	if !features.FivePointOh() {
-		resource.Schema["security_profile"].ConflictsWith = []string{
-			"encryption_at_host_enabled",
-			"secure_boot_enabled",
-			"vtpm_enabled",
-		}
-
-		resource.Schema["encryption_at_host_enabled"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			Deprecated: features.DeprecatedInFivePointOh("`encryption_at_host_enabled` has been deprecated in favour of `security_profile.host_encryption_enabled` and will be removed in v5.0 of the AzureRM Provider"),
-			ConflictsWith: []string{
-				"security_profile",
-			},
-		}
-
-		resource.Schema["secure_boot_enabled"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			ForceNew:   true,
-			Deprecated: features.DeprecatedInFivePointOh("`secure_boot_enabled` has been deprecated in favour of `security_profile.secure_boot_enabled` and will be removed in v5.0 of the AzureRM Provider"),
-			ConflictsWith: []string{
-				"security_profile",
-			},
-		}
-
-		resource.Schema["vtpm_enabled"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			ForceNew:   true,
-			Deprecated: features.DeprecatedInFivePointOh("`vtpm_enabled` has been deprecated in favour of `security_profile.vtpm_enabled` and will be removed in v5.0 of the AzureRM Provider"),
-			ConflictsWith: []string{
-				"security_profile",
-			},
-		}
-
 		resource.Schema["vm_agent_platform_updates_enabled"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeBool,
 			Optional:   true,
@@ -1115,30 +1080,12 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 				}
 			}
 
-			if features.FivePointOh() {
-				if err := d.Set("security_profile", flattenVirtualMachineSecurityProfile(props.SecurityProfile)); err != nil {
-					return fmt.Errorf("setting `security_profile`: %+v", err)
-				}
-			} else if _, ok := d.GetOk("security_profile"); ok {
-				if err := d.Set("security_profile", flattenVirtualMachineSecurityProfile(props.SecurityProfile)); err != nil {
-					return fmt.Errorf("setting `security_profile`: %+v", err)
-				}
-			} else {
-				encryptionAtHostEnabled := false
-				vtpmEnabled := false
-				secureBootEnabled := false
-
-				if secprofile := props.SecurityProfile; secprofile != nil {
-					encryptionAtHostEnabled = pointer.From(secprofile.EncryptionAtHost)
-					if uefi := secprofile.UefiSettings; uefi != nil {
-						vtpmEnabled = pointer.From(uefi.VTpmEnabled)
-						secureBootEnabled = pointer.From(uefi.SecureBootEnabled)
-					}
-				}
-
-				d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
-				d.Set("vtpm_enabled", vtpmEnabled)
-				d.Set("secure_boot_enabled", secureBootEnabled)
+			securityProfile := flattenVirtualMachineSecurityProfile(props.SecurityProfile)
+			if rawConfig := d.GetRawConfig(); !rawConfig.IsNull() && rawConfig.AsValueMap()["security_profile"].IsNull() {
+				securityProfile = nil
+			}
+			if err := d.Set("security_profile", securityProfile); err != nil {
+				return fmt.Errorf("setting `security_profile`: %+v", err)
 			}
 			d.Set("virtual_machine_id", props.VMId)
 			d.Set("user_data", props.UserData)
@@ -1613,38 +1560,26 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	hostEncryptionOld, hostEncryptionNew := func() (bool, bool) {
-		// Maintain consistent ForceNew behaviour by evaluating both the legacy scalar
-		// and the structured security_profile block regardless of which interface callers used.
-		var scalarOld interface{}
-		var scalarNew interface{}
-		if !features.FivePointOh() {
-			scalarOld, scalarNew = d.GetChange("encryption_at_host_enabled")
-		}
-
 		blockOld, blockNew := d.GetChange("security_profile")
 
-		resolve := func(block interface{}, scalar interface{}) bool {
+		resolve := func(block interface{}) bool {
 			if blockSlice, ok := block.([]interface{}); ok && len(blockSlice) != 0 {
 				if v, ok := blockSlice[0].(map[string]interface{})["host_encryption_enabled"]; ok {
 					return v.(bool)
 				}
 			}
 
-			if scalarBool, ok := scalar.(bool); ok {
-				return scalarBool
-			}
-
 			return false
 		}
 
-		return resolve(blockOld, scalarOld), resolve(blockNew, scalarNew)
+		return resolve(blockOld), resolve(blockNew)
 	}()
 	if hostEncryptionOld != hostEncryptionNew {
 		if hostEncryptionNew {
 			osDiskRaw := d.Get("os_disk").([]interface{})
 			securityEncryptionType := osDiskRaw[0].(map[string]interface{})["security_encryption_type"].(string)
 			if virtualmachines.SecurityEncryptionTypesDiskWithVMGuestState == virtualmachines.SecurityEncryptionTypes(securityEncryptionType) {
-				return fmt.Errorf("`encryption_at_host_enabled` cannot be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
+				return fmt.Errorf("`security_profile.0.host_encryption_enabled` cannot be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
 			}
 		}
 

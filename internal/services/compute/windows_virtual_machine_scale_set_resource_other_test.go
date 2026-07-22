@@ -664,7 +664,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherEncryptionAtHostEnabled(t *testin
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherEncryptionAtHostEnabled(data, true),
+			Config: r.otherEncryptionAtHostEnabled(data, pointer.To(true)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -679,23 +679,37 @@ func TestAccWindowsVirtualMachineScaleSet_otherEncryptionAtHostEnabledUpdate(t *
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherEncryptionAtHostEnabled(data, true),
+			Config: r.otherEncryptionAtHostEnabled(data, pointer.To(true)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("security_profile.#").HasValue("1"),
+				check.That(data.ResourceName).Key("security_profile.0.host_encryption_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep("admin_password"),
 		{
-			Config: r.otherEncryptionAtHostEnabled(data, false),
+			Config: r.otherEncryptionAtHostEnabled(data, pointer.To(false)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("security_profile.#").HasValue("1"),
+				check.That(data.ResourceName).Key("security_profile.0.host_encryption_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep("admin_password"),
 		{
-			Config: r.otherEncryptionAtHostEnabled(data, true),
+			Config: r.otherEncryptionAtHostEnabled(data, pointer.To(true)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("security_profile.#").HasValue("1"),
+				check.That(data.ResourceName).Key("security_profile.0.host_encryption_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.otherEncryptionAtHostEnabled(data, nil),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("security_profile.#").HasValue("0"),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -2971,48 +2985,14 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 `, r.template(data), enabled)
 }
 
-func (r WindowsVirtualMachineScaleSetResource) otherEncryptionAtHostEnabled(data acceptance.TestData, enabled bool) string {
-	if features.FivePointOh() {
-		return fmt.Sprintf(`
-%s
-
-resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                = local.vm_name
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard_DS3_V2"
-  instances           = 1
-  admin_username      = "adminuser"
-  admin_password      = "P@ssword1234!"
-
-  source_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2019-Datacenter"
-    version   = "latest"
-  }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  network_interface {
-    name    = "example"
-    primary = true
-
-    ip_configuration {
-      name      = "internal"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
-    }
-  }
-
+func (r WindowsVirtualMachineScaleSetResource) otherEncryptionAtHostEnabled(data acceptance.TestData, enabled *bool) string {
+	securityProfile := ""
+	if enabled != nil {
+		securityProfile = fmt.Sprintf(`
   security_profile {
     host_encryption_enabled = %t
   }
-}
-`, r.template(data), enabled)
+`, *enabled)
 	}
 
 	return fmt.Sprintf(`
@@ -3050,14 +3030,13 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 
-  encryption_at_host_enabled = %t
+%s
 }
-`, r.template(data), enabled)
+`, r.template(data), securityProfile)
 }
 
 func (r WindowsVirtualMachineScaleSetResource) otherEncryptionAtHostEnabledWithCMK(data acceptance.TestData, enabled bool) string {
-	if features.FivePointOh() {
-		return fmt.Sprintf(`
+	return fmt.Sprintf(`
 %s
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
@@ -3098,54 +3077,6 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   security_profile {
     host_encryption_enabled = %t
   }
-
-  depends_on = [
-    azurerm_role_assignment.disk-encryption-read-keyvault,
-    azurerm_key_vault_access_policy.disk-encryption,
-  ]
-}
-`, r.disksOSDisk_diskEncryptionSetResource(data), enabled)
-	}
-
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                = local.vm_name
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard_DS3_V2"
-  instances           = 1
-  admin_username      = "adminuser"
-  admin_password      = "P@ssword1234!"
-
-  computer_name_prefix = "acctest"
-
-  source_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2019-Datacenter"
-    version   = "latest"
-  }
-
-  os_disk {
-    storage_account_type   = "Standard_LRS"
-    caching                = "ReadWrite"
-    disk_encryption_set_id = azurerm_disk_encryption_set.test.id
-  }
-
-  network_interface {
-    name    = "example"
-    primary = true
-
-    ip_configuration {
-      name      = "internal"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
-    }
-  }
-
-  encryption_at_host_enabled = %t
 
   depends_on = [
     azurerm_role_assignment.disk-encryption-read-keyvault,
@@ -3156,8 +3087,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 }
 
 func (r WindowsVirtualMachineScaleSetResource) otherSecureBootEnabled(data acceptance.TestData, enabled bool) string {
-	if features.FivePointOh() {
-		return fmt.Sprintf(`
+	return fmt.Sprintf(`
 %s
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
@@ -3197,51 +3127,10 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 }
 `, r.template(data), enabled)
-	}
-
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                = local.vm_name
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard_DS3_V2"
-  instances           = 1
-  admin_username      = "adminuser"
-  admin_password      = "P@ssword1234!"
-
-  source_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2019-Datacenter-gensecond"
-    version   = "latest"
-  }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  network_interface {
-    name    = "example"
-    primary = true
-
-    ip_configuration {
-      name      = "internal"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
-    }
-  }
-
-  secure_boot_enabled = %t
-}
-`, r.template(data), enabled)
 }
 
 func (r WindowsVirtualMachineScaleSetResource) otherVTpmEnabled(data acceptance.TestData, enabled bool) string {
-	if features.FivePointOh() {
-		return fmt.Sprintf(`
+	return fmt.Sprintf(`
 %s
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
@@ -3279,46 +3168,6 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   security_profile {
     vtpm_enabled = %t
   }
-}
-`, r.template(data), enabled)
-	}
-
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                = local.vm_name
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard_DS3_V2"
-  instances           = 1
-  admin_username      = "adminuser"
-  admin_password      = "P@ssword1234!"
-
-  source_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2019-Datacenter-gensecond"
-    version   = "latest"
-  }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  network_interface {
-    name    = "example"
-    primary = true
-
-    ip_configuration {
-      name      = "internal"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
-    }
-  }
-
-  vtpm_enabled = %t
 }
 `, r.template(data), enabled)
 }

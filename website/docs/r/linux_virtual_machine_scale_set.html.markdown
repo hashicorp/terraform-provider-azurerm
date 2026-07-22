@@ -154,11 +154,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
 * `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Linux Virtual Machine Scale Set should exist. Changing this forces a new Linux Virtual Machine Scale Set to be created.
 
-* `security_profile` - (Optional) A `security_profile` block as defined below. Changing this forces a new resource to be created.
-
-* `encryption_at_host_enabled` - (Optional) Should all of the disks (including the temp disk) attached to this Virtual Machine be encrypted by enabling Encryption at Host?
-
-~> **Note:** `encryption_at_host_enabled` is deprecated in favour of `security_profile.host_encryption_enabled` and will be removed in v5.0 of the AzureRM Provider.
+* `security_profile` - (Optional) A `security_profile` block as defined below.
 
 * `extension` - (Optional) One or more `extension` blocks as defined below
 
@@ -214,10 +210,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
 * `secret` - (Optional) One or more `secret` blocks as defined below.
 
-* `secure_boot_enabled` - (Optional) Specifies whether secure boot should be enabled on the virtual machine. Changing this forces a new resource to be created.
-
-~> **Note:** `secure_boot_enabled` is deprecated in favour of `security_profile.secure_boot_enabled` and will be removed in v5.0 of the AzureRM Provider.
-
 * `single_placement_group` - (Optional) Should this Virtual Machine Scale Set be limited to a Single Placement Group, which means the number of instances will be capped at 100 Virtual Machines. Defaults to `true`.
 
 * `source_image_id` - (Optional) The ID of an Image which each Virtual Machine in this Scale Set should be based on. Possible Image ID types include `Image ID`, `Shared Image ID`, `Shared Image Version ID`, `Community Gallery Image ID`, `Community Gallery Image Version ID`, `Shared Gallery Image ID` and `Shared Gallery Image Version ID`.
@@ -239,10 +231,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 -> **Note:** If rolling upgrades are configured and running on a Linux Virtual Machine Scale Set, they will be cancelled when Terraform tries to destroy the resource.
 
 * `user_data` - (Optional) The Base64-Encoded User Data which should be used for this Virtual Machine Scale Set.
-
-* `vtpm_enabled` - (Optional) Specifies whether vTPM should be enabled on the virtual machine. Changing this forces a new resource to be created.
-
-~> **Note:** `vtpm_enabled` is deprecated in favour of `security_profile.vtpm_enabled` and will be removed in v5.0 of the AzureRM Provider.
 
 * `zone_balance` - (Optional) Should the Virtual Machines in this Scale Set be strictly evenly distributed across Availability Zones? Defaults to `false`. Changing this forces a new resource to be created.
 
@@ -502,9 +490,9 @@ An `os_disk` block supports the following:
 
 * `security_encryption_type` - (Optional) Encryption Type when the Virtual Machine Scale Set is Confidential VMSS. Possible values are `VMGuestStateOnly` and `DiskWithVMGuestState`. Changing this forces a new resource to be created.
 
--> **Note:** `vtpm_enabled` must be set to `true` when `security_encryption_type` is specified.
+-> **Note:** `security_profile.vtpm_enabled` must be set to `true` when `security_encryption_type` is specified.
 
--> **Note:** `encryption_at_host_enabled` cannot be set to `true` when `security_encryption_type` is set to `DiskWithVMGuestState`.
+-> **Note:** `security_profile.host_encryption_enabled` cannot be set to `true` when `security_encryption_type` is set to `DiskWithVMGuestState`.
 
 * `write_accelerator_enabled` - (Optional) Should Write Accelerator be Enabled for this OS Disk? Defaults to `false`.
 
@@ -578,7 +566,7 @@ A `rolling_upgrade_policy` block supports the following:
 
 A `security_profile` block supports the following:
 
-* `host_encryption_enabled` - (Optional) Should all of the disks (including the temp disk) attached to this Virtual Machine be encrypted by enabling Encryption at Host? Changing this forces a new resource to be created.
+* `host_encryption_enabled` - (Optional) Should all of the disks (including the temp disk) attached to this Virtual Machine be encrypted by enabling Encryption at Host?
 * `security_type` - (Optional) Specifies the secure hardware type of this Virtual Machine. Possible values are `Standard`, `TrustedLaunch`, and `ConfidentialVM`. Changing this forces a new resource to be created.
 * `secure_boot_enabled` - (Optional) Specifies whether secure boot should be enabled on the virtual machine. Changing this forces a new resource to be created.
 * `vtpm_enabled` - (Optional) Specifies whether vTPM should be enabled on the virtual machine. Changing this forces a new resource to be created.
