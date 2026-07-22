@@ -711,7 +711,6 @@ func resourceSubnetFlatten(d *pluginsdk.ResourceData, id commonids.SubnetId, sub
 
 	if subnet != nil {
 		if props := subnet.Properties; props != nil {
-
 			if props.AddressPrefixes == nil {
 				if props.AddressPrefix != nil && len(*props.AddressPrefix) > 0 {
 					d.Set("address_prefixes", []string{*props.AddressPrefix})
