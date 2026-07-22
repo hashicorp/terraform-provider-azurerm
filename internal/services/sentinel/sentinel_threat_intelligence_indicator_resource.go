@@ -302,8 +302,10 @@ func (r ThreatIntelligenceIndicator) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"validate_until_utc": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// Note: O+C because the API returns a date around 1 year in the future if omitted from config
+			Computed:     true,
 			ValidateFunc: validation.IsRFC3339Time,
 		},
 	}

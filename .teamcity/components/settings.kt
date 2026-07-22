@@ -83,6 +83,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // The AKS API has a low rate limit
         "containers" to testConfiguration(parallelism = 5, locationOverride = LocationConfiguration("eastus","westeurope","eastus2", false), timeout = 18),
 
+        // `azurerm_cost_management_scheduled_action` that can be targeted on a cost management view is limited
+        "costmanagement" to testConfiguration(parallelism = 4),
+
         // Custom Providers is only available in certain locations
         "customproviders" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westus2", "westeurope", true)),
 

@@ -182,22 +182,36 @@ jobs:
             queue_flag="-q"
           fi
 
-          # Run tctest with parsed flags
+          service_flag=()
           if [ "$service" != "" ]; then
-            tctest pr ${PR_NUMBER} -c ${queue_flag} --reappend-split-character --service "$service" --properties "TRACKING_ID=${PR_SHA}"
-            if [ "$beta" = true ]; then
-              tctest pr ${PR_NUMBER} -c ${queue_flag} --reappend-split-character --service "$service" --buildtypeid TF_AzureRM_AZURERM_BETA_VERSION_SERVICE_PUBLIC --properties "TRACKING_ID=${PR_SHA}"
-            fi
-          else
-            tctest pr ${PR_NUMBER} -c ${queue_flag} --reappend-split-character --properties "TRACKING_ID=${PR_SHA}"
-            if [ "$beta" = true ]; then
-              tctest pr ${PR_NUMBER} -c ${queue_flag} --reappend-split-character --buildtypeid TF_AzureRM_AZURERM_BETA_VERSION_SERVICE_PUBLIC --properties "TRACKING_ID=${PR_SHA}"
-            fi
+            service_flag=(--service "$service")
           fi
+
+          builds='[]'
+
+          run_tctest() {
+            local out
+            out=$(tctest pr "${PR_NUMBER}" -c ${queue_flag} --reappend-split-character --properties "TRACKING_ID=${PR_SHA}" "$@" --json)
+            echo "$out"
+            builds=$(printf '%s\n%s\n' "$builds" "${out:-[]}" | jq -s 'add')
+          }
+
+          run_tctest "${service_flag[@]}"
+          if [ "$beta" = true ]; then
+            run_tctest "${service_flag[@]}" --buildtypeid TF_AzureRM_AZURERM_BETA_VERSION_SERVICE_PUBLIC
+          fi
+
+          {
+            echo "builds<<TCTEST_BUILDS_EOF"
+            echo "$builds"
+            echo "TCTEST_BUILDS_EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Comment on success
         if: success()
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        env:
+          BUILDS_JSON: ${{ steps.run-tctest.outputs.builds }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -207,6 +221,27 @@ jobs:
               comment_id: context.payload.comment.id,
               content: 'rocket'
             });
+
+            let builds = [];
+            try {
+              builds = JSON.parse(process.env.BUILDS_JSON || '[]');
+            } catch (error) {
+              core.warning(`Unable to parse tctest build results: ${error.message}`);
+            }
+
+            if (Array.isArray(builds) && builds.length > 0) {
+              const lines = builds.map(b => {
+                const label = b.service ? `\`${b.service}\`` : 'build';
+                return `- ${label}: [#${b.build_number}](${b.url})`;
+              });
+              const appended = `\n\n---\n**TeamCity build${builds.length > 1 ? 's' : ''} triggered:**\n${lines.join('\n')}`;
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: context.payload.comment.id,
+                body: `${context.payload.comment.body}${appended}`
+              });
+            }
 
       - name: Comment on failure
         if: failure()
