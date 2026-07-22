@@ -1099,9 +1099,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
 
-      enable_automatic_updates = true
-      provision_vm_agent       = true
-      timezone                 = "W. Europe Standard Time"
+      automatic_updates_enabled = true
+      provision_vm_agent        = true
+      timezone                  = "W. Europe Standard Time"
 
       winrm_listener {
         protocol = "Http"
@@ -1169,9 +1169,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
 
-      enable_automatic_updates = true
-      provision_vm_agent       = true
-      timezone                 = "W. Europe Standard Time"
+      automatic_updates_enabled = true
+      provision_vm_agent        = true
+      timezone                  = "W. Europe Standard Time"
 
       winrm_listener {
         protocol = "Http"
@@ -1241,9 +1241,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
 
-      enable_automatic_updates = true
-      provision_vm_agent       = true
-      timezone                 = "W. Europe Standard Time"
+      automatic_updates_enabled = true
+      provision_vm_agent        = true
+      timezone                  = "W. Europe Standard Time"
 
       winrm_listener {
         protocol = "Http"
@@ -1318,8 +1318,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
 
-      enable_automatic_updates = true
-      provision_vm_agent       = true
+      automatic_updates_enabled = true
+      provision_vm_agent        = true
 
       winrm_listener {
         protocol = "Http"
@@ -2323,6 +2323,7 @@ resource "azurerm_application_gateway" "test" {
     subnet_id = azurerm_subnet.gwtest.id
 
     private_ip_address_allocation = "Static"
+    private_ip_address            = "10.0.3.10"
   }
 
   frontend_port {
@@ -2466,9 +2467,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
 
-      enable_automatic_updates = true
-      provision_vm_agent       = true
-      timezone                 = "W. Europe Standard Time"
+      automatic_updates_enabled = true
+      provision_vm_agent        = true
+      timezone                  = "W. Europe Standard Time"
 
       winrm_listener {
         protocol = "Http"
@@ -2555,9 +2556,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
 
-      enable_automatic_updates = true
-      provision_vm_agent       = true
-      timezone                 = "W. Europe Standard Time"
+      automatic_updates_enabled = true
+      provision_vm_agent        = true
+      timezone                  = "W. Europe Standard Time"
 
       winrm_listener {
         protocol = "Http"

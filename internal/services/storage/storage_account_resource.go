@@ -1345,7 +1345,6 @@ func resourceStorageAccount() *pluginsdk.Resource {
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
-								// TODO 4.0: Remove this property and determine whether to enable based on existence of the out side block.
 								"enabled": {
 									Type:     pluginsdk.TypeBool,
 									Required: true,
