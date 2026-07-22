@@ -6,12 +6,14 @@ package network
 import (
 	"fmt"
 	"log"
+	"sort"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/routetables"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networksecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/subnets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -72,18 +74,69 @@ func resourceSubnetRouteTableAssociationCreate(d *pluginsdk.ResourceData, meta i
 		return err
 	}
 
-	locks.ByName(routeTableId.RouteTableName, routeTableResourceName)
-	defer locks.UnlockByName(routeTableId.RouteTableName, routeTableResourceName)
+	// find and lock chain of serialised change
+	existingUnlocked, err := client.Get(ctx, *id, subnets.DefaultGetOperationOptions())
+	if err != nil {
+		if response.WasNotFound(existingUnlocked.HttpResponse) {
+			return fmt.Errorf("%s was not found", id)
+		}
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	var nsgNames []string
+	nsgMap := make(map[string]struct{})
+	var rtNames []string
+	rtMap := make(map[string]struct{})
+
+	rtMap[routeTableId.RouteTableName] = struct{}{}
+
+	if existingUnlocked.Model != nil && existingUnlocked.Model.Properties != nil {
+		propsUnlocked := existingUnlocked.Model.Properties
+		if propsUnlocked.NetworkSecurityGroup != nil && propsUnlocked.NetworkSecurityGroup.Id != nil {
+			oldNsgId, err := networksecuritygroups.ParseNetworkSecurityGroupID(*propsUnlocked.NetworkSecurityGroup.Id)
+			if err != nil {
+				return fmt.Errorf("parsing existing Network Security Group ID: %+v", err)
+			}
+			nsgMap[oldNsgId.NetworkSecurityGroupName] = struct{}{}
+		}
+
+		if propsUnlocked.RouteTable != nil && propsUnlocked.RouteTable.Id != nil {
+			oldRtId, err := routetables.ParseRouteTableID(*propsUnlocked.RouteTable.Id)
+			if err != nil {
+				return fmt.Errorf("parsing existing Route Table ID: %+v", err)
+			}
+			rtMap[oldRtId.RouteTableName] = struct{}{}
+		}
+	}
+
+	for name := range nsgMap {
+		nsgNames = append(nsgNames, name)
+	}
+	sort.Strings(nsgNames)
+
+	for name := range rtMap {
+		rtNames = append(rtNames, name)
+	}
+	sort.Strings(rtNames)
+
+	locks.MultipleByName(&nsgNames, networkSecurityGroupResourceName)
+	defer locks.UnlockMultipleByName(&nsgNames, networkSecurityGroupResourceName)
+
+	locks.MultipleByName(&rtNames, routeTableResourceName)
+	defer locks.UnlockMultipleByName(&rtNames, routeTableResourceName)
 
 	locks.ByName(id.VirtualNetworkName, VirtualNetworkResourceName)
 	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
 
+	locks.ByName(id.SubnetName, SubnetResourceName)
+	defer locks.UnlockByName(id.SubnetName, SubnetResourceName)
+
+	// now we have exclusive access, we can read reliably for create
 	subnet, err := client.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(subnet.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
-
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
@@ -191,52 +244,75 @@ func resourceSubnetRouteTableAssociationDelete(d *pluginsdk.ResourceData, meta i
 		return err
 	}
 
-	// retrieve the subnet
+	// find and lock chain of serialised change
+	readUnlocked, err := client.Get(ctx, *id, subnets.DefaultGetOperationOptions())
+	if err != nil {
+		if response.WasNotFound(readUnlocked.HttpResponse) {
+			log.Printf("[DEBUG] %s could not be found - removing from state!", id)
+			return nil
+		}
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if readUnlocked.Model == nil || readUnlocked.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `model` or `properties` was nil", id)
+	}
+
+	propsUnlocked := readUnlocked.Model.Properties
+
+	if propsUnlocked.RouteTable == nil || propsUnlocked.RouteTable.Id == nil {
+		log.Printf("[DEBUG] %s has no Route Table - removing from state!", id)
+		return nil
+	}
+
+	var nsgNames []string
+	nsgMap := make(map[string]struct{})
+	var rtNames []string
+	rtMap := make(map[string]struct{})
+
+	if propsUnlocked.NetworkSecurityGroup != nil && propsUnlocked.NetworkSecurityGroup.Id != nil {
+		nsgId, err := networksecuritygroups.ParseNetworkSecurityGroupID(*propsUnlocked.NetworkSecurityGroup.Id)
+		if err != nil {
+			return err
+		}
+		nsgMap[nsgId.NetworkSecurityGroupName] = struct{}{}
+	}
+
+	parsedRouteTableId, err := routetables.ParseRouteTableID(*propsUnlocked.RouteTable.Id)
+	if err != nil {
+		return err
+	}
+	rtMap[parsedRouteTableId.RouteTableName] = struct{}{}
+
+	for name := range nsgMap {
+		nsgNames = append(nsgNames, name)
+	}
+	sort.Strings(nsgNames)
+
+	for name := range rtMap {
+		rtNames = append(rtNames, name)
+	}
+	sort.Strings(rtNames)
+
+	locks.MultipleByName(&nsgNames, networkSecurityGroupResourceName)
+	defer locks.UnlockMultipleByName(&nsgNames, networkSecurityGroupResourceName)
+
+	locks.MultipleByName(&rtNames, routeTableResourceName)
+	defer locks.UnlockMultipleByName(&rtNames, routeTableResourceName)
+
+	locks.ByName(id.VirtualNetworkName, VirtualNetworkResourceName)
+	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
+
+	locks.ByName(id.SubnetName, SubnetResourceName)
+	defer locks.UnlockByName(id.SubnetName, SubnetResourceName)
+
+	// Now we have the locks, we can try to delete
 	read, err := client.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(read.HttpResponse) {
 			log.Printf("[DEBUG] %s could not be found - removing from state!", id)
 			return nil
 		}
-
-		return fmt.Errorf("retrieving %s: %+v", id, err)
-	}
-
-	model := read.Model
-	if model == nil {
-		return fmt.Errorf("retrieving %s: `model` was nil", id)
-	}
-
-	props := model.Properties
-	if props == nil {
-		return fmt.Errorf("retrieving %s: `properties` was nil", id)
-	}
-
-	if props.RouteTable == nil || props.RouteTable.Id == nil {
-		log.Printf("[DEBUG] %s has no Route Table - removing from state!", id)
-		return nil
-	}
-
-	// once we have the route table id to lock on, lock on that
-	parsedRouteTableId, err := routetables.ParseRouteTableID(*props.RouteTable.Id)
-	if err != nil {
-		return err
-	}
-
-	locks.ByName(parsedRouteTableId.RouteTableName, routeTableResourceName)
-	defer locks.UnlockByName(parsedRouteTableId.RouteTableName, routeTableResourceName)
-
-	locks.ByName(id.VirtualNetworkName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
-
-	// then re-retrieve it to ensure we've got the latest state
-	read, err = client.Get(ctx, *id, subnets.DefaultGetOperationOptions())
-	if err != nil {
-		if response.WasNotFound(read.HttpResponse) {
-			log.Printf("[DEBUG] %s could not be found - removing from state!", id)
-			return nil
-		}
-
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 

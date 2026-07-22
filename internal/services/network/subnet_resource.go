@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"math/big"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 
@@ -300,14 +301,13 @@ func resourceSubnet() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				WriteOnly:    true,
+				RequiredWith: []string{"network_security_group_id_wo_version"},
 				ValidateFunc: networksecuritygroups.ValidateNetworkSecurityGroupID,
 			},
 
 			"network_security_group_id_wo_version": {
-				Type:     pluginsdk.TypeInt,
-				Optional: true,
-				// TODO: ForceNew? An NSG cannot be deleted when in-use by a subnet, meaning the subnet either needs recreating
-				// or the NSG needs to be disassociated first, which based on certain azure policies may not be allowed?
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
 				RequiredWith: []string{"network_security_group_id_wo"},
 				ValidateFunc: validation.IntAtLeast(1),
 			},
@@ -321,13 +321,13 @@ func resourceSubnet() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				WriteOnly:    true,
+				RequiredWith: []string{"route_table_id_wo_version"},
 				ValidateFunc: routetables.ValidateRouteTableID,
 			},
 
 			"route_table_id_wo_version": {
-				Type:     pluginsdk.TypeInt,
-				Optional: true,
-				// TODO ForceNew?
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
 				RequiredWith: []string{"route_table_id_wo"},
 				ValidateFunc: validation.IntAtLeast(1),
 			},
@@ -340,7 +340,6 @@ func resourceSubnet() *pluginsdk.Resource {
 	}
 }
 
-// TODO: refactor the create/flatten functions
 func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.Subnets
 	vnetClient := meta.(*clients.Client).Network.VirtualNetworks
@@ -349,6 +348,38 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	id := commonids.NewSubnetID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("virtual_network_name").(string), d.Get("name").(string))
 
+	nsg, err := expandSubnetNetworkSecurityGroupID(d)
+	if err != nil {
+		return fmt.Errorf("expanding Network Security Group ID: %+v", err)
+	}
+	if nsg != nil && nsg.Id != nil {
+		nsgId, err := networksecuritygroups.ParseNetworkSecurityGroupID(*nsg.Id)
+		if err != nil {
+			return err
+		}
+		locks.ByName(nsgId.NetworkSecurityGroupName, networkSecurityGroupResourceName)
+		defer locks.UnlockByName(nsgId.NetworkSecurityGroupName, networkSecurityGroupResourceName)
+	}
+
+	rt, err := expandSubnetRouteTableID(d)
+	if err != nil {
+		return fmt.Errorf("expanding Route Table ID: %+v", err)
+	}
+	if rt != nil && rt.Id != nil {
+		rtId, err := routetables.ParseRouteTableID(*rt.Id)
+		if err != nil {
+			return err
+		}
+		locks.ByName(rtId.RouteTableName, routeTableResourceName)
+		defer locks.UnlockByName(rtId.RouteTableName, routeTableResourceName)
+	}
+
+	locks.ByName(id.VirtualNetworkName, VirtualNetworkResourceName)
+	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
+
+	locks.ByName(id.SubnetName, SubnetResourceName)
+	defer locks.UnlockByName(id.SubnetName, SubnetResourceName)
+
 	existing, err := client.Get(ctx, id, subnets.DefaultGetOperationOptions())
 	if !response.WasNotFound(existing.HttpResponse) {
 		if err != nil {
@@ -356,9 +387,6 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 		return tf.ImportAsExistsError("azurerm_subnet", id.ID())
 	}
-
-	locks.ByName(id.VirtualNetworkName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
 
 	subnet := subnets.Subnet{
 		Name: pointer.To(id.SubnetName),
@@ -374,8 +402,8 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 			SharingScope:                      pointer.ToEnum[subnets.SharingScope](d.Get("sharing_scope").(string)),
 
 			// Write-only
-			NetworkSecurityGroup: expandSubnetNetworkSecurityGroupID(d),
-			RouteTable:           expandSubnetRouteTableID(d),
+			NetworkSecurityGroup: nsg,
+			RouteTable:           rt,
 		},
 	}
 
@@ -399,7 +427,8 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		MinTimeout: 1 * time.Minute,
 		Timeout:    time.Until(deadline),
 	}
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for provisioning state of %s: %+v", id, err)
 	}
 
@@ -430,6 +459,79 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		return err
 	}
 
+	existingUnlocked, err := client.Get(ctx, *id, subnets.DefaultGetOperationOptions())
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+
+	if existingUnlocked.Model == nil || existingUnlocked.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `model` or `properties` was nil", *id)
+	}
+
+	propsUnlocked := existingUnlocked.Model.Properties
+
+	var nsgNames []string
+	nsgMap := make(map[string]struct{})
+	if propsUnlocked.NetworkSecurityGroup != nil && propsUnlocked.NetworkSecurityGroup.Id != nil {
+		nsgId, err := networksecuritygroups.ParseNetworkSecurityGroupID(*propsUnlocked.NetworkSecurityGroup.Id)
+		if err != nil {
+			return fmt.Errorf("parsing existing Network Security Group ID: %+v", err)
+		}
+		nsgMap[nsgId.NetworkSecurityGroupName] = struct{}{}
+	}
+
+	if d.HasChange("network_security_group_id_wo_version") {
+		nsg, err := expandSubnetNetworkSecurityGroupID(d)
+		if err != nil {
+			return fmt.Errorf("expanding Network Security Group ID: %+v", err)
+		}
+		if nsg != nil && nsg.Id != nil {
+			nsgId, err := networksecuritygroups.ParseNetworkSecurityGroupID(*nsg.Id)
+			if err != nil {
+				return err
+			}
+			nsgMap[nsgId.NetworkSecurityGroupName] = struct{}{}
+		}
+	}
+	for name := range nsgMap {
+		nsgNames = append(nsgNames, name)
+	}
+	sort.Strings(nsgNames)
+
+	var rtNames []string
+	rtMap := make(map[string]struct{})
+	if propsUnlocked.RouteTable != nil && propsUnlocked.RouteTable.Id != nil {
+		rtId, err := routetables.ParseRouteTableID(*propsUnlocked.RouteTable.Id)
+		if err != nil {
+			return fmt.Errorf("parsing existing Route Table ID: %+v", err)
+		}
+		rtMap[rtId.RouteTableName] = struct{}{}
+	}
+
+	if d.HasChange("route_table_id_wo_version") {
+		rt, err := expandSubnetRouteTableID(d)
+		if err != nil {
+			return fmt.Errorf("expanding Route Table ID: %+v", err)
+		}
+		if rt != nil && rt.Id != nil {
+			rtId, err := routetables.ParseRouteTableID(*rt.Id)
+			if err != nil {
+				return err
+			}
+			rtMap[rtId.RouteTableName] = struct{}{}
+		}
+	}
+	for name := range rtMap {
+		rtNames = append(rtNames, name)
+	}
+	sort.Strings(rtNames)
+
+	locks.MultipleByName(&nsgNames, networkSecurityGroupResourceName)
+	defer locks.UnlockMultipleByName(&nsgNames, networkSecurityGroupResourceName)
+
+	locks.MultipleByName(&rtNames, routeTableResourceName)
+	defer locks.UnlockMultipleByName(&rtNames, routeTableResourceName)
+
 	locks.ByName(id.VirtualNetworkName, VirtualNetworkResourceName)
 	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
 
@@ -441,15 +543,9 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	if existing.Model == nil {
-		return fmt.Errorf("retrieving %s: `model` was nil", *id)
+	if existing.Model == nil || existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `model` or `properties` was nil", *id)
 	}
-
-	if existing.Model.Properties == nil {
-		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
-	}
-
-	// TODO: locking on the NSG/Route Table if applicable
 
 	props := existing.Model.Properties
 
@@ -526,11 +622,21 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("network_security_group_id_wo_version") {
-		props.NetworkSecurityGroup = expandSubnetNetworkSecurityGroupID(d)
+		nsg, err := expandSubnetNetworkSecurityGroupID(d)
+		if err != nil {
+			return fmt.Errorf("expanding Network Security Group ID: %+v", err)
+		}
+
+		props.NetworkSecurityGroup = nsg
 	}
 
 	if d.HasChange("route_table_id_wo_version") {
-		props.RouteTable = expandSubnetRouteTableID(d)
+		rt, err := expandSubnetRouteTableID(d)
+		if err != nil {
+			return fmt.Errorf("expanding Route Table ID: %+v", err)
+		}
+
+		props.RouteTable = rt
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
@@ -691,24 +797,34 @@ func resourceSubnetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func expandSubnetNetworkSecurityGroupID(d *pluginsdk.ResourceData) *subnets.NetworkSecurityGroup {
+func expandSubnetNetworkSecurityGroupID(d *pluginsdk.ResourceData) (*subnets.NetworkSecurityGroup, error) {
 	wo, err := pluginsdk.GetWriteOnly(d, "network_security_group_id_wo", cty.String)
-	if err != nil || wo.IsNull() {
-		return nil
+	if err != nil {
+		return nil, err
 	}
+
+	if wo.IsNull() {
+		return nil, nil // NOTE - Returning `nil` will remove the SG association!
+	}
+
 	return &subnets.NetworkSecurityGroup{
 		Id: pointer.To(wo.AsString()),
-	}
+	}, nil
 }
 
-func expandSubnetRouteTableID(d *pluginsdk.ResourceData) *subnets.RouteTable {
+func expandSubnetRouteTableID(d *pluginsdk.ResourceData) (*subnets.RouteTable, error) {
 	wo, err := pluginsdk.GetWriteOnly(d, "route_table_id_wo", cty.String)
-	if err != nil || wo.IsNull() {
-		return nil
+	if err != nil {
+		return nil, err
 	}
+
+	if wo.IsNull() {
+		return nil, nil // NOTE - Returning `nil` will remove the SG association!
+	}
+
 	return &subnets.RouteTable{
 		Id: pointer.To(wo.AsString()),
-	}
+	}, nil
 }
 
 func expandSubnetServiceEndpoints(input []interface{}) *[]subnets.ServiceEndpointPropertiesFormat {

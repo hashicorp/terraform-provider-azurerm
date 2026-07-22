@@ -6,12 +6,14 @@ package network
 import (
 	"fmt"
 	"log"
+	"sort"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networksecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/routetables"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/subnets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -72,8 +74,56 @@ func resourceSubnetNetworkSecurityGroupAssociationCreate(d *pluginsdk.ResourceDa
 		return err
 	}
 
-	locks.ByName(networkSecurityGroupId.NetworkSecurityGroupName, networkSecurityGroupResourceName)
-	defer locks.UnlockByName(networkSecurityGroupId.NetworkSecurityGroupName, networkSecurityGroupResourceName)
+	// find and lock chain of sequential change
+	existingUnlocked, err := client.Get(ctx, *subnetId, subnets.DefaultGetOperationOptions())
+	if err != nil {
+		if response.WasNotFound(existingUnlocked.HttpResponse) {
+			return fmt.Errorf("%s was not found", *subnetId)
+		}
+		return fmt.Errorf("retrieving %s: %+v", *subnetId, err)
+	}
+
+	var nsgNames []string
+	nsgMap := make(map[string]struct{})
+	var rtNames []string
+	rtMap := make(map[string]struct{})
+
+	nsgMap[networkSecurityGroupId.NetworkSecurityGroupName] = struct{}{}
+
+	if existingUnlocked.Model != nil && existingUnlocked.Model.Properties != nil {
+		propsUnlocked := existingUnlocked.Model.Properties
+		if propsUnlocked.NetworkSecurityGroup != nil && propsUnlocked.NetworkSecurityGroup.Id != nil {
+			oldNsgId, err := networksecuritygroups.ParseNetworkSecurityGroupID(*propsUnlocked.NetworkSecurityGroup.Id)
+			if err != nil {
+				return fmt.Errorf("parsing existing Network Security Group ID: %+v", err)
+			}
+			nsgMap[oldNsgId.NetworkSecurityGroupName] = struct{}{}
+		}
+
+		if propsUnlocked.RouteTable != nil && propsUnlocked.RouteTable.Id != nil {
+			rtId, err := routetables.ParseRouteTableID(*propsUnlocked.RouteTable.Id)
+			if err != nil {
+				return fmt.Errorf("parsing existing Route Table ID: %+v", err)
+			}
+			rtMap[rtId.RouteTableName] = struct{}{}
+		}
+	}
+
+	for name := range nsgMap {
+		nsgNames = append(nsgNames, name)
+	}
+	sort.Strings(nsgNames)
+
+	for name := range rtMap {
+		rtNames = append(rtNames, name)
+	}
+	sort.Strings(rtNames)
+
+	locks.MultipleByName(&nsgNames, networkSecurityGroupResourceName)
+	defer locks.UnlockMultipleByName(&nsgNames, networkSecurityGroupResourceName)
+
+	locks.MultipleByName(&rtNames, routeTableResourceName)
+	defer locks.UnlockMultipleByName(&rtNames, routeTableResourceName)
 
 	locks.ByName(subnetId.VirtualNetworkName, VirtualNetworkResourceName)
 	defer locks.UnlockByName(subnetId.VirtualNetworkName, VirtualNetworkResourceName)
@@ -81,12 +131,12 @@ func resourceSubnetNetworkSecurityGroupAssociationCreate(d *pluginsdk.ResourceDa
 	locks.ByName(subnetId.SubnetName, SubnetResourceName)
 	defer locks.UnlockByName(subnetId.SubnetName, SubnetResourceName)
 
+	// Now we have exclusive access, we can read reliably
 	subnet, err := client.Get(ctx, *subnetId, subnets.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(subnet.HttpResponse) {
 			return fmt.Errorf("%s was not found", *subnetId)
 		}
-
 		return fmt.Errorf("retrieving %s: %+v", *subnetId, err)
 	}
 
@@ -194,40 +244,61 @@ func resourceSubnetNetworkSecurityGroupAssociationDelete(d *pluginsdk.ResourceDa
 		return err
 	}
 
-	// retrieve the subnet
-	read, err := client.Get(ctx, *id, subnets.DefaultGetOperationOptions())
+	// Phase 1: Discovery Read (Unlocked)
+	readUnlocked, err := client.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
-		if response.WasNotFound(read.HttpResponse) {
+		if response.WasNotFound(readUnlocked.HttpResponse) {
 			log.Printf("[DEBUG] %s could not be found - removing from state!", *id)
 			return nil
 		}
-
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	model := read.Model
-	if model == nil {
-		return fmt.Errorf("`model` was nil for %s", *id)
+	if readUnlocked.Model == nil || readUnlocked.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `model` or `properties` was nil", *id)
 	}
 
-	props := model.Properties
-	if props == nil {
-		return fmt.Errorf("`Properties` was nil for %s", *id)
-	}
+	propsUnlocked := readUnlocked.Model.Properties
 
-	if props.NetworkSecurityGroup == nil || props.NetworkSecurityGroup.Id == nil {
+	if propsUnlocked.NetworkSecurityGroup == nil || propsUnlocked.NetworkSecurityGroup.Id == nil {
 		log.Printf("[DEBUG] %s has no Network Security Group - removing from state!", *id)
 		return nil
 	}
 
-	// once we have the network security group id to lock on, lock on that
-	networkSecurityGroupId, err := networksecuritygroups.ParseNetworkSecurityGroupID(*props.NetworkSecurityGroup.Id)
+	var nsgNames []string
+	nsgMap := make(map[string]struct{})
+	var rtNames []string
+	rtMap := make(map[string]struct{})
+
+	networkSecurityGroupId, err := networksecuritygroups.ParseNetworkSecurityGroupID(*propsUnlocked.NetworkSecurityGroup.Id)
 	if err != nil {
 		return err
 	}
+	nsgMap[networkSecurityGroupId.NetworkSecurityGroupName] = struct{}{}
 
-	locks.ByName(networkSecurityGroupId.NetworkSecurityGroupName, networkSecurityGroupResourceName)
-	defer locks.UnlockByName(networkSecurityGroupId.NetworkSecurityGroupName, networkSecurityGroupResourceName)
+	if propsUnlocked.RouteTable != nil && propsUnlocked.RouteTable.Id != nil {
+		rtId, err := routetables.ParseRouteTableID(*propsUnlocked.RouteTable.Id)
+		if err != nil {
+			return err
+		}
+		rtMap[rtId.RouteTableName] = struct{}{}
+	}
+
+	for name := range nsgMap {
+		nsgNames = append(nsgNames, name)
+	}
+	sort.Strings(nsgNames)
+
+	for name := range rtMap {
+		rtNames = append(rtNames, name)
+	}
+	sort.Strings(rtNames)
+
+	locks.MultipleByName(&nsgNames, networkSecurityGroupResourceName)
+	defer locks.UnlockMultipleByName(&nsgNames, networkSecurityGroupResourceName)
+
+	locks.MultipleByName(&rtNames, routeTableResourceName)
+	defer locks.UnlockMultipleByName(&rtNames, routeTableResourceName)
 
 	locks.ByName(id.VirtualNetworkName, VirtualNetworkResourceName)
 	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
@@ -235,14 +306,13 @@ func resourceSubnetNetworkSecurityGroupAssociationDelete(d *pluginsdk.ResourceDa
 	locks.ByName(id.SubnetName, SubnetResourceName)
 	defer locks.UnlockByName(id.SubnetName, SubnetResourceName)
 
-	// then re-retrieve it to ensure we've got the latest state
-	read, err = client.Get(ctx, *id, subnets.DefaultGetOperationOptions())
+	// Phase 2: Definitive Read
+	read, err := client.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(read.HttpResponse) {
 			log.Printf("[DEBUG] %s could not be found - removing from state!", *id)
 			return nil
 		}
-
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
