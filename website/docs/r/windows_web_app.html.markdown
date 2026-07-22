@@ -195,7 +195,7 @@ ASP.NET V4.8 | v4.0
 
 ~> **Note:** For currently supported versions, please see the official documentation. Some example values include: `1.8`, `1.8.0_322`,  `11`, `11.0.14`, `17`, `17.0.2`, `21` and `25`
 
-* `node_version` - (Optional) The version of node to use when `current_stack` is set to `node`. Possible values are `~12`, `~14`, `~16`, `~18`, `~20` and `~22`.
+* `node_version` - (Optional) The version of node to use when `current_stack` is set to `node`. Possible values are `~12`, `~14`, `~16`, `~18`, `~20`, `~22` and `~24`.
 
 ~> **Note:** This property conflicts with `java_version`.
 
