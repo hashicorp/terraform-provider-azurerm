@@ -150,21 +150,18 @@ jobs:
           # Initialize default values
           beta=false
           service=""
-          queue=false
 
           # Parse flags using getopts
           # Convert FLAGS_STRING to array for getopts
           eval set -- $FLAGS_STRING
 
-          while getopts ":bqs:" opt; do
+          while getopts ":bs:" opt; do
             case "$opt" in
               b) beta=true ;;
-              q) queue=true ;;
               s) service="$OPTARG" ;;
               *)
-                echo "Usage: /test [-b] [-q] [-s service_name]"
+                echo "Usage: /test [-b] [-s service_name]"
                 echo "  -b: Test beta version"
-                echo "  -q: Add the build to the top of the queue"
                 echo "  -s: Specify service name"
                 exit 1
                 ;;
@@ -174,13 +171,7 @@ jobs:
           echo "Running tctest for PR #${PR_NUMBER}"
           echo "PR commit SHA: ${PR_SHA}"
           echo "Beta version: ${beta}"
-          echo "Queue priority: ${queue}"
           echo "Service: ${service:-all}"
-
-          queue_flag=""
-          if [ "$queue" = true ]; then
-            queue_flag="-q"
-          fi
 
           service_flag=()
           if [ "$service" != "" ]; then
@@ -191,7 +182,7 @@ jobs:
 
           run_tctest() {
             local out
-            out=$(tctest pr "${PR_NUMBER}" -c ${queue_flag} --reappend-split-character --properties "TRACKING_ID=${PR_SHA}" "$@" --json)
+            out=$(tctest pr "${PR_NUMBER}" -c -q --reappend-split-character --properties "TRACKING_ID=${PR_SHA}" "$@" --json)
             echo "$out"
             builds=$(printf '%s\n%s\n' "$builds" "${out:-[]}" | jq -s 'add')
           }
