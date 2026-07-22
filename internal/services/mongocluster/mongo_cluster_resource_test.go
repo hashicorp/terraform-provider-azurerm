@@ -6,6 +6,7 @@ package mongocluster_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -179,6 +180,27 @@ func TestAccMongoCluster_entraIdOnly(t *testing.T) {
 			),
 		},
 		data.ImportStep("create_mode"),
+	})
+}
+
+func TestAccMongoCluster_authenticationMethodsValidation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster", "test")
+	r := MongoClusterResource{}
+	expectedError := regexp.MustCompile("`administrator_username` is required when `authentication_methods` contains `NativeAuth` or is not configured")
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.withoutAdministrator(data, ""),
+			ExpectError: expectedError,
+		},
+		{
+			Config:      r.withoutAdministrator(data, "  authentication_methods = []"),
+			ExpectError: expectedError,
+		},
+		{
+			Config:      r.withoutAdministrator(data, `  authentication_methods = ["NativeAuth"]`),
+			ExpectError: expectedError,
+		},
 	})
 }
 
@@ -463,6 +485,10 @@ func (r MongoClusterResource) entraIdOnly(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
+resource "terraform_data" "authentication_method" {
+  input = "MicrosoftEntraID"
+}
+
 resource "azurerm_mongo_cluster" "test" {
   name                   = "acctest-mc%d"
   resource_group_name    = azurerm_resource_group.test.name
@@ -472,9 +498,27 @@ resource "azurerm_mongo_cluster" "test" {
   high_availability_mode = "Disabled"
   storage_size_in_gb     = "32"
   version                = "7.0"
-  authentication_methods = ["MicrosoftEntraID"]
+  authentication_methods = [terraform_data.authentication_method.output]
 }
 `, r.template(data, data.Locations.Primary), data.RandomInteger)
+}
+
+func (r MongoClusterResource) withoutAdministrator(data acceptance.TestData, authenticationMethods string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mongo_cluster" "test" {
+  name                   = "acctest-mc%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  shard_count            = "1"
+  compute_tier           = "M30"
+  high_availability_mode = "Disabled"
+  storage_size_in_gb     = "32"
+  version                = "7.0"
+%s
+}
+`, r.template(data, data.Locations.Primary), data.RandomInteger, authenticationMethods)
 }
 
 func (r MongoClusterResource) template(data acceptance.TestData, location string) string {

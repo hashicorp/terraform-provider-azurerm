@@ -958,16 +958,26 @@ func flattenMongoClusterAuthConfig(input *mongoclusters.AuthConfigProperties) []
 
 func isNativeAuthRequired(metadata sdk.ResourceMetaData) bool {
 	authMethodsRaw := metadata.ResourceDiff.GetRawConfig().AsValueMap()["authentication_methods"]
-	nativeAuthRequired := false
-	if authMethodsRaw.IsNull() || !authMethodsRaw.IsKnown() {
-		nativeAuthRequired = true
-	} else {
-		for _, v := range authMethodsRaw.AsValueSet().Values() {
-			if v.AsString() == string(mongoclusters.AuthenticationModeNativeAuth) {
-				nativeAuthRequired = true
-				break
-			}
+	if !authMethodsRaw.IsKnown() {
+		return false
+	}
+	if authMethodsRaw.IsNull() {
+		return true
+	}
+
+	authMethods := authMethodsRaw.AsValueSet().Values()
+	if len(authMethods) == 0 {
+		return true
+	}
+
+	for _, v := range authMethods {
+		if !v.IsKnown() {
+			continue
+		}
+		if v.AsString() == string(mongoclusters.AuthenticationModeNativeAuth) {
+			return true
 		}
 	}
-	return nativeAuthRequired
+
+	return false
 }
