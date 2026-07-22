@@ -557,7 +557,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherEncryptionAtHost(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherEncryptionAtHost(data, true),
+			Config: r.otherEncryptionAtHost(data, pointer.To(true)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -572,23 +572,37 @@ func TestAccLinuxVirtualMachineScaleSet_otherEncryptionAtHostUpdate(t *testing.T
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherEncryptionAtHost(data, true),
+			Config: r.otherEncryptionAtHost(data, pointer.To(true)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("security_profile.#").HasValue("1"),
+				check.That(data.ResourceName).Key("security_profile.0.host_encryption_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep("admin_password"),
 		{
-			Config: r.otherEncryptionAtHost(data, false),
+			Config: r.otherEncryptionAtHost(data, pointer.To(false)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("security_profile.#").HasValue("1"),
+				check.That(data.ResourceName).Key("security_profile.0.host_encryption_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep("admin_password"),
 		{
-			Config: r.otherEncryptionAtHost(data, true),
+			Config: r.otherEncryptionAtHost(data, pointer.To(true)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("security_profile.#").HasValue("1"),
+				check.That(data.ResourceName).Key("security_profile.0.host_encryption_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.otherEncryptionAtHost(data, nil),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("security_profile.#").HasValue("0"),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -2567,50 +2581,14 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, r.template(data), data.RandomInteger, enabled)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) otherEncryptionAtHost(data acceptance.TestData, enabled bool) string {
-	if features.FivePointOh() {
-		return fmt.Sprintf(`
-%s
-
-resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard_DS3_V2"
-  instances           = 1
-  admin_username      = "adminuser"
-  admin_password      = "P@ssword1234!"
-
-  disable_password_authentication = false
-
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
-    version   = "latest"
-  }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  network_interface {
-    name    = "example"
-    primary = true
-
-    ip_configuration {
-      name      = "internal"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
-    }
-  }
-
+func (r LinuxVirtualMachineScaleSetResource) otherEncryptionAtHost(data acceptance.TestData, enabled *bool) string {
+	securityProfile := ""
+	if enabled != nil {
+		securityProfile = fmt.Sprintf(`
   security_profile {
     host_encryption_enabled = %t
   }
-}
-`, r.template(data), data.RandomInteger, enabled)
+`, *enabled)
 	}
 
 	return fmt.Sprintf(`
@@ -2650,14 +2628,13 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 
-  encryption_at_host_enabled = %t
+%s
 }
-`, r.template(data), data.RandomInteger, enabled)
+`, r.template(data), data.RandomInteger, securityProfile)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) otherEncryptionAtHostWithCMK(data acceptance.TestData, enabled bool) string {
-	if features.FivePointOh() {
-		return fmt.Sprintf(`
+	return fmt.Sprintf(`
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
@@ -2698,54 +2675,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   security_profile {
     host_encryption_enabled = %t
   }
-
-  depends_on = [
-    "azurerm_role_assignment.disk-encryption-read-keyvault",
-    "azurerm_key_vault_access_policy.disk-encryption",
-  ]
-}
-`, r.disksOSDisk_diskEncryptionSetResource(data), data.RandomInteger, enabled)
-	}
-
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard_DS3_V2"
-  instances           = 1
-  admin_username      = "adminuser"
-  admin_password      = "P@ssword1234!"
-
-  disable_password_authentication = false
-
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
-    version   = "latest"
-  }
-
-  os_disk {
-    storage_account_type   = "Standard_LRS"
-    caching                = "ReadWrite"
-    disk_encryption_set_id = azurerm_disk_encryption_set.test.id
-  }
-
-  network_interface {
-    name    = "example"
-    primary = true
-
-    ip_configuration {
-      name      = "internal"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
-    }
-  }
-
-  encryption_at_host_enabled = %t
 
   depends_on = [
     "azurerm_role_assignment.disk-encryption-read-keyvault",
@@ -3097,8 +3026,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 }
 
 func (r LinuxVirtualMachineScaleSetResource) otherSecureBootEnabled(data acceptance.TestData) string {
-	if features.FivePointOh() {
-		return fmt.Sprintf(`
+	return fmt.Sprintf(`
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
@@ -3140,53 +3068,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
-	}
-
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard_B1ls"
-  instances           = 1
-  admin_username      = "adminuser"
-  admin_password      = "P@ssword1234!"
-
-  disable_password_authentication = false
-
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts-gen2"
-    version   = "latest"
-  }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  network_interface {
-    name    = "example"
-    primary = true
-
-    ip_configuration {
-      name      = "internal"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
-    }
-  }
-
-  secure_boot_enabled = true
-}
-`, r.template(data), data.RandomInteger)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) otherVTpmEnabled(data acceptance.TestData) string {
-	if features.FivePointOh() {
-		return fmt.Sprintf(`
+	return fmt.Sprintf(`
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
@@ -3226,48 +3111,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   security_profile {
     vtpm_enabled = true
   }
-}
-`, r.template(data), data.RandomInteger)
-	}
-
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard_B1ls"
-  instances           = 1
-  admin_username      = "adminuser"
-  admin_password      = "P@ssword1234!"
-
-  disable_password_authentication = false
-
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts-gen2"
-    version   = "latest"
-  }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  network_interface {
-    name    = "example"
-    primary = true
-
-    ip_configuration {
-      name      = "internal"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
-    }
-  }
-
-  vtpm_enabled = true
 }
 `, r.template(data), data.RandomInteger)
 }
