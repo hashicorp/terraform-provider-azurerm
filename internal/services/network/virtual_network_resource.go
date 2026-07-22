@@ -483,7 +483,7 @@ func resourceVirtualNetworkFlatten(d *pluginsdk.ResourceData, id commonids.Virtu
 				return fmt.Errorf("setting `encryption`: %+v", err)
 			}
 
-			subnet, err := flattenVirtualNetworkSubnets(props.Subnets, d)
+			subnet, err := flattenVirtualNetworkSubnets(props.Subnets)
 			if err != nil {
 				return fmt.Errorf("flattening `subnet`: %+v", err)
 			}
@@ -1027,7 +1027,7 @@ func flattenVirtualNetworkEncryption(encryption *virtualnetworks.VirtualNetworkE
 	}
 }
 
-func flattenVirtualNetworkSubnets(input *[]virtualnetworks.Subnet, d *pluginsdk.ResourceData) (*pluginsdk.Set, error) {
+func flattenVirtualNetworkSubnets(input *[]virtualnetworks.Subnet) (*pluginsdk.Set, error) {
 	results := &pluginsdk.Set{
 		F: resourceAzureSubnetHash,
 	}
