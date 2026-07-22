@@ -412,6 +412,10 @@ use computed cross-resource references for key arguments.
 * The deprecated `tls.minimum_tls_version` property has been removed in favour of the `tls.minimum_version` property.
 * The `tls.minimum_version` property no longer accepts `TLS10` as a value.
 
+### `azurerm_cdn_frontdoor_security_policy`
+
+The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` property now validates static resource ID segments case-sensitively.
+
 ### `azurerm_communication_service`
 
 * The `data_location` property is now Required and no longer defaults to `United States`.
