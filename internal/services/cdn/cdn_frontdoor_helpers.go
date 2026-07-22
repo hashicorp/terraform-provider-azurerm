@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afddomains"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/routes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rules"
 	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -46,19 +45,6 @@ func flattenFrontendEndpointLinkSlice(input *[]waf.FrontendEndpointLink) []inter
 	}
 
 	return result
-}
-
-func ruleHasDeliveryRuleConditions(conditions map[string]interface{}) bool {
-	var hasConditions bool
-
-	for _, condition := range conditions {
-		if len(condition.([]interface{})) > 0 {
-			hasConditions = true
-			break
-		}
-	}
-
-	return hasConditions
 }
 
 func frontDoorContentTypes() []string {

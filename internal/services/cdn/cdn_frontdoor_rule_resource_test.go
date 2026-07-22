@@ -1710,42 +1710,6 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontDoorRuleResource) allowEmptyQueryString(data acceptance.TestData, attachRoute bool) string {
-	template := r.templateWithAttachedRoute(data, attachRoute)
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-  %s
-
-resource "azurerm_cdn_frontdoor_rule" "test" {
-  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
-
-  name                      = "accTestRule%d"
-  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
-
-  order = 0
-
-  conditions {
-    request_url {
-      values   = ["contoso"]
-      operator = "Contains"
-    }
-  }
-
-  actions {
-    url_redirect {
-      redirect_type         = "PermanentRedirect"
-      redirect_protocol     = "MatchRequest"
-      destination_host_name = "contoso.com"
-      destination_path      = "/test/page"
-    }
-  }
-}
-`, template, data.RandomInteger)
-}
-
 func (r CdnFrontDoorRuleResource) allowForwardSlashUrlConditionMatchValue(data acceptance.TestData, attachRoute bool) string {
 	template := r.templateWithAttachedRoute(data, attachRoute)
 	return fmt.Sprintf(`
