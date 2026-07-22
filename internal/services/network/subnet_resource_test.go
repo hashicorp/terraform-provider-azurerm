@@ -131,7 +131,37 @@ func TestAccSubnet_WriteOnly_migration(t *testing.T) {
 	})
 }
 
-// TODO: test for route table
+func TestAccSubnet_basicWithRouteTable(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	r := SubnetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithRouteTable(data, 1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("route_table_id").IsNotEmpty(),
+			),
+		},
+		data.ImportStep("route_table_id_wo_version"),
+		{
+			Config: r.basicWithRouteTable(data, 2), // update RT
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("route_table_id").IsNotEmpty(),
+			),
+		},
+		data.ImportStep("route_table_id_wo_version"),
+		{
+			Config: r.basicWithRouteTable(data, 0), // remove RT
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("route_table_id").IsEmpty(),
+			),
+		},
+		data.ImportStep("route_table_id_wo_version"),
+	})
+}
 
 func TestAccSubnet_basic_addressPrefixes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
@@ -797,6 +827,41 @@ resource "azurerm_subnet" "test" {
   %[3]s
 }
 `, r.template(data), data.RandomInteger, nsg)
+}
+
+func (r SubnetResource) basicWithRouteTable(data acceptance.TestData, rtInstance int) string {
+	var rt string
+	if rtInstance != 0 {
+		rt = fmt.Sprintf(`
+route_table_id_wo = azurerm_route_table.test%[1]d.id
+route_table_id_wo_version = %[1]d
+`, rtInstance)
+	}
+
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_route_table" "test1" {
+  name                = "acctestrt-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_route_table" "test2" {
+  name                = "acctestrt2-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+
+  %[3]s
+}
+`, r.template(data), data.RandomInteger, rt)
 }
 
 func (r SubnetResource) writeOnlyBasic(data acceptance.TestData, instance int) string {
