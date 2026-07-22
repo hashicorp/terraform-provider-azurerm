@@ -163,6 +163,19 @@ func (r DevCenterNetworkConnectionResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
+			getOperationResponse, _ := client.Get(ctx, id)
+			fmt.Println("debug0", getOperationResponse.Model.Properties.ProvisioningState)
+			fmt.Println("debug1", getOperationResponse.Model.Properties.HealthCheckStatus)
+
+			getHealthDetailsOperationResponse, _ := client.GetHealthDetails(ctx, id)
+			for _, healthCheck := range *getHealthDetailsOperationResponse.Model.Properties.HealthChecks {
+				fmt.Println("debug2", healthCheck.DisplayName)
+				fmt.Println("debug3", healthCheck.Status)
+				fmt.Println("debug4", healthCheck.AdditionalDetails)
+				fmt.Println("debug5", healthCheck.RecommendedAction)
+				fmt.Println("debug6", healthCheck.ErrorType)
+			}
+
 			metadata.SetID(id)
 			return nil
 		},
