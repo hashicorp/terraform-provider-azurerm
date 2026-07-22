@@ -204,7 +204,7 @@ func TestAccLogicAppStandard_vnetRouteConfigEnabled(t *testing.T) {
 			Config: r.vnetRouteConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.vnet_route_all_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("vnet_application_traffic_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),

@@ -674,6 +674,7 @@ Please follow the format in the example below for listing breaking changes in re
 * The deprecated `site_config.public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
 * The `site_config.min_tls_version` property no longer accepts `1.0` or `1.1` as a value.
 * The `site_config.scm_min_tls_version` property no longer accepts `1.0` or `1.1` as a value.
+* The `site_config.vnet_route_all_enabled` property is no longer inferred from the `WEBSITE_VNET_ROUTE_ALL` app setting, and vnet application traffic will be referred from the `vnet_application_traffic_enabled` property instead.
 
 ### `azurerm_monitor_aad_diagnostic_setting`
 
