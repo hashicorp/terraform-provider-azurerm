@@ -402,15 +402,3 @@ func expandRoutes(input []interface{}) (*[]routes.RouteId, []interface{}, error)
 
 	return &out, config, nil
 }
-
-const RuleCacheBehaviorDisabled = "Disabled"
-
-func PossibleValuesForRuleCacheBehavior() []string {
-	return []string{
-		string(rules.RuleCacheBehaviorHonorOrigin),
-		string(rules.RuleCacheBehaviorOverrideAlways),
-		string(rules.RuleCacheBehaviorOverrideIfOriginMissing),
-		// Exposed `Disabled` as a valid value for provider issue #19008.
-		RuleCacheBehaviorDisabled,
-	}
-}
