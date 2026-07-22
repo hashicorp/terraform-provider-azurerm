@@ -156,7 +156,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "newrelic" to testConfiguration(locationOverride = LocationConfiguration("centraluseuap", "eastus", "eastus", false)),
 
         // Network Function is only available in certain locations
-        "networkfunction" to testConfiguration(locationOverride = LocationConfiguration("southeastasia", "eastus2", "westeurope", false)),
+        "networkfunction" to testConfiguration(locationOverride = LocationConfiguration("southeastasia", "eastus2", "westeurope", true)),
 
         // Network Regional Tire Public IP is only available in
         "network" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus2", "westus", false), timeout = 24),
