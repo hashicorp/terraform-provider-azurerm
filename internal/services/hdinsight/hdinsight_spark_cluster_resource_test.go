@@ -877,10 +877,10 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   }
 
   storage_account_gen2 {
-    storage_resource_id          = azurerm_storage_account.gen2test.id
-    filesystem_id                = azurerm_storage_data_lake_gen2_filesystem.gen2test.id
-    managed_identity_resource_id = azurerm_user_assigned_identity.test.id
-    is_default                   = true
+    storage_account_id        = azurerm_storage_account.gen2test.id
+    filesystem_id             = azurerm_storage_data_lake_gen2_filesystem.gen2test.id
+    user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+    is_default                = true
   }
 
   network {
@@ -961,10 +961,10 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   }
 
   storage_account_gen2 {
-    storage_resource_id          = azurerm_storage_account.gen2test.id
-    filesystem_id                = azurerm_storage_data_lake_gen2_filesystem.gen2test.id
-    managed_identity_resource_id = azurerm_user_assigned_identity.test.id
-    is_default                   = true
+    storage_account_id        = azurerm_storage_account.gen2test.id
+    filesystem_id             = azurerm_storage_data_lake_gen2_filesystem.gen2test.id
+    user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+    is_default                = true
   }
 
   roles {
@@ -1125,10 +1125,10 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   }
 
   storage_account_gen2 {
-    storage_resource_id          = azurerm_storage_account.gen2test.id
-    filesystem_id                = azurerm_storage_data_lake_gen2_filesystem.gen2test.id
-    managed_identity_resource_id = azurerm_user_assigned_identity.test.id
-    is_default                   = true
+    storage_account_id        = azurerm_storage_account.gen2test.id
+    filesystem_id             = azurerm_storage_data_lake_gen2_filesystem.gen2test.id
+    user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+    is_default                = true
   }
 
   private_link_configuration {
@@ -1845,20 +1845,20 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_D4a_v4"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_D4a_v4"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 3
     }
 
     zookeeper_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_D4a_v4"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }

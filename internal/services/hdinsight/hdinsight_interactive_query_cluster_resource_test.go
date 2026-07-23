@@ -669,20 +669,20 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_E16_V3"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 2
     }
 
     zookeeper_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -720,7 +720,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
       script_actions {
@@ -731,14 +731,14 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_E16_V3"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 2
     }
 
     zookeeper_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -771,28 +771,28 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   }
 
   storage_account_gen2 {
-    storage_resource_id          = azurerm_storage_account.gen2test.id
-    filesystem_id                = azurerm_storage_data_lake_gen2_filesystem.gen2test.id
-    managed_identity_resource_id = azurerm_user_assigned_identity.test.id
-    is_default                   = true
+    storage_account_id        = azurerm_storage_account.gen2test.id
+    filesystem_id             = azurerm_storage_data_lake_gen2_filesystem.gen2test.id
+    user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+    is_default                = true
   }
 
   roles {
     head_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_E16_V3"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 2
     }
 
     zookeeper_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -879,10 +879,10 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   }
 
   storage_account_gen2 {
-    storage_resource_id          = azurerm_storage_account.gen2test.id
-    filesystem_id                = azurerm_storage_data_lake_gen2_filesystem.gen2test.id
-    managed_identity_resource_id = azurerm_user_assigned_identity.test.id
-    is_default                   = true
+    storage_account_id        = azurerm_storage_account.gen2test.id
+    filesystem_id             = azurerm_storage_data_lake_gen2_filesystem.gen2test.id
+    user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+    is_default                = true
   }
 
   private_link_configuration {
@@ -898,7 +898,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
 
@@ -907,7 +907,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_E16_V3"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 2
@@ -917,7 +917,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
     }
 
     zookeeper_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
 
@@ -1033,20 +1033,20 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       ssh_keys = [var.ssh_key]
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_E16_V3"
       username              = "acctestusrvm"
       ssh_keys              = [var.ssh_key]
       target_instance_count = 3
     }
 
     zookeeper_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       ssh_keys = [var.ssh_key]
     }
@@ -1084,20 +1084,20 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_E16_V3"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 5
     }
 
     zookeeper_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1153,7 +1153,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
 
   roles {
     head_node {
-      vm_size            = "Standard_A4_V2"
+      vm_size            = "Standard_E16_V3"
       username           = "acctestusrvm"
       password           = "AccTestvdSC4daf986!"
       subnet_id          = azurerm_subnet.test.id
@@ -1161,7 +1161,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_E16_V3"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 3
@@ -1170,7 +1170,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
     }
 
     zookeeper_node {
-      vm_size            = "Standard_A4_V2"
+      vm_size            = "Standard_E16_V3"
       username           = "acctestusrvm"
       password           = "AccTestvdSC4daf986!"
       subnet_id          = azurerm_subnet.test.id
@@ -1218,9 +1218,9 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
 
   storage_account {
     storage_container_url = azurerm_storage_container.test.url
-    storage_resource_id  = azurerm_storage_account.test.id
-    storage_account_key  = azurerm_storage_account.test.primary_access_key
-    is_default           = true
+    storage_account_id    = azurerm_storage_account.test.id
+    storage_account_key   = azurerm_storage_account.test.primary_access_key
+    is_default            = true
   }
 
   network {
@@ -1229,7 +1229,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
 
   roles {
     head_node {
-      vm_size            = "Standard_A4_V2"
+      vm_size            = "Standard_E16_V3"
       username           = "acctestusrvm"
       password           = "AccTestvdSC4daf986!"
       subnet_id          = azurerm_subnet.test.id
@@ -1237,7 +1237,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_E16_V3"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 3
@@ -1246,7 +1246,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
     }
 
     zookeeper_node {
-      vm_size            = "Standard_A4_V2"
+      vm_size            = "Standard_E16_V3"
       username           = "acctestusrvm"
       password           = "AccTestvdSC4daf986!"
       subnet_id          = azurerm_subnet.test.id
@@ -1572,20 +1572,20 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_E16_V3"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 2
     }
 
     zookeeper_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1625,20 +1625,20 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_E16_V3"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 2
     }
 
     zookeeper_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1680,20 +1680,20 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_D4a_v4"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_D4a_v4"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 2
     }
 
     zookeeper_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_D4a_v4"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1759,18 +1759,18 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   }
   roles {
     head_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_E16_V3"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 2
     }
     zookeeper_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1844,18 +1844,18 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   }
   roles {
     head_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_E16_V3"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 2
     }
     zookeeper_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1908,20 +1908,20 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_E16_V3"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 2
     }
 
     zookeeper_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1971,20 +1971,20 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_E16_V3"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 2
     }
 
     zookeeper_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -2023,12 +2023,12 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   }
   roles {
     head_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_E16_V3"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 2
@@ -2049,7 +2049,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
       }
     }
     zookeeper_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -2087,7 +2087,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
 
   roles {
     head_node {
-      vm_size            = "Standard_A4_V2"
+      vm_size            = "Standard_E16_V3"
       username           = "sshuser"
       password           = "TerrAform123!"
       subnet_id          = azurerm_subnet.test.id
@@ -2095,7 +2095,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_E16_V3"
       username              = "sshuser"
       password              = "TerrAform123!"
       target_instance_count = 1
@@ -2104,7 +2104,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
     }
 
     zookeeper_node {
-      vm_size            = "Standard_A4_V2"
+      vm_size            = "Standard_E16_V3"
       username           = "sshuser"
       password           = "TerrAform123!"
       subnet_id          = azurerm_subnet.test.id
@@ -2162,20 +2162,20 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_E16_V3"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 2
     }
 
     zookeeper_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }

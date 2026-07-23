@@ -724,10 +724,10 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
   }
 
   storage_account_gen2 {
-    storage_resource_id          = azurerm_storage_account.gen2test.id
-    filesystem_id                = azurerm_storage_data_lake_gen2_filesystem.gen2test.id
-    managed_identity_resource_id = azurerm_user_assigned_identity.test.id
-    is_default                   = true
+    storage_account_id        = azurerm_storage_account.gen2test.id
+    filesystem_id             = azurerm_storage_data_lake_gen2_filesystem.gen2test.id
+    user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+    is_default                = true
   }
 
   roles {
@@ -832,10 +832,10 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
   }
 
   storage_account_gen2 {
-    storage_resource_id          = azurerm_storage_account.gen2test.id
-    filesystem_id                = azurerm_storage_data_lake_gen2_filesystem.gen2test.id
-    managed_identity_resource_id = azurerm_user_assigned_identity.test.id
-    is_default                   = true
+    storage_account_id        = azurerm_storage_account.gen2test.id
+    filesystem_id             = azurerm_storage_data_lake_gen2_filesystem.gen2test.id
+    user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+    is_default                = true
   }
 
   private_link_configuration {
@@ -912,9 +912,9 @@ resource "azurerm_hdinsight_hbase_cluster" "import" {
   dynamic "storage_account" {
     for_each = azurerm_hdinsight_hbase_cluster.test.storage_account
     content {
-      is_default           = storage_account.value.is_default
-      storage_account_key  = storage_account.value.storage_account_key
-      storage_container_id = storage_account.value.storage_container_id
+      is_default            = storage_account.value.is_default
+      storage_account_key   = storage_account.value.storage_account_key
+      storage_container_url = storage_account.value.storage_container_url
     }
   }
   dynamic "roles" {
@@ -1231,9 +1231,9 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
 
   storage_account {
     storage_container_url = azurerm_storage_container.test.url
-    storage_resource_id  = azurerm_storage_account.test.id
-    storage_account_key  = azurerm_storage_account.test.primary_access_key
-    is_default           = true
+    storage_account  _id  = azurerm_storage_account.test.id
+    storage_account_key   = azurerm_storage_account.test.primary_access_key
+    is_default            = true
   }
 
   network {
@@ -1643,20 +1643,20 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_D4a_v4"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_D4a_v4"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 2
     }
 
     zookeeper_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_D4a_v4"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
