@@ -188,6 +188,8 @@ github.com/jackofallops/giovanni v0.29.0 h1:GJXx5sA6+j2pJ0sm+gfrWs5r35n/p5ReTRym
 github.com/jackofallops/giovanni v0.29.0/go.mod h1:CyzRgZyts4YSI/1iZF8poqdn9I6J8xpmg1iMpvhthTs=
 github.com/jackofallops/kermit v0.20241010.1180132 h1:3EwOQarDKNhtJ1zmtQAwtozYEayxN1AHT3/AMTDZNmw=
 github.com/jackofallops/kermit v0.20241010.1180132/go.mod h1:3Qf3rz0MOUsmzd3mxRb5ehTZ0+zhf7fOraV6jJxntLU=
+github.com/jackofallops/terraform-plugin-testing v0.0.0-20260723142141-60e7d6ed8b67 h1:PQoW0Si6Jipe/nNTDFkbbHQZPsqDzfbeQRsHl6HP6N4=
+github.com/jackofallops/terraform-plugin-testing v0.0.0-20260723142141-60e7d6ed8b67/go.mod h1:TaZNg0qy+Wh00FpiW6oG6ze36NS+joVCy3ZC1KLlOhU=
 github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 h1:BQSFePA1RWJOlocH6Fxy8MmwDt+yVQYULKfN0RoTN8A=
 github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99/go.mod h1:1lJo3i6rXxKeerYnT8Nvf0QmHCRC1n8sfWVwXF2Frvo=
 github.com/jhump/protoreflect v1.17.0 h1:qOEr613fac2lOuTgWN4tPAtLL7fUSbuJL5X5XumQh94=

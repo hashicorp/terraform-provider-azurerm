@@ -114,4 +114,4 @@ require (
 
 go 1.26.5
 
-replace github.com/hashicorp/terraform-plugin-testing => ../terraform-plugin-testing
+replace github.com/hashicorp/terraform-plugin-testing => github.com/jackofallops/terraform-plugin-testing v0.0.0-20260723142141-60e7d6ed8b67

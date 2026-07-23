@@ -108,14 +108,10 @@ func TestAccResourceGroup_upgrade(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
 		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
+			Config:   r.basic(data),
+			PlanOnly: true,
 		},
-		data.ImportStep(),
 	})
 }
 

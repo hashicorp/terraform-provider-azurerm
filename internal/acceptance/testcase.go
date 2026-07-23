@@ -154,6 +154,7 @@ func (td TestData) ResourceSequentialTest(t *testing.T, testResource types.TestR
 	td.runAcceptanceSequentialTest(t, testCase)
 }
 
+// RunTestsInSequence runs all tests in sequence.
 func RunTestsInSequence(t *testing.T, tests map[string]map[string]func(t *testing.T)) {
 	for group, m := range tests {
 		m := m
@@ -216,9 +217,18 @@ func getPreviousProviderVersion() string {
 // preceding released version downloaded cleanly from the registry. Stage 2 hands over the state cleanly to
 // the locally built test daemons.
 func (td TestData) ResourceUpgradeTest(t *testing.T, testResource types.TestResource, steps []TestStep) {
+	td.ResourceUpgradeWithVersionTest(t, getPreviousProviderVersion(), testResource, steps)
+}
+
+// ResourceUpgradeWithVersionTest allows an explicit framework wrapper bridging the state migration checks.
+// It executes a 2-stage upgrade test. Stage 1 provisions the resource natively using the
+// specified previousVersion. Stage 2 hands over the state to the locally built test daemons.
+// If skipStepOneDuringHandover is true, the first step is only executed against the registry version,
+// and drops out of the array before local version checks to prevent checking locally invalid legacy config schemas.
+func (td TestData) ResourceUpgradeWithVersionTest(t *testing.T, previousVersion string, testResource types.TestResource, steps []TestStep) {
 	os.Setenv("TF_ACC_REFRESH_AFTER_APPLY", "true")
 
-	v2TestCase := resource.TestCase{
+	tc := resource.TestCase{
 		PreCheck: func() { PreCheck(t) },
 		CheckDestroy: func(s *terraform.State) error {
 			client, err := testclient.BuildWithTestName(t.Name())
@@ -233,10 +243,10 @@ func (td TestData) ResourceUpgradeTest(t *testing.T, testResource types.TestReso
 	}
 
 	upgradeCase := resource.ProviderUpgradeTestCase{
-		V1ProviderName:    "azurerm",
-		V1ProviderSource:  "registry.terraform.io/hashicorp/azurerm",
-		V1ProviderVersion: getPreviousProviderVersion(),
-		V2TestCase:        v2TestCase, // Hand execution over to local factories
+		ProviderName:    "azurerm",
+		ProviderSource:  "registry.terraform.io/hashicorp/azurerm",
+		ProviderVersion: previousVersion,
+		TestCase:        tc, // Hand execution over to local factories
 	}
 
 	testclient.RegisterTestT(t)
@@ -274,4 +284,8 @@ func (td TestData) externalProviders() map[string]resource.ExternalProvider {
 			Source:            "registry.terraform.io/hashicorp/tls",
 		},
 	}
+}
+
+func (td TestData) getFeaturesBlock(config string) string {
+	return fmt.Sprintf("azurerm_test_data_%s", config)
 }

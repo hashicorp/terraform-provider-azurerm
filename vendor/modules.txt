@@ -1494,7 +1494,7 @@ github.com/hashicorp/terraform-plugin-sdk/v2/internal/tfdiags
 github.com/hashicorp/terraform-plugin-sdk/v2/meta
 github.com/hashicorp/terraform-plugin-sdk/v2/plugin
 github.com/hashicorp/terraform-plugin-sdk/v2/terraform
-# github.com/hashicorp/terraform-plugin-testing v1.16.0 => ../terraform-plugin-testing
+# github.com/hashicorp/terraform-plugin-testing v1.16.0 => github.com/jackofallops/terraform-plugin-testing v0.0.0-20260723142141-60e7d6ed8b67
 ## explicit; go 1.25.8
 github.com/hashicorp/terraform-plugin-testing/compare
 github.com/hashicorp/terraform-plugin-testing/config
@@ -1896,4 +1896,4 @@ gopkg.in/yaml.v3
 ## explicit; go 1.19
 software.sslmate.com/src/go-pkcs12
 software.sslmate.com/src/go-pkcs12/internal/rc2
-# github.com/hashicorp/terraform-plugin-testing => ../terraform-plugin-testing
+# github.com/hashicorp/terraform-plugin-testing => github.com/jackofallops/terraform-plugin-testing v0.0.0-20260723142141-60e7d6ed8b67
