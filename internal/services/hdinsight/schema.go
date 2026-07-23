@@ -49,13 +49,13 @@ func SchemaHDInsightTier() *pluginsdk.Schema {
 func SchemaHDInsightTls() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeString,
-		Optional: true,
-		Computed: true,
+		Required: true,
 		ForceNew: true,
 		ValidateFunc: validation.StringInSlice([]string{
 			"1.0",
 			"1.1",
 			"1.2",
+			"1.3",
 		}, false),
 	}
 }

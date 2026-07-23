@@ -8,8 +8,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -631,11 +629,12 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  cluster_version     = "4.0"
+  cluster_version     = "5.1"
   tier                = "Standard"
+  tls_min_version     = "1.2"
 
   component_version {
-    kafka = "2.1"
+    kafka = "3.2"
   }
 
   gateway {
@@ -644,20 +643,20 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   }
 
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_url = azurerm_storage_container.test.url
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
 
   roles {
     head_node {
-      vm_size  = "Standard_D3_V2"
+      vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size                  = "Standard_D3_V2"
+      vm_size                  = "Standard_A4_V2"
       username                 = "acctestusrvm"
       password                 = "AccTestvdSC4daf986!"
       target_instance_count    = 3
@@ -665,7 +664,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
     }
 
     zookeeper_node {
-      vm_size  = "Standard_D3_V2"
+      vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -684,11 +683,12 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-  cluster_version     = "4.0"
+  cluster_version     = "5.1"
   tier                = "Standard"
+  tls_min_version     = "1.2"
 
   component_version {
-    kafka = "2.1"
+    kafka = "3.2"
   }
 
   gateway {
@@ -705,13 +705,13 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_D3_V2"
+      vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size                  = "Standard_D3_V2"
+      vm_size                  = "Standard_A4_V2"
       username                 = "acctestusrvm"
       password                 = "AccTestvdSC4daf986!"
       target_instance_count    = 3
@@ -719,7 +719,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
     }
 
     zookeeper_node {
-      vm_size  = "Standard_D3_V2"
+      vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -787,11 +787,12 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  cluster_version     = "4.0"
+  cluster_version     = "5.1"
   tier                = "Standard"
+  tls_min_version     = "1.2"
 
   component_version {
-    kafka = "2.1"
+    kafka = "3.2"
   }
 
   network {
@@ -824,7 +825,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_D3_V2"
+      vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
 
@@ -844,7 +845,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
     }
 
     zookeeper_node {
-      vm_size  = "Standard_D3_V2"
+      vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
 
@@ -868,6 +869,7 @@ resource "azurerm_hdinsight_kafka_cluster" "import" {
   location            = azurerm_hdinsight_kafka_cluster.test.location
   cluster_version     = azurerm_hdinsight_kafka_cluster.test.cluster_version
   tier                = azurerm_hdinsight_kafka_cluster.test.tier
+  tls_min_version     = azurerm_hdinsight_kafka_cluster.test.tls_min_version
   dynamic "component_version" {
     for_each = azurerm_hdinsight_kafka_cluster.test.component_version
     content {
@@ -886,7 +888,7 @@ resource "azurerm_hdinsight_kafka_cluster" "import" {
     content {
       is_default           = storage_account.value.is_default
       storage_account_key  = storage_account.value.storage_account_key
-      storage_container_id = storage_account.value.storage_container_id
+      storage_container_url = storage_account.value.storage_container_url
     }
   }
   dynamic "roles" {
@@ -938,11 +940,12 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  cluster_version     = "4.0"
+  cluster_version     = "5.1"
   tier                = "Standard"
+  tls_min_version     = "1.2"
 
   component_version {
-    kafka = "2.1"
+    kafka = "3.2"
   }
 
   gateway {
@@ -951,20 +954,20 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   }
 
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_url = azurerm_storage_container.test.url
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
 
   roles {
     head_node {
-      vm_size  = "Standard_D3_V2"
+      vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       ssh_keys = [var.ssh_key]
     }
 
     worker_node {
-      vm_size                  = "Standard_D3_V2"
+      vm_size                  = "Standard_A4_V2"
       username                 = "acctestusrvm"
       ssh_keys                 = [var.ssh_key]
       target_instance_count    = 3
@@ -972,7 +975,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
     }
 
     zookeeper_node {
-      vm_size  = "Standard_D3_V2"
+      vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       ssh_keys = [var.ssh_key]
     }
@@ -989,11 +992,12 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  cluster_version     = "4.0"
+  cluster_version     = "5.1"
   tier                = "Standard"
+  tls_min_version     = "1.2"
 
   component_version {
-    kafka = "2.1"
+    kafka = "3.2"
   }
 
   gateway {
@@ -1002,20 +1006,20 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   }
 
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_url = azurerm_storage_container.test.url
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
 
   roles {
     head_node {
-      vm_size  = "Standard_D3_V2"
+      vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size                  = "Standard_D3_V2"
+      vm_size                  = "Standard_A4_V2"
       username                 = "acctestusrvm"
       password                 = "AccTestvdSC4daf986!"
       target_instance_count    = 5
@@ -1023,7 +1027,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
     }
 
     zookeeper_node {
-      vm_size  = "Standard_D3_V2"
+      vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1058,11 +1062,12 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  cluster_version     = "4.0"
+  cluster_version     = "5.1"
   tier                = "Standard"
+  tls_min_version     = "1.2"
 
   component_version {
-    kafka = "2.1"
+    kafka = "3.2"
   }
 
   gateway {
@@ -1071,14 +1076,14 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   }
 
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_url = azurerm_storage_container.test.url
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
 
   roles {
     head_node {
-      vm_size            = "Standard_D3_V2"
+      vm_size            = "Standard_A4_V2"
       username           = "acctestusrvm"
       password           = "AccTestvdSC4daf986!"
       subnet_id          = azurerm_subnet.test.id
@@ -1086,7 +1091,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
     }
 
     worker_node {
-      vm_size                  = "Standard_D3_V2"
+      vm_size                  = "Standard_A4_V2"
       username                 = "acctestusrvm"
       password                 = "AccTestvdSC4daf986!"
       target_instance_count    = 3
@@ -1096,7 +1101,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
     }
 
     zookeeper_node {
-      vm_size            = "Standard_D3_V2"
+      vm_size            = "Standard_A4_V2"
       username           = "acctestusrvm"
       password           = "AccTestvdSC4daf986!"
       subnet_id          = azurerm_subnet.test.id
@@ -1129,11 +1134,12 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  cluster_version     = "4.0"
+  cluster_version     = "5.1"
   tier                = "Standard"
+  tls_min_version     = "1.2"
 
   component_version {
-    kafka = "2.1"
+    kafka = "3.2"
   }
 
   gateway {
@@ -1143,7 +1149,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
 
   storage_account {
     storage_resource_id  = azurerm_storage_account.test.id
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_url = azurerm_storage_container.test.url
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
@@ -1154,7 +1160,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
 
   roles {
     head_node {
-      vm_size            = "Standard_D3_V2"
+      vm_size            = "Standard_A4_V2"
       username           = "acctestusrvm"
       password           = "AccTestvdSC4daf986!"
       subnet_id          = azurerm_subnet.test.id
@@ -1162,7 +1168,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
     }
 
     worker_node {
-      vm_size                  = "Standard_D3_V2"
+      vm_size                  = "Standard_A4_V2"
       username                 = "acctestusrvm"
       password                 = "AccTestvdSC4daf986!"
       target_instance_count    = 3
@@ -1172,7 +1178,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
     }
 
     zookeeper_node {
-      vm_size            = "Standard_D3_V2"
+      vm_size            = "Standard_A4_V2"
       username           = "acctestusrvm"
       password           = "AccTestvdSC4daf986!"
       subnet_id          = azurerm_subnet.test.id
@@ -1400,32 +1406,6 @@ resource "azurerm_network_security_group" "test" {
 }
 
 func (HDInsightKafkaClusterResource) template(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-hdi-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "acctest"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-		`, data.RandomInteger, data.Locations.Primary, data.RandomString)
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1503,12 +1483,12 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  cluster_version     = "4.0"
+  cluster_version     = "5.1"
   tier                = "Standard"
   tls_min_version     = "1.2"
 
   component_version {
-    kafka = "2.1"
+    kafka = "3.2"
   }
 
   gateway {
@@ -1517,20 +1497,20 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   }
 
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_url = azurerm_storage_container.test.url
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
 
   roles {
     head_node {
-      vm_size  = "Standard_D3_V2"
+      vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size                  = "Standard_D3_V2"
+      vm_size                  = "Standard_A4_V2"
       username                 = "acctestusrvm"
       password                 = "AccTestvdSC4daf986!"
       target_instance_count    = 3
@@ -1538,7 +1518,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
     }
 
     zookeeper_node {
-      vm_size  = "Standard_D3_V2"
+      vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1586,23 +1566,25 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  cluster_version     = "4.0"
+  cluster_version     = "5.1"
   tier                = "Standard"
+  tls_min_version     = "1.2"
+
   component_version {
-    kafka = "2.1"
+    kafka = "3.2"
   }
   gateway {
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_url = azurerm_storage_container.test.url
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
   roles {
     head_node {
-      vm_size  = "Standard_D3_V2"
+      vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1614,7 +1596,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
       number_of_disks_per_node = 2
     }
     zookeeper_node {
-      vm_size  = "Standard_D3_V2"
+      vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1670,35 +1652,37 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  cluster_version     = "4.0"
+  cluster_version     = "5.1"
   tier                = "Standard"
+  tls_min_version     = "1.2"
+
   component_version {
-    kafka = "2.1"
+    kafka = "3.2"
   }
   gateway {
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_url = azurerm_storage_container.test.url
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
   roles {
     head_node {
-      vm_size  = "Standard_D3_V2"
+      vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
     worker_node {
-      vm_size                  = "Standard_D4_V2"
+      vm_size                  = "Standard_A4_V2"
       username                 = "acctestusrvm"
       password                 = "AccTestvdSC4daf986!"
       target_instance_count    = 3
       number_of_disks_per_node = 2
     }
     zookeeper_node {
-      vm_size  = "Standard_D3_V2"
+      vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1730,11 +1714,12 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  cluster_version     = "4.0"
+  cluster_version     = "5.1"
   tier                = "Standard"
+  tls_min_version     = "1.2"
 
   component_version {
-    kafka = "2.1"
+    kafka = "3.2"
   }
 
   gateway {
@@ -1743,20 +1728,20 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   }
 
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_url = azurerm_storage_container.test.url
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
 
   roles {
     head_node {
-      vm_size  = "Standard_D3_V2"
+      vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size                  = "Standard_D3_V2"
+      vm_size                  = "Standard_A4_V2"
       username                 = "acctestusrvm"
       password                 = "AccTestvdSC4daf986!"
       target_instance_count    = 3
@@ -1764,7 +1749,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
     }
 
     zookeeper_node {
-      vm_size  = "Standard_D3_V2"
+      vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1793,11 +1778,12 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  cluster_version     = "4.0"
+  cluster_version     = "5.1"
   tier                = "Standard"
+  tls_min_version     = "1.2"
 
   component_version {
-    kafka = "2.1"
+    kafka = "3.2"
   }
 
   gateway {
@@ -1806,20 +1792,20 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   }
 
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_url = azurerm_storage_container.test.url
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
 
   roles {
     head_node {
-      vm_size  = "Standard_D3_V2"
+      vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size                  = "Standard_D3_V2"
+      vm_size                  = "Standard_A4_V2"
       username                 = "acctestusrvm"
       password                 = "AccTestvdSC4daf986!"
       target_instance_count    = 3
@@ -1827,7 +1813,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
     }
 
     zookeeper_node {
-      vm_size  = "Standard_D3_V2"
+      vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1856,11 +1842,12 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  cluster_version     = "4.0"
+  cluster_version     = "5.1"
   tier                = "Standard"
+  tls_min_version     = "1.2"
 
   component_version {
-    kafka = "2.1"
+    kafka = "3.2"
   }
 
   gateway {
@@ -1869,20 +1856,20 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   }
 
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_url = azurerm_storage_container.test.url
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
 
   roles {
     head_node {
-      vm_size  = "Standard_D3_V2"
+      vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size                  = "Standard_D3_V2"
+      vm_size                  = "Standard_A4_V2"
       username                 = "acctestusrvm"
       password                 = "AccTestvdSC4daf986!"
       target_instance_count    = 3
@@ -1890,7 +1877,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
     }
 
     zookeeper_node {
-      vm_size  = "Standard_D3_V2"
+      vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1917,11 +1904,12 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  cluster_version     = "4.0"
+  cluster_version     = "5.1"
   tier                = "Standard"
+  tls_min_version     = "1.2"
 
   component_version {
-    kafka = "2.1"
+    kafka = "3.2"
   }
 
   gateway {
@@ -1930,7 +1918,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   }
 
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_url = azurerm_storage_container.test.url
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
@@ -1941,13 +1929,13 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_D4a_V4"
+      vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size                  = "Standard_D4a_V4"
+      vm_size                  = "Standard_A4_V2"
       username                 = "acctestusrvm"
       password                 = "AccTestvdSC4daf986!"
       target_instance_count    = 3
@@ -1955,7 +1943,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
     }
 
     zookeeper_node {
-      vm_size  = "Standard_DS2_V2"
+      vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1972,13 +1960,14 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  cluster_version     = "4.0"
+  cluster_version     = "5.1"
   tier                = "Standard"
+  tls_min_version     = "1.2"
 
   encryption_in_transit_enabled = true
 
   component_version {
-    kafka = "2.1"
+    kafka = "3.2"
   }
 
   gateway {
@@ -1987,20 +1976,20 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   }
 
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_url = azurerm_storage_container.test.url
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
 
   roles {
     head_node {
-      vm_size  = "Standard_D3_V2"
+      vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size                  = "Standard_D3_V2"
+      vm_size                  = "Standard_A4_V2"
       username                 = "acctestusrvm"
       password                 = "AccTestvdSC4daf986!"
       target_instance_count    = 3
@@ -2008,7 +1997,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
     }
 
     zookeeper_node {
-      vm_size  = "Standard_D3_V2"
+      vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -2025,15 +2014,16 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  cluster_version     = "4.0"
+  cluster_version     = "5.1"
   tier                = "Standard"
+  tls_min_version     = "1.2"
 
   compute_isolation {
     compute_isolation_enabled = true
   }
 
   component_version {
-    kafka = "2.1"
+    kafka = "3.2"
   }
 
   gateway {
@@ -2042,20 +2032,20 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   }
 
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_url = azurerm_storage_container.test.url
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
 
   roles {
     head_node {
-      vm_size  = "Standard_F72s_V2"
+      vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size                  = "Standard_F72s_V2"
+      vm_size                  = "Standard_A4_V2"
       username                 = "acctestusrvm"
       password                 = "AccTestvdSC4daf986!"
       target_instance_count    = 3
@@ -2063,7 +2053,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
     }
 
     zookeeper_node {
-      vm_size  = "Standard_F72s_V2"
+      vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -2080,11 +2070,12 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   name                = "acctesthdikafka-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  cluster_version     = "4.0"
+  cluster_version     = "5.1"
   tier                = "Premium"
+  tls_min_version     = "1.2"
 
   component_version {
-    kafka = "2.1"
+    kafka = "3.2"
   }
 
   gateway {
@@ -2093,14 +2084,14 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   }
 
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_url = azurerm_storage_container.test.url
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
 
   roles {
     head_node {
-      vm_size            = "Standard_E4_V3"
+      vm_size            = "Standard_A4_V2"
       username           = "sshuser"
       password           = "TerrAform123!"
       subnet_id          = azurerm_subnet.test.id
@@ -2108,7 +2099,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
     }
 
     worker_node {
-      vm_size                  = "Standard_E4_V3"
+      vm_size                  = "Standard_A4_V2"
       username                 = "sshuser"
       password                 = "TerrAform123!"
       target_instance_count    = 3
@@ -2118,7 +2109,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
     }
 
     zookeeper_node {
-      vm_size            = "Standard_D3_V2"
+      vm_size            = "Standard_A4_V2"
       username           = "sshuser"
       password           = "TerrAform123!"
       subnet_id          = azurerm_subnet.test.id

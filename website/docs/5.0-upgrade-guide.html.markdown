@@ -928,6 +928,40 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 * The `storage_account` block's `storage_container_id` property has been renamed to `storage_container_url` to make it clear that this value needs to be the Data Plane URL of the container, not the ARM ID.
 * The `storage_account_gen2` block's `storage_resource_id` property has been renamed to `storage_account_id` to align with other resource naming.
 * The `storage_account_gen2` block's `managed_identity_resource_id` property has been renamed to `user_assigned_identity_id` to align with other resource naming.
+* The `tls_min_version` property is now required.
+
+### `azurerm_hdinsight_hadoop_cluster`
+
+* The `storage_account` block's `storage_resource_id` property has been renamed to `storage_account_id` to align it with other resource naming.
+* The `storage_account` block's `storage_container_id` property has been renamed to `storage_container_url` to make it clear that this value needs to be the Data Plane URL of the container, not the ARM ID.
+* The `storage_account_gen2` block's `storage_resource_id` property has been renamed to `storage_account_id` to align with other resource naming.
+* The `storage_account_gen2` block's `managed_identity_resource_id` property has been renamed to `user_assigned_identity_id` to align with other resource naming.
+* The `tls_min_version` property is now required.
+
+### `azurerm_hdinsight_hbase_cluster`
+
+* The `storage_account` block's `storage_resource_id` property has been renamed to `storage_account_id` to align it with other resource naming.
+* The `storage_account` block's `storage_container_id` property has been renamed to `storage_container_url` to make it clear that this value needs to be the Data Plane URL of the container, not the ARM ID.
+* The `storage_account_gen2` block's `storage_resource_id` property has been renamed to `storage_account_id` to align with other resource naming.
+* The `storage_account_gen2` block's `managed_identity_resource_id` property has been renamed to `user_assigned_identity_id` to align with other resource naming.
+* The `tls_min_version` property is now required.
+
+### `azurerm_hdinsight_kafka_cluster`
+
+* The `storage_account` block's `storage_resource_id` property has been renamed to `storage_account_id` to align it with other resource naming.
+* The `storage_account` block's `storage_container_id` property has been renamed to `storage_container_url` to make it clear that this value needs to be the Data Plane URL of the container, not the ARM ID.
+* The `storage_account_gen2` block's `storage_resource_id` property has been renamed to `storage_account_id` to align with other resource naming.
+* The `storage_account_gen2` block's `managed_identity_resource_id` property has been renamed to `user_assigned_identity_id` to align with other resource naming.
+* The `tls_min_version` property is now required.
+
+### `azurerm_hdinsight_spark_cluster`
+
+* The `storage_account` block's `storage_resource_id` property has been renamed to `storage_account_id` to align it with other resource naming.
+* The `storage_account` block's `storage_container_id` property has been renamed to `storage_container_url` to make it clear that this value needs to be the Data Plane URL of the container, not the ARM ID.
+* The `storage_account_gen2` block's `storage_resource_id` property has been renamed to `storage_account_id` to align with other resource naming.
+* The `storage_account_gen2` block's `managed_identity_resource_id` property has been renamed to `user_assigned_identity_id` to align with other resource naming.
+* The `tls_min_version` property is now required.
+
 
 ## Breaking Changes in Data Sources
 
