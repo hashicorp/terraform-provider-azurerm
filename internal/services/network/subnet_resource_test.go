@@ -59,7 +59,7 @@ func TestAccSubnet_basicWithNSG(t *testing.T) {
 		},
 		data.ImportStep("network_security_group_id_wo_version"),
 		{
-			Config: r.basicWithNSG(data, 0), // remove NSG?
+			Config: r.basicWithNSG(data, 0), // remove NSG
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_security_group_id").IsEmpty(),
@@ -121,7 +121,17 @@ func TestAccSubnet_WriteOnly_migration(t *testing.T) {
 		{
 			// Switch to separate association resources.
 			// The update should show no changes to the actual Azure Subnet, but TF will process the new resources.
-			Config: r.writeOnlyMigrationSeparate(data),
+			Config: r.writeOnlyMigrationSeparate(data, "10.0.2.0/24"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That("data.azurerm_subnet.test").Key("network_security_group_id").IsNotEmpty(),
+				check.That("data.azurerm_subnet.test").Key("route_table_id").IsNotEmpty(),
+			),
+		},
+		{
+			// Update an unrelated property to ensure we don't unintentionally remove the association managed by
+			// the separated resources.
+			Config: r.writeOnlyMigrationSeparate(data, "10.0.3.0/24"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That("data.azurerm_subnet.test").Key("network_security_group_id").IsNotEmpty(),
@@ -945,7 +955,7 @@ resource "azurerm_subnet" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r SubnetResource) writeOnlyMigrationSeparate(data acceptance.TestData) string {
+func (r SubnetResource) writeOnlyMigrationSeparate(data acceptance.TestData, addressPrefix string) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -965,7 +975,7 @@ resource "azurerm_subnet" "test" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
+  address_prefixes     = ["%s"]
 }
 
 resource "azurerm_subnet_network_security_group_association" "test" {
@@ -989,7 +999,7 @@ data "azurerm_subnet" "test" {
     azurerm_subnet_network_security_group_association.test,
   ]
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, addressPrefix)
 }
 
 func (r SubnetResource) delegation(data acceptance.TestData) string {
