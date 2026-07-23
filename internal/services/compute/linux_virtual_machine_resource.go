@@ -1559,36 +1559,22 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		update.Properties.AdditionalCapabilities = expandVirtualMachineAdditionalCapabilities(additionalCapabilitiesRaw)
 	}
 
-	hostEncryptionOld, hostEncryptionNew := func() (bool, bool) {
-		blockOld, blockNew := d.GetChange("security_profile")
-
-		resolve := func(block interface{}) bool {
-			if blockSlice, ok := block.([]interface{}); ok && len(blockSlice) != 0 {
-				if v, ok := blockSlice[0].(map[string]interface{})["host_encryption_enabled"]; ok {
-					return v.(bool)
-				}
-			}
-
-			return false
+	if d.HasChanges("security_profile") {
+		osDiskRaw := d.Get("os_disk").([]interface{})
+		securityEncryptionType := osDiskRaw[0].(map[string]interface{})["security_encryption_type"].(string)
+		securityProfile, err := expandVirtualMachineSecurityProfile(d, securityEncryptionType)
+		if err != nil {
+			return err
 		}
-
-		return resolve(blockOld), resolve(blockNew)
-	}()
-	if hostEncryptionOld != hostEncryptionNew {
-		if hostEncryptionNew {
-			osDiskRaw := d.Get("os_disk").([]interface{})
-			securityEncryptionType := osDiskRaw[0].(map[string]interface{})["security_encryption_type"].(string)
-			if virtualmachines.SecurityEncryptionTypesDiskWithVMGuestState == virtualmachines.SecurityEncryptionTypes(securityEncryptionType) {
-				return fmt.Errorf("`security_profile.0.host_encryption_enabled` cannot be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
+		if securityProfile == nil {
+			securityProfile = &virtualmachines.SecurityProfile{
+				EncryptionAtHost: pointer.To(false),
 			}
 		}
 
 		shouldUpdate = true
 		shouldDeallocate = true // API returns the following error if not deallocate: 'securityProfile.encryptionAtHost' can be updated only when VM is in deallocated state
-
-		update.Properties.SecurityProfile = &virtualmachines.SecurityProfile{
-			EncryptionAtHost: pointer.To(hostEncryptionNew),
-		}
+		update.Properties.SecurityProfile = securityProfile
 	}
 
 	if d.HasChange("user_data") {

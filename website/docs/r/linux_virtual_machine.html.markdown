@@ -355,7 +355,7 @@ A `plan` block supports the following:
 A `security_profile` block supports the following:
 
 * `host_encryption_enabled` - (Optional) Should all of the disks (including the temp disk) attached to this Virtual Machine be encrypted by enabling Encryption at Host?
-* `security_type` - (Optional) Specifies the secure hardware type of this Virtual Machine. Possible values are `Standard`, `TrustedLaunch`, and `ConfidentialVM`. Changing this forces a new resource to be created.
+* `security_type` - (Optional) Specifies the secure hardware type of this Virtual Machine. Possible values are `TrustedLaunch` and `ConfidentialVM`. Changing this forces a new resource to be created.
 * `secure_boot_enabled` - (Optional) Specifies whether secure boot should be enabled on the virtual machine. Changing this forces a new resource to be created.
 * `vtpm_enabled` - (Optional) Specifies whether vTPM should be enabled on the virtual machine. Changing this forces a new resource to be created.
 

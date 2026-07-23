@@ -557,7 +557,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherEncryptionAtHost(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherEncryptionAtHost(data, pointer.To(true)),
+			Config: r.otherEncryptionAtHost(data, pointer.To(true), false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -572,7 +572,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherEncryptionAtHostUpdate(t *testing.T
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherEncryptionAtHost(data, pointer.To(true)),
+			Config: r.otherEncryptionAtHost(data, pointer.To(true), false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("security_profile.#").HasValue("1"),
@@ -581,7 +581,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherEncryptionAtHostUpdate(t *testing.T
 		},
 		data.ImportStep("admin_password"),
 		{
-			Config: r.otherEncryptionAtHost(data, pointer.To(false)),
+			Config: r.otherEncryptionAtHost(data, pointer.To(false), false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("security_profile.#").HasValue("1"),
@@ -590,7 +590,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherEncryptionAtHostUpdate(t *testing.T
 		},
 		data.ImportStep("admin_password"),
 		{
-			Config: r.otherEncryptionAtHost(data, pointer.To(true)),
+			Config: r.otherEncryptionAtHost(data, pointer.To(true), false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("security_profile.#").HasValue("1"),
@@ -599,7 +599,17 @@ func TestAccLinuxVirtualMachineScaleSet_otherEncryptionAtHostUpdate(t *testing.T
 		},
 		data.ImportStep("admin_password"),
 		{
-			Config: r.otherEncryptionAtHost(data, nil),
+			Config: r.otherEncryptionAtHost(data, nil, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("security_profile.#").HasValue("1"),
+				check.That(data.ResourceName).Key("security_profile.0.host_encryption_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("security_profile.0.security_type").DoesNotExist(),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.otherEncryptionAtHost(data, nil, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("security_profile.#").HasValue("0"),
@@ -2581,7 +2591,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, r.template(data), data.RandomInteger, enabled)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) otherEncryptionAtHost(data acceptance.TestData, enabled *bool) string {
+func (r LinuxVirtualMachineScaleSetResource) otherEncryptionAtHost(data acceptance.TestData, enabled *bool, empty bool) string {
 	securityProfile := ""
 	if enabled != nil {
 		securityProfile = fmt.Sprintf(`
@@ -2589,6 +2599,8 @@ func (r LinuxVirtualMachineScaleSetResource) otherEncryptionAtHost(data acceptan
     host_encryption_enabled = %t
   }
 `, *enabled)
+	} else if empty {
+		securityProfile = "\n  security_profile {}\n"
 	}
 
 	return fmt.Sprintf(`

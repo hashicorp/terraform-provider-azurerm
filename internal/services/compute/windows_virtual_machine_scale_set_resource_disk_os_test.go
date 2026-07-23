@@ -242,16 +242,33 @@ func TestAccWindowsVirtualMachineScaleSet_disksOSDiskConfidentialSecurityProfile
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.disksOSDiskSecurityProfileBlock(data),
+			Config: r.disksOSDiskSecurityProfileBlock(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("security_profile.#").HasValue("1"),
+				check.That(data.ResourceName).Key("security_profile.0.host_encryption_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("security_profile.0.security_type").HasValue("ConfidentialVM"),
 				check.That(data.ResourceName).Key("security_profile.0.secure_boot_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("security_profile.0.vtpm_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("encryption_at_host_enabled").DoesNotExist(),
 				check.That(data.ResourceName).Key("secure_boot_enabled").DoesNotExist(),
 				check.That(data.ResourceName).Key("vtpm_enabled").DoesNotExist(),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.disksOSDiskSecurityProfileBlock(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("security_profile.0.host_encryption_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.disksOSDiskSecurityProfileBlock(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("security_profile.0.host_encryption_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -737,7 +754,6 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   security_profile {
-    security_type       = "ConfidentialVM"
     vtpm_enabled        = %[2]t
     secure_boot_enabled = %t
   }
@@ -747,7 +763,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 `, r.template(data), vtpm, secureBoot)
 }
 
-func (r WindowsVirtualMachineScaleSetResource) disksOSDiskSecurityProfileBlock(data acceptance.TestData) string {
+func (r WindowsVirtualMachineScaleSetResource) disksOSDiskSecurityProfileBlock(data acceptance.TestData, hostEncryptionEnabled bool) string {
 	// Confidential VM has limited region support
 	data.Locations.Primary = "northeurope"
 	return fmt.Sprintf(`
@@ -787,12 +803,13 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   security_profile {
-    security_type       = "ConfidentialVM"
-    secure_boot_enabled = true
-    vtpm_enabled        = true
+    host_encryption_enabled = %t
+    security_type           = "ConfidentialVM"
+    secure_boot_enabled     = true
+    vtpm_enabled            = true
   }
 }
-`, r.template(data))
+`, r.template(data), hostEncryptionEnabled)
 }
 
 func (r WindowsVirtualMachineScaleSetResource) disksOSDiskConfidentialVmWithDiskAndVMGuestStateCMK(data acceptance.TestData) string {
@@ -845,7 +862,6 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   security_profile {
-    security_type       = "ConfidentialVM"
     vtpm_enabled        = true
     secure_boot_enabled = true
   }
