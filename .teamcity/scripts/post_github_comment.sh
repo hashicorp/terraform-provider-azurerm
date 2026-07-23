@@ -4,7 +4,10 @@ POST_GITHUB_COMMENT="%POST_GITHUB_COMMENT%"
 GITHUB_REPO="%env.GITHUB_REPO%"
 GIT_PAT="%env.GIT_PAT%"
 TEAMCITY_TOKEN="%env.TEAMCITY_TOKEN%"
+TEAMCITY_SERVER_URL=%teamcity.serverUrl%
 # BUILD_START_TIME is set in the first build step: $(date +%s)
+BUILD_ID="%teamcity.build.id%"
+BUILD_TYPE_ID="%system.teamcity.buildType.id%"
 BUILD_START_TIME="%env.BUILD_START_TIME%"
 BETA_VERSION_ENV_VAR="%env.BETA_VERSION_ENV_VAR%"
 TEAMCITY_BUILD_BRANCH="%teamcity.build.branch%"
@@ -13,6 +16,7 @@ LABEL_FAILURE="%env.LABEL_FAILURE%"
 LABEL_OUTDATED="%env.LABEL_OUTDATED%"
 LABEL_NEW_FAILURE="%env.LABEL_NEW_FAILURE%"
 APPLY_TESTING_LABELS_ENABLED="%env.APPLY_TESTING_LABELS_ENABLED%"
+TRACKING_ID="%TRACKING_ID%"
 
 if [ "$POST_GITHUB_COMMENT" != "true" ]; then
   echo "GitHub commenting disabled — skipping."
@@ -22,14 +26,12 @@ fi
 if [[ "$TEAMCITY_BUILD_BRANCH" =~ refs/pull/([0-9]+)/merge ]]; then
   PR_NUMBER="${BASH_REMATCH[1]}"
 else
-  echo "Not a PR merge branch: %teamcity.build.branch%"
+  echo "Not a PR merge branch: $TEAMCITY_BUILD_BRANCH"
   exit 0
 fi
 
-TRACKING_ID="%TRACKING_ID%"
 echo "Tracking ID: $TRACKING_ID"
 
-BUILD_ID="%teamcity.build.id%"
 
 github_api_request() {
   local endpoint="$1"
@@ -87,7 +89,7 @@ TEAMCITY_ERROR=""
 RAW_TEST_RESULTS_JSON=$(curl -sS -f \
   -H "Authorization: Bearer $TEAMCITY_TOKEN" \
   -H "Accept: application/json" \
-  "%teamcity.serverUrl%/app/rest/testOccurrences?locator=build:(id:$BUILD_ID),count:100000&fields=testOccurrence(name,status,duration)")
+  "$TEAMCITY_SERVER_URL/app/rest/testOccurrences?locator=build:(id:$BUILD_ID),count:100000&fields=testOccurrence(name,status,duration,id)")
 
 if [ $? -ne 0 ] || [ -z "$RAW_TEST_RESULTS_JSON" ]; then
   TEAMCITY_ERROR="Failed to fetch test results from TeamCity for build $BUILD_ID."
@@ -110,6 +112,7 @@ TOTAL=$((PASS_COUNT + FAIL_COUNT))
 # Fetch main branch test results early to identify new failures for comment marking
 NEW_FAILURES=""
 MAIN_TEST_RESULTS=""
+MAIN_TEST_ID_MAP=""
 if [ -z "$TEAMCITY_ERROR" ] && [ "$FAIL_COUNT" -gt 0 ]; then
   echo "Fetching main branch test results for comparison..."
 
@@ -117,21 +120,30 @@ if [ -z "$TEAMCITY_ERROR" ] && [ "$FAIL_COUNT" -gt 0 ]; then
   MAIN_BUILD_INFO=$(curl -s \
     -H "Authorization: Bearer $TEAMCITY_TOKEN" \
     -H "Accept: application/json" \
-    "%teamcity.serverUrl%/app/rest/builds?locator=buildType:(id:%system.teamcity.buildType.id%),branch:refs/heads/main,status:SUCCESS,count:1")
+    "$TEAMCITY_SERVER_URL/app/rest/builds?locator=buildType:(id:$BUILD_TYPE_ID),branch:refs/heads/main,status:SUCCESS,count:1")
 
   MAIN_BUILD_ID=$(echo "$MAIN_BUILD_INFO" | jq -r '.build[0].id // empty')
 
   if [ -n "$MAIN_BUILD_ID" ]; then
     echo "Found main branch build: $MAIN_BUILD_ID"
 
-    # Fetch test results from main branch build via the TeamCity REST API
-    MAIN_TEST_RESULTS=$(curl -s \
+    # Fetch test results from main branch build via the TeamCity REST API.
+    MAIN_RAW_JSON=$(curl -s \
       -H "Authorization: Bearer $TEAMCITY_TOKEN" \
       -H "Accept: application/json" \
-      "%teamcity.serverUrl%/app/rest/testOccurrences?locator=build:(id:$MAIN_BUILD_ID),count:100000&fields=testOccurrence(name,status)" \
-      | jq -r '.testOccurrence[]
+      "$TEAMCITY_SERVER_URL/app/rest/testOccurrences?locator=build:(id:$MAIN_BUILD_ID),count:100000&fields=testOccurrence(name,status,test(id))")
+
+    # Build name→status pairs (for new-failure detection)
+    MAIN_TEST_RESULTS=$(echo "$MAIN_RAW_JSON" \
+      | jq -r '(.testOccurrence // [])[]
           | select(.status == "SUCCESS" or .status == "FAILURE")
           | "\(.name)|\(if .status == "SUCCESS" then "PASS" else "FAIL" end)"' 2>/dev/null || echo "")
+
+    # Build name→test-entity-id pairs (for history queries)
+    MAIN_TEST_ID_MAP=$(echo "$MAIN_RAW_JSON" \
+      | jq -r '(.testOccurrence // [])[]
+          | select(.test.id != null)
+          | "\(.name)|\(.test.id)"' 2>/dev/null || echo "")
 
     if [ -n "$MAIN_TEST_RESULTS" ]; then
       # Extract failed test names from current PR
@@ -150,7 +162,6 @@ if [ -z "$TEAMCITY_ERROR" ] && [ "$FAIL_COUNT" -gt 0 ]; then
   fi
 fi
 
-
 CURRENT_TIME_S=$(date +%s)
 BUILD_DURATION=$((CURRENT_TIME_S - BUILD_START_TIME))
 
@@ -158,8 +169,59 @@ BUILD_HOURS=$((BUILD_DURATION / 3600))
 BUILD_MINUTES=$(((BUILD_DURATION % 3600) / 60))
 BUILD_SECONDS=$((BUILD_DURATION % 60))
 
+# Build per-test history data: "name|failure_rate|first_failure|last_failure"
+# This is collected for ALL tests that appear in RAW_TEST_RESULTS_JSON (pass or fail).
+TEST_HISTORY=""
+if [ -z "$TEAMCITY_ERROR" ] && [ -n "$MAIN_TEST_ID_MAP" ]; then
+  echo "Fetching per-test history..."
+
+  # Collect all test names from the current build
+  ALL_TEST_NAMES=$(echo "$RAW_TEST_RESULTS_JSON" \
+    | jq -r '(.testOccurrence // [])[] | select(.status == "SUCCESS" or .status == "FAILURE") | .name' \
+    2>/dev/null || echo "")
+
+  while IFS= read -r test_name; do
+    [ -z "$test_name" ] && continue
+
+    # Look up the test entity id from the main-branch id map
+    TEST_ID=$(echo "$MAIN_TEST_ID_MAP" | AWK_NAME="$test_name" awk -F'|' '$1 == ENVIRON["AWK_NAME"] {print $2; exit}')
+    if [ -z "$TEST_ID" ]; then
+      TEST_HISTORY+="${test_name}|N/A|N/A|N/A"$'\n'
+      continue
+    fi
+
+    HISTORY_JSON=$(curl -s -X GET \
+      "$TEAMCITY_SERVER_URL/app/rest/testOccurrences?locator=test:(id:${TEST_ID}),count:1000&fields=testOccurrence(status,build(startDate))" \
+      -H "Authorization: Bearer $TEAMCITY_TOKEN" \
+      -H "Accept: application/json")
+
+    # Extract rate and raw TC startDate strings (format: 20240315T143022+0000)
+    HISTORY_STATS=$(echo "$HISTORY_JSON" | jq -r '
+      ([ .testOccurrence[]? | select(.status=="SUCCESS") ] | length) as $s |
+      ([ .testOccurrence[]? | select(.status=="FAILURE") ] | length) as $f |
+      ($s + $f) as $total |
+      (if $total > 0 then (($s| tostring) + "/" + ($f| tostring)) else "N/A" end) as $rate |
+      ([ .testOccurrence[]? | select(.status=="FAILURE") ] | last  | .build.startDate // "") as $first_raw |
+      ([ .testOccurrence[]? | select(.status=="FAILURE") ] | first | .build.startDate // "") as $last_raw |
+      "\($rate)|\($first_raw)|\($last_raw)"
+    ' 2>/dev/null || echo "N/A||")
+
+    # Parse the three pipe-delimited fields from HISTORY_STATS
+    HIST_RATE=$(echo "$HISTORY_STATS"  | cut -d'|' -f1)
+    FIRST_RAW=$(echo "$HISTORY_STATS"  | cut -d'|' -f2)
+    LAST_RAW=$(echo "$HISTORY_STATS"   | cut -d'|' -f3)
+
+    HIST_RATE_LINK="[$HIST_RATE]($TEAMCITY_SERVER_URL/test/${TEST_ID}?currentProjectId=TF_AzureRM)"
+
+    FIRST_FAILURE=$(( (CURRENT_TIME_S - $(date -d "$FIRST_RAW" +%s)) / 86400 ))
+    LAST_FAILURE=$(( (CURRENT_TIME_S - $(date -d "$LAST_RAW" +%s)) / 86400 ))
+
+    TEST_HISTORY+="${test_name}|${HIST_RATE_LINK}|${FIRST_FAILURE}d|${LAST_FAILURE}d"$'\n'
+  done <<< "$ALL_TEST_NAMES"
+fi
+
 if [ -n "$TEAMCITY_ERROR" ]; then
-  COMMENT="Build: [$BUILD_ID](%teamcity.serverUrl%/viewLog.html?buildId=$BUILD_ID)
+  COMMENT="Build: [$BUILD_ID]($TEAMCITY_SERVER_URL/viewLog.html?buildId=$BUILD_ID)
 PR: #$PR_NUMBER
 
 **TeamCity Error:** $TEAMCITY_ERROR
@@ -167,7 +229,69 @@ PR: #$PR_NUMBER
 Unable to collect test details for this run. Please check TeamCity build logs.
 "
 else
-  COMMENT="Build: [$BUILD_ID](%teamcity.serverUrl%/viewLog.html?buildId=$BUILD_ID)
+  TABLE_ROWS=$(echo "$TEST_RESULTS" | NEW_FAILURES="$NEW_FAILURES" TEST_HISTORY="$TEST_HISTORY" awk -F'|' '
+BEGIN {
+    # Build array of new failure test names
+    n = split(ENVIRON["NEW_FAILURES"], nf_array, "\n")
+    for (i = 1; i <= n; i++) {
+        if (nf_array[i] != "") new_fail[nf_array[i]] = 1
+    }
+    # Build history lookup: hist[name] = "rate|first|last"
+    m = split(ENVIRON["TEST_HISTORY"], h_array, "\n")
+    for (i = 1; i <= m; i++) {
+        if (h_array[i] == "") continue
+        # Each entry is "name|rate|first|last" — split on first three pipes
+        line = h_array[i]
+        # Find positions of the last 3 pipe-delimited fields from the right
+        # by reversing: count pipes from right
+        last3 = ""
+        name_part = ""
+        pipe_count = 0
+        for (j = length(line); j >= 1; j--) {
+            if (substr(line, j, 1) == "|") {
+                pipe_count++
+                if (pipe_count == 3) {
+                    name_part = substr(line, 1, j - 1)
+                    last3 = substr(line, j + 1)
+                    break
+                }
+            }
+        }
+        if (name_part != "") hist[name_part] = last3
+    }
+}
+$1 == "" { next }
+{
+    test_name = $1
+    status = $2
+    duration = $3
+
+    # Look up history fields (rate|first|last)
+    if (test_name in hist) {
+        n_hist = split(hist[test_name], hf, "|")
+        fail_rate   = (n_hist >= 1) ? hf[1] : "N/A"
+        first_fail  = (n_hist >= 2) ? hf[2] : "N/A"
+        last_fail   = (n_hist >= 3) ? hf[3] : "N/A"
+    } else {
+        fail_rate  = "N/A"
+        first_fail = "N/A"
+        last_fail  = "N/A"
+    }
+
+    if (status == "PASS"){
+      label = "✅ PASS"
+    }
+    else if (test_name in new_fail) {
+      label = "❌ NEW FAILURE ❌"}
+    else {
+      label = "❌ FAIL"
+    }
+
+    print "| " label " | " test_name " | " duration "s | " fail_rate " | " first_fail " | " last_fail " |"
+}
+')
+
+  COMMENT="Build: [$BUILD_ID]($TEAMCITY_SERVER_URL/viewLog.html?buildId=$BUILD_ID)
 PR: #$PR_NUMBER
 
 **Total:** $TOTAL
@@ -178,40 +302,9 @@ PR: #$PR_NUMBER
 <details>
 <summary>Test Details</summary>
 
-<table>
-<tr><td><b>Status</b></td><td><b>Test Name</b></td><td><b>Duration</b></td></tr>
-"
-
-TABLE_ROWS=$(echo "$TEST_RESULTS" | awk -F'|' -v new_failures="$NEW_FAILURES" '
-BEGIN {
-    # Build array of new failure test names
-    n = split(new_failures, nf_array, "\n")
-    for (i = 1; i <= n; i++) {
-        if (nf_array[i] != "") new_fail[nf_array[i]] = 1
-    }
-}
-$1 == "" { next }
-{
-    test_name = $1
-    status = $2
-    duration = $3
-
-    if (status == "PASS") {
-        print "<tr><td>✅ PASS</td><td>" test_name "</td><td>" duration "s</td></tr>"
-    } else if (status == "FAIL") {
-        # Check if this is a new failure
-        if (test_name in new_fail) {
-            print "<tr><td>❌ FAIL 🆕</td><td>" test_name "</td><td>" duration "s</td></tr>"
-        } else {
-            print "<tr><td>❌ FAIL</td><td>" test_name "</td><td>" duration "s</td></tr>"
-        }
-    }
-}
-')
-
-  COMMENT+="$TABLE_ROWS"
-
-  COMMENT+="</table>
+| Status | Test Name | Duration | Success/Failure | First Failure | Last Failure |
+| :--- | :--- | ---: | ---: | ---: | ---: |
+${TABLE_ROWS}
 </details>
 "
 fi
