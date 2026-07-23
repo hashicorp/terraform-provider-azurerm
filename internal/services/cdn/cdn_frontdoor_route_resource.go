@@ -325,7 +325,7 @@ func resourceCdnFrontDoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 			d.Set("cdn_frontdoor_custom_domain_ids", customDomains)
 			d.Set("enabled", pointer.From(props.EnabledState) == routes.EnabledStateEnabled)
-			d.Set("forwarding_protocol", props.ForwardingProtocol)
+			d.Set("forwarding_protocol", pointer.FromEnum(props.ForwardingProtocol))
 			d.Set("https_redirect_enabled", pointer.From(props.HTTPSRedirect) == routes.HTTPSRedirectEnabled)
 			d.Set("cdn_frontdoor_origin_path", props.OriginPath)
 			d.Set("patterns_to_match", props.PatternsToMatch)
