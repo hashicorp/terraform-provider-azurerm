@@ -5,7 +5,8 @@ NOTES:
 * **Major Version** TODO
 
 ENHANCEMENTS:
-`azurerm_windows_web_app` - add support for `~24` to `site_config.application_stack.node_version` [GH-32840]
+* `azurerm_windows_web_app` - add support for `~24` to `site_config.application_stack.node_version` [GH-32840]
+* `azurerm_windows_web_app_slot` - add support for `~24` to `site_config.application_stack.node_version` [GH-32840]
 * `azurerm_cognitive_account_rai_policy` - the `content_filter.severity_threshold` property is now optional [GH-32100]
 * dependencies: `grpc` update to `1.82.1` [GH-32852]
 * `azurerm_dashboard_grafana` - the `11` value for the `grafana_major_version` property has been deprecated and the property now supports `13` [GH-32777]
