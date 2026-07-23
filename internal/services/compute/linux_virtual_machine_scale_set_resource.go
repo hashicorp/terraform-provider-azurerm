@@ -671,33 +671,19 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 		updateProps.VirtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(notificationRaw)
 	}
 
-	hostEncryptionOld, hostEncryptionNew := func() (bool, bool) {
-		blockOld, blockNew := d.GetChange("security_profile")
-
-		resolve := func(block interface{}) bool {
-			if blockSlice, ok := block.([]interface{}); ok && len(blockSlice) != 0 {
-				if v, ok := blockSlice[0].(map[string]interface{})["host_encryption_enabled"]; ok {
-					return v.(bool)
-				}
-			}
-
-			return false
+	if d.HasChanges("security_profile") {
+		osDiskRaw := d.Get("os_disk").([]interface{})
+		securityEncryptionType := osDiskRaw[0].(map[string]interface{})["security_encryption_type"].(string)
+		securityProfile, err := expandVirtualMachineScaleSetSecurityProfile(d, securityEncryptionType)
+		if err != nil {
+			return err
 		}
-
-		return resolve(blockOld), resolve(blockNew)
-	}()
-	if hostEncryptionOld != hostEncryptionNew {
-		if hostEncryptionNew {
-			osDiskRaw := d.Get("os_disk").([]interface{})
-			securityEncryptionType := osDiskRaw[0].(map[string]interface{})["security_encryption_type"].(string)
-			if virtualmachinescalesets.SecurityEncryptionTypesDiskWithVMGuestState == virtualmachinescalesets.SecurityEncryptionTypes(securityEncryptionType) {
-				return fmt.Errorf("`security_profile.0.host_encryption_enabled` cannot be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
+		if securityProfile == nil {
+			securityProfile = &virtualmachinescalesets.SecurityProfile{
+				EncryptionAtHost: pointer.To(false),
 			}
 		}
-
-		updateProps.VirtualMachineProfile.SecurityProfile = &virtualmachinescalesets.SecurityProfile{
-			EncryptionAtHost: pointer.To(hostEncryptionNew),
-		}
+		updateProps.VirtualMachineProfile.SecurityProfile = securityProfile
 	}
 
 	if d.HasChange("automatic_instance_repair") {

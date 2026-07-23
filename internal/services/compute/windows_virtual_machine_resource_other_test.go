@@ -962,7 +962,7 @@ func TestAccWindowsVirtualMachine_otherEncryptionAtHostEnabled(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherEncryptionAtHostEnabled(data, pointer.To(true)),
+			Config: r.otherEncryptionAtHostEnabled(data, pointer.To(true), false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -977,7 +977,7 @@ func TestAccWindowsVirtualMachine_otherEncryptionAtHostEnabledUpdate(t *testing.
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherEncryptionAtHostEnabled(data, pointer.To(true)),
+			Config: r.otherEncryptionAtHostEnabled(data, pointer.To(true), false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("security_profile.#").HasValue("1"),
@@ -986,7 +986,7 @@ func TestAccWindowsVirtualMachine_otherEncryptionAtHostEnabledUpdate(t *testing.
 		},
 		data.ImportStep("admin_password"),
 		{
-			Config: r.otherEncryptionAtHostEnabled(data, pointer.To(false)),
+			Config: r.otherEncryptionAtHostEnabled(data, pointer.To(false), false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("security_profile.#").HasValue("1"),
@@ -995,7 +995,7 @@ func TestAccWindowsVirtualMachine_otherEncryptionAtHostEnabledUpdate(t *testing.
 		},
 		data.ImportStep("admin_password"),
 		{
-			Config: r.otherEncryptionAtHostEnabled(data, pointer.To(true)),
+			Config: r.otherEncryptionAtHostEnabled(data, pointer.To(true), false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("security_profile.#").HasValue("1"),
@@ -1004,7 +1004,17 @@ func TestAccWindowsVirtualMachine_otherEncryptionAtHostEnabledUpdate(t *testing.
 		},
 		data.ImportStep("admin_password"),
 		{
-			Config: r.otherEncryptionAtHostEnabled(data, nil),
+			Config: r.otherEncryptionAtHostEnabled(data, nil, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("security_profile.#").HasValue("1"),
+				check.That(data.ResourceName).Key("security_profile.0.host_encryption_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("security_profile.0.security_type").DoesNotExist(),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.otherEncryptionAtHostEnabled(data, nil, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("security_profile.#").HasValue("0"),
@@ -3398,7 +3408,7 @@ resource "azurerm_windows_virtual_machine" "test" {
 `, r.template(data), data.RandomString)
 }
 
-func (r WindowsVirtualMachineResource) otherEncryptionAtHostEnabled(data acceptance.TestData, enabled *bool) string {
+func (r WindowsVirtualMachineResource) otherEncryptionAtHostEnabled(data acceptance.TestData, enabled *bool, empty bool) string {
 	securityProfile := ""
 	if enabled != nil {
 		securityProfile = fmt.Sprintf(`
@@ -3406,6 +3416,8 @@ func (r WindowsVirtualMachineResource) otherEncryptionAtHostEnabled(data accepta
     host_encryption_enabled = %t
   }
 `, *enabled)
+	} else if empty {
+		securityProfile = "\n  security_profile {}\n"
 	}
 
 	return fmt.Sprintf(`

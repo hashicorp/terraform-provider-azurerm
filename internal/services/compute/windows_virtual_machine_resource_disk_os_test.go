@@ -425,16 +425,33 @@ func TestAccWindowsVirtualMachine_diskOSConfidentialSecurityProfileBlock(t *test
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.diskOSSecurityProfileBlock(data),
+			Config: r.diskOSSecurityProfileBlock(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("security_profile.#").HasValue("1"),
+				check.That(data.ResourceName).Key("security_profile.0.host_encryption_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("security_profile.0.security_type").HasValue("ConfidentialVM"),
 				check.That(data.ResourceName).Key("security_profile.0.secure_boot_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("security_profile.0.vtpm_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("encryption_at_host_enabled").DoesNotExist(),
 				check.That(data.ResourceName).Key("secure_boot_enabled").DoesNotExist(),
 				check.That(data.ResourceName).Key("vtpm_enabled").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.diskOSSecurityProfileBlock(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("security_profile.0.host_encryption_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.diskOSSecurityProfileBlock(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("security_profile.0.host_encryption_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -1267,7 +1284,7 @@ resource "azurerm_windows_virtual_machine" "test" {
 `, r.template(data), vtpm, secureBoot)
 }
 
-func (r WindowsVirtualMachineResource) diskOSSecurityProfileBlock(data acceptance.TestData) string {
+func (r WindowsVirtualMachineResource) diskOSSecurityProfileBlock(data acceptance.TestData, hostEncryptionEnabled bool) string {
 	data.Locations.Primary = "northeurope"
 	return fmt.Sprintf(`
 %s
@@ -1297,12 +1314,13 @@ resource "azurerm_windows_virtual_machine" "test" {
   }
 
   security_profile {
-    security_type       = "ConfidentialVM"
-    secure_boot_enabled = true
-    vtpm_enabled        = true
+    host_encryption_enabled = %t
+    security_type           = "ConfidentialVM"
+    secure_boot_enabled     = true
+    vtpm_enabled            = true
   }
 }
-`, r.template(data))
+`, r.template(data), hostEncryptionEnabled)
 }
 
 func (r WindowsVirtualMachineResource) diskOSConfidentialVmWithDiskAndVMGuestStateCMK(data acceptance.TestData) string {

@@ -2252,8 +2252,8 @@ func expandVirtualMachineScaleSetSecurityProfile(d *pluginsdk.ResourceData, secu
 		if v, ok := item["host_encryption_enabled"]; ok {
 			encryptionAtHost = pointer.To(v.(bool))
 		}
-		if v, ok := item["security_type"]; ok {
-			securityType = pointer.To(virtualmachinescalesets.SecurityTypes(v.(string)))
+		if v, ok := item["security_type"].(string); ok && v != "" {
+			securityType = pointer.To(virtualmachinescalesets.SecurityTypes(v))
 		}
 		if v, ok := item["secure_boot_enabled"]; ok {
 			secureBootEnabled = pointer.To(v.(bool))
@@ -2281,21 +2281,15 @@ func expandVirtualMachineScaleSetSecurityProfile(d *pluginsdk.ResourceData, secu
 		}
 
 		const expected = virtualmachinescalesets.SecurityTypesConfidentialVM
-		if securityType == nil {
-			securityType = pointer.To(expected)
-		} else if *securityType != expected {
+		if securityType != nil && *securityType != expected {
 			return nil, fmt.Errorf("`security_profile.0.security_type` must be set to `%s` when `os_disk.0.security_encryption_type` is set", expected)
 		}
-	} else if secureBoot || vtpm {
-		if securityType == nil {
-			securityType = pointer.To(virtualmachinescalesets.SecurityTypesTrustedLaunch)
-		} else {
-			switch v := *securityType; v {
-			case virtualmachinescalesets.SecurityTypesConfidentialVM:
-			case virtualmachinescalesets.SecurityTypesTrustedLaunch:
-			default:
-				return nil, fmt.Errorf("`security_profile.0.security_type` must not be set to `%s` when `security_profile.0.secure_boot_enabled` or `security_profile.0.vtpm_enabled` are set to true", v)
-			}
+	} else if (secureBoot || vtpm) && securityType != nil {
+		switch v := *securityType; v {
+		case virtualmachinescalesets.SecurityTypesConfidentialVM:
+		case virtualmachinescalesets.SecurityTypesTrustedLaunch:
+		default:
+			return nil, fmt.Errorf("`security_profile.0.security_type` must not be set to `%s` when `security_profile.0.secure_boot_enabled` or `security_profile.0.vtpm_enabled` are set to true", v)
 		}
 	}
 
@@ -2320,7 +2314,9 @@ func flattenVirtualMachineScaleSetSecurityProfile(profile *virtualmachinescalese
 
 	securityProfile := map[string]interface{}{
 		"host_encryption_enabled": pointer.From(profile.EncryptionAtHost),
-		"security_type":           string(pointer.From(profile.SecurityType)),
+	}
+	if profile.SecurityType != nil {
+		securityProfile["security_type"] = string(*profile.SecurityType)
 	}
 
 	if profile.UefiSettings != nil {
