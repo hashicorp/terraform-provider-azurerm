@@ -6,7 +6,6 @@ package network
 import (
 	"fmt"
 	"log"
-	"sort"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -83,12 +82,10 @@ func resourceSubnetRouteTableAssociationCreate(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	var nsgNames []string
-	nsgMap := make(map[string]struct{})
-	var rtNames []string
-	rtMap := make(map[string]struct{})
+	var nsgIds []string
+	var rtIds []string
 
-	rtMap[routeTableId.RouteTableName] = struct{}{}
+	rtIds = append(rtIds, routeTableId.ID())
 
 	if existingUnlocked.Model != nil && existingUnlocked.Model.Properties != nil {
 		propsUnlocked := existingUnlocked.Model.Properties
@@ -97,7 +94,7 @@ func resourceSubnetRouteTableAssociationCreate(d *pluginsdk.ResourceData, meta i
 			if err != nil {
 				return fmt.Errorf("parsing existing Network Security Group ID: %+v", err)
 			}
-			nsgMap[oldNsgId.NetworkSecurityGroupName] = struct{}{}
+			nsgIds = append(nsgIds, oldNsgId.ID())
 		}
 
 		if propsUnlocked.RouteTable != nil && propsUnlocked.RouteTable.Id != nil {
@@ -105,31 +102,22 @@ func resourceSubnetRouteTableAssociationCreate(d *pluginsdk.ResourceData, meta i
 			if err != nil {
 				return fmt.Errorf("parsing existing Route Table ID: %+v", err)
 			}
-			rtMap[oldRtId.RouteTableName] = struct{}{}
+			rtIds = append(rtIds, oldRtId.ID())
 		}
 	}
 
-	for name := range nsgMap {
-		nsgNames = append(nsgNames, name)
-	}
-	sort.Strings(nsgNames)
+	locks.MultipleByID(&nsgIds)
+	defer locks.UnlockMultipleByID(&nsgIds)
 
-	for name := range rtMap {
-		rtNames = append(rtNames, name)
-	}
-	sort.Strings(rtNames)
+	locks.MultipleByID(&rtIds)
+	defer locks.UnlockMultipleByID(&rtIds)
 
-	locks.MultipleByName(&nsgNames, networkSecurityGroupResourceName)
-	defer locks.UnlockMultipleByName(&nsgNames, networkSecurityGroupResourceName)
+	vnetId := commonids.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroupName, id.VirtualNetworkName)
+	locks.ByID(vnetId.ID())
+	defer locks.UnlockByID(vnetId.ID())
 
-	locks.MultipleByName(&rtNames, routeTableResourceName)
-	defer locks.UnlockMultipleByName(&rtNames, routeTableResourceName)
-
-	locks.ByName(id.VirtualNetworkName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
-
-	locks.ByName(id.SubnetName, SubnetResourceName)
-	defer locks.UnlockByName(id.SubnetName, SubnetResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	// now we have exclusive access, we can read reliably for create
 	subnet, err := client.Get(ctx, *id, subnets.DefaultGetOperationOptions())
@@ -176,7 +164,6 @@ func resourceSubnetRouteTableAssociationCreate(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("waiting for provisioning state of Route Table Association for %s: %+v", id, err)
 	}
 
-	vnetId := commonids.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroupName, id.VirtualNetworkName)
 	vnetStateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{string(subnets.ProvisioningStateUpdating)},
 		Target:     []string{string(subnets.ProvisioningStateSucceeded)},
@@ -265,46 +252,35 @@ func resourceSubnetRouteTableAssociationDelete(d *pluginsdk.ResourceData, meta i
 		return nil
 	}
 
-	var nsgNames []string
-	nsgMap := make(map[string]struct{})
-	var rtNames []string
-	rtMap := make(map[string]struct{})
+	var nsgIds []string
+	var rtIds []string
 
 	if propsUnlocked.NetworkSecurityGroup != nil && propsUnlocked.NetworkSecurityGroup.Id != nil {
 		nsgId, err := networksecuritygroups.ParseNetworkSecurityGroupID(*propsUnlocked.NetworkSecurityGroup.Id)
 		if err != nil {
 			return err
 		}
-		nsgMap[nsgId.NetworkSecurityGroupName] = struct{}{}
+		nsgIds = append(nsgIds, nsgId.ID())
 	}
 
 	parsedRouteTableId, err := routetables.ParseRouteTableID(*propsUnlocked.RouteTable.Id)
 	if err != nil {
 		return err
 	}
-	rtMap[parsedRouteTableId.RouteTableName] = struct{}{}
+	rtIds = append(rtIds, parsedRouteTableId.ID())
 
-	for name := range nsgMap {
-		nsgNames = append(nsgNames, name)
-	}
-	sort.Strings(nsgNames)
+	locks.MultipleByID(&nsgIds)
+	defer locks.UnlockMultipleByID(&nsgIds)
 
-	for name := range rtMap {
-		rtNames = append(rtNames, name)
-	}
-	sort.Strings(rtNames)
+	locks.MultipleByID(&rtIds)
+	defer locks.UnlockMultipleByID(&rtIds)
 
-	locks.MultipleByName(&nsgNames, networkSecurityGroupResourceName)
-	defer locks.UnlockMultipleByName(&nsgNames, networkSecurityGroupResourceName)
+	vnetId := commonids.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroupName, id.VirtualNetworkName)
+	locks.ByID(vnetId.ID())
+	defer locks.UnlockByID(vnetId.ID())
 
-	locks.MultipleByName(&rtNames, routeTableResourceName)
-	defer locks.UnlockMultipleByName(&rtNames, routeTableResourceName)
-
-	locks.ByName(id.VirtualNetworkName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
-
-	locks.ByName(id.SubnetName, SubnetResourceName)
-	defer locks.UnlockByName(id.SubnetName, SubnetResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	// Now we have the locks, we can try to delete
 	read, err := client.Get(ctx, *id, subnets.DefaultGetOperationOptions())

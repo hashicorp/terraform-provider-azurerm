@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"math/big"
 	"regexp"
-	"sort"
 	"strings"
 	"time"
 
@@ -357,8 +356,8 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		if err != nil {
 			return err
 		}
-		locks.ByName(nsgId.NetworkSecurityGroupName, networkSecurityGroupResourceName)
-		defer locks.UnlockByName(nsgId.NetworkSecurityGroupName, networkSecurityGroupResourceName)
+		locks.ByID(nsgId.ID())
+		defer locks.UnlockByID(nsgId.ID())
 	}
 
 	rt, err := expandSubnetRouteTableID(d)
@@ -370,15 +369,16 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		if err != nil {
 			return err
 		}
-		locks.ByName(rtId.RouteTableName, routeTableResourceName)
-		defer locks.UnlockByName(rtId.RouteTableName, routeTableResourceName)
+		locks.ByID(rtId.ID())
+		defer locks.UnlockByID(rtId.ID())
 	}
 
-	locks.ByName(id.VirtualNetworkName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
+	vnetId := commonids.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroupName, id.VirtualNetworkName)
+	locks.ByID(vnetId.ID())
+	defer locks.UnlockByID(vnetId.ID())
 
-	locks.ByName(id.SubnetName, SubnetResourceName)
-	defer locks.UnlockByName(id.SubnetName, SubnetResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	existing, err := client.Get(ctx, id, subnets.DefaultGetOperationOptions())
 	if !response.WasNotFound(existing.HttpResponse) {
@@ -432,7 +432,6 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("waiting for provisioning state of %s: %+v", id, err)
 	}
 
-	vnetId := commonids.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroupName, id.VirtualNetworkName)
 	vnetStateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{string(subnets.ProvisioningStateUpdating)},
 		Target:     []string{string(subnets.ProvisioningStateSucceeded)},
@@ -470,14 +469,13 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	propsUnlocked := existingUnlocked.Model.Properties
 
-	var nsgNames []string
-	nsgMap := make(map[string]struct{})
+	var nsgIds []string
 	if propsUnlocked.NetworkSecurityGroup != nil && propsUnlocked.NetworkSecurityGroup.Id != nil {
 		nsgId, err := networksecuritygroups.ParseNetworkSecurityGroupID(*propsUnlocked.NetworkSecurityGroup.Id)
 		if err != nil {
 			return fmt.Errorf("parsing existing Network Security Group ID: %+v", err)
 		}
-		nsgMap[nsgId.NetworkSecurityGroupName] = struct{}{}
+		nsgIds = append(nsgIds, nsgId.ID())
 	}
 
 	if d.HasChange("network_security_group_id_wo_version") {
@@ -490,22 +488,17 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 			if err != nil {
 				return err
 			}
-			nsgMap[nsgId.NetworkSecurityGroupName] = struct{}{}
+			nsgIds = append(nsgIds, nsgId.ID())
 		}
 	}
-	for name := range nsgMap {
-		nsgNames = append(nsgNames, name)
-	}
-	sort.Strings(nsgNames)
 
-	var rtNames []string
-	rtMap := make(map[string]struct{})
+	var rtIds []string
 	if propsUnlocked.RouteTable != nil && propsUnlocked.RouteTable.Id != nil {
 		rtId, err := routetables.ParseRouteTableID(*propsUnlocked.RouteTable.Id)
 		if err != nil {
 			return fmt.Errorf("parsing existing Route Table ID: %+v", err)
 		}
-		rtMap[rtId.RouteTableName] = struct{}{}
+		rtIds = append(rtIds, rtId.ID())
 	}
 
 	if d.HasChange("route_table_id_wo_version") {
@@ -518,25 +511,22 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 			if err != nil {
 				return err
 			}
-			rtMap[rtId.RouteTableName] = struct{}{}
+			rtIds = append(rtIds, rtId.ID())
 		}
 	}
-	for name := range rtMap {
-		rtNames = append(rtNames, name)
-	}
-	sort.Strings(rtNames)
 
-	locks.MultipleByName(&nsgNames, networkSecurityGroupResourceName)
-	defer locks.UnlockMultipleByName(&nsgNames, networkSecurityGroupResourceName)
+	locks.MultipleByID(&nsgIds)
+	defer locks.UnlockMultipleByID(&nsgIds)
 
-	locks.MultipleByName(&rtNames, routeTableResourceName)
-	defer locks.UnlockMultipleByName(&rtNames, routeTableResourceName)
+	locks.MultipleByID(&rtIds)
+	defer locks.UnlockMultipleByID(&rtIds)
 
-	locks.ByName(id.VirtualNetworkName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
+	vnetId := commonids.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroupName, id.VirtualNetworkName)
+	locks.ByID(vnetId.ID())
+	defer locks.UnlockByID(vnetId.ID())
 
-	locks.ByName(id.SubnetName, SubnetResourceName)
-	defer locks.UnlockByName(id.SubnetName, SubnetResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	existing, err := client.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
@@ -659,7 +649,6 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("waiting for provisioning state of %s: %+v", id, err)
 	}
 
-	vnetId := commonids.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroupName, id.VirtualNetworkName)
 	vnetStateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{string(subnets.ProvisioningStateUpdating)},
 		Target:     []string{string(subnets.ProvisioningStateSucceeded)},
@@ -783,11 +772,12 @@ func resourceSubnetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	locks.ByName(id.VirtualNetworkName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
+	vnetId := commonids.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroupName, id.VirtualNetworkName)
+	locks.ByID(vnetId.ID())
+	defer locks.UnlockByID(vnetId.ID())
 
-	locks.ByName(id.SubnetName, SubnetResourceName)
-	defer locks.UnlockByName(id.SubnetName, SubnetResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
