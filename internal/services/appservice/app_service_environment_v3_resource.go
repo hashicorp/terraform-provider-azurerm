@@ -6,6 +6,8 @@ package appservice
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -642,6 +644,15 @@ func expandClusterSettingsModel(input []ClusterSettingModel) *[]appserviceenviro
 func flattenInboundNetworkDependencies(ctx context.Context, client *appserviceenvironments.AppServiceEnvironmentsClient, id *commonids.AppServiceEnvironmentId) (*[]AppServiceV3InboundDependencies, error) {
 	inboundNetworking, err := client.GetInboundNetworkDependenciesEndpointsComplete(ctx, *id)
 	if err != nil {
+		// The `inboundNetworkDependenciesEndpoints` API is no longer supported by the platform for some ASEv3
+		// hosting environments and returns a 400 with ExtendedCode 51019 ("Operation not supported ... with kind
+		// ASEV3"). The addresses this resource exposes are already sourced from the `configurations/networking`
+		// endpoint, so treat this as an empty result rather than failing the whole Read.
+		// https://github.com/hashicorp/terraform-provider-azurerm/issues/32616
+		if resp := inboundNetworking.LatestHttpResponse; resp != nil && resp.StatusCode == http.StatusBadRequest && strings.Contains(err.Error(), "51019") {
+			return &[]AppServiceV3InboundDependencies{}, nil
+		}
+
 		return nil, fmt.Errorf("reading paged results for Inbound Network Dependencies for %s: %+v", id, err)
 	}
 
