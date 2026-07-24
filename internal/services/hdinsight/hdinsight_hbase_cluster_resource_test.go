@@ -1231,7 +1231,7 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
 
   storage_account {
     storage_container_url = azurerm_storage_container.test.url
-    storage_account  _id  = azurerm_storage_account.test.id
+    storage_account_id  = azurerm_storage_account.test.id
     storage_account_key   = azurerm_storage_account.test.primary_access_key
     is_default            = true
   }
@@ -1643,20 +1643,20 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_D4a_v4"
+      vm_size  = "Standard_D16a_V4"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size               = "Standard_D4a_v4"
+      vm_size               = "Standard_D16a_V4"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 2
     }
 
     zookeeper_node {
-      vm_size  = "Standard_D4a_v4"
+      vm_size  = "Standard_D16a_V4"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }

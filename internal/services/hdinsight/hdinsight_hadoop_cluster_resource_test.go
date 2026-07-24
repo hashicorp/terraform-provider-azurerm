@@ -1461,7 +1461,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     password = "TerrAform123!"
   }
   storage_account_gen2 {
-    storage_account _id       = azurerm_storage_account.gen2test.id
+    storage_account_id        = azurerm_storage_account.gen2test.id
     filesystem_id             = azurerm_storage_data_lake_gen2_filesystem.gen2test.id
     user_assigned_identity_id = azurerm_user_assigned_identity.test.id
     is_default                = true
@@ -2039,18 +2039,18 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   }
   roles {
     head_node {
-      vm_size  = "Standard_D4a_v4"
+      vm_size  = "Standard_D16a_V4"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
     worker_node {
-      vm_size               = "Standard_D4a_v4"
+      vm_size               = "Standard_D16a_V4"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 2
     }
     zookeeper_node {
-      vm_size  = "Standard_D4a_v4"
+      vm_size  = "Standard_D16a_V4"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
