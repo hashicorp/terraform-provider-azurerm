@@ -75,12 +75,12 @@ func (c CdnFrontDoorRuleResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validateCdnFrontDoorRuleName,
 		},
 
-			"cdn_frontdoor_rule_set_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: rules.ValidateRuleSetID,
-			},
+		"cdn_frontdoor_rule_set_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: rules.ValidateRuleSetID,
+		},
 
 		"behaviour_on_match": {
 			Type:         pluginsdk.TypeString,
