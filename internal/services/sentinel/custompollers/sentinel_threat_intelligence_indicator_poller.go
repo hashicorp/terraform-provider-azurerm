@@ -13,9 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 )
 
-var (
-	_ pollers.PollerType = &threatIntelligenceIndicatorPoller{}
-)
+var _ pollers.PollerType = &threatIntelligenceIndicatorPoller{}
 
 const consistentRequestCount = 10
 
