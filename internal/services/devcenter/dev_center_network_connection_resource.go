@@ -111,7 +111,7 @@ func (r DevCenterNetworkConnectionResource) Attributes() map[string]*pluginsdk.S
 
 func (r DevCenterNetworkConnectionResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 240 * time.Minute,
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.DevCenter.V20250201.NetworkConnections
 			subscriptionId := metadata.Client.Account.SubscriptionId
