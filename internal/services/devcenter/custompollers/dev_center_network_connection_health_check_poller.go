@@ -52,5 +52,7 @@ func (p devCenterNetworkConnectionHealthCheckPoller) Poll(ctx context.Context) (
 		return &pollingSuccess, nil
 	}
 
+	fmt.Println("debug0", string(*resp.Model.Properties.HealthCheckStatus))
+
 	return &pollingInProgress, nil
 }
