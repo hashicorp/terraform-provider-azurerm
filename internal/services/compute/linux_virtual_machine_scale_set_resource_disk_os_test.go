@@ -720,6 +720,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   security_profile {
+    security_type       = "ConfidentialVM"
     vtpm_enabled        = %t
     secure_boot_enabled = %t
   }
@@ -832,6 +833,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   security_profile {
+    security_type       = "ConfidentialVM"
     secure_boot_enabled = true
     vtpm_enabled        = true
   }

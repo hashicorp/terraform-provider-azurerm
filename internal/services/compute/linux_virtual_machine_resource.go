@@ -252,6 +252,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 						"host_encryption_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
+							Default:  false,
 						},
 						"security_type": {
 							Type:         pluginsdk.TypeString,
@@ -262,11 +263,13 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 						"secure_boot_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
+							Default:  false,
 							ForceNew: true,
 						},
 						"vtpm_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
+							Default:  false,
 							ForceNew: true,
 						},
 					},
@@ -724,7 +727,8 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		params.Properties.StorageProfile.DiskControllerType = pointer.To(virtualmachines.DiskControllerTypes(diskControllerType.(string)))
 	}
 
-	securityProfile, err := expandVirtualMachineSecurityProfile(d, securityEncryptionType)
+	securityProfileRaw, _ := d.GetOk("security_profile")
+	securityProfile, err := expandVirtualMachineSecurityProfile(securityProfileRaw, securityEncryptionType)
 	if err != nil {
 		return err
 	}
@@ -1562,7 +1566,8 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 	if d.HasChanges("security_profile") {
 		osDiskRaw := d.Get("os_disk").([]interface{})
 		securityEncryptionType := osDiskRaw[0].(map[string]interface{})["security_encryption_type"].(string)
-		securityProfile, err := expandVirtualMachineSecurityProfile(d, securityEncryptionType)
+		securityProfileRaw, _ := d.GetOk("security_profile")
+		securityProfile, err := expandVirtualMachineSecurityProfile(securityProfileRaw, securityEncryptionType)
 		if err != nil {
 			return err
 		}
