@@ -3169,7 +3169,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 
   security_profile {
     security_type = "TrustedLaunch"
-    vtpm_enabled = %t
+    vtpm_enabled  = %t
   }
 }
 `, r.template(data), enabled)
