@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package custompollers
@@ -15,7 +15,6 @@ import (
 
 var (
 	_ pollers.PollerType = &threatIntelligenceIndicatorPoller{}
-	_ pollers.PollerType = &threatIntelligenceIndicatorUpdatePoller{}
 )
 
 const consistentRequestCount = 10
@@ -24,13 +23,6 @@ type threatIntelligenceIndicatorPoller struct {
 	client              *threatintelligence.ThreatIntelligenceClient
 	id                  threatintelligence.IndicatorId
 	successfulPollCount int
-}
-
-type threatIntelligenceIndicatorUpdatePoller struct {
-	client              *threatintelligence.ThreatIntelligenceClient
-	id                  threatintelligence.IndicatorId
-	successfulPollCount int
-	lastUpdatedTimeUtc  string
 }
 
 func NewThreatIntelligenceIndicatorPoller(client *threatintelligence.ThreatIntelligenceClient, id threatintelligence.IndicatorId) *threatIntelligenceIndicatorPoller {
@@ -63,56 +55,5 @@ func (p *threatIntelligenceIndicatorPoller) Poll(ctx context.Context) (*pollers.
 	return &pollers.PollResult{
 		PollInterval: 5 * time.Second,
 		Status:       pollers.PollingStatusSucceeded,
-	}, nil
-}
-
-func NewThreatIntelligenceIndicatorUpdatePoller(client *threatintelligence.ThreatIntelligenceClient, id threatintelligence.IndicatorId, lastUpdatedTimeUtc string) *threatIntelligenceIndicatorUpdatePoller {
-	return &threatIntelligenceIndicatorUpdatePoller{
-		client:             client,
-		id:                 id,
-		lastUpdatedTimeUtc: lastUpdatedTimeUtc,
-	}
-}
-
-func (p *threatIntelligenceIndicatorUpdatePoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
-	resp, err := p.client.IndicatorGet(ctx, p.id)
-	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			return &pollers.PollResult{
-				PollInterval: 5 * time.Second,
-				Status:       pollers.PollingStatusInProgress,
-			}, nil
-		}
-		return &pollers.PollResult{
-			Status: pollers.PollingStatusFailed,
-		}, fmt.Errorf("retrieving %s: %+v", p.id, err)
-	}
-
-	model, ok := resp.Model.(threatintelligence.ThreatIntelligenceIndicatorModel)
-	if !ok {
-		return &pollers.PollResult{
-			Status: pollers.PollingStatusFailed,
-		}, fmt.Errorf("retrieving %s: type mismatch, got %T", p.id, resp.Model)
-	}
-
-	if model.Properties == nil {
-		return &pollers.PollResult{
-			Status: pollers.PollingStatusFailed,
-		}, fmt.Errorf("retrieving %s: `properties` was nil", p.id)
-	}
-
-	if model.Properties.LastUpdatedTimeUtc != nil && *model.Properties.LastUpdatedTimeUtc != p.lastUpdatedTimeUtc {
-		p.successfulPollCount++
-		if p.successfulPollCount > consistentRequestCount {
-			return &pollers.PollResult{
-				PollInterval: 5 * time.Second,
-				Status:       pollers.PollingStatusSucceeded,
-			}, nil
-		}
-	}
-
-	return &pollers.PollResult{
-		PollInterval: 5 * time.Second,
-		Status:       pollers.PollingStatusInProgress,
 	}, nil
 }

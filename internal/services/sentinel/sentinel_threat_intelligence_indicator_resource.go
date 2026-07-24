@@ -561,7 +561,6 @@ func (r ThreatIntelligenceIndicator) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: `properties` was nil", id)
 			}
 			props := v.Properties
-			lastUpdatedTimeUtc := pointer.From(props.LastUpdatedTimeUtc)
 
 			if metadata.ResourceData.HasChange("confidence") {
 				props.Confidence = pointer.To(model.Confidence)
@@ -657,13 +656,6 @@ func (r ThreatIntelligenceIndicator) Update() sdk.ResourceFunc {
 			props.LastUpdatedTimeUtc = nil
 			if _, err := client.IndicatorCreate(ctx, *id, v); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
-			}
-
-			// Similar to creation, the updated version may not be available for some time after the request completes.
-			pollerType := custompollers.NewThreatIntelligenceIndicatorUpdatePoller(client, *id, lastUpdatedTimeUtc)
-			poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-			if err := poller.PollUntilDone(ctx); err != nil {
-				return err
 			}
 
 			return nil
