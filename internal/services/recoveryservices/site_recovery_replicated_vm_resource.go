@@ -52,6 +52,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 			_, err := parse.ReplicationProtectedItemID(id)
 			return err
 		}),
+		CustomizeDiff: resourceSiteRecoveryReplicatedVMCustomizeDiff,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(180 * time.Minute),
@@ -299,8 +300,52 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 	}
 }
 
+func resourceSiteRecoveryReplicatedVMCustomizeDiff(_ context.Context, diff *pluginsdk.ResourceDiff, _ interface{}) error {
+	rawConfig := diff.GetRawConfig()
+	if !rawConfig.IsKnown() || rawConfig.IsNull() {
+		return nil
+	}
+
+	networkInterfaces := rawConfig.GetAttr("network_interface")
+	if !networkInterfaces.IsKnown() || networkInterfaces.IsNull() {
+		return nil
+	}
+
+	for networkInterfaceIndex, networkInterface := range networkInterfaces.AsValueSlice() {
+		if !networkInterface.IsKnown() || networkInterface.IsNull() {
+			return nil
+		}
+
+		ipConfigurations := networkInterface.GetAttr("ip_configuration")
+		if !ipConfigurations.IsKnown() || ipConfigurations.IsNull() || ipConfigurations.LengthInt() <= 1 {
+			continue
+		}
+
+		primaryCount := 0
+		for _, ipConfiguration := range ipConfigurations.AsValueSlice() {
+			if !ipConfiguration.IsKnown() || ipConfiguration.IsNull() {
+				return nil
+			}
+
+			primary := ipConfiguration.GetAttr("primary")
+			if !primary.IsKnown() {
+				return nil
+			}
+			if !primary.IsNull() && primary.True() {
+				primaryCount++
+			}
+		}
+
+		if primaryCount != 1 {
+			return fmt.Errorf("`network_interface.ip_configuration` must contain exactly one block with `primary` set to `true` when multiple blocks are configured")
+		}
+	}
+
+	return nil
+}
+
 func networkInterfaceResource() *pluginsdk.Resource {
-	nicSchema := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"source_network_interface_id": {
 				Type:         pluginsdk.TypeString,
@@ -369,14 +414,14 @@ func networkInterfaceResource() *pluginsdk.Resource {
 						"primary": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
+							// NOTE: O+C - Azure marks the sole IP configuration as primary when omitted.
+							Computed: true,
 						},
 					},
 				},
 			},
 		},
 	}
-
-	return nicSchema
 }
 
 func diskEncryptionResource() *pluginsdk.Resource {

@@ -6,6 +6,7 @@ package recoveryservices_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -286,6 +287,23 @@ func TestAccSiteRecoveryReplicatedVm_withIPConfigList(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccSiteRecoveryReplicatedVm_withIPConfigListPrimaryValidation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replicated_vm", "test")
+	r := SiteRecoveryReplicatedVmResource{}
+	expectedError := regexp.MustCompile("`network_interface\\.ip_configuration` must contain exactly one block with `primary` set to `true` when multiple blocks are configured")
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.ipConfigListWithPrimaryValues(data, false, false),
+			ExpectError: expectedError,
+		},
+		{
+			Config:      r.ipConfigListWithPrimaryValues(data, true, true),
+			ExpectError: expectedError,
+		},
 	})
 }
 
@@ -3035,6 +3053,10 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
 }
 
 func (r SiteRecoveryReplicatedVmResource) ipConfigList(data acceptance.TestData) string {
+	return r.ipConfigListWithPrimaryValues(data, true, false)
+}
+
+func (r SiteRecoveryReplicatedVmResource) ipConfigListWithPrimaryValues(data acceptance.TestData, firstPrimary, secondPrimary bool) string {
 	return fmt.Sprintf(`
 %s
 
@@ -3083,7 +3105,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
       recovery_public_ip_address_id = azurerm_public_ip.test-recovery.id
       target_subnet_name            = azurerm_subnet.recovery.name
       failover_test_subnet_name     = azurerm_subnet.tfo.name
-      primary                       = true
+      primary                       = %[3]t
     }
 
     ip_configuration {
@@ -3091,7 +3113,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
       recovery_public_ip_address_id = azurerm_public_ip.test-recovery-2.id
       target_subnet_name            = azurerm_subnet.recovery.name
       failover_test_subnet_name     = azurerm_subnet.tfo.name
-      primary                       = false
+      primary                       = %[4]t
     }
 
   }
@@ -3100,7 +3122,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
     azurerm_site_recovery_network_mapping.test,
   ]
 }
-`, r.multipleIPTemplate(data), data.RandomInteger)
+`, r.multipleIPTemplate(data), data.RandomInteger, firstPrimary, secondPrimary)
 }
 
 func (r SiteRecoveryReplicatedVmResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
