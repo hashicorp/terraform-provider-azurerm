@@ -13,13 +13,23 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 )
 
-var _ pollers.PollerType = &threatIntelligenceIndicatorPoller{}
+var (
+	_ pollers.PollerType = &threatIntelligenceIndicatorPoller{}
+	_ pollers.PollerType = &threatIntelligenceIndicatorUpdatePoller{}
+)
 
 const consistentRequestCount = 10
 
 type threatIntelligenceIndicatorPoller struct {
 	client              *threatintelligence.ThreatIntelligenceClient
 	id                  threatintelligence.IndicatorId
+	successfulPollCount int
+}
+
+type threatIntelligenceIndicatorUpdatePoller struct {
+	client              *threatintelligence.ThreatIntelligenceClient
+	id                  threatintelligence.IndicatorId
+	previousEtag        string
 	successfulPollCount int
 }
 
@@ -54,4 +64,53 @@ func (p *threatIntelligenceIndicatorPoller) Poll(ctx context.Context) (*pollers.
 		PollInterval: 5 * time.Second,
 		Status:       pollers.PollingStatusSucceeded,
 	}, nil
+}
+
+func NewThreatIntelligenceIndicatorUpdatePoller(client *threatintelligence.ThreatIntelligenceClient, id threatintelligence.IndicatorId, previousEtag string) *threatIntelligenceIndicatorUpdatePoller {
+	return &threatIntelligenceIndicatorUpdatePoller{
+		client:       client,
+		id:           id,
+		previousEtag: previousEtag,
+	}
+}
+
+func (p *threatIntelligenceIndicatorUpdatePoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
+	resp, err := p.client.IndicatorGet(ctx, p.id)
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return &pollers.PollResult{
+				PollInterval: 5 * time.Second,
+				Status:       pollers.PollingStatusInProgress,
+			}, nil
+		}
+		return nil, fmt.Errorf("retrieving %s: %+v", p.id, err)
+	}
+
+	model, ok := resp.Model.(threatintelligence.ThreatIntelligenceIndicatorModel)
+	if !ok {
+		return nil, fmt.Errorf("retrieving %s: type mismatch, got %T", p.id, resp.Model)
+	}
+
+	if !threatIntelligenceIndicatorEtagUpdated(model.Etag, p.previousEtag) {
+		p.successfulPollCount = 0
+		return &pollers.PollResult{
+			PollInterval: 5 * time.Second,
+			Status:       pollers.PollingStatusInProgress,
+		}, nil
+	}
+
+	p.successfulPollCount++
+	status := pollers.PollingStatusInProgress
+	if p.successfulPollCount >= consistentRequestCount {
+		status = pollers.PollingStatusSucceeded
+	}
+
+	return &pollers.PollResult{
+		PollInterval: 5 * time.Second,
+		Status:       status,
+	}, nil
+}
+
+func threatIntelligenceIndicatorEtagUpdated(actual *string, previous string) bool {
+	return previous == "" || (actual != nil && *actual != previous)
 }

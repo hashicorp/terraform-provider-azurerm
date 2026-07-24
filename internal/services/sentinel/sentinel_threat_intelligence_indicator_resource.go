@@ -560,6 +560,7 @@ func (r ThreatIntelligenceIndicator) Update() sdk.ResourceFunc {
 			if v.Properties == nil {
 				return fmt.Errorf("retrieving %s: `properties` was nil", id)
 			}
+			previousEtag := pointer.From(v.Etag)
 			props := v.Properties
 
 			if metadata.ResourceData.HasChange("confidence") {
@@ -656,6 +657,13 @@ func (r ThreatIntelligenceIndicator) Update() sdk.ResourceFunc {
 			props.LastUpdatedTimeUtc = nil
 			if _, err := client.IndicatorCreate(ctx, *id, v); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
+			}
+
+			// GET can return a stale version after update, so wait until the new resource version is consistently visible.
+			pollerType := custompollers.NewThreatIntelligenceIndicatorUpdatePoller(client, *id, previousEtag)
+			poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("waiting for update of %s: %+v", *id, err)
 			}
 
 			return nil
