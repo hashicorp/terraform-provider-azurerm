@@ -769,7 +769,7 @@ Please follow the format in the example below for listing breaking changes in re
 
 ### `azurerm_sentinel_threat_intelligence_indicator`
 
-* Changing the `display_name` property now forces a new resource to be created.
+* Changing the `description`, `display_name`, or `validate_from_utc` properties now forces a new resource to be created.
 
 ### `azurerm_servicebus_namespace`
 

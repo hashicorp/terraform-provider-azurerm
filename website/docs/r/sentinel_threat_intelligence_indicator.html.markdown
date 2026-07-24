@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `source` - (Required) Source of the Threat Intelligence Indicator. Changing this forces a new resource to be created.
 
-* `validate_from_utc` - (Required) The start of validate date in RFC3339.
+* `validate_from_utc` - (Required) The start of validate date in RFC3339. Changing this forces a new resource to be created.
 
 * `workspace_id` - (Required) The ID of the Log Analytics Workspace. Changing this forces a new Sentinel Threat Intelligence Indicator to be created.
 
@@ -66,7 +66,7 @@ The following arguments are supported:
 
 * `created_by` - (Optional) The creator of the Threat Intelligence Indicator.
 
-* `description` - (Optional) The description of the Threat Intelligence Indicator.
+* `description` - (Optional) The description of the Threat Intelligence Indicator. Changing this forces a new resource to be created.
 
 * `extension` - (Optional) The extension config of the Threat Intelligence Indicator in JSON format.
 

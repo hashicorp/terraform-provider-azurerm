@@ -117,6 +117,8 @@ func TestAccSecurityInsightsIndicator_update(t *testing.T) {
 			Config: r.update(data, "domain-name", "test.com"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("confidence").HasValue("10"),
+				check.That(data.ResourceName).Key("tags.0").HasValue("updated-tags"),
 			),
 		},
 		data.ImportStep(),
@@ -238,9 +240,9 @@ resource "azurerm_sentinel_threat_intelligence_indicator" "test" {
   workspace_id    = azurerm_log_analytics_workspace.test.id
   pattern_type    = "%s"
   pattern         = "%s"
-  confidence      = 5
+  confidence      = 10
   created_by      = "testcraeted@microsoft.com"
-  description     = "updated indicator"
+  description     = "test indicator"
   display_name    = "test"
   language        = "en"
   pattern_version = 1
@@ -257,7 +259,7 @@ resource "azurerm_sentinel_threat_intelligence_indicator" "test" {
     language = "en"
   }
   source            = "test Sentinel"
-  validate_from_utc = "2023-12-15T16:00:00Z"
+  validate_from_utc = "2022-12-14T16:00:00Z"
 
   depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }

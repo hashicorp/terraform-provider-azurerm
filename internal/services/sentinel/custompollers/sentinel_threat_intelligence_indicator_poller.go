@@ -29,7 +29,7 @@ type threatIntelligenceIndicatorPoller struct {
 type threatIntelligenceIndicatorUpdatePoller struct {
 	client              *threatintelligence.ThreatIntelligenceClient
 	id                  threatintelligence.IndicatorId
-	lastUpdatedTimeUtc  string
+	previousEtag        string
 	successfulPollCount int
 }
 
@@ -66,11 +66,11 @@ func (p *threatIntelligenceIndicatorPoller) Poll(ctx context.Context) (*pollers.
 	}, nil
 }
 
-func NewThreatIntelligenceIndicatorUpdatePoller(client *threatintelligence.ThreatIntelligenceClient, id threatintelligence.IndicatorId, lastUpdatedTimeUtc string) *threatIntelligenceIndicatorUpdatePoller {
+func NewThreatIntelligenceIndicatorUpdatePoller(client *threatintelligence.ThreatIntelligenceClient, id threatintelligence.IndicatorId, previousEtag string) *threatIntelligenceIndicatorUpdatePoller {
 	return &threatIntelligenceIndicatorUpdatePoller{
-		client:             client,
-		id:                 id,
-		lastUpdatedTimeUtc: lastUpdatedTimeUtc,
+		client:       client,
+		id:           id,
+		previousEtag: previousEtag,
 	}
 }
 
@@ -91,11 +91,7 @@ func (p *threatIntelligenceIndicatorUpdatePoller) Poll(ctx context.Context) (*po
 		return nil, fmt.Errorf("retrieving %s: type mismatch, got %T", p.id, resp.Model)
 	}
 
-	if model.Properties == nil {
-		return nil, fmt.Errorf("retrieving %s: `properties` was nil", p.id)
-	}
-
-	if model.Properties.LastUpdatedTimeUtc == nil || *model.Properties.LastUpdatedTimeUtc == p.lastUpdatedTimeUtc {
+	if !threatIntelligenceIndicatorEtagUpdated(model.Etag, p.previousEtag) {
 		p.successfulPollCount = 0
 		return &pollers.PollResult{
 			PollInterval: 5 * time.Second,
@@ -113,4 +109,8 @@ func (p *threatIntelligenceIndicatorUpdatePoller) Poll(ctx context.Context) (*po
 		PollInterval: 5 * time.Second,
 		Status:       status,
 	}, nil
+}
+
+func threatIntelligenceIndicatorEtagUpdated(actual *string, previous string) bool {
+	return actual != nil && (previous == "" || *actual != previous)
 }

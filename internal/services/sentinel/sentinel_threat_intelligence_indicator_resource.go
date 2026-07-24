@@ -131,6 +131,7 @@ func (r ThreatIntelligenceIndicator) Arguments() map[string]*pluginsdk.Schema {
 		"description": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -301,6 +302,7 @@ func (r ThreatIntelligenceIndicator) Arguments() map[string]*pluginsdk.Schema {
 		"validate_from_utc": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.IsRFC3339Time,
 		},
 
@@ -560,8 +562,9 @@ func (r ThreatIntelligenceIndicator) Update() sdk.ResourceFunc {
 			if v.Properties == nil {
 				return fmt.Errorf("retrieving %s: `properties` was nil", id)
 			}
+			previousEtag := pointer.From(v.Etag)
 			props := v.Properties
-			lastUpdatedTimeUtc := pointer.From(props.LastUpdatedTimeUtc)
+			currentEtag := v.Etag
 
 			if metadata.ResourceData.HasChange("confidence") {
 				props.Confidence = pointer.To(model.Confidence)
@@ -604,10 +607,6 @@ func (r ThreatIntelligenceIndicator) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("kill_chain_phase") {
 				props.KillChainPhases = expandThreatIntelligenceKillChainPhaseModel(model.KillChainPhases)
-			}
-
-			if metadata.ResourceData.HasChange("tags") {
-				props.Labels = &model.Labels
 			}
 
 			if metadata.ResourceData.HasChange("language") {
@@ -655,12 +654,33 @@ func (r ThreatIntelligenceIndicator) Update() sdk.ResourceFunc {
 
 			props.ExternalLastUpdatedTimeUtc = nil
 			props.LastUpdatedTimeUtc = nil
-			if _, err := client.IndicatorCreate(ctx, *id, v); err != nil {
-				return fmt.Errorf("updating %s: %+v", *id, err)
+			if metadata.ResourceData.HasChangesExcept("tags") {
+				resp, err := client.IndicatorCreate(ctx, *id, v)
+				if err != nil {
+					return fmt.Errorf("updating %s: %+v", *id, err)
+				}
+
+				if updated, ok := resp.Model.(threatintelligence.ThreatIntelligenceIndicatorModel); ok {
+					currentEtag = updated.Etag
+				}
 			}
 
-			// GET can return stale properties after update, so wait until the updated timestamp is consistently visible.
-			pollerType := custompollers.NewThreatIntelligenceIndicatorUpdatePoller(client, *id, lastUpdatedTimeUtc)
+			if metadata.ResourceData.HasChange("tags") {
+				payload := threatintelligence.ThreatIntelligenceIndicatorModel{
+					Etag: currentEtag,
+					Kind: threatintelligence.ThreatIntelligenceResourceKindEnumIndicator,
+					Properties: &threatintelligence.ThreatIntelligenceIndicatorProperties{
+						ThreatIntelligenceTags: &model.Labels,
+					},
+				}
+				if _, err := client.IndicatorReplaceTags(ctx, *id, payload); err != nil {
+					return fmt.Errorf("replacing tags for %s: %+v", *id, err)
+				}
+			}
+
+			// Normal indicator updates change the ETag but do not change LastUpdatedTimeUtc. Wait until GET consistently
+			// returns a version newer than the one read before the update.
+			pollerType := custompollers.NewThreatIntelligenceIndicatorUpdatePoller(client, *id, previousEtag)
 			poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 			if err := poller.PollUntilDone(ctx); err != nil {
 				return fmt.Errorf("waiting for update of %s: %+v", *id, err)
