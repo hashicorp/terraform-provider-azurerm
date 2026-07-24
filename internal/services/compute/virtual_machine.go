@@ -666,14 +666,18 @@ func flattenVirtualMachineGalleryApplication(input *[]virtualmachines.VMGalleryA
 	return out
 }
 
-func expandVirtualMachineSecurityProfile(d *pluginsdk.ResourceData, securityEncryptionType string) (*virtualmachines.SecurityProfile, error) {
+func expandVirtualMachineSecurityProfile(input interface{}, securityEncryptionType string) (*virtualmachines.SecurityProfile, error) {
 	var encryptionAtHost *bool
 	var securityType *virtualmachines.SecurityTypes
 	var secureBootEnabled *bool
 	var vtpmEnabled *bool
-	securityProfile, securityProfileConfigured := d.GetOk("security_profile")
+	securityProfiles, securityProfileConfigured := input.([]interface{})
+	securityProfileConfigured = securityProfileConfigured && len(securityProfiles) > 0 && securityProfiles[0] != nil
 	if securityProfileConfigured {
-		item := securityProfile.([]interface{})[0].(map[string]interface{})
+		item, ok := securityProfiles[0].(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("`security_profile.0` must be an object")
+		}
 		if v, ok := item["host_encryption_enabled"]; ok {
 			encryptionAtHost = pointer.To(v.(bool))
 		}
@@ -705,15 +709,12 @@ func expandVirtualMachineSecurityProfile(d *pluginsdk.ResourceData, securityEncr
 			return nil, fmt.Errorf("`security_profile.0.vtpm_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is set")
 		}
 
-		const expected = virtualmachines.SecurityTypesConfidentialVM
-		if securityType == nil {
-			securityType = pointer.To(expected)
-		} else if *securityType != expected {
-			return nil, fmt.Errorf("`security_profile.0.security_type` must be set to `%s` when `os_disk.0.security_encryption_type` is set", expected)
+		if securityType == nil || *securityType != virtualmachines.SecurityTypesConfidentialVM {
+			return nil, fmt.Errorf("`security_profile.0.security_type` must be set to `%s` when `os_disk.0.security_encryption_type` is set", virtualmachines.SecurityTypesConfidentialVM)
 		}
 	} else if secureBoot || vtpm {
 		if securityType == nil {
-			securityType = pointer.To(virtualmachines.SecurityTypesTrustedLaunch)
+			return nil, fmt.Errorf("`security_profile.0.security_type` must be set to `%s` or `%s` when `security_profile.0.secure_boot_enabled` or `security_profile.0.vtpm_enabled` is set to `true`", virtualmachines.SecurityTypesTrustedLaunch, virtualmachines.SecurityTypesConfidentialVM)
 		} else {
 			switch v := *securityType; v {
 			case virtualmachines.SecurityTypesConfidentialVM:
