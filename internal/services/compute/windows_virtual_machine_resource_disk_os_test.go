@@ -1256,6 +1256,8 @@ resource "azurerm_windows_virtual_machine" "test" {
   size                = "Standard_DC2as_v5"
   admin_username      = "adminuser"
   admin_password      = "P@$$w0rd1234!"
+  patch_mode          = "AutomaticByPlatform"
+
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -1268,8 +1270,8 @@ resource "azurerm_windows_virtual_machine" "test" {
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
-    offer     = "windows-cvm"
-    sku       = "2022-datacenter-cvm"
+    offer     = "WindowsServer"
+    sku       = "2022-datacenter-azure-edition-core"
     version   = "latest"
   }
 
@@ -1296,6 +1298,8 @@ resource "azurerm_windows_virtual_machine" "test" {
   size                = "Standard_DC2as_v5"
   admin_username      = "adminuser"
   admin_password      = "P@$$w0rd1234!"
+  patch_mode          = "AutomaticByPlatform"
+
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -1308,8 +1312,8 @@ resource "azurerm_windows_virtual_machine" "test" {
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
-    offer     = "windows-cvm"
-    sku       = "2022-datacenter-cvm"
+    offer     = "WindowsServer"
+    sku       = "2022-datacenter-azure-edition-core"
     version   = "latest"
   }
 

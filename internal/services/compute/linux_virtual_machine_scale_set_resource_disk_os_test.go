@@ -744,6 +744,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
 
+  disable_password_authentication = false
+
   source_image_reference {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-confidential-vm-focal"
