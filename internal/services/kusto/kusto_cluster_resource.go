@@ -111,11 +111,16 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				},
 			},
 
+			// `trusted_external_tenants` is an unordered set of tenant IDs. The Azure Data Explorer API
+			// returns them in its own canonical order, which frequently differs from the configured
+			// order. Modelling the attribute as a `TypeSet` makes ordering irrelevant and removes the
+			// perpetual diff. In 4.x it stays a `TypeList` (see the `!features.FivePointOh()` block
+			// below) with a `CustomizeDiff` that suppresses ordering-only diffs, since changing the
+			// type there would be a breaking change.
 			"trusted_external_tenants": {
-				Type:       pluginsdk.TypeList,
-				Optional:   true,
-				Computed:   true,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				Computed: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty, validation.StringInSlice([]string{"*"}, false)),
@@ -227,6 +232,20 @@ func resourceKustoCluster() *pluginsdk.Resource {
 	}
 
 	if !features.FivePointOh() {
+		// In 4.x `trusted_external_tenants` remains a `TypeList`; the ordering-only perpetual diff is
+		// instead suppressed by the `CustomizeDiff` below. Switching to a `TypeSet` here would be a
+		// breaking change, so the 5.0 type change is confined to the main schema map.
+		resource.Schema["trusted_external_tenants"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			Computed:   true,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty, validation.StringInSlice([]string{"*"}, false)),
+			},
+		}
+
 		resource.Schema["language_extension"] = &pluginsdk.Schema{
 			Type:          pluginsdk.TypeList,
 			Optional:      true,
@@ -342,23 +361,6 @@ func resourceKustoCluster() *pluginsdk.Resource {
 			}
 
 			return nil
-		}
-	}
-
-	if features.FivePointOh() {
-		// `trusted_external_tenants` is an unordered set of tenant IDs. The Azure Data Explorer API
-		// returns them in its own canonical order, which frequently differs from the configured order.
-		// Modelling the attribute as a `TypeSet` (in 5.0) makes ordering irrelevant and removes the
-		// perpetual diff. In 4.x it stays a `TypeList` with a `CustomizeDiff` that suppresses
-		// ordering-only diffs, since changing the type there would be a breaking change.
-		resource.Schema["trusted_external_tenants"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
-			Computed: true,
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty, validation.StringInSlice([]string{"*"}, false)),
-			},
 		}
 	}
 

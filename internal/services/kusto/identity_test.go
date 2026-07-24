@@ -54,6 +54,24 @@ func TestTrustedExternalTenantsEqual(t *testing.T) {
 			b:        []interface{}{"", "*"},
 			expected: true,
 		},
+		{
+			name:     "duplicate collapses to same set",
+			a:        []interface{}{"tenant-a"},
+			b:        []interface{}{"tenant-a", "tenant-a"},
+			expected: true,
+		},
+		{
+			name:     "duplicates reordered same set",
+			a:        []interface{}{"tenant-a", "tenant-b", "tenant-a"},
+			b:        []interface{}{"tenant-b", "tenant-a", "tenant-b"},
+			expected: true,
+		},
+		{
+			name:     "duplicate masking missing member",
+			a:        []interface{}{"tenant-a", "tenant-a"},
+			b:        []interface{}{"tenant-a", "tenant-b"},
+			expected: false,
+		},
 	}
 
 	for _, tc := range cases {
