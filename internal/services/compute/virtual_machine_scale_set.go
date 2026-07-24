@@ -2281,15 +2281,21 @@ func expandVirtualMachineScaleSetSecurityProfile(d *pluginsdk.ResourceData, secu
 		}
 
 		const expected = virtualmachinescalesets.SecurityTypesConfidentialVM
-		if securityType != nil && *securityType != expected {
+		if securityType == nil {
+			securityType = pointer.To(expected)
+		} else if *securityType != expected {
 			return nil, fmt.Errorf("`security_profile.0.security_type` must be set to `%s` when `os_disk.0.security_encryption_type` is set", expected)
 		}
-	} else if (secureBoot || vtpm) && securityType != nil {
-		switch v := *securityType; v {
-		case virtualmachinescalesets.SecurityTypesConfidentialVM:
-		case virtualmachinescalesets.SecurityTypesTrustedLaunch:
-		default:
-			return nil, fmt.Errorf("`security_profile.0.security_type` must not be set to `%s` when `security_profile.0.secure_boot_enabled` or `security_profile.0.vtpm_enabled` are set to true", v)
+	} else if secureBoot || vtpm {
+		if securityType == nil {
+			securityType = pointer.To(virtualmachinescalesets.SecurityTypesTrustedLaunch)
+		} else {
+			switch v := *securityType; v {
+			case virtualmachinescalesets.SecurityTypesConfidentialVM:
+			case virtualmachinescalesets.SecurityTypesTrustedLaunch:
+			default:
+				return nil, fmt.Errorf("`security_profile.0.security_type` must not be set to `%s` when `security_profile.0.secure_boot_enabled` or `security_profile.0.vtpm_enabled` are set to true", v)
+			}
 		}
 	}
 
@@ -2297,14 +2303,17 @@ func expandVirtualMachineScaleSetSecurityProfile(d *pluginsdk.ResourceData, secu
 		return nil, nil
 	}
 
-	return &virtualmachinescalesets.SecurityProfile{
+	profile := &virtualmachinescalesets.SecurityProfile{
 		EncryptionAtHost: encryptionAtHost,
 		SecurityType:     securityType,
-		UefiSettings: &virtualmachinescalesets.UefiSettings{
+	}
+	if secureBoot || vtpm {
+		profile.UefiSettings = &virtualmachinescalesets.UefiSettings{
 			SecureBootEnabled: secureBootEnabled,
 			VTpmEnabled:       vtpmEnabled,
-		},
-	}, nil
+		}
+	}
+	return profile, nil
 }
 
 func flattenVirtualMachineScaleSetSecurityProfile(profile *virtualmachinescalesets.SecurityProfile) []interface{} {
