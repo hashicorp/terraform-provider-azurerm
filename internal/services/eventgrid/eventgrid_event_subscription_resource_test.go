@@ -80,7 +80,7 @@ func TestAccEventGridEventSubscription_eventHubID(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("event_delivery_schema").HasValue("CloudEventSchemaV1_0"),
-				check.That(data.ResourceName).Key("eventhub_endpoint_id").Exists(),
+				check.That(data.ResourceName).Key("eventhub_id").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -97,7 +97,7 @@ func TestAccEventGridEventSubscription_serviceBusQueueID(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("event_delivery_schema").HasValue("CloudEventSchemaV1_0"),
-				check.That(data.ResourceName).Key("service_bus_queue_endpoint_id").Exists(),
+				check.That(data.ResourceName).Key("service_bus_queue_id").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -114,7 +114,7 @@ func TestAccEventGridEventSubscription_serviceBusTopicID(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("event_delivery_schema").HasValue("CloudEventSchemaV1_0"),
-				check.That(data.ResourceName).Key("service_bus_topic_endpoint_id").Exists(),
+				check.That(data.ResourceName).Key("service_bus_topic_id").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -780,7 +780,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
   scope                 = azurerm_resource_group.test.id
   event_delivery_schema = "CloudEventSchemaV1_0"
 
-  eventhub_endpoint_id = azurerm_eventhub.test.id
+  eventhub_id = azurerm_eventhub.test.id
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -841,10 +841,10 @@ resource "azurerm_servicebus_queue" "test" {
   partitioning_enabled = true
 }
 resource "azurerm_eventgrid_event_subscription" "test" {
-  name                          = "acctest-eg-%[1]d"
-  scope                         = azurerm_resource_group.test.id
-  event_delivery_schema         = "CloudEventSchemaV1_0"
-  service_bus_queue_endpoint_id = azurerm_servicebus_queue.test.id
+  name                  = "acctest-eg-%[1]d"
+  scope                 = azurerm_resource_group.test.id
+  event_delivery_schema = "CloudEventSchemaV1_0"
+  service_bus_queue_id  = azurerm_servicebus_queue.test.id
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -870,10 +870,10 @@ resource "azurerm_servicebus_topic" "test" {
   partitioning_enabled = true
 }
 resource "azurerm_eventgrid_event_subscription" "test" {
-  name                          = "acctest-eg-%[1]d"
-  scope                         = azurerm_resource_group.test.id
-  event_delivery_schema         = "CloudEventSchemaV1_0"
-  service_bus_topic_endpoint_id = azurerm_servicebus_topic.test.id
+  name                  = "acctest-eg-%[1]d"
+  scope                 = azurerm_resource_group.test.id
+  event_delivery_schema = "CloudEventSchemaV1_0"
+  service_bus_topic_id  = azurerm_servicebus_topic.test.id
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -1812,7 +1812,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
   name  = "acctest-eg-%[1]d"
   scope = azurerm_resource_group.test.id
 
-  service_bus_topic_endpoint_id = azurerm_servicebus_topic.test.id
+  service_bus_topic_id = azurerm_servicebus_topic.test.id
 
   advanced_filtering_on_arrays_enabled = true
 
@@ -1865,7 +1865,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
   name  = "acctest-eg-%[1]d"
   scope = azurerm_resource_group.test.id
 
-  service_bus_topic_endpoint_id = azurerm_servicebus_topic.test.id
+  service_bus_topic_id = azurerm_servicebus_topic.test.id
 
   advanced_filtering_on_arrays_enabled = true
 
@@ -1910,7 +1910,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
   name  = "acctest-eg-%[1]d"
   scope = azurerm_resource_group.test.id
 
-  service_bus_topic_endpoint_id = azurerm_servicebus_topic.test.id
+  service_bus_topic_id = azurerm_servicebus_topic.test.id
 
   advanced_filtering_on_arrays_enabled = true
 
@@ -1968,7 +1968,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
   name  = "acctest-eg-%[1]d"
   scope = azurerm_resource_group.test.id
 
-  service_bus_topic_endpoint_id = azurerm_servicebus_topic.test.id
+  service_bus_topic_id = azurerm_servicebus_topic.test.id
 
   advanced_filtering_on_arrays_enabled = true
 
@@ -2029,7 +2029,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
   scope                 = azurerm_resource_group.test.id
   event_delivery_schema = "CloudEventSchemaV1_0"
 
-  eventhub_endpoint_id = azurerm_eventhub.test.id
+  eventhub_id = azurerm_eventhub.test.id
 
   delivery_property {
     header_name = "test-static-1"
@@ -2073,9 +2073,9 @@ resource "azurerm_eventgrid_topic" "test" {
 }
 
 resource "azurerm_eventgrid_event_subscription" "test" {
-  name                          = "acctest-eg-%[1]d"
-  scope                         = azurerm_eventgrid_topic.test.id
-  hybrid_connection_endpoint_id = azurerm_relay_hybrid_connection.test.id
+  name                 = "acctest-eg-%[1]d"
+  scope                = azurerm_eventgrid_topic.test.id
+  hybrid_connection_id = azurerm_relay_hybrid_connection.test.id
 
   delivery_property {
     header_name = "test-static-1"
