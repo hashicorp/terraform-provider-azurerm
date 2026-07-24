@@ -311,7 +311,7 @@ func resourceSiteRecoveryReplicatedVMCustomizeDiff(_ context.Context, diff *plug
 		return nil
 	}
 
-	for networkInterfaceIndex, networkInterface := range networkInterfaces.AsValueSlice() {
+	for _, networkInterface := range networkInterfaces.AsValueSlice() {
 		if !networkInterface.IsKnown() || networkInterface.IsNull() {
 			return nil
 		}
