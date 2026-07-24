@@ -4,7 +4,7 @@ POST_GITHUB_COMMENT="%POST_GITHUB_COMMENT%"
 GITHUB_REPO="%env.GITHUB_REPO%"
 GIT_PAT="%env.GIT_PAT%"
 TEAMCITY_TOKEN="%env.TEAMCITY_TOKEN%"
-TEAMCITY_SERVER_URL=%teamcity.serverUrl%
+TEAMCITY_SERVER_URL="%teamcity.serverUrl%"
 # BUILD_START_TIME is set in the first build step: $(date +%s)
 BUILD_ID="%teamcity.build.id%"
 BUILD_TYPE_ID="%system.teamcity.buildType.id%"
@@ -169,8 +169,6 @@ BUILD_HOURS=$((BUILD_DURATION / 3600))
 BUILD_MINUTES=$(((BUILD_DURATION % 3600) / 60))
 BUILD_SECONDS=$((BUILD_DURATION % 60))
 
-# Build per-test history data: "name|failure_rate|first_failure|last_failure"
-# This is collected for ALL tests that appear in RAW_TEST_RESULTS_JSON (pass or fail).
 TEST_HISTORY=""
 if [ -z "$TEAMCITY_ERROR" ] && [ -n "$MAIN_TEST_ID_MAP" ]; then
   echo "Fetching per-test history..."
@@ -195,7 +193,6 @@ if [ -z "$TEAMCITY_ERROR" ] && [ -n "$MAIN_TEST_ID_MAP" ]; then
       -H "Authorization: Bearer $TEAMCITY_TOKEN" \
       -H "Accept: application/json")
 
-    # Extract rate and raw TC startDate strings (format: 20240315T143022+0000)
     HISTORY_STATS=$(echo "$HISTORY_JSON" | jq -r '
       ([ .testOccurrence[]? | select(.status=="SUCCESS") ] | length) as $s |
       ([ .testOccurrence[]? | select(.status=="FAILURE") ] | length) as $f |
