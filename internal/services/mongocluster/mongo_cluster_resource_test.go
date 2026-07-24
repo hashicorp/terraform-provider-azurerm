@@ -485,10 +485,6 @@ func (r MongoClusterResource) entraIdOnly(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "terraform_data" "authentication_method" {
-  input = "MicrosoftEntraID"
-}
-
 resource "azurerm_mongo_cluster" "test" {
   name                   = "acctest-mc%d"
   resource_group_name    = azurerm_resource_group.test.name
@@ -498,7 +494,7 @@ resource "azurerm_mongo_cluster" "test" {
   high_availability_mode = "Disabled"
   storage_size_in_gb     = "32"
   version                = "7.0"
-  authentication_methods = [terraform_data.authentication_method.output]
+  authentication_methods = ["MicrosoftEntraID"]
 }
 `, r.template(data, data.Locations.Primary), data.RandomInteger)
 }
