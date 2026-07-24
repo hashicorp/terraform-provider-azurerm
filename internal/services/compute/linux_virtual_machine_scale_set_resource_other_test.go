@@ -3112,7 +3112,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   security_profile {
     security_type = "TrustedLaunch"
-    vtpm_enabled = true
+    vtpm_enabled  = true
   }
 }
 `, r.template(data), data.RandomInteger)
