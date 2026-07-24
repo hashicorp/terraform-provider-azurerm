@@ -5,6 +5,7 @@ NOTES:
 * **Major Version** TODO
 
 ENHANCEMENTS:
+* `cdn` - migrate to `go-azure-sdk` [GH-32849]
 * `azurerm_windows_web_app` - add support for `~24` to `site_config.application_stack.node_version` [GH-32840]
 * `azurerm_windows_web_app_slot` - add support for `~24` to `site_config.application_stack.node_version` [GH-32840]
 * `azurerm_cognitive_account_rai_policy` - the `content_filter.severity_threshold` property is now optional [GH-32100]
