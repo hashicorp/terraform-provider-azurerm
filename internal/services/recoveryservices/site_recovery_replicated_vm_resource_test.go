@@ -2174,6 +2174,16 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
       }
     }
   }
+
+  network_interface {
+    source_network_interface_id = azurerm_network_interface.test.id
+
+    ip_configuration {
+      name               = azurerm_network_interface.test.ip_configuration[0].name
+      target_subnet_name = azurerm_subnet.test1.name
+    }
+  }
+
   depends_on = [
     azurerm_site_recovery_protection_container_mapping.test,
   ]
