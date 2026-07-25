@@ -327,6 +327,14 @@ func resourceSiteRecoveryReplicatedVMCustomizeDiff(_ context.Context, diff *plug
 				return nil
 			}
 
+			name := ipConfiguration.GetAttr("name")
+			if !name.IsKnown() {
+				return nil
+			}
+			if name.IsNull() || name.AsString() == "" {
+				return fmt.Errorf("each `network_interface.ip_configuration` block must specify `name` when multiple blocks are configured")
+			}
+
 			primary := ipConfiguration.GetAttr("primary")
 			if !primary.IsKnown() {
 				return nil
@@ -362,7 +370,8 @@ func networkInterfaceResource() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
+							Computed:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
@@ -1082,12 +1091,16 @@ func expandSiteRecoveryReplicatedVMIPConfig(nicInput map[string]interface{}) []r
 	if len(ipConfigs) > 0 {
 		for _, ipConfig := range ipConfigs {
 			ipConfig := ipConfig.(map[string]interface{})
+			var ipConfigName *string
+			if name, ok := ipConfig["name"].(string); ok && name != "" {
+				ipConfigName = pointer.To(name)
+			}
 			var recoveryLoadBalancerBackendPoolIds *[]string
-			if ids, ok := nicInput["recovery_load_balancer_backend_address_pool_ids"].(*schema.Set); ok && ids.Len() > 0 {
+			if ids, ok := ipConfig["recovery_load_balancer_backend_address_pool_ids"].(*schema.Set); ok && ids.Len() > 0 {
 				recoveryLoadBalancerBackendPoolIds = utils.ExpandStringSlice(ids.List())
 			}
 			output = append(output, replicationprotecteditems.IPConfigInputDetails{
-				IPConfigName:                    pointer.To(ipConfig["name"].(string)),
+				IPConfigName:                    ipConfigName,
 				RecoverySubnetName:              pointer.To(ipConfig["target_subnet_name"].(string)),
 				RecoveryStaticIPAddress:         pointer.To(ipConfig["target_static_ip"].(string)),
 				RecoveryLBBackendAddressPoolIds: recoveryLoadBalancerBackendPoolIds,

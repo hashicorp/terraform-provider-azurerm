@@ -184,6 +184,7 @@ func TestAccSiteRecoveryReplicatedVm_des(t *testing.T) {
 			Config: r.des(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_interface.0.ip_configuration.0.name").HasValue("testconfiguration1"),
 			),
 		},
 		data.ImportStep(),
@@ -217,6 +218,8 @@ func TestAccSiteRecoveryReplicatedVm_zone2zoneWithLoadBalancerBackendPool(t *tes
 			Config: r.zone2zoneWithLoadBalancerBackendPool(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_interface.0.ip_configuration.0.name").HasValue(fmt.Sprintf("ip-config-%d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("network_interface.0.ip_configuration.0.recovery_load_balancer_backend_address_pool_ids.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -281,7 +284,7 @@ func TestAccSiteRecoveryReplicatedVm_withIPConfigList(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.ipConfigList(data),
+			Config: r.ipConfigList(data, true, false, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -293,16 +296,21 @@ func TestAccSiteRecoveryReplicatedVm_withIPConfigList(t *testing.T) {
 func TestAccSiteRecoveryReplicatedVm_withIPConfigListPrimaryValidation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replicated_vm", "test")
 	r := SiteRecoveryReplicatedVmResource{}
-	expectedError := regexp.MustCompile("`network_interface\\.ip_configuration` must contain exactly one block with `primary` set to `true` when multiple blocks are configured")
+	expectedPrimaryError := regexp.MustCompile("`network_interface\\.ip_configuration` must contain exactly one block with `primary` set to `true` when multiple blocks are configured")
+	expectedNameError := regexp.MustCompile("each `network_interface\\.ip_configuration` block must specify `name` when multiple blocks are configured")
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.ipConfigListWithPrimaryValues(data, false, false),
-			ExpectError: expectedError,
+			Config:      r.ipConfigList(data, false, false, true),
+			ExpectError: expectedPrimaryError,
 		},
 		{
-			Config:      r.ipConfigListWithPrimaryValues(data, true, true),
-			ExpectError: expectedError,
+			Config:      r.ipConfigList(data, true, true, true),
+			ExpectError: expectedPrimaryError,
+		},
+		{
+			Config:      r.ipConfigList(data, true, false, false),
+			ExpectError: expectedNameError,
 		},
 	})
 }
@@ -1886,7 +1894,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
   network_interface {
     source_network_interface_id = azurerm_network_interface.test.id
     ip_configuration {
-      name                                            = "primary"
+      name                                            = azurerm_network_interface.test.ip_configuration[0].name
       target_subnet_name                              = azurerm_subnet.test2.name
       recovery_public_ip_address_id                   = azurerm_public_ip.test.id
       recovery_load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
@@ -3050,11 +3058,14 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
 `, r.vmSizeTemplate(data, "Standard_B2s"), data.RandomInteger)
 }
 
-func (r SiteRecoveryReplicatedVmResource) ipConfigList(data acceptance.TestData) string {
-	return r.ipConfigListWithPrimaryValues(data, true, false)
-}
+func (r SiteRecoveryReplicatedVmResource) ipConfigList(data acceptance.TestData, firstPrimary, secondPrimary, includeNames bool) string {
+	firstName := ""
+	secondName := ""
+	if includeNames {
+		firstName = `      name                          = "primary"`
+		secondName = `      name                          = "secondary"`
+	}
 
-func (r SiteRecoveryReplicatedVmResource) ipConfigListWithPrimaryValues(data acceptance.TestData, firstPrimary, secondPrimary bool) string {
 	return fmt.Sprintf(`
 %s
 
@@ -3099,7 +3110,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
   network_interface {
     source_network_interface_id = azurerm_network_interface.test.id
     ip_configuration {
-      name                          = "primary"
+%[5]s
       recovery_public_ip_address_id = azurerm_public_ip.test-recovery.id
       target_subnet_name            = azurerm_subnet.recovery.name
       failover_test_subnet_name     = azurerm_subnet.tfo.name
@@ -3107,7 +3118,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
     }
 
     ip_configuration {
-      name                          = "secondary"
+%[6]s
       recovery_public_ip_address_id = azurerm_public_ip.test-recovery-2.id
       target_subnet_name            = azurerm_subnet.recovery.name
       failover_test_subnet_name     = azurerm_subnet.tfo.name
@@ -3120,7 +3131,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
     azurerm_site_recovery_network_mapping.test,
   ]
 }
-`, r.multipleIPTemplate(data), data.RandomInteger, firstPrimary, secondPrimary)
+`, r.multipleIPTemplate(data), data.RandomInteger, firstPrimary, secondPrimary, firstName, secondName)
 }
 
 func (r SiteRecoveryReplicatedVmResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
