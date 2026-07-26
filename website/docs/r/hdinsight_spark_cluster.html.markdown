@@ -51,8 +51,8 @@ resource "azurerm_hdinsight_spark_cluster" "example" {
 
   storage_account {
     storage_container_url = azurerm_storage_container.example.url
-    storage_account_key  = azurerm_storage_account.example.primary_access_key
-    is_default           = true
+    storage_account_key   = azurerm_storage_account.example.primary_access_key
+    is_default            = true
   }
 
   roles {
