@@ -230,7 +230,7 @@ A `storage_account_gen2` block supports the following:
 
 * `filesystem_id` - (Required) The ID of the Gen2 Filesystem. Changing this forces a new resource to be created.
 
-* `managed_identity_resource_id` - (Required) The ID of Managed Identity to use for accessing the Gen2 filesystem. Changing this forces a new resource to be created.
+* `user_assigned_identity_id` - (Required) The ID of User Assigned Identity to use for accessing the Gen2 filesystem. Changing this forces a new resource to be created.
 
 -> **Note:** This can be obtained from the `id` of the `azurerm_storage_container` resource.
 
