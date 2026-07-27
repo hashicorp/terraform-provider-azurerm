@@ -370,6 +370,8 @@ use computed cross-resource references for key arguments.
 
 ### `azurerm_application_gateway`
 
+* The deprecated `backend_http_settings.authentication_certificate` property has been removed.
+* The deprecated `authentication_certificate` property has been removed.
 * The deprecated `enable_http2` property has been removed in favour of the `http2_enabled` property.
 * The deprecated `ssl_profile.verify_client_cert_issuer_dn` property has been removed in favour of the `ssl_profile.verify_client_certificate_issuer_dn` property.
 
@@ -1071,6 +1073,11 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 * The deprecated `hostname_configuration.portal.key_vault_id` property has been removed in favour of the `hostname_configuration.portal.key_vault_certificate_id` property.
 * The deprecated `hostname_configuration.proxy.key_vault_id` property has been removed in favour of the `hostname_configuration.proxy.key_vault_certificate_id` property.
 * The deprecated `hostname_configuration.scm.key_vault_id` property has been removed in favour of the `hostname_configuration.scm.key_vault_certificate_id` property.
+
+### `azurerm_application_gateway`
+
+* The deprecated `backend_http_settings.authentication_certificate` property has been removed.
+* The deprecated `authentication_certificate` property has been removed.
 
 ### `azurerm_batch_pool`
 
