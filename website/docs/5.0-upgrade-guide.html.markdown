@@ -450,71 +450,71 @@ The `url_rewrite_action.preserve_unmatched_path` property has been removed in fa
 
 The `conditions.client_port_condition` property has been removed in favour of the `conditions.client_port` property.
 The `conditions.client_port_condition.match_values` property has been removed in favour of the `conditions.client_port.values` property.
-The `conditions.client_port_condition.negate_condition` property has been removed in favour of negated `operator` values (`Not{Operator}`).
+The `conditions.client_port_condition.negate_condition` property has been removed in favour of negated `conditions.client_port.operator` values (`Not{Operator}`).
 
 The `conditions.cookies_condition` property has been removed in favour of the `conditions.request_cookies` property.
 The `conditions.cookies_condition.cookie_name` property has been removed in favour of the `conditions.request_cookies.name` property.
 The `conditions.cookies_condition.match_values` property has been removed in favour of the `conditions.request_cookies.values` property.
-The `conditions.cookies_condition.negate_condition` property has been removed in favour negated `operator` values (`Not{Operator}`).
+The `conditions.cookies_condition.negate_condition` property has been removed in favour negated `conditions.request_cookies.operator` values (`Not{Operator}`).
 
 The `conditions.host_name_condition` property has been removed in favour of the `conditions.host_name` property.
 The `conditions.host_name_condition.match_values` property has been removed in favour of the `conditions.host_name.values` property.
-The `conditions.host_name_condition.negate_condition` property has been removed in favour negated `operator` values (`Not{Operator}`).
+The `conditions.host_name_condition.negate_condition` property has been removed in favour negated `conditions.host_name.operator` values (`Not{Operator}`).
 
 The `conditions.http_version_condition` property has been removed in favour of the `conditions.http_version` property.
 The `conditions.http_version_condition.match_values` property has been removed in favour of the `conditions.http_version.values` property.
-The `conditions.http_version_condition.negate_condition` property has been removed in favour negated `operator` values (`Not{Operator}`).
+The `conditions.http_version_condition.negate_condition` property has been removed in favour negated `conditions.http_version.operator` values (`Not{Operator}`).
 The `conditions.http_version.operator` property is now required.
 
 The `conditions.is_device_condition` property has been removed in favour of the `conditions.device_type` property.
 The `conditions.is_device_condition.match_values` property has been removed in favour of the `conditions.device_type.values` property.
-The `conditions.is_device_condition.negate_condition` property has been removed in favour negated `operator` values (`Not{Operator}`).
+The `conditions.is_device_condition.negate_condition` property has been removed in favour negated `conditions.device_type.operator` values (`Not{Operator}`).
 The `conditions.device_type.operator` property is now required.
 The `conditions.device_type.values` property is now required.
 
 The `conditions.post_args_condition` property has been removed in favour of the `conditions.post_argument` property.
 The `conditions.post_args_condition.match_values` property has been removed in favour of the `conditions.post_argument.values` property.
-The `conditions.post_args_condition.negate_condition` property has been removed in favour of negated `operator` values (`Not{Operator}`).
+The `conditions.post_args_condition.negate_condition` property has been removed in favour of negated `conditions.post_argument.operator` values (`Not{Operator}`).
 The `conditions.post_args_condition.post_args_name` property has been removed in favour of the `conditions.post_argument.name` property.
 The `conditions.post_argument.operator` property is now required.
 
 The `conditions.query_string_condition` property has been removed in favour of the `conditions.query_string` property.
 The `conditions.query_string_condition.match_values` property has been removed in favour of the `conditions.query_string.values` property.
-The `conditions.query_string_condition.negate_condition` property has been removed in favour of negated `operator` values (`Not{Operator}`).
+The `conditions.query_string_condition.negate_condition` property has been removed in favour of negated `conditions.query_string.operator` values (`Not{Operator}`).
 
 The `conditions.remote_address_condition` property has been removed in favour of the `conditions.remote_address` property.
 The `conditions.remote_address_condition.match_values` property has been removed in favour of the `conditions.remote_address.values` property.
-The `conditions.remote_address_condition.negate_condition` property has been removed in favour of negated `operator` values (`Not{Operator}`).
+The `conditions.remote_address_condition.negate_condition` property has been removed in favour of negated `conditions.remote_address.operator` values (`Not{Operator}`).
 The `conditions.remote_address.operator` property is now required.
 The `conditions.remote_address.operator` property no longer accepts `Any`.
 The `conditions.remote_address.values` property is now required.
 
 The `conditions.request_body_condition` property has been removed in favour of the `conditions.request_body` property.
 The `conditions.request_body_condition.match_values` property has been removed in favour of the `conditions.request_body.values` property.
-The `conditions.request_body_condition.negate_condition` property has been removed in favour negated `operator` values (`Not{Operator}`).
+The `conditions.request_body_condition.negate_condition` property has been removed in favour negated `conditions.request_body.operator` values (`Not{Operator}`).
 
 The `conditions.request_header_condition` property has been removed in favour of the `conditions.request_header` property.
 The `conditions.request_header_condition.header_name` property has been removed in favour of the `conditions.request_header.name` property.
 The `conditions.request_header_condition.match_values` property has been removed in favour of the `conditions.request_header.values` property.
-The `conditions.request_header_condition.negate_condition` property has been removed in favour negated `operator` values (`Not{Operator}`).
+The `conditions.request_header_condition.negate_condition` property has been removed in favour negated `conditions.request_header.operator` values (`Not{Operator}`).
 
 The `conditions.request_method_condition` property has been removed in favour of the `conditions.request_method` property.
 The `conditions.request_method_condition.match_values` property has been removed in favour of the `conditions.request_method.values` property.
-The `conditions.request_method_condition.negate_condition` property has been removed in favour of negated `operator` values (`Not{Operator}`).
+The `conditions.request_method_condition.negate_condition` property has been removed in favour of negated `conditions.request_method.operator` values (`Not{Operator}`).
 The `conditions.request_method.operator` property is now required.
 
 The `conditions.request_scheme_condition` property has been removed in favour of the `conditions.request_scheme` property.
 The `conditions.request_scheme_condition.match_values` property has been removed in favour of the `conditions.request_scheme.values` property.
-The `conditions.request_scheme_condition.negate_condition` property has been removed in favour negated `operator` values (`Not{Operator}`).
+The `conditions.request_scheme_condition.negate_condition` property has been removed in favour negated `conditions.request_scheme.operator` values (`Not{Operator}`).
 The `conditions.request_scheme.operator` property is now required.
 
 The `conditions.request_uri_condition` property has been removed in favour of the `conditions.request_url` property.
 The `conditions.request_uri_condition.match_values` property has been removed in favour of the `conditions.request_url.values` property.
-The `conditions.request_uri_condition.negate_condition` property has been removed in favour negated `operator` values (`Not{Operator}`).
+The `conditions.request_uri_condition.negate_condition` property has been removed in favour negated `conditions.request_url.operator` values (`Not{Operator}`).
 
 The `conditions.server_port_condition` property has been removed in favour of the `conditions.server_port` property.
 The `conditions.server_port_condition.match_values` property has been removed in favour of the `conditions.server_port.values` property.
-The `conditions.server_port_condition.negate_condition` property has been removed in favour negated `operator` values (`Not{Operator}`).
+The `conditions.server_port_condition.negate_condition` property has been removed in favour negated `conditions.server_port.operator` values (`Not{Operator}`).
 
 The `conditions.socket_address_condition` property has been removed in favour of the `conditions.socket_address` property.
 The `conditions.socket_address_condition.match_values` property has been removed in favour of the `conditions.socket_address.values` property.
@@ -524,20 +524,20 @@ The `conditions.socket_address.operator` property no longer accepts `Any`.
 
 The `conditions.ssl_protocol_condition` property has been removed in favour of the `conditions.ssl_protocol` property.
 The `conditions.ssl_protocol_condition.match_values` property has been removed in favour of the `conditions.ssl_protocol.values` property.
-The `conditions.ssl_protocol_condition.negate_condition` property has been removed in favour negated `operator` values (`Not{Operator}`).
+The `conditions.ssl_protocol_condition.negate_condition` property has been removed in favour negated `conditions.ssl_protocol.operator` values (`Not{Operator}`).
 The `conditions.ssl_protocol.operator` property is now required.
 
 The `conditions.url_file_extension_condition` property has been removed in favour of the `conditions.request_file_extension` property.
 The `conditions.url_file_extension_condition.match_values` property has been removed in favour of the `conditions.request_file_extension.values` property.
-The `conditions.url_file_extension_condition.negate_condition` property has been removed in favour negated `operator` values (`Not{Operator}`).
+The `conditions.url_file_extension_condition.negate_condition` property has been removed in favour negated `conditions.request_file_extension.operator` values (`Not{Operator}`).
 
 The `conditions.url_filename_condition` property has been removed in favour of the `conditions.request_filename` property.
 The `conditions.url_filename_condition.match_values` property has been removed in favour of the `conditions.request_filename.values` property.
-The `conditions.url_filename_condition.negate_condition` property has been removed in favour negated `operator` values (`Not{Operator}`).
+The `conditions.url_filename_condition.negate_condition` property has been removed in favour negated `conditions.request_filename.operator` values (`Not{Operator}`).
 
 The `conditions.url_path_condition` property has been removed in favour of the `conditions.request_path` property.
 The `conditions.url_path_condition.match_values` property has been removed in favour of the `conditions.request_path.values` property.
-The `conditions.url_path_condition.negate_condition` property has been removed in favour negated `operator` values (`Not{Operator}`).
+The `conditions.url_path_condition.negate_condition` property has been removed in favour negated `conditions.request_path.operator` values (`Not{Operator}`).
 
 ### `azurerm_cdn_frontdoor_security_policy`
 
