@@ -307,7 +307,9 @@ func TestAccHDInsightSparkCluster_allMetastores(t *testing.T) {
 			"roles.0.zookeeper_node.0.password",
 			"roles.0.zookeeper_node.0.vm_size",
 			"storage_account",
-			"metastores"),
+			"metastores.0.hive.0.password",
+			"metastores.0.oozie.0.password",
+			"metastores.0.ambari.0.password"),
 	})
 }
 
@@ -345,7 +347,9 @@ func TestAccHDInsightSparkCluster_updateMetastore(t *testing.T) {
 			"roles.0.zookeeper_node.0.password",
 			"roles.0.zookeeper_node.0.vm_size",
 			"storage_account",
-			"metastores"),
+			"metastores.0.hive.0.password",
+			"metastores.0.oozie.0.password",
+			"metastores.0.ambari.0.password"),
 		{
 			Config: r.allMetastores(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -361,7 +365,9 @@ func TestAccHDInsightSparkCluster_updateMetastore(t *testing.T) {
 			"roles.0.zookeeper_node.0.password",
 			"roles.0.zookeeper_node.0.vm_size",
 			"storage_account",
-			"metastores"),
+			"metastores.0.hive.0.password",
+			"metastores.0.oozie.0.password",
+			"metastores.0.ambari.0.password"),
 	})
 }
 

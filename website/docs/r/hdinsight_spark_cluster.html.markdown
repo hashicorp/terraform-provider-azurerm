@@ -322,8 +322,6 @@ A `disk_encryption` block supports the following:
 
 A `metastores` block supports the following:
 
--> **Note:** When importing an existing HDInsight Cluster, Terraform will not automatically populate the `metastores` block in the state. If the cluster was created with an external metastore, you must explicitly define the `metastores` block in your configuration to avoid a forced replacement on the next apply.
-
 * `hive` - (Optional) A `hive` block as defined below.
 
 * `oozie` - (Optional) An `oozie` block as defined below.

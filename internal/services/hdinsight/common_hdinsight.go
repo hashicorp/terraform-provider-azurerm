@@ -356,24 +356,18 @@ func flattenHDInsightsMetastores(d *pluginsdk.ResourceData, configurations map[s
 	hiveEnv, envExists := configurations["hive-env"]
 	hiveSite, siteExists := configurations["hive-site"]
 	if envExists && siteExists {
-		if v, ok := d.GetOk("metastores.0.hive"); ok && len(v.([]interface{})) > 0 {
-			result["hive"] = FlattenHDInsightsHiveMetastore(hiveEnv, hiveSite)
-		}
+		result["hive"] = FlattenHDInsightsHiveMetastore(hiveEnv, hiveSite)
 	}
 
 	oozieEnv, envExists := configurations["oozie-env"]
 	oozieSite, siteExists := configurations["oozie-site"]
 	if envExists && siteExists {
-		if v, ok := d.GetOk("metastores.0.oozie"); ok && len(v.([]interface{})) > 0 {
-			result["oozie"] = FlattenHDInsightsOozieMetastore(oozieEnv, oozieSite)
-		}
+		result["oozie"] = FlattenHDInsightsOozieMetastore(oozieEnv, oozieSite)
 	}
 
 	ambari, ambariExists := configurations["ambari-conf"]
 	if ambariExists {
-		if v, ok := d.GetOk("metastores.0.ambari"); ok && len(v.([]interface{})) > 0 {
-			result["ambari"] = FlattenHDInsightsAmbariMetastore(ambari)
-		}
+		result["ambari"] = FlattenHDInsightsAmbariMetastore(ambari)
 	}
 
 	if len(result) > 0 {
