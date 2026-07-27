@@ -1,0 +1,37 @@
+// Copyright IBM Corp. 2020, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package tf5muxserver
+
+import (
+	"context"
+
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+
+	"github.com/hashicorp/terraform-plugin-mux/internal/logging"
+)
+
+// GenerateResourceConfig calls the GenerateResourceConfig method, passing `req`, on the provider
+// that returned the resource specified by req.TypeName in its schema.
+func (s *muxServer) GenerateResourceConfig(ctx context.Context, req *tfprotov5.GenerateResourceConfigRequest) (*tfprotov5.GenerateResourceConfigResponse, error) {
+	rpc := "GenerateResourceConfig"
+	ctx = logging.InitContext(ctx)
+	ctx = logging.RpcContext(ctx, rpc)
+
+	server, diags, err := s.getResourceServer(ctx, req.TypeName)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if diagnosticsHasError(diags) {
+		return &tfprotov5.GenerateResourceConfigResponse{
+			Diagnostics: diags,
+		}, nil
+	}
+
+	ctx = logging.Tfprotov5ProviderServerContext(ctx, server)
+	logging.MuxTrace(ctx, "calling downstream server")
+
+	return server.GenerateResourceConfig(ctx, req)
+}

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package toproto6
@@ -26,6 +26,7 @@ func GetProviderSchemaResponse(ctx context.Context, fw *fwserver.GetProviderSche
 		ListResourceSchemas:      make(map[string]*tfprotov6.Schema, len(fw.ListResourceSchemas)),
 		ResourceSchemas:          make(map[string]*tfprotov6.Schema, len(fw.ResourceSchemas)),
 		ServerCapabilities:       ServerCapabilities(ctx, fw.ServerCapabilities),
+		StateStoreSchemas:        make(map[string]*tfprotov6.Schema, len(fw.StateStoreSchemas)),
 	}
 
 	var err error
@@ -122,6 +123,20 @@ func GetProviderSchemaResponse(ctx context.Context, fw *fwserver.GetProviderSche
 				Severity: tfprotov6.DiagnosticSeverityError,
 				Summary:  "Error converting list resource schema",
 				Detail:   "The schema for the list resource \"" + listResourceType + "\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+			})
+
+			return protov6
+		}
+	}
+
+	for stateStoreType, stateStoreSchema := range fw.StateStoreSchemas {
+		protov6.StateStoreSchemas[stateStoreType], err = Schema(ctx, stateStoreSchema)
+
+		if err != nil {
+			protov6.Diagnostics = append(protov6.Diagnostics, &tfprotov6.Diagnostic{
+				Severity: tfprotov6.DiagnosticSeverityError,
+				Summary:  "Error converting state store schema",
+				Detail:   "The schema for the state store \"" + stateStoreType + "\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\n" + err.Error(),
 			})
 
 			return protov6

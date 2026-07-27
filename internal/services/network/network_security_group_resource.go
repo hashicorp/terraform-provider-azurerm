@@ -225,8 +225,8 @@ func resourceNetworkSecurityGroupCreate(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("building list of Network Security Group Rules: %+v", sgErr)
 	}
 
-	locks.ByName(id.NetworkSecurityGroupName, networkSecurityGroupResourceName)
-	defer locks.UnlockByName(id.NetworkSecurityGroupName, networkSecurityGroupResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	sg := networksecuritygroups.NetworkSecurityGroup{
 		Name:     pointer.To(id.NetworkSecurityGroupName),
@@ -286,8 +286,8 @@ func resourceNetworkSecurityGroupUpdate(d *pluginsdk.ResourceData, meta interfac
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	locks.ByName(id.NetworkSecurityGroupName, networkSecurityGroupResourceName)
-	defer locks.UnlockByName(id.NetworkSecurityGroupName, networkSecurityGroupResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
@@ -353,6 +353,9 @@ func resourceNetworkSecurityGroupDelete(d *pluginsdk.ResourceData, meta interfac
 	if err != nil {
 		return err
 	}
+
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)

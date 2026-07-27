@@ -120,6 +120,7 @@ resource "azurerm_key_vault" "example" {
   name                        = "mssqltdeexample"
   location                    = azurerm_resource_group.example.location
   resource_group_name         = azurerm_resource_group.example.name
+  rbac_authorization_enabled  = false
   enabled_for_disk_encryption = true
   tenant_id                   = azurerm_user_assigned_identity.example.tenant_id
   soft_delete_retention_days  = 7
@@ -272,7 +273,7 @@ a `threat_detection_policy` block supports the following:
 
 * `state` - (Optional) The State of the Policy. Possible values are `Enabled` or `Disabled`. Defaults to `Disabled`.
 * `disabled_alerts` - (Optional) Specifies a list of alerts which should be disabled. Possible values include `Access_Anomaly`, `Sql_Injection` and `Sql_Injection_Vulnerability`.
-* `email_account_admins` - (Optional) Should the account administrators be emailed when this alert is triggered? Possible values are `Enabled` or `Disabled`. Defaults to `Disabled`.
+* `email_account_admins_enabled` - (Optional) Whether the account administrators should receive an email when this alert is triggered. Defaults to `false`.
 * `email_addresses` - (Optional) A list of email addresses which alerts should be sent to.
 * `retention_days` - (Optional) Specifies the number of days to keep in the Threat Detection audit logs.
 * `storage_account_access_key` - (Optional) Specifies the identifier key of the Threat Detection audit storage account. Required if `state` is `Enabled`.

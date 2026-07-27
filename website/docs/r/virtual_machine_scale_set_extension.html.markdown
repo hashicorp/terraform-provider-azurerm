@@ -24,7 +24,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  sku                 = "Standard_F2"
+  sku                 = "Standard_D4_v5"
   admin_username      = "adminuser"
   instances           = 1
 
@@ -144,4 +144,4 @@ terraform import azurerm_virtual_machine_scale_set_extension.test /subscriptions
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Compute` - 2024-11-01, 2024-03-01
+* `Microsoft.Compute` - 2025-04-01, 2024-03-01

@@ -66,6 +66,10 @@ The following arguments are supported:
 
 * `microsoft_app_id` - (Required) The Microsoft Application ID for the Azure Bot Service. Changing this forces a new resource to be created.
 
+* `microsoft_app_type` - (Required) The Microsoft App Type for this Azure Bot Service. Possible values are `MultiTenant`, `SingleTenant` and `UserAssignedMSI`. Changing this forces a new resource to be created.
+
+~> **Note:** Creation of `azurerm_bot_service_azure_bot` resources using the `MultiTenant` type is no longer supported by Azure, existing resources can continue using this type.
+
 * `sku` - (Required) The SKU of the Azure Bot Service. Accepted values are `F0` or `S1`. Changing this forces a new resource to be created.
 
 * `developer_app_insights_api_key` - (Optional) The Application Insights API Key to associate with this Azure Bot Service.
@@ -87,10 +91,6 @@ The following arguments are supported:
 ~> **Note:** In order to utilize CMEK, you must add the `Key Vault Crypto Service Encryption User` role to the Azure-defined `Bot Service CMEK Prod` Service Principal. You must also enable `soft_delete_enabled` and `purge_protection_enabled` on the `azurerm_key_vault` that `cmk_key_vault_key_url` refers to. [See Azure Documentation](https://learn.microsoft.com/en-us/azure/bot-service/bot-service-encryption?view=azure-bot-service-4.0#how-to-configure-your-azure-key-vault-instance)
 
 * `microsoft_app_tenant_id` - (Optional) The Tenant ID of the Microsoft App for this Azure Bot Service. Changing this forces a new resource to be created.
-
-* `microsoft_app_type` - (Optional) The Microsoft App Type for this Azure Bot Service. Possible values are `MultiTenant`, `SingleTenant` and `UserAssignedMSI`. Changing this forces a new resource to be created.
-
-~> **Note:** Creation of `azurerm_bot_service_azure_bot` resources using the `MultiTenant` type is no longer supported by Azure, existing resources can continue using this type.
 
 * `local_authentication_enabled` - (Optional) Is local authentication enabled? Defaults to `true`.
 

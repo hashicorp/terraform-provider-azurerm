@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math/big"
 	"regexp"
 	"strings"
 	"time"
@@ -358,8 +359,11 @@ func resourceVirtualNetworkCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	locks.MultipleByName(routeTables, routeTableResourceName)
-	defer locks.UnlockMultipleByName(routeTables, routeTableResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
+
+	locks.MultipleByID(routeTables)
+	defer locks.UnlockMultipleByID(routeTables)
 
 	vnet := virtualnetworks.VirtualNetwork{
 		Name:             pointer.To(id.VirtualNetworkName),
@@ -373,23 +377,19 @@ func resourceVirtualNetworkCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		vnet.Properties.FlowTimeoutInMinutes = pointer.To(int64(v.(int)))
 	}
 
-	networkSecurityGroupNames := make([]string, 0)
+	networkSecurityGroupIds := make([]string, 0)
 	for _, subnet := range *vnet.Properties.Subnets {
 		if subnet.Properties != nil && subnet.Properties.NetworkSecurityGroup != nil {
 			parsedNsgID, err := networksecuritygroups.ParseNetworkSecurityGroupID(*subnet.Properties.NetworkSecurityGroup.Id)
 			if err != nil {
 				return err
 			}
-
-			networkSecurityGroupName := parsedNsgID.NetworkSecurityGroupName
-			if !utils.SliceContainsValue(networkSecurityGroupNames, networkSecurityGroupName) {
-				networkSecurityGroupNames = append(networkSecurityGroupNames, networkSecurityGroupName)
-			}
+			networkSecurityGroupIds = append(networkSecurityGroupIds, parsedNsgID.ID())
 		}
 	}
 
-	locks.MultipleByName(&networkSecurityGroupNames, networkSecurityGroupResourceName)
-	defer locks.UnlockMultipleByName(&networkSecurityGroupNames, networkSecurityGroupResourceName)
+	locks.MultipleByID(&networkSecurityGroupIds)
+	defer locks.UnlockMultipleByID(&networkSecurityGroupIds)
 
 	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, vnet, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
@@ -547,8 +547,12 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 				for _, existingAllocation := range *payload.Properties.AddressSpace.IPamPoolPrefixAllocations {
 					for _, expandedAllocation := range *expandedIPAddressPool {
 						if existingAllocation.Pool != nil && expandedAllocation.Pool != nil && strings.EqualFold(pointer.From(existingAllocation.Pool.Id), pointer.From(expandedAllocation.Pool.Id)) &&
-							existingAllocation.NumberOfIPAddresses != nil && expandedAllocation.NumberOfIPAddresses != nil && *existingAllocation.NumberOfIPAddresses > *expandedAllocation.NumberOfIPAddresses {
-							return fmt.Errorf("`number_of_ip_addresses` cannot be decreased from %v to %v on pool: %v", *existingAllocation.NumberOfIPAddresses, *expandedAllocation.NumberOfIPAddresses, *expandedAllocation.Pool.Id)
+							existingAllocation.NumberOfIPAddresses != nil && expandedAllocation.NumberOfIPAddresses != nil {
+							existingNum, _ := new(big.Int).SetString(*existingAllocation.NumberOfIPAddresses, 10)
+							newNum, _ := new(big.Int).SetString(*expandedAllocation.NumberOfIPAddresses, 10)
+							if existingNum != nil && newNum != nil && existingNum.Cmp(newNum) == 1 {
+								return fmt.Errorf("`number_of_ip_addresses` cannot be decreased from %v to %v on pool: %v", *existingAllocation.NumberOfIPAddresses, *expandedAllocation.NumberOfIPAddresses, *expandedAllocation.Pool.Id)
+							}
 						}
 					}
 				}
@@ -601,8 +605,11 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 		payload.Properties.Subnets = subnets
 
-		locks.MultipleByName(routeTables, routeTableResourceName)
-		defer locks.UnlockMultipleByName(routeTables, routeTableResourceName)
+		locks.ByID(id.ID())
+		defer locks.UnlockByID(id.ID())
+
+		locks.MultipleByID(routeTables)
+		defer locks.UnlockMultipleByID(routeTables)
 	}
 
 	if d.HasChange("private_endpoint_vnet_policies") {
@@ -613,7 +620,7 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	networkSecurityGroupNames := make([]string, 0)
+	networkSecurityGroupIds := make([]string, 0)
 	if payload.Properties != nil && payload.Properties.Subnets != nil {
 		for _, subnet := range *payload.Properties.Subnets {
 			if subnet.Properties != nil {
@@ -626,18 +633,14 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 					if err != nil {
 						return err
 					}
-
-					networkSecurityGroupName := parsedNsgID.NetworkSecurityGroupName
-					if !utils.SliceContainsValue(networkSecurityGroupNames, networkSecurityGroupName) {
-						networkSecurityGroupNames = append(networkSecurityGroupNames, networkSecurityGroupName)
-					}
+					networkSecurityGroupIds = append(networkSecurityGroupIds, parsedNsgID.ID())
 				}
 			}
 		}
 	}
 
-	locks.MultipleByName(&networkSecurityGroupNames, networkSecurityGroupResourceName)
-	defer locks.UnlockMultipleByName(&networkSecurityGroupNames, networkSecurityGroupResourceName)
+	locks.MultipleByID(&networkSecurityGroupIds)
+	defer locks.UnlockMultipleByID(&networkSecurityGroupIds)
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
@@ -674,11 +677,14 @@ func resourceVirtualNetworkDelete(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("parsing Network Security Group ID's: %+v", err)
 	}
 
-	locks.MultipleByName(&nsgNames, VirtualNetworkResourceName)
-	defer locks.UnlockMultipleByName(&nsgNames, VirtualNetworkResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
-	locks.MultipleByName(&routeTableNames, routeTableResourceName)
-	defer locks.UnlockMultipleByName(&routeTableNames, routeTableResourceName)
+	locks.MultipleByID(&nsgNames)
+	defer locks.UnlockMultipleByID(&nsgNames)
+
+	locks.MultipleByID(&routeTableNames)
+	defer locks.UnlockMultipleByID(&routeTableNames)
 
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
@@ -782,7 +788,7 @@ func expandVirtualNetworkSubnets(ctx context.Context, client virtualnetworks.Vir
 			}
 
 			// Collecting a list of route tables to lock on outside of this function
-			routeTables = append(routeTables, id.RouteTableName)
+			routeTables = append(routeTables, id.ID())
 			subnetObj.Properties.RouteTable = &virtualnetworks.RouteTable{
 				Id: pointer.To(id.ID()),
 			}
@@ -858,7 +864,7 @@ func expandVirtualNetworkProperties(ctx context.Context, client virtualnetworks.
 				}
 
 				// Collecting a list of route tables to lock on outside of this function
-				routeTables = append(routeTables, id.RouteTableName)
+				routeTables = append(routeTables, id.ID())
 				subnetObj.Properties.RouteTable = &virtualnetworks.RouteTable{
 					Id: pointer.To(id.ID()),
 				}
@@ -1120,8 +1126,8 @@ func getExistingSubnet(ctx context.Context, client virtualnetworks.VirtualNetwor
 }
 
 func expandResourcesForLocking(d *pluginsdk.ResourceData) ([]string, []string, error) {
-	nsgNames := make([]string, 0)
-	routeTableNames := make([]string, 0)
+	nsgIds := make([]string, 0)
+	routeTableIds := make([]string, 0)
 
 	if v, ok := d.GetOk("subnet"); ok {
 		subnets := v.(*pluginsdk.Set).List()
@@ -1137,11 +1143,7 @@ func expandResourcesForLocking(d *pluginsdk.ResourceData) ([]string, []string, e
 				if err != nil {
 					return nil, nil, err
 				}
-
-				networkSecurityGroupName := parsedNsgID.NetworkSecurityGroupName
-				if !utils.SliceContainsValue(nsgNames, networkSecurityGroupName) {
-					nsgNames = append(nsgNames, networkSecurityGroupName)
-				}
+				nsgIds = append(nsgIds, parsedNsgID.ID())
 			}
 
 			routeTableId := subnet["route_table_id"].(string)
@@ -1150,15 +1152,12 @@ func expandResourcesForLocking(d *pluginsdk.ResourceData) ([]string, []string, e
 				if err != nil {
 					return nil, nil, err
 				}
-				routeTableName := parsedRouteTableID.RouteTableName
-				if !utils.SliceContainsValue(routeTableNames, routeTableName) {
-					routeTableNames = append(routeTableNames, routeTableName)
-				}
+				routeTableIds = append(routeTableIds, parsedRouteTableID.ID())
 			}
 		}
 	}
 
-	return nsgNames, routeTableNames, nil
+	return nsgIds, routeTableIds, nil
 }
 
 func expandVirtualNetworkSubnetServiceEndpointPolicies(input []interface{}) *[]virtualnetworks.ServiceEndpointPolicy {
