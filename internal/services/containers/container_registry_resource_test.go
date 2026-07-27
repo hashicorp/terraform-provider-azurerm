@@ -619,7 +619,8 @@ resource "azurerm_container_registry" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "Premium"
   georeplications {
-    location = "%s"
+    location                        = "%s"
+    global_endpoint_routing_enabled = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, replicationRegion)
@@ -642,10 +643,12 @@ resource "azurerm_container_registry" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "Premium"
   georeplications {
-    location = "%s"
+    location                        = "%s"
+    global_endpoint_routing_enabled = true
   }
   georeplications {
-    location = "%s"
+    location                        = "%s"
+    global_endpoint_routing_enabled = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, primaryLocation, secondaryLocation)
@@ -668,8 +671,9 @@ resource "azurerm_container_registry" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "Premium"
   georeplications {
-    location                = "%s"
-    zone_redundancy_enabled = true
+    location                        = "%s"
+    global_endpoint_routing_enabled = true
+    zone_redundancy_enabled         = true
   }
   georeplications {
     location                        = "%s"
@@ -821,8 +825,9 @@ resource "azurerm_container_registry" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "Premium"
   georeplications {
-    location                = "%s"
-    zone_redundancy_enabled = true
+    location                        = "%s"
+    zone_redundancy_enabled         = true
+    global_endpoint_routing_enabled = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary)
