@@ -12,7 +12,6 @@ import (
 )
 
 const (
-	Free             = "(Free)"
 	Basic            = "(Basic)"
 	Elastic          = "(ElasticPool)"
 	Standard         = "(S(0|1|2|3|4|6|7|9|12))"
@@ -32,18 +31,6 @@ const (
 )
 
 func DatabaseSkuName() pluginsdk.SchemaValidateFunc {
-	pattern := "(?i)(^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$)"
-	return validation.StringMatch(
-		regexp.MustCompile(fmt.Sprintf(pattern, Free, Basic, Elastic, Standard, Premium, DataWarehouse, Stretch, BusinessCritical, Gen4, Gen5, ServerlessGen5, Fsv2, Dc, EightIM, Serverless8IM, Premium8IM, Premium8IH)),
-
-		`This is not a valid sku name. For example, a valid sku name is 'GP_S_Gen5_1','HS_Gen4_1','BC_Gen5_2', 'ElasticPool', 'Basic', 'S0', 'P1'.`,
-	)
-}
-
-// DatabaseSkuNameWithoutFree returns the same validator as DatabaseSkuName but excludes the legacy `Free` alias.
-// The `Free` alias is replaced by the explicit `free_limit_enabled` / `free_limit_exhaustion_behavior` properties
-// from provider v5.0 onwards.
-func DatabaseSkuNameWithoutFree() pluginsdk.SchemaValidateFunc {
 	pattern := "(?i)(^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$|^%s$)"
 	return validation.StringMatch(
 		regexp.MustCompile(fmt.Sprintf(pattern, Basic, Elastic, Standard, Premium, DataWarehouse, Stretch, BusinessCritical, Gen4, Gen5, ServerlessGen5, Fsv2, Dc, EightIM, Serverless8IM, Premium8IM, Premium8IH)),

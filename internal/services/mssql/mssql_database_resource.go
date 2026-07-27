@@ -50,8 +50,6 @@ import (
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name mssql_database -service-package-name mssql -properties "name" -compare-values "resource_group_name:server_id,server_name:server_id"
 
-const mssqlDatabaseFreeSkuName = "Free"
-
 func resourceMsSqlDatabase() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceMsSqlDatabaseCreate,
@@ -162,9 +160,6 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 					if hasSku && skuVal.IsKnown() && !skuVal.IsNull() {
 						sku := skuVal.AsString()
 						if sku != "" && !strings.HasPrefix(sku, "GP_S_") {
-							if !features.FivePointOh() && strings.EqualFold(sku, mssqlDatabaseFreeSkuName) {
-								return nil
-							}
 							return errors.New("`free_limit_enabled` can only be set to `true` when `sku_name` is a serverless General Purpose SKU (for example `GP_S_Gen5_2`)")
 						}
 					}
@@ -1340,14 +1335,7 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 		isDwSku := strings.HasPrefix(strings.ToLower(skuName), "dw")
 
 		// Determine whether the SKU is for SQL Database Free tier.
-		isFreeSku := false
-		if !features.FivePointOh() && strings.EqualFold(skuName, mssqlDatabaseFreeSkuName) {
-			// TODO 5.0: remove this branch together with `mssqlDatabaseFreeSkuName`.
-			isFreeSku = true
-		}
-		if model.Properties != nil && pointer.From(model.Properties.UseFreeLimit) {
-			isFreeSku = true
-		}
+		isFreeSku := model.Properties != nil && pointer.From(model.Properties.UseFreeLimit)
 
 		// DW SKUs and SQL Database Free tier do not currently support LRP and do not honour normal SRP operations
 		if !isDwSku && !isFreeSku {
@@ -1796,7 +1784,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true,
-			ValidateFunc: validate.DatabaseSkuNameWithoutFree(),
+			ValidateFunc: validate.DatabaseSkuName(),
 		},
 
 		"free_limit_enabled": {
@@ -1962,13 +1950,6 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 	}
 
 	if !features.FivePointOh() {
-		resource["sku_name"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: validate.DatabaseSkuName(),
-		}
-
 		threatDetectionPolicy := resource["threat_detection_policy"].Elem.(*pluginsdk.Resource).Schema
 		threatDetectionPolicy["email_account_admins_enabled"] = &pluginsdk.Schema{
 			Type:          pluginsdk.TypeBool,
