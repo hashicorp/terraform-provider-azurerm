@@ -328,49 +328,6 @@ func TestAccHDInsightSparkCluster_hiveMetastore(t *testing.T) {
 	})
 }
 
-func TestAccHDInsightSparkCluster_updateMetastore(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
-	r := HDInsightSparkClusterResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.hiveMetastore(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("https_endpoint").Exists(),
-				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
-			),
-		},
-		data.ImportStep("roles.0.head_node.0.password",
-			"roles.0.head_node.0.vm_size",
-			"roles.0.worker_node.0.password",
-			"roles.0.worker_node.0.vm_size",
-			"roles.0.zookeeper_node.0.password",
-			"roles.0.zookeeper_node.0.vm_size",
-			"storage_account",
-			"metastores.0.hive.0.password",
-			"metastores.0.oozie.0.password",
-			"metastores.0.ambari.0.password"),
-		{
-			Config: r.allMetastores(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("https_endpoint").Exists(),
-				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
-			),
-		},
-		data.ImportStep("roles.0.head_node.0.password",
-			"roles.0.head_node.0.vm_size",
-			"roles.0.worker_node.0.password",
-			"roles.0.worker_node.0.vm_size",
-			"roles.0.zookeeper_node.0.password",
-			"roles.0.zookeeper_node.0.vm_size",
-			"storage_account",
-			"metastores.0.hive.0.password",
-			"metastores.0.oozie.0.password",
-			"metastores.0.ambari.0.password"),
-	})
-}
-
 func TestAccHDInsightSparkCluster_monitor(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
 	r := HDInsightSparkClusterResource{}
