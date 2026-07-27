@@ -48,7 +48,7 @@ func cdnFrontDoorRuleValuesRequiredSchema() *pluginsdk.Schema {
 	}
 }
 
-func cdnFrontDoorRuleValuesSchema() *pluginsdk.Schema {
+func cdnFrontDoorRuleValuesOptionalSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -60,7 +60,7 @@ func cdnFrontDoorRuleValuesSchema() *pluginsdk.Schema {
 	}
 }
 
-func cdnFrontDoorRuleConditionSelectorSchema() *pluginsdk.Schema {
+func cdnFrontDoorRuleConditionNameSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:         pluginsdk.TypeString,
 		Required:     true,
