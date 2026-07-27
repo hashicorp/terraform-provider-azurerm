@@ -370,6 +370,7 @@ func TestAccHDInsightHadoopCluster_diskEncryption(t *testing.T) {
 }
 
 func TestAccHDInsightHadoopCluster_computeIsolation(t *testing.T) {
+	t.Skip("skipping as subscription enablement for Isolation has been lost")
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
 	r := HDInsightHadoopClusterResource{}
 
