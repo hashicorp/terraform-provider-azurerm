@@ -145,7 +145,7 @@ The `kubelet_identity` block exports the following:
 
 A `private_cluster` block exports the following:
 
-* `public_fully_qualified_domain_name_enabled` - Is the public FQDN for this Managed Kubernetes Automatic Cluster enabled?
+* `public_fully_qualified_domain_name_enabled` - If the public FQDN for this Managed Kubernetes Automatic Cluster is enabled.
 
 * `private_dns_zone_id` - The ID of the Private DNS Zone used by this Managed Kubernetes Automatic Cluster.
 
@@ -155,9 +155,9 @@ A `service_mesh` block exports the following:
 
 * `revisions` - List of revisions of the Istio control plane. When an upgrade is not in progress, this holds one value. When a canary upgrade is in progress, this can hold two consecutive values. [Learn More](https://learn.microsoft.com/en-us/azure/aks/istio-upgrade).
 
-* `internal_ingress_gateway_enabled` - Is Istio Internal Ingress Gateway enabled?
+* `internal_ingress_gateway_enabled` - If the Istio Internal Ingress Gateway is enabled.
 
-* `external_ingress_gateway_enabled` - Is Istio External Ingress Gateway enabled?
+* `external_ingress_gateway_enabled` - If the Istio External Ingress Gateway is enabled.
 
 * `proxy_redirect_mechanism` - The proxy redirect mechanism configured for the Istio service mesh.
 
@@ -185,7 +185,7 @@ A `web_app_routing_ingress` block exports the following:
 
 * `default_nginx_controller` - The default Nginx controller for the web app routing ingress.
 
-* `istio_enabled` - Is Istio enabled for the web app routing ingress?
+* `istio_enabled` - If Istio is enabled for the web app routing ingress.
 
 * `web_app_routing_identity` - A `web_app_routing_identity` block as documented below.
 
