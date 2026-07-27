@@ -411,7 +411,7 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 			IPamPoolPrefixAllocations:         expandSubnetIPAddressPool(d.Get("ip_address_pool").([]interface{})),
 			PrivateEndpointNetworkPolicies:    pointer.ToEnum[subnets.VirtualNetworkPrivateEndpointNetworkPolicies](d.Get("private_endpoint_network_policies").(string)),
 			PrivateLinkServiceNetworkPolicies: expandSubnetNetworkPolicy(d.Get("private_link_service_network_policies_enabled").(bool)),
-			ServiceEndpoints:                  expandSubnetServiceEndpoints(d.Get("service_endpoints").(*pluginsdk.Set).List()),
+			ServiceEndpoints:                  expandSubnetServiceEndpoint(d.Get("service_endpoint").([]interface{})),
 			ServiceEndpointPolicies:           expandSubnetServiceEndpointPolicies(d.Get("service_endpoint_policy_ids").(*pluginsdk.Set).List()),
 			SharingScope:                      pointer.ToEnum[subnets.SharingScope](d.Get("sharing_scope").(string)),
 
@@ -617,13 +617,8 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		props.SharingScope = pointer.ToEnum[subnets.SharingScope](d.Get("sharing_scope").(string))
 	}
 
-	if d.HasChange("service_endpoints") {
-		props.ServiceEndpoints = expandSubnetServiceEndpoints(d.Get("service_endpoints").(*pluginsdk.Set).List())
-	}
-
 	if d.HasChange("service_endpoint") {
-		serviceEndpointRaw := d.Get("service_endpoint").([]interface{})
-		props.ServiceEndpoints = expandSubnetServiceEndpoint(serviceEndpointRaw)
+		props.ServiceEndpoints = expandSubnetServiceEndpoint(d.Get("service_endpoint").([]interface{}))
 	}
 
 	if d.HasChange("service_endpoint_policy_ids") {
@@ -748,8 +743,7 @@ func resourceSubnetFlatten(d *pluginsdk.ResourceData, id commonids.SubnetId, sub
 			d.Set("private_link_service_network_policies_enabled", flattenSubnetNetworkPolicy(string(pointer.From(props.PrivateLinkServiceNetworkPolicies))))
 			d.Set("sharing_scope", pointer.FromEnum(props.SharingScope))
 
-			serviceEndpoint := flattenSubnetServiceEndpoint(props.ServiceEndpoints)
-			if err := d.Set("service_endpoint", serviceEndpoint); err != nil {
+			if err := d.Set("service_endpoint", flattenSubnetServiceEndpoint(props.ServiceEndpoints)); err != nil {
 				return fmt.Errorf("setting `service_endpoint`: %+v", err)
 			}
 
@@ -833,37 +827,6 @@ func expandSubnetRouteTableID(d *pluginsdk.ResourceData) (*subnets.RouteTable, e
 	return &subnets.RouteTable{
 		Id: pointer.To(wo.AsString()),
 	}, nil
-}
-
-func expandSubnetServiceEndpoints(input []interface{}) *[]subnets.ServiceEndpointPropertiesFormat {
-	endpoints := make([]subnets.ServiceEndpointPropertiesFormat, 0)
-
-	for _, svcEndpointRaw := range input {
-		if svc, ok := svcEndpointRaw.(string); ok {
-			endpoint := subnets.ServiceEndpointPropertiesFormat{
-				Service: &svc,
-			}
-			endpoints = append(endpoints, endpoint)
-		}
-	}
-
-	return &endpoints
-}
-
-func flattenSubnetServiceEndpoints(serviceEndpoints *[]subnets.ServiceEndpointPropertiesFormat) []interface{} {
-	endpoints := make([]interface{}, 0)
-
-	if serviceEndpoints == nil {
-		return endpoints
-	}
-
-	for _, endpoint := range *serviceEndpoints {
-		if endpoint.Service != nil {
-			endpoints = append(endpoints, *endpoint.Service)
-		}
-	}
-
-	return endpoints
 }
 
 func expandSubnetServiceEndpoint(input []interface{}) *[]subnets.ServiceEndpointPropertiesFormat {

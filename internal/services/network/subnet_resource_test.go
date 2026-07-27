@@ -506,8 +506,7 @@ func TestAccSubnet_serviceEndpointBlock(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			// remove them
-			Config: r.basic(data),
+			Config: r.serviceEndpointBlockRemoved(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1466,6 +1465,19 @@ resource "azurerm_subnet" "test" {
   service_endpoint {
     service = "Microsoft.Storage"
   }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r SubnetResource) serviceEndpointBlockRemoved(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctest-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
 }
 `, r.template(data), data.RandomInteger)
 }

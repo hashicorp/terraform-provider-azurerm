@@ -102,7 +102,7 @@ func TestAccDataSourceSubnet_serviceEndpoints(t *testing.T) {
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.serviceEndpoint(data),
+			Config: r.serviceEndpoints(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
@@ -110,7 +110,27 @@ func TestAccDataSourceSubnet_serviceEndpoints(t *testing.T) {
 				check.That(data.ResourceName).Key("address_prefixes.#").Exists(),
 				check.That(data.ResourceName).Key("network_security_group_id").HasValue(""),
 				check.That(data.ResourceName).Key("route_table_id").HasValue(""),
-				check.That(data.ResourceName).Key("service_endpoints.#").HasValue("2"),
+				check.That(data.ResourceName).Key("service_endpoint.#").HasValue("2"),
+				check.That(data.ResourceName).Key("service_endpoint.0.service").Exists(),
+			),
+		},
+	})
+}
+
+func TestAccDataSourceSubnet_serviceEndpointsWithNetworkIdentifier(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_subnet", "test")
+	r := SubnetDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.serviceEndpointsWithNetworkIdentifier(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").Exists(),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("virtual_network_name").Exists(),
+				check.That(data.ResourceName).Key("service_endpoint.#").HasValue("1"),
+				check.That(data.ResourceName).Key("service_endpoint.0.service").HasValue("Microsoft.Storage"),
+				check.That(data.ResourceName).Key("service_endpoint.0.network_identifier").IsSet(),
 			),
 		},
 	})
