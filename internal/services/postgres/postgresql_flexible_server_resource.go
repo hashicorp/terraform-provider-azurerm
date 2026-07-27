@@ -546,21 +546,17 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 
 				return nil
 			}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-				if diff.GetRawConfig().AsValueMap()["storage_mb"].IsNull() {
-					return nil
-				}
-
 				oldStorageMbRaw, newStorageMbRaw := diff.GetChange("storage_mb")
 				if newStorageMbRaw.(int) != 4194304 || oldStorageMbRaw.(int) == 4194304 {
 					return nil
 				}
 
-				// non-Default create modes (e.g. `Replica`) can only be created at `4194304` because Azure requires their storage to be greater than or equal to the source server's, but they still cannot be resized to `4194304` afterwards
-				if createMode := servers.CreateMode(diff.Get("create_mode").(string)); createMode != "" && createMode != servers.CreateModeDefault && diff.Id() == "" {
-					return nil
+				// `4194304` disables host caching, so it is only supported for non-Default create modes (e.g. `Replica`) where Azure requires their storage to be greater than or equal to the source server's. For `Default` servers it is never supported, so reject it and recommend `4193280` instead.
+				if createMode := servers.CreateMode(diff.Get("create_mode").(string)); createMode == "" || createMode == servers.CreateModeDefault {
+					return errors.New("`storage_mb` value `4194304` is not supported because it disables host caching, use `4193280` instead")
 				}
 
-				return errors.New("`storage_mb` value `4194304` is not supported because it disables host caching, use `4193280` instead")
+				return nil
 			},
 		),
 	}

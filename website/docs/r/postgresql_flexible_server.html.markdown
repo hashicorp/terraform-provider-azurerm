@@ -151,7 +151,7 @@ The following arguments are supported:
 
 ~> **Note:** The `storage_mb` can only be scaled up, for example, you can scale the `storage_mb` from `32768` to `65536`, but not from `65536` to `32768`. Scaling down `storage_mb` forces a new PostgreSQL Flexible Server to be created.
 
-~> **Note:** `4194304` is only supported when creating a server using a non-`Default` `create_mode` (for example `Replica`) whose source server already uses that value. It is not supported when creating new servers with `create_mode = Default`, or when resizing existing servers.
+~> **Note:** `4194304` disables host caching and is only supported when creating a server with a non-`Default` `create_mode` (for example `Replica`) whose source server already uses `4194304`. It cannot be used with `create_mode = Default` or when resizing an existing server, in which case `4193280` should be used instead.
 
 * `storage_tier` - (Optional) The name of storage performance tier for IOPS of the PostgreSQL Flexible Server. Possible values are `P4`, `P6`, `P10`, `P15`,`P20`, `P30`,`P40`, `P50`,`P60`, `P70` or `P80`. Default value is dependent on the `storage_mb` value. Please see the `storage_tier` defaults based on `storage_mb` table below.
 
