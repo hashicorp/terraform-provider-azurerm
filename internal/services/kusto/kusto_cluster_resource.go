@@ -325,12 +325,20 @@ func resourceKustoCluster() *pluginsdk.Resource {
 			// surfaces as a permanent no-op diff. Suppress the diff when the configured set matches what
 			// is already in state; a genuine add/removal changes the set and still applies. In 5.0 the
 			// attribute is a `TypeSet`, so this normalization is not needed (and is not wired up there).
-			oldTenants, newTenants := d.GetChange("trusted_external_tenants")
-			if oldList, ok := oldTenants.([]interface{}); ok {
-				if newList, ok := newTenants.([]interface{}); ok {
-					if trustedExternalTenantsEqual(oldList, newList) {
-						if err := d.SetNew("trusted_external_tenants", oldList); err != nil {
-							return err
+			//
+			// Only compare when the configured collection and all its elements are known. `GetChange`
+			// can expose an unknown (known-after-apply) list as its zero value (`[]interface{}{}`); if
+			// state is also empty the sets would compare equal and `SetNew` would incorrectly replace
+			// the unknown planned value with the old state, suppressing a legitimate change.
+			rawTrustedExternalTenants, diags := d.GetRawConfigAt(sdk.ConstructCtyPath("trusted_external_tenants"))
+			if !diags.HasError() && rawTrustedExternalTenants.IsWhollyKnown() {
+				oldTenants, newTenants := d.GetChange("trusted_external_tenants")
+				if oldList, ok := oldTenants.([]interface{}); ok {
+					if newList, ok := newTenants.([]interface{}); ok {
+						if trustedExternalTenantsEqual(oldList, newList) {
+							if err := d.SetNew("trusted_external_tenants", oldList); err != nil {
+								return err
+							}
 						}
 					}
 				}
