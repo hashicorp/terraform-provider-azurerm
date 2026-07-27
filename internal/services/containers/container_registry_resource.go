@@ -72,15 +72,15 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				Schema: map[string]*pluginsdk.Schema{
 					"location": commonschema.LocationWithoutForceNew(),
 
+					"global_endpoint_routing_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Required: true,
+					},
+
 					"zone_redundancy_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
-					},
-
-					"global_endpoint_routing_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
 					},
 
 					"tags": commonschema.Tags(),
