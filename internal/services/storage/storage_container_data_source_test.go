@@ -28,7 +28,7 @@ func TestAccStorageContainerDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("metadata.%").HasValue("2"),
 				check.That(data.ResourceName).Key("metadata.k1").HasValue("v1"),
 				check.That(data.ResourceName).Key("metadata.k2").HasValue("v2"),
-				check.That(data.ResourceName).Key("url").HasValue(fmt.Sprintf("https://acctestsadsc%[1]s.blob.core.windows.net/containerdstest-%[1]s", data.RandomString)),
+				check.That(data.ResourceName).Key("url").HasValue(fmt.Sprintf("https://acctestacc%[1]s.blob.core.windows.net/acctest-container-%[1]s", data.RandomString)),
 			),
 		},
 	})
@@ -47,7 +47,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                = "acctestsadsc%[1]s"
+  name                = "acctestacc%[1]s"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   location                 = "${azurerm_resource_group.test.location}"
@@ -62,7 +62,7 @@ resource "azurerm_storage_encryption_scope" "test" {
 }
 
 resource "azurerm_storage_container" "test" {
-  name                              = "containerdstest-%[1]s"
+  name                              = "acctest-container-%[1]s"
   storage_account_name              = "${azurerm_storage_account.test.name}"
   container_access_type             = "private"
   default_encryption_scope          = azurerm_storage_encryption_scope.test.name

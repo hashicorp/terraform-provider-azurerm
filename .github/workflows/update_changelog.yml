@@ -72,7 +72,7 @@ jobs:
           if [[  $prs -gt 0  ]]; then
               echo "existing=true" >> "$GITHUB_OUTPUT"
           fi
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
       - name: check for branch
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -137,7 +137,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
-          go-version: '1.22'
+          go-version-file: ./.go-version
 
       - name: Add commit message to changelog pull request
       # at this point a PR is opened for sure, now add entry

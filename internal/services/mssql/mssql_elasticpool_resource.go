@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
@@ -32,7 +33,7 @@ import (
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name mssql_elasticpool -service-package-name mssql -properties "resource_group_name,server_name,name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 func resourceMsSqlElasticPool() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Create: resourceMsSqlElasticPoolCreateUpdate,
 		Read:   resourceMsSqlElasticPoolRead,
 		Update: resourceMsSqlElasticPoolCreateUpdate,
@@ -187,7 +188,6 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 			"enclave_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true, // TODO: Remove Computed in 4.0
 				ValidateFunc: validation.StringInSlice([]string{
 					string(databases.AlwaysEncryptedEnclaveTypeVBS),
 					string(databases.AlwaysEncryptedEnclaveTypeDefault),
@@ -237,9 +237,7 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 
 			pluginsdk.ForceNewIfChange("enclave_type", func(ctx context.Context, old, new, _ interface{}) bool {
 				// enclave_type cannot be removed once it has been set
-				// but can be changed between VBS and Default...
-				// this Diff will not work until 4.0 when we remove
-				// the computed property from the field scheam.
+				// but can be changed between VBS and Default
 				if old.(string) != "" && new.(string) == "" {
 					return true
 				}
@@ -248,6 +246,20 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 			}),
 		),
 	}
+
+	if !features.FivePointOh() {
+		r.Schema["enclave_type"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(databases.AlwaysEncryptedEnclaveTypeVBS),
+				string(databases.AlwaysEncryptedEnclaveTypeDefault),
+			}, false),
+		}
+	}
+
+	return r
 }
 
 func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

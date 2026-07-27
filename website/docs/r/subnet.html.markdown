@@ -95,6 +95,18 @@ The following arguments are supported:
 
 * `service_endpoint_policy_ids` - (Optional) The list of IDs of Service Endpoint Policies to associate with the subnet.
 
+* `network_security_group_id_wo` - (Optional, Write-Only) The ID of the Network Security Group to associate with the subnet.
+
+-> **Note:** This property is only meant for environments where Azure Policy requires Network Security Groups to be specified during Subnet creation/update. It is recommended to use the `azurerm_subnet_network_security_group_association` resource instead.
+
+* `network_security_group_id_wo_version` - (Optional) An integer that must be incremented whenever `network_security_group_id_wo` is updated. Required if `network_security_group_id_wo` is specified.
+
+* `route_table_id_wo` - (Optional, Write-Only) The ID of the Route Table to associate with the subnet.
+
+-> **Note:** This property is only meant for environments where Azure Policy requires Route Tables to be specified during Subnet creation/update. It is recommended to use the `azurerm_subnet_route_table_association` resource instead.
+
+* `route_table_id_wo_version` - (Optional) An integer that must be incremented whenever `route_table_id_wo` is updated. Required if `route_table_id_wo` is specified.
+
 ---
 
 A `delegation` block supports the following:

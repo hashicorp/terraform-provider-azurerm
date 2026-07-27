@@ -9,14 +9,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2023-09-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/securitymlanalyticssettings"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/azuresdkhacks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	securityinsight "github.com/jackofallops/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
 type AlertRuleAnomalyDataSourceModel struct {
@@ -165,120 +164,81 @@ func (a AlertRuleAnomalyDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var metaModel AlertRuleAnomalyDataSourceModel
-			if err := metadata.Decode(&metaModel); err != nil {
+			var config AlertRuleAnomalyDataSourceModel
+			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			client := metadata.Client.Sentinel.AnalyticsSettingsClient
-			workspaceId, err := workspaces.ParseWorkspaceID(metaModel.WorkspaceId)
+
+			workspaceId, err := workspaces.ParseWorkspaceID(config.WorkspaceId)
 			if err != nil {
-				return fmt.Errorf("parsing workspace id: %+v", err)
+				return err
 			}
 
-			setting, err := AlertRuleAnomalyReadWithPredicate(ctx, client.BaseClient, *workspaceId, func(v *azuresdkhacks.AnomalySecurityMLAnalyticsSettings) bool {
-				if v.Name != nil && strings.EqualFold(*v.Name, metaModel.Name) {
-					return true
+			items, err := client.ListComplete(ctx, securitymlanalyticssettings.WorkspaceId(*workspaceId))
+			if err != nil {
+				return fmt.Errorf("listing alerts rules on %s: %+v", workspaceId, err)
+			}
+
+			var rule *securitymlanalyticssettings.AnomalySecurityMLAnalyticsSettings
+			var ruleName string
+			for _, item := range items.Items {
+				v, ok := item.(securitymlanalyticssettings.AnomalySecurityMLAnalyticsSettings)
+				if !ok {
+					continue
 				}
 
-				if v.DisplayName != nil && strings.EqualFold(*v.DisplayName, metaModel.DisplayName) {
-					return true
+				switch {
+				case config.Name != "":
+					if strings.EqualFold(pointer.From(v.Name), config.Name) {
+						ruleName = config.Name
+						rule = &v
+						break
+					}
+				case config.DisplayName != "":
+					if v.Properties != nil && strings.EqualFold(v.Properties.DisplayName, config.DisplayName) {
+						ruleName = config.DisplayName
+						rule = &v
+						break
+					}
 				}
-
-				return false
-			})
-			if err != nil {
-				return fmt.Errorf("retrieving: %+v", err)
-			}
-			if setting == nil {
-				if metaModel.DisplayName != "" {
-					return fmt.Errorf("reading Sentinel Anomaly Rule (Display Name %q) was not found", metaModel.DisplayName)
-				}
-				return fmt.Errorf("reading Sentinel Anomaly Rule (Name %q) was not found", metaModel.Name)
 			}
 
-			id, err := parse.MLAnalyticsSettingsID(AlertRuleAnomalyIdFromWorkspaceId(*workspaceId, *setting.Name))
-			if err != nil {
-				return fmt.Errorf("parsing: %+v", err)
+			if rule == nil {
+				return fmt.Errorf("retrieving anomaly rule (%s): not found", ruleName)
 			}
+
+			id := securitymlanalyticssettings.NewSecurityMLAnalyticsSettingID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, pointer.From(rule.Name))
+			metadata.SetID(id)
 
 			state := AlertRuleAnomalyDataSourceModel{
 				WorkspaceId: workspaceId.ID(),
-				Mode:        string(setting.SettingsStatus),
 			}
 
-			if setting.Name != nil {
-				state.Name = *setting.Name
-			}
-			if setting.DisplayName != nil {
-				state.DisplayName = *setting.DisplayName
-			}
-			if setting.AnomalyVersion != nil {
-				state.AnomalyVersion = *setting.AnomalyVersion
-			}
-			if setting.AnomalySettingsVersion != nil {
-				state.AnomalySettingsVersion = int64(*setting.AnomalySettingsVersion)
-			}
-			if setting.Description != nil {
-				state.Description = *setting.Description
-			}
-			if setting.Enabled != nil {
-				state.Enabled = *setting.Enabled
-			}
-			if setting.Frequency != nil {
-				state.Frequency = *setting.Frequency
-			}
-			state.RequiredDataConnectors = flattenSentinelAlertRuleAnomalyRequiredDataConnectors(setting.RequiredDataConnectors)
-			if setting.SettingsDefinitionID != nil {
-				state.SettingsDefinitionId = setting.SettingsDefinitionID.String()
-			}
-			state.Tactics = flattenSentinelAlertRuleAnomalyTactics(setting.Tactics)
-			if setting.Techniques != nil {
-				state.Techniques = *setting.Techniques
+			state.Name = pointer.From(rule.Name)
+			if props := rule.Properties; props != nil {
+				state.Mode = string(props.SettingsStatus)
+				state.DisplayName = props.DisplayName
+				state.AnomalyVersion = props.AnomalyVersion
+				state.AnomalySettingsVersion = pointer.From(props.AnomalySettingsVersion)
+				state.Description = pointer.From(props.Description)
+				state.Enabled = props.Enabled
+				state.Frequency = props.Frequency
+				state.RequiredDataConnectors = flattenSentinelAlertRuleAnomalyRequiredDataConnectors(props.RequiredDataConnectors)
+				state.SettingsDefinitionId = pointer.From(props.SettingsDefinitionId)
+				state.Tactics = pointer.FromEnumSlice(props.Tactics)
+				state.Techniques = pointer.From(props.Techniques)
+
+				if co := props.CustomizableObservations; co != nil {
+					state.MultiSelectObservation = flattenSentinelAlertRuleAnomalyMultiSelect(co.MultiSelectObservations)
+					state.SingleSelectObservation = flattenSentinelAlertRuleAnomalySingleSelect(co.SingleSelectObservations)
+					state.PrioritizeExcludeObservation = flattenSentinelAlertRuleAnomalyPriority(co.PrioritizeExcludeObservations)
+					state.ThresholdObservation = flattenSentinelAlertRuleAnomalyThreshold(co.ThresholdObservations)
+				}
 			}
 
-			if setting.CustomizableObservations != nil {
-				state.MultiSelectObservation = flattenSentinelAlertRuleAnomalyMultiSelect(setting.CustomizableObservations.MultiSelectObservations)
-				state.SingleSelectObservation = flattenSentinelAlertRuleAnomalySingleSelect(setting.CustomizableObservations.SingleSelectObservations)
-				state.PrioritizeExcludeObservation = flattenSentinelAlertRuleAnomalyPriority(setting.CustomizableObservations.PrioritizeExcludeObservations)
-				state.ThresholdObservation = flattenSentinelAlertRuleAnomalyThreshold(setting.CustomizableObservations.ThresholdObservations)
-			}
-
-			metadata.SetID(id)
 			return metadata.Encode(&state)
 		},
 	}
-}
-
-func flattenSentinelAlertRuleAnomalyRequiredDataConnectors(input *[]securityinsight.SecurityMLAnalyticsSettingsDataSource) []AnomalyRuleRequiredDataConnectorModel {
-	if input == nil {
-		return []AnomalyRuleRequiredDataConnectorModel{}
-	}
-
-	output := make([]AnomalyRuleRequiredDataConnectorModel, 0)
-	for _, v := range *input {
-		if v.ConnectorID == nil || v.DataTypes == nil {
-			continue
-		}
-
-		output = append(output, AnomalyRuleRequiredDataConnectorModel{
-			ConnectorId: *v.ConnectorID,
-			DataTypes:   *v.DataTypes,
-		})
-	}
-
-	return output
-}
-
-func flattenSentinelAlertRuleAnomalyTactics(input *[]securityinsight.AttackTactic) []string {
-	if input == nil {
-		return []string{}
-	}
-
-	output := make([]string, 0)
-	for _, v := range *input {
-		output = append(output, string(v))
-	}
-
-	return output
 }

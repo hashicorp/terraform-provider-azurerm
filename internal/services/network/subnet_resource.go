@@ -5,6 +5,7 @@ package network
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math/big"
 	"regexp"
@@ -17,7 +18,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/serviceendpointpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/ipampools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networksecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/routetables"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/subnets"
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -291,80 +295,116 @@ func resourceSubnet() *pluginsdk.Resource {
 				Optional: true,
 				Default:  true,
 			},
+
+			"network_security_group_id_wo": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				WriteOnly:    true,
+				RequiredWith: []string{"network_security_group_id_wo_version"},
+				ValidateFunc: networksecuritygroups.ValidateNetworkSecurityGroupID,
+			},
+
+			"network_security_group_id_wo_version": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				RequiredWith: []string{"network_security_group_id_wo"},
+				ValidateFunc: validation.IntAtLeast(1),
+			},
+
+			"network_security_group_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"route_table_id_wo": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				WriteOnly:    true,
+				RequiredWith: []string{"route_table_id_wo_version"},
+				ValidateFunc: routetables.ValidateRouteTableID,
+			},
+
+			"route_table_id_wo_version": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				RequiredWith: []string{"route_table_id_wo"},
+				ValidateFunc: validation.IntAtLeast(1),
+			},
+
+			"route_table_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
 
-// TODO: refactor the create/flatten functions
 func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.Subnets
 	vnetClient := meta.(*clients.Client).Network.VirtualNetworks
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := commonids.NewSubnetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("virtual_network_name").(string), d.Get("name").(string))
+	id := commonids.NewSubnetID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("virtual_network_name").(string), d.Get("name").(string))
 
-	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-		existing, err := client.Get(ctx, id, subnets.DefaultGetOperationOptions())
+	nsg, err := expandSubnetNetworkSecurityGroupID(d)
+	if err != nil {
+		return fmt.Errorf("expanding Network Security Group ID: %+v", err)
+	}
+	if nsg != nil && nsg.Id != nil {
+		nsgId, err := networksecuritygroups.ParseNetworkSecurityGroupID(*nsg.Id)
 		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+			return err
 		}
-
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_subnet", id.ID())
-		}
-	}
-	locks.ByName(id.VirtualNetworkName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
-
-	properties := subnets.SubnetPropertiesFormat{}
-	if value, ok := d.GetOk("address_prefixes"); ok {
-		var addressPrefixes []string
-		for _, item := range value.([]interface{}) {
-			addressPrefixes = append(addressPrefixes, item.(string))
-		}
-		properties.AddressPrefixes = &addressPrefixes
-	}
-	if properties.AddressPrefixes != nil && len(*properties.AddressPrefixes) == 1 {
-		properties.AddressPrefix = &(*properties.AddressPrefixes)[0]
-		properties.AddressPrefixes = nil
+		locks.ByID(nsgId.ID())
+		defer locks.UnlockByID(nsgId.ID())
 	}
 
-	properties.IPamPoolPrefixAllocations = expandSubnetIPAddressPool(d.Get("ip_address_pool").([]interface{}))
+	rt, err := expandSubnetRouteTableID(d)
+	if err != nil {
+		return fmt.Errorf("expanding Route Table ID: %+v", err)
+	}
+	if rt != nil && rt.Id != nil {
+		rtId, err := routetables.ParseRouteTableID(*rt.Id)
+		if err != nil {
+			return err
+		}
+		locks.ByID(rtId.ID())
+		defer locks.UnlockByID(rtId.ID())
+	}
 
-	// To enable private endpoints you must disable the network policies for the subnet because
-	// Network policies like network security groups are not supported by private endpoints.
-	var privateEndpointNetworkPolicies subnets.VirtualNetworkPrivateEndpointNetworkPolicies
-	var privateLinkServiceNetworkPolicies subnets.VirtualNetworkPrivateLinkServiceNetworkPolicies
+	vnetId := commonids.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroupName, id.VirtualNetworkName)
+	locks.ByID(vnetId.ID())
+	defer locks.UnlockByID(vnetId.ID())
 
-	privateEndpointNetworkPoliciesRaw := d.Get("private_endpoint_network_policies").(string)
-	privateLinkServiceNetworkPoliciesRaw := d.Get("private_link_service_network_policies_enabled").(bool)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
-	privateEndpointNetworkPolicies = subnets.VirtualNetworkPrivateEndpointNetworkPolicies(privateEndpointNetworkPoliciesRaw)
-	privateLinkServiceNetworkPolicies = subnets.VirtualNetworkPrivateLinkServiceNetworkPolicies(expandSubnetNetworkPolicy(privateLinkServiceNetworkPoliciesRaw))
-
-	properties.PrivateEndpointNetworkPolicies = pointer.To(privateEndpointNetworkPolicies)
-	properties.PrivateLinkServiceNetworkPolicies = pointer.To(privateLinkServiceNetworkPolicies)
-
-	serviceEndpointPoliciesRaw := d.Get("service_endpoint_policy_ids").(*pluginsdk.Set).List()
-	properties.ServiceEndpointPolicies = expandSubnetServiceEndpointPolicies(serviceEndpointPoliciesRaw)
-
-	serviceEndpointsRaw := d.Get("service_endpoints").(*pluginsdk.Set).List()
-	properties.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
-
-	properties.SharingScope = pointer.ToEnum[subnets.SharingScope](d.Get("sharing_scope").(string))
-
-	properties.DefaultOutboundAccess = pointer.To(d.Get("default_outbound_access_enabled").(bool))
-
-	delegationsRaw := d.Get("delegation").([]interface{})
-	properties.Delegations = expandSubnetDelegation(delegationsRaw)
+	existing, err := client.Get(ctx, id, subnets.DefaultGetOperationOptions())
+	if !response.WasNotFound(existing.HttpResponse) {
+		if err != nil {
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		}
+		return tf.ImportAsExistsError("azurerm_subnet", id.ID())
+	}
 
 	subnet := subnets.Subnet{
-		Name:       pointer.To(id.SubnetName),
-		Properties: &properties,
+		Name: pointer.To(id.SubnetName),
+		Properties: &subnets.SubnetPropertiesFormat{
+			AddressPrefixes:                   utils.ExpandStringSlice(d.Get("address_prefixes").([]any)),
+			DefaultOutboundAccess:             pointer.To(d.Get("default_outbound_access_enabled").(bool)),
+			Delegations:                       expandSubnetDelegation(d.Get("delegation").([]interface{})),
+			IPamPoolPrefixAllocations:         expandSubnetIPAddressPool(d.Get("ip_address_pool").([]interface{})),
+			PrivateEndpointNetworkPolicies:    pointer.ToEnum[subnets.VirtualNetworkPrivateEndpointNetworkPolicies](d.Get("private_endpoint_network_policies").(string)),
+			PrivateLinkServiceNetworkPolicies: expandSubnetNetworkPolicy(d.Get("private_link_service_network_policies_enabled").(bool)),
+			ServiceEndpoints:                  expandSubnetServiceEndpoints(d.Get("service_endpoints").(*pluginsdk.Set).List()),
+			ServiceEndpointPolicies:           expandSubnetServiceEndpointPolicies(d.Get("service_endpoint_policy_ids").(*pluginsdk.Set).List()),
+			SharingScope:                      pointer.ToEnum[subnets.SharingScope](d.Get("sharing_scope").(string)),
+
+			// Write-only
+			NetworkSecurityGroup: nsg,
+			RouteTable:           rt,
+		},
 	}
 
 	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, subnet, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
@@ -375,26 +415,29 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	timeout, _ := ctx.Deadline()
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return errors.New("internal-error: context had no deadline")
+	}
 
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{string(subnets.ProvisioningStateUpdating)},
 		Target:     []string{string(subnets.ProvisioningStateSucceeded)},
 		Refresh:    SubnetProvisioningStateRefreshFunc(ctx, client, id),
 		MinTimeout: 1 * time.Minute,
-		Timeout:    time.Until(timeout),
+		Timeout:    time.Until(deadline),
 	}
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for provisioning state of %s: %+v", id, err)
 	}
 
-	vnetId := commonids.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroupName, id.VirtualNetworkName)
 	vnetStateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{string(subnets.ProvisioningStateUpdating)},
 		Target:     []string{string(subnets.ProvisioningStateSucceeded)},
 		Refresh:    VirtualNetworkProvisioningStateRefreshFunc(ctx, vnetClient, vnetId),
 		MinTimeout: 1 * time.Minute,
-		Timeout:    time.Until(timeout),
+		Timeout:    time.Until(deadline),
 	}
 	if _, err := vnetStateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for provisioning state of virtual network for %s: %+v", id, err)
@@ -406,6 +449,7 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.Subnets
 	vnetClient := meta.(*clients.Client).Network.VirtualNetworks
+
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -414,28 +458,86 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	locks.ByName(id.VirtualNetworkName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
+	existingUnlocked, err := client.Get(ctx, *id, subnets.DefaultGetOperationOptions())
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
 
-	locks.ByName(id.SubnetName, SubnetResourceName)
-	defer locks.UnlockByName(id.SubnetName, SubnetResourceName)
+	if existingUnlocked.Model == nil || existingUnlocked.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `model` or `properties` was nil", *id)
+	}
+
+	propsUnlocked := existingUnlocked.Model.Properties
+
+	var nsgIds []string
+	if propsUnlocked.NetworkSecurityGroup != nil && propsUnlocked.NetworkSecurityGroup.Id != nil {
+		nsgId, err := networksecuritygroups.ParseNetworkSecurityGroupID(*propsUnlocked.NetworkSecurityGroup.Id)
+		if err != nil {
+			return fmt.Errorf("parsing existing Network Security Group ID: %+v", err)
+		}
+		nsgIds = append(nsgIds, nsgId.ID())
+	}
+
+	if d.HasChange("network_security_group_id_wo_version") {
+		nsg, err := expandSubnetNetworkSecurityGroupID(d)
+		if err != nil {
+			return fmt.Errorf("expanding Network Security Group ID: %+v", err)
+		}
+		if nsg != nil && nsg.Id != nil {
+			nsgId, err := networksecuritygroups.ParseNetworkSecurityGroupID(*nsg.Id)
+			if err != nil {
+				return err
+			}
+			nsgIds = append(nsgIds, nsgId.ID())
+		}
+	}
+
+	var rtIds []string
+	if propsUnlocked.RouteTable != nil && propsUnlocked.RouteTable.Id != nil {
+		rtId, err := routetables.ParseRouteTableID(*propsUnlocked.RouteTable.Id)
+		if err != nil {
+			return fmt.Errorf("parsing existing Route Table ID: %+v", err)
+		}
+		rtIds = append(rtIds, rtId.ID())
+	}
+
+	if d.HasChange("route_table_id_wo_version") {
+		rt, err := expandSubnetRouteTableID(d)
+		if err != nil {
+			return fmt.Errorf("expanding Route Table ID: %+v", err)
+		}
+		if rt != nil && rt.Id != nil {
+			rtId, err := routetables.ParseRouteTableID(*rt.Id)
+			if err != nil {
+				return err
+			}
+			rtIds = append(rtIds, rtId.ID())
+		}
+	}
+
+	locks.MultipleByID(&nsgIds)
+	defer locks.UnlockMultipleByID(&nsgIds)
+
+	locks.MultipleByID(&rtIds)
+	defer locks.UnlockMultipleByID(&rtIds)
+
+	vnetId := commonids.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroupName, id.VirtualNetworkName)
+	locks.ByID(vnetId.ID())
+	defer locks.UnlockByID(vnetId.ID())
+
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	existing, err := client.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	if existing.Model == nil {
-		return fmt.Errorf("retrieving %s: `model` was nil", *id)
+	if existing.Model == nil || existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `model` or `properties` was nil", *id)
 	}
 
-	if existing.Model.Properties == nil {
-		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
-	}
-
-	// TODO: locking on the NSG/Route Table if applicable
-
-	props := *existing.Model.Properties
+	props := existing.Model.Properties
 
 	if d.HasChange("address_prefixes") {
 		addressPrefixesRaw := d.Get("address_prefixes").([]interface{})
@@ -444,13 +546,7 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 			// this is the case IPAddressPool is used, so we shall clear the `AddressPrefix` and `AddressPrefixes`.
 			props.AddressPrefix = nil
 			props.AddressPrefixes = nil
-		case 1:
-			// N->1: we shall insist on using the `AddressPrefix` and clear the `AddressPrefixes`.
-			props.AddressPrefix = pointer.To(addressPrefixesRaw[0].(string))
-			props.AddressPrefixes = nil
 		default:
-			// 1->N: we shall insist on using the `AddressPrefixes` and clear the `AddressPrefix`. If both are set, service be confused and (currently) will only
-			// return the `AddressPrefix` in response.
 			props.AddressPrefixes = utils.ExpandStringSlice(addressPrefixesRaw)
 			props.AddressPrefix = nil
 		}
@@ -500,8 +596,7 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("private_link_service_network_policies_enabled") {
-		v := d.Get("private_link_service_network_policies_enabled").(bool)
-		props.PrivateLinkServiceNetworkPolicies = pointer.To(subnets.VirtualNetworkPrivateLinkServiceNetworkPolicies(expandSubnetNetworkPolicy(v)))
+		props.PrivateLinkServiceNetworkPolicies = expandSubnetNetworkPolicy(d.Get("private_link_service_network_policies_enabled").(bool))
 	}
 
 	if d.HasChange("sharing_scope") {
@@ -509,44 +604,57 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("service_endpoints") {
-		serviceEndpointsRaw := d.Get("service_endpoints").(*pluginsdk.Set).List()
-		props.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
+		props.ServiceEndpoints = expandSubnetServiceEndpoints(d.Get("service_endpoints").(*pluginsdk.Set).List())
 	}
 
 	if d.HasChange("service_endpoint_policy_ids") {
-		serviceEndpointPoliciesRaw := d.Get("service_endpoint_policy_ids").(*pluginsdk.Set).List()
-		props.ServiceEndpointPolicies = expandSubnetServiceEndpointPolicies(serviceEndpointPoliciesRaw)
+		props.ServiceEndpointPolicies = expandSubnetServiceEndpointPolicies(d.Get("service_endpoint_policy_ids").(*pluginsdk.Set).List())
 	}
 
-	subnet := subnets.Subnet{
-		Name:       pointer.To(id.SubnetName),
-		Properties: &props,
+	if d.HasChange("network_security_group_id_wo_version") {
+		nsg, err := expandSubnetNetworkSecurityGroupID(d)
+		if err != nil {
+			return fmt.Errorf("expanding Network Security Group ID: %+v", err)
+		}
+
+		props.NetworkSecurityGroup = nsg
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, *id, subnet); err != nil {
+	if d.HasChange("route_table_id_wo_version") {
+		rt, err := expandSubnetRouteTableID(d)
+		if err != nil {
+			return fmt.Errorf("expanding Route Table ID: %+v", err)
+		}
+
+		props.RouteTable = rt
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
-	timeout, _ := ctx.Deadline()
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return errors.New("internal-error: context had no deadline")
+	}
 
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{string(subnets.ProvisioningStateUpdating)},
 		Target:     []string{string(subnets.ProvisioningStateSucceeded)},
 		Refresh:    SubnetProvisioningStateRefreshFunc(ctx, client, *id),
 		MinTimeout: 1 * time.Minute,
-		Timeout:    time.Until(timeout),
+		Timeout:    time.Until(deadline),
 	}
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for provisioning state of %s: %+v", id, err)
 	}
 
-	vnetId := commonids.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroupName, id.VirtualNetworkName)
 	vnetStateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{string(subnets.ProvisioningStateUpdating)},
 		Target:     []string{string(subnets.ProvisioningStateSucceeded)},
 		Refresh:    VirtualNetworkProvisioningStateRefreshFunc(ctx, vnetClient, vnetId),
 		MinTimeout: 1 * time.Minute,
-		Timeout:    time.Until(timeout),
+		Timeout:    time.Until(deadline),
 	}
 
 	if _, err = vnetStateConf.WaitForStateContext(ctx); err != nil {
@@ -558,6 +666,7 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 func resourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.Subnets
+
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -586,6 +695,8 @@ func resourceSubnetFlatten(d *pluginsdk.ResourceData, id commonids.SubnetId, sub
 	d.Set("name", id.SubnetName)
 	d.Set("virtual_network_name", id.VirtualNetworkName)
 	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("network_security_group_id_wo_version", d.Get("network_security_group_id_wo_version").(int))
+	d.Set("route_table_id_wo_version", d.Get("route_table_id_wo_version").(int))
 
 	if subnet != nil {
 		if props := subnet.Properties; props != nil {
@@ -627,6 +738,24 @@ func resourceSubnetFlatten(d *pluginsdk.ResourceData, id commonids.SubnetId, sub
 			if err := d.Set("service_endpoint_policy_ids", serviceEndpointPolicies); err != nil {
 				return fmt.Errorf("setting `service_endpoint_policy_ids`: %+v", err)
 			}
+
+			var networkSecurityGroupID string
+			if props.NetworkSecurityGroup != nil && props.NetworkSecurityGroup.Id != nil {
+				if nsgID, err := networksecuritygroups.ParseNetworkSecurityGroupID(*props.NetworkSecurityGroup.Id); err == nil {
+					if nsgID != nil {
+						networkSecurityGroupID = nsgID.ID()
+					}
+				}
+			}
+			d.Set("network_security_group_id", networkSecurityGroupID)
+
+			var routeTableID string
+			if props.RouteTable != nil && props.RouteTable.Id != nil {
+				if rtID, err := routetables.ParseRouteTableID(*props.RouteTable.Id); err == nil {
+					routeTableID = rtID.ID()
+				}
+			}
+			d.Set("route_table_id", routeTableID)
 		}
 	}
 
@@ -643,17 +772,48 @@ func resourceSubnetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	locks.ByName(id.VirtualNetworkName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
+	vnetId := commonids.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroupName, id.VirtualNetworkName)
+	locks.ByID(vnetId.ID())
+	defer locks.UnlockByID(vnetId.ID())
 
-	locks.ByName(id.SubnetName, SubnetResourceName)
-	defer locks.UnlockByName(id.SubnetName, SubnetResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
+}
+
+func expandSubnetNetworkSecurityGroupID(d *pluginsdk.ResourceData) (*subnets.NetworkSecurityGroup, error) {
+	wo, err := pluginsdk.GetWriteOnly(d, "network_security_group_id_wo", cty.String)
+	if err != nil {
+		return nil, err
+	}
+
+	if wo.IsNull() {
+		return nil, nil // NOTE - Returning `nil` will remove the SG association!
+	}
+
+	return &subnets.NetworkSecurityGroup{
+		Id: pointer.To(wo.AsString()),
+	}, nil
+}
+
+func expandSubnetRouteTableID(d *pluginsdk.ResourceData) (*subnets.RouteTable, error) {
+	wo, err := pluginsdk.GetWriteOnly(d, "route_table_id_wo", cty.String)
+	if err != nil {
+		return nil, err
+	}
+
+	if wo.IsNull() {
+		return nil, nil // NOTE - Returning `nil` will remove the SG association!
+	}
+
+	return &subnets.RouteTable{
+		Id: pointer.To(wo.AsString()),
+	}, nil
 }
 
 func expandSubnetServiceEndpoints(input []interface{}) *[]subnets.ServiceEndpointPropertiesFormat {
@@ -762,12 +922,11 @@ func flattenSubnetDelegation(delegations *[]subnets.Delegation) []interface{} {
 	return retDeles
 }
 
-func expandSubnetNetworkPolicy(enabled bool) string {
+func expandSubnetNetworkPolicy(enabled bool) *subnets.VirtualNetworkPrivateLinkServiceNetworkPolicies {
 	if enabled {
-		return string(subnets.VirtualNetworkPrivateEndpointNetworkPoliciesEnabled)
+		return pointer.To(subnets.VirtualNetworkPrivateLinkServiceNetworkPoliciesEnabled)
 	}
-
-	return string(subnets.VirtualNetworkPrivateEndpointNetworkPoliciesDisabled)
+	return pointer.To(subnets.VirtualNetworkPrivateLinkServiceNetworkPoliciesDisabled)
 }
 
 func flattenSubnetNetworkPolicy(input string) bool {
