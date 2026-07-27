@@ -2374,31 +2374,6 @@ func resourceApplicationGatewayDelete(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func expandApplicationGatewayAuthenticationCertificates(certs []interface{}) *[]applicationgateways.ApplicationGatewayAuthenticationCertificate {
-	results := make([]applicationgateways.ApplicationGatewayAuthenticationCertificate, 0)
-
-	for _, raw := range certs {
-		v := raw.(map[string]interface{})
-
-		name := v["name"].(string)
-		data := v["data"].(string)
-
-		// data must be base64 encoded
-		encodedData := utils.Base64EncodeIfNot(data)
-
-		output := applicationgateways.ApplicationGatewayAuthenticationCertificate{
-			Name: pointer.To(name),
-			Properties: &applicationgateways.ApplicationGatewayAuthenticationCertificatePropertiesFormat{
-				Data: pointer.To(encodedData),
-			},
-		}
-
-		results = append(results, output)
-	}
-
-	return &results
-}
-
 func expandApplicationGatewayTrustedRootCertificates(certs []interface{}) (*[]applicationgateways.ApplicationGatewayTrustedRootCertificate, error) {
 	results := make([]applicationgateways.ApplicationGatewayTrustedRootCertificate, 0)
 
@@ -2429,43 +2404,6 @@ func expandApplicationGatewayTrustedRootCertificates(certs []interface{}) (*[]ap
 	}
 
 	return &results, nil
-}
-
-func flattenApplicationGatewayAuthenticationCertificates(certs *[]applicationgateways.ApplicationGatewayAuthenticationCertificate, d *pluginsdk.ResourceData) []interface{} {
-	results := make([]interface{}, 0)
-	if certs == nil {
-		return results
-	}
-
-	// since the certificate data isn't returned lets load any existing data
-	nameToDataMap := map[string]string{}
-	if existing, ok := d.GetOk("authentication_certificate"); ok && existing != nil {
-		for _, c := range existing.([]interface{}) {
-			b := c.(map[string]interface{})
-			nameToDataMap[b["name"].(string)] = b["data"].(string)
-		}
-	}
-
-	for _, cert := range *certs {
-		output := map[string]interface{}{}
-
-		if v := cert.Id; v != nil {
-			output["id"] = *v
-		}
-
-		if v := cert.Name; v != nil {
-			output["name"] = *v
-
-			// we have a name, so try and look up the old data to pass it along
-			if data, ok := nameToDataMap[*v]; ok && data != "" {
-				output["data"] = data
-			}
-		}
-
-		results = append(results, output)
-	}
-
-	return results
 }
 
 func flattenApplicationGatewayTrustedRootCertificates(certs *[]applicationgateways.ApplicationGatewayTrustedRootCertificate, d *pluginsdk.ResourceData) []interface{} {
@@ -4606,8 +4544,6 @@ func expandApplicationGatewaySslProfiles(d *pluginsdk.ResourceData, gatewayID st
 
 		name := v["name"].(string)
 
-		verifyClientCertIssuerDn := false
-		verifyClientCertIssuerDn = v["verify_client_certificate_issuer_dn"].(bool)
 		verifyClientCertificateRevocation := applicationgateways.ApplicationGatewayClientRevocationOptionsNone
 		if v["verify_client_certificate_revocation"].(string) != "" {
 			verifyClientCertificateRevocation = applicationgateways.ApplicationGatewayClientRevocationOptions(v["verify_client_certificate_revocation"].(string))
@@ -4617,7 +4553,7 @@ func expandApplicationGatewaySslProfiles(d *pluginsdk.ResourceData, gatewayID st
 			Name: pointer.To(name),
 			Properties: &applicationgateways.ApplicationGatewaySslProfilePropertiesFormat{
 				ClientAuthConfiguration: &applicationgateways.ApplicationGatewayClientAuthConfiguration{
-					VerifyClientCertIssuerDN: pointer.To(verifyClientCertIssuerDn),
+					VerifyClientCertIssuerDN: pointer.To(v["verify_client_certificate_issuer_dn"].(bool)),
 					VerifyClientRevocation:   pointer.To(verifyClientCertificateRevocation),
 				},
 			},

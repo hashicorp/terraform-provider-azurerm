@@ -371,7 +371,6 @@ use computed cross-resource references for key arguments.
 
 * The deprecated `backend_http_settings.authentication_certificate` property has been removed.
 * The deprecated `authentication_certificate` property has been removed.
-* The deprecated `ssl_profile.verify_client_cert_issuer_dn` property has been removed in favour of the `ssl_profile.verify_client_certificate_issuer_dn` property.
 * The deprecated `enable_http2` property has been removed in favour of the `http2_enabled` property.
 * The deprecated `ssl_profile.verify_client_cert_issuer_dn` property has been removed in favour of the `ssl_profile.verify_client_certificate_issuer_dn` property.
 

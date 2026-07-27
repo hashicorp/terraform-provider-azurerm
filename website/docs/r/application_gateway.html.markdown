@@ -134,10 +134,6 @@ The following arguments are supported:
 
 ---
 
-* `authentication_certificate` - (Optional) One or more `authentication_certificate` blocks as defined below.
-
-~> **Note:** `authentication_certificate` has been deprecated in accordance with the [deprecation of Application Gateway V1](https://aka.ms/V1retirement) and will be removed in v5.0 of the AzureRM Provider.
-
 * `autoscale_configuration` - (Optional) An `autoscale_configuration` block as defined below.
 
 * `backend` - (Optional) One or more `backend` blocks as defined below.
@@ -208,14 +204,6 @@ The following arguments are supported:
 
 ---
 
-An `authentication_certificate` block supports the following:
-
-* `name` - (Required) The Name of the Authentication Certificate to use.
-
-* `data` - (Required) The contents of the Authentication Certificate which should be used.
-
----
-
 A `trusted_root_certificate` block supports the following:
 
 * `name` - (Required) The Name of the Trusted Root Certificate to use.
@@ -274,10 +262,6 @@ A `backend_http_settings` block supports the following:
  
 * `affinity_cookie_name` - (Optional) The name of the affinity cookie.
 
-* `authentication_certificate` - (Optional) One or more `authentication_certificate_backend` blocks as defined below.
-
--> **Note:** `backend_http_settings.authentication_certificate` has been deprecated in accordance with the [deprecation of Application Gateway V1](https://learn.microsoft.com/azure/application-gateway/ssl-overview#end-to-end-tls-with-the-v2-sku) and will be removed in v5.0 of the AzureRM Provider.
-
 * `certificate_chain_validation_enabled` - (Optional) Whether to validate the certificate chain and expiry on the backend HTTPS servers. Defaults to `true`.
 
 * `connection_draining` - (Optional) A `connection_draining` block as defined below.
@@ -301,12 +285,6 @@ A `backend_http_settings` block supports the following:
 * `sni_validation_enabled` - (Optional) Whether to enable Server Name Indication (SNI) validation on the backend HTTPS servers. Defaults to `true`.
 
 * `trusted_root_certificate_names` - (Optional) A list of `trusted_root_certificate` names.
-
----
-
-A `authentication_certificate_backend` block, within the `backend_http_settings` block supports the following:
-
-* `name` - (Required) The name of the Authentication Certificate.
 
 ---
 
