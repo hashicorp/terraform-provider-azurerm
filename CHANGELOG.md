@@ -1,26 +1,28 @@
-## 5.0.0 (Unreleased)
+## 5.0.0 (July 27, 2026)
 
 NOTES:
 
-* **Major Version** TODO
-
-ENHANCEMENTS:
-* `azurerm_subnet` - add support for the `network_security_group_id_wo` and `network_security_group_id_wo_version` properties [GH-32847]
-* `azurerm_subnet` - add support for the `route_table_id_wo` and `route_table_id_wo_version` properties [GH-32847]
-* `azurerm_subnet` - export the `network_security_group_id` property [GH-32847]
-* `azurerm_subnet` - export the `route_table_id` property [GH-32847]
-* dependencies: `loadbalancers` - update to API version `2025-01-01` [GH-32644]
-* `cdn` - migrate to `go-azure-sdk` [GH-32849]
-* `azurerm_windows_web_app` - add support for `~24` to `site_config.application_stack.node_version` [GH-32840]
-* `azurerm_windows_web_app_slot` - add support for `~24` to `site_config.application_stack.node_version` [GH-32840]
-* `azurerm_cognitive_account_rai_policy` - the `content_filter.severity_threshold` property is now optional [GH-32100]
-* dependencies: `grpc` update to `1.82.1` [GH-32852]
-* `azurerm_dashboard_grafana` - the `11` value for the `grafana_major_version` property has been deprecated and the property now supports `13` [GH-32777]
-* `azurerm_container_registry` - the `trust_policy_enabled` property has been deprecated and removed from the provider [GH-32752]
-* `sentinel` - migrate to `go-azure-sdk` [GH-32759]
+* **Major Version**: Version 5.0 of the Azure Provider is a major version - some behaviours have changed and some deprecated fields/resources have been removed - please refer to [the 5.0 upgrade guide for more information](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/5.0-upgrade-guide).
+* When upgrading to v5.0 of the AzureRM Provider, we recommend upgrading to the latest version of Terraform Core ([which can be found here](https://developer.hashicorp.com/terraform/install)).
 
 FEATURES:
-* **New Datasource** adds `azurerm_kubernetes_automatic_cluster_datasource` [GH-32881]
-* New Action: `azurerm_web_app_set_slot_distribution` [GH-32364]
 
-BUG FIXES:
+* **New Action**: `azurerm_web_app_set_slot_distribution` ([#32364](https://github.com/hashicorp/terraform-provider-azurerm/issues/32364))
+* **New Datasource** adds `azurerm_kubernetes_automatic_cluster_datasource` ([#32881](https://github.com/hashicorp/terraform-provider-azurerm/issues/32881))
+
+ENHANCEMENTS:
+
+* dependencies: `grpc` update to `1.82.1` ([#32852](https://github.com/hashicorp/terraform-provider-azurerm/issues/32852))
+* dependencies: `loadbalancers` - update to API version `2025-01-01` ([#32644](https://github.com/hashicorp/terraform-provider-azurerm/issues/32644))
+* `azurerm_cognitive_account_rai_policy` - the `content_filter.severity_threshold` property is now optional ([#32100](https://github.com/hashicorp/terraform-provider-azurerm/issues/32100))
+* `azurerm_container_registry` - the `trust_policy_enabled` property has been deprecated and removed from the provider ([#32752](https://github.com/hashicorp/terraform-provider-azurerm/issues/32752))
+* `azurerm_dashboard_grafana` - the `11` value for the `grafana_major_version` property has been deprecated and the property now supports `13` ([#32777](https://github.com/hashicorp/terraform-provider-azurerm/issues/32777))
+* `azurerm_log_analytics_workspace` - add support for the `internet_ingestion_access_type` and `internet_query_access_type` properties ([#32562](https://github.com/hashicorp/terraform-provider-azurerm/issues/32562))
+* `azurerm_subnet` - add support for the `network_security_group_id_wo` and `network_security_group_id_wo_version` properties ([#32847](https://github.com/hashicorp/terraform-provider-azurerm/issues/32847))
+* `azurerm_subnet` - add support for the `route_table_id_wo` and `route_table_id_wo_version` properties ([#32847](https://github.com/hashicorp/terraform-provider-azurerm/issues/32847))
+* `azurerm_subnet` - export the `network_security_group_id` property ([#32847](https://github.com/hashicorp/terraform-provider-azurerm/issues/32847))
+* `azurerm_subnet` - export the `route_table_id` property ([#32847](https://github.com/hashicorp/terraform-provider-azurerm/issues/32847))
+* `azurerm_windows_web_app` - add support for `~24` to `site_config.application_stack.node_version` ([#32840](https://github.com/hashicorp/terraform-provider-azurerm/issues/32840))
+* `azurerm_windows_web_app_slot` - add support for `~24` to `site_config.application_stack.node_version` ([#32840](https://github.com/hashicorp/terraform-provider-azurerm/issues/32840))
+* `cdn` - migrate to `go-azure-sdk` ([#32849](https://github.com/hashicorp/terraform-provider-azurerm/issues/32849))
+* `sentinel` - migrate to `go-azure-sdk` ([#32759](https://github.com/hashicorp/terraform-provider-azurerm/issues/32759))
