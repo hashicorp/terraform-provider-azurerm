@@ -996,7 +996,7 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 				}
 				d.Set("extensions_time_budget", extensionsTimeBudget)
 
-				if err := d.Set("security_profile", flattenVirtualMachineScaleSetSecurityProfile(profile.SecurityProfile)); err != nil {
+				if err := d.Set("security_profile", flattenVirtualMachineScaleSetSecurityProfile(profile.SecurityProfile, d)); err != nil {
 					return fmt.Errorf("setting `security_profile`: %+v", err)
 				}
 				d.Set("user_data", profile.UserData)

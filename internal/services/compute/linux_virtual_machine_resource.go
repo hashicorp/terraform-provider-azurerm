@@ -1107,7 +1107,7 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 				}
 			}
 
-			if err := d.Set("security_profile", flattenVirtualMachineSecurityProfile(props.SecurityProfile)); err != nil {
+			if err := d.Set("security_profile", flattenVirtualMachineSecurityProfile(props.SecurityProfile, d)); err != nil {
 				return fmt.Errorf("setting `security_profile`: %+v", err)
 			}
 			d.Set("virtual_machine_id", props.VMId)

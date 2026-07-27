@@ -715,8 +715,8 @@ func expandVirtualMachineSecurityProfile(input []interface{}, securityEncryption
 	return profile, nil
 }
 
-func flattenVirtualMachineSecurityProfile(profile *virtualmachines.SecurityProfile) []interface{} {
-	if profile == nil {
+func flattenVirtualMachineSecurityProfile(profile *virtualmachines.SecurityProfile, d *pluginsdk.ResourceData) []interface{} {
+	if profile == nil || (!d.GetRawConfig().IsNull() && pluginsdk.IsExplicitlyNullInConfig(d, "security_profile")) {
 		return []interface{}{}
 	}
 

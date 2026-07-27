@@ -1167,7 +1167,7 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 				}
 			}
 
-			if err := d.Set("security_profile", flattenVirtualMachineSecurityProfile(props.SecurityProfile)); err != nil {
+			if err := d.Set("security_profile", flattenVirtualMachineSecurityProfile(props.SecurityProfile, d)); err != nil {
 				return fmt.Errorf("setting `security_profile`: %+v", err)
 			}
 			d.Set("user_data", props.UserData)

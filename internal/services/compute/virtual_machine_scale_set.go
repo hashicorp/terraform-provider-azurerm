@@ -2290,8 +2290,8 @@ func expandVirtualMachineScaleSetSecurityProfile(input []interface{}, securityEn
 	return profile, nil
 }
 
-func flattenVirtualMachineScaleSetSecurityProfile(profile *virtualmachinescalesets.SecurityProfile) []interface{} {
-	if profile == nil {
+func flattenVirtualMachineScaleSetSecurityProfile(profile *virtualmachinescalesets.SecurityProfile, d *pluginsdk.ResourceData) []interface{} {
+	if profile == nil || (!d.GetRawConfig().IsNull() && pluginsdk.IsExplicitlyNullInConfig(d, "security_profile")) {
 		return []interface{}{}
 	}
 
