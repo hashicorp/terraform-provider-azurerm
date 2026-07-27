@@ -137,7 +137,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 
   type     = "Vpn"
   vpn_type = "RouteBased"
-  sku      = "VpnGw1"
+  sku      = "VpnGw1AZ"
 
   ip_configuration {
     name                          = "vnetGatewayConfig"
@@ -182,7 +182,7 @@ resource "azurerm_virtual_network_gateway" "secondary" {
 
   type     = "Vpn"
   vpn_type = "RouteBased"
-  sku      = "VpnGw1"
+  sku      = "VpnGw1AZ"
 
   ip_configuration {
     name                          = "vnetGatewayConfig"
