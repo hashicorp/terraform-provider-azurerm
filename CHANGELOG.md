@@ -20,5 +20,6 @@ ENHANCEMENTS:
 * `sentinel` - migrate to `go-azure-sdk` [GH-32759]
 
 FEATURES:
+* New Action: `azurerm_web_app_set_slot_distribution` [GH-32364]
 
 BUG FIXES:
