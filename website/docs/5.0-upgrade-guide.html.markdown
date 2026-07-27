@@ -437,6 +437,7 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 ### `azurerm_container_registry`
 
 * The `encryption` block is no longer Computed. It now defaults to empty, meaning encryption will be disabled.
+* The deprecated `regional_endpoint_enabled` property in the `georeplications` block has been removed in favour of the `global_endpoint_routing_enabled` property.
 * The deprecated `trust_policy_enabled` property has been removed as it is no longer supported by the service.
 
 ### `azurerm_cosmosdb_account`
