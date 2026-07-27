@@ -12,6 +12,8 @@ Azure Resource Manager: 5.0 Upgrade Guide
 
 Version 5.0 of the Azure Provider is a major release that includes breaking changes and behavioural differences. This guide covers the most significant changes and explains how to upgrade from v4.x to v5.0.
 
+When upgrading to version 5.0 of the Azure Provider, we recommend upgrading to the latest version of [Terraform](https://developer.hashicorp.com/terraform/install).
+
 ### Pinning your Provider Version
 
 We recommend pinning the version of each Provider you use in Terraform. You can do this using the `version` attribute within the `required_providers` block:
@@ -91,11 +93,15 @@ provider "azurerm" {
 For more information, see the [Resource Provider Registrations](index.html#resource-provider-registrations) section in the provider documentation.
 
 
-#### Enhanced Validation Default Changed
+#### Enhanced Validation
+
+The `enhanced_validation` block has been moved inside the `features` block. Additionally, the enhanced validation defaults have changed, and a new `preflight_enabled` property has been added.
+
+##### Location and Resource Provider Validation
 
 The enhanced validation feature, which caches supported Azure regions and Resource Providers from the Azure MetaData Service to validate `location` and Resource Provider arguments, now defaults to disabled in version 5.0.
 
-This is now controlled through the `enhanced_validation` block **inside** the `features` block:
+If you wish to retain the 4.x default behaviour, configure the `features.enhanced_validation` block with the values shown below:
 
 ```hcl
 provider "azurerm" {
@@ -114,14 +120,9 @@ This change was made because:
 * A region may be functional even if not present in the ARM region list
 * The MetaData Service call adds latency to provider initialization
 
-A new `preflight_enabled` property is also available within the `enhanced_validation` block. When set to `true`, the provider will call the Azure Preflight Validation API at plan time to detect invalid resource configurations before apply. This requires valid Azure credentials to be available at plan time and defaults to `false`. It can also be sourced from the `ARM_PROVIDER_ENHANCED_VALIDATION_PREFLIGHT_ENABLED` environment variable.
-
 The legacy `ARM_PROVIDER_ENHANCED_VALIDATION` environment variable, which previously controlled both location and resource provider validation, has been removed in version 5.0. Please migrate to either the `enhanced_validation` block inside the `features` block, or the specific environment variables: `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` and `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS`.
 
-Additionally, the legacy top-level `enhanced_validation` provider block has been moved in version 5.0. Any configurations using this top-level block must migrate to the `enhanced_validation` block inside the `features` block instead.
-
-
-#### Preflight Validation
+##### Preflight Validation
 
 When `preflight_enabled` is set within the `enhanced_validation` block in the `features`
 configuration, the provider will call the Azure Preflight Validation API at
@@ -133,7 +134,7 @@ surfaced before `terraform apply` is run.
 provider "azurerm" {
   features {
     enhanced_validation {
-      preflight_enabled           = false # Opt-in: validate supported resource payloads via Azure Preflight API
+      preflight_enabled           = true # Opt-in: validate supported resource payloads via Azure Preflight API
       preflight_location_fallback = "eastus2"
     }
   }
@@ -153,7 +154,7 @@ from the preflight validation request. Validation for those fields is deferred t
 `terraform apply` time. This means preflight may not catch all errors in configurations that
 use computed cross-resource references for key arguments.
 
-##### Currently Supported Resources
+###### Currently Supported Resources
 
 - `azurerm_app_service_environment_v3`
 - `azurerm_service_plan`
