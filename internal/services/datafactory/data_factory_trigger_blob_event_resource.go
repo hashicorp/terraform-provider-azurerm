@@ -220,8 +220,8 @@ func resourceDataFactoryTriggerBlobEventCreateUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	if v, ok := d.GetOk("activated"); ok && v.(bool) {
-		if err = startDataFactoryTrigger(ctx, *client, id); err != nil {
-			return fmt.Errorf("starting %s: %+v", id, err)
+		if err = startDataFactoryEventTrigger(ctx, *client, id); err != nil {
+			return err
 		}
 	}
 
