@@ -77,9 +77,7 @@ func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, s
 			}
 		}
 
-		if !step.ImportState {
-			newSteps = append(newSteps, step)
-		}
+		newSteps = append(newSteps, step)
 	}
 	steps = newSteps
 
