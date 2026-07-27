@@ -47,6 +47,7 @@ type DeploymentSkuModel struct {
 type CognitiveDeploymentResource struct{}
 
 var _ sdk.Resource = CognitiveDeploymentResource{}
+var _ sdk.ResourceWithCustomizeDiff = CognitiveDeploymentResource{}
 
 func (r CognitiveDeploymentResource) ResourceType() string {
 	return "azurerm_cognitive_deployment"

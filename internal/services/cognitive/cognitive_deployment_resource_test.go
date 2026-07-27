@@ -121,10 +121,26 @@ func TestAccCognitiveDeployment_spilloverDeploymentName(t *testing.T) {
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.spilloverDeploymentName(data),
+			Config: r.spilloverDeploymentName(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("spillover_deployment_name").Exists(),
+				check.That(data.ResourceName).Key("spillover_deployment_name").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.spilloverDeploymentName(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("spillover_deployment_name").HasValue(fmt.Sprintf("acctest-cd-spillover-%d", data.RandomInteger)),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.spilloverDeploymentName(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("spillover_deployment_name").DoesNotExist(),
 			),
 		},
 		data.ImportStep(),
@@ -312,8 +328,13 @@ resource "azurerm_cognitive_deployment" "test" {
 `, template, data.RandomInteger, versionUpgradeOption)
 }
 
-func (r CognitiveDeploymentTestResource) spilloverDeploymentName(data acceptance.TestData) string {
+func (r CognitiveDeploymentTestResource) spilloverDeploymentName(data acceptance.TestData, enabled bool) string {
 	template := r.template(data)
+	spilloverDeploymentName := ""
+	if enabled {
+		spilloverDeploymentName = "  spillover_deployment_name = azurerm_cognitive_deployment.spillover.name"
+	}
+
 	return fmt.Sprintf(`
 %s
 
@@ -334,9 +355,9 @@ resource "azurerm_cognitive_deployment" "spillover" {
 }
 
 resource "azurerm_cognitive_deployment" "test" {
-  name                      = "acctest-cd-%d"
-  cognitive_account_id      = azurerm_cognitive_account.test.id
-  spillover_deployment_name = azurerm_cognitive_deployment.spillover.name
+  name                 = "acctest-cd-%d"
+  cognitive_account_id = azurerm_cognitive_account.test.id
+%s
   model {
     format  = "OpenAI"
     name    = "gpt-5.4-mini"
@@ -350,7 +371,7 @@ resource "azurerm_cognitive_deployment" "test" {
     ignore_changes = [model.0.version]
   }
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, template, data.RandomInteger, data.RandomInteger, spilloverDeploymentName)
 }
 
 func (r CognitiveDeploymentTestResource) spilloverDeploymentNameInvalidSku(data acceptance.TestData) string {
