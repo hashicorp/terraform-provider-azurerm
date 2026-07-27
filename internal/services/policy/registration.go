@@ -84,9 +84,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	}
 
 	if !features.FivePointOh() {
-		// When these are removed post 5.0, the untyped resource functions for `azurerm_policy_definition` and `azurerm_policy_set_definition` should also be cleaned up
 		resources["azurerm_policy_definition"] = resourceArmPolicyDefinition()
-		resources["azurerm_policy_set_definition"] = resourceArmPolicySetDefinition()
 	}
 
 	return resources
