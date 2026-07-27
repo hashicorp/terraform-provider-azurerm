@@ -99,7 +99,7 @@ func TestAccStorageQueue_migrateToStorageID(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.withAccountName(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("storage_account_name").IsSet(),
@@ -118,30 +118,6 @@ func TestAccStorageQueue_migrateToStorageID(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-	})
-}
-
-func TestAccStorageQueue_migrateFromStorageIDShouldFail(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip("skipping as test is not valid in 5.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_storage_queue", "test")
-	r := StorageQueueResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("storage_account_id").IsSet(),
-				check.That(data.ResourceName).Key("storage_account_name").IsEmpty(),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config:      r.basic(data),
-			ExpectError: regexp.MustCompile("expected action to not be Replace"),
-		},
 	})
 }
 
@@ -182,18 +158,6 @@ func (r StorageQueueResource) Exists(ctx context.Context, client *clients.Client
 }
 
 func (r StorageQueueResource) basic(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		template := r.template(data)
-		return fmt.Sprintf(`
-	%s
-
-resource "azurerm_storage_queue" "test" {
-  name                 = "acctestmysamplequeue-%d"
-  storage_account_name = azurerm_storage_account.test.name
-}
-	`, template, data.RandomInteger)
-	}
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -201,7 +165,18 @@ resource "azurerm_storage_queue" "test" {
   name               = "acctestmysamplequeue-%d"
   storage_account_id = azurerm_storage_account.test.id
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
+}
+
+func (r StorageQueueResource) withAccountName(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_queue" "test" {
+  name                 = "acctestmysamplequeue-%d"
+  storage_account_name = azurerm_storage_account.test.name
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StorageQueueResource) basicAzureADAuth(data acceptance.TestData) string {
@@ -266,18 +241,6 @@ resource "azurerm_storage_queue" "test" {
 }
 
 func (r StorageQueueResource) requiresImport(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		template := r.basic(data)
-		return fmt.Sprintf(`
-	%s
-
-resource "azurerm_storage_queue" "import" {
-  name                 = azurerm_storage_queue.test.name
-  storage_account_name = azurerm_storage_queue.test.storage_account_name
-}
-	`, template)
-	}
-	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -285,12 +248,11 @@ resource "azurerm_storage_queue" "import" {
   name               = azurerm_storage_queue.test.name
   storage_account_id = azurerm_storage_queue.test.storage_account_id
 }
-`, template)
+`, r.basic(data))
 }
 
 func (r StorageQueueResource) metaData(data acceptance.TestData) string {
 	if !features.FivePointOh() {
-		template := r.template(data)
 		return fmt.Sprintf(`
 	%s
 
@@ -302,9 +264,8 @@ resource "azurerm_storage_queue" "test" {
     hello = "world"
   }
 }
-	`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 	}
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -316,12 +277,11 @@ resource "azurerm_storage_queue" "test" {
     hello = "world"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StorageQueueResource) metaDataUpdated(data acceptance.TestData) string {
 	if !features.FivePointOh() {
-		template := r.template(data)
 		return fmt.Sprintf(`
 	%s
 
@@ -334,9 +294,8 @@ resource "azurerm_storage_queue" "test" {
     rick  = "M0rty"
   }
 }
-	`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 	}
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -349,7 +308,7 @@ resource "azurerm_storage_queue" "test" {
     rick  = "M0rty"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StorageQueueResource) template(data acceptance.TestData) string {

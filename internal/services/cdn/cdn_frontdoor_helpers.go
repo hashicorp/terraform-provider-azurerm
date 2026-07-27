@@ -4,84 +4,19 @@
 package cdn
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afddomains"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/routes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rules"
 	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/azuresdkhacks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
-
-func expandEnabledBool(input bool) cdn.EnabledState {
-	if input {
-		return cdn.EnabledStateEnabled
-	}
-
-	return cdn.EnabledStateDisabled
-}
-
-func expandEnabledBoolToRouteHttpsRedirect(input bool) cdn.HTTPSRedirect {
-	if input {
-		return cdn.HTTPSRedirectEnabled
-	}
-
-	return cdn.HTTPSRedirectDisabled
-}
-
-func expandEnabledBoolToLinkToDefaultDomain(input bool) cdn.LinkToDefaultDomain {
-	if input {
-		return cdn.LinkToDefaultDomainEnabled
-	}
-
-	return cdn.LinkToDefaultDomainDisabled
-}
-
-func flattenLinkToDefaultDomainToBool(input cdn.LinkToDefaultDomain) bool {
-	if len(input) == 0 {
-		return false
-	}
-
-	return input == cdn.LinkToDefaultDomainEnabled
-}
-
-func expandResourceReference(input string) *cdn.ResourceReference {
-	if len(input) == 0 {
-		return nil
-	}
-
-	return &cdn.ResourceReference{
-		ID: pointer.To(input),
-	}
-}
-
-func flattenOriginGroupResourceReference(input *cdn.ResourceReference) (string, error) {
-	if input != nil && input.ID != nil {
-		id, err := parse.FrontDoorOriginGroupIDInsensitively(*input.ID)
-		if err != nil {
-			return "", err
-		}
-
-		return id.ID(), nil
-	}
-
-	return "", nil
-}
-
-func flattenEnabledBool(input cdn.EnabledState) bool {
-	return input == cdn.EnabledStateEnabled
-}
-
-func flattenHttpsRedirectToBool(input cdn.HTTPSRedirect) bool {
-	return input == cdn.HTTPSRedirectEnabled
-}
 
 func flattenTransformSlice(input *[]waf.TransformType) []interface{} {
 	result := make([]interface{}, 0)
@@ -184,8 +119,8 @@ func expandStringSliceToCsvFormat(input []interface{}) *string {
 	return &csv
 }
 
-func expandCustomDomainActivatedResourceArray(input []interface{}) *[]cdn.ActivatedResourceReference {
-	results := make([]cdn.ActivatedResourceReference, 0)
+func expandCustomDomainActivatedResourceArray(input []interface{}) *[]routes.ActivatedResourceReference {
+	results := make([]routes.ActivatedResourceReference, 0)
 
 	// NOTE: I have confirmed with the service team that this is required to be an explicit "nil" value, an empty
 	// list will not work. I had to modify the SDK to allow for nil which in the API means disassociate the custom domains.
@@ -194,11 +129,9 @@ func expandCustomDomainActivatedResourceArray(input []interface{}) *[]cdn.Activa
 	}
 
 	for _, customDomain := range input {
-		if id, err := parse.FrontDoorCustomDomainID(customDomain.(string)); err == nil {
-			results = append(results, cdn.ActivatedResourceReference{
-				ID: pointer.To(id.ID()),
-			})
-		}
+		results = append(results, routes.ActivatedResourceReference{
+			Id: pointer.To(customDomain.(string)),
+		})
 	}
 
 	return &results
@@ -220,28 +153,6 @@ func flattenCsvToStringSlice(input *string) []interface{} {
 	return results
 }
 
-func flattenCustomDomainActivatedResourceArray(input *[]cdn.ActivatedResourceReference) ([]interface{}, error) {
-	results := make([]interface{}, 0)
-	if input == nil || len(*input) == 0 {
-		return results, nil
-	}
-
-	// Normalize these values in the configuration file we know they are valid because they were set on the
-	// resource... if these are modified in the portal they will all be lowercased...
-	for _, customDomain := range *input {
-		if customDomain.ID == nil {
-			continue
-		}
-		id, err := parse.FrontDoorCustomDomainIDInsensitively(*customDomain.ID)
-		if err != nil {
-			return nil, err
-		}
-		results = append(results, id.ID())
-	}
-
-	return results, nil
-}
-
 // determines if the slice contains the value case-insensitively
 func sliceContainsString(input []interface{}, value string) bool {
 	if len(input) == 0 {
@@ -259,7 +170,7 @@ func sliceContainsString(input []interface{}, value string) bool {
 }
 
 // determines if the slice contains the value case-insensitively
-func routeSliceContains(input *[]parse.FrontDoorRouteId, value string) bool {
+func routeSliceContains(input *[]routes.RouteId, value string) bool {
 	if len(*input) == 0 || input == nil {
 		return false
 	}
@@ -292,23 +203,24 @@ func sliceRemoveString(input []interface{}, value string) []interface{} {
 	return out
 }
 
-func getRouteProperties(d *pluginsdk.ResourceData, meta interface{}, id *parse.FrontDoorRouteId, resourceName string) ([]interface{}, *cdn.RouteProperties, error) {
+func getRouteProperties(ctx context.Context, meta interface{}, id *routes.RouteId, resourceName string) ([]interface{}, *routes.RouteProperties, error) {
 	client := meta.(*clients.Client).Cdn.FrontDoorRoutesClient
-	ctx, routeCancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
-	defer routeCancel()
 
-	// Check to see if the route exists
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		return nil, nil, fmt.Errorf("%s: retrieving existing %s: %+v", resourceName, *id, err)
+		return nil, nil, fmt.Errorf("%s: retrieving %s: %+v", resourceName, id, err)
 	}
 
-	props := resp.RouteProperties
-	if props == nil {
-		return nil, nil, fmt.Errorf("%s: %s properties are 'nil': %+v", resourceName, *id, err)
+	if resp.Model == nil {
+		return nil, nil, fmt.Errorf("%s: retrieving %s: model was nil", resourceName, id)
 	}
 
-	customDomains, err := flattenCustomDomainActivatedResourceArray(props.CustomDomains)
+	if resp.Model.Properties == nil {
+		return nil, nil, fmt.Errorf("%s: retrieving %s: properties was nil", resourceName, id)
+	}
+	props := resp.Model.Properties
+
+	customDomains, err := flattenCdnFrontDoorRouteCustomDomainActivatedResourceArray(props.CustomDomains)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -316,17 +228,17 @@ func getRouteProperties(d *pluginsdk.ResourceData, meta interface{}, id *parse.F
 	return customDomains, props, nil
 }
 
-func removeCustomDomainAssociationFromRoutes(d *pluginsdk.ResourceData, meta interface{}, routes *[]parse.FrontDoorRouteId, customDomainID *parse.FrontDoorCustomDomainId) error {
-	if len(*routes) != 0 && routes != nil {
+func removeCustomDomainAssociationFromRoutes(ctx context.Context, meta interface{}, routes *[]routes.RouteId, customDomainID *afddomains.CustomDomainId) error {
+	if routes != nil && len(*routes) != 0 {
 		for _, route := range *routes {
 			// lock the route resource for update...
-			locks.ByName(route.RouteName, cdnFrontDoorRouteResourceName)
-			defer locks.UnlockByName(route.RouteName, cdnFrontDoorRouteResourceName)
+			locks.ByID(route.ID())
+			defer locks.UnlockByID(route.ID())
 
 			// Check to see if the route still exists and grab its properties...
 			// NOTE: cdnFrontDoorRouteResourceName is defined in the "cdn_frontdoor_route_disable_link_to_default_domain_resource" file
 			// ignore the error because that could just mean that the route has already been deleted...
-			customDomains, props, err := getRouteProperties(d, meta, &route, cdnFrontDoorCustomDomainResourceName)
+			customDomains, props, err := getRouteProperties(ctx, meta, &route, cdnFrontDoorCustomDomainResourceName)
 			if err == nil {
 				// Check to make sure the custom domain is still associated with the route
 				isAssociated := sliceContainsString(customDomains, customDomainID.ID())
@@ -334,7 +246,7 @@ func removeCustomDomainAssociationFromRoutes(d *pluginsdk.ResourceData, meta int
 				if isAssociated {
 					// it is, now removed the association...
 					newDomains := sliceRemoveString(customDomains, customDomainID.ID())
-					if err := updateRouteAssociations(d, meta, &route, newDomains, props, customDomainID); err != nil {
+					if err := updateRouteAssociations(ctx, meta, &route, newDomains, props, customDomainID); err != nil {
 						return err
 					}
 				}
@@ -345,39 +257,29 @@ func removeCustomDomainAssociationFromRoutes(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func updateRouteAssociations(d *pluginsdk.ResourceData, meta interface{}, routeId *parse.FrontDoorRouteId, customDomains []interface{}, props *cdn.RouteProperties, customDomainID *parse.FrontDoorCustomDomainId) error {
+func updateRouteAssociations(ctx context.Context, meta interface{}, routeId *routes.RouteId, customDomains []interface{}, props *routes.RouteProperties, customDomainID *afddomains.CustomDomainId) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorRoutesClient
-	workaroundsClient := azuresdkhacks.NewCdnFrontDoorRoutesWorkaroundClient(client)
-	ctx, routeCancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
-	defer routeCancel()
 
-	updateProps := azuresdkhacks.RouteUpdatePropertiesParameters{
-		CustomDomains: expandCustomDomainActivatedResourceArray(customDomains),
+	updateParams := routes.RouteUpdateParameters{
+		Properties: &routes.RouteUpdatePropertiesParameters{
+			CustomDomains: expandCustomDomainActivatedResourceArray(customDomains),
+		},
 	}
 
 	// NOTE: You must pull the Cache Configuration from the existing route else you will get a diff
 	// because a nil value means disabled
 	if props.CacheConfiguration != nil {
-		updateProps.CacheConfiguration = props.CacheConfiguration
+		updateParams.Properties.CacheConfiguration = props.CacheConfiguration
 	}
 
 	// NOTE: If there are no more custom domains associated with the route you must flip the
 	// 'link to default domain' field to 'true' else the route will be in an invalid state...
 	if len(customDomains) == 0 {
-		updateProps.LinkToDefaultDomain = cdn.LinkToDefaultDomainEnabled
+		updateParams.Properties.LinkToDefaultDomain = pointer.To(routes.LinkToDefaultDomainEnabled)
 	}
 
-	updateParams := azuresdkhacks.RouteUpdateParameters{
-		RouteUpdatePropertiesParameters: &updateProps,
-	}
-
-	future, err := workaroundsClient.Update(ctx, routeId.ResourceGroup, routeId.ProfileName, routeId.AfdEndpointName, routeId.RouteName, updateParams)
-	if err != nil {
+	if err := client.UpdateThenPoll(ctx, *routeId, updateParams); err != nil {
 		return fmt.Errorf("%s: updating the association with %s: %+v", *customDomainID, *routeId, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("%s: waiting to update the association with %s: %+v", *customDomainID, *routeId, err)
 	}
 
 	return nil
@@ -389,13 +291,13 @@ func validateRoutesCustomDomainProfile(customDomains []interface{}, routeProfile
 	if len(customDomains) != 0 {
 		// Verify all of the custom domains belong to the same profile as the route...
 		for _, v := range customDomains {
-			customDomain, err := parse.FrontDoorCustomDomainID(v.(string))
+			customDomain, err := afddomains.ParseCustomDomainID(v.(string))
 			if err != nil {
 				return err
 			}
 
 			if customDomain.ProfileName != routeProfile {
-				wrongProfile = append(wrongProfile, fmt.Sprintf("%q", customDomain.ID()))
+				wrongProfile = append(wrongProfile, customDomain.ID())
 			}
 		}
 
@@ -408,7 +310,7 @@ func validateRoutesCustomDomainProfile(customDomains []interface{}, routeProfile
 }
 
 // Validates that the CDN FrontDoor Custom Domain can be associated with the CDN FrontDoor Route
-func validateCustomDomainRoutes(input *[]parse.FrontDoorRouteId, customDomainID *parse.FrontDoorCustomDomainId) error {
+func validateCustomDomainRoutes(input *[]routes.RouteId, customDomainID *afddomains.CustomDomainId) error {
 	if input == nil || len(*input) == 0 {
 		return nil
 	}
@@ -440,27 +342,9 @@ func validateCustomDomainRoutes(input *[]parse.FrontDoorRouteId, customDomainID 
 	return nil
 }
 
-// Checks to make sure the list of CDN FrontDoor Custom Domains does not contain duplicate entries
-func sliceHasDuplicates(input []interface{}, resourceTxt string) error {
+func routeSliceHasDuplicates(input *[]routes.RouteId, resourceName string) error {
 	k := make(map[string]bool)
-	if len(input) == 0 || input == nil {
-		return nil
-	}
-
-	for _, v := range input {
-		if _, d := k[strings.ToLower(v.(string))]; !d {
-			k[strings.ToLower(v.(string))] = true
-		} else {
-			return fmt.Errorf("duplicate %[1]s detected, please remove all duplicate entries for the %[1]s(ID: %q) from your configuration block", resourceTxt, v.(string))
-		}
-	}
-
-	return nil
-}
-
-func routeSliceHasDuplicates(input *[]parse.FrontDoorRouteId, resourceName string) error {
-	k := make(map[string]bool)
-	if len(*input) == 0 || input == nil {
+	if input == nil || len(*input) == 0 {
 		return nil
 	}
 
@@ -476,14 +360,14 @@ func routeSliceHasDuplicates(input *[]parse.FrontDoorRouteId, resourceName strin
 }
 
 // Determines what CDN FrontDoor Routes need to be removed/disassociated from this CDN FrontDoor Custom Domain
-func routeDelta(oldRoutes *[]parse.FrontDoorRouteId, newRoutes *[]parse.FrontDoorRouteId) (*[]parse.FrontDoorRouteId, *[]parse.FrontDoorRouteId) {
-	remove := make([]parse.FrontDoorRouteId, 0)
-	shared := make([]parse.FrontDoorRouteId, 0)
-	if len(*newRoutes) == 0 || newRoutes == nil {
+func routeDelta(oldRoutes *[]routes.RouteId, newRoutes *[]routes.RouteId) (*[]routes.RouteId, *[]routes.RouteId) {
+	remove := make([]routes.RouteId, 0)
+	shared := make([]routes.RouteId, 0)
+	if newRoutes == nil || len(*newRoutes) == 0 {
 		return oldRoutes, &shared
 	}
 
-	if len(*oldRoutes) == 0 || oldRoutes == nil {
+	if oldRoutes == nil || len(*oldRoutes) == 0 {
 		return &remove, &shared
 	}
 
@@ -499,33 +383,15 @@ func routeDelta(oldRoutes *[]parse.FrontDoorRouteId, newRoutes *[]parse.FrontDoo
 	return &remove, &shared
 }
 
-func expandRuleSetIds(input []interface{}) ([]interface{}, error) {
-	out := make([]interface{}, 0)
-	if len(input) == 0 || input == nil {
-		return out, nil
-	}
-
-	for _, ruleSet := range input {
-		id, err := parse.FrontDoorRuleSetID(ruleSet.(string))
-		if err != nil {
-			return nil, err
-		}
-
-		out = append(out, id.ID())
-	}
-
-	return out, nil
-}
-
-func expandRoutes(input []interface{}) (*[]parse.FrontDoorRouteId, []interface{}, error) {
-	out := make([]parse.FrontDoorRouteId, 0)
+func expandRoutes(input []interface{}) (*[]routes.RouteId, []interface{}, error) {
+	out := make([]routes.RouteId, 0)
 	config := make([]interface{}, 0)
 	if len(input) == 0 || input == nil {
 		return &out, config, nil
 	}
 
 	for _, v := range input {
-		id, err := parse.FrontDoorRouteID(v.(string))
+		id, err := routes.ParseRouteID(v.(string))
 		if err != nil {
 			return nil, nil, err
 		}
@@ -535,24 +401,6 @@ func expandRoutes(input []interface{}) (*[]parse.FrontDoorRouteId, []interface{}
 	}
 
 	return &out, config, nil
-}
-
-func expandCustomDomains(input []interface{}) ([]interface{}, error) {
-	out := make([]interface{}, 0)
-	if len(input) == 0 || input == nil {
-		return out, nil
-	}
-
-	for _, v := range input {
-		id, err := parse.FrontDoorCustomDomainID(v.(string))
-		if err != nil {
-			return nil, err
-		}
-
-		out = append(out, id.ID())
-	}
-
-	return out, nil
 }
 
 const RuleCacheBehaviorDisabled = "Disabled"

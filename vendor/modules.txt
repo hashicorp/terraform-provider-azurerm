@@ -4,10 +4,8 @@ dario.cat/mergo
 # github.com/Azure/azure-sdk-for-go v66.0.0+incompatible
 ## explicit
 github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn
-github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn
 github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy
 github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security
-github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2021-09-01-preview/securityinsight
 github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql
 github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse
 github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery
@@ -468,8 +466,10 @@ github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdorigingroup
 github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdorigins
 github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/endpoints
 github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles
+github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/routes
 github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rules
 github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rulesets
+github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/secrets
 github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/securitypolicies
 github.com/hashicorp/go-azure-sdk/resource-manager/certificateregistration/2023-12-01/appservicecertificateorders
 github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01
@@ -521,7 +521,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmac
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetextensions
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetrollingupgrades
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetvms
-github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets
+github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets
 github.com/hashicorp/go-azure-sdk/resource-manager/confidentialledger/2022-05-13/confidentialledger
 github.com/hashicorp/go-azure-sdk/resource-manager/consumption/2019-10-01/budgets
 github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/certificates
@@ -1202,7 +1202,11 @@ github.com/hashicorp/go-azure-sdk/resource-manager/security/2022-05-01/settings
 github.com/hashicorp/go-azure-sdk/resource-manager/security/2023-01-01/pricings
 github.com/hashicorp/go-azure-sdk/resource-manager/security/2023-05-01/servervulnerabilityassessmentssettings
 github.com/hashicorp/go-azure-sdk/resource-manager/security/2025-06-01/defenderforstorage
+github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/alertruletemplates
+github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/dataconnectors
 github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/metadata
+github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/securitymlanalyticssettings
+github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/threatintelligence
 github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-11-01/sentinelonboardingstates
 github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-11-01/watchlistitems
 github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-11-01/watchlists
@@ -1649,7 +1653,6 @@ github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory
 github.com/jackofallops/kermit/sdk/iotcentral/2022-10-31-preview/iotcentral
 github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub
 github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault
-github.com/jackofallops/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights
 github.com/jackofallops/kermit/sdk/synapse/2020-08-01-preview/synapse
 github.com/jackofallops/kermit/sdk/synapse/2021-06-01-preview/synapse
 github.com/jackofallops/kermit/version
@@ -1763,7 +1766,7 @@ github.com/zclconf/go-cty/cty/set
 ## explicit; go 1.18
 go.yaml.in/yaml/v4
 go.yaml.in/yaml/v4/internal/libyaml
-# golang.org/x/crypto v0.52.0
+# golang.org/x/crypto v0.54.0
 ## explicit; go 1.25.0
 golang.org/x/crypto/argon2
 golang.org/x/crypto/bcrypt
@@ -1786,13 +1789,13 @@ golang.org/x/crypto/ssh
 golang.org/x/crypto/ssh/agent
 golang.org/x/crypto/ssh/internal/bcrypt_pbkdf
 golang.org/x/crypto/ssh/knownhosts
-# golang.org/x/mod v0.35.0
+# golang.org/x/mod v0.37.0
 ## explicit; go 1.25.0
 golang.org/x/mod/internal/lazyregexp
 golang.org/x/mod/modfile
 golang.org/x/mod/module
 golang.org/x/mod/semver
-# golang.org/x/net v0.55.0
+# golang.org/x/net v0.56.0
 ## explicit; go 1.25.0
 golang.org/x/net/context
 golang.org/x/net/http/httpguts
@@ -1805,20 +1808,20 @@ golang.org/x/net/internal/socks
 golang.org/x/net/internal/timeseries
 golang.org/x/net/proxy
 golang.org/x/net/trace
-# golang.org/x/oauth2 v0.34.0
-## explicit; go 1.24.0
+# golang.org/x/oauth2 v0.36.0
+## explicit; go 1.25.0
 golang.org/x/oauth2
 golang.org/x/oauth2/internal
-# golang.org/x/sync v0.20.0
+# golang.org/x/sync v0.22.0
 ## explicit; go 1.25.0
 golang.org/x/sync/errgroup
-# golang.org/x/sys v0.45.0
+# golang.org/x/sys v0.47.0
 ## explicit; go 1.25.0
 golang.org/x/sys/cpu
 golang.org/x/sys/execabs
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/text v0.37.0
+# golang.org/x/text v0.40.0
 ## explicit; go 1.25.0
 golang.org/x/text/cases
 golang.org/x/text/internal
@@ -1831,7 +1834,7 @@ golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
-# golang.org/x/tools v0.44.0
+# golang.org/x/tools v0.47.0
 ## explicit; go 1.25.0
 golang.org/x/tools/cmd/stringer
 golang.org/x/tools/go/analysis
@@ -1886,11 +1889,11 @@ google.golang.org/appengine/internal/datastore
 google.golang.org/appengine/internal/log
 google.golang.org/appengine/internal/modules
 google.golang.org/appengine/internal/remote_api
-# google.golang.org/genproto/googleapis/rpc v0.0.0-20251202230838-ff82c1b0f217
-## explicit; go 1.24.0
+# google.golang.org/genproto/googleapis/rpc v0.0.0-20260414002931-afd174a4e478
+## explicit; go 1.25.0
 google.golang.org/genproto/googleapis/rpc/status
-# google.golang.org/grpc v1.79.3
-## explicit; go 1.24.0
+# google.golang.org/grpc v1.82.1
+## explicit; go 1.25.0
 google.golang.org/grpc
 google.golang.org/grpc/attributes
 google.golang.org/grpc/backoff
@@ -1910,6 +1913,7 @@ google.golang.org/grpc/credentials/insecure
 google.golang.org/grpc/encoding
 google.golang.org/grpc/encoding/internal
 google.golang.org/grpc/encoding/proto
+google.golang.org/grpc/experimental/balancer/weight
 google.golang.org/grpc/experimental/stats
 google.golang.org/grpc/grpclog
 google.golang.org/grpc/grpclog/internal
@@ -1918,7 +1922,6 @@ google.golang.org/grpc/health/grpc_health_v1
 google.golang.org/grpc/internal
 google.golang.org/grpc/internal/backoff
 google.golang.org/grpc/internal/balancer/gracefulswitch
-google.golang.org/grpc/internal/balancer/weight
 google.golang.org/grpc/internal/balancerload
 google.golang.org/grpc/internal/binarylog
 google.golang.org/grpc/internal/buffer
@@ -1929,6 +1932,7 @@ google.golang.org/grpc/internal/grpclog
 google.golang.org/grpc/internal/grpcsync
 google.golang.org/grpc/internal/grpcutil
 google.golang.org/grpc/internal/idle
+google.golang.org/grpc/internal/mem
 google.golang.org/grpc/internal/metadata
 google.golang.org/grpc/internal/pretty
 google.golang.org/grpc/internal/proxyattributes
@@ -1943,7 +1947,9 @@ google.golang.org/grpc/internal/stats
 google.golang.org/grpc/internal/status
 google.golang.org/grpc/internal/syscall
 google.golang.org/grpc/internal/transport
+google.golang.org/grpc/internal/transport/internal
 google.golang.org/grpc/internal/transport/networktype
+google.golang.org/grpc/internal/transport/readyreader
 google.golang.org/grpc/keepalive
 google.golang.org/grpc/mem
 google.golang.org/grpc/metadata

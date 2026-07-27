@@ -74,7 +74,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "cosmos" to testConfiguration(locationOverride = LocationConfiguration("westus", "northeurope", "eastus2", true)),
 
         // Confidential Ledger
-        "confidentialledger" to testConfiguration(locationOverride = LocationConfiguration("eastus","southcentralus","westeurope", false)),
+        "confidentialledger" to testConfiguration(parallelism = 1, locationOverride = LocationConfiguration("eastus","southeastasia","westeurope", false)),
 
         // Container App Managed Environments are limited to 20 per location, using 10 as they can take some time to clear
         // Enable rotation test to mitigate resource burden in a single region
@@ -82,6 +82,9 @@ var serviceTestConfigurationOverrides = mapOf(
 
         // The AKS API has a low rate limit
         "containers" to testConfiguration(parallelism = 5, locationOverride = LocationConfiguration("eastus","westeurope","eastus2", false), timeout = 18),
+
+        // `azurerm_cost_management_scheduled_action` that can be targeted on a cost management view is limited
+        "costmanagement" to testConfiguration(parallelism = 4),
 
         // Custom Providers is only available in certain locations
         "customproviders" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westus2", "westeurope", true)),
@@ -177,7 +180,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "purview" to testConfiguration(locationOverride = LocationConfiguration("eastus", "southcentralus", "westus", true)),
 
         // Qumulo asked to use canary env for testing, eastasia is a canary region for qumulo
-        "qumulo" to testConfiguration(locationOverride = LocationConfiguration("eastasia", "centralus2euap", "westeurope", true)),
+        "qumulo" to testConfiguration(locationOverride = LocationConfiguration("eastasia", "centraluseuap", "westeurope", true)),
 
         // redisenterprise is costly - Monday, Wednesday, Friday
         "redisenterprise" to testConfiguration(daysOfWeek = "2,4,6"),

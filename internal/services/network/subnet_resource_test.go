@@ -37,6 +37,142 @@ func TestAccSubnet_basic(t *testing.T) {
 	})
 }
 
+func TestAccSubnet_basicWithNSG(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	r := SubnetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithNSG(data, 1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_security_group_id").IsNotEmpty(),
+			),
+		},
+		data.ImportStep("network_security_group_id_wo_version"),
+		{
+			Config: r.basicWithNSG(data, 2), // update NSG
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_security_group_id").IsNotEmpty(),
+			),
+		},
+		data.ImportStep("network_security_group_id_wo_version"),
+		{
+			Config: r.basicWithNSG(data, 0), // remove NSG
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_security_group_id").IsEmpty(),
+			),
+		},
+		data.ImportStep("network_security_group_id_wo_version"),
+	})
+}
+
+func TestAccSubnet_WriteOnly_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	r := SubnetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.writeOnlyBasic(data, 1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_security_group_id").IsNotEmpty(),
+				check.That(data.ResourceName).Key("route_table_id").IsNotEmpty(),
+			),
+		},
+		data.ImportStep("network_security_group_id_wo_version", "route_table_id_wo_version"),
+		{
+			Config: r.writeOnlyBasic(data, 2), // update both
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_security_group_id").IsNotEmpty(),
+				check.That(data.ResourceName).Key("route_table_id").IsNotEmpty(),
+			),
+		},
+		data.ImportStep("network_security_group_id_wo_version", "route_table_id_wo_version"),
+		{
+			Config: r.writeOnlyBasic(data, 0), // remove both
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_security_group_id").IsEmpty(),
+				check.That(data.ResourceName).Key("route_table_id").IsEmpty(),
+			),
+		},
+		data.ImportStep("network_security_group_id_wo_version", "route_table_id_wo_version"),
+	})
+}
+
+func TestAccSubnet_WriteOnly_migration(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	r := SubnetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.writeOnlyMigrationInline(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_security_group_id").IsNotEmpty(),
+				check.That(data.ResourceName).Key("route_table_id").IsNotEmpty(),
+			),
+		},
+		data.ImportStep("network_security_group_id_wo_version", "route_table_id_wo_version"),
+		{
+			// Switch to separate association resources.
+			// The update should show no changes to the actual Azure Subnet, but TF will process the new resources.
+			Config: r.writeOnlyMigrationSeparate(data, "10.0.2.0/24"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That("data.azurerm_subnet.test").Key("network_security_group_id").IsNotEmpty(),
+				check.That("data.azurerm_subnet.test").Key("route_table_id").IsNotEmpty(),
+			),
+		},
+		{
+			// Update an unrelated property to ensure we don't unintentionally remove the association managed by
+			// the separated resources.
+			Config: r.writeOnlyMigrationSeparate(data, "10.0.3.0/24"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That("data.azurerm_subnet.test").Key("network_security_group_id").IsNotEmpty(),
+				check.That("data.azurerm_subnet.test").Key("route_table_id").IsNotEmpty(),
+			),
+		},
+	})
+}
+
+func TestAccSubnet_basicWithRouteTable(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	r := SubnetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithRouteTable(data, 1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("route_table_id").IsNotEmpty(),
+			),
+		},
+		data.ImportStep("route_table_id_wo_version"),
+		{
+			Config: r.basicWithRouteTable(data, 2), // update RT
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("route_table_id").IsNotEmpty(),
+			),
+		},
+		data.ImportStep("route_table_id_wo_version"),
+		{
+			Config: r.basicWithRouteTable(data, 0), // remove RT
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("route_table_id").IsEmpty(),
+			),
+		},
+		data.ImportStep("route_table_id_wo_version"),
+	})
+}
+
 func TestAccSubnet_basic_addressPrefixes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
 	r := SubnetResource{}
@@ -546,7 +682,7 @@ func (SubnetResource) Destroy(ctx context.Context, client *clients.Client, state
 }
 
 func (SubnetResource) hasNoNatGateway(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
-	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(15*time.Minute))
+	ctx, cancel := context.WithTimeout(ctx, 15*time.Minute)
 	defer cancel()
 
 	id, err := commonids.ParseSubnetID(state.ID)
@@ -559,7 +695,7 @@ func (SubnetResource) hasNoNatGateway(ctx context.Context, client *clients.Clien
 		if response.WasNotFound(subnet.HttpResponse) {
 			return fmt.Errorf("%s does not exist", id)
 		}
-		return fmt.Errorf("Bad: Get on subnetClient: %+v", err)
+		return fmt.Errorf("bad: Get on subnetClient: %+v", err)
 	}
 
 	model := subnet.Model
@@ -579,7 +715,7 @@ func (SubnetResource) hasNoNatGateway(ctx context.Context, client *clients.Clien
 }
 
 func (SubnetResource) hasNoNetworkSecurityGroup(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
-	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(15*time.Minute))
+	ctx, cancel := context.WithTimeout(ctx, 15*time.Minute)
 	defer cancel()
 
 	id, err := commonids.ParseSubnetID(state.ID)
@@ -593,7 +729,7 @@ func (SubnetResource) hasNoNetworkSecurityGroup(ctx context.Context, client *cli
 			return fmt.Errorf("%s does not exist", id)
 		}
 
-		return fmt.Errorf("Bad: Get on subnetClient: %+v", err)
+		return fmt.Errorf("bad: Get on subnetClient: %+v", err)
 	}
 
 	model := resp.Model
@@ -614,7 +750,7 @@ func (SubnetResource) hasNoNetworkSecurityGroup(ctx context.Context, client *cli
 }
 
 func (SubnetResource) hasNoRouteTable(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
-	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(15*time.Minute))
+	ctx, cancel := context.WithTimeout(ctx, 15*time.Minute)
 	defer cancel()
 
 	id, err := commonids.ParseSubnetID(state.ID)
@@ -628,7 +764,7 @@ func (SubnetResource) hasNoRouteTable(ctx context.Context, client *clients.Clien
 			return fmt.Errorf("%s does not exist", id)
 		}
 
-		return fmt.Errorf("Bad: Get on subnetClient: %+v", err)
+		return fmt.Errorf("bad: Get on subnetClient: %+v", err)
 	}
 
 	model := resp.Model
@@ -666,6 +802,204 @@ resource "azurerm_subnet" "test2" {
   address_prefixes     = ["10.0.3.0/24"]
 }
 `, r.template(data))
+}
+
+func (r SubnetResource) basicWithNSG(data acceptance.TestData, nsgInstance int) string {
+	var nsg string
+	if nsgInstance != 0 {
+		nsg = fmt.Sprintf(`
+network_security_group_id_wo = azurerm_network_security_group.test%[1]d.id
+network_security_group_id_wo_version = %[1]d
+`, nsgInstance)
+	}
+
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_network_security_group" "test1" {
+  name                = "acctestnsg-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_network_security_group" "test2" {
+  name                = "acctestnsg2-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+
+  %[3]s
+}
+`, r.template(data), data.RandomInteger, nsg)
+}
+
+func (r SubnetResource) basicWithRouteTable(data acceptance.TestData, rtInstance int) string {
+	var rt string
+	if rtInstance != 0 {
+		rt = fmt.Sprintf(`
+route_table_id_wo = azurerm_route_table.test%[1]d.id
+route_table_id_wo_version = %[1]d
+`, rtInstance)
+	}
+
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_route_table" "test1" {
+  name                = "acctestrt-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_route_table" "test2" {
+  name                = "acctestrt2-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+
+  %[3]s
+}
+`, r.template(data), data.RandomInteger, rt)
+}
+
+func (r SubnetResource) writeOnlyBasic(data acceptance.TestData, instance int) string {
+	var attachments string
+	if instance != 0 {
+		attachments = fmt.Sprintf(`
+  network_security_group_id_wo = azurerm_network_security_group.test%[1]d.id
+  network_security_group_id_wo_version = %[1]d
+
+  route_table_id_wo = azurerm_route_table.test%[1]d.id
+  route_table_id_wo_version = %[1]d
+`, instance)
+	}
+
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_network_security_group" "test1" {
+  name                = "acctestnsg-%[2]d-1"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_network_security_group" "test2" {
+  name                = "acctestnsg-%[2]d-2"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_route_table" "test1" {
+  name                = "acctestrt-%[2]d-1"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_route_table" "test2" {
+  name                = "acctestrt-%[2]d-2"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+
+  %[3]s
+}
+`, r.template(data), data.RandomInteger, attachments)
+}
+
+func (r SubnetResource) writeOnlyMigrationInline(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_network_security_group" "test" {
+  name                = "acctestnsg-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_route_table" "test" {
+  name                = "acctestrt-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+
+  network_security_group_id_wo         = azurerm_network_security_group.test.id
+  network_security_group_id_wo_version = 1
+
+  route_table_id_wo         = azurerm_route_table.test.id
+  route_table_id_wo_version = 1
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r SubnetResource) writeOnlyMigrationSeparate(data acceptance.TestData, addressPrefix string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_network_security_group" "test" {
+  name                = "acctestnsg-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_route_table" "test" {
+  name                = "acctestrt-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["%s"]
+}
+
+resource "azurerm_subnet_network_security_group_association" "test" {
+  subnet_id                 = azurerm_subnet.test.id
+  network_security_group_id = azurerm_network_security_group.test.id
+}
+
+resource "azurerm_subnet_route_table_association" "test" {
+  subnet_id      = azurerm_subnet.test.id
+  route_table_id = azurerm_route_table.test.id
+}
+
+data "azurerm_subnet" "test" {
+  name                 = azurerm_subnet.test.name
+  virtual_network_name = azurerm_subnet.test.virtual_network_name
+  resource_group_name  = azurerm_subnet.test.resource_group_name
+
+  // ensure we're looking at the data source after the associations are applied
+  depends_on = [
+    azurerm_subnet_route_table_association.test,
+    azurerm_subnet_network_security_group_association.test,
+  ]
+}
+`, r.template(data), data.RandomInteger, addressPrefix)
 }
 
 func (r SubnetResource) delegation(data acceptance.TestData) string {

@@ -71,7 +71,7 @@ func resourceCdnFrontDoorRuleSet() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FrontDoorProfileID,
+				ValidateFunc: profiles.ValidateProfileID,
 			},
 		},
 	}

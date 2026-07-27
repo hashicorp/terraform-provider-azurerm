@@ -21,7 +21,7 @@ func ContainerRegistryCacheRuleName(v interface{}, k string) (warnings []string,
 	}
 
 	if len(value) >= 50 {
-		errors = append(errors, fmt.Errorf("%q cannot be longer than 50 characters: %q %d", k, value, len(value)))
+		errors = append(errors, fmt.Errorf("%q cannot be longer than 49 characters: %q %d", k, value, len(value)))
 	}
 
 	return warnings, errors

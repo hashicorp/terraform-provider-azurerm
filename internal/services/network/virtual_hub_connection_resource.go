@@ -209,8 +209,8 @@ func resourceVirtualHubConnectionCreateOrUpdate(d *pluginsdk.ResourceData, meta 
 		return err
 	}
 
-	locks.ByName(remoteVirtualNetworkId.VirtualNetworkName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(remoteVirtualNetworkId.VirtualNetworkName, VirtualNetworkResourceName)
+	locks.ByID(remoteVirtualNetworkId.ID())
+	defer locks.UnlockByID(remoteVirtualNetworkId.ID())
 
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {

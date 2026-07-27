@@ -340,10 +340,9 @@ resource "azurerm_virtual_network_peering" "primary" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "primary" {
-  name                  = "acctest%[1]d-primary-pdzvnetlink.com"
-  private_dns_zone_name = azurerm_private_dns_zone.primary.name
-  virtual_network_id    = azurerm_virtual_network.primary.id
-  resource_group_name   = azurerm_resource_group.primary.name
+  name                = "acctest%[1]d-primary-pdzvnetlink.com"
+  private_dns_zone_id = azurerm_private_dns_zone.primary.id
+  virtual_network_id  = azurerm_virtual_network.primary.id
 
   depends_on = [azurerm_virtual_network_peering.primary]
 }
@@ -451,10 +450,9 @@ resource "azurerm_virtual_network_peering" "secondary" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "secondary" {
-  name                  = "acctest%[1]d-secondary-pdzvnetlink.com"
-  private_dns_zone_name = azurerm_private_dns_zone.secondary.name
-  virtual_network_id    = azurerm_virtual_network.secondary.id
-  resource_group_name   = azurerm_resource_group.secondary.name
+  name                = "acctest%[1]d-secondary-pdzvnetlink.com"
+  private_dns_zone_id = azurerm_private_dns_zone.secondary.id
+  virtual_network_id  = azurerm_virtual_network.secondary.id
 
   depends_on = [azurerm_virtual_network_peering.secondary]
 }

@@ -11,6 +11,7 @@ import (
 
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/helpers"
@@ -64,6 +65,23 @@ func (td TestData) ResourceIdentityTest(t *testing.T, steps []TestStep, sequenti
 
 func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, steps []TestStep) {
 	os.Setenv("TF_ACC_REFRESH_AFTER_APPLY", "true")
+
+	newSteps := make([]TestStep, 0)
+	for _, step := range steps {
+		// This block adds a check to make sure tests aren't recreating a resource
+		if (step.Config != "" || step.ConfigDirectory != nil || step.ConfigFile != nil) && !step.PlanOnly {
+			step.ConfigPlanChecks = resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					helpers.IsNotResourceAction(td.ResourceName, plancheck.ResourceActionReplace),
+				},
+			}
+		}
+
+		if !step.ImportState {
+			newSteps = append(newSteps, step)
+		}
+	}
+	steps = newSteps
 
 	testCase := resource.TestCase{
 		PreCheck: func() { PreCheck(t) },

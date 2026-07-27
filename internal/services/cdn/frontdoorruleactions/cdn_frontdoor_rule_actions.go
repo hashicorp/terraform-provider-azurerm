@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdorigingroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rules"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -435,7 +435,7 @@ func FlattenCdnFrontDoorRouteConfigurationOverrideAction(input rules.DeliveryRul
 		// NOTE: Need to parse this ID insensitively to normalize it because if you modified this
 		// resource in the Azure Portal the 'resourceGroup' element comes back as 'resourcegroup'
 		// not 'resourceGroup'.
-		originGroup, err := parse.FrontDoorOriginGroupIDInsensitively(*override.OriginGroup.Id)
+		originGroup, err := afdorigingroups.ParseOriginGroupIDInsensitively(*override.OriginGroup.Id)
 		if err != nil {
 			return nil, err
 		}
