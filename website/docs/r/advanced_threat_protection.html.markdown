@@ -19,7 +19,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_cosmosdb_account" "example" {
-  name                = "example-cosmosdb"
+  name                = "example-cosmosdb-account"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   offer_type          = "Standard"
@@ -68,5 +68,5 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 Advanced Threat Protection can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_advanced_threat_protection.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/exampleResourceGroup/providers/Microsoft.DocumentDB/databaseAccounts/exampleaccount/providers/Microsoft.Security/advancedThreatProtectionSettings/default
+terraform import azurerm_advanced_threat_protection.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.DocumentDB/databaseAccounts/databaseAccount1/providers/Microsoft.Security/advancedThreatProtectionSettings/default
 ```
