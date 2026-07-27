@@ -14,14 +14,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afddomains"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles"
-	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/secrets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/custompollers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -56,7 +56,7 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.FrontDoorCustomDomainID(id)
+			_, err := afddomains.ParseCustomDomainID(id)
 			return err
 		}),
 
@@ -78,13 +78,13 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FrontDoorProfileID,
+				ValidateFunc: profiles.ValidateProfileID,
 			},
 
 			"dns_zone_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: dnsValidate.ValidateDnsZoneID,
+				ValidateFunc: zones.ValidateDnsZoneID,
 			},
 
 			"host_name": {
@@ -124,7 +124,7 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 							Optional: true,
 							// O+C because if the secret is managed by FrontDoor this will cause a perpetual diff
 							Computed:     true,
-							ValidateFunc: validate.FrontDoorSecretID,
+							ValidateFunc: secrets.ValidateSecretID,
 						},
 
 						"cipher_suite": {
@@ -478,7 +478,7 @@ func expandAfdDomainTlsParameters(d *pluginsdk.ResourceData, input []interface{}
 	// NOTE: Secret always needs to be passed if it is defined else you will
 	// receive a 500 Internal Server Error
 	if secretRaw != "" {
-		secret, err := parse.FrontDoorSecretID(secretRaw)
+		secret, err := secrets.ParseSecretID(secretRaw)
 		if err != nil {
 			return nil, err
 		}
@@ -573,7 +573,7 @@ func flattenAfdDomainHttpsParameters(input *afddomains.AFDDomainHTTPSParameters,
 
 	secretId := ""
 	if input.Secret != nil && input.Secret.Id != nil {
-		if id, err := parse.FrontDoorSecretIDInsensitively(pointer.From(input.Secret.Id)); err == nil {
+		if id, err := secrets.ParseSecretIDInsensitively(pointer.From(input.Secret.Id)); err == nil {
 			secretId = id.ID()
 		}
 	}
@@ -674,7 +674,7 @@ func flattenAfdDNSZoneResourceReference(input *afddomains.ResourceReference) str
 		return ""
 	}
 
-	if id, err := dnsValidate.ParseDnsZoneIDInsensitively(pointer.From(input.Id)); err == nil {
+	if id, err := zones.ParseDnsZoneIDInsensitively(pointer.From(input.Id)); err == nil {
 		return id.ID()
 	}
 

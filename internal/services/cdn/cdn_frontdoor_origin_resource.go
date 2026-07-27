@@ -7,23 +7,21 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdorigingroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdorigins"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/privatelinkservices"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/azuresdkhacks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceCdnFrontDoorOrigin() *pluginsdk.Resource {
@@ -41,7 +39,7 @@ func resourceCdnFrontDoorOrigin() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.FrontDoorOriginID(id)
+			_, err := afdorigins.ParseOriginGroupOriginID(id)
 			return err
 		}),
 
@@ -57,12 +55,11 @@ func resourceCdnFrontDoorOrigin() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FrontDoorOriginGroupID,
+				ValidateFunc: afdorigins.ValidateOriginGroupID,
 			},
 
 			"host_name": {
-				Type: pluginsdk.TypeString,
-				// HostName cannot be null or empty.
+				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -92,7 +89,6 @@ func resourceCdnFrontDoorOrigin() *pluginsdk.Resource {
 				ValidateFunc: validation.IntBetween(1, 65535),
 			},
 
-			// Must be a valid domain name, IPv4 or IPv6 IP Address
 			"origin_host_header": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -117,7 +113,7 @@ func resourceCdnFrontDoorOrigin() *pluginsdk.Resource {
 						"private_link_target_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							ValidateFunc: privatelinkservices.ValidatePrivateLinkServiceID,
 						},
 
 						"request_message": {
@@ -159,95 +155,73 @@ func resourceCdnFrontDoorOrigin() *pluginsdk.Resource {
 func resourceCdnFrontDoorOriginCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorOriginsClient
 	profileClient := meta.(*clients.Client).Cdn.FrontDoorProfilesClient
+
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	originGroupRaw := d.Get("cdn_frontdoor_origin_group_id").(string)
-	originGroup, err := parse.FrontDoorOriginGroupID(originGroupRaw)
+	originGroup, err := afdorigingroups.ParseOriginGroupID(d.Get("cdn_frontdoor_origin_group_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewFrontDoorOriginID(originGroup.SubscriptionId, originGroup.ResourceGroup, originGroup.ProfileName, originGroup.OriginGroupName, d.Get("name").(string))
+	id := afdorigins.NewOriginGroupOriginID(originGroup.SubscriptionId, originGroup.ResourceGroupName, originGroup.ProfileName, originGroup.OriginGroupName, d.Get("name").(string))
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, id.OriginName)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_cdn_frontdoor_origin", id.ID())
 		}
 	}
 
 	// I need to get the profile SKU so I know if it is valid or not to define a private link as
 	// private links are only allowed in the premium sku...
-	profileId := profiles.NewProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName)
-
+	profileId := profiles.NewProfileID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName)
 	profileResp, err := profileClient.Get(ctx, profileId)
 	if err != nil {
-		if response.WasNotFound(profileResp.HttpResponse) {
-			return fmt.Errorf("retrieving parent %s: not found", profileId)
-		}
-
-		return fmt.Errorf("retrieving parent %s: %+v", profileId, err)
+		return fmt.Errorf("retrieving %s: %+v", profileId, err)
 	}
 
-	profileModel := profileResp.Model
-
-	if profileModel == nil {
-		return fmt.Errorf("profileModel is 'nil'")
+	if profileResp.Model == nil {
+		return fmt.Errorf("retrieving %s: model was nil", profileId)
 	}
 
-	if profileModel.Properties == nil {
-		return fmt.Errorf("profileModel.Properties is 'nil'")
+	if profileResp.Model.Sku.Name == nil {
+		return fmt.Errorf("retrieving %s: sku was nil", profileId)
 	}
 
-	if profileModel.Sku.Name == nil {
-		return fmt.Errorf("profileModel.Sku.Name' is 'nil'")
-	}
-	skuName := string(pointer.From(profileModel.Sku.Name))
-
-	var enabled bool
-	if !pluginsdk.IsExplicitlyNullInConfig(d, "enabled") {
-		enabled = d.Get("enabled").(bool)
+	enabledState := afdorigins.EnabledStateDisabled
+	if d.Get("enabled").(bool) {
+		enabledState = afdorigins.EnabledStateEnabled
 	}
 
-	enableCertNameCheck := d.Get("certificate_name_check_enabled").(bool)
-	props := &cdn.AFDOriginProperties{
-		EnabledState:                expandEnabledBool(enabled),
-		EnforceCertificateNameCheck: pointer.To(enableCertNameCheck),
-		HostName:                    pointer.To(d.Get("host_name").(string)),
-		HTTPPort:                    pointer.To(int32(d.Get("http_port").(int))),
-		HTTPSPort:                   pointer.To(int32(d.Get("https_port").(int))),
-		Priority:                    pointer.To(int32(d.Get("priority").(int))),
-		Weight:                      pointer.To(int32(d.Get("weight").(int))),
-	}
-
-	if originHostHeader := d.Get("origin_host_header").(string); originHostHeader != "" {
-		props.OriginHostHeader = pointer.To(originHostHeader)
-	}
-
-	expanded, err := expandPrivateLinkSettings(d.Get("private_link").([]interface{}), profiles.SkuName(skuName), enableCertNameCheck)
+	enforceCertificateNameCheck := d.Get("certificate_name_check_enabled").(bool)
+	expandedPrivateLink, err := expandCdnFrontDoorOriginPrivateLinkSettings(d.Get("private_link").([]interface{}), pointer.From(profileResp.Model.Sku.Name), enforceCertificateNameCheck)
 	if err != nil {
 		return err
 	}
-	props.SharedPrivateLinkResource = expanded
 
-	payload := cdn.AFDOrigin{
-		AFDOriginProperties: props,
+	payload := afdorigins.AFDOrigin{
+		Properties: &afdorigins.AFDOriginProperties{
+			EnabledState:                &enabledState,
+			EnforceCertificateNameCheck: pointer.To(enforceCertificateNameCheck),
+			HostName:                    pointer.To(d.Get("host_name").(string)),
+			HTTPPort:                    pointer.To(int64(d.Get("http_port").(int))),
+			HTTPSPort:                   pointer.To(int64(d.Get("https_port").(int))),
+			OriginHostHeader:            pointer.ToOrNil(d.Get("origin_host_header").(string)),
+			Priority:                    pointer.To(int64(d.Get("priority").(int))),
+			SharedPrivateLinkResource:   expandedPrivateLink,
+			Weight:                      pointer.To(int64(d.Get("weight").(int))),
+		},
 	}
 
-	future, err := client.Create(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, id.OriginName, payload)
-	if err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, id, payload, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the creation of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -256,17 +230,18 @@ func resourceCdnFrontDoorOriginCreate(d *pluginsdk.ResourceData, meta interface{
 
 func resourceCdnFrontDoorOriginRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorOriginsClient
+
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorOriginID(d.Id())
+	id, err := afdorigins.ParseOriginGroupOriginID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, id.OriginName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
@@ -274,21 +249,23 @@ func resourceCdnFrontDoorOriginRead(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	d.Set("name", id.OriginName)
-	d.Set("cdn_frontdoor_origin_group_id", parse.NewFrontDoorOriginGroupID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.OriginGroupName).ID())
+	d.Set("cdn_frontdoor_origin_group_id", afdorigins.NewOriginGroupID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName, id.OriginGroupName).ID())
 
-	if props := resp.AFDOriginProperties; props != nil {
-		if err := d.Set("private_link", flattenPrivateLinkSettings(props.SharedPrivateLinkResource)); err != nil {
-			return fmt.Errorf("setting 'private_link': %+v", err)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if err := d.Set("private_link", flattenCdnFrontDoorOriginPrivateLinkSettings(props.SharedPrivateLinkResource)); err != nil {
+				return fmt.Errorf("setting `private_link`: %+v", err)
+			}
+
+			d.Set("certificate_name_check_enabled", props.EnforceCertificateNameCheck)
+			d.Set("enabled", pointer.From(props.EnabledState) == afdorigins.EnabledStateEnabled)
+			d.Set("host_name", props.HostName)
+			d.Set("http_port", props.HTTPPort)
+			d.Set("https_port", props.HTTPSPort)
+			d.Set("origin_host_header", props.OriginHostHeader)
+			d.Set("priority", props.Priority)
+			d.Set("weight", props.Weight)
 		}
-
-		d.Set("certificate_name_check_enabled", props.EnforceCertificateNameCheck)
-		d.Set("enabled", flattenEnabledBool(props.EnabledState))
-		d.Set("host_name", props.HostName)
-		d.Set("http_port", props.HTTPPort)
-		d.Set("https_port", props.HTTPSPort)
-		d.Set("origin_host_header", props.OriginHostHeader)
-		d.Set("priority", props.Priority)
-		d.Set("weight", props.Weight)
 	}
 
 	return nil
@@ -296,97 +273,94 @@ func resourceCdnFrontDoorOriginRead(d *pluginsdk.ResourceData, meta interface{})
 
 func resourceCdnFrontDoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorOriginsClient
-	workaroundClient := azuresdkhacks.NewCdnFrontDoorOriginsWorkaroundClient(client)
 	profileClient := meta.(*clients.Client).Cdn.FrontDoorProfilesClient
+
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorOriginID(d.Id())
+	id, err := afdorigins.ParseOriginGroupOriginID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	params := &azuresdkhacks.AFDOriginUpdatePropertiesParameters{}
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: model was nil", id)
+	}
+
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: properties was nil", id)
+	}
+	props := existing.Model.Properties
 
 	if d.HasChange("certificate_name_check_enabled") {
-		params.EnforceCertificateNameCheck = pointer.To(d.Get("certificate_name_check_enabled").(bool))
+		props.EnforceCertificateNameCheck = pointer.To(d.Get("certificate_name_check_enabled").(bool))
 	}
 
 	if d.HasChange("enabled") {
-		params.EnabledState = expandEnabledBool(d.Get("enabled").(bool))
+		props.EnabledState = pointer.To(afdorigins.EnabledStateDisabled)
+		if d.Get("enabled").(bool) {
+			props.EnabledState = pointer.To(afdorigins.EnabledStateEnabled)
+		}
 	}
 
 	if d.HasChange("host_name") {
-		params.HostName = pointer.To(d.Get("host_name").(string))
+		props.HostName = pointer.To(d.Get("host_name").(string))
 	}
 
 	if d.HasChange("http_port") {
-		params.HTTPPort = pointer.To(int32(d.Get("http_port").(int)))
+		props.HTTPPort = pointer.To(int64(d.Get("http_port").(int)))
 	}
 
 	if d.HasChange("https_port") {
-		params.HTTPSPort = pointer.To(int32(d.Get("https_port").(int)))
+		props.HTTPSPort = pointer.To(int64(d.Get("https_port").(int)))
 	}
 
-	// The API requires that an explicit null be passed as the 'origin_host_header' value to remove the origin host header, see issue #20617
-	// Since null is a valid value, we now have to always pass the value during update else we will inadvertently clear the value, see issue #20866
-	params.OriginHostHeader = nil
-	if d.Get("origin_host_header").(string) != "" {
-		params.OriginHostHeader = pointer.To(d.Get("origin_host_header").(string))
+	if d.HasChange("origin_host_header") {
+		props.OriginHostHeader = pointer.ToOrNil(d.Get("origin_host_header").(string))
 	}
 
 	if d.HasChange("private_link") {
 		// I need to get the profile SKU so I know if it is valid or not to define a private link as
 		// private links are only allowed in the premium sku...
-		profileId := profiles.NewProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName)
+		profileId := profiles.NewProfileID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName)
 
 		profileResp, err := profileClient.Get(ctx, profileId)
 		if err != nil {
-			if response.WasNotFound(profileResp.HttpResponse) {
-				return fmt.Errorf("retrieving parent %s: not found", profileId)
-			}
-
-			return fmt.Errorf("retrieving parent %s: %+v", profileId, err)
+			return fmt.Errorf("retrieving %s: %+v", profileId, err)
 		}
 
 		profileModel := profileResp.Model
-
 		if profileModel == nil {
-			return fmt.Errorf("profileModel is 'nil'")
+			return fmt.Errorf("retreiving %s: model was nil", profileId)
 		}
 
 		if profileModel.Sku.Name == nil {
-			return fmt.Errorf("retrieving parent %s: 'profileModel.Sku.Name' was 'nil'", profileId)
+			return fmt.Errorf("retrieving %s: sku was nil", profileId)
 		}
 
-		enableCertNameCheck := d.Get("certificate_name_check_enabled").(bool)
-		privateLinkSettings, err := expandPrivateLinkSettings(d.Get("private_link").([]interface{}), pointer.From(profileModel.Sku.Name), enableCertNameCheck)
+		privateLinkSettings, err := expandCdnFrontDoorOriginPrivateLinkSettings(d.Get("private_link").([]interface{}), pointer.From(profileModel.Sku.Name), d.Get("certificate_name_check_enabled").(bool))
 		if err != nil {
 			return err
 		}
 
-		params.SharedPrivateLinkResource = privateLinkSettings
+		props.SharedPrivateLinkResource = privateLinkSettings
 	}
 
 	if d.HasChange("priority") {
-		params.Priority = pointer.To(int32(d.Get("priority").(int)))
+		props.Priority = pointer.To(int64(d.Get("priority").(int)))
 	}
 
 	if d.HasChange("weight") {
-		params.Weight = pointer.To(int32(d.Get("weight").(int)))
+		props.Weight = pointer.To(int64(d.Get("weight").(int)))
 	}
 
-	payload := &azuresdkhacks.AFDOriginUpdateParameters{
-		AFDOriginUpdatePropertiesParameters: params,
-	}
-
-	future, err := workaroundClient.Update(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, id.OriginName, *payload)
-	if err != nil {
+	if err := client.CreateThenPoll(ctx, *id, *existing.Model); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the update of %s: %+v", *id, err)
 	}
 
 	return resourceCdnFrontDoorOriginRead(d, meta)
@@ -394,10 +368,11 @@ func resourceCdnFrontDoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 
 func resourceCdnFrontDoorOriginDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorOriginsClient
+
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorOriginID(d.Id())
+	id, err := afdorigins.ParseOriginGroupOriginID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -419,19 +394,14 @@ func resourceCdnFrontDoorOriginDelete(d *pluginsdk.ResourceData, meta interface{
 			// will be deleted first before the private link service is destroyed.
 	*/
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, id.OriginName)
-	if err != nil {
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func expandPrivateLinkSettings(input []interface{}, skuName profiles.SkuName, enableCertNameCheck bool) (*cdn.SharedPrivateLinkResourceProperties, error) {
+func expandCdnFrontDoorOriginPrivateLinkSettings(input []interface{}, skuName profiles.SkuName, enableCertNameCheck bool) (*afdorigins.SharedPrivateLinkResourceProperties, error) {
 	if len(input) == 0 {
 		// NOTE: This cannot return an empty object, the service team requires this to be set to nil else you will get the following error during creation:
 		// Property 'AfdOrigin.SharedPrivateLinkResource.PrivateLink' is required but it was not set; Property 'AfdOrigin.SharedPrivateLinkResource.RequestMessage' is required but it was not set
@@ -439,66 +409,49 @@ func expandPrivateLinkSettings(input []interface{}, skuName profiles.SkuName, en
 	}
 
 	if skuName != profiles.SkuNamePremiumAzureFrontDoor {
-		return nil, fmt.Errorf("the 'private_link' field can only be configured when the Frontdoor Profile is using a 'Premium_AzureFrontDoor' SKU, got %q", skuName)
+		return nil, fmt.Errorf("the `private_link` field can only be configured when the Frontdoor Profile is using a `Premium_AzureFrontDoor` SKU, got %q", skuName)
 	}
 
 	if !enableCertNameCheck {
-		return nil, fmt.Errorf("the 'private_link' field can only be configured when 'certificate_name_check_enabled' is set to 'true'")
+		return nil, fmt.Errorf("the `private_link` field can only be configured when `certificate_name_check_enabled` is set to `true`")
 	}
 
 	// Check if this a Load Balancer Private Link or not, the Load Balancer Private Link requires
 	// that you stand up your own Private Link Service, which is why I am attempting to parse a
 	// Private Link Service ID here...
-	settings := input[0].(map[string]interface{})
-	targetType := settings["target_type"].(string)
-	if _, err := privatelinkservices.ParsePrivateLinkServiceID(settings["private_link_target_id"].(string)); err != nil && targetType == "" {
+	config := input[0].(map[string]interface{})
+	targetType := config["target_type"].(string)
+	if _, err := privatelinkservices.ParsePrivateLinkServiceID(config["private_link_target_id"].(string)); err != nil && targetType == "" {
 		// It is not a Load Balancer and the Target Type is empty, which is invalid...
-		return nil, fmt.Errorf("either 'private_link' or 'target_type' must be specified")
+		return nil, fmt.Errorf("either `private_link_target_id` or `target_type` must be specified")
 	}
 
-	config := input[0].(map[string]interface{})
-
-	resourceId := config["private_link_target_id"].(string)
-	location := location.Normalize(config["location"].(string))
-	groupId := config["target_type"].(string)
-	requestMessage := config["request_message"].(string)
-
-	return &cdn.SharedPrivateLinkResourceProperties{
-		PrivateLink: &cdn.ResourceReference{
-			ID: pointer.To(resourceId),
+	return &afdorigins.SharedPrivateLinkResourceProperties{
+		PrivateLink: &afdorigins.ResourceReference{
+			Id: pointer.To(config["private_link_target_id"].(string)),
 		},
-		GroupID:             pointer.To(groupId),
-		PrivateLinkLocation: pointer.To(location),
-		RequestMessage:      pointer.To(requestMessage),
+		GroupId:             pointer.To(config["target_type"].(string)),
+		PrivateLinkLocation: pointer.To(location.Normalize(config["location"].(string))),
+		RequestMessage:      pointer.To(config["request_message"].(string)),
 	}, nil
 }
 
-func flattenPrivateLinkSettings(input *cdn.SharedPrivateLinkResourceProperties) []interface{} {
+func flattenCdnFrontDoorOriginPrivateLinkSettings(input *afdorigins.SharedPrivateLinkResourceProperties) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
 
 	privateLinkTargetId := ""
-	if input.PrivateLink != nil && input.PrivateLink.ID != nil {
-		privateLinkTargetId = *input.PrivateLink.ID
-	}
-
-	requestMessage := ""
-	if input.RequestMessage != nil {
-		requestMessage = *input.RequestMessage
-	}
-
-	targetType := ""
-	if input.GroupID != nil {
-		targetType = *input.GroupID
+	if input.PrivateLink != nil && input.PrivateLink.Id != nil {
+		privateLinkTargetId = *input.PrivateLink.Id
 	}
 
 	return []interface{}{
 		map[string]interface{}{
 			"location":               location.NormalizeNilable(input.PrivateLinkLocation),
 			"private_link_target_id": privateLinkTargetId,
-			"request_message":        requestMessage,
-			"target_type":            targetType,
+			"request_message":        pointer.From(input.RequestMessage),
+			"target_type":            pointer.From(input.GroupId),
 		},
 	}
 }

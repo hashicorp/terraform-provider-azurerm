@@ -11,6 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdorigingroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rulesets"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
@@ -81,7 +82,7 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FrontDoorRuleSetID,
+				ValidateFunc: rules.ValidateRuleSetID,
 			},
 
 			"behavior_on_match": {
@@ -260,7 +261,7 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 									"cdn_frontdoor_origin_group_id": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
-										ValidateFunc: validate.FrontDoorOriginGroupID,
+										ValidateFunc: afdorigingroups.ValidateOriginGroupID,
 									},
 
 									// Removed Default value for issue #18889
