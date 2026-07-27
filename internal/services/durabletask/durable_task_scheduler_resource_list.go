@@ -9,7 +9,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/durabletask/2025-11-01/schedulers"
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -82,20 +81,7 @@ func (SchedulerListResource) List(ctx context.Context, request list.ListRequest,
 				return
 			}
 
-			state := SchedulerResourceModel{
-				Name:              id.SchedulerName,
-				ResourceGroupName: id.ResourceGroupName,
-				Location:          location.Normalize(item.Location),
-			}
-
-			state.Tags = pointer.From(item.Tags)
-
-			if props := item.Properties; props != nil {
-				state.SkuName = string(props.Sku.Name)
-				state.Capacity = pointer.From(props.Sku.Capacity)
-				state.IpAllowList = props.IPAllowlist
-				state.Endpoint = pointer.From(props.Endpoint)
-			}
+			state := flattenScheduler(*id, item)
 
 			if err := meta.Encode(&state); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", pointer.From(item.Name)), err)

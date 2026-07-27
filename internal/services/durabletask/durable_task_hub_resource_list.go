@@ -95,14 +95,7 @@ func (TaskHubListResource) List(ctx context.Context, request list.ListRequest, s
 				return
 			}
 
-			state := TaskHubResourceModel{
-				Name:                   id.TaskHubName,
-				DurableTaskSchedulerId: schedulerId.ID(),
-			}
-
-			if props := item.Properties; props != nil {
-				state.DashboardUrl = pointer.From(props.DashboardURL)
-			}
+			state := flattenTaskHub(*id, item.Properties)
 
 			if err := meta.Encode(&state); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", pointer.From(item.Name)), err)

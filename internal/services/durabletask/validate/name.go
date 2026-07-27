@@ -8,9 +8,9 @@ import (
 	"regexp"
 )
 
-var schedulerNameRegex = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]$`)
+var durableTaskNameRegex = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]$`)
 
-func SchedulerName(v interface{}, k string) (warnings []string, errors []error) {
+func DurableTaskName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if len(value) < 3 || len(value) > 63 {
@@ -18,7 +18,7 @@ func SchedulerName(v interface{}, k string) (warnings []string, errors []error) 
 		return warnings, errors
 	}
 
-	if !schedulerNameRegex.MatchString(value) {
+	if !durableTaskNameRegex.MatchString(value) {
 		errors = append(errors, fmt.Errorf("property `%s` must start and end with alphanumeric characters and can contain hyphens", k))
 	}
 

@@ -23,7 +23,7 @@ resource "azurerm_durable_task_scheduler" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   sku_name            = "Consumption"
-  ip_allow_list       = ["0.0.0.0/0"]
+  ip_allowlist        = ["0.0.0.0/0"]
 }
 ```
 
@@ -39,7 +39,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Durable Task Scheduler should exist. Changing this forces a new resource to be created.
 
-* `ip_allow_list` - (Required) A list of IP addresses or CIDR ranges that are allowed to access the Durable Task Scheduler.
+* `ip_allowlist` - (Required) A list of IP addresses or CIDR ranges that are allowed to access the Durable Task Scheduler.
 
 * `sku_name` - (Required) The SKU of the Durable Task Scheduler. Possible values are `Consumption` and `Dedicated`. Changing this forces a new resource to be created.
 

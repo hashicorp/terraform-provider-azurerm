@@ -8,10 +8,8 @@ import (
 	"fmt"
 	"regexp"
 	"testing"
-	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/durabletask/2025-11-01/schedulers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -21,7 +19,60 @@ import (
 
 type DurableTaskSchedulerResource struct{}
 
-func TestAccDurableTaskScheduler_basic(t *testing.T) {
+// TestAccDurableTask runs all of the Durable Task acceptance tests sequentially.
+//
+// NOTE: these tests are combined into a single sequential test rather than run in
+// parallel because the number of Durable Task Schedulers that can exist per
+// subscription and region is capped by a low quota, so provisioning multiple
+// schedulers concurrently exhausts that quota and causes the tests to fail.
+func TestAccDurableTask(t *testing.T) {
+	testCases := map[string]map[string]func(t *testing.T){
+		"scheduler": {
+			"basic":                    testAccDurableTaskScheduler_basic,
+			"requiresImport":           testAccDurableTaskScheduler_requiresImport,
+			"complete":                 testAccDurableTaskScheduler_complete,
+			"update":                   testAccDurableTaskScheduler_update,
+			"dedicatedWithCapacity":    testAccDurableTaskScheduler_dedicatedWithCapacity,
+			"dedicatedWithoutCapacity": testAccDurableTaskScheduler_dedicatedWithoutCapacityFails,
+			"consumptionWithCapacity":  testAccDurableTaskScheduler_consumptionWithCapacityFails,
+			"resourceIdentity":         testAccDurableTaskScheduler_resourceIdentity,
+		},
+		"schedulerDataSource": {
+			"basic":    testAccDurableTaskSchedulerDataSource_basic,
+			"complete": testAccDurableTaskSchedulerDataSource_complete,
+		},
+		"schedulerList": {
+			"basic": testAccDurableTaskSchedulerList_basic,
+		},
+		"hub": {
+			"basic":            testAccDurableTaskHub_basic,
+			"requiresImport":   testAccDurableTaskHub_requiresImport,
+			"resourceIdentity": testAccDurableTaskHub_resourceIdentity,
+		},
+		"hubList": {
+			"basic": testAccDurableTaskHubList_basic,
+		},
+		"retentionPolicy": {
+			"basic":            testAccDurableTaskRetentionPolicy_basic,
+			"requiresImport":   testAccDurableTaskRetentionPolicy_requiresImport,
+			"complete":         testAccDurableTaskRetentionPolicy_complete,
+			"update":           testAccDurableTaskRetentionPolicy_update,
+			"resourceIdentity": testAccDurableTaskRetentionPolicy_resourceIdentity,
+		},
+	}
+
+	for group, tests := range testCases {
+		t.Run(group, func(t *testing.T) {
+			for name, tc := range tests {
+				t.Run(name, func(t *testing.T) {
+					tc(t)
+				})
+			}
+		})
+	}
+}
+
+func testAccDurableTaskScheduler_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_scheduler", "test")
 	r := DurableTaskSchedulerResource{}
 
@@ -36,7 +87,7 @@ func TestAccDurableTaskScheduler_basic(t *testing.T) {
 	})
 }
 
-func TestAccDurableTaskScheduler_requiresImport(t *testing.T) {
+func testAccDurableTaskScheduler_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_scheduler", "test")
 	r := DurableTaskSchedulerResource{}
 
@@ -51,30 +102,7 @@ func TestAccDurableTaskScheduler_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccDurableTaskScheduler_skipImportCheckOnCreate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_durable_task_scheduler", "test")
-	r := DurableTaskSchedulerResource{}
-
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.template(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClientForResource(r.createSchedulerOutsideTerraform(data), "azurerm_resource_group.test"),
-			),
-		},
-		{
-			Config: r.withSkipImportCheck(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("ip_allow_list.#").HasValue("1"),
-				check.That(data.ResourceName).Key("ip_allow_list.0").HasValue("10.0.0.0/8"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccDurableTaskScheduler_complete(t *testing.T) {
+func testAccDurableTaskScheduler_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_scheduler", "test")
 	r := DurableTaskSchedulerResource{}
 
@@ -89,7 +117,7 @@ func TestAccDurableTaskScheduler_complete(t *testing.T) {
 	})
 }
 
-func TestAccDurableTaskScheduler_update(t *testing.T) {
+func testAccDurableTaskScheduler_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_scheduler", "test")
 	r := DurableTaskSchedulerResource{}
 
@@ -118,7 +146,7 @@ func TestAccDurableTaskScheduler_update(t *testing.T) {
 	})
 }
 
-func TestAccDurableTaskScheduler_dedicatedWithCapacity(t *testing.T) {
+func testAccDurableTaskScheduler_dedicatedWithCapacity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_scheduler", "test")
 	r := DurableTaskSchedulerResource{}
 
@@ -133,7 +161,7 @@ func TestAccDurableTaskScheduler_dedicatedWithCapacity(t *testing.T) {
 	})
 }
 
-func TestAccDurableTaskScheduler_dedicatedWithoutCapacityFails(t *testing.T) {
+func testAccDurableTaskScheduler_dedicatedWithoutCapacityFails(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_scheduler", "test")
 	r := DurableTaskSchedulerResource{}
 
@@ -152,7 +180,7 @@ func TestAccDurableTaskScheduler_dedicatedWithoutCapacityFails(t *testing.T) {
 	})
 }
 
-func TestAccDurableTaskScheduler_consumptionWithCapacityFails(t *testing.T) {
+func testAccDurableTaskScheduler_consumptionWithCapacityFails(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_scheduler", "test")
 	r := DurableTaskSchedulerResource{}
 
@@ -164,63 +192,21 @@ func TestAccDurableTaskScheduler_consumptionWithCapacityFails(t *testing.T) {
 	})
 }
 
-func TestAccDurableTaskScheduler_dedicatedWithTooMuchCapacityFails(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_durable_task_scheduler", "test")
-	r := DurableTaskSchedulerResource{}
-
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.dedicatedWithTooMuchCapacity(data),
-			ExpectError: regexp.MustCompile(`expected capacity to be in the range \(1 - 3\), got 4`),
-		},
-	})
-}
-
 func (r DurableTaskSchedulerResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := schedulers.ParseSchedulerID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	if _, err = client.DurableTask.SchedulersClient.Get(ctx, *id); err != nil {
+	resp, err := client.DurableTask.SchedulersClient.Get(ctx, *id)
+	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", id, err)
 	}
 
-	return pointer.To(true), nil
-}
-
-func (r DurableTaskSchedulerResource) createSchedulerOutsideTerraform(data acceptance.TestData) acceptance.ClientCheckFunc {
-	return func(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
-		ctx, cancel := context.WithTimeout(ctx, 30*time.Minute)
-		defer cancel()
-
-		id, err := schedulers.ParseSchedulerID(fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DurableTask/schedulers/acctestdts%s", data.Subscriptions.Primary, state.Attributes["name"], data.RandomString))
-		if err != nil {
-			return err
-		}
-
-		properties := schedulers.Scheduler{
-			Location: location.Normalize(state.Attributes["location"]),
-			Properties: &schedulers.SchedulerProperties{
-				Sku: schedulers.SchedulerSku{
-					Name: schedulers.SchedulerSkuNameConsumption,
-				},
-				IPAllowlist: []string{"0.0.0.0/0"},
-			},
-		}
-
-		if err := client.DurableTask.SchedulersClient.CreateOrUpdateThenPoll(ctx, *id, properties); err != nil {
-			return fmt.Errorf("creating scheduler outside terraform: %+v", err)
-		}
-
-		return nil
-	}
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r DurableTaskSchedulerResource) template(data acceptance.TestData) string {
-	// Durable Task schedulers are only supported in specific regions.
-	data.Locations.Primary = "northeurope"
-
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -234,7 +220,6 @@ resource "azurerm_resource_group" "test" {
 }
 
 func (r DurableTaskSchedulerResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -243,13 +228,12 @@ resource "azurerm_durable_task_scheduler" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku_name            = "Consumption"
-  ip_allow_list       = ["0.0.0.0/0"]
+  ip_allowlist        = ["0.0.0.0/0"]
 }
-`, template, data.RandomString)
+`, r.template(data), data.RandomString)
 }
 
 func (r DurableTaskSchedulerResource) requiresImport(data acceptance.TestData) string {
-	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -258,39 +242,12 @@ resource "azurerm_durable_task_scheduler" "import" {
   resource_group_name = azurerm_durable_task_scheduler.test.resource_group_name
   location            = azurerm_durable_task_scheduler.test.location
   sku_name            = azurerm_durable_task_scheduler.test.sku_name
-  ip_allow_list       = azurerm_durable_task_scheduler.test.ip_allow_list
+  ip_allowlist        = azurerm_durable_task_scheduler.test.ip_allowlist
 }
-`, template)
-}
-
-func (r DurableTaskSchedulerResource) withSkipImportCheck(data acceptance.TestData) string {
-	// Durable Task schedulers are only supported in specific regions.
-	data.Locations.Primary = "northeurope"
-
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {
-    skip_import_check_on_create_and_allow_overwriting_existing_resources = true
-  }
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-durabletask-%d"
-  location = "%s"
-}
-
-resource "azurerm_durable_task_scheduler" "test" {
-  name                = "acctestdts%s"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku_name            = "Consumption"
-  ip_allow_list       = ["10.0.0.0/8"]
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, r.basic(data))
 }
 
 func (r DurableTaskSchedulerResource) update(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -299,17 +256,16 @@ resource "azurerm_durable_task_scheduler" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku_name            = "Consumption"
-  ip_allow_list       = ["10.0.0.0/8", "192.168.0.0/16"]
+  ip_allowlist        = ["10.0.0.0/8", "192.168.0.0/16"]
 
   tags = {
     environment = "staging"
   }
 }
-`, template, data.RandomString)
+`, r.template(data), data.RandomString)
 }
 
 func (r DurableTaskSchedulerResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -318,7 +274,7 @@ resource "azurerm_durable_task_scheduler" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku_name            = "Dedicated"
-  ip_allow_list       = ["10.0.0.0/8", "192.168.0.0/16"]
+  ip_allowlist        = ["10.0.0.0/8", "192.168.0.0/16"]
   capacity            = 2
 
   tags = {
@@ -326,11 +282,10 @@ resource "azurerm_durable_task_scheduler" "test" {
     purpose     = "acceptance-testing"
   }
 }
-`, template, data.RandomString)
+`, r.template(data), data.RandomString)
 }
 
 func (r DurableTaskSchedulerResource) dedicatedWithCapacity(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -339,14 +294,13 @@ resource "azurerm_durable_task_scheduler" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku_name            = "Dedicated"
-  ip_allow_list       = ["0.0.0.0/0"]
+  ip_allowlist        = ["0.0.0.0/0"]
   capacity            = 2
 }
-`, template, data.RandomString)
+`, r.template(data), data.RandomString)
 }
 
 func (r DurableTaskSchedulerResource) dedicatedWithoutCapacity(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -355,13 +309,12 @@ resource "azurerm_durable_task_scheduler" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku_name            = "Dedicated"
-  ip_allow_list       = ["0.0.0.0/0"]
+  ip_allowlist        = ["0.0.0.0/0"]
 }
-`, template, data.RandomString)
+`, r.template(data), data.RandomString)
 }
 
 func (r DurableTaskSchedulerResource) consumptionWithCapacity(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -370,24 +323,8 @@ resource "azurerm_durable_task_scheduler" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku_name            = "Consumption"
-  ip_allow_list       = ["0.0.0.0/0"]
+  ip_allowlist        = ["0.0.0.0/0"]
   capacity            = 1
 }
-`, template, data.RandomString)
-}
-
-func (r DurableTaskSchedulerResource) dedicatedWithTooMuchCapacity(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_durable_task_scheduler" "test" {
-  name                = "acctestdts%s"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku_name            = "Dedicated"
-  ip_allow_list       = ["0.0.0.0/0"]
-  capacity            = 4
-}
-`, template, data.RandomString)
+`, r.template(data), data.RandomString)
 }

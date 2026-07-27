@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
-func TestAccDurableTaskHubList_basic(t *testing.T) {
+func testAccDurableTaskHubList_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_hub", "test")
 	r := DurableTaskHubResource{}
 
@@ -40,9 +40,6 @@ func TestAccDurableTaskHubList_basic(t *testing.T) {
 }
 
 func (r DurableTaskHubResource) basicList(data acceptance.TestData) string {
-	// Durable Task schedulers are only supported in specific regions.
-	data.Locations.Primary = "northeurope"
-
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -58,7 +55,7 @@ resource "azurerm_durable_task_scheduler" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku_name            = "Consumption"
-  ip_allow_list       = ["0.0.0.0/0"]
+  ip_allowlist        = ["0.0.0.0/0"]
 }
 
 resource "azurerm_durable_task_hub" "test" {

@@ -55,7 +55,7 @@ func (r TaskHubResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.TaskHubName,
+			ValidateFunc: validate.DurableTaskName,
 		},
 
 		"durable_task_scheduler_id": {
@@ -89,7 +89,7 @@ func (r TaskHubResource) Create() sdk.ResourceFunc {
 
 			schedulerId, err := schedulers.ParseSchedulerID(model.DurableTaskSchedulerId)
 			if err != nil {
-				return fmt.Errorf("parsing scheduler ID: %+v", err)
+				return err
 			}
 
 			id := taskhubs.NewTaskHubID(schedulerId.SubscriptionId, schedulerId.ResourceGroupName, schedulerId.SchedulerName, model.Name)
@@ -109,14 +109,10 @@ func (r TaskHubResource) Create() sdk.ResourceFunc {
 				Properties: &taskhubs.TaskHubProperties{},
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, properties); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, properties, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			metadata.SetID(id)
-			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
-				return err
-			}
 			return nil
 		},
 	}
@@ -141,20 +137,9 @@ func (r TaskHubResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			model := resp.Model
-			if model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
-			}
-
-			schedulerId := schedulers.NewSchedulerID(id.SubscriptionId, id.ResourceGroupName, id.SchedulerName)
-
-			state := TaskHubResourceModel{
-				Name:                   id.TaskHubName,
-				DurableTaskSchedulerId: schedulerId.ID(),
-			}
-
-			if props := model.Properties; props != nil {
-				state.DashboardUrl = pointer.From(props.DashboardURL)
+			var state TaskHubResourceModel
+			if model := resp.Model; model != nil {
+				state = flattenTaskHub(*id, model.Properties)
 			}
 
 			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
@@ -164,6 +149,19 @@ func (r TaskHubResource) Read() sdk.ResourceFunc {
 			return metadata.Encode(&state)
 		},
 	}
+}
+
+func flattenTaskHub(id taskhubs.TaskHubId, props *taskhubs.TaskHubProperties) TaskHubResourceModel {
+	state := TaskHubResourceModel{
+		Name:                   id.TaskHubName,
+		DurableTaskSchedulerId: schedulers.NewSchedulerID(id.SubscriptionId, id.ResourceGroupName, id.SchedulerName).ID(),
+	}
+
+	if props != nil {
+		state.DashboardUrl = pointer.From(props.DashboardURL)
+	}
+
+	return state
 }
 
 func (r TaskHubResource) Delete() sdk.ResourceFunc {

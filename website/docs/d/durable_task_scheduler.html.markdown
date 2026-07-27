@@ -41,7 +41,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `endpoint` - The endpoint URL of the Durable Task Scheduler.
 
-* `ip_allow_list` - A list of IP addresses or CIDR ranges that are allowed to access the Durable Task Scheduler.
+* `ip_allowlist` - A list of IP addresses or CIDR ranges that are allowed to access the Durable Task Scheduler.
 
 * `location` - The Azure Region where the Durable Task Scheduler exists.
 

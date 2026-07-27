@@ -16,7 +16,7 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
-	github.com/hashicorp/go-azure-helpers v0.80.0
+	github.com/hashicorp/go-azure-helpers v0.81.0
 	github.com/hashicorp/go-azure-sdk/data-plane v0.20260520.1174751
 	github.com/hashicorp/go-azure-sdk/resource-manager v0.20260520.1174751
 	github.com/hashicorp/go-azure-sdk/sdk v0.20260520.1174751
@@ -25,14 +25,14 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-set/v3 v3.0.1
 	github.com/hashicorp/go-uuid v1.0.3
-	github.com/hashicorp/go-version v1.7.0
+	github.com/hashicorp/go-version v1.8.0
 	github.com/hashicorp/terraform-json v0.27.2
-	github.com/hashicorp/terraform-plugin-framework v1.16.1
+	github.com/hashicorp/terraform-plugin-framework v1.17.0
 	github.com/hashicorp/terraform-plugin-framework-timeouts v0.6.0
 	github.com/hashicorp/terraform-plugin-framework-validators v0.19.0
 	github.com/hashicorp/terraform-plugin-go v0.29.0
 	github.com/hashicorp/terraform-plugin-mux v0.21.0
-	github.com/hashicorp/terraform-plugin-sdk/v2 v2.38.1
+	github.com/hashicorp/terraform-plugin-sdk/v2 v2.38.2
 	github.com/hashicorp/terraform-plugin-testing v1.14.0
 	github.com/iancoleman/strcase v0.3.0
 	github.com/jackofallops/giovanni v0.29.0

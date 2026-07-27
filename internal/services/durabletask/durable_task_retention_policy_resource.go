@@ -10,10 +10,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/durabletask/2025-11-01/retentionpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/durabletask/2025-11-01/schedulers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -37,7 +37,7 @@ var (
 )
 
 func (r RetentionPolicyResource) Identity() resourceids.ResourceId {
-	return &RetentionPolicyID{}
+	return &retentionpolicies.SchedulerId{}
 }
 
 func (r RetentionPolicyResource) ResourceType() string {
@@ -49,7 +49,7 @@ func (r RetentionPolicyResource) ModelObject() interface{} {
 }
 
 func (r RetentionPolicyResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return ValidateRetentionPolicyID
+	return retentionpolicies.ValidateSchedulerID
 }
 
 func (r RetentionPolicyResource) Arguments() map[string]*pluginsdk.Schema {
@@ -72,7 +72,7 @@ func (r RetentionPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: schedulers.ValidateSchedulerID,
+			ValidateFunc: retentionpolicies.ValidateSchedulerID,
 		},
 
 		"canceled_retention_period_in_days": {
@@ -132,26 +132,19 @@ func (r RetentionPolicyResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			parsedId, err := schedulers.ParseSchedulerID(model.DurableTaskSchedulerId)
+			parsedId, err := retentionpolicies.ParseSchedulerID(model.DurableTaskSchedulerId)
 			if err != nil {
-				return fmt.Errorf("parsing scheduler ID: %+v", err)
+				return err
 			}
 
-			schedulerId := retentionpolicies.NewSchedulerID(parsedId.SubscriptionId, parsedId.ResourceGroupName, parsedId.SchedulerName)
-			// Custom ID type needed because the retention policy is a singleton child resource with a
-			// fixed path `/retentionPolicies/default` under the parent scheduler. The SDK only provides
-			// scheduler ID helpers, but the Terraform resource's state/import ID must be the full child
-			// resource path (ending in `/retentionPolicies/default`) to uniquely identify this singleton.
-			id := NewRetentionPolicyID(parsedId.SubscriptionId, parsedId.ResourceGroupName, parsedId.SchedulerName)
-
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-				existing, err := client.Get(ctx, schedulerId)
+				existing, err := client.Get(ctx, *parsedId)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing retention policy on %s: %+v", schedulerId.ID(), err)
+					return fmt.Errorf("checking for presence of existing retention policy on %s: %+v", parsedId.ID(), err)
 				}
 
 				if !response.WasNotFound(existing.HttpResponse) {
-					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+					return metadata.ResourceRequiresImport(r.ResourceType(), *parsedId)
 				}
 			}
 
@@ -161,14 +154,10 @@ func (r RetentionPolicyResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err := client.CreateOrReplaceThenPoll(ctx, schedulerId, properties); err != nil {
-				return fmt.Errorf("creating retention policy on %s: %+v", schedulerId.ID(), err)
+			if err := client.CreateOrReplaceCallbackThenPoll(ctx, *parsedId, properties, metadata.SetIDAndIdentityCallback(parsedId)); err != nil {
+				return fmt.Errorf("creating retention policy on %s: %+v", parsedId.ID(), err)
 			}
 
-			metadata.SetID(id)
-			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
-				return err
-			}
 			return nil
 		},
 	}
@@ -180,33 +169,27 @@ func (r RetentionPolicyResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.DurableTask.RetentionPoliciesClient
 
-			id, err := ParseRetentionPolicyID(metadata.ResourceData.Id())
+			id, err := retentionpolicies.ParseSchedulerID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			schedulerId := retentionpolicies.NewSchedulerID(id.SubscriptionId, id.ResourceGroupName, id.SchedulerName)
-
-			resp, err := client.Get(ctx, schedulerId)
+			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("retrieving retention policy on %s: %+v", schedulerId.ID(), err)
-			}
-
-			model := resp.Model
-			if model == nil {
-				return fmt.Errorf("retrieving retention policy on %s: model was nil", schedulerId.ID())
+				return fmt.Errorf("retrieving retention policy on %s: %+v", id.ID(), err)
 			}
 
 			state := RetentionPolicyResourceModel{
-				DurableTaskSchedulerId: schedulerId.ID(),
+				DurableTaskSchedulerId: id.ID(),
 			}
 
-			if props := model.Properties; props != nil && props.RetentionPolicies != nil {
-				state = flattenRetentionPolicyDetails(props.RetentionPolicies)
-				state.DurableTaskSchedulerId = schedulerId.ID()
+			if model := resp.Model; model != nil {
+				if props := model.Properties; props != nil {
+					state = flattenRetentionPolicyDetails(id.ID(), props.RetentionPolicies)
+				}
 			}
 
 			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
@@ -224,7 +207,7 @@ func (r RetentionPolicyResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.DurableTask.RetentionPoliciesClient
 
-			id, err := ParseRetentionPolicyID(metadata.ResourceData.Id())
+			id, err := retentionpolicies.ParseSchedulerID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -232,18 +215,6 @@ func (r RetentionPolicyResource) Update() sdk.ResourceFunc {
 			var model RetentionPolicyResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
-			}
-
-			schedulerId := retentionpolicies.NewSchedulerID(id.SubscriptionId, id.ResourceGroupName, id.SchedulerName)
-
-			if !metadata.ResourceData.HasChanges(
-				"canceled_retention_period_in_days",
-				"completed_retention_period_in_days",
-				"default_retention_period_in_days",
-				"failed_retention_period_in_days",
-				"terminated_retention_period_in_days",
-			) {
-				return nil
 			}
 
 			// A retrieve-existing round-trip is unnecessary here: RetentionPolicies is the only
@@ -255,8 +226,8 @@ func (r RetentionPolicyResource) Update() sdk.ResourceFunc {
 				},
 			}
 
-			if err := client.CreateOrReplaceThenPoll(ctx, schedulerId, properties); err != nil {
-				return fmt.Errorf("updating retention policy on %s: %+v", schedulerId.ID(), err)
+			if err := client.CreateOrReplaceThenPoll(ctx, *id, properties); err != nil {
+				return fmt.Errorf("updating retention policy on %s: %+v", id.ID(), err)
 			}
 
 			return nil
@@ -271,36 +242,30 @@ func expandRetentionPolicyDetails(policy RetentionPolicyResourceModel) *[]retent
 			return
 		}
 
-		detail := retentionpolicies.RetentionPolicyDetails{
+		policies = append(policies, retentionpolicies.RetentionPolicyDetails{
 			RetentionPeriodInDays: retentionPeriodInDays,
-		}
-		if orchestrationState != nil {
-			detail.OrchestrationState = orchestrationState
-		}
-
-		policies = append(policies, detail)
+			OrchestrationState:    orchestrationState,
+		})
 	}
 
-	orchestrationStateCanceled := retentionpolicies.PurgeableOrchestrationStateCanceled
-	orchestrationStateCompleted := retentionpolicies.PurgeableOrchestrationStateCompleted
-	orchestrationStateFailed := retentionpolicies.PurgeableOrchestrationStateFailed
-	orchestrationStateTerminated := retentionpolicies.PurgeableOrchestrationStateTerminated
-
-	appendPolicy(policy.CanceledRetentionPeriodInDays, &orchestrationStateCanceled)
-	appendPolicy(policy.CompletedRetentionPeriodInDays, &orchestrationStateCompleted)
+	appendPolicy(policy.CanceledRetentionPeriodInDays, pointer.To(retentionpolicies.PurgeableOrchestrationStateCanceled))
+	appendPolicy(policy.CompletedRetentionPeriodInDays, pointer.To(retentionpolicies.PurgeableOrchestrationStateCompleted))
 	appendPolicy(policy.DefaultRetentionPeriodInDays, nil)
-	appendPolicy(policy.FailedRetentionPeriodInDays, &orchestrationStateFailed)
-	appendPolicy(policy.TerminatedRetentionPeriodInDays, &orchestrationStateTerminated)
+	appendPolicy(policy.FailedRetentionPeriodInDays, pointer.To(retentionpolicies.PurgeableOrchestrationStateFailed))
+	appendPolicy(policy.TerminatedRetentionPeriodInDays, pointer.To(retentionpolicies.PurgeableOrchestrationStateTerminated))
 
 	return &policies
 }
 
-func flattenRetentionPolicyDetails(input *[]retentionpolicies.RetentionPolicyDetails) RetentionPolicyResourceModel {
-	if input == nil {
-		return RetentionPolicyResourceModel{}
+func flattenRetentionPolicyDetails(id string, input *[]retentionpolicies.RetentionPolicyDetails) RetentionPolicyResourceModel {
+	policy := RetentionPolicyResourceModel{
+		DurableTaskSchedulerId: id,
 	}
 
-	policy := RetentionPolicyResourceModel{}
+	if input == nil {
+		return policy
+	}
+
 	for _, item := range *input {
 		if item.OrchestrationState == nil {
 			policy.DefaultRetentionPeriodInDays = item.RetentionPeriodInDays
@@ -328,15 +293,13 @@ func (r RetentionPolicyResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.DurableTask.RetentionPoliciesClient
 
-			id, err := ParseRetentionPolicyID(metadata.ResourceData.Id())
+			id, err := retentionpolicies.ParseSchedulerID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			schedulerId := retentionpolicies.NewSchedulerID(id.SubscriptionId, id.ResourceGroupName, id.SchedulerName)
-
-			if err := client.DeleteThenPoll(ctx, schedulerId); err != nil {
-				return fmt.Errorf("deleting retention policy on %s: %+v", schedulerId.ID(), err)
+			if err := client.DeleteThenPoll(ctx, *id); err != nil {
+				return fmt.Errorf("deleting retention policy on %s: %+v", id.ID(), err)
 			}
 
 			return nil

@@ -27,7 +27,7 @@ type SchedulerResourceModel struct {
 	Name              string            `tfschema:"name"`
 	ResourceGroupName string            `tfschema:"resource_group_name"`
 	Location          string            `tfschema:"location"`
-	IpAllowList       []string          `tfschema:"ip_allow_list"`
+	IpAllowList       []string          `tfschema:"ip_allowlist"`
 	SkuName           string            `tfschema:"sku_name"`
 	Capacity          int64             `tfschema:"capacity"`
 	Tags              map[string]string `tfschema:"tags"`
@@ -65,14 +65,14 @@ func (r SchedulerResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.SchedulerName,
+			ValidateFunc: validate.DurableTaskName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"location": commonschema.Location(),
 
-		"ip_allow_list": {
+		"ip_allowlist": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			Elem: &pluginsdk.Schema{
@@ -163,25 +163,18 @@ func (r SchedulerResource) Create() sdk.ResourceFunc {
 				Location: location.Normalize(model.Location),
 				Properties: &schedulers.SchedulerProperties{
 					Sku: schedulers.SchedulerSku{
-						Name: schedulers.SchedulerSkuName(model.SkuName),
+						Name:     schedulers.SchedulerSkuName(model.SkuName),
+						Capacity: pointer.ToOrNil(model.Capacity),
 					},
 					IPAllowlist: model.IpAllowList,
 				},
 				Tags: &model.Tags,
 			}
 
-			if model.Capacity != 0 {
-				properties.Properties.Sku.Capacity = pointer.To(model.Capacity)
-			}
-
-			if err := client.CreateOrUpdateThenPoll(ctx, id, properties); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, properties, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			metadata.SetID(id)
-			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
-				return err
-			}
 			return nil
 		},
 	}
@@ -206,24 +199,9 @@ func (r SchedulerResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			model := resp.Model
-			if model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
-			}
-
-			state := SchedulerResourceModel{
-				Name:              id.SchedulerName,
-				ResourceGroupName: id.ResourceGroupName,
-				Location:          location.Normalize(model.Location),
-			}
-
-			state.Tags = pointer.From(model.Tags)
-
-			if props := model.Properties; props != nil {
-				state.SkuName = string(props.Sku.Name)
-				state.Capacity = pointer.From(props.Sku.Capacity)
-				state.IpAllowList = props.IPAllowlist
-				state.Endpoint = pointer.From(props.Endpoint)
+			var state SchedulerResourceModel
+			if model := resp.Model; model != nil {
+				state = flattenScheduler(*id, *model)
 			}
 
 			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
@@ -233,6 +211,24 @@ func (r SchedulerResource) Read() sdk.ResourceFunc {
 			return metadata.Encode(&state)
 		},
 	}
+}
+
+func flattenScheduler(id schedulers.SchedulerId, model schedulers.Scheduler) SchedulerResourceModel {
+	state := SchedulerResourceModel{
+		Name:              id.SchedulerName,
+		ResourceGroupName: id.ResourceGroupName,
+		Location:          location.Normalize(model.Location),
+		Tags:              pointer.From(model.Tags),
+	}
+
+	if props := model.Properties; props != nil {
+		state.SkuName = string(props.Sku.Name)
+		state.Capacity = pointer.From(props.Sku.Capacity)
+		state.IpAllowList = props.IPAllowlist
+		state.Endpoint = pointer.From(props.Endpoint)
+	}
+
+	return state
 }
 
 func (r SchedulerResource) Update() sdk.ResourceFunc {
@@ -264,17 +260,9 @@ func (r SchedulerResource) Update() sdk.ResourceFunc {
 
 			payload := *existing.Model
 
-			if metadata.ResourceData.HasChange("ip_allow_list") {
-				payload.Properties.IPAllowlist = model.IpAllowList
-			}
-
-			if metadata.ResourceData.HasChange("capacity") {
-				payload.Properties.Sku.Capacity = pointer.To(model.Capacity)
-			}
-
-			if metadata.ResourceData.HasChange("tags") {
-				payload.Tags = &model.Tags
-			}
+			payload.Properties.IPAllowlist = model.IpAllowList
+			payload.Properties.Sku.Capacity = pointer.ToOrNil(model.Capacity)
+			payload.Tags = &model.Tags
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)

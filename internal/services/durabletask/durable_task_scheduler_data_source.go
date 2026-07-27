@@ -23,7 +23,7 @@ type SchedulerDataSourceModel struct {
 	ResourceGroupName string            `tfschema:"resource_group_name"`
 	Location          string            `tfschema:"location"`
 	SkuName           string            `tfschema:"sku_name"`
-	IpAllowList       []string          `tfschema:"ip_allow_list"`
+	IpAllowList       []string          `tfschema:"ip_allowlist"`
 	Capacity          int64             `tfschema:"capacity"`
 	Tags              map[string]string `tfschema:"tags"`
 	Endpoint          string            `tfschema:"endpoint"`
@@ -46,7 +46,7 @@ func (d SchedulerDataSource) Arguments() map[string]*pluginsdk.Schema {
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.SchedulerName,
+			ValidateFunc: validate.DurableTaskName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
@@ -67,7 +67,7 @@ func (d SchedulerDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"ip_allow_list": {
+		"ip_allowlist": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Schema{

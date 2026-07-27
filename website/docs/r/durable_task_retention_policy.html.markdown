@@ -23,7 +23,7 @@ resource "azurerm_durable_task_scheduler" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   sku_name            = "Consumption"
-  ip_allow_list       = ["0.0.0.0/0"]
+  ip_allowlist        = ["0.0.0.0/0"]
 }
 
 resource "azurerm_durable_task_retention_policy" "example" {

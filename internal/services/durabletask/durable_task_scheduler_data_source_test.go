@@ -13,7 +13,7 @@ import (
 
 type DurableTaskSchedulerDataSource struct{}
 
-func TestAccDurableTaskSchedulerDataSource_basic(t *testing.T) {
+func testAccDurableTaskSchedulerDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_durable_task_scheduler", "test")
 	r := DurableTaskSchedulerDataSource{}
 
@@ -25,14 +25,14 @@ func TestAccDurableTaskSchedulerDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("sku_name").HasValue("Consumption"),
 				check.That(data.ResourceName).Key("location").Exists(),
 				check.That(data.ResourceName).Key("endpoint").Exists(),
-				check.That(data.ResourceName).Key("ip_allow_list.#").Exists(),
+				check.That(data.ResourceName).Key("ip_allowlist.#").Exists(),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 			),
 		},
 	})
 }
 
-func TestAccDurableTaskSchedulerDataSource_complete(t *testing.T) {
+func testAccDurableTaskSchedulerDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_durable_task_scheduler", "test")
 	r := DurableTaskSchedulerDataSource{}
 
@@ -44,7 +44,7 @@ func TestAccDurableTaskSchedulerDataSource_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("sku_name").HasValue("Dedicated"),
 				check.That(data.ResourceName).Key("location").Exists(),
 				check.That(data.ResourceName).Key("endpoint").Exists(),
-				check.That(data.ResourceName).Key("ip_allow_list.#").HasValue("2"),
+				check.That(data.ResourceName).Key("ip_allowlist.#").HasValue("2"),
 				check.That(data.ResourceName).Key("capacity").HasValue("2"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("test"),
 				check.That(data.ResourceName).Key("tags.purpose").HasValue("acceptance-testing"),
