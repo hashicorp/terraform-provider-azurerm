@@ -155,7 +155,7 @@ The `subnet` block supports:
 
 -> **Note:** If you declare the subnet inline inside `azurerm_virtual_network`, set `route_table_id` in that `subnet` block — do not also create an `azurerm_subnet_route_table_association` for the same subnet. The association resource is for when you manage the subnet as a separate `azurerm_subnet` resource.
 
-* `service_endpoint` - (Optional) A `service_endpoint` as defined below.
+* `service_endpoint` - (Optional) A `service_endpoint` block as defined below.
 
 * `service_endpoint_policy_ids` - (Optional) The list of IDs of Service Endpoint Policies to associate with the subnet.
 

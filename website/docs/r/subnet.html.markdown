@@ -89,7 +89,7 @@ The following arguments are supported:
 
 !> **Note:** The `sharing_scope` property is only available to users who have been explicitly registered and granted access by the Azure Networking Product Group.
 
-* `service_endpoint` - (Optional) A `service_endpoint` as defined below.
+* `service_endpoint` - (Optional) A `service_endpoint` block as defined below.
 
 * `service_endpoint_policy_ids` - (Optional) The list of IDs of Service Endpoint Policies to associate with the subnet.
 
