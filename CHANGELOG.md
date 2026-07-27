@@ -20,6 +20,7 @@ ENHANCEMENTS:
 * `sentinel` - migrate to `go-azure-sdk` [GH-32759]
 
 FEATURES:
+* **New Datasource** adds `azurerm_kubernetes_automatic_cluster_datasource` [GH-32881]
 * New Action: `azurerm_web_app_set_slot_distribution` [GH-32364]
 
 BUG FIXES:
