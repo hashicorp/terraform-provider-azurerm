@@ -1022,6 +1022,10 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 
 * The `storage_table_id` property now requires a Resource Manager ID. The deprecated Data Plane URL format is no longer supported.
 
+### `azurerm_subnet`
+
+* The deprecated `service_endpoints` property has been removed in favour of the `service_endpoint` block.
+
 ### `azurerm_synapse_spark_pool`
 
 * The `spark_version` property no longer accepts `3.2` or `3.3` as a value.
@@ -1029,6 +1033,12 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 ### `azurerm_virtual_network_gateway`
 
 * The deprecated `enable_bgp` property has been removed in favour of the `bgp_enabled` property.
+
+### `azurerm_virtual_network`
+
+* The deprecated `subnet.service_endpoints` property has been removed in favour of the `subnet.service_endpoint` block.
+
+### `azurerm_mssql_virtual_machine`
 
 ### `azurerm_virtual_network_gateway_connection`
 
@@ -1230,6 +1240,10 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 ### `azurerm_storage_table_entity`
 
 * The `storage_table_id` property now requires a Resource Manager ID. The deprecated Data Plane URL format is no longer supported.
+
+### `azurerm_subnet`
+
+* The deprecated `subnet.service_endpoints` property has been removed in favour of the `subnet.service_endpoint` block.
 
 ### `azurerm_virtual_machine_scale_set`
 
