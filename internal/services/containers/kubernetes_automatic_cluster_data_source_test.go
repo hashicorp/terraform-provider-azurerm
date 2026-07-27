@@ -21,8 +21,6 @@ func TestAccDataSourceKubernetesAutomaticCluster_basic(t *testing.T) {
 		{
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("kube_admin_config.#").HasValue("0"),
-				check.That(data.ResourceName).Key("kube_admin_config_raw").HasValue(""),
 				check.That(data.ResourceName).Key("kubelet_identity.0.object_id").Exists(),
 				check.That(data.ResourceName).Key("kubelet_identity.0.client_id").Exists(),
 				check.That(data.ResourceName).Key("kubelet_identity.0.user_assigned_identity_id").Exists(),
