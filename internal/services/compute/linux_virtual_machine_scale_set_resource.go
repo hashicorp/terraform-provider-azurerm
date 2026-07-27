@@ -313,8 +313,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		virtualMachineProfile.OsProfile.CustomData = pointer.To(v.(string))
 	}
 
-	securityProfileRaw, _ := d.GetOk("security_profile")
-	securityProfile, err := expandVirtualMachineScaleSetSecurityProfile(securityProfileRaw, securityEncryptionType)
+	securityProfile, err := expandVirtualMachineScaleSetSecurityProfile(d.Get("security_profile").([]interface{}), securityEncryptionType)
 	if err != nil {
 		return err
 	}
@@ -675,8 +674,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 	if d.HasChanges("security_profile") {
 		osDiskRaw := d.Get("os_disk").([]interface{})
 		securityEncryptionType := osDiskRaw[0].(map[string]interface{})["security_encryption_type"].(string)
-		securityProfileRaw, _ := d.GetOk("security_profile")
-		securityProfile, err := expandVirtualMachineScaleSetSecurityProfile(securityProfileRaw, securityEncryptionType)
+		securityProfile, err := expandVirtualMachineScaleSetSecurityProfile(d.Get("security_profile").([]interface{}), securityEncryptionType)
 		if err != nil {
 			return err
 		}
@@ -998,11 +996,7 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 				}
 				d.Set("extensions_time_budget", extensionsTimeBudget)
 
-				securityProfile := flattenVirtualMachineScaleSetSecurityProfile(profile.SecurityProfile)
-				if rawConfig := d.GetRawConfig(); !rawConfig.IsNull() && rawConfig.AsValueMap()["security_profile"].IsNull() {
-					securityProfile = nil
-				}
-				if err := d.Set("security_profile", securityProfile); err != nil {
+				if err := d.Set("security_profile", flattenVirtualMachineScaleSetSecurityProfile(profile.SecurityProfile)); err != nil {
 					return fmt.Errorf("setting `security_profile`: %+v", err)
 				}
 				d.Set("user_data", profile.UserData)
@@ -1196,24 +1190,48 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
+						AtLeastOneOf: []string{
+							"security_profile.0.host_encryption_enabled",
+							"security_profile.0.security_type",
+							"security_profile.0.secure_boot_enabled",
+							"security_profile.0.vtpm_enabled",
+						},
 					},
 					"security_type": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
 						ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForSecurityTypes(), false),
+						AtLeastOneOf: []string{
+							"security_profile.0.host_encryption_enabled",
+							"security_profile.0.security_type",
+							"security_profile.0.secure_boot_enabled",
+							"security_profile.0.vtpm_enabled",
+						},
 					},
 					"secure_boot_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
 						ForceNew: true,
+						AtLeastOneOf: []string{
+							"security_profile.0.host_encryption_enabled",
+							"security_profile.0.security_type",
+							"security_profile.0.secure_boot_enabled",
+							"security_profile.0.vtpm_enabled",
+						},
 					},
 					"vtpm_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
 						ForceNew: true,
+						AtLeastOneOf: []string{
+							"security_profile.0.host_encryption_enabled",
+							"security_profile.0.security_type",
+							"security_profile.0.secure_boot_enabled",
+							"security_profile.0.vtpm_enabled",
+						},
 					},
 				},
 			},
