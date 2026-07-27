@@ -421,7 +421,6 @@ func (KubernetesAutomaticClusterDataSource) Read() sdk.ResourceFunc {
 			metadata.SetID(id)
 
 			if model := resp.Model; model != nil {
-
 				if resp.Model.Sku == nil || resp.Model.Sku.Name == nil {
 					return fmt.Errorf("importing %s: SKU information is missing", id)
 				}
@@ -590,7 +589,6 @@ func flattenKubernetesAutomaticClusterDataSourceKubeConfigAAD(config kubernetes.
 }
 
 func flattenKubernetesAutomaticClusterDataSourcePrivateCluster(profile *managedclusters.ManagedClusterAPIServerAccessProfile) ([]PrivateClusterDataSourceModel, error) {
-
 	if profile == nil {
 		return []PrivateClusterDataSourceModel{}, nil
 	}
