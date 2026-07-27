@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -140,6 +141,9 @@ func resourceRouteTableCreate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	bgpRoutePropagationEnabled := d.Get("bgp_route_propagation_enabled").(bool)
 
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
+
 	routeSet := routetables.RouteTable{
 		Name:     &id.RouteTableName,
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
@@ -197,6 +201,9 @@ func resourceRouteTableUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	if d.HasChange("tags") {
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
+
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
@@ -266,6 +273,9 @@ func resourceRouteTableDelete(d *pluginsdk.ResourceData, meta interface{}) error
 	if err != nil {
 		return err
 	}
+
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)

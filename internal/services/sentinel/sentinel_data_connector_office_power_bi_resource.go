@@ -8,14 +8,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/dataconnectors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	securityinsight "github.com/jackofallops/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
 type DataConnectorOfficePowerBIResource struct{}
@@ -67,11 +65,11 @@ func (r DataConnectorOfficePowerBIResource) ModelObject() interface{} {
 }
 
 func (r DataConnectorOfficePowerBIResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.DataConnectorID
+	return dataconnectors.ValidateDataConnectorID
 }
 
 func (r DataConnectorOfficePowerBIResource) CustomImporter() sdk.ResourceRunFunc {
-	return importDataConnectorTyped(securityinsight.DataConnectorKindOfficePowerBI)
+	return importDataConnectorTyped(dataconnectors.DataConnectorKindOfficePowerBI)
 }
 
 func (r DataConnectorOfficePowerBIResource) Create() sdk.ResourceFunc {
@@ -90,16 +88,16 @@ func (r DataConnectorOfficePowerBIResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			id := parse.NewDataConnectorID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, plan.Name)
+			id := dataconnectors.NewDataConnectorID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, plan.Name)
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-				existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+				existing, err := client.Get(ctx, id)
 				if err != nil {
-					if !utils.ResponseWasNotFound(existing.Response) {
+					if !response.WasNotFound(existing.HttpResponse) {
 						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 					}
 				}
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.HttpResponse) {
 					return metadata.ResourceRequiresImport(r.ResourceType(), id)
 				}
 			}
@@ -109,20 +107,20 @@ func (r DataConnectorOfficePowerBIResource) Create() sdk.ResourceFunc {
 				tenantId = metadata.Client.Account.TenantId
 			}
 
-			params := securityinsight.OfficePowerBIDataConnector{
+			params := dataconnectors.OfficePowerBIDataConnector{
 				Name: &plan.Name,
-				OfficePowerBIDataConnectorProperties: &securityinsight.OfficePowerBIDataConnectorProperties{
-					TenantID: &tenantId,
-					DataTypes: &securityinsight.OfficePowerBIConnectorDataTypes{
-						Logs: &securityinsight.OfficePowerBIConnectorDataTypesLogs{
-							State: securityinsight.DataTypeStateEnabled,
+				Properties: &dataconnectors.OfficePowerBIDataConnectorProperties{
+					TenantId: tenantId,
+					DataTypes: dataconnectors.OfficePowerBIConnectorDataTypes{
+						Logs: dataconnectors.DataConnectorDataTypeCommon{
+							State: dataconnectors.DataTypeStateEnabled,
 						},
 					},
 				},
-				Kind: securityinsight.KindBasicDataConnectorKindOfficePowerBI,
+				Kind: dataconnectors.DataConnectorKindOfficePowerBI,
 			}
 
-			if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, params); err != nil {
+			if _, err = client.CreateOrUpdate(ctx, id, params); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -138,36 +136,36 @@ func (r DataConnectorOfficePowerBIResource) Read() sdk.ResourceFunc {
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Sentinel.DataConnectorsClient
-			id, err := parse.DataConnectorID(metadata.ResourceData.Id())
+			id, err := dataconnectors.ParseDataConnectorID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
-
-			existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+			existing, err := client.Get(ctx, *id)
 			if err != nil {
-				if utils.ResponseWasNotFound(existing.Response) {
+				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			dc, ok := existing.Value.(securityinsight.OfficePowerBIDataConnector)
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", id)
+			}
+
+			dc, ok := existing.Model.(dataconnectors.OfficePowerBIDataConnector)
 			if !ok {
 				return fmt.Errorf("%s was not an Office PowerBI Data Connector", id)
 			}
 
 			var tenantId string
-			if props := dc.OfficePowerBIDataConnectorProperties; props != nil {
-				if props.TenantID != nil {
-					tenantId = *props.TenantID
-				}
+			if props := dc.Properties; props != nil {
+				tenantId = props.TenantId
 			}
 
 			model := DataConnectorOfficePowerBIModel{
-				Name:                    id.Name,
-				LogAnalyticsWorkspaceId: workspaceId.ID(),
+				Name:                    id.DataConnectorId,
+				LogAnalyticsWorkspaceId: workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName).ID(),
 				TenantId:                tenantId,
 			}
 
@@ -182,12 +180,12 @@ func (r DataConnectorOfficePowerBIResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Sentinel.DataConnectorsClient
 
-			id, err := parse.DataConnectorID(metadata.ResourceData.Id())
+			id, err := dataconnectors.ParseDataConnectorID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			if _, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.Name); err != nil {
+			if _, err := client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 

@@ -136,7 +136,7 @@ resource "azurerm_storage_share" "test" {
 resource "azurerm_machine_learning_datastore_fileshare" "test" {
   name                 = "accdatastore%[2]d"
   workspace_id         = azurerm_machine_learning_workspace.test.id
-  storage_fileshare_id = azurerm_storage_share.test.resource_manager_id
+  storage_fileshare_id = azurerm_storage_share.test.id
   account_key          = azurerm_storage_account.test.primary_access_key
 }
 `, r.template(data), data.RandomInteger)
@@ -243,7 +243,7 @@ data "azurerm_storage_account_sas" "test" {
 resource "azurerm_machine_learning_datastore_fileshare" "test" {
   name                    = "accdatastore%[2]d"
   workspace_id            = azurerm_machine_learning_workspace.test.id
-  storage_fileshare_id    = azurerm_storage_share.test.resource_manager_id
+  storage_fileshare_id    = azurerm_storage_share.test.id
   shared_access_signature = data.azurerm_storage_account_sas.test.sas
 }
 `, r.template(data), data.RandomInteger)
@@ -293,10 +293,11 @@ resource "azurerm_application_insights" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestvault%[3]s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
+  name                       = "acctestvault%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
 
   sku_name = "standard"
 

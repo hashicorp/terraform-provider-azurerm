@@ -1774,11 +1774,12 @@ resource "azurerm_application_insights" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest-kv-%[4]s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "premium"
+  name                       = "acctest-kv-%[4]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
 
   purge_protection_enabled   = true
   soft_delete_retention_days = 7
@@ -1790,11 +1791,12 @@ resource "azurerm_storage_account" "test" {
   resource_group_name      = azurerm_resource_group.test.name
   account_tier             = "Standard"
   account_replication_type = "LRS"
+}
 
-  static_website {
-    error_404_document = "error.html"
-    index_document     = "index.html"
-  }
+resource "azurerm_storage_account_static_website" "test" {
+  storage_account_id = azurerm_storage_account.test.id
+  error_404_document = "error.html"
+  index_document     = "index.html"
 }
 
 resource "azurerm_machine_learning_workspace" "test" {
@@ -1958,8 +1960,7 @@ resource "azurerm_private_dns_zone" "test" {
 
 resource "azurerm_private_dns_cname_record" "test" {
   name                = azurerm_databricks_workspace.test.workspace_url
-  zone_name           = azurerm_private_dns_zone.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  private_dns_zone_id = azurerm_private_dns_zone.test.id
   ttl                 = 300
   record              = "eastus2-c2.azuredatabricks.net"
 }
@@ -2198,7 +2199,7 @@ resource "azurerm_lb_outbound_rule" "test" {
   name                     = "OutboundRule-%[1]d"
   loadbalancer_id          = azurerm_lb.test.id
   protocol                 = "All"
-  enable_tcp_reset         = true
+  tcp_reset_enabled        = true
   allocated_outbound_ports = 1024
   idle_timeout_in_minutes  = 4
 
@@ -2269,11 +2270,12 @@ resource "azurerm_databricks_workspace" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest-kv-%[3]s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "premium"
+  name                       = "acctest-kv-%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
 
   soft_delete_retention_days = 7
 }
@@ -2374,11 +2376,12 @@ resource "azurerm_databricks_workspace_root_dbfs_customer_managed_key" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest-kv-%[3]s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "premium"
+  name                       = "acctest-kv-%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
 
   soft_delete_retention_days = 7
 }
@@ -2487,11 +2490,12 @@ resource "azurerm_databricks_workspace" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest-kv-%[3]s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "premium"
+  name                       = "acctest-kv-%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
 
   soft_delete_retention_days = 7
 }
@@ -2629,11 +2633,12 @@ resource "azurerm_databricks_workspace" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest-kv-%[3]s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "premium"
+  name                       = "acctest-kv-%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
 
   soft_delete_retention_days = 7
 }
@@ -2841,11 +2846,12 @@ resource "azurerm_databricks_workspace_root_dbfs_customer_managed_key" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest-kv-%[3]s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "premium"
+  name                       = "acctest-kv-%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
 
   soft_delete_retention_days = 7
 }
@@ -2945,8 +2951,7 @@ resource "azurerm_private_dns_zone" "test" {
 
 resource "azurerm_private_dns_cname_record" "test" {
   name                = azurerm_databricks_workspace.test.workspace_url
-  zone_name           = azurerm_private_dns_zone.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  private_dns_zone_id = azurerm_private_dns_zone.test.id
   ttl                 = 300
   record              = "eastus2-c2.azuredatabricks.net"
 }
@@ -3009,11 +3014,12 @@ resource "azurerm_databricks_workspace" "test" {
 resource "azurerm_key_vault" "keyVault" {
   provider = azurerm-alt
 
-  name                = "kv-altsub-%[3]s"
-  resource_group_name = azurerm_resource_group.keyVault.name
-  location            = azurerm_resource_group.keyVault.location
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "premium"
+  name                       = "kv-altsub-%[3]s"
+  resource_group_name        = azurerm_resource_group.keyVault.name
+  rbac_authorization_enabled = false
+  location                   = azurerm_resource_group.keyVault.location
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
 
   soft_delete_retention_days = 7
 }
@@ -3159,11 +3165,12 @@ resource "azurerm_databricks_workspace" "test" {
 }
 
 resource "azurerm_key_vault" "keyVault" {
-  name                = "kv-prisub-%[3]s"
-  resource_group_name = azurerm_resource_group.keyVault.name
-  location            = azurerm_resource_group.keyVault.location
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "premium"
+  name                       = "kv-prisub-%[3]s"
+  resource_group_name        = azurerm_resource_group.keyVault.name
+  rbac_authorization_enabled = false
+  location                   = azurerm_resource_group.keyVault.location
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
 
   soft_delete_retention_days = 7
 }
@@ -3172,11 +3179,12 @@ resource "azurerm_key_vault" "keyVault" {
 resource "azurerm_key_vault" "keyVaultAlt" {
   provider = azurerm-alt
 
-  name                = "kv-altsub-%[3]s"
-  resource_group_name = azurerm_resource_group.keyVaultAlt.name
-  location            = azurerm_resource_group.keyVaultAlt.location
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "premium"
+  name                       = "kv-altsub-%[3]s"
+  resource_group_name        = azurerm_resource_group.keyVaultAlt.name
+  rbac_authorization_enabled = false
+  location                   = azurerm_resource_group.keyVaultAlt.location
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
 
   soft_delete_retention_days = 7
 }
@@ -3355,11 +3363,12 @@ resource "azurerm_databricks_workspace" "test" {
 resource "azurerm_key_vault" "keyVault" {
   provider = azurerm-alt
 
-  name                = "kv-altsub-%[3]s"
-  location            = azurerm_resource_group.keyVault.location
-  resource_group_name = azurerm_resource_group.keyVault.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "premium"
+  name                       = "kv-altsub-%[3]s"
+  location                   = azurerm_resource_group.keyVault.location
+  resource_group_name        = azurerm_resource_group.keyVault.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
 
   soft_delete_retention_days = 7
 }
@@ -3481,11 +3490,12 @@ resource "azurerm_databricks_workspace" "test" {
 resource "azurerm_key_vault" "keyVault" {
   provider = azurerm-alt
 
-  name                = "kv-altsub-%[3]s"
-  location            = azurerm_resource_group.keyVault.location
-  resource_group_name = azurerm_resource_group.keyVault.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "premium"
+  name                       = "kv-altsub-%[3]s"
+  location                   = azurerm_resource_group.keyVault.location
+  resource_group_name        = azurerm_resource_group.keyVault.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
 
   soft_delete_retention_days = 7
 }

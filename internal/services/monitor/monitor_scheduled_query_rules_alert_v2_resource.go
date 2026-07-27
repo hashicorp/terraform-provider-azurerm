@@ -8,10 +8,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-15-preview/scheduledqueryrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -73,12 +75,21 @@ type ScheduledQueryRulesAlertV2FailingPeriodsModel struct {
 	NumberOfEvaluationPeriods int64 `tfschema:"number_of_evaluation_periods"`
 }
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name monitor_scheduled_query_rules_alert_v2 -service-package-name monitor -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 type ScheduledQueryRulesAlertV2Resource struct{}
 
-var _ sdk.ResourceWithUpdate = ScheduledQueryRulesAlertV2Resource{}
+var (
+	_ sdk.ResourceWithUpdate   = ScheduledQueryRulesAlertV2Resource{}
+	_ sdk.ResourceWithIdentity = ScheduledQueryRulesAlertV2Resource{}
+)
 
 func (r ScheduledQueryRulesAlertV2Resource) ResourceType() string {
 	return "azurerm_monitor_scheduled_query_rules_alert_v2"
+}
+
+func (r ScheduledQueryRulesAlertV2Resource) Identity() resourceids.ResourceId {
+	return &scheduledqueryrules.ScheduledQueryRuleId{}
 }
 
 func (r ScheduledQueryRulesAlertV2Resource) ModelObject() interface{} {
@@ -497,7 +508,8 @@ func (r ScheduledQueryRulesAlertV2Resource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
-			return nil
+
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id)
 		},
 	}
 }
@@ -647,98 +659,57 @@ func (r ScheduledQueryRulesAlertV2Resource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			model := resp.Model
-			if model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
+			if resp.Model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", *id)
 			}
 
-			flattenedIdentity, err := identity.FlattenSystemOrUserAssignedMapToModel(model.Identity)
-			if err != nil {
-				return fmt.Errorf("flattening SystemOrUserAssigned Identity: %+v", err)
-			}
-
-			state := ScheduledQueryRulesAlertV2Model{
-				Name:              id.ScheduledQueryRuleName,
-				ResourceGroupName: id.ResourceGroupName,
-				Location:          location.Normalize(model.Location),
-				Identity:          *flattenedIdentity,
-			}
-
-			properties := &model.Properties
-			state.Actions = flattenScheduledQueryRulesAlertV2ActionsModel(properties.Actions)
-
-			if properties.AutoMitigate != nil {
-				state.AutoMitigate = *properties.AutoMitigate
-			}
-
-			if properties.CheckWorkspaceAlertsStorageConfigured != nil {
-				state.CheckWorkspaceAlertsStorageConfigured = *properties.CheckWorkspaceAlertsStorageConfigured
-			}
-
-			if properties.CreatedWithApiVersion != nil {
-				state.CreatedWithApiVersion = *properties.CreatedWithApiVersion
-			}
-
-			state.Criteria = flattenScheduledQueryRulesAlertV2CriteriaModel(properties.Criteria)
-
-			if properties.Description != nil {
-				state.Description = *properties.Description
-			}
-
-			if properties.DisplayName != nil {
-				state.DisplayName = *properties.DisplayName
-			}
-
-			if properties.Enabled != nil {
-				state.Enabled = *properties.Enabled
-			}
-
-			if properties.EvaluationFrequency != nil {
-				state.EvaluationFrequency = *properties.EvaluationFrequency
-			}
-
-			if properties.IsLegacyLogAnalyticsRule != nil {
-				state.IsLegacyLogAnalyticsRule = *properties.IsLegacyLogAnalyticsRule
-			}
-
-			if properties.IsWorkspaceAlertsStorageConfigured != nil {
-				state.IsWorkspaceAlertsStorageConfigured = *properties.IsWorkspaceAlertsStorageConfigured
-			}
-
-			if properties.MuteActionsDuration != nil {
-				state.MuteActionsDuration = *properties.MuteActionsDuration
-			}
-
-			if properties.OverrideQueryTimeRange != nil {
-				state.OverrideQueryTimeRange = *properties.OverrideQueryTimeRange
-			}
-
-			if properties.Scopes != nil {
-				state.Scopes = *properties.Scopes
-			}
-
-			if properties.Severity != nil {
-				state.Severity = *properties.Severity
-			}
-
-			if properties.SkipQueryValidation != nil {
-				state.SkipQueryValidation = *properties.SkipQueryValidation
-			}
-
-			if properties.TargetResourceTypes != nil {
-				state.TargetResourceTypes = *properties.TargetResourceTypes
-			}
-
-			if properties.WindowSize != nil {
-				state.WindowSize = *properties.WindowSize
-			}
-			if model.Tags != nil {
-				state.Tags = *model.Tags
-			}
-
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
+}
+
+func (r ScheduledQueryRulesAlertV2Resource) flatten(metadata sdk.ResourceMetaData, id *scheduledqueryrules.ScheduledQueryRuleId, model *scheduledqueryrules.ScheduledQueryRuleResource) error {
+	state := ScheduledQueryRulesAlertV2Model{
+		Name:              id.ScheduledQueryRuleName,
+		ResourceGroupName: id.ResourceGroupName,
+	}
+
+	if model != nil {
+		flattenedIdentity, err := identity.FlattenSystemOrUserAssignedMapToModel(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening SystemOrUserAssigned Identity: %+v", err)
+		}
+
+		state.Location = location.Normalize(model.Location)
+		state.Identity = *flattenedIdentity
+
+		properties := &model.Properties
+		state.Actions = flattenScheduledQueryRulesAlertV2ActionsModel(properties.Actions)
+		state.AutoMitigate = pointer.From(properties.AutoMitigate)
+		state.CheckWorkspaceAlertsStorageConfigured = pointer.From(properties.CheckWorkspaceAlertsStorageConfigured)
+		state.CreatedWithApiVersion = pointer.From(properties.CreatedWithApiVersion)
+		state.Criteria = flattenScheduledQueryRulesAlertV2CriteriaModel(properties.Criteria)
+		state.Description = pointer.From(properties.Description)
+		state.DisplayName = pointer.From(properties.DisplayName)
+		state.Enabled = pointer.From(properties.Enabled)
+		state.EvaluationFrequency = pointer.From(properties.EvaluationFrequency)
+		state.IsLegacyLogAnalyticsRule = pointer.From(properties.IsLegacyLogAnalyticsRule)
+		state.IsWorkspaceAlertsStorageConfigured = pointer.From(properties.IsWorkspaceAlertsStorageConfigured)
+		state.MuteActionsDuration = pointer.From(properties.MuteActionsDuration)
+		state.OverrideQueryTimeRange = pointer.From(properties.OverrideQueryTimeRange)
+		state.Scopes = pointer.From(properties.Scopes)
+		state.Severity = pointer.From(properties.Severity)
+		state.SkipQueryValidation = pointer.From(properties.SkipQueryValidation)
+		state.TargetResourceTypes = pointer.From(properties.TargetResourceTypes)
+		state.WindowSize = pointer.From(properties.WindowSize)
+		state.Tags = pointer.From(model.Tags)
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }
 
 func (r ScheduledQueryRulesAlertV2Resource) Delete() sdk.ResourceFunc {

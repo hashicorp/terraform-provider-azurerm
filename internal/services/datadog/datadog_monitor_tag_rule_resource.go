@@ -19,9 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-// @tombuildsstuff: in 4.0 consider inlining this within the `azurerm_datadog_monitors` resource
-// since this appears to be a 1:1 with it (given the name defaults to `default`)
-
 func resourceDatadogTagRules() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceDatadogTagRulesCreate,

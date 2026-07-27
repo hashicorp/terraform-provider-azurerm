@@ -267,11 +267,12 @@ func (r LinkedServiceSQLManagedInstanceResource) keyVaultPassword(data acceptanc
  %s
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestkv%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = "%[5]s"
-  sku_name            = "standard"
+  name                       = "acctestkv%[2]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = "%[5]s"
+  sku_name                   = "standard"
 }
 
 resource "azurerm_data_factory_linked_service_key_vault" "test" {
@@ -296,14 +297,16 @@ resource "azurerm_data_factory_linked_service_sql_managed_instance" "test" {
 func (r LinkedServiceSQLManagedInstanceResource) keyVaultConnectionString(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
+
 %s
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestkv%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = "%[5]s"
-  sku_name            = "standard"
+  name                       = "acctestkv%[2]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = "%[5]s"
+  sku_name                   = "standard"
 }
 
 resource "azurerm_data_factory_linked_service_key_vault" "test" {
@@ -328,14 +331,17 @@ func (r LinkedServiceSQLManagedInstanceResource) keyVaultRemoved(data acceptance
 	return fmt.Sprintf(`
 
 
+
+
 %s
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestkv%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = "%[5]s"
-  sku_name            = "standard"
+  name                       = "acctestkv%[2]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = "%[5]s"
+  sku_name                   = "standard"
 }
 
 resource "azurerm_data_factory_linked_service_key_vault" "test" {
