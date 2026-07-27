@@ -961,7 +961,7 @@ func TestAccWindowsVirtualMachine_otherEncryptionAtHostEnabled(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherEncryptionAtHostEnabled(data, "security_profile { host_encryption_enabled = true }"),
+			Config: r.otherEncryptionAtHost(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -976,7 +976,7 @@ func TestAccWindowsVirtualMachine_otherEncryptionAtHostEnabledUpdate(t *testing.
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherEncryptionAtHostEnabled(data, "security_profile { host_encryption_enabled = true }"),
+			Config: r.otherEncryptionAtHost(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("security_profile.#").HasValue("1"),
@@ -985,7 +985,7 @@ func TestAccWindowsVirtualMachine_otherEncryptionAtHostEnabledUpdate(t *testing.
 		},
 		data.ImportStep("admin_password"),
 		{
-			Config: r.otherEncryptionAtHostEnabled(data, "security_profile { host_encryption_enabled = false }"),
+			Config: r.otherEncryptionAtHost(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("security_profile.#").HasValue("1"),
@@ -994,7 +994,7 @@ func TestAccWindowsVirtualMachine_otherEncryptionAtHostEnabledUpdate(t *testing.
 		},
 		data.ImportStep("admin_password"),
 		{
-			Config: r.otherEncryptionAtHostEnabled(data, "security_profile { host_encryption_enabled = true }"),
+			Config: r.otherEncryptionAtHost(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("security_profile.#").HasValue("1"),
@@ -1003,17 +1003,7 @@ func TestAccWindowsVirtualMachine_otherEncryptionAtHostEnabledUpdate(t *testing.
 		},
 		data.ImportStep("admin_password"),
 		{
-			Config: r.otherEncryptionAtHostEnabled(data, "security_profile {}"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("security_profile.#").HasValue("1"),
-				check.That(data.ResourceName).Key("security_profile.0.host_encryption_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("security_profile.0.security_type").DoesNotExist(),
-			),
-		},
-		data.ImportStep("admin_password"),
-		{
-			Config: r.otherEncryptionAtHostEnabled(data, ""),
+			Config: r.otherEncryptionAtHostRemoved(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("security_profile.#").HasValue("0"),
@@ -3407,7 +3397,7 @@ resource "azurerm_windows_virtual_machine" "test" {
 `, r.template(data), data.RandomString)
 }
 
-func (r WindowsVirtualMachineResource) otherEncryptionAtHostEnabled(data acceptance.TestData, securityProfile string) string {
+func (r WindowsVirtualMachineResource) otherEncryptionAtHost(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 %s
 
@@ -3434,9 +3424,41 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 
-%s
+  security_profile {
+    host_encryption_enabled = %t
+  }
 }
-`, r.template(data), securityProfile)
+`, r.template(data), enabled)
+}
+
+func (r WindowsVirtualMachineResource) otherEncryptionAtHostRemoved(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_DS3_v2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
+    version   = "latest"
+  }
+}
+`, r.template(data))
 }
 
 func (r WindowsVirtualMachineResource) otherSecureBootEnabled(data acceptance.TestData, enabled bool) string {

@@ -2241,41 +2241,26 @@ func flattenOrchestratedVirtualMachineScaleSetIdentity(input *identity.SystemAnd
 	return identity.FlattenUserAssignedMap(transform)
 }
 
-func expandVirtualMachineScaleSetSecurityProfile(input interface{}, securityEncryptionType string) (*virtualmachinescalesets.SecurityProfile, error) {
-	var encryptionAtHost *bool
-	var securityType *virtualmachinescalesets.SecurityTypes
-	var secureBootEnabled *bool
-	var vtpmEnabled *bool
-	securityProfiles, securityProfileConfigured := input.([]interface{})
-	securityProfileConfigured = securityProfileConfigured && len(securityProfiles) > 0 && securityProfiles[0] != nil
-	if securityProfileConfigured {
-		item, ok := securityProfiles[0].(map[string]interface{})
-		if !ok {
-			return nil, fmt.Errorf("`security_profile.0` must be an object")
-		}
-		if v, ok := item["host_encryption_enabled"]; ok {
-			encryptionAtHost = pointer.To(v.(bool))
-		}
-		if v, ok := item["security_type"].(string); ok && v != "" {
-			securityType = pointer.To(virtualmachinescalesets.SecurityTypes(v))
-		}
-		if v, ok := item["secure_boot_enabled"]; ok {
-			secureBootEnabled = pointer.To(v.(bool))
-		}
-		if v, ok := item["vtpm_enabled"]; ok {
-			vtpmEnabled = pointer.To(v.(bool))
-		}
-	}
-
+func expandVirtualMachineScaleSetSecurityProfile(input []interface{}, securityEncryptionType string) (*virtualmachinescalesets.SecurityProfile, error) {
 	encryptionType := virtualmachinescalesets.SecurityEncryptionTypes(securityEncryptionType)
-	if encryptionAtHost != nil && *encryptionAtHost {
-		if encryptionType == virtualmachinescalesets.SecurityEncryptionTypesDiskWithVMGuestState {
-			return nil, fmt.Errorf("`security_profile.0.host_encryption_enabled` cannot be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
+
+	if len(input) == 0 || input[0] == nil {
+		if encryptionType != "" {
+			return nil, fmt.Errorf("`security_profile` must be specified when `os_disk.0.security_encryption_type` is set")
 		}
+		return nil, nil
 	}
 
-	secureBoot := pointer.From(secureBootEnabled)
-	vtpm := pointer.From(vtpmEnabled)
+	item := input[0].(map[string]interface{})
+	encryptionAtHost := item["host_encryption_enabled"].(bool)
+	securityType := item["security_type"].(string)
+	secureBoot := item["secure_boot_enabled"].(bool)
+	vtpm := item["vtpm_enabled"].(bool)
+
+	if encryptionAtHost && encryptionType == virtualmachinescalesets.SecurityEncryptionTypesDiskWithVMGuestState {
+		return nil, fmt.Errorf("`security_profile.0.host_encryption_enabled` cannot be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
+	}
+
 	if encryptionType != "" {
 		if encryptionType == virtualmachinescalesets.SecurityEncryptionTypesDiskWithVMGuestState && !secureBoot {
 			return nil, fmt.Errorf("`security_profile.0.secure_boot_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
@@ -2283,35 +2268,23 @@ func expandVirtualMachineScaleSetSecurityProfile(input interface{}, securityEncr
 		if !vtpm {
 			return nil, fmt.Errorf("`security_profile.0.vtpm_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is set")
 		}
-
-		if securityType == nil || *securityType != virtualmachinescalesets.SecurityTypesConfidentialVM {
+		if securityType != string(virtualmachinescalesets.SecurityTypesConfidentialVM) {
 			return nil, fmt.Errorf("`security_profile.0.security_type` must be set to `%s` when `os_disk.0.security_encryption_type` is set", virtualmachinescalesets.SecurityTypesConfidentialVM)
 		}
-	} else if secureBoot || vtpm {
-		if securityType == nil {
-			return nil, fmt.Errorf("`security_profile.0.security_type` must be set to `%s` or `%s` when `security_profile.0.secure_boot_enabled` or `security_profile.0.vtpm_enabled` is set to `true`", virtualmachinescalesets.SecurityTypesTrustedLaunch, virtualmachinescalesets.SecurityTypesConfidentialVM)
-		} else {
-			switch v := *securityType; v {
-			case virtualmachinescalesets.SecurityTypesConfidentialVM:
-			case virtualmachinescalesets.SecurityTypesTrustedLaunch:
-			default:
-				return nil, fmt.Errorf("`security_profile.0.security_type` must not be set to `%s` when `security_profile.0.secure_boot_enabled` or `security_profile.0.vtpm_enabled` are set to true", v)
-			}
-		}
-	}
-
-	if !securityProfileConfigured && encryptionType == "" && encryptionAtHost == nil && !secureBoot && !vtpm {
-		return nil, nil
+	} else if (secureBoot || vtpm) && securityType == "" {
+		return nil, fmt.Errorf("`security_profile.0.security_type` must be set to `%s` or `%s` when `security_profile.0.secure_boot_enabled` or `security_profile.0.vtpm_enabled` is set to `true`", virtualmachinescalesets.SecurityTypesTrustedLaunch, virtualmachinescalesets.SecurityTypesConfidentialVM)
 	}
 
 	profile := &virtualmachinescalesets.SecurityProfile{
-		EncryptionAtHost: encryptionAtHost,
-		SecurityType:     securityType,
+		EncryptionAtHost: pointer.To(encryptionAtHost),
+	}
+	if securityType != "" {
+		profile.SecurityType = pointer.To(virtualmachinescalesets.SecurityTypes(securityType))
 	}
 	if secureBoot || vtpm {
 		profile.UefiSettings = &virtualmachinescalesets.UefiSettings{
-			SecureBootEnabled: secureBootEnabled,
-			VTpmEnabled:       vtpmEnabled,
+			SecureBootEnabled: pointer.To(secureBoot),
+			VTpmEnabled:       pointer.To(vtpm),
 		}
 	}
 	return profile, nil

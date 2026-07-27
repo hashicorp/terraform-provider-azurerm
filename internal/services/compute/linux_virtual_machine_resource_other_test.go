@@ -731,7 +731,7 @@ func TestAccLinuxVirtualMachine_otherEncryptionAtHostEnabled(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherEncryptionAtHostEnabled(data, "security_profile { host_encryption_enabled = true }"),
+			Config: r.otherEncryptionAtHost(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -746,7 +746,7 @@ func TestAccLinuxVirtualMachine_otherEncryptionAtHostEnabledUpdate(t *testing.T)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherEncryptionAtHostEnabled(data, "security_profile { host_encryption_enabled = true }"),
+			Config: r.otherEncryptionAtHost(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("security_profile.#").HasValue("1"),
@@ -755,7 +755,7 @@ func TestAccLinuxVirtualMachine_otherEncryptionAtHostEnabledUpdate(t *testing.T)
 		},
 		data.ImportStep(),
 		{
-			Config: r.otherEncryptionAtHostEnabled(data, "security_profile { host_encryption_enabled = false }"),
+			Config: r.otherEncryptionAtHost(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("security_profile.#").HasValue("1"),
@@ -764,7 +764,7 @@ func TestAccLinuxVirtualMachine_otherEncryptionAtHostEnabledUpdate(t *testing.T)
 		},
 		data.ImportStep(),
 		{
-			Config: r.otherEncryptionAtHostEnabled(data, "security_profile { host_encryption_enabled = true }"),
+			Config: r.otherEncryptionAtHost(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("security_profile.#").HasValue("1"),
@@ -773,17 +773,7 @@ func TestAccLinuxVirtualMachine_otherEncryptionAtHostEnabledUpdate(t *testing.T)
 		},
 		data.ImportStep(),
 		{
-			Config: r.otherEncryptionAtHostEnabled(data, "security_profile {}"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("security_profile.#").HasValue("1"),
-				check.That(data.ResourceName).Key("security_profile.0.host_encryption_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("security_profile.0.security_type").DoesNotExist(),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.otherEncryptionAtHostEnabled(data, ""),
+			Config: r.otherEncryptionAtHostRemoved(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("security_profile.#").HasValue("0"),
@@ -2911,7 +2901,7 @@ resource "azurerm_linux_virtual_machine" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineResource) otherEncryptionAtHostEnabled(data acceptance.TestData, securityProfile string) string {
+func (r LinuxVirtualMachineResource) otherEncryptionAtHost(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 %s
 
@@ -2943,9 +2933,46 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 
-%s
+  security_profile {
+    host_encryption_enabled = %t
+  }
 }
-`, r.template(data), data.RandomInteger, securityProfile)
+`, r.template(data), data.RandomInteger, enabled)
+}
+
+func (r LinuxVirtualMachineResource) otherEncryptionAtHostRemoved(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_DS3_v2"
+  admin_username      = "adminuser"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+  zone = 1
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (r LinuxVirtualMachineResource) otherEncryptionAtHostEnabledWithCMK(data acceptance.TestData, enabled bool) string {
