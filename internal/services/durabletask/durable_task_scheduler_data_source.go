@@ -67,17 +67,17 @@ func (d SchedulerDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"sku_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
 		"ip_allow_list": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
+		},
+
+		"sku_name": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 
 		"tags": commonschema.TagsDataSource(),

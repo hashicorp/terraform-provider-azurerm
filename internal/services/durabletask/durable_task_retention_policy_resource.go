@@ -246,13 +246,16 @@ func (r RetentionPolicyResource) Update() sdk.ResourceFunc {
 				return nil
 			}
 
-			properties := retentionpolicies.RetentionPolicyUpdate{
+			// A retrieve-existing round-trip is unnecessary here: RetentionPolicies is the only
+			// writable property (ProvisioningState is read-only), so rebuilding the complete policy
+			// set from config and sending a full replace preserves no server-managed state.
+			properties := retentionpolicies.RetentionPolicy{
 				Properties: &retentionpolicies.RetentionPolicyProperties{
 					RetentionPolicies: expandRetentionPolicyDetails(model),
 				},
 			}
 
-			if err := client.UpdateThenPoll(ctx, schedulerId, properties); err != nil {
+			if err := client.CreateOrReplaceThenPoll(ctx, schedulerId, properties); err != nil {
 				return fmt.Errorf("updating retention policy on %s: %+v", schedulerId.ID(), err)
 			}
 

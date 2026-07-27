@@ -251,31 +251,33 @@ func (r SchedulerResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			if !metadata.ResourceData.HasChanges("capacity", "ip_allow_list", "tags") {
-				return nil
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", *id)
+			}
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: properties was nil", *id)
 			}
 
-			properties := schedulers.SchedulerUpdate{
-				Properties: &schedulers.SchedulerPropertiesUpdate{},
-			}
+			payload := *existing.Model
 
 			if metadata.ResourceData.HasChange("ip_allow_list") {
-				properties.Properties.IPAllowlist = &model.IpAllowList
+				payload.Properties.IPAllowlist = model.IpAllowList
 			}
 
 			if metadata.ResourceData.HasChange("capacity") {
-				if properties.Properties.Sku == nil {
-					properties.Properties.Sku = &schedulers.SchedulerSkuUpdate{}
-				}
-				properties.Properties.Sku.Capacity = pointer.To(model.Capacity)
+				payload.Properties.Sku.Capacity = pointer.To(model.Capacity)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
-				properties.Tags = &model.Tags
+				payload.Tags = &model.Tags
 			}
 
-			if err := client.UpdateThenPoll(ctx, *id, properties); err != nil {
-				return fmt.Errorf("updating %s: %+v", id, err)
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, payload); err != nil {
+				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
 			return nil
