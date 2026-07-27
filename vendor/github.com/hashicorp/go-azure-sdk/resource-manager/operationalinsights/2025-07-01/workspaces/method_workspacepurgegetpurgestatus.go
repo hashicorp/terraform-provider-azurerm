@@ -1,11 +1,9 @@
-package deletedworkspaces
+package workspaces
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
@@ -13,21 +11,21 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type ListOperationResponse struct {
+type WorkspacePurgeGetPurgeStatusOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *WorkspaceListResult
+	Model        *WorkspacePurgeStatusResponse
 }
 
-// List ...
-func (c DeletedWorkspacesClient) List(ctx context.Context, id commonids.SubscriptionId) (result ListOperationResponse, err error) {
+// WorkspacePurgeGetPurgeStatus ...
+func (c WorkspacesClient) WorkspacePurgeGetPurgeStatus(ctx context.Context, id OperationId) (result WorkspacePurgeGetPurgeStatusOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
-		Path:       fmt.Sprintf("%s/providers/Microsoft.OperationalInsights/deletedWorkspaces", id.ID()),
+		Path:       id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -45,7 +43,7 @@ func (c DeletedWorkspacesClient) List(ctx context.Context, id commonids.Subscrip
 		return
 	}
 
-	var model WorkspaceListResult
+	var model WorkspacePurgeStatusResponse
 	result.Model = &model
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return

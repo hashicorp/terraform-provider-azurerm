@@ -1,4 +1,4 @@
-package deletedworkspaces
+package workspaces
 
 import (
 	"encoding/json"
@@ -8,38 +8,6 @@ import (
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
-
-type CapacityReservationLevel int64
-
-const (
-	CapacityReservationLevelFiveHundred      CapacityReservationLevel = 500
-	CapacityReservationLevelFiveThousand     CapacityReservationLevel = 5000
-	CapacityReservationLevelFiveZeroThousand CapacityReservationLevel = 50000
-	CapacityReservationLevelFourHundred      CapacityReservationLevel = 400
-	CapacityReservationLevelOneHundred       CapacityReservationLevel = 100
-	CapacityReservationLevelOneThousand      CapacityReservationLevel = 1000
-	CapacityReservationLevelOneZeroThousand  CapacityReservationLevel = 10000
-	CapacityReservationLevelThreeHundred     CapacityReservationLevel = 300
-	CapacityReservationLevelTwoFiveThousand  CapacityReservationLevel = 25000
-	CapacityReservationLevelTwoHundred       CapacityReservationLevel = 200
-	CapacityReservationLevelTwoThousand      CapacityReservationLevel = 2000
-)
-
-func PossibleValuesForCapacityReservationLevel() []int64 {
-	return []int64{
-		int64(CapacityReservationLevelFiveHundred),
-		int64(CapacityReservationLevelFiveThousand),
-		int64(CapacityReservationLevelFiveZeroThousand),
-		int64(CapacityReservationLevelFourHundred),
-		int64(CapacityReservationLevelOneHundred),
-		int64(CapacityReservationLevelOneThousand),
-		int64(CapacityReservationLevelOneZeroThousand),
-		int64(CapacityReservationLevelThreeHundred),
-		int64(CapacityReservationLevelTwoFiveThousand),
-		int64(CapacityReservationLevelTwoHundred),
-		int64(CapacityReservationLevelTwoThousand),
-	}
-}
 
 type DataIngestionStatus string
 
@@ -97,14 +65,16 @@ func parseDataIngestionStatus(input string) (*DataIngestionStatus, error) {
 type PublicNetworkAccessType string
 
 const (
-	PublicNetworkAccessTypeDisabled PublicNetworkAccessType = "Disabled"
-	PublicNetworkAccessTypeEnabled  PublicNetworkAccessType = "Enabled"
+	PublicNetworkAccessTypeDisabled           PublicNetworkAccessType = "Disabled"
+	PublicNetworkAccessTypeEnabled            PublicNetworkAccessType = "Enabled"
+	PublicNetworkAccessTypeSecuredByPerimeter PublicNetworkAccessType = "SecuredByPerimeter"
 )
 
 func PossibleValuesForPublicNetworkAccessType() []string {
 	return []string{
 		string(PublicNetworkAccessTypeDisabled),
 		string(PublicNetworkAccessTypeEnabled),
+		string(PublicNetworkAccessTypeSecuredByPerimeter),
 	}
 }
 
@@ -123,8 +93,9 @@ func (s *PublicNetworkAccessType) UnmarshalJSON(bytes []byte) error {
 
 func parsePublicNetworkAccessType(input string) (*PublicNetworkAccessType, error) {
 	vals := map[string]PublicNetworkAccessType{
-		"disabled": PublicNetworkAccessTypeDisabled,
-		"enabled":  PublicNetworkAccessTypeEnabled,
+		"disabled":           PublicNetworkAccessTypeDisabled,
+		"enabled":            PublicNetworkAccessTypeEnabled,
+		"securedbyperimeter": PublicNetworkAccessTypeSecuredByPerimeter,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
@@ -132,6 +103,88 @@ func parsePublicNetworkAccessType(input string) (*PublicNetworkAccessType, error
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := PublicNetworkAccessType(input)
+	return &out, nil
+}
+
+type PurgeState string
+
+const (
+	PurgeStateCompleted PurgeState = "completed"
+	PurgeStatePending   PurgeState = "pending"
+)
+
+func PossibleValuesForPurgeState() []string {
+	return []string{
+		string(PurgeStateCompleted),
+		string(PurgeStatePending),
+	}
+}
+
+func (s *PurgeState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePurgeState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parsePurgeState(input string) (*PurgeState, error) {
+	vals := map[string]PurgeState{
+		"completed": PurgeStateCompleted,
+		"pending":   PurgeStatePending,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := PurgeState(input)
+	return &out, nil
+}
+
+type SearchSortEnum string
+
+const (
+	SearchSortEnumAsc  SearchSortEnum = "asc"
+	SearchSortEnumDesc SearchSortEnum = "desc"
+)
+
+func PossibleValuesForSearchSortEnum() []string {
+	return []string{
+		string(SearchSortEnumAsc),
+		string(SearchSortEnumDesc),
+	}
+}
+
+func (s *SearchSortEnum) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSearchSortEnum(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseSearchSortEnum(input string) (*SearchSortEnum, error) {
+	vals := map[string]SearchSortEnum{
+		"asc":  SearchSortEnumAsc,
+		"desc": SearchSortEnumDesc,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := SearchSortEnum(input)
 	return &out, nil
 }
 
@@ -188,6 +241,118 @@ func parseWorkspaceEntityStatus(input string) (*WorkspaceEntityStatus, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := WorkspaceEntityStatus(input)
+	return &out, nil
+}
+
+type WorkspaceFailoverState string
+
+const (
+	WorkspaceFailoverStateActivating   WorkspaceFailoverState = "Activating"
+	WorkspaceFailoverStateActive       WorkspaceFailoverState = "Active"
+	WorkspaceFailoverStateDeactivating WorkspaceFailoverState = "Deactivating"
+	WorkspaceFailoverStateFailed       WorkspaceFailoverState = "Failed"
+	WorkspaceFailoverStateInactive     WorkspaceFailoverState = "Inactive"
+)
+
+func PossibleValuesForWorkspaceFailoverState() []string {
+	return []string{
+		string(WorkspaceFailoverStateActivating),
+		string(WorkspaceFailoverStateActive),
+		string(WorkspaceFailoverStateDeactivating),
+		string(WorkspaceFailoverStateFailed),
+		string(WorkspaceFailoverStateInactive),
+	}
+}
+
+func (s *WorkspaceFailoverState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseWorkspaceFailoverState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseWorkspaceFailoverState(input string) (*WorkspaceFailoverState, error) {
+	vals := map[string]WorkspaceFailoverState{
+		"activating":   WorkspaceFailoverStateActivating,
+		"active":       WorkspaceFailoverStateActive,
+		"deactivating": WorkspaceFailoverStateDeactivating,
+		"failed":       WorkspaceFailoverStateFailed,
+		"inactive":     WorkspaceFailoverStateInactive,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := WorkspaceFailoverState(input)
+	return &out, nil
+}
+
+type WorkspaceReplicationState string
+
+const (
+	WorkspaceReplicationStateCanceled          WorkspaceReplicationState = "Canceled"
+	WorkspaceReplicationStateDisableRequested  WorkspaceReplicationState = "DisableRequested"
+	WorkspaceReplicationStateDisabling         WorkspaceReplicationState = "Disabling"
+	WorkspaceReplicationStateEnableRequested   WorkspaceReplicationState = "EnableRequested"
+	WorkspaceReplicationStateEnabling          WorkspaceReplicationState = "Enabling"
+	WorkspaceReplicationStateFailed            WorkspaceReplicationState = "Failed"
+	WorkspaceReplicationStateRollbackRequested WorkspaceReplicationState = "RollbackRequested"
+	WorkspaceReplicationStateRollingBack       WorkspaceReplicationState = "RollingBack"
+	WorkspaceReplicationStateSucceeded         WorkspaceReplicationState = "Succeeded"
+)
+
+func PossibleValuesForWorkspaceReplicationState() []string {
+	return []string{
+		string(WorkspaceReplicationStateCanceled),
+		string(WorkspaceReplicationStateDisableRequested),
+		string(WorkspaceReplicationStateDisabling),
+		string(WorkspaceReplicationStateEnableRequested),
+		string(WorkspaceReplicationStateEnabling),
+		string(WorkspaceReplicationStateFailed),
+		string(WorkspaceReplicationStateRollbackRequested),
+		string(WorkspaceReplicationStateRollingBack),
+		string(WorkspaceReplicationStateSucceeded),
+	}
+}
+
+func (s *WorkspaceReplicationState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseWorkspaceReplicationState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseWorkspaceReplicationState(input string) (*WorkspaceReplicationState, error) {
+	vals := map[string]WorkspaceReplicationState{
+		"canceled":          WorkspaceReplicationStateCanceled,
+		"disablerequested":  WorkspaceReplicationStateDisableRequested,
+		"disabling":         WorkspaceReplicationStateDisabling,
+		"enablerequested":   WorkspaceReplicationStateEnableRequested,
+		"enabling":          WorkspaceReplicationStateEnabling,
+		"failed":            WorkspaceReplicationStateFailed,
+		"rollbackrequested": WorkspaceReplicationStateRollbackRequested,
+		"rollingback":       WorkspaceReplicationStateRollingBack,
+		"succeeded":         WorkspaceReplicationStateSucceeded,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := WorkspaceReplicationState(input)
 	return &out, nil
 }
 
