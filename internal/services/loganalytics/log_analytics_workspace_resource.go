@@ -23,7 +23,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2025-07-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
@@ -196,63 +195,6 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FivePointOh() {
-		resource.Schema["local_authentication_disabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			Deprecated:    "`local_authentication_disabled` has been deprecated in favour of `local_authentication_enabled` and will be removed in v5.0 of the AzureRM Provider",
-			ConflictsWith: []string{"local_authentication_enabled"},
-		}
-
-		resource.Schema["local_authentication_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"local_authentication_disabled"},
-		}
-
-		resource.Schema["internet_ingestion_access_type"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(workspaces.PublicNetworkAccessTypeEnabled),
-				string(workspaces.PublicNetworkAccessTypeDisabled),
-				string(workspaces.PublicNetworkAccessTypeSecuredByPerimeter),
-			}, false),
-			ConflictsWith: []string{"internet_ingestion_enabled"},
-		}
-
-		resource.Schema["internet_query_access_type"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(workspaces.PublicNetworkAccessTypeEnabled),
-				string(workspaces.PublicNetworkAccessTypeDisabled),
-				string(workspaces.PublicNetworkAccessTypeSecuredByPerimeter),
-			}, false),
-			ConflictsWith: []string{"internet_query_enabled"},
-		}
-
-		resource.Schema["internet_ingestion_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			Deprecated:    "`internet_ingestion_enabled` has been deprecated in favour of `internet_ingestion_access_type` and will be removed in v5.0 of the AzureRM Provider",
-			ConflictsWith: []string{"internet_ingestion_access_type"},
-		}
-
-		resource.Schema["internet_query_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			Deprecated:    "`internet_query_enabled` has been deprecated in favour of `internet_query_access_type` and will be removed in v5.0 of the AzureRM Provider",
-			ConflictsWith: []string{"internet_query_access_type"},
-		}
-	}
-
 	return resource
 }
 
@@ -281,17 +223,6 @@ func resourceLogAnalyticsWorkspaceCustomDiff(_ context.Context, d *pluginsdk.Res
 		if strings.EqualFold(new.(string), string(workspaces.WorkspaceSkuNameEnumStandard)) ||
 			strings.EqualFold(new.(string), string(workspaces.WorkspaceSkuNameEnumPremium)) {
 			return fmt.Errorf("creation of log analytics workspaces with `Standard` or `Premium` SKUs is no longer supported by Azure - see https://learn.microsoft.com/en-us/azure/azure-monitor/logs/cost-logs#standard-and-premium-pricing-tiers")
-		}
-	}
-
-	// if local_authentication_enabled/local_authentication_enabled is not defined in config, check if local_authentication_enabled is set to the default value of true, and if not, set it to retain the default
-	if !features.FivePointOh() && d.GetRawConfig().AsValueMap()["local_authentication_disabled"].IsNull() && d.GetRawConfig().AsValueMap()["local_authentication_enabled"].IsNull() {
-		_, n := d.GetChange("local_authentication_enabled")
-		if !n.(bool) {
-			err := d.SetNew("local_authentication_enabled", true)
-			if err != nil {
-				return err
-			}
 		}
 	}
 
@@ -370,40 +301,6 @@ func resourceLogAnalyticsWorkspaceCreate(d *pluginsdk.ResourceData, meta interfa
 				DisableLocalAuth: pointer.To(!d.Get("local_authentication_enabled").(bool)),
 			},
 		},
-	}
-
-	if !features.FivePointOh() {
-		if pluginsdk.IsExplicitlyNullInConfig(d, "internet_ingestion_access_type") {
-			parameters.Properties.PublicNetworkAccessForIngestion = pointer.To(workspaces.PublicNetworkAccessTypeEnabled)
-			if !pluginsdk.IsExplicitlyNullInConfig(d, "internet_ingestion_enabled") {
-				ingestionAccessType := workspaces.PublicNetworkAccessTypeDisabled
-				if d.Get("internet_ingestion_enabled").(bool) {
-					ingestionAccessType = workspaces.PublicNetworkAccessTypeEnabled
-				}
-				parameters.Properties.PublicNetworkAccessForIngestion = pointer.To(ingestionAccessType)
-			}
-		}
-
-		if pluginsdk.IsExplicitlyNullInConfig(d, "internet_query_access_type") {
-			parameters.Properties.PublicNetworkAccessForQuery = pointer.To(workspaces.PublicNetworkAccessTypeEnabled)
-			if !pluginsdk.IsExplicitlyNullInConfig(d, "internet_query_enabled") {
-				queryAccessType := workspaces.PublicNetworkAccessTypeDisabled
-				if d.Get("internet_query_enabled").(bool) {
-					queryAccessType = workspaces.PublicNetworkAccessTypeEnabled
-				}
-				parameters.Properties.PublicNetworkAccessForQuery = pointer.To(queryAccessType)
-			}
-		}
-
-		// In v4.0, we can not set default values for those O+C properties, we can only set the values manually.
-		// `GetOk()` can not determine if the it's just zero-value (false) or the user specified `false`
-		if pluginsdk.IsExplicitlyNullInConfig(d, "local_authentication_enabled") {
-			parameters.Properties.Features.DisableLocalAuth = pointer.To(false)
-		}
-		if !pluginsdk.IsExplicitlyNullInConfig(d, "local_authentication_disabled") {
-			v := d.Get("local_authentication_disabled")
-			parameters.Properties.Features.DisableLocalAuth = pointer.To(v.(bool))
-		}
 	}
 
 	// nolint : staticcheck
@@ -525,12 +422,6 @@ func resourceLogAnalyticsWorkspaceUpdate(d *pluginsdk.ResourceData, meta interfa
 		props.Features.DisableLocalAuth = pointer.To(!d.Get("local_authentication_enabled").(bool))
 	}
 
-	if !features.FivePointOh() {
-		if d.HasChange("local_authentication_disabled") {
-			props.Features.DisableLocalAuth = pointer.To(d.Get("local_authentication_disabled").(bool))
-		}
-	}
-
 	if d.HasChange("cmk_for_query_forced") {
 		props.ForceCmkForQuery = pointer.To(d.Get("cmk_for_query_forced").(bool))
 	}
@@ -549,22 +440,6 @@ func resourceLogAnalyticsWorkspaceUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	if d.HasChange("internet_query_access_type") {
 		props.PublicNetworkAccessForQuery = pointer.To(workspaces.PublicNetworkAccessType(d.Get("internet_query_access_type").(string)))
-	}
-
-	if !features.FivePointOh() {
-		if !d.HasChange("internet_ingestion_access_type") && d.HasChange("internet_ingestion_enabled") {
-			props.PublicNetworkAccessForIngestion = pointer.To(workspaces.PublicNetworkAccessTypeDisabled)
-			if d.Get("internet_ingestion_enabled").(bool) {
-				props.PublicNetworkAccessForIngestion = pointer.To(workspaces.PublicNetworkAccessTypeEnabled)
-			}
-		}
-
-		if !d.HasChange("internet_query_access_type") && d.HasChange("internet_query_enabled") {
-			props.PublicNetworkAccessForQuery = pointer.To(workspaces.PublicNetworkAccessTypeDisabled)
-			if d.Get("internet_query_enabled").(bool) {
-				props.PublicNetworkAccessForQuery = pointer.To(workspaces.PublicNetworkAccessTypeEnabled)
-			}
-		}
 	}
 
 	var isLACluster bool
@@ -674,14 +549,7 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 
 		if props := model.Properties; props != nil {
 			d.Set("internet_ingestion_access_type", string(pointer.From(props.PublicNetworkAccessForIngestion)))
-			if !features.FivePointOh() {
-				d.Set("internet_ingestion_enabled", pointer.From(props.PublicNetworkAccessForIngestion) == workspaces.PublicNetworkAccessTypeEnabled)
-			}
-
 			d.Set("internet_query_access_type", string(pointer.From(props.PublicNetworkAccessForQuery)))
-			if !features.FivePointOh() {
-				d.Set("internet_query_enabled", pointer.From(props.PublicNetworkAccessForQuery) == workspaces.PublicNetworkAccessTypeEnabled)
-			}
 
 			d.Set("workspace_id", pointer.From(props.CustomerId))
 
@@ -712,10 +580,6 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 				allowResourceOnlyPermissions = pointer.From(lawFeatures.EnableLogAccessUsingOnlyResourcePermissions)
 				if lawFeatures.DisableLocalAuth != nil {
 					d.Set("local_authentication_enabled", !pointer.From(lawFeatures.DisableLocalAuth))
-
-					if !features.FivePointOh() {
-						d.Set("local_authentication_disabled", pointer.From(lawFeatures.DisableLocalAuth))
-					}
 				}
 				purgeDataOnThirtyDays = pointer.From(lawFeatures.ImmediatePurgeDataOn30Days)
 			}

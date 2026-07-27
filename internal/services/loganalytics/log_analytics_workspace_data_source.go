@@ -135,17 +135,8 @@ func dataSourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interfa
 				d.Set("daily_quota_gb", pointer.To(-1))
 			}
 
-			if v := props.PublicNetworkAccessForIngestion; v != nil {
-				d.Set("internet_ingestion_access_type", string(*v))
-			} else {
-				d.Set("internet_ingestion_access_type", string(workspaces.PublicNetworkAccessTypeEnabled))
-			}
-
-			if v := props.PublicNetworkAccessForQuery; v != nil {
-				d.Set("internet_query_access_type", string(*v))
-			} else {
-				d.Set("internet_query_access_type", string(workspaces.PublicNetworkAccessTypeEnabled))
-			}
+			d.Set("internet_ingestion_access_type", string(pointer.From(props.PublicNetworkAccessForIngestion)))
+			d.Set("internet_query_access_type", string(pointer.From(props.PublicNetworkAccessForQuery)))
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
