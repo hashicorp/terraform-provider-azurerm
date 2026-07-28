@@ -195,6 +195,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "example" {
   location            = azurerm_resource_group.example.location
   cluster_version     = "4.0"
   tier                = "Premium"
+  tls_min_version     = "1.2"
 
   component_version {
     hadoop = "3.1"
@@ -206,9 +207,9 @@ resource "azurerm_hdinsight_hadoop_cluster" "example" {
   }
 
   storage_account {
-    storage_container_id = azurerm_storage_container.example.id
-    storage_account_key  = azurerm_storage_account.example.primary_access_key
-    is_default           = true
+    storage_container_url = azurerm_storage_container.example.url
+    storage_account_key   = azurerm_storage_account.example.primary_access_key
+    is_default            = true
   }
 
   roles {

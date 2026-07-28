@@ -22,7 +22,10 @@ resource "azurerm_subnet" "example" {
   resource_group_name  = azurerm_resource_group.example.name
   address_prefixes     = ["192.168.1.0/24"]
   virtual_network_name = azurerm_virtual_network.example.name
-  service_endpoints    = ["Microsoft.Sql"]
+
+  service_endpoint {
+    service = "Microsoft.Sql"
+  }
 }
 
 resource "azurerm_kubernetes_cluster" "example" {

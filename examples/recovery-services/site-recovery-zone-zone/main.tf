@@ -157,7 +157,11 @@ resource "azurerm_site_recovery_replicated_vm" "example" {
 
   network_interface {
     source_network_interface_id = azurerm_network_interface.example.id
-    target_subnet_name          = azurerm_subnet.example.name
+
+    ip_configuration {
+      name               = "${var.prefix}-ipconfig"
+      target_subnet_name = azurerm_subnet.example.name
+    }
   }
 
   depends_on = [
