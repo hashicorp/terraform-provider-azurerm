@@ -39,7 +39,6 @@ The following arguments are supported:
 
 * `datastore_type` - (Required) Specifies the type of the data store. Possible values are `ArchiveStore`, `OperationalStore` and `VaultStore`. Changing this forces a new resource to be created.
 
--> **Note:** The `SnapshotStore` value was removed in version 5.0 of the AzureRM Provider, having been replaced by `OperationalStore`.
 
 * `redundancy` - (Required) Specifies the backup storage redundancy. Possible values are `GeoRedundant`, `LocallyRedundant` and `ZoneRedundant`. Changing this forces a new Backup Vault to be created.
 
