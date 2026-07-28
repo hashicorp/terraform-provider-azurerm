@@ -38,3 +38,8 @@ jobs:
     needs: preview-api-version-linter
     if: ${{ success() }}
     uses: ./.github/workflows/ci-comment-failure-outdated.yaml
+
+  save-artifacts-on-fail:
+    needs: preview-api-version-linter
+    if: ${{ failure() }}
+    uses: ./.github/workflows/ci-save-artifacts.yaml

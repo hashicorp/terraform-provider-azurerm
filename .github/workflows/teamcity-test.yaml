@@ -34,3 +34,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
       - run: make teamcity-test
+
+  save-artifacts-on-fail:
+    needs: teamcity-test
+    if: ${{ failure() }}
+    uses: ./.github/workflows/ci-save-artifacts.yaml

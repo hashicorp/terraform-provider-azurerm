@@ -36,3 +36,8 @@ jobs:
           echo "a property, changing a property type, or making an optional property required)."
           echo "Breaking changes must be gated behind the appropriate feature flag (e.g. features.FivePointOh())."
           echo "Please review the breaking changes guide: contributing/topics/guide-breaking-changes.md"
+
+  save-artifacts-on-fail:
+    needs: detect
+    if: ${{ failure() }}
+    uses: ./.github/workflows/ci-save-artifacts.yaml

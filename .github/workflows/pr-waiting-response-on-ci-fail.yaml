@@ -2,8 +2,19 @@
 name: Add waiting-response on failures
 
 on:
+  # NOTE: these are workflow display names (not filenames), and every workflow listed
+  # here must upload the wr_actions artifact on failure (via ci-save-artifacts.yaml)
+  # so the job below can identify the PR to label.
   workflow_run:
-    workflows: ['Check for new usages of deprecated functionality', 'GoLang Linting', 'Website Linting', 'Generation Check', 'Validate Examples', 'Unit Tests', 'Terraform Schema Linting', 'Provider Tests', 'Vendor Dependencies Check']
+    workflows:
+      - 'PR Validation'
+      - 'Provider Tests'
+      - 'Check for new usages of deprecated functionality'
+      - 'Enforce List Resource for New Resources'
+      - 'Breaking Schema Changes'
+      - 'Static Analysis'
+      - 'Preview ARM API Version Linter'
+      - 'TeamCity Config Test'
     types: [completed]
 
 permissions:

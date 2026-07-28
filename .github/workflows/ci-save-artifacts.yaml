@@ -1,5 +1,13 @@
 name: Save Artifacts
 
+# One half of the artifact relay pattern (see README.md in this directory):
+# PR checks run with a read-only token (untrusted fork code), so they cannot
+# label the PR themselves — and the privileged workflow_run workflows that can
+# (pr-waiting-response-on-ci-fail.yaml) don't know which PR the run belonged to,
+# because the workflow_run payload is empty for fork PRs. This workflow bridges
+# the two: called on failure, it uploads the repo owner/name and PR number as an
+# artifact so the workflow_run side can download it and label the right PR.
+
 on:
   # This file is reused, and called from other workflows
   workflow_call:

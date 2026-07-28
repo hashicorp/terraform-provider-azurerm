@@ -34,3 +34,8 @@ jobs:
           echo "Run 'bash ./scripts/checks/static-analysis.sh' locally to reproduce."
           echo "This check looks for common code patterns that may indicate bugs or"
           echo "deviations from project conventions."
+
+  save-artifacts-on-fail:
+    needs: detect
+    if: ${{ failure() }}
+    uses: ./.github/workflows/ci-save-artifacts.yaml
