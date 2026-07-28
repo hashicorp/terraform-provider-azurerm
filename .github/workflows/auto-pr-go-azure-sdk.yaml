@@ -1,6 +1,9 @@
 ---
 name: Open Pull Request when an `auto-pr` is pushed for go-azure-sdk
 
+# Opens a PR (via the service-account token) whenever the go-azure-sdk update
+# tooling pushes an automation branch named auto-deps-pr/updating-go-azure-sdk-to-<version>.
+
 permissions:
   contents: read
 

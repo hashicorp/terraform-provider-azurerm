@@ -1,6 +1,9 @@
 ---
 name: Link Milestone
 
+# When a PR merges to main, assigns it and its linked issues to the current
+# milestone using stephybun/link-milestone.
+
 permissions: {}
 
 on:

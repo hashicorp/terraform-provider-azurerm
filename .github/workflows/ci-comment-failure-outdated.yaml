@@ -1,5 +1,10 @@
 name: Comment CI Failure Outdated
 
+# Reusable (workflow_call): when a previously-failing check passes, strikes through
+# its entry in the unified CI-failure comment (written by ci-comment-failure.yaml)
+# and minimizes the comment once every entry is struck. Matches entries by
+# check_name - existing PR comments contain the old names, so rename carefully.
+
 on:
   # This file is reused, and called from other workflows
   workflow_call:

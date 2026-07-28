@@ -1,5 +1,10 @@
 name: Assign Reviewer as Assignee
 
+# When a review requests changes, assigns the reviewer as a PR assignee. Runs via
+# workflow_run on the "Pull Request Reviewed" display name (pr-reviewed.yaml) and
+# reads its wr_actions artifact, since the review event itself has no write token
+# for fork PRs (see the artifact relay in README.md).
+
 on:
   workflow_run:
     workflows:
@@ -21,7 +26,7 @@ jobs:
         uses: dawidd6/action-download-artifact@b6e2e70617bc3265edd6dab6c906732b2f1ae151 # v21
         with:
           github_token: ${{secrets.GITHUB_TOKEN}}
-          workflow: pull-request-reviewed.yaml
+          run_id: ${{ github.event.workflow_run.id }}
 
       - name: env_vars
         id: env_vars

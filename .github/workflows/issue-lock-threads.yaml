@@ -1,6 +1,9 @@
 ---
 name: 'Lock Threads'
 
+# Nightly housekeeping: locks issues and PRs that have been closed for 30 days,
+# leaving an explanatory comment.
+
 permissions: {}
 
 on:

@@ -3,6 +3,10 @@
 ---
 name: PR Guide Suggestions
 
+# Standalone PR check: runs pr-guide-suggestions over changed resource/data source
+# files and posts schema/style suggestions as a PR comment. Advisory only -
+# skipped once a maintainer applies the schema-accepted label.
+
 permissions:
   contents: read
   pull-requests: write

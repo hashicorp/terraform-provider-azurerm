@@ -1,6 +1,9 @@
 ---
 name: "Pull Request Triage"
 
+# Labels PRs by touched paths (.github/labeler-pull-request-triage.yml) and by
+# diff size (size/XS through size/XL).
+
 permissions:
   pull-requests: write
   issues: write

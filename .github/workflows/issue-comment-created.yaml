@@ -1,6 +1,10 @@
 ---
 name: Issue Comment Created Triage
 
+# Label housekeeping when a comment is created: clears stale, clears
+# waiting-response (always on issues; on PRs only when the author replies), and
+# re-adds waiting-response when a maintainer ends a PR comment with /wr.
+
 on:
   issue_comment:
     types: [created]

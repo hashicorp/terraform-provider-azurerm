@@ -1,4 +1,8 @@
 name: 'Close PRs With Failing CI'
+
+# Scheduled housekeeping (Mon/Wed/Fri): runs scripts/automation/pr-close-failing-ci.sh
+# to close PRs whose CI has been left failing.
+
 on:
   workflow_dispatch:
   schedule:

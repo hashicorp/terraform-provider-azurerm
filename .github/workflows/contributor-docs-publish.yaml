@@ -1,4 +1,8 @@
 name: Publish docs via GitHub Pages
+
+# Publishes contributing/ as the contributor documentation site (mkdocs to
+# GitHub Pages) on pushes to main that touch it.
+
 on:
   push:
     branches:

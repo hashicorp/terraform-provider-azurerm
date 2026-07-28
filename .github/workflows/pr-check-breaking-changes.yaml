@@ -1,6 +1,10 @@
 ---
 name: Breaking Schema Changes
 
+# Standalone PR check (custom runner): detects breaking provider schema changes
+# that are not gated behind a feature flag (scripts/checks/breaking-change-detection.sh).
+# Display name is matched by the workflow_run list in pr-waiting-response-on-ci-fail.yaml.
+
 permissions:
   contents: read
   pull-requests: read

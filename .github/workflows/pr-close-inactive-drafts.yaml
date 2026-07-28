@@ -1,4 +1,8 @@
 name: 'Close Inactive Draft PRs'
+
+# Scheduled housekeeping (Mondays): runs scripts/automation/pr-close-inactive-drafts.sh
+# to close draft PRs with no recent activity.
+
 on:
   workflow_dispatch:
   schedule:

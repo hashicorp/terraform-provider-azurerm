@@ -1,4 +1,8 @@
 name: 'Label CI Status on PRs'
+
+# Keeps the ci-failed label on PRs in sync with check-suite results, so project
+# boards and housekeeping scripts can filter PRs by CI status.
+
 on:
   check_suite:
     types: [completed]

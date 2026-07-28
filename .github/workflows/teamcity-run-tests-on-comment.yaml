@@ -1,6 +1,10 @@
 ---
 name: TeamCity Run Tests on Comment
 
+# Lets maintainers trigger TeamCity acceptance test runs by commenting
+# '/test [-b] [-s service] <TestPrefix>' on a PR. Verifies terraform-azure team
+# membership (or the allow-list) before dispatching via katbyte/tctest.
+
 on:
   issue_comment:
     types: [created]

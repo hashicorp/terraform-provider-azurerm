@@ -1,6 +1,12 @@
 ---
 name: "Pull Request Reviewed"
 
+# Untrusted half of the review relay (see README.md): on every submitted review,
+# uploads reviewer/state/PR-number as the wr_actions artifact. Consumed by
+# pr-waiting-response-on-review.yaml and pr-assign-reviewer.yaml, whose
+# workflow_run triggers match this workflow's display name ("Pull Request
+# Reviewed") - renaming the name: above breaks both.
+
 on:
   pull_request_review:
     types: [submitted]

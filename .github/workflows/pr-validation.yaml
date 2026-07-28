@@ -1,6 +1,12 @@
 ---
 name: PR Validation
 
+# The main PR check bundle: every check that can run on standard runners with a
+# read-only token lives here as a job, gated by the shared paths-filter. Checks
+# needing special runners, OIDC auth, or their own triggers are the standalone
+# pr-check-* workflows instead.
+# Display name is matched by the workflow_run list in pr-waiting-response-on-ci-fail.yaml.
+
 permissions:
   contents: read
   pull-requests: write

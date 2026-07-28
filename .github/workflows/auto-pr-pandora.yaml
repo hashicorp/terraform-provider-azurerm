@@ -1,6 +1,9 @@
 ---
 name: Open Pull Request when an `auto-pr` is pushed for Pandora
 
+# Opens a PR (via the service-account token) whenever the Pandora regeneration
+# tooling pushes an automation branch (auto-pandora-pr/**, formerly auto-pr/**).
+
 permissions:
   contents: read
 

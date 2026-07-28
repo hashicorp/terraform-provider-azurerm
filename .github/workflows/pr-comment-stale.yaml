@@ -1,4 +1,8 @@
 name: 'Comment stale PRs'
+
+# Scheduled housekeeping (Mondays): labels waiting-response PRs as stale after 30
+# days of inactivity. Comment/label only - nothing is auto-closed here.
+
 on:
   schedule:
     - cron: '0 6 * * MON'

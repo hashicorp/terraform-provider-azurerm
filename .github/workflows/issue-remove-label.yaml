@@ -1,5 +1,9 @@
 name: Remove specified label from issue
 
+# Reusable (workflow_call): removes the given label from the triggering issue/PR
+# if present. Building block for the waiting-response machinery (see README.md in
+# this directory).
+
 permissions:
   issues: write
   pull-requests: write

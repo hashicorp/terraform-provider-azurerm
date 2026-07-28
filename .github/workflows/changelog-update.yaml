@@ -1,5 +1,9 @@
 name: Update Changelog PR
 
+# Privileged half of the changelog chain: runs when GetChangelogEntry
+# (changelog-entry.yaml) completes, downloads its artifact, and opens/updates the
+# rolling "changelog" PR for entries tagged [BUG]/[ENHANCEMENT]/[FEATURE].
+
 permissions:
   pull-requests: write
   contents: write

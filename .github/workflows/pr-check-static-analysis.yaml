@@ -1,6 +1,10 @@
 ---
 name: Static Analysis
 
+# Standalone PR check (custom runner): scripts/checks/static-analysis.sh looks for
+# code patterns that indicate bugs or deviations from project conventions.
+# Display name is matched by the workflow_run list in pr-waiting-response-on-ci-fail.yaml.
+
 permissions:
   contents: read
   pull-requests: read

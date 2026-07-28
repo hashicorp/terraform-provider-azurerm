@@ -1,6 +1,9 @@
 ---
 name: Pull Request Type
 
+# Labels new/edited PRs by type using the title regexes in
+# .github/labeler-pull-request-triage-type.yml.
+
 permissions:
   pull-requests: write
 

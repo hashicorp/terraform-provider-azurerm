@@ -1,6 +1,9 @@
 ---
 name: Increment Milestone
 
+# On a v*.*.* release tag, creates the next patch-version milestone via
+# scripts/automation/milestone-increment.sh.
+
 on:
   push:
     tags:

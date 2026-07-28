@@ -1,6 +1,10 @@
 ---
 name: "Pull Request Reviewed Workflow"
 
+# Privileged half of the review relay (see README.md): reads the artifact
+# uploaded by pr-reviewed.yaml and adds waiting-response (reviewer requested
+# changes) or removes it (the author responded).
+
 on:
   workflow_run:
     workflows:
@@ -27,7 +31,7 @@ jobs:
         uses: dawidd6/action-download-artifact@b6e2e70617bc3265edd6dab6c906732b2f1ae151 # v21
         with:
           github_token: ${{secrets.GITHUB_TOKEN}}
-          workflow: pull-request-reviewed.yaml
+          run_id: ${{ github.event.workflow_run.id }}
 
       - name: env_vars
         id: env_vars

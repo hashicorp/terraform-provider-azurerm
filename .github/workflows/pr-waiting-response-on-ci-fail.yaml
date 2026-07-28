@@ -1,6 +1,10 @@
 ---
 name: Add waiting-response on failures
 
+# Privileged half of the artifact relay (see README.md): when one of the listed
+# PR checks completes in failure, downloads its wr_actions artifact to identify
+# the PR and adds the waiting-response label.
+
 on:
   # NOTE: these are workflow display names (not filenames), and every workflow listed
   # here must upload the wr_actions artifact on failure (via ci-save-artifacts.yaml)

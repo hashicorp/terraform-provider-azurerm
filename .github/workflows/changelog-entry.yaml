@@ -1,5 +1,10 @@
 name: GetChangelogEntry
 
+# When a PR merges, captures the merge commit message and uploads it as the
+# changelog_entry artifact. Consumed by changelog-update.yaml, whose workflow_run
+# trigger matches this workflow's display name ("GetChangelogEntry") - renaming
+# the name: above breaks that chain.
+
 # only reads the merge commit message and uploads it as an artifact
 permissions:
   contents: read

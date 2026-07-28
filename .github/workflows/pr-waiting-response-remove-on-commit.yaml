@@ -1,6 +1,8 @@
 ---
 name: Pull Request New Commit
 
+# Removes the waiting-response label whenever new commits are pushed to a PR.
+
 permissions:
   pull-requests: write
 
