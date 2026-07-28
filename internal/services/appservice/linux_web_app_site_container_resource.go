@@ -127,6 +127,9 @@ func (r LinuxWebAppSiteContainerResource) Arguments() map[string]*pluginsdk.Sche
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
+		// NOTE: Azure expects exactly one Site Container per Web App to be marked `primary` (the container that
+		// serves the Web App's inbound traffic). As each Site Container is a discrete Terraform resource, this
+		// cross-resource invariant cannot be enforced in-schema and is documented for the practitioner instead.
 		"primary": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,

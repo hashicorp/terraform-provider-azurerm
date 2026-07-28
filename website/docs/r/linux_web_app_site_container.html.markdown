@@ -81,6 +81,8 @@ The following arguments are supported:
 
 * `primary` - (Optional) Should this container serve the primary site traffic? Defaults to `false`.
 
+~> **Note:** Each Linux Web App should have exactly one Site Container with `primary` set to `true` - this is the container that serves the Web App's inbound traffic. Because each Site Container is managed as a separate resource, Terraform cannot enforce this invariant across multiple `azurerm_linux_web_app_site_container` resources targeting the same Linux Web App; ensuring a single primary container is defined is the responsibility of the configuration.
+
 * `startup_command` - (Optional) The command that should be executed when the container starts.
 
 * `user_managed_identity_client_id` - (Optional) The Client ID of the user-assigned managed identity that should be used when `authentication_type` is set to `UserAssigned`.

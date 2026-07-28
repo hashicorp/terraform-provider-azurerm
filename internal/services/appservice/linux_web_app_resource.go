@@ -1088,7 +1088,6 @@ func (r LinuxWebAppResource) CustomizeDiff() sdk.ResourceFunc {
 					}
 				}
 			}
-
 			return nil
 		},
 	}
