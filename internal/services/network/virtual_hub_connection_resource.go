@@ -209,8 +209,8 @@ func resourceVirtualHubConnectionCreateOrUpdate(d *pluginsdk.ResourceData, meta 
 		return err
 	}
 
-	locks.ByName(remoteVirtualNetworkId.VirtualNetworkName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(remoteVirtualNetworkId.VirtualNetworkName, VirtualNetworkResourceName)
+	locks.ByID(remoteVirtualNetworkId.ID())
+	defer locks.UnlockByID(remoteVirtualNetworkId.ID())
 
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
@@ -292,7 +292,11 @@ func resourceVirtualHubConnectionRead(d *pluginsdk.ResourceData, meta interface{
 			d.Set("internet_security_enabled", props.EnableInternetSecurity)
 			remoteVirtualNetworkId := ""
 			if props.RemoteVirtualNetwork != nil && props.RemoteVirtualNetwork.Id != nil {
-				remoteVirtualNetworkId = *props.RemoteVirtualNetwork.Id
+				parsedRemoteVirtualNetworkId, err := commonids.ParseVirtualNetworkIDInsensitively(*props.RemoteVirtualNetwork.Id)
+				if err != nil {
+					return err
+				}
+				remoteVirtualNetworkId = parsedRemoteVirtualNetworkId.ID()
 			}
 			d.Set("remote_virtual_network_id", remoteVirtualNetworkId)
 

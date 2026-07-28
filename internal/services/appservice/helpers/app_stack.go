@@ -122,6 +122,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 						"~18",
 						"~20",
 						"~22",
+						"~24",
 					}, false),
 					AtLeastOneOf: windowsApplicationStackConstraint,
 				},

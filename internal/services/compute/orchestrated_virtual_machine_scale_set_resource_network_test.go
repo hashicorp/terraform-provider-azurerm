@@ -45,6 +45,30 @@ func TestAccOrchestratedVirtualMachineScaleSet_networkSecurityGroup(t *testing.T
 	})
 }
 
+func TestAccOrchestratedVirtualMachineScaleSet_networkInterfaceTags(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
+	r := OrchestratedVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.networkInterfaceTags(data, "Production"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_interface.0.tags.environment").HasValue("Production"),
+			),
+		},
+		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
+		{
+			Config: r.networkInterfaceTags(data, "Staging"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_interface.0.tags.environment").HasValue("Staging"),
+			),
+		},
+		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
+	})
+}
+
 func TestAccOrchestratedVirtualMachineScaleSet_basicAcceleratedNetworking(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 	r := OrchestratedVirtualMachineScaleSetResource{}
@@ -525,6 +549,78 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
+func (OrchestratedVirtualMachineScaleSetResource) networkInterfaceTags(data acceptance.TestData, environment string) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-OVMSS-%[1]d"
+  location = "%[2]s"
+}
+
+%[3]s
+
+resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
+  name                = "acctestOVMSS-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku_name  = "Standard_D1_v2"
+  instances = 2
+
+  platform_fault_domain_count = 2
+
+  network_api_version = "2022-11-01"
+
+  os_profile {
+    linux_configuration {
+      computer_name_prefix = "testvm-%[1]d"
+      admin_username       = "myadmin"
+      admin_password       = "Passwword1234"
+
+      disable_password_authentication = false
+    }
+  }
+
+  network_interface {
+    name    = "TestNetworkProfile-%[1]d"
+    primary = true
+
+    ip_configuration {
+      name      = "TestIPConfiguration"
+      subnet_id = azurerm_subnet.test.id
+      primary   = true
+
+      public_ip_address {
+        name                    = "TestPublicIPConfiguration"
+        domain_name_label       = "test-domain-label"
+        idle_timeout_in_minutes = 4
+      }
+    }
+
+    tags = {
+      environment = "%[4]s"
+    }
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), environment)
+}
+
 func (OrchestratedVirtualMachineScaleSetResource) basicAcceleratedNetworking(data acceptance.TestData, enabled bool) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
@@ -560,9 +656,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name                          = "TestNetworkProfile-%[1]d"
-    primary                       = true
-    enable_accelerated_networking = %[4]t
+    name                           = "TestNetworkProfile-%[1]d"
+    primary                        = true
+    accelerated_networking_enabled = %[4]t
 
     ip_configuration {
       name      = "TestIPConfiguration"
@@ -627,9 +723,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name                          = "TestNetworkProfile-%[1]d"
-    primary                       = true
-    enable_accelerated_networking = true
+    name                           = "TestNetworkProfile-%[1]d"
+    primary                        = true
+    accelerated_networking_enabled = true
 
     ip_configuration {
       name      = "TestIPConfiguration"
@@ -696,10 +792,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name                          = "TestNetworkProfile-%[1]d"
-    primary                       = true
-    enable_accelerated_networking = true
-    auxiliary_sku                 = "A1"
+    name                           = "TestNetworkProfile-%[1]d"
+    primary                        = true
+    accelerated_networking_enabled = true
+    auxiliary_sku                  = "A1"
 
     ip_configuration {
       name      = "TestIPConfiguration"
@@ -766,10 +862,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name                          = "TestNetworkProfile-%[1]d"
-    primary                       = true
-    enable_accelerated_networking = true
-    auxiliary_mode                = "AcceleratedConnections"
+    name                           = "TestNetworkProfile-%[1]d"
+    primary                        = true
+    accelerated_networking_enabled = true
+    auxiliary_mode                 = "AcceleratedConnections"
 
     ip_configuration {
       name      = "TestIPConfiguration"
@@ -836,11 +932,11 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name                          = "TestNetworkProfile-%[1]d"
-    primary                       = true
-    enable_accelerated_networking = true
-    auxiliary_mode                = "AcceleratedConnections"
-    auxiliary_sku                 = "A1"
+    name                           = "TestNetworkProfile-%[1]d"
+    primary                        = true
+    accelerated_networking_enabled = true
+    auxiliary_mode                 = "AcceleratedConnections"
+    auxiliary_sku                  = "A1"
 
     ip_configuration {
       name      = "TestIPConfiguration"
@@ -1120,9 +1216,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name                 = "TestNetworkProfile-%[1]d"
-    primary              = true
-    enable_ip_forwarding = true
+    name                  = "TestNetworkProfile-%[1]d"
+    primary               = true
+    ip_forwarding_enabled = true
 
     ip_configuration {
       name      = "TestIPConfiguration"
@@ -1323,9 +1419,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name                 = "TestNetworkProfile-%[1]d"
-    primary              = true
-    enable_ip_forwarding = true
+    name                  = "TestNetworkProfile-%[1]d"
+    primary               = true
+    ip_forwarding_enabled = true
 
     ip_configuration {
       name      = "TestIPConfiguration"

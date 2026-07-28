@@ -198,8 +198,8 @@ func SSHKeySchemaHash(v interface{}) int {
 		if err != nil {
 			log.Printf("[DEBUG] error normalising ssh key %q: %+v", m["public_key"].(string), err)
 		}
-		buf.WriteString(fmt.Sprintf("%s-", *normalisedKey))
-		buf.WriteString(fmt.Sprintf("%s", m["username"]))
+		fmt.Fprintf(&buf, "%s-", *normalisedKey)
+		fmt.Fprintf(&buf, "%s", m["username"])
 	}
 
 	return pluginsdk.HashString(buf.String())

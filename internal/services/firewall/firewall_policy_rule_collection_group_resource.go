@@ -817,7 +817,6 @@ func flattenFirewallPolicyRuleCollection(input *[]firewallpolicyrulecollectiongr
 
 			var action string
 			if rule.Action != nil {
-				// todo 4.0 change this from DNAT to Dnat
 				// doing this because we hardcode Dnat for https://github.com/Azure/azure-rest-api-specs/issues/9986
 				if strings.EqualFold(string(pointer.From(rule.Action.Type)), "Dnat") {
 					action = "Dnat"
