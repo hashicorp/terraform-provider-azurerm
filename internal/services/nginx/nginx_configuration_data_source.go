@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxconfiguration"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxdeployment"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -46,7 +45,7 @@ func (m ConfigurationDataSource) Arguments() map[string]*pluginsdk.Schema {
 }
 
 func (m ConfigurationDataSource) Attributes() map[string]*pluginsdk.Schema {
-	dataSource := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"config_file": {
 			Type:     pluginsdk.TypeSet,
 			Computed: true,
@@ -93,16 +92,6 @@ func (m ConfigurationDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 	}
-
-	if !features.FivePointOh() {
-		dataSource["protected_file"].Elem.(*pluginsdk.Resource).Schema["content"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Computed:   true,
-			Sensitive:  true,
-			Deprecated: "the `content` property is deprecated and will be removed in v5.0 of the AzureRM Provider.",
-		}
-	}
-	return dataSource
 }
 
 func (m ConfigurationDataSource) ModelObject() interface{} {

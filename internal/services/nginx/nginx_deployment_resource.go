@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxdeployment"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/preflight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -132,7 +131,7 @@ type DeploymentResource struct{}
 var _ sdk.ResourceWithUpdate = (*DeploymentResource)(nil)
 
 func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
-	resource := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"name": {
@@ -292,42 +291,6 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
-
-	if !features.FivePointOh() {
-		resource["managed_resource_group"] = &pluginsdk.Schema{
-			Deprecated:   "The `managed_resource_group` field isn't supported by the API anymore and has been deprecated and will be removed in v5.0 of the AzureRM Provider.",
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		}
-
-		resource["logging_storage_account"] = &pluginsdk.Schema{
-			Deprecated: "The `logging_storage_account` block has been deprecated and will be removed in v5.0 of the AzureRM Provider. To enable logs, use the `azurerm_monitor_diagnostic_setting` resource instead.",
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-					},
-
-					"container_name": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-					},
-				},
-			},
-		}
-
-		resource["diagnose_support_enabled"] = &pluginsdk.Schema{
-			Deprecated: "this property is deprecated and will be removed in v5.0, metrics are enabled by default.",
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-		}
-	}
-	return resource
 }
 
 func (m DeploymentResource) Attributes() map[string]*pluginsdk.Schema {
@@ -407,18 +370,6 @@ func expandCreateForNginxDeployment(model DeploymentModel) (nginxdeployment.Ngin
 	}
 
 	prop := &nginxdeployment.NginxDeploymentProperties{}
-
-	if !features.FivePointOh() {
-		if len(model.LoggingStorageAccount) > 0 {
-			prop.Logging = &nginxdeployment.NginxLogging{
-				StorageAccount: &nginxdeployment.NginxStorageAccount{
-					AccountName:   pointer.To(model.LoggingStorageAccount[0].Name),
-					ContainerName: pointer.To(model.LoggingStorageAccount[0].ContainerName),
-				},
-			}
-		}
-		prop.EnableDiagnosticsSupport = pointer.To(model.DiagnoseSupportEnabled)
-	}
 
 	prop.NetworkProfile = expandNetworkProfile(model.FrontendPublic, model.FrontendPrivate, model.NetworkInterface)
 
@@ -526,18 +477,6 @@ func (m DeploymentResource) Read() sdk.ResourceFunc {
 					output.IpAddress = pointer.From(props.IPAddress)
 					output.NginxVersion = pointer.From(props.NginxVersion)
 					output.DataplaneAPIEndpoint = pointer.From(props.DataplaneApiEndpoint)
-
-					if !features.FivePointOh() {
-						if props.Logging != nil && props.Logging.StorageAccount != nil {
-							output.LoggingStorageAccount = []LoggingStorageAccount{
-								{
-									Name:          pointer.From(props.Logging.StorageAccount.AccountName),
-									ContainerName: pointer.From(props.Logging.StorageAccount.ContainerName),
-								},
-							}
-						}
-						output.DiagnoseSupportEnabled = pointer.From(props.EnableDiagnosticsSupport)
-					}
 
 					if profile := props.NetworkProfile; profile != nil {
 						if frontend := profile.FrontEndIPConfiguration; frontend != nil {
@@ -688,16 +627,6 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 			}
 
 			req.Properties = &nginxdeployment.NginxDeploymentUpdateProperties{}
-			if !features.FivePointOh() {
-				if meta.ResourceData.HasChange("logging_storage_account") && len(model.LoggingStorageAccount) > 0 {
-					req.Properties.Logging = &nginxdeployment.NginxLogging{
-						StorageAccount: &nginxdeployment.NginxStorageAccount{
-							AccountName:   pointer.To(model.LoggingStorageAccount[0].Name),
-							ContainerName: pointer.To(model.LoggingStorageAccount[0].ContainerName),
-						},
-					}
-				}
-			}
 
 			if meta.ResourceData.HasChange("diagnose_support_enabled") {
 				req.Properties.EnableDiagnosticsSupport = pointer.To(model.DiagnoseSupportEnabled)

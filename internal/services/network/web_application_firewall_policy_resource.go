@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -400,8 +399,6 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 									  }
 							*/
 							Optional: true,
-							// We'll remove computed in 5.0 so we don't break existing configurations
-							Computed: !features.FivePointOh(),
 						},
 
 						"max_request_body_size_in_kb": {

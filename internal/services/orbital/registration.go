@@ -6,7 +6,6 @@ package orbital
 import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
@@ -31,14 +30,6 @@ func (r Registration) DataSources() []sdk.DataSource {
 }
 
 func (r Registration) Resources() []sdk.Resource {
-	if !features.FivePointOh() {
-		return []sdk.Resource{
-			SpacecraftResource{},
-			ContactProfileResource{},
-			ContactResource{},
-		}
-	}
-
 	return nil
 }
 
