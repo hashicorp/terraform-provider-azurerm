@@ -217,13 +217,21 @@ Just like the schema, Resource Identity tests are entirely generated. This is do
 
 The schema is generated for us by taking different parts of the ID and converting them to snake_case. By default, if the last segment ends in `Name`, it will not be converted to snake case in the schema but rather set to `name`. 
 
-For the tests to generate properly, you will need to specify a combination of `-properties` and `-compare-values` inputs. All fields in the ID struct must be mapped to one of these options.
+For the vast majority of resources, the `generator-tests` tool uses Abstract Syntax Tree (AST) inference to automatically inspect the Go file, locate the ID struct, and infer the correct property mappings. This means you can simply provide the base command with zero flags:
 
-> **Note:** `subscription_id` is compared against a known-value by default, however if the `subscription_id` is included as part of a parent resource ID, it should be mapped using `-compare-values`. (e.g. `-compare-values "subscription_id:parent_resource_id")
+```go
+//go:generate go run ../../tools/generator-tests resourceidentity
+```
+
+If your resource uses a **Virtual Identity** (a sub-resource that inherits its ID entirely from a parent resource), you will need to specify the `-parent-id` flag with the name of the parent ID property in the schema (e.g. `-parent-id workspace_id`). The tool will automatically expand this to map all ID fields to that parent ID.
+
+```go
+//go:generate go run ../../tools/generator-tests resourceidentity -parent-id parent_resource_id
+```
 
 > **Note:** If a resource ID doesn't include the `subscription_id` segment, omit it from the tests by using `-no-subscription-id`.
 
-To go through these in order:
+There are edge cases where the AST inference cannot automatically map the properties. In these rare cases, you can fallback to explicitly defining them using `-properties` and `-compare-values`. All fields in the ID struct must be mapped to one of these options if explicit mapping is used.
 
 - `-properties`: This flag specifies the 1:1 relationship between the Resource Schema and the Resource Identity Schema fields (i.e name, resource_group_name, etc), this would be specified as `name,resource_group_name`. If the schema property name does not match the Resource Identity schema name these should be mapped accordingly. This would be specified as `{id_field_name}:{schema_field_name}`, e.g. `api_management_id:api_management_name`.
 
@@ -240,14 +248,14 @@ import (
     "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
-// A basic example where the Resource Identity fields map directly to the resource schema
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name example_resource -properties "name,resource_group_name"
+// A basic example where the AST parser infers everything (Zero-Flags)
+//go:generate go run ../../tools/generator-tests resourceidentity
 
-// An example where individual Resource Identity field values exist in a parent ID 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name example_resource -properties "name" -compare-values "subscription_id:parent_resource_id,resource_group_name:parent_resource_id,parent_name:parent_resource_id"
+// An example where the resource is a sub-resource utilizing a Virtual Identity
+//go:generate go run ../../tools/generator-tests resourceidentity -parent-id parent_resource_id
 
 // An example of a resource ID that doesn't contain the `subscription_id` segment, e.g. management groups
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name example_resource -properties "group_id:name" -no-subscription-id
+//go:generate go run ../../tools/generator-tests resourceidentity -no-subscription-id
 
 type ExampleResource struct{}
   
