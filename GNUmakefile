@@ -48,7 +48,7 @@ generate: tools
 
 goimports:
 	@echo "==> Fixing imports code with goimports..."
-	@find . -name '*.go' | grep -v vendor | grep -v generator-resource-id | while read f; do ./scripts/checks/goimport-file.sh "$$f"; done
+	@golangci-lint fmt -E goimports
 
 lint:
 	@golangci-lint run -v ./...
