@@ -41,10 +41,6 @@ func (p dataFactoryEventSubscriptionStatusPoller) Poll(ctx context.Context) (*po
 		}, nil
 	}
 
-	if result.Status != datafactory.EventSubscriptionStatusProvisioning {
-		return nil, fmt.Errorf("event subscription for %s reached unexpected status `%s`", p.id, result.Status)
-	}
-
 	return &pollers.PollResult{
 		PollInterval: 5 * time.Second,
 		Status:       pollers.PollingStatusInProgress,
