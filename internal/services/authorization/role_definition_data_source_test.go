@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 type RoleDefinitionDataSource struct{}
@@ -250,11 +249,5 @@ data "azurerm_role_definition" "byName" {
 }
 
 func (d RoleDefinitionDataSource) checkRoleDefinitionId(data acceptance.TestData, dataByName bool) resource.TestCheckFunc {
-	// Older versions had a bug if data block param `name` was specified it would return ID instead of UUID.
-	// Make sure if not 5.0 this still returns ID to avoid breaking change.
-	// 5.0 NOTE: after 5.0 release this function can be replaced with just UUID check.
-	if !features.FivePointOh() && dataByName {
-		return check.That(data.ResourceName).Key("role_definition_id").MatchesOtherKey(check.That(data.ResourceName).Key("id"))
-	}
 	return check.That(data.ResourceName).Key("role_definition_id").IsUUID()
 }

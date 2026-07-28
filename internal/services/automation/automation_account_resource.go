@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -31,7 +30,7 @@ import (
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name automation_account -service-package-name automation -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 func resourceAutomationAccount() *pluginsdk.Resource {
-	r := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create:   resourceAutomationAccountCreate,
 		Read:     resourceAutomationAccountRead,
 		Update:   resourceAutomationAccountUpdate,
@@ -144,23 +143,6 @@ func resourceAutomationAccount() *pluginsdk.Resource {
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&automationaccount.AutomationAccountId{}),
 		},
 	}
-
-	if !features.FivePointOh() {
-		r.Schema["encryption"].Elem.(*schema.Resource).Schema["key_source"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Optional:   true,
-			Deprecated: "`encryption.key_source` has been deprecated and will be removed in v5.0 of the AzureRM Provider. To disable encryption, omit the `encryption` block",
-			ValidateFunc: validation.StringInSlice(
-				[]string{
-					string(automationaccount.EncryptionKeySourceTypeMicrosoftPointAutomation),
-					string(automationaccount.EncryptionKeySourceTypeMicrosoftPointKeyvault),
-				},
-				false,
-			),
-		}
-	}
-
-	return r
 }
 
 func resourceAutomationAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -457,10 +439,6 @@ func flattenEncryption(encryption *automationaccount.EncryptionProperties) []int
 			"key_vault_key_id":          keyVaultKeyId,
 			"user_assigned_identity_id": userAssignedIdentityId,
 		},
-	}
-
-	if !features.FivePointOh() {
-		flattened[0].(map[string]interface{})["key_source"] = ""
 	}
 
 	return flattened
