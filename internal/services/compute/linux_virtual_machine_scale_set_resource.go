@@ -314,12 +314,6 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
-		if encryptionAtHostEnabled.(bool) {
-			if virtualmachinescalesets.SecurityEncryptionTypesDiskWithVMGuestState == virtualmachinescalesets.SecurityEncryptionTypes(securityEncryptionType) {
-				return fmt.Errorf("`encryption_at_host_enabled` cannot be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
-			}
-		}
-
 		virtualMachineProfile.SecurityProfile = &virtualmachinescalesets.SecurityProfile{
 			EncryptionAtHost: pointer.To(encryptionAtHostEnabled.(bool)),
 		}
@@ -722,14 +716,6 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if d.HasChange("encryption_at_host_enabled") {
-		if d.Get("encryption_at_host_enabled").(bool) {
-			osDiskRaw := d.Get("os_disk").([]interface{})
-			securityEncryptionType := osDiskRaw[0].(map[string]interface{})["security_encryption_type"].(string)
-			if virtualmachinescalesets.SecurityEncryptionTypesDiskWithVMGuestState == virtualmachinescalesets.SecurityEncryptionTypes(securityEncryptionType) {
-				return fmt.Errorf("`encryption_at_host_enabled` cannot be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
-			}
-		}
-
 		updateProps.VirtualMachineProfile.SecurityProfile = &virtualmachinescalesets.SecurityProfile{
 			EncryptionAtHost: pointer.To(d.Get("encryption_at_host_enabled").(bool)),
 		}

@@ -712,12 +712,6 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
-		if encryptionAtHostEnabled.(bool) {
-			if virtualmachines.SecurityEncryptionTypesDiskWithVMGuestState == virtualmachines.SecurityEncryptionTypes(securityEncryptionType) {
-				return fmt.Errorf("`encryption_at_host_enabled` cannot be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
-			}
-		}
-
 		params.Properties.SecurityProfile = &virtualmachines.SecurityProfile{
 			EncryptionAtHost: pointer.To(encryptionAtHostEnabled.(bool)),
 		}
@@ -1611,17 +1605,8 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("encryption_at_host_enabled") {
-		if d.Get("encryption_at_host_enabled").(bool) {
-			osDiskRaw := d.Get("os_disk").([]interface{})
-			securityEncryptionType := osDiskRaw[0].(map[string]interface{})["security_encryption_type"].(string)
-			if virtualmachines.SecurityEncryptionTypesDiskWithVMGuestState == virtualmachines.SecurityEncryptionTypes(securityEncryptionType) {
-				return fmt.Errorf("`encryption_at_host_enabled` cannot be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
-			}
-		}
-
 		shouldUpdate = true
 		shouldDeallocate = true // API returns the following error if not deallocate: 'securityProfile.encryptionAtHost' can be updated only when VM is in deallocated state
-
 		update.Properties.SecurityProfile = &virtualmachines.SecurityProfile{
 			EncryptionAtHost: pointer.To(d.Get("encryption_at_host_enabled").(bool)),
 		}
