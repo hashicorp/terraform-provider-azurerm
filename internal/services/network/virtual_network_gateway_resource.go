@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -32,7 +31,7 @@ import (
 )
 
 func resourceVirtualNetworkGateway() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceVirtualNetworkGatewayCreate,
 		Read:   resourceVirtualNetworkGatewayRead,
 		Update: resourceVirtualNetworkGatewayUpdate,
@@ -671,24 +670,6 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["enable_bgp"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"bgp_enabled"},
-			Deprecated:    "the `enable_bgp` property has been deprecated in favour of the `bgp_enabled` property and will be removed in v5.0 of the AzureRM Provider",
-		}
-
-		resource.Schema["bgp_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"enable_bgp"},
-		}
-	}
-	return resource
 }
 
 func resourceVirtualNetworkGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
@@ -709,11 +690,9 @@ func resourceVirtualNetworkGatewayCustomizeDiff(ctx context.Context, d *pluginsd
 	maxScaleUnit := d.Get("maximum_scale_unit").(int)
 	sku := d.Get("sku").(string)
 
-	if features.FivePointOh() {
-		if sku == string(virtualnetworkgateways.VirtualNetworkGatewaySkuNameErGwScale) {
-			if minScaleUnit == 0 || maxScaleUnit == 0 {
-				return fmt.Errorf("`minimum_scale_unit` and `maximum_scale_unit` must be set when `sku` is `%s`", virtualnetworkgateways.VirtualNetworkGatewaySkuNameErGwScale)
-			}
+	if sku == string(virtualnetworkgateways.VirtualNetworkGatewaySkuNameErGwScale) {
+		if minScaleUnit == 0 || maxScaleUnit == 0 {
+			return fmt.Errorf("`minimum_scale_unit` and `maximum_scale_unit` must be set when `sku` is `%s`", virtualnetworkgateways.VirtualNetworkGatewaySkuNameErGwScale)
 		}
 	}
 
@@ -834,9 +813,6 @@ func resourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface
 		props := model.Properties
 
 		d.Set("bgp_enabled", props.EnableBgp)
-		if !features.FivePointOh() {
-			d.Set("enable_bgp", props.EnableBgp)
-		}
 
 		d.Set("type", string(pointer.From(props.GatewayType)))
 		d.Set("private_ip_address_enabled", props.EnablePrivateIPAddress)
@@ -926,16 +902,7 @@ func resourceVirtualNetworkGatewayUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	payload := existing.Model
 
-	if !features.FivePointOh() && d.HasChanges("enable_bgp", "bgp_enabled") {
-		enableBgp := false
-		if d.HasChange("enable_bgp") && !d.GetRawConfig().AsValueMap()["enable_bgp"].IsNull() {
-			enableBgp = d.Get("enable_bgp").(bool)
-		}
-		if d.HasChange("bgp_enabled") && !d.GetRawConfig().AsValueMap()["bgp_enabled"].IsNull() {
-			enableBgp = d.Get("bgp_enabled").(bool)
-		}
-		payload.Properties.EnableBgp = pointer.To(enableBgp)
-	} else if d.HasChange("bgp_enabled") {
+	if d.HasChange("bgp_enabled") {
 		payload.Properties.EnableBgp = pointer.To(d.Get("bgp_enabled").(bool))
 	}
 
@@ -1038,15 +1005,10 @@ func resourceVirtualNetworkGatewayDelete(d *pluginsdk.ResourceData, meta interfa
 }
 
 func getVirtualNetworkGatewayProperties(id virtualnetworkgateways.VirtualNetworkGatewayId, d *pluginsdk.ResourceData) (*virtualnetworkgateways.VirtualNetworkGatewayPropertiesFormat, error) {
-	enableBgp := d.Get("bgp_enabled").(bool)
-	if !features.FivePointOh() && !d.GetRawConfig().AsValueMap()["enable_bgp"].IsNull() {
-		enableBgp = d.Get("enable_bgp").(bool)
-	}
-
 	props := &virtualnetworkgateways.VirtualNetworkGatewayPropertiesFormat{
 		GatewayType:                     pointer.ToEnum[virtualnetworkgateways.VirtualNetworkGatewayType](d.Get("type").(string)),
 		VpnType:                         pointer.ToEnum[virtualnetworkgateways.VpnType](d.Get("vpn_type").(string)),
-		EnableBgp:                       pointer.To(enableBgp),
+		EnableBgp:                       pointer.To(d.Get("bgp_enabled").(bool)),
 		EnablePrivateIPAddress:          pointer.To(d.Get("private_ip_address_enabled").(bool)),
 		ActiveActive:                    pointer.To(d.Get("active_active").(bool)),
 		EnableBgpRouteTranslationForNat: pointer.To(d.Get("bgp_route_translation_for_nat_enabled").(bool)),
