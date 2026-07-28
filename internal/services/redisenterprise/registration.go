@@ -6,7 +6,6 @@ package redisenterprise
 import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -36,25 +35,12 @@ func (r Registration) WebsiteCategories() []string {
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
-	dataSources := map[string]*pluginsdk.Resource{}
-
-	if !features.FivePointOh() {
-		dataSources["azurerm_redis_enterprise_database"] = dataSourceRedisEnterpriseDatabase()
-	}
-
-	return dataSources
+	return map[string]*pluginsdk.Resource{}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
-	resources := map[string]*pluginsdk.Resource{}
-
-	if !features.FivePointOh() {
-		resources["azurerm_redis_enterprise_cluster"] = resourceRedisEnterpriseCluster()
-		resources["azurerm_redis_enterprise_database"] = resourceRedisEnterpriseDatabase()
-	}
-
-	return resources
+	return map[string]*pluginsdk.Resource{}
 }
 
 func (r Registration) Actions() []func() action.Action {

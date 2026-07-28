@@ -26,7 +26,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
@@ -49,7 +48,7 @@ var skuWeight = map[string]int8{
 }
 
 func resourceRedisCache() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create:   resourceRedisCacheCreate,
 		Read:     resourceRedisCacheRead,
 		Update:   resourceRedisCacheUpdate,
@@ -421,21 +420,6 @@ func resourceRedisCache() *pluginsdk.Resource {
 			}),
 		),
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["minimum_tls_version"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(redisresources.TlsVersionOnePointTwo),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(redisresources.TlsVersionOnePointZero),
-				string(redisresources.TlsVersionOnePointOne),
-				string(redisresources.TlsVersionOnePointTwo),
-			}, false),
-		}
-	}
-
-	return resource
 }
 
 func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error {
