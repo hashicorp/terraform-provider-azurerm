@@ -81,7 +81,7 @@ func (r DataProtectionBackupInstanceDataLakeStorageResource) Arguments() map[str
 			Type:     pluginsdk.TypeSet,
 			Required: true,
 			MinItems: 1,
-			MaxItems: 100,
+			MaxItems: 1000,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 				ValidateFunc: validation.All(
@@ -165,6 +165,7 @@ func (r DataProtectionBackupInstanceDataLakeStorageResource) Create() sdk.Resour
 						ResourceType:     pointer.To("Microsoft.Storage/storageAccounts"),
 						ResourceUri:      pointer.To(storageAccountId.ID()),
 					},
+					FriendlyName: pointer.To(id.BackupInstanceName),
 					PolicyInfo: backupinstanceresources.PolicyInfo{
 						PolicyId: policyId.ID(),
 						PolicyParameters: &backupinstanceresources.PolicyParameters{

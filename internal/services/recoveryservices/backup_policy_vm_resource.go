@@ -25,6 +25,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name backup_policy_vm -properties "name,resource_group_name,vault_name:recovery_vault_name" -test-name policyTypeDefault
+
 func resourceBackupProtectionPolicyVM() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceBackupProtectionPolicyVMCreate,
@@ -32,10 +34,11 @@ func resourceBackupProtectionPolicyVM() *pluginsdk.Resource {
 		Update: resourceBackupProtectionPolicyVMUpdate,
 		Delete: resourceBackupProtectionPolicyVMDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := protectionpolicies.ParseBackupPolicyID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&protectionpolicies.BackupPolicyId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&protectionpolicies.BackupPolicyId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -183,6 +186,10 @@ func resourceBackupProtectionPolicyVMCreate(d *pluginsdk.ResourceData, meta inte
 
 	d.SetId(id.ID())
 
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceBackupProtectionPolicyVMRead(d, meta)
 }
 
@@ -206,11 +213,15 @@ func resourceBackupProtectionPolicyVMRead(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("making Read request on %s: %+v", id, err)
 	}
 
+	return resourceBackupProtectionPolicyVMFlatten(d, id, resp.Model)
+}
+
+func resourceBackupProtectionPolicyVMFlatten(d *pluginsdk.ResourceData, id *protectionpolicies.BackupPolicyId, model *protectionpolicies.ProtectionPolicyResource) error {
 	d.Set("name", id.BackupPolicyName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("recovery_vault_name", id.VaultName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if properties, ok := model.Properties.(protectionpolicies.AzureIaaSVMProtectionPolicy); ok {
 			d.Set("timezone", properties.TimeZone)
 			d.Set("instant_restore_retention_days", properties.InstantRpRetentionRangeInDays)
@@ -276,7 +287,7 @@ func resourceBackupProtectionPolicyVMRead(d *pluginsdk.ResourceData, meta interf
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceBackupProtectionPolicyVMUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

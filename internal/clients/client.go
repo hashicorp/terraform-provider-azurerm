@@ -7,6 +7,8 @@ import (
 	"context"
 	"fmt"
 
+	preflight "github.com/hashicorp/terraform-provider-azurerm/internal/preflight/client"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/validation"
 	aadb2c_v2021_04_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview"
@@ -148,7 +150,6 @@ import (
 	trafficManager "github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/client"
 	videoindexer "github.com/hashicorp/terraform-provider-azurerm/internal/services/videoindexer/client"
 	vmware "github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/client"
-	voiceServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/voiceservices/client"
 	web "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/client"
 	workloads "github.com/hashicorp/terraform-provider-azurerm/internal/services/workloads/client"
 )
@@ -161,6 +162,8 @@ type Client struct {
 
 	Account  *ResourceManagerAccount
 	Features features.UserFeatures
+
+	Preflight *preflight.Client
 
 	AadB2c                            *aadb2c_v2021_04_01_preview.Client
 	Advisor                           *advisor.Client
@@ -287,7 +290,6 @@ type Client struct {
 	TrafficManager                    *trafficManager.Client
 	VideoIndexer                      *videoindexer.Client
 	Vmware                            *vmware.Client
-	VoiceServices                     *voiceServices.Client
 	Web                               *web.Client
 	Workloads                         *workloads_v2024_09_01.Client
 }
@@ -307,6 +309,10 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.StopContext = ctx
 
 	var err error
+
+	if client.Preflight, err = preflight.NewClient(o); err != nil {
+		return fmt.Errorf("building client for preflight validator: %+v", err)
+	}
 
 	if client.AadB2c, err = aadb2c.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for AadB2c: %+v", err)
@@ -684,9 +690,6 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 
 	if client.Vmware, err = vmware.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for VMWare: %+v", err)
-	}
-	if client.VoiceServices, err = voiceServices.NewClient(o); err != nil {
-		return fmt.Errorf("building clients for Voice Services: %+v", err)
 	}
 
 	if client.Web, err = web.NewClient(o); err != nil {

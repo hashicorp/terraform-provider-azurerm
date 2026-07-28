@@ -2659,11 +2659,12 @@ resource "azurerm_public_ip" "testStd" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acct%[2]d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.test.tenant_id}"
-  sku_name            = "standard"
+  name                       = "acct%[2]d"
+  location                   = "${azurerm_resource_group.test.location}"
+  resource_group_name        = "${azurerm_resource_group.test.name}"
+  rbac_authorization_enabled = false
+  tenant_id                  = "${data.azurerm_client_config.test.tenant_id}"
+  sku_name                   = "standard"
 
   access_policy {
     tenant_id               = "${data.azurerm_client_config.test.tenant_id}"
@@ -2826,11 +2827,12 @@ resource "azurerm_public_ip" "testStd" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acct%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.test.tenant_id
-  sku_name            = "standard"
+  name                       = "acct%[2]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.test.tenant_id
+  sku_name                   = "standard"
 
   access_policy {
     tenant_id               = data.azurerm_client_config.test.tenant_id
@@ -5087,11 +5089,12 @@ resource "azurerm_public_ip" "testStd" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acct%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.test.tenant_id
-  sku_name            = "standard"
+  name                       = "acct%[2]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.test.tenant_id
+  sku_name                   = "standard"
 
   access_policy {
     tenant_id               = data.azurerm_client_config.test.tenant_id
@@ -5256,11 +5259,12 @@ resource "azurerm_public_ip" "testStd" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acct%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.test.tenant_id
-  sku_name            = "standard"
+  name                       = "acct%[2]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.test.tenant_id
+  sku_name                   = "standard"
 
   access_policy {
     tenant_id               = data.azurerm_client_config.test.tenant_id
@@ -6399,7 +6403,7 @@ resource "azurerm_public_ip" "test" {
 
 func (r ApplicationGatewayResource) customErrorConfigurations(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+	%s
 
 # since these variables are re-used - a locals block makes this more maintainable
 locals {
@@ -6436,25 +6440,24 @@ resource "azurerm_storage_container" "errors" {
 }
 
 resource "azurerm_storage_blob" "error_pages" {
-  count                  = length(local.error_codes)
-  name                   = "${local.error_codes[count.index]}.html"
-  storage_account_name   = azurerm_storage_account.errors.name
-  storage_container_name = azurerm_storage_container.errors.name
-  type                   = "Block"
-  content_type           = "text/html"
+  count                = length(local.error_codes)
+  name                 = "${local.error_codes[count.index]}.html"
+  storage_container_id = azurerm_storage_container.errors.id
+  type                 = "Block"
+  content_type         = "text/html"
 
   source_content = <<HTML
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>${local.error_codes[count.index]}</title>
-  </head>
-  <body>
-    <h1>${local.error_codes[count.index]}</h1>
-  </body>
-</html>
-HTML
+	<!DOCTYPE html>
+	<html lang="en">
+	  <head>
+	    <meta charset="UTF-8" />
+	    <title>${local.error_codes[count.index]}</title>
+	  </head>
+	  <body>
+	    <h1>${local.error_codes[count.index]}</h1>
+	  </body>
+	</html>
+	HTML
 }
 
 resource "azurerm_application_gateway" "test" {
@@ -6503,84 +6506,84 @@ resource "azurerm_application_gateway" "test" {
 
     custom_error_configuration {
       status_code           = "HttpStatus400"
-      custom_error_page_url = azurerm_storage_blob.error_pages[index(local.error_codes, 400)].url
+      custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/400.html"
     }
 
     custom_error_configuration {
       status_code           = "HttpStatus403"
-      custom_error_page_url = azurerm_storage_blob.error_pages[index(local.error_codes, 403)].url
+      custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/403.html"
     }
 
     custom_error_configuration {
       status_code           = "HttpStatus404"
-      custom_error_page_url = azurerm_storage_blob.error_pages[index(local.error_codes, 404)].url
+      custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/404.html"
     }
 
     custom_error_configuration {
       status_code           = "HttpStatus405"
-      custom_error_page_url = azurerm_storage_blob.error_pages[index(local.error_codes, 405)].url
+      custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/405.html"
     }
 
     custom_error_configuration {
       status_code           = "HttpStatus500"
-      custom_error_page_url = azurerm_storage_blob.error_pages[index(local.error_codes, 500)].url
+      custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/500.html"
     }
 
     custom_error_configuration {
       status_code           = "HttpStatus502"
-      custom_error_page_url = azurerm_storage_blob.error_pages[index(local.error_codes, 502)].url
+      custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/502.html"
     }
 
     custom_error_configuration {
       status_code           = "HttpStatus503"
-      custom_error_page_url = azurerm_storage_blob.error_pages[index(local.error_codes, 503)].url
+      custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/503.html"
     }
 
     custom_error_configuration {
       status_code           = "HttpStatus504"
-      custom_error_page_url = azurerm_storage_blob.error_pages[index(local.error_codes, 504)].url
+      custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/504.html"
     }
 
   }
 
   custom_error_configuration {
     status_code           = "HttpStatus400"
-    custom_error_page_url = azurerm_storage_blob.error_pages[index(local.error_codes, 400)].url
+    custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/400.html"
   }
 
   custom_error_configuration {
     status_code           = "HttpStatus403"
-    custom_error_page_url = azurerm_storage_blob.error_pages[index(local.error_codes, 403)].url
+    custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/403.html"
   }
 
   custom_error_configuration {
     status_code           = "HttpStatus404"
-    custom_error_page_url = azurerm_storage_blob.error_pages[index(local.error_codes, 404)].url
+    custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/404.html"
   }
 
   custom_error_configuration {
     status_code           = "HttpStatus405"
-    custom_error_page_url = azurerm_storage_blob.error_pages[index(local.error_codes, 405)].url
+    custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/405.html"
   }
 
   custom_error_configuration {
     status_code           = "HttpStatus500"
-    custom_error_page_url = azurerm_storage_blob.error_pages[index(local.error_codes, 500)].url
+    custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/500.html"
   }
 
   custom_error_configuration {
     status_code           = "HttpStatus502"
-    custom_error_page_url = azurerm_storage_blob.error_pages[index(local.error_codes, 502)].url
+    custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/502.html"
   }
 
   custom_error_configuration {
     status_code           = "HttpStatus503"
-    custom_error_page_url = azurerm_storage_blob.error_pages[index(local.error_codes, 503)].url
+    custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/503.html"
   }
 
   custom_error_configuration {
     status_code           = "HttpStatus504"
-    custom_error_page_url = azurerm_storage_blob.error_pages[index(local.error_codes, 504)].url
+    custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/504.html"
   }
 
   request_routing_rule {
@@ -6592,7 +6595,7 @@ resource "azurerm_application_gateway" "test" {
     priority                   = 10
   }
 }
-`, r.template(data), data.RandomString, data.RandomInteger)
+	`, r.template(data), data.RandomString, data.RandomInteger)
 }
 
 func (r ApplicationGatewayResource) rewriteRuleSets_backend(data acceptance.TestData) string {

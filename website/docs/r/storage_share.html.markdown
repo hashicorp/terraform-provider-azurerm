@@ -53,13 +53,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the share. Must be unique within the storage account where the share is located. Changing this forces a new resource to be created.
 
-* `storage_account_name` - (Optional) Specifies the storage account in which to create the share. This property is deprecated in favour of `storage_account_id`.
-
-~> **Note:** Migrating from the deprecated `storage_account_name` to `storage_account_id` is supported without recreation. Any other change to either property will result in the resource being recreated.
-
-* `storage_account_id` - (Optional) Specifies the storage account in which to create the share.
-
-~> **Note:** One of `storage_account_name` or `storage_account_id` must be specified. When specifying `storage_account_id` the resource will use the Resource Manager API, rather than the Data Plane API.
+* `storage_account_id` - (Required) Specifies the ID of the storage account in which to create the share. Changing this forces a new resource to be created.
 
 * `access_tier` - (Optional) The access tier of the File Share. Possible values are `Hot`, `Cool` and `TransactionOptimized`, `Premium`.
 
@@ -95,9 +89,9 @@ A `access_policy` block supports the following:
 
 ~> **Note:** Permission order is strict at the service side, and permissions need to be listed in the order above.
 
-* `start` - (Optional) The time at which this Access Policy should be valid from. When using `storage_account_id` this should be in RFC3339 format. If using the deprecated `storage_account_name` property, this uses the [ISO8601](https://en.wikipedia.org/wiki/ISO_8601) format.
+* `start` - (Optional) The time at which this Access Policy should be valid from, in RFC3339 format.
 
-* `expiry` - (Optional) The time at which this Access Policy should be valid untilWhen using `storage_account_id` this should be in RFC3339 format. If using the deprecated `storage_account_name` property, this uses the [ISO8601](https://en.wikipedia.org/wiki/ISO_8601) format.
+* `expiry` - (Optional) The time at which this Access Policy should be valid until, in RFC3339 format.
 
 ## Attributes Reference
 
@@ -108,8 +102,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `rbac_scope_id` - The ID that is supposed to be used as the `scope` of an `azurerm_role_assignmet` for this File Share.
 
 ~> **Note:** Due to historical reason of the File Share service, the `scope` to be used in an `azurerm_role_assignmet` is different than its Resource Manager ID. See: https://github.com/Azure/azure-rest-api-specs/issues/24568.
-
-* `resource_manager_id` - The Resource Manager ID of this File Share.
 
 * `url` - The URL of the File Share
 
