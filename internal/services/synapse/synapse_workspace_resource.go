@@ -23,7 +23,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/purview/2021-07-01/account"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -39,7 +38,7 @@ const (
 )
 
 func resourceSynapseWorkspace() *pluginsdk.Resource {
-	r := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceSynapseWorkspaceCreate,
 		Read:   resourceSynapseWorkspaceRead,
 		Update: resourceSynapseWorkspaceUpdate,
@@ -272,12 +271,6 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	if !features.FivePointOh() {
-		r.Schema["customer_managed_key"].Elem.(*pluginsdk.Resource).Schema["key_versionless_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeAny)
-	}
-
-	return r
 }
 
 func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
