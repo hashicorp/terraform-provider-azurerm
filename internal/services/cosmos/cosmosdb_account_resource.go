@@ -27,8 +27,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
@@ -134,7 +132,7 @@ func suppressConsistencyPolicyStalenessConfiguration(_, _, _ string, d *pluginsd
 }
 
 func resourceCosmosDbAccount() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceCosmosDbAccountCreate,
 		Read:   resourceCosmosDbAccountRead,
 		Update: resourceCosmosDbAccountUpdate,
@@ -767,75 +765,6 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["local_authentication_disabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			Deprecated:    "`local_authentication_disabled` has been deprecated in favour of `local_authentication_enabled` and will be removed in v5.0 of the AzureRM Provider",
-			ConflictsWith: []string{"local_authentication_enabled"},
-		}
-
-		resource.Schema["local_authentication_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"local_authentication_disabled"},
-		}
-
-		resource.Schema["minimal_tls_version"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Default:      string(cosmosdb.MinimalTlsVersionTlsOneTwo),
-			ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForMinimalTlsVersion(), false),
-		}
-
-		resource.Schema["managed_hsm_key_id"] = &pluginsdk.Schema{
-			Type:                  pluginsdk.TypeString,
-			Optional:              true,
-			DiffSuppressOnRefresh: true,
-			DiffSuppressFunc: func(_, oldValue, newValue string, d *schema.ResourceData) bool {
-				if newValue == "" {
-					// If using `key_vault_key_id`, `managed_hsm_key_id` will also be set
-					// ignore diff if the 2 are equal.
-					raw := d.GetRawConfig().AsValueMap()["key_vault_key_id"]
-					if raw.IsKnown() && !raw.IsNull() {
-						return raw.AsString() == oldValue
-					}
-				}
-
-				return false
-			},
-			ForceNew:      true,
-			ValidateFunc:  keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeKey),
-			ConflictsWith: []string{"key_vault_key_id"},
-			Deprecated:    "`managed_hsm_key_id` has been deprecated in favour of `key_vault_key_id` and will be removed in v5.0 of the AzureRM provider",
-		}
-
-		resource.Schema["key_vault_key_id"] = &pluginsdk.Schema{
-			Type:                  pluginsdk.TypeString,
-			Optional:              true,
-			ForceNew:              true,
-			ValidateFunc:          keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeKey),
-			DiffSuppressOnRefresh: true,
-			DiffSuppressFunc: func(_, oldValue, newValue string, d *schema.ResourceData) bool {
-				if newValue == "" {
-					// If using `managed_hsm_key_id`, `key_vault_key_id` will also be set
-					// ignore diff if the 2 are equal.
-					raw := d.GetRawConfig().AsValueMap()["managed_hsm_key_id"]
-					if raw.IsKnown() && !raw.IsNull() {
-						return raw.AsString() == oldValue
-					}
-				}
-
-				return false
-			},
-			ConflictsWith: []string{"managed_hsm_key_id"},
-		}
-	}
-
-	return resource
 }
 
 func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -909,16 +838,6 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if !features.FivePointOh() {
-		account.Properties.DisableLocalAuth = pointer.To(false)
-		if !pluginsdk.IsExplicitlyNullInConfig(d, "local_authentication_enabled") {
-			account.Properties.DisableLocalAuth = pointer.To(!d.Get("local_authentication_enabled").(bool))
-		}
-		if !pluginsdk.IsExplicitlyNullInConfig(d, "local_authentication_disabled") {
-			account.Properties.DisableLocalAuth = pointer.To(d.Get("local_authentication_disabled").(bool))
-		}
-	}
-
 	if v, ok := d.GetOk("default_identity_type"); ok {
 		account.Properties.DefaultIdentity = pointer.To(v.(string))
 	}
@@ -958,13 +877,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	var key *keyvault.NestedItemID
-	if !features.FivePointOh() && setInConfig(d, "managed_hsm_key_id") {
-		keyId, err := keyvault.ParseNestedItemID(d.Get("managed_hsm_key_id").(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
-		if err != nil {
-			return err
-		}
-		key = keyId
-	} else if v, ok := d.GetOk("key_vault_key_id"); ok && setInConfig(d, "key_vault_key_id") {
+	if v, ok := d.GetOk("key_vault_key_id"); ok {
 		keyId, err := keyvault.ParseNestedItemID(v.(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 		if err != nil {
 			return err
@@ -1089,7 +1002,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		"capacity", "restore", "mongo_server_version",
 		"public_network_access_enabled", "ip_range_filter", "offer_type", "is_virtual_network_filter_enabled",
 		"tags", "automatic_failover_enabled", "analytical_storage_enabled",
-		"local_authentication_enabled", "local_authentication_disabled", "partition_merge_enabled", "minimal_tls_version", "burst_capacity_enabled")
+		"local_authentication_enabled", "partition_merge_enabled", "minimal_tls_version", "burst_capacity_enabled")
 
 	// Incident : #383341730
 	// Azure Bug: #2209567 'Updating identities and default identity at the same time fails silently'
@@ -1140,15 +1053,6 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			EnableBurstCapacity:                pointer.To(d.Get("burst_capacity_enabled").(bool)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
-	}
-
-	if !features.FivePointOh() {
-		if pluginsdk.IsExplicitlyNullInConfig(d, "local_authentication_enabled") {
-			account.Properties.DisableLocalAuth = pointer.To(false)
-		}
-		if !pluginsdk.IsExplicitlyNullInConfig(d, "local_authentication_disabled") {
-			account.Properties.DisableLocalAuth = pointer.To(d.Get("local_authentication_disabled").(bool))
-		}
 	}
 
 	// 'default_identity_type' will always have a value since it now has a default value of "FirstPartyIdentity" per the API documentation.
@@ -1397,9 +1301,6 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 				}
 
 				d.Set("key_vault_key_id", key.VersionlessID())
-				if !features.FivePointOh() && key.IsManagedHSM() {
-					d.Set("managed_hsm_key_id", key.VersionlessID())
-				}
 			}
 
 			if err := d.Set("analytical_storage", flattenCosmosDBAccountAnalyticalStorageConfiguration(props.AnalyticalStorageConfiguration)); err != nil {
@@ -1443,9 +1344,6 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 			d.Set("network_acl_bypass_for_azure_services", pointer.From(props.NetworkAclBypass) == cosmosdb.NetworkAclBypassAzureServices)
 			d.Set("network_acl_bypass_ids", utils.FlattenStringSlice(props.NetworkAclBypassResourceIds))
 			d.Set("local_authentication_enabled", !pointer.From(props.DisableLocalAuth))
-			if !features.FivePointOh() {
-				d.Set("local_authentication_disabled", pointer.From(props.DisableLocalAuth))
-			}
 
 			policy, err := flattenCosmosdbAccountBackup(props.BackupPolicy)
 			if err != nil {
@@ -2291,16 +2189,4 @@ func prepareCapabilities(capabilities interface{}) *[]cosmosdb.Capability {
 		}
 	}
 	return &output
-}
-
-func setInConfig(d *pluginsdk.ResourceData, address string) bool {
-	// remove function in 5.0
-	if features.FivePointOh() {
-		// No need to check RawConfig in 5.0 as `key_vault_key_id` is no longer computed
-		// so the existing `GetOk` check will suffice
-		return true
-	}
-
-	raw, diags := d.GetRawConfigAt(sdk.ConstructCtyPath(address))
-	return !diags.HasError() && !raw.IsNull()
 }
