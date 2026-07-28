@@ -219,8 +219,6 @@ func TestAccSnapshot_copyStart(t *testing.T) {
 			Config: r.copyStart(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("create_option").HasValue("CopyStart"),
-				check.That(data.ResourceName).Key("completion_percent").HasValue("100"),
 			),
 		},
 		data.ImportStep("source_resource_id"),

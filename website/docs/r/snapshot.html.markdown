@@ -78,9 +78,6 @@ resource "azurerm_snapshot" "target" {
   public_network_access_enabled = false
 }
 
-output "snapshot_completion_percent" {
-  value = azurerm_snapshot.target.completion_percent
-}
 ```
 
 
@@ -98,7 +95,7 @@ The following arguments are supported:
 
 ~> **Note:** One of `source_uri`, `source_resource_id` or `storage_account_id` must be specified.
 
-~> **Note:** When `create_option` is set to `CopyStart` the snapshot is created using a background copy operation (for example when copying an incremental snapshot across regions). Terraform waits for the copy to reach 100% completion before finishing the create, and the progress is exposed via the `completion_percent` attribute.
+~> **Note:** When `create_option` is set to `CopyStart` the snapshot is created using a background copy operation (for example when copying an incremental snapshot across regions). Terraform waits for the copy to reach 100% completion before finishing the create.
 
 * `source_uri` - (Optional) Specifies the URI to a Managed or Unmanaged Disk. Changing this forces a new resource to be created.
 
@@ -151,8 +148,6 @@ The `key_encryption_key` block supports:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The Snapshot ID.
-
-* `completion_percent` - The percentage complete for the background copy operation when `create_option` is set to `CopyStart`. This value is `100` once the copy has completed.
 
 * `disk_size_gb` - The Size of the Snapshotted Disk in GB.
 

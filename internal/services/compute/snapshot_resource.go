@@ -16,9 +16,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskaccesses"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/snapshots"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/custompoller"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -71,11 +73,6 @@ func resourceSnapshot() *pluginsdk.Resource {
 					string(snapshots.DiskCreateOptionCopyStart),
 					string(snapshots.DiskCreateOptionImport),
 				}, false),
-			},
-
-			"completion_percent": {
-				Type:     pluginsdk.TypeFloat,
-				Computed: true,
 			},
 
 			"incremental_enabled": {
@@ -233,19 +230,10 @@ func resourceSnapshotCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		// consume an incomplete snapshot.
 		if createOption == string(snapshots.DiskCreateOptionCopyStart) {
 			log.Printf("[DEBUG] Waiting for the copy of %s to complete", id)
-			timeout := 30 * time.Minute
-			if deadline, ok := ctx.Deadline(); ok {
-				timeout = time.Until(deadline)
-			}
-			stateConf := &pluginsdk.StateChangeConf{
-				Pending:    []string{"Copying"},
-				Target:     []string{"Complete"},
-				Refresh:    snapshotCopyCompletionRefreshFunc(ctx, client, id),
-				MinTimeout: 30 * time.Second,
-				Timeout:    timeout,
-			}
 
-			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+			pollerType := custompoller.NewSnapshotCopyStartPoller(client, id)
+			poller := pollers.NewPoller(pollerType, 30*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
 				return fmt.Errorf("waiting for the copy of %s to complete: %+v", id, err)
 			}
 		}
@@ -290,12 +278,6 @@ func resourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.Set("create_option", string(data.CreateOption))
 			d.Set("storage_account_id", data.StorageAccountId)
 			d.Set("disk_access_id", pointer.From(props.DiskAccessId))
-
-			completionPercent := float64(0)
-			if props.CompletionPercent != nil {
-				completionPercent = *props.CompletionPercent
-			}
-			d.Set("completion_percent", completionPercent)
 
 			diskSizeGb := 0
 			if props.DiskSizeGB != nil {
@@ -355,25 +337,4 @@ func resourceSnapshotDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	return nil
-}
-
-func snapshotCopyCompletionRefreshFunc(ctx context.Context, client *snapshots.SnapshotsClient, id snapshots.SnapshotId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			return nil, "", fmt.Errorf("polling for the copy status of %s: %+v", id, err)
-		}
-
-		completionPercent := float64(0)
-		if model := resp.Model; model != nil && model.Properties != nil {
-			completionPercent = pointer.From(model.Properties.CompletionPercent)
-		}
-
-		log.Printf("[DEBUG] Snapshot %s copy completion is at %.1f%%", id, completionPercent)
-		if completionPercent < 100 {
-			return resp, "Copying", nil
-		}
-
-		return resp, "Complete", nil
-	}
 }
