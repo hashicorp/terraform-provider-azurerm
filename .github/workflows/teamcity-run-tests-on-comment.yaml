@@ -101,24 +101,18 @@ jobs:
         with:
           go-version: '1.26'
 
-      - name: Get tctest version
-        id: tctest-version
-        run: |
-          LATEST_RELEASE=$(curl -s https://api.github.com/repos/katbyte/tctest/releases/latest | grep "tag_name" | cut -d '"' -f 4)
-          echo "version=${LATEST_RELEASE}" >> $GITHUB_OUTPUT
-          echo "Latest tctest release: $LATEST_RELEASE"
-
       - name: Cache tctest binary
         id: cache-tctest
         uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
           path: ~/go/bin/tctest
-          key: tctest-${{ runner.os }}-${{ steps.tctest-version.outputs.version }}
+          # keep this key in sync with the pinned version installed below
+          key: tctest-${{ runner.os }}-v1.0.0
 
       - name: Install tctest
         if: steps.cache-tctest.outputs.cache-hit != 'true'
         run: |
-          go install github.com/katbyte/tctest@latest
+          go install github.com/katbyte/tctest@v1.0.0
 
       - name: Get PR commit SHA
         id: get-pr-sha
@@ -138,9 +132,12 @@ jobs:
 
       - name: Run tctest
         id: run-tctest
+        env:
+          # Passed via env rather than interpolated into the script to prevent
+          # shell injection from untrusted comment text (OpenSSF Dangerous-Workflow)
+          COMMENT_BODY: ${{ github.event.comment.body }}
         run: |
           PR_NUMBER=${{ github.event.issue.number }}
-          COMMENT_BODY="${{ github.event.comment.body }}"
           PR_SHA="${{ steps.get-pr-sha.outputs.sha }}"
 
           # Parse flags from comment
@@ -152,8 +149,10 @@ jobs:
           service=""
 
           # Parse flags using getopts
-          # Convert FLAGS_STRING to array for getopts
-          eval set -- $FLAGS_STRING
+          # Split FLAGS_STRING on whitespace WITHOUT eval - eval would execute
+          # command substitutions embedded in the (untrusted) comment text
+          read -ra FLAGS <<< "$FLAGS_STRING"
+          set -- "${FLAGS[@]}"
 
           while getopts ":bs:" opt; do
             case "$opt" in

@@ -1,6 +1,8 @@
 ---
 name: Link Milestone
 
+permissions: {}
+
 on:
   pull_request_target:
     branches: [main]
@@ -20,7 +22,7 @@ jobs:
           # we cannot use go-version-file here because no repositories are checked out so there is no file to reference
           go-version: '1.26'
       - run: |
-          go install github.com/stephybun/link-milestone@latest
+          go install github.com/stephybun/link-milestone@1e48f06f81570d223831a9fca0fd8bb0ad11c7da
           link-milestone
         env:
           PR_NUMBER: ${{ github.event.number }}

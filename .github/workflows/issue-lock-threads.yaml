@@ -1,6 +1,8 @@
 ---
 name: 'Lock Threads'
 
+permissions: {}
+
 on:
   schedule:
     - cron: '50 1 * * *'

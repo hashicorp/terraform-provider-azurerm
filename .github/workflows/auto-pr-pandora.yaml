@@ -1,6 +1,9 @@
 ---
 name: Open Pull Request when an `auto-pr` is pushed for Pandora
 
+permissions:
+  contents: read
+
 on:
   push:
     branches:

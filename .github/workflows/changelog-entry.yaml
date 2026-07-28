@@ -1,8 +1,8 @@
 name: GetChangelogEntry
 
+# only reads the merge commit message and uploads it as an artifact
 permissions:
-  pull-requests: write
-  contents: write
+  contents: read
 
 on:
   pull_request:

@@ -1,6 +1,9 @@
 ---
 name: Open Pull Request when an `auto-pr` is pushed for go-azure-sdk
 
+permissions:
+  contents: read
+
 on:
   push:
     branches:

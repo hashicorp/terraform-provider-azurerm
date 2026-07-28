@@ -8,6 +8,8 @@ name: Save Artifacts
 # the two: called on failure, it uploads the repo owner/name and PR number as an
 # artifact so the workflow_run side can download it and label the right PR.
 
+permissions: {}
+
 on:
   # This file is reused, and called from other workflows
   workflow_call:
