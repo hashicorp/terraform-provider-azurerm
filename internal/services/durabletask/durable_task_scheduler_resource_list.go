@@ -81,7 +81,7 @@ func (SchedulerListResource) List(ctx context.Context, request list.ListRequest,
 				return
 			}
 
-			state := flattenScheduler(*id, item)
+			state := flattenScheduler(*id, pointer.To(item))
 
 			if err := meta.Encode(&state); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", pointer.From(item.Name)), err)

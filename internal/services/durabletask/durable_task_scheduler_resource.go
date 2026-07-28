@@ -199,10 +199,7 @@ func (r SchedulerResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			var state SchedulerResourceModel
-			if model := resp.Model; model != nil {
-				state = flattenScheduler(*id, *model)
-			}
+			state := flattenScheduler(*id, resp.Model)
 
 			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
 				return err
@@ -213,19 +210,22 @@ func (r SchedulerResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func flattenScheduler(id schedulers.SchedulerId, model schedulers.Scheduler) SchedulerResourceModel {
+func flattenScheduler(id schedulers.SchedulerId, model *schedulers.Scheduler) SchedulerResourceModel {
 	state := SchedulerResourceModel{
 		Name:              id.SchedulerName,
 		ResourceGroupName: id.ResourceGroupName,
-		Location:          location.Normalize(model.Location),
-		Tags:              pointer.From(model.Tags),
 	}
 
-	if props := model.Properties; props != nil {
-		state.SkuName = string(props.Sku.Name)
-		state.Capacity = pointer.From(props.Sku.Capacity)
-		state.IpAllowList = props.IPAllowlist
-		state.Endpoint = pointer.From(props.Endpoint)
+	if model != nil {
+		state.Location = location.Normalize(model.Location)
+		state.Tags = pointer.From(model.Tags)
+
+		if props := model.Properties; props != nil {
+			state.SkuName = string(props.Sku.Name)
+			state.Capacity = pointer.From(props.Sku.Capacity)
+			state.IpAllowList = props.IPAllowlist
+			state.Endpoint = pointer.From(props.Endpoint)
+		}
 	}
 
 	return state
