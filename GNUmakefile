@@ -1,9 +1,8 @@
 TEST?=$$(go list ./... |grep -v 'vendor'|grep -v 'examples')
-WEBSITE_REPO=github.com/hashicorp/terraform-website
 TESTTIMEOUT=180m
+TF_SCHEMA_PANIC_ON_ERROR=1
 
 .EXPORT_ALL_VARIABLES:
-  TF_SCHEMA_PANIC_ON_ERROR=1
 
 default: build
 
@@ -30,7 +29,6 @@ fumpt:
 	# This logic should match the search logic in scripts/checks/gofmt-check.sh
 	find . -name '*.go' | grep -v vendor | xargs gofumpt -s -w
 
-# Currently required by tf-deploy compile, duplicated by linters
 fmtcheck:
 	@sh "$(CURDIR)/scripts/checks/gofmt-check.sh"
 	@sh "$(CURDIR)/scripts/checks/timeouts-check.sh"
@@ -134,13 +132,6 @@ website-lint:
 		(echo; echo "Documentation validation failed. Check that your docs follow the provider documentation format."; echo "See: contributing/topics/guide-new-resource.md for documentation requirements."; exit 1)
 	@sh -c "'$(CURDIR)/scripts/checks/terrafmt-website.sh'"
 
-website:
-ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
-	echo "$(WEBSITE_REPO) not found in your GOPATH (necessary for layouts and assets), get-ting..."
-	git clone https://$(WEBSITE_REPO) $(GOPATH)/src/$(WEBSITE_REPO)
-endif
-	@$(MAKE) -C $(GOPATH)/src/$(WEBSITE_REPO) website-provider PROVIDER_PATH=$(shell pwd) PROVIDER_NAME=azurerm
-
 document-validate:
 	@./scripts/checks/document-validate.sh
 
@@ -171,4 +162,4 @@ static-analysis:
 
 pr-check: generate build test lint tfproviderlint website-lint
 
-.PHONY: build test testacc vet fmt fmtcheck errcheck pr-check scaffold-website test-compile website website-test validate-examples resource-counts static-analysis tfproviderlint tflint
+.PHONY: default tools build fmt fumpt fmtcheck terrafmt generate goimports lint shellcheck depscheck gencheck tfproviderlint tflint whitespace golangci-fix test test-compile testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts static-analysis pr-check
