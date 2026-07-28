@@ -87,13 +87,16 @@ func (r AccessConnectorResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := accessconnector.NewAccessConnectorID(subscriptionId, model.ResourceGroup, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing Databricks %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing Databricks %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
@@ -108,7 +111,7 @@ func (r AccessConnectorResource) Create() sdk.ResourceFunc {
 				Identity: expandedIdentity,
 			}
 
-			if err = client.CreateOrUpdateThenPoll(ctx, id, accessConnector); err != nil {
+			if err = client.CreateOrUpdateCallbackThenPoll(ctx, id, accessConnector, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating Databricks %s: %+v", id, err)
 			}
 

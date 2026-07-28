@@ -7,9 +7,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"strings"
 	"time"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -211,19 +212,19 @@ func resourcePublicIpCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Public IP creation.")
-
 	id := commonids.NewPublicIPAddressID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id, publicipaddresses.DefaultGetOperationOptions())
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id, publicipaddresses.DefaultGetOperationOptions())
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_public_ip", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_public_ip", id.ID())
+		}
 	}
 
 	sku := d.Get("sku").(string)
@@ -316,7 +317,7 @@ func resourcePublicIpCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		publicIp.Properties.IPTags = &newIpTags
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, publicIp); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, publicIp, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -332,8 +333,6 @@ func resourcePublicIpUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PublicIPAddresses
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for AzureRM Public IP update.")
 
 	id, err := commonids.ParsePublicIPAddressID(d.Id())
 	if err != nil {

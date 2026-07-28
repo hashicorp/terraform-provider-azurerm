@@ -57,9 +57,20 @@ func (c AgentPoolsClient) AbortLatestOperation(ctx context.Context, id AgentPool
 
 // AbortLatestOperationThenPoll performs AbortLatestOperation then polls until it's completed
 func (c AgentPoolsClient) AbortLatestOperationThenPoll(ctx context.Context, id AgentPoolId) error {
+	return c.AbortLatestOperationCallbackThenPoll(ctx, id, nil)
+}
+
+// AbortLatestOperationCallbackThenPoll performs AbortLatestOperation, runs the optional callback function, then polls until it's completed
+func (c AgentPoolsClient) AbortLatestOperationCallbackThenPoll(ctx context.Context, id AgentPoolId, callback func() error) error {
 	result, err := c.AbortLatestOperation(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing AbortLatestOperation: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

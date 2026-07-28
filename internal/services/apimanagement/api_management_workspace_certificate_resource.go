@@ -59,7 +59,8 @@ func (r ApiManagementWorkspaceCertificateResource) Arguments() map[string]*plugi
 			ForceNew: true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,78}[a-zA-Z0-9])?$`),
-				"The `name` must be 1–80 characters, using only letters, numbers, or hyphens, and not starting or ending with a hyphen."),
+				"The `name` must be 1–80 characters, using only letters, numbers, or hyphens, and not starting or ending with a hyphen.",
+			),
 		},
 
 		"api_management_workspace_id": commonschema.ResourceIDReferenceRequiredForceNew(&workspace.WorkspaceId{}),
@@ -138,13 +139,16 @@ func (r ApiManagementWorkspaceCertificateResource) Create() sdk.ResourceFunc {
 			}
 
 			id := certificate.NewWorkspaceCertificateID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.ServiceName, workspaceId.WorkspaceId, model.Name)
-			existing, err := client.WorkspaceCertificateGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.WorkspaceCertificateGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := certificate.CertificateCreateOrUpdateParameters{

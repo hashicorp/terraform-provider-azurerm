@@ -212,7 +212,8 @@ func TestAccStorageAccount_blobConnectionString(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(check.That(data.ResourceName).ExistsInAzure(r),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("primary_blob_connection_string").Exists(),
 			),
 		},
@@ -2416,7 +2417,9 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
-  service_endpoints    = ["Microsoft.Storage"]
+  service_endpoint {
+    service = "Microsoft.Storage"
+  }
 }
 
 resource "azurerm_storage_account" "test" {
@@ -2808,7 +2811,9 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
-  service_endpoints    = ["Microsoft.Storage"]
+  service_endpoint {
+    service = "Microsoft.Storage"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -4406,6 +4411,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acctestkv%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   purge_protection_enabled   = true
@@ -4507,6 +4513,7 @@ resource "azurerm_key_vault" "update" {
   name                       = "acctestkvu%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   purge_protection_enabled   = true
@@ -4735,6 +4742,7 @@ resource "azurerm_key_vault" "remotetest" {
   name                       = "acctestkvr%s"
   location                   = azurerm_resource_group.remotetest.location
   resource_group_name        = azurerm_resource_group.remotetest.name
+  rbac_authorization_enabled = false
   tenant_id                  = "%s"
   sku_name                   = "standard"
   purge_protection_enabled   = true
@@ -5415,6 +5423,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acc%[3]d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7

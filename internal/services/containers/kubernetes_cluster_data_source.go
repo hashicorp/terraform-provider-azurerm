@@ -765,6 +765,16 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("retrieving User Credentials for %s: %+v", id, err)
 	}
 
+	if model := resp.Model; model != nil {
+		if resp.Model.Sku == nil || resp.Model.Sku.Name == nil {
+			return fmt.Errorf("retrieving %s: SKU information is missing", d.Id())
+		}
+
+		if pointer.From(resp.Model.Sku.Name) == managedclusters.ManagedClusterSKUNameAutomatic {
+			return fmt.Errorf("retrieving %s: azurerm_kubernetes_cluster datasource does not support SKU `Automatic`", d.Id())
+		}
+	}
+
 	d.SetId(id.ID())
 	if model := resp.Model; model != nil {
 		d.Set("name", id.ManagedClusterName)

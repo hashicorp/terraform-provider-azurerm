@@ -23,6 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -289,23 +290,23 @@ func resourceServiceBusNamespaceCreate(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for ServiceBus Namespace create")
-
 	location := location.Normalize(d.Get("location").(string))
 	sku := d.Get("sku").(string)
 	t := d.Get("tags").(map[string]interface{})
 
 	id := namespaces.NewNamespaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_servicebus_namespace", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_servicebus_namespace", id.ID())
+		}
 	}
 
 	identity, err := expandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
@@ -359,10 +360,9 @@ func resourceServiceBusNamespaceCreate(d *pluginsdk.ResourceData, meta interface
 		parameters.Properties.PremiumMessagingPartitions = pointer.To(int64(premiumMessagingUnit.(int)))
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-
 	d.SetId(id.ID())
 	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
 		return err
@@ -379,8 +379,6 @@ func resourceServiceBusNamespaceUpdate(d *pluginsdk.ResourceData, meta interface
 	client := meta.(*clients.Client).ServiceBus.NamespacesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for ServiceBus Namespace update")
 
 	id, err := namespaces.ParseNamespaceID(d.Id())
 	if err != nil {
@@ -472,13 +470,10 @@ func resourceServiceBusNamespaceUpdate(d *pluginsdk.ResourceData, meta interface
 			if err = resetNetworkRuleSetForNamespace(ctx, client, *id); err != nil {
 				return err
 			}
-			log.Printf("[DEBUG] Reset the Existing Network Rule Set associated with %s", id)
 		} else {
-			log.Printf("[DEBUG] Updating the Network Rule Set associated with %s..", id)
 			if err = createNetworkRuleSetForNamespace(ctx, client, *id, newNetworkRuleSet.([]interface{})); err != nil {
 				return err
 			}
-			log.Printf("[DEBUG] Updated the Network Rule Set associated with %s", id)
 		}
 	}
 
@@ -726,8 +721,6 @@ func createNetworkRuleSetForNamespace(ctx context.Context, client *namespaces.Na
 		return nil
 	}
 
-	log.Printf("[DEBUG] Creating/updating the Network Rule Set associated with %s..", id)
-
 	item := input[0].(map[string]interface{})
 
 	defaultAction := namespaces.DefaultAction(item["default_action"].(string))
@@ -758,7 +751,6 @@ func createNetworkRuleSetForNamespace(ctx context.Context, client *namespaces.Na
 	if _, err := client.CreateOrUpdateNetworkRuleSet(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
-	log.Printf("[DEBUG] Created/updated the Network Rule Set associated with %s", id)
 
 	return nil
 }

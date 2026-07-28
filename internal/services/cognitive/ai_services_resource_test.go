@@ -10,10 +10,9 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/go-uuid"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/cognitiveservicesaccounts"
+	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -24,6 +23,9 @@ import (
 type AIServices struct{}
 
 func TestAccCognitiveAIServices_basic(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_ai_services` is deprecated and will be removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_ai_services", "test")
 	r := AIServices{}
 
@@ -42,6 +44,9 @@ func TestAccCognitiveAIServices_basic(t *testing.T) {
 }
 
 func TestAccCognitiveAIServices_requiresImport(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_ai_services` is deprecated and will be removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_ai_services", "test")
 	r := AIServices{}
 
@@ -57,6 +62,9 @@ func TestAccCognitiveAIServices_requiresImport(t *testing.T) {
 }
 
 func TestAccCognitiveAIServices_complete(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_ai_services` is deprecated and will be removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_ai_services", "test")
 	r := AIServices{}
 
@@ -74,6 +82,9 @@ func TestAccCognitiveAIServices_complete(t *testing.T) {
 }
 
 func TestAccCognitiveAIServices_update(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_ai_services` is deprecated and will be removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_ai_services", "test")
 	r := AIServices{}
 
@@ -94,6 +105,9 @@ func TestAccCognitiveAIServices_update(t *testing.T) {
 }
 
 func TestAccCognitiveAIServices_networkACLs(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_ai_services` is deprecated and will be removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_ai_services", "test")
 	r := AIServices{}
 
@@ -123,6 +137,9 @@ func TestAccCognitiveAIServices_networkACLs(t *testing.T) {
 }
 
 func TestAccCognitiveAIServices_identity(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_ai_services` is deprecated and will be removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_ai_services", "test")
 	r := AIServices{}
 
@@ -163,6 +180,9 @@ func TestAccCognitiveAIServices_identity(t *testing.T) {
 }
 
 func TestAccCognitiveAIServices_customerManagedKey_update(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_ai_services` is deprecated and will be removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_ai_services", "test")
 	r := AIServices{}
 
@@ -204,6 +224,9 @@ func TestAccCognitiveAIServices_customerManagedKey_update(t *testing.T) {
 }
 
 func TestAccCognitiveAIServices_KVHsmManagedKey(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_ai_services` is deprecated and will be removed in 5.0")
+	}
 	if os.Getenv("ARM_TEST_HSM_KEY") == "" {
 		t.Skip("Skipping as ARM_TEST_HSM_KEY is not specified")
 		return
@@ -364,6 +387,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acctestkv%[3]s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
@@ -412,7 +436,9 @@ resource "azurerm_subnet" "test_a" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
-  service_endpoints    = ["Microsoft.CognitiveServices"]
+  service_endpoint {
+    service = "Microsoft.CognitiveServices"
+  }
 }
 
 resource "azurerm_subnet" "test_b" {
@@ -420,7 +446,9 @@ resource "azurerm_subnet" "test_b" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.4.0/24"]
-  service_endpoints    = ["Microsoft.CognitiveServices"]
+  service_endpoint {
+    service = "Microsoft.CognitiveServices"
+  }
 }
 
 resource "azurerm_ai_services" "test" {
@@ -474,6 +502,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acctestkv%[3]s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
@@ -522,7 +551,9 @@ resource "azurerm_subnet" "test_a" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
-  service_endpoints    = ["Microsoft.CognitiveServices"]
+  service_endpoint {
+    service = "Microsoft.CognitiveServices"
+  }
 }
 
 resource "azurerm_subnet" "test_b" {
@@ -530,7 +561,9 @@ resource "azurerm_subnet" "test_b" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.4.0/24"]
-  service_endpoints    = ["Microsoft.CognitiveServices"]
+  service_endpoint {
+    service = "Microsoft.CognitiveServices"
+  }
 }
 
 resource "azurerm_ai_services" "test" {
@@ -897,7 +930,9 @@ resource "azurerm_subnet" "test_a" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
-  service_endpoints    = ["Microsoft.CognitiveServices"]
+  service_endpoint {
+    service = "Microsoft.CognitiveServices"
+  }
 }
 
 resource "azurerm_subnet" "test_b" {
@@ -905,7 +940,9 @@ resource "azurerm_subnet" "test_b" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.4.0/24"]
-  service_endpoints    = ["Microsoft.CognitiveServices"]
+  service_endpoint {
+    service = "Microsoft.CognitiveServices"
+  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -918,6 +955,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acctestkv%[2]s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
@@ -976,6 +1014,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acc%[2]d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7

@@ -143,22 +143,24 @@ func resourceApplicationInsightsAnalyticsItemCreate(d *pluginsdk.ResourceData, m
 
 	id := analyticsitems.NewProviderComponentID(appInsightsId.SubscriptionId, appInsightsId.ResourceGroupName, appInsightsId.ComponentName, itemScopePath)
 
-	// We cannot get specific analytics items without their itemID which is why we need to list all the
-	// available items of a certain type and scope in order to check whether a resource already exists and needs
-	// to be imported first
-	// https://github.com/Azure/azure-rest-api-specs/issues/20712 itemScopePath should be set to insights.ItemScopePathAnalyticsItems in List method
-	listId := analyticsitems.NewProviderComponentID(appInsightsId.SubscriptionId, appInsightsId.ResourceGroupName, appInsightsId.ComponentName, "analyticsItems")
-	existing, err := client.AnalyticsItemsList(ctx, listId, analyticsitems.DefaultAnalyticsItemsListOperationOptions())
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		// We cannot get specific analytics items without their itemID which is why we need to list all the
+		// available items of a certain type and scope in order to check whether a resource already exists and needs
+		// to be imported first
+		// https://github.com/Azure/azure-rest-api-specs/issues/20712 itemScopePath should be set to insights.ItemScopePathAnalyticsItems in List method
+		listId := analyticsitems.NewProviderComponentID(appInsightsId.SubscriptionId, appInsightsId.ResourceGroupName, appInsightsId.ComponentName, "analyticsItems")
+		existing, err := client.AnalyticsItemsList(ctx, listId, analyticsitems.DefaultAnalyticsItemsListOperationOptions())
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if model := existing.Model; model != nil {
-		for _, value := range *model {
-			if v := value.Name; v != nil && *v == name {
-				return tf.ImportAsExistsError("azurerm_application_insights_analytics_item", *value.Id)
+		if model := existing.Model; model != nil {
+			for _, value := range *model {
+				if v := value.Name; v != nil && *v == name {
+					return tf.ImportAsExistsError("azurerm_application_insights_analytics_item", *value.Id)
+				}
 			}
 		}
 	}

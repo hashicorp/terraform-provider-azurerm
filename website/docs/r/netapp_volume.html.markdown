@@ -318,7 +318,15 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the NetApp Volume.
 
-* `mount_ip_addresses` - A list of IPv4 Addresses which should be used to mount the volume.
+* `mount_target` - One or more `mount_target` blocks as defined below.
+
+---
+
+A `mount_target` block exports the following:
+
+* `ip_address` - The IP address of the mount target.
+
+* `smb_server_fqdn` - The SMB server's Fully Qualified Domain Name (FQDN). This value is populated when the volume's `protocols` include `CIFS`; otherwise, it is empty.
 
 ## Timeouts
 
@@ -341,4 +349,4 @@ terraform import azurerm_netapp_volume.example /subscriptions/00000000-0000-0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.NetApp` - 2025-12-01
+* `Microsoft.NetApp` - 2026-01-01

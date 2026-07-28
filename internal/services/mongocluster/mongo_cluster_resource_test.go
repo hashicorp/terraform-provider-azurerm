@@ -38,7 +38,8 @@ func testAccMongoCluster_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("connection_strings.0.value").HasValue(
 					fmt.Sprintf(`mongodb+srv://adminTerraform:QAZwsx123basic@acctest-mc%d.global.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000`,
-						data.RandomInteger)),
+						data.RandomInteger),
+				),
 				check.That(data.ResourceName).Key("connection_strings.1.value").HasValue(
 					fmt.Sprintf(`mongodb+srv://adminTerraform:QAZwsx123basic@acctest-mc%d.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000`,
 						data.RandomInteger),
@@ -345,11 +346,12 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestAmr%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acctestAmr%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 
   purge_protection_enabled   = true
   soft_delete_retention_days = 7

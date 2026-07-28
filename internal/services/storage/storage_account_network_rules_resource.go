@@ -162,7 +162,9 @@ func resourceStorageAccountNetworkRulesCreate(d *pluginsdk.ResourceData, meta in
 		}
 	}
 	if usesNonDefaultStorageAccountRules {
-		return tf.ImportAsExistsError("azurerm_storage_account_network_rule", id.ID())
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			return tf.ImportAsExistsError("azurerm_storage_account_network_rule", id.ID())
+		}
 	}
 
 	acls := resp.Model.Properties.NetworkAcls

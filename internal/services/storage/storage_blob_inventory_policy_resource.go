@@ -188,14 +188,16 @@ func resourceStorageBlobInventoryPolicyCreateUpdate(d *pluginsdk.ResourceData, m
 	// however we want to ensure it's in the same subscription, so we'll build this up here
 	id := commonids.NewStorageAccountID(subscriptionId, accountId.ResourceGroupName, accountId.StorageAccountName)
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %q: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %q: %+v", id, err)
+				}
 			}
-		}
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_storage_blob_inventory_policy", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_storage_blob_inventory_policy", id.ID())
+			}
 		}
 	}
 

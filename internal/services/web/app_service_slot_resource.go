@@ -189,15 +189,17 @@ func resourceAppServiceSlotCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	id := parse.NewAppServiceSlotID(subscriptionId, d.Get("resource_group_name").(string), d.Get("app_service_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+			if err != nil {
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_app_service_slot", id.ID())
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return tf.ImportAsExistsError("azurerm_app_service_slot", id.ID())
+			}
 		}
 	}
 
@@ -241,12 +243,14 @@ func resourceAppServiceSlotCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("creating %s: %s", id, err)
 	}
 
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
+
 	err = createFuture.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("waiting for creation of %s: %s", id, err)
 	}
-
-	d.SetId(id.ID())
 
 	return resourceAppServiceSlotUpdate(d, meta)
 }
@@ -557,8 +561,6 @@ func resourceAppServiceSlotDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	if err != nil {
 		return err
 	}
-
-	log.Printf("[DEBUG] Deleting Slot %q (App Service %q / Resource Group %q)", id.SlotName, id.SiteName, id.ResourceGroup)
 
 	deleteMetrics := true
 	deleteEmptyServerFarm := false

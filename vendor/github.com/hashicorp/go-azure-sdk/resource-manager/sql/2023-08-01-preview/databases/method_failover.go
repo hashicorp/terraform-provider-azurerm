@@ -87,9 +87,20 @@ func (c DatabasesClient) Failover(ctx context.Context, id commonids.SqlDatabaseI
 
 // FailoverThenPoll performs Failover then polls until it's completed
 func (c DatabasesClient) FailoverThenPoll(ctx context.Context, id commonids.SqlDatabaseId, options FailoverOperationOptions) error {
+	return c.FailoverCallbackThenPoll(ctx, id, options, nil)
+}
+
+// FailoverCallbackThenPoll performs Failover, runs the optional callback function, then polls until it's completed
+func (c DatabasesClient) FailoverCallbackThenPoll(ctx context.Context, id commonids.SqlDatabaseId, options FailoverOperationOptions, callback func() error) error {
 	result, err := c.Failover(ctx, id, options)
 	if err != nil {
 		return fmt.Errorf("performing Failover: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

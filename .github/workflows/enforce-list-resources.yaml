@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ !contains(github.event.pull_request.labels.*.name, 'allow-without-list') && !contains(github.event.pull_request.labels.*.name, 'list-not-supported') }}
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
         with:
           fetch-depth: 0
       - run: bash scripts/enforce-list-for-new-resources.sh

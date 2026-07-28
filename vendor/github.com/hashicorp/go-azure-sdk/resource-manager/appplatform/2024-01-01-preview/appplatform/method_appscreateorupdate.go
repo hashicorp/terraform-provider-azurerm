@@ -63,9 +63,20 @@ func (c AppPlatformClient) AppsCreateOrUpdate(ctx context.Context, id AppId, inp
 
 // AppsCreateOrUpdateThenPoll performs AppsCreateOrUpdate then polls until it's completed
 func (c AppPlatformClient) AppsCreateOrUpdateThenPoll(ctx context.Context, id AppId, input AppResource) error {
+	return c.AppsCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// AppsCreateOrUpdateCallbackThenPoll performs AppsCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) AppsCreateOrUpdateCallbackThenPoll(ctx context.Context, id AppId, input AppResource, callback func() error) error {
 	result, err := c.AppsCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing AppsCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

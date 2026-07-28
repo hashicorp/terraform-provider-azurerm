@@ -57,9 +57,20 @@ func (c LabsClient) ClaimAnyVM(ctx context.Context, id LabId) (result ClaimAnyVM
 
 // ClaimAnyVMThenPoll performs ClaimAnyVM then polls until it's completed
 func (c LabsClient) ClaimAnyVMThenPoll(ctx context.Context, id LabId) error {
+	return c.ClaimAnyVMCallbackThenPoll(ctx, id, nil)
+}
+
+// ClaimAnyVMCallbackThenPoll performs ClaimAnyVM, runs the optional callback function, then polls until it's completed
+func (c LabsClient) ClaimAnyVMCallbackThenPoll(ctx context.Context, id LabId, callback func() error) error {
 	result, err := c.ClaimAnyVM(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ClaimAnyVM: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

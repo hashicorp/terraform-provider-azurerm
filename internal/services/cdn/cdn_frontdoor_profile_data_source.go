@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -97,7 +97,7 @@ func dataSourceCdnFrontDoorProfileRead(d *pluginsdk.ResourceData, meta interface
 			d.Set("sku_name", string(pointer.From(skuName)))
 		}
 
-		if identity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity); err == nil {
+		if identity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity); err == nil {
 			d.Set("identity", identity)
 		}
 

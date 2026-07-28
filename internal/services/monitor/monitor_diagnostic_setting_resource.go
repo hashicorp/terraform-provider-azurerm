@@ -229,20 +229,21 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta inte
 	client := meta.(*clients.Client).Monitor.DiagnosticSettingsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for Azure ARM Diagnostic Settings.")
 
 	id := diagnosticsettings.NewScopedDiagnosticSettingID(d.Get("target_resource_id").(string), d.Get("name").(string))
 	resourceId := fmt.Sprintf("%s|%s", id.ResourceUri, id.DiagnosticSettingName)
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing Monitor Diagnostic Setting %q for Resource %q: %s", id.DiagnosticSettingName, id.ResourceUri, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing Monitor Diagnostic Setting %q for Resource %q: %s", id.DiagnosticSettingName, id.ResourceUri, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_monitor_diagnostic_setting", resourceId)
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_monitor_diagnostic_setting", resourceId)
+		}
 	}
 
 	var logs []diagnosticsettings.LogSettings
@@ -338,7 +339,7 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta inte
 		Timeout:                   time.Until(deadline),
 	}
 
-	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for Monitor Diagnostic Setting %q for Resource %q to become ready: %s", id.DiagnosticSettingName, id.ResourceUri, err)
 	}
 
@@ -351,7 +352,6 @@ func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta inte
 	client := meta.(*clients.Client).Monitor.DiagnosticSettingsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for Azure ARM Diagnostic Settings.")
 
 	id, err := ParseMonitorDiagnosticId(d.Id())
 	if err != nil {
@@ -824,19 +824,19 @@ func resourceMonitorDiagnosticLogSettingHash(input interface{}) int {
 	var buf bytes.Buffer
 	if rawData, ok := input.(map[string]interface{}); ok {
 		if category, ok := rawData["category"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", category.(string)))
+			fmt.Fprintf(&buf, "%s-", category.(string))
 		}
 		if categoryGroup, ok := rawData["category_group"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", categoryGroup.(string)))
+			fmt.Fprintf(&buf, "%s-", categoryGroup.(string))
 		}
 
 		if !features.FivePointOh() {
 			if policy, ok := rawData["retention_policy"].(map[string]interface{}); ok {
 				if policyEnabled, ok := policy["enabled"]; ok {
-					buf.WriteString(fmt.Sprintf("%t-", policyEnabled.(bool)))
+					fmt.Fprintf(&buf, "%t-", policyEnabled.(bool))
 				}
 				if days, ok := policy["days"]; ok {
-					buf.WriteString(fmt.Sprintf("%d-", days.(int)))
+					fmt.Fprintf(&buf, "%d-", days.(int))
 				}
 			}
 		}
@@ -848,19 +848,19 @@ func resourceMonitorDiagnosticMetricsSettingHash(input interface{}) int {
 	var buf bytes.Buffer
 	if rawData, ok := input.(map[string]interface{}); ok {
 		if category, ok := rawData["category"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", category.(string)))
+			fmt.Fprintf(&buf, "%s-", category.(string))
 		}
 		if !features.FivePointOh() {
 			if enabled, ok := rawData["enabled"]; ok {
-				buf.WriteString(fmt.Sprintf("%t-", enabled.(bool)))
+				fmt.Fprintf(&buf, "%t-", enabled.(bool))
 			}
 		}
 		if policy, ok := rawData["retention_policy"].(map[string]interface{}); ok {
 			if policyEnabled, ok := policy["enabled"]; ok {
-				buf.WriteString(fmt.Sprintf("%t-", policyEnabled.(bool)))
+				fmt.Fprintf(&buf, "%t-", policyEnabled.(bool))
 			}
 			if days, ok := policy["days"]; ok {
-				buf.WriteString(fmt.Sprintf("%d-", days.(int)))
+				fmt.Fprintf(&buf, "%d-", days.(int))
 			}
 		}
 	}

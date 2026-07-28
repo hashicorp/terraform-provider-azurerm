@@ -138,11 +138,11 @@ func resourceIotHubFallbackRouteCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for the completion of the creating/updating of %s: %+v", id, err)
 	}
-
-	d.SetId(id.ID())
 
 	return resourceIotHubFallbackRouteRead(d, meta)
 }

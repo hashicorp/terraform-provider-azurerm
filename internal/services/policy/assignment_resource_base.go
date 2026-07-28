@@ -31,15 +31,18 @@ func (br assignmentBaseResource) createFunc(resourceName, scopeFieldName string)
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Policy.AssignmentsClient
 			id := policyassignments.NewScopedPolicyAssignmentID(metadata.ResourceData.Get(scopeFieldName).(string), metadata.ResourceData.Get("name").(string))
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError(resourceName, id.ID())
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return tf.ImportAsExistsError(resourceName, id.ID())
+				}
 			}
 
 			assignment := policyassignments.PolicyAssignment{
@@ -112,13 +115,14 @@ func (br assignmentBaseResource) createFunc(resourceName, scopeFieldName string)
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
+			metadata.SetID(id)
+
 			// Policy Assignments are eventually consistent; wait for them to stabilize
 			log.Printf("[DEBUG] Waiting for %s to become available..", id)
 			if err := waitForPolicyAssignmentToStabilize(ctx, client, id, true); err != nil {
 				return fmt.Errorf("waiting for %s to become available: %s", id, err)
 			}
 
-			metadata.SetID(id)
 			return nil
 		},
 		Timeout: 30 * time.Minute,

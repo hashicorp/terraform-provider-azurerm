@@ -6,7 +6,6 @@ package automation
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -295,21 +294,22 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Automation Runbook creation.")
 	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
 
 	id := runbook.NewRunbookID(subscriptionID, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_automation_runbook", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_automation_runbook", id.ID())
+			}
 		}
 	}
 
@@ -348,6 +348,8 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 			return fmt.Errorf("creating/updating %s: %+v", id, err)
 		}
 
+		d.SetId(id.ID())
+
 		if v, ok := d.GetOk("content"); ok {
 			content := v.(string)
 			draftRunbookID := runbookdraft.NewRunbookID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName, id.RunbookName)
@@ -359,8 +361,6 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 				return fmt.Errorf("publishing the updated %s: %+v", id, err)
 			}
 		}
-
-		d.SetId(id.ID())
 	}
 
 	// **don't need** to list job schedules and delete all of them. update the runbook will recreate these job schedules automatically,

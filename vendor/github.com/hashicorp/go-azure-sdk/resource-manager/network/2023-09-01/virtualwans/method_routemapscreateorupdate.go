@@ -62,9 +62,20 @@ func (c VirtualWANsClient) RouteMapsCreateOrUpdate(ctx context.Context, id Route
 
 // RouteMapsCreateOrUpdateThenPoll performs RouteMapsCreateOrUpdate then polls until it's completed
 func (c VirtualWANsClient) RouteMapsCreateOrUpdateThenPoll(ctx context.Context, id RouteMapId, input RouteMap) error {
+	return c.RouteMapsCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// RouteMapsCreateOrUpdateCallbackThenPoll performs RouteMapsCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c VirtualWANsClient) RouteMapsCreateOrUpdateCallbackThenPoll(ctx context.Context, id RouteMapId, input RouteMap, callback func() error) error {
 	result, err := c.RouteMapsCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing RouteMapsCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

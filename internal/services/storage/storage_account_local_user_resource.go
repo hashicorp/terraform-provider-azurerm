@@ -244,14 +244,17 @@ func (r LocalUserResource) Create() sdk.ResourceFunc {
 			}
 
 			id := localuseroperationgroup.NewLocalUserID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.StorageAccountName, plan.Name)
-			existing, err := client.LocalUsersGet(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.LocalUsersGet(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			params := localuseroperationgroup.LocalUser{
@@ -271,6 +274,11 @@ func (r LocalUserResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
+			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
+
 			state := plan
 			if plan.SshPasswordEnabled {
 				resp, err := client.LocalUsersRegeneratePassword(ctx, id)
@@ -288,8 +296,7 @@ func (r LocalUserResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			metadata.SetID(id)
-			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id)
+			return nil
 		},
 	}
 }

@@ -257,14 +257,15 @@ func (r MsSqlManagedDatabaseResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("checking for existence and region of Managed Instance for %s: %+v", id, err)
 			}
 
-			metadata.Logger.Infof("Import check for %s", id)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := manageddatabases.ManagedDatabase{
@@ -285,12 +286,10 @@ func (r MsSqlManagedDatabaseResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			metadata.Logger.Infof("Creating %s", id)
-
-			err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
-			if err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
+			metadata.SetID(id)
 
 			if len(model.LongTermRetentionPolicy) > 0 {
 				longTermRetentionPolicy := managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicy{
@@ -312,8 +311,6 @@ func (r MsSqlManagedDatabaseResource) Create() sdk.ResourceFunc {
 					return fmt.Errorf("setting Short Term Retention Policy for %s: %+v", id, err)
 				}
 			}
-
-			metadata.SetID(id)
 
 			return nil
 		},
@@ -399,7 +396,6 @@ func (r MsSqlManagedDatabaseResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("Decoding state for %s", id)
 			var state MsSqlManagedDatabaseModel
 			if err := metadata.Decode(&state); err != nil {
 				return err

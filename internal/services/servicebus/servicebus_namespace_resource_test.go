@@ -56,13 +56,15 @@ func TestAccAzureRMServiceBusNamespace_updateSku(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.standardSku(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 	})
@@ -92,13 +94,17 @@ func TestAccAzureRMServiceBusNamespace_readDefaultKeys(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				acceptance.TestMatchResourceAttr(
-					data.ResourceName, "default_primary_connection_string", regexp.MustCompile("Endpoint=.+")),
+					data.ResourceName, "default_primary_connection_string", regexp.MustCompile("Endpoint=.+"),
+				),
 				acceptance.TestMatchResourceAttr(
-					data.ResourceName, "default_secondary_connection_string", regexp.MustCompile("Endpoint=.+")),
+					data.ResourceName, "default_secondary_connection_string", regexp.MustCompile("Endpoint=.+"),
+				),
 				acceptance.TestMatchResourceAttr(
-					data.ResourceName, "default_primary_key", regexp.MustCompile(".+")),
+					data.ResourceName, "default_primary_key", regexp.MustCompile(".+"),
+				),
 				acceptance.TestMatchResourceAttr(
-					data.ResourceName, "default_secondary_key", regexp.MustCompile(".+")),
+					data.ResourceName, "default_secondary_key", regexp.MustCompile(".+"),
+				),
 			),
 		},
 	})
@@ -262,7 +268,8 @@ func TestAccAzureRMServiceBusNamespace_endpoint(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				acceptance.TestMatchResourceAttr(
-					data.ResourceName, "endpoint", regexp.MustCompile(`https://.+`)),
+					data.ResourceName, "endpoint", regexp.MustCompile(`https://.+`),
+				),
 			),
 		},
 		data.ImportStep(),
@@ -595,6 +602,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acctestkv%[3]s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   purge_protection_enabled   = true
@@ -722,7 +730,9 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["172.17.0.0/24"]
 
-  service_endpoints = ["Microsoft.ServiceBus"]
+  service_endpoint {
+    service = "Microsoft.ServiceBus"
+  }
 }
 
 resource "azurerm_servicebus_namespace" "test" {
@@ -770,7 +780,9 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["172.17.0.0/24"]
 
-  service_endpoints = ["Microsoft.ServiceBus"]
+  service_endpoint {
+    service = "Microsoft.ServiceBus"
+  }
 }
 
 resource "azurerm_servicebus_namespace" "test" {
@@ -821,7 +833,9 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["172.17.0.0/24"]
 
-  service_endpoints = ["Microsoft.ServiceBus"]
+  service_endpoint {
+    service = "Microsoft.ServiceBus"
+  }
 }
 
 resource "azurerm_servicebus_namespace" "test" {

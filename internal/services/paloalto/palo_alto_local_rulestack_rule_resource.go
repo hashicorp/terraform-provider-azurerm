@@ -212,15 +212,17 @@ func (r LocalRuleStackRule) Create() sdk.ResourceFunc {
 			// API uses Priority not Name for ID, despite swagger defining `ruleName` as required, not Priority - https://github.com/Azure/azure-rest-api-specs/issues/24697
 			id := localrules.NewLocalRuleID(metadata.Client.Account.SubscriptionId, rulestackId.ResourceGroupName, rulestackId.LocalRulestackName, strconv.FormatInt(model.Priority, 10))
 
-			existing, err := client.LocalRulesGet(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.LocalRulesGet(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			destination, err := schema.ExpandDestination(model.Destination)
@@ -285,13 +287,13 @@ func (r LocalRuleStackRule) Create() sdk.ResourceFunc {
 				props.Protocol = pointer.To(model.Protocol)
 			}
 
-			if _, err = client.LocalRulesCreateOrUpdate(ctx, id, localrules.LocalRulesResource{Properties: props}); err != nil {
+			if _, err := client.LocalRulesCreateOrUpdate(ctx, id, localrules.LocalRulesResource{Properties: props}); err != nil {
 				return err
 			}
 
 			metadata.SetID(id)
 
-			if err = rulestackClient.LocalRulestackscommitThenPoll(ctx, *rulestackId); err != nil {
+			if err := rulestackClient.LocalRulestackscommitThenPoll(ctx, *rulestackId); err != nil {
 				return fmt.Errorf("committing Local Rulestack config for %s: %+v", id, err)
 			}
 

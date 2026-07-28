@@ -108,7 +108,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-${var.random}"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  zones               = ["1", "2", "3"]
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -193,7 +194,8 @@ resource "azurerm_public_ip" "test_1" {
   name                = "acctest-${var.random1}"
   location            = azurerm_resource_group.test_1.location
   resource_group_name = azurerm_resource_group.test_1.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  zones               = ["1", "2", "3"]
 }
 
 resource "azurerm_virtual_network_gateway" "test_1" {
@@ -248,7 +250,8 @@ resource "azurerm_public_ip" "test_2" {
   name                = "acctest-${var.random2}"
   location            = azurerm_resource_group.test_2.location
   resource_group_name = azurerm_resource_group.test_2.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  zones               = ["1", "2", "3"]
 }
 
 resource "azurerm_virtual_network_gateway" "test_2" {
@@ -327,6 +330,7 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
+  zones               = ["1", "2", "3"]
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -335,7 +339,7 @@ resource "azurerm_virtual_network_gateway" "test" {
   resource_group_name = azurerm_resource_group.test.name
   type                = "Vpn"
   vpn_type            = "RouteBased"
-  sku                 = "VpnGw1"
+  sku                 = "VpnGw1AZ"
 
   ip_configuration {
     name                          = "vnetGatewayConfig"

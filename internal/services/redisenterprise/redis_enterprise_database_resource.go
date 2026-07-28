@@ -25,7 +25,7 @@ import (
 
 func resourceRedisEnterpriseDatabase() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		DeprecationMessage: "The `azurerm_redis_enterprise_database` resource has been deprecated in favor of `azurerm_managed_redis_database`",
+		DeprecationMessage: "The `azurerm_redis_enterprise_database` resource has been deprecated in favour of `azurerm_managed_redis_database` and will be removed in v5.0 of the AzureRM provider.",
 
 		Create: resourceRedisEnterpriseDatabaseCreate,
 		Read:   resourceRedisEnterpriseDatabaseRead,
@@ -233,7 +233,8 @@ func resourceRedisEnterpriseDatabaseCreate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	id := databases.NewDatabaseID(subscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, d.Get("name").(string))
-	if d.IsNewResource() {
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -302,11 +303,12 @@ func resourceRedisEnterpriseDatabaseCreate(d *pluginsdk.ResourceData, meta inter
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	if err := future.Poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
 	return resourceRedisEnterpriseDatabaseRead(d, meta)
 }
 
@@ -621,7 +623,6 @@ func forceUnlinkDatabase(d *pluginsdk.ResourceData, meta interface{}, unlinkedDb
 	client := meta.(*clients.Client).RedisEnterprise.DatabaseClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO]Preparing to unlink a linked database")
 
 	id, err := databases.ParseDatabaseID(d.Id())
 	if err != nil {

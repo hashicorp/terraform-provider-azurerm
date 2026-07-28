@@ -120,13 +120,15 @@ func (r ContactProfileResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := contactprofile.NewContactProfileID(subscriptionId, model.ResourceGroup, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			links, err := expandContactProfileLinks(model.Links)
@@ -163,11 +165,11 @@ func (r ContactProfileResource) Create() sdk.ResourceFunc {
 				Tags:       pointer.To(model.Tags),
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, contactProfile); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, contactProfile, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}
@@ -228,8 +230,6 @@ func (r ContactProfileResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-
-			metadata.Logger.Infof("deleting %s", *id)
 
 			if err := client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)

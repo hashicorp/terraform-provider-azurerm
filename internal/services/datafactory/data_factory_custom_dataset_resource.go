@@ -150,14 +150,16 @@ func resourceDataFactoryCustomDatasetCreateUpdate(d *pluginsdk.ResourceData, met
 
 	id := parse.NewDataSetID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
+			if err != nil {
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_data_factory_custom_dataset", id.ID())
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return tf.ImportAsExistsError("azurerm_data_factory_custom_dataset", id.ID())
+			}
 		}
 	}
 
@@ -217,7 +219,9 @@ func resourceDataFactoryCustomDatasetCreateUpdate(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
 
 	return resourceDataFactoryCustomDatasetRead(d, meta)
 }

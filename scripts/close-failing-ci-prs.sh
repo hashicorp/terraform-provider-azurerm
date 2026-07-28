@@ -30,7 +30,7 @@ MONITORED_CHECKS=(
   "test"                       # Unit Tests + gradually-deprecated job name
   "preview-api-version-linter" # Preview ARM API Version Linter
   "shellcheck"                 # ShellCheck Scripts
-  "tflint"                     # Terraform Schema Linting
+  "tfproviderlint"              # Terraform Schema Linting
   "website-lint"               # Website Linting + Validate Examples job name
   "provider-tests"             # Provider Tests
 )
@@ -215,8 +215,8 @@ get_check_guidance() {
     golint|"GoLang Linting")
       echo "Run the Go linter locally with \`golangci-lint run ./internal/...\` and fix any reported issues."
       ;;
-    tflint|"Terraform Schema Linting")
-      echo "Run \`make tflint\` locally and fix any Terraform schema issues in your resource/data source definitions."
+    tfproviderlint|"Terraform Schema Linting")
+      echo "Run \`make tfproviderlint\` locally and fix any Terraform schema issues in your resource/data source definitions."
       ;;
     detect|"Breaking Schema Changes")
       echo "Your changes contain breaking schema changes. Please review the [breaking changes guide](contributing/topics/guide-breaking-changes.md) and ensure any breaking changes are behind the appropriate feature flag."
