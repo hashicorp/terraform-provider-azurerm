@@ -64,6 +64,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 func (r Registration) DataSources() []sdk.DataSource {
 	dataSources := []sdk.DataSource{
 		ContainerRegistryCacheRuleDataSource{},
+		KubernetesAutomaticClusterDataSource{},
 		KubernetesFleetManagerDataSource{},
 		KubernetesNodePoolSnapshotDataSource{},
 	}
