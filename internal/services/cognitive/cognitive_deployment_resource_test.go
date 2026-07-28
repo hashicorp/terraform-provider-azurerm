@@ -329,7 +329,6 @@ resource "azurerm_cognitive_deployment" "test" {
 }
 
 func (r CognitiveDeploymentTestResource) spilloverDeploymentName(data acceptance.TestData, enabled bool) string {
-	template := r.template(data)
 	spilloverDeploymentName := ""
 	if enabled {
 		spilloverDeploymentName = "  spillover_deployment_name = azurerm_cognitive_deployment.spillover.name"
@@ -371,11 +370,10 @@ resource "azurerm_cognitive_deployment" "test" {
     ignore_changes = [model.0.version]
   }
 }
-`, template, data.RandomInteger, data.RandomInteger, spilloverDeploymentName)
+`, r.template(data), data.RandomInteger, data.RandomInteger, spilloverDeploymentName)
 }
 
 func (r CognitiveDeploymentTestResource) spilloverDeploymentNameInvalidSku(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -394,5 +392,5 @@ resource "azurerm_cognitive_deployment" "test" {
     ignore_changes = [model.0.version]
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
