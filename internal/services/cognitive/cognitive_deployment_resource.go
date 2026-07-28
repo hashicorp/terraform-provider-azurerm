@@ -203,33 +203,12 @@ func (r CognitiveDeploymentResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			if metadata.ResourceDiff == nil {
-				return nil
+			var config cognitiveDeploymentModel
+			if err := metadata.DecodeDiff(&config); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			rawConfig := metadata.ResourceDiff.GetRawConfig()
-			if !rawConfig.IsKnown() || rawConfig.IsNull() {
-				return nil
-			}
-
-			config := rawConfig.AsValueMap()
-			spilloverDeploymentName := config["spillover_deployment_name"]
-			if !spilloverDeploymentName.IsKnown() || spilloverDeploymentName.IsNull() {
-				return nil
-			}
-
-			sku := config["sku"]
-			if !sku.IsKnown() || sku.IsNull() || sku.LengthInt() == 0 {
-				return nil
-			}
-
-			skuConfig := sku.AsValueSlice()[0]
-			if !skuConfig.IsKnown() || skuConfig.IsNull() {
-				return nil
-			}
-
-			skuName := skuConfig.AsValueMap()["name"]
-			if !skuName.IsKnown() || skuName.IsNull() {
+			if config.SpilloverDeploymentName == "" || len(config.Sku) == 0 {
 				return nil
 			}
 
@@ -239,8 +218,8 @@ func (r CognitiveDeploymentResource) CustomizeDiff() sdk.ResourceFunc {
 				"ProvisionedManaged",
 			}
 
-			if value := skuName.AsString(); !slices.Contains(spilloverSupportedSkuNames, value) {
-				return fmt.Errorf("`spillover_deployment_name` can only be set when `sku.0.name` is `DataZoneProvisionedManaged`, `GlobalProvisionedManaged`, or `ProvisionedManaged`, got `%s`", value)
+			if skuName := config.Sku[0].Name; !slices.Contains(spilloverSupportedSkuNames, skuName) {
+				return fmt.Errorf("`spillover_deployment_name` can only be set when `sku.0.name` is `DataZoneProvisionedManaged`, `GlobalProvisionedManaged`, or `ProvisionedManaged`, got `%s`", skuName)
 			}
 
 			return nil
