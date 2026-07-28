@@ -1,0 +1,118 @@
+# Copyright IBM Corp. 2014, 2025
+# SPDX-License-Identifier: MPL-2.0
+---
+name: PR Guide Suggestions
+
+permissions:
+  contents: read
+  pull-requests: write
+
+on:
+  pull_request:
+    types: ['opened', 'synchronize']
+    paths:
+      - '.github/workflows/pr-guide-suggestions.yaml'
+      - 'internal/tools/pr-guide-suggestions/**'
+      - 'scripts/run-pr-guide-suggestions.sh'
+      - 'scripts/run-pr-guide-suggestions-diff.sh'
+      - 'internal/services/**/*_resource.go'
+      - 'internal/services/**/*_data_source.go'
+      - 'internal/services/**/*_datasource.go'
+
+concurrency:
+  group: 'pr-guide-suggestions-${{ github.head_ref }}'
+  cancel-in-progress: true
+
+jobs:
+  diff:
+    runs-on: ubuntu-latest
+    # Skip when a maintainer has accepted the schema by applying the
+    # "schema-accepted" label to the pull request.
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'schema-accepted') }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: ./.go-version
+      - name: Run pr-guide-suggestions
+        id: lint
+        shell: bash
+        run: |
+          set +e
+          bash ./scripts/run-pr-guide-suggestions-diff.sh > pr-guide-suggestions-output.txt 2>&1
+          code=$?
+          cat pr-guide-suggestions-output.txt
+          echo "exit_code=${code}" >> "$GITHUB_OUTPUT"
+          exit 0
+      - name: Build pr-guide-suggestions comment
+        id: build_comment
+        if: ${{ always() && steps.lint.outcome == 'success' }}
+        shell: bash
+        env:
+          EXIT_CODE: ${{ steps.lint.outputs.exit_code }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          BASE_REF: ${{ github.base_ref }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          raw=$(sed -E 's/\x1b\[[0-9;]*m//g' pr-guide-suggestions-output.txt)
+          if echo "$raw" | grep -qE '^(no changed resource|0 finding)'; then
+            echo "has_suggestions=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "has_suggestions=true" >> "$GITHUB_OUTPUT"
+          output=$(printf '%s' "$raw" \
+            | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g')
+          max=10000
+          if [ "${#output}" -gt "$max" ]; then
+            output="${output:0:$max}"$'\n''... (truncated, see the workflow run for the full output)'
+          fi
+          if [ "$EXIT_CODE" = "0" ]; then
+            details_open=""
+          else
+            details_open=" open"
+          fi
+          {
+            echo "### PR Guide Suggestions"
+            echo ""
+            echo "Result for commit \`${HEAD_SHA:0:7}\` · [workflow run](${RUN_URL})"
+            echo ""
+            echo "<details${details_open}><summary>Linter output</summary>"
+            echo "<pre><code>${output}</code></pre>"
+            echo "</details>"
+            echo ""
+            echo "See the [Provider Contribution Guidelines](https://hashicorp.github.io/terraform-provider-azurerm/topics/reference-naming/) for the provider's schema conventions."
+            if [ "$EXIT_CODE" != "0" ]; then
+              echo ""
+              echo "> One or more newly added schema properties violate a pr-guide-suggestions rule. Correct the property (auto-fixable naming findings can be applied with the linter's \`-fix\` flag); if the change is intentional, a maintainer can apply the \`schema-accepted\` label to bypass this check."
+              echo ">"
+              echo "> Reproduce locally: \`GITHUB_BASE_REF=${BASE_REF} bash ./scripts/run-pr-guide-suggestions-diff.sh\`"
+            fi
+          } > pr-guide-suggestions-comment.md
+      - name: Delete pr-guide-suggestions comment when clean
+        if: ${{ always() && steps.lint.outcome == 'success' && steps.build_comment.outputs.has_suggestions == 'false' }}
+        continue-on-error: true
+        uses: marocchino/sticky-pull-request-comment@5770ad5eb8f42dd2c4f34da00c94c5381e49af88 # v3.0.5
+        with:
+          header: pr-guide-suggestions
+          delete: true
+      - name: Comment pr-guide-suggestions results
+        if: ${{ always() && steps.lint.outcome == 'success' && steps.build_comment.outputs.has_suggestions == 'true' }}
+        continue-on-error: true
+        uses: marocchino/sticky-pull-request-comment@5770ad5eb8f42dd2c4f34da00c94c5381e49af88 # v3.0.5
+        with:
+          header: pr-guide-suggestions
+          path: pr-guide-suggestions-comment.md
+      - name: Fail if pr-guide-suggestions reported findings
+        if: ${{ steps.lint.outputs.exit_code != '0' }}
+        run: |
+          echo "::error::PR guide suggestions failed for a newly added schema property."
+          echo ""
+          echo "This PR adds one or more schema properties that violate a pr-guide-suggestions"
+          echo "rule. See the pr-guide-suggestions comment on the pull request for details, or"
+          echo "reproduce locally against the branch you are merging into:"
+          echo "  GITHUB_BASE_REF=main bash ./scripts/run-pr-guide-suggestions-diff.sh"
+          echo ""
+          echo "See internal/tools/pr-guide-suggestions/README.md for the full rule list."
+          exit 1

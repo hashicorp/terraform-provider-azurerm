@@ -11,13 +11,12 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afddomains"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CdnFrontDoorCustomDomainResource struct{}
@@ -246,21 +245,17 @@ func (r CdnFrontDoorCustomDomainResource) preCheck(t *testing.T) {
 }
 
 func (r CdnFrontDoorCustomDomainResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FrontDoorCustomDomainID(state.ID)
+	id, err := afddomains.ParseCustomDomainID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	client := clients.Cdn.FrontDoorCustomDomainsClient
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.CustomDomainName)
+	resp, err := clients.Cdn.AFDCustomDomainsClient.AFDCustomDomainsGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return pointer.To(false), nil
-		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return pointer.To(true), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r CdnFrontDoorCustomDomainResource) basic(data acceptance.TestData) string {

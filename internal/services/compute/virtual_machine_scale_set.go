@@ -120,14 +120,12 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
-				// TODO 4.0: change this from enable_* to *_enabled
-				"enable_accelerated_networking": {
+				"accelerated_networking_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
 				},
-				// TODO 4.0: change this from enable_* to *_enabled
-				"enable_ip_forwarding": {
+				"ip_forwarding_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
@@ -443,13 +441,11 @@ func VirtualMachineScaleSetNetworkInterfaceSchemaForDataSource() *pluginsdk.Sche
 						Type: pluginsdk.TypeString,
 					},
 				},
-				// TODO 4.0: change this from enable_* to *_enabled
-				"enable_accelerated_networking": {
+				"accelerated_networking_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
-				// TODO 4.0: change this from enable_* to *_enabled
-				"enable_ip_forwarding": {
+				"ip_forwarding_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
@@ -750,8 +746,8 @@ func ExpandVirtualMachineScaleSetNetworkInterface(input []interface{}) (*[]virtu
 				DnsSettings: &virtualmachinescalesets.VirtualMachineScaleSetNetworkConfigurationDnsSettings{
 					DnsServers: dnsServers,
 				},
-				EnableAcceleratedNetworking: pointer.To(raw["enable_accelerated_networking"].(bool)),
-				EnableIPForwarding:          pointer.To(raw["enable_ip_forwarding"].(bool)),
+				EnableAcceleratedNetworking: pointer.To(raw["accelerated_networking_enabled"].(bool)),
+				EnableIPForwarding:          pointer.To(raw["ip_forwarding_enabled"].(bool)),
 				IPConfigurations:            ipConfigurations,
 				Primary:                     pointer.To(raw["primary"].(bool)),
 			},
@@ -889,8 +885,8 @@ func ExpandVirtualMachineScaleSetNetworkInterfaceUpdate(input []interface{}) (*[
 				DnsSettings: &virtualmachinescalesets.VirtualMachineScaleSetNetworkConfigurationDnsSettings{
 					DnsServers: dnsServers,
 				},
-				EnableAcceleratedNetworking: pointer.To(raw["enable_accelerated_networking"].(bool)),
-				EnableIPForwarding:          pointer.To(raw["enable_ip_forwarding"].(bool)),
+				EnableAcceleratedNetworking: pointer.To(raw["accelerated_networking_enabled"].(bool)),
+				EnableIPForwarding:          pointer.To(raw["ip_forwarding_enabled"].(bool)),
 				IPConfigurations:            &ipConfigurations,
 				Primary:                     pointer.To(raw["primary"].(bool)),
 			},
@@ -1030,15 +1026,15 @@ func FlattenVirtualMachineScaleSetNetworkInterface(input *[]virtualmachinescales
 			}
 
 			results = append(results, map[string]interface{}{
-				"name":                          v.Name,
-				"auxiliary_mode":                auxiliaryMode,
-				"auxiliary_sku":                 auxiliarySku,
-				"dns_servers":                   dnsServers,
-				"enable_accelerated_networking": enableAcceleratedNetworking,
-				"enable_ip_forwarding":          enableIPForwarding,
-				"ip_configuration":              ipConfigurations,
-				"network_security_group_id":     networkSecurityGroupId,
-				"primary":                       primary,
+				"name":                           v.Name,
+				"auxiliary_mode":                 auxiliaryMode,
+				"auxiliary_sku":                  auxiliarySku,
+				"dns_servers":                    dnsServers,
+				"accelerated_networking_enabled": enableAcceleratedNetworking,
+				"ip_forwarding_enabled":          enableIPForwarding,
+				"ip_configuration":               ipConfigurations,
+				"network_security_group_id":      networkSecurityGroupId,
+				"primary":                        primary,
 			})
 		}
 	}
@@ -1633,12 +1629,11 @@ func VirtualMachineScaleSetAutomatedOSUpgradePolicySchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				// TODO: should these be optional + defaulted?
-				"disable_automatic_rollback": {
+				"automatic_rollback_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Required: true,
 				},
-				// TODO 4.0: change this from enable_* to *_enabled
-				"enable_automatic_os_upgrade": {
+				"automatic_os_upgrade_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Required: true,
 				},
@@ -1654,8 +1649,8 @@ func ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(input []interface{}) *vi
 
 	raw := input[0].(map[string]interface{})
 	return &virtualmachinescalesets.AutomaticOSUpgradePolicy{
-		DisableAutomaticRollback: pointer.To(raw["disable_automatic_rollback"].(bool)),
-		EnableAutomaticOSUpgrade: pointer.To(raw["enable_automatic_os_upgrade"].(bool)),
+		DisableAutomaticRollback: pointer.To(!raw["automatic_rollback_enabled"].(bool)),
+		EnableAutomaticOSUpgrade: pointer.To(raw["automatic_os_upgrade_enabled"].(bool)),
 	}
 }
 
@@ -1664,20 +1659,10 @@ func FlattenVirtualMachineScaleSetAutomaticOSUpgradePolicy(input *virtualmachine
 		return []interface{}{}
 	}
 
-	disableAutomaticRollback := false
-	if input.DisableAutomaticRollback != nil {
-		disableAutomaticRollback = *input.DisableAutomaticRollback
-	}
-
-	enableAutomaticOSUpgrade := false
-	if input.EnableAutomaticOSUpgrade != nil {
-		enableAutomaticOSUpgrade = *input.EnableAutomaticOSUpgrade
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"disable_automatic_rollback":  disableAutomaticRollback,
-			"enable_automatic_os_upgrade": enableAutomaticOSUpgrade,
+			"automatic_rollback_enabled":   !pointer.From(input.DisableAutomaticRollback),
+			"automatic_os_upgrade_enabled": pointer.From(input.EnableAutomaticOSUpgrade),
 		},
 	}
 }

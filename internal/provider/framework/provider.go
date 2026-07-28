@@ -14,13 +14,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/list"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	pluginsdkprovider "github.com/hashicorp/terraform-provider-azurerm/internal/provider"
 	providerfunction "github.com/hashicorp/terraform-provider-azurerm/internal/provider/function"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
@@ -546,43 +544,6 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 				},
 			},
 		},
-	}
-
-	if !features.FivePointOh() {
-		response.Schema.Blocks["features"].(schema.ListNestedBlock).NestedObject.Blocks["virtual_machine"].(schema.ListNestedBlock).NestedObject.Attributes["graceful_shutdown"] = schema.BoolAttribute{
-			Optional:           true,
-			DeprecationMessage: "'graceful_shutdown' has been deprecated and will be removed from v5.0 of the AzureRM provider.",
-		}
-
-		response.Schema.Attributes["skip_provider_registration"] = schema.BoolAttribute{
-			Optional:           true,
-			Description:        "Should the AzureRM Provider skip registering all of the Resource Providers that it supports, if they're not already registered?",
-			DeprecationMessage: "This property is deprecated and will be removed in v5.0 of the AzureRM provider. Please use the `resource_provider_registrations` property instead.",
-		}
-
-		response.Schema.Blocks["enhanced_validation"] = schema.ListNestedBlock{
-			DeprecationMessage: "This block has been deprecated and will be removed in version 5.0 of the AzureRM provider. Please use the `enhanced_validation` block inside the `features` block instead.",
-			Validators: []validator.List{
-				listvalidator.SizeAtMost(1),
-				listvalidator.ConflictsWith(path.MatchRoot("features").AtListIndex(0).AtName("enhanced_validation")),
-			},
-			NestedObject: schema.NestedBlockObject{
-				Attributes: map[string]schema.Attribute{
-					"locations": schema.BoolAttribute{
-						Optional:    true,
-						Description: "Should the AzureRM Provider validate location arguments against the list of supported Azure Locations?",
-					},
-					"resource_providers": schema.BoolAttribute{
-						Optional:    true,
-						Description: "Should the AzureRM Provider validate Resource Provider arguments against the list of supported Resource Providers? When enabled, invalid resource providers are caught at plan time; when disabled, they are caught at apply time.",
-					},
-				},
-			},
-		}
-
-		enhancedValidation := response.Schema.Blocks["features"].(schema.ListNestedBlock).NestedObject.Blocks["enhanced_validation"].(schema.ListNestedBlock)
-		enhancedValidation.Validators = append(enhancedValidation.Validators, listvalidator.ConflictsWith(path.MatchRoot("enhanced_validation")))
-		response.Schema.Blocks["features"].(schema.ListNestedBlock).NestedObject.Blocks["enhanced_validation"] = enhancedValidation
 	}
 }
 
