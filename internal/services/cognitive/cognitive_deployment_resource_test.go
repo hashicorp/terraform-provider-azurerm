@@ -329,9 +329,45 @@ resource "azurerm_cognitive_deployment" "test" {
 }
 
 func (r CognitiveDeploymentTestResource) spilloverDeploymentName(data acceptance.TestData, enabled bool) string {
-	spilloverDeploymentName := ""
+	testDeployment := fmt.Sprintf(`
+resource "azurerm_cognitive_deployment" "test" {
+  name                 = "acctest-cd-%d"
+  cognitive_account_id = azurerm_cognitive_account.test.id
+  model {
+    format  = "OpenAI"
+    name    = "gpt-5.4-mini"
+    version = "2026-03-17"
+  }
+  sku {
+    name     = "DataZoneProvisionedManaged"
+    capacity = 15
+  }
+  lifecycle {
+    ignore_changes = [model.0.version]
+  }
+}
+`, data.RandomInteger)
+
 	if enabled {
-		spilloverDeploymentName = "  spillover_deployment_name = azurerm_cognitive_deployment.spillover.name"
+		testDeployment = fmt.Sprintf(`
+resource "azurerm_cognitive_deployment" "test" {
+  name                      = "acctest-cd-%d"
+  cognitive_account_id      = azurerm_cognitive_account.test.id
+  spillover_deployment_name = azurerm_cognitive_deployment.spillover.name
+  model {
+    format  = "OpenAI"
+    name    = "gpt-5.4-mini"
+    version = "2026-03-17"
+  }
+  sku {
+    name     = "DataZoneProvisionedManaged"
+    capacity = 15
+  }
+  lifecycle {
+    ignore_changes = [model.0.version]
+  }
+}
+`, data.RandomInteger)
 	}
 
 	return fmt.Sprintf(`
@@ -352,25 +388,8 @@ resource "azurerm_cognitive_deployment" "spillover" {
     ignore_changes = [model.0.version]
   }
 }
-
-resource "azurerm_cognitive_deployment" "test" {
-  name                 = "acctest-cd-%d"
-  cognitive_account_id = azurerm_cognitive_account.test.id
 %s
-  model {
-    format  = "OpenAI"
-    name    = "gpt-5.4-mini"
-    version = "2026-03-17"
-  }
-  sku {
-    name     = "DataZoneProvisionedManaged"
-    capacity = 15
-  }
-  lifecycle {
-    ignore_changes = [model.0.version]
-  }
-}
-`, r.template(data), data.RandomInteger, data.RandomInteger, spilloverDeploymentName)
+`, r.template(data), data.RandomInteger, testDeployment)
 }
 
 func (r CognitiveDeploymentTestResource) spilloverDeploymentNameInvalidSku(data acceptance.TestData) string {
