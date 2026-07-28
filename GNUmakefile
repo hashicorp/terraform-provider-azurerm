@@ -18,6 +18,7 @@ tflint:
 golangci-fix:
 	@echo "NOTE: 'make golangci-fix' has been renamed to 'make lint-fix' and will be removed in the future."
 	@$(MAKE) lint-fix
+###
 
 tools:
 	@echo "==> installing required tooling..."
@@ -42,19 +43,19 @@ gencheck: generate
     		(echo; echo "Unexpected difference in generated code. Run 'make generate' to update the generated code and commit."; echo "If you added or modified a resource, ensure 'go generate' directives are up to date."; exit 1)
 
 fmt:
-	# This logic should match the search logic in scripts/checks/gofmt-check.sh
+	# This logic should match the search logic in scripts/checks/fmt-check.sh
 	@echo "==> Fixing source code with gofmt..."
 	find . -name '*.go' | grep -v vendor | xargs gofmt -s -w
-	@echo "==> Fixing source code with Gofumpt..."
-	find . -name '*.go' | grep -v vendor | xargs gofumpt -s -w
-
-goimports:
+	@echo "==> Fixing source code with gofumpt..."
+	find . -name '*.go' | grep -v vendor | xargs gofumpt -w
+	@echo "==> Fixing source code with whitespace linter..."
+	@golangci-lint run ./... --no-config --enable-only=whitespace --fix
 	@echo "==> Fixing imports code with goimports..."
-	@golangci-lint fmt -E goimports
+	find . -name '*.go' | grep -v vendor | xargs goimports -w
 
 quick-checks:
 	@echo "==> Running the set of quick CI checks (formatting + provider policies)..."
-	@sh "$(CURDIR)/scripts/checks/gofmt-check.sh"
+	@sh "$(CURDIR)/scripts/checks/fmt-check.sh"
 	@sh "$(CURDIR)/scripts/checks/timeouts-check.sh"
 	@sh "$(CURDIR)/scripts/checks/test-package-check.sh"
 
@@ -74,7 +75,6 @@ lint-fix:
 tfproviderlint:
 	./scripts/checks/tfproviderlint.sh
 
-
 shellcheck:
 	@command -v shellcheck >/dev/null || (echo "shellcheck not installed. Install via: brew install shellcheck (macOS) or apt install shellcheck (Linux)" && exit 1)
 	@echo "==> Checking shell scripts with shellcheck..."
@@ -93,22 +93,9 @@ depscheck:
 	@git diff --compact-summary --exit-code -- vendor || \
 		(echo; echo "Unexpected difference in vendor/ directory. Run 'go mod vendor' command or revert any go.mod/go.sum/vendor changes and commit."; echo "Do not modify files in the vendor/ directory directly."; exit 1)
 
-whitespace:
-	@echo "==> Fixing source code with whitespace linter..."
-	golangci-lint run ./... --no-config --disable-all --enable=whitespace --fix
-
-
 test:
 	@TEST=$(TEST) ./scripts/checks/gradually-deprecated.sh
 	@TEST=$(TEST) ./scripts/checks/test.sh
-
-test-compile:
-	@if [ "$(TEST)" = "./..." ]; then \
-		echo "ERROR: Set TEST to a specific package. For example,"; \
-		echo "  make test-compile TEST=./internal"; \
-		exit 1; \
-	fi
-	go test -c $(TEST) $(TESTARGS)
 
 testacc:
 	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout $(TESTTIMEOUT) -ldflags="-X=github.com/hashicorp/terraform-provider-azurerm/version.ProviderVersion=acc"
@@ -171,4 +158,4 @@ static-analysis:
 
 pr-check: generate build test lint tfproviderlint website-lint
 
-.PHONY: default tools build fmt quick-checks fmtcheck terrafmt generate goimports lint shellcheck depscheck gencheck tfproviderlint tflint whitespace lint-fix golangci-fix test test-compile testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts static-analysis pr-check
+.PHONY: default tools build fmt quick-checks fmtcheck terrafmt generate lint shellcheck depscheck gencheck tfproviderlint tflint lint-fix golangci-fix test testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts static-analysis pr-check
