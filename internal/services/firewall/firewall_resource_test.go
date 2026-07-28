@@ -339,6 +339,24 @@ func TestAccFirewall_inVirtualHub(t *testing.T) {
 	})
 }
 
+func TestAccFirewall_inVirtualHubZeroPublicIPCount(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
+	r := FirewallResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.inVirtualHub(data, 0),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("virtual_hub.0.public_ip_count").HasValue("0"),
+				check.That(data.ResourceName).Key("virtual_hub.0.public_ip_addresses.#").HasValue("0"),
+				check.That(data.ResourceName).Key("virtual_hub.0.private_ip_address").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccFirewall_privateRanges(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
 	r := FirewallResource{}
