@@ -9,7 +9,7 @@ on:
   pull_request:
     types: ["opened", "synchronize"]
     paths:
-      - ".github/workflows/preview-api-version-linter.yaml"
+      - ".github/workflows/pr-check-preview-api-version.yaml"
       - "internal/tools/preview-api-version-linter/**"
       - "vendor/**"
 

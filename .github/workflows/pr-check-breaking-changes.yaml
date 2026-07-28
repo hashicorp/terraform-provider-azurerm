@@ -10,7 +10,7 @@ on:
   pull_request:
     types: ['opened', 'synchronize']
     paths:
-      - '.github/workflows/breaking-change-detection.yaml'
+      - '.github/workflows/pr-check-breaking-changes.yaml'
       - 'vendor/**'
       - 'internal/**.go'
 

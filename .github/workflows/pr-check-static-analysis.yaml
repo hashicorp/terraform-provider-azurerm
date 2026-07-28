@@ -9,7 +9,7 @@ on:
   pull_request:
     types: ['opened', 'synchronize']
     paths:
-      - '.github/workflows/static-analysis.yaml'
+      - '.github/workflows/pr-check-static-analysis.yaml'
       - 'vendor/**'
       - 'internal/**.go'
 

@@ -11,7 +11,7 @@ on:
   pull_request:
     types: ['opened', 'synchronize']
     paths:
-      - '.github/workflows/pr-guide-suggestions.yaml'
+      - '.github/workflows/pr-check-guide-suggestions.yaml'
       - 'internal/tools/pr-guide-suggestions/**'
       - 'scripts/checks/pr-guide-suggestions.sh'
       - 'scripts/checks/pr-guide-suggestions.sh'

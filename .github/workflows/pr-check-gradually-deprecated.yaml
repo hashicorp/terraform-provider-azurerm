@@ -9,7 +9,7 @@ on:
   pull_request:
     types: ['opened', 'synchronize']
     paths:
-      - '.github/workflows/gradually-deprecated.yaml'
+      - '.github/workflows/pr-check-gradually-deprecated.yaml'
       - './scripts/checks/gradually-deprecated.sh'
       - '**.go'
 
