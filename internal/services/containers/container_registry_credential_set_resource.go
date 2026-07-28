@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-07-01/credentialsets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -26,7 +25,7 @@ var _ sdk.Resource = ContainerRegistryCredentialSetResource{}
 type ContainerRegistryCredentialSetResource struct{}
 
 func (ContainerRegistryCredentialSetResource) Arguments() map[string]*pluginsdk.Schema {
-	args := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:        pluginsdk.TypeString,
 			Required:    true,
@@ -67,13 +66,6 @@ func (ContainerRegistryCredentialSetResource) Arguments() map[string]*pluginsdk.
 		// https://github.com/Azure/azure-rest-api-specs/issues/32154
 		"identity": commonschema.SystemAssignedIdentityRequired(),
 	}
-
-	if !features.FivePointOh() {
-		args["authentication_credentials"].Elem.(*pluginsdk.Resource).Schema["username_secret_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeAny)
-		args["authentication_credentials"].Elem.(*pluginsdk.Resource).Schema["password_secret_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeAny)
-	}
-
-	return args
 }
 
 func (ContainerRegistryCredentialSetResource) Attributes() map[string]*pluginsdk.Schema {
