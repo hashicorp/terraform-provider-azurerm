@@ -19,16 +19,14 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceHealthcareService() *pluginsdk.Resource {
-	r := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceHealthcareServiceCreateUpdate,
 		Read:   resourceHealthcareServiceRead,
 		Update: resourceHealthcareServiceCreateUpdate,
@@ -216,18 +214,6 @@ func resourceHealthcareService() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	if !features.FivePointOh() {
-		r.Schema["cosmosdb_key_vault_key_versionless_id"] = &pluginsdk.Schema{
-			Type:             pluginsdk.TypeString,
-			Optional:         true,
-			ForceNew:         true,
-			DiffSuppressFunc: suppress.DiffSuppressIgnoreKeyVaultKeyVersion,
-			ValidateFunc:     keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeAny),
-		}
-	}
-
-	return r
 }
 
 func resourceHealthcareServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -463,12 +449,7 @@ func expandsCosmosDBConfiguration(d *pluginsdk.ResourceData) (*service.ServiceCo
 	}
 
 	if keyVaultKeyIDRaw, ok := d.GetOk("cosmosdb_key_vault_key_versionless_id"); ok {
-		nestedItemType := keyvault.NestedItemTypeKey
-		if !features.FivePointOh() {
-			nestedItemType = keyvault.NestedItemTypeAny
-		}
-
-		keyVaultKey, err := keyvault.ParseNestedItemID(keyVaultKeyIDRaw.(string), keyvault.VersionTypeVersionless, nestedItemType)
+		keyVaultKey, err := keyvault.ParseNestedItemID(keyVaultKeyIDRaw.(string), keyvault.VersionTypeVersionless, keyvault.NestedItemTypeKey)
 		if err != nil {
 			return nil, err
 		}

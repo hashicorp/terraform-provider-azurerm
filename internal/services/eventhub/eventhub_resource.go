@@ -11,13 +11,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/eventhubs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/namespaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -27,7 +25,7 @@ import (
 var eventHubResourceName = "azurerm_eventhub"
 
 func resourceEventHub() *pluginsdk.Resource {
-	r := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceEventHubCreate,
 		Read:   resourceEventHubRead,
 		Update: resourceEventHubUpdate,
@@ -230,36 +228,6 @@ func resourceEventHub() *pluginsdk.Resource {
 			return nil
 		}),
 	}
-
-	if !features.FivePointOh() {
-		r.Schema["namespace_id"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ExactlyOneOf: []string{"namespace_id", "namespace_name"},
-			ValidateFunc: namespaces.ValidateNamespaceID,
-		}
-
-		r.Schema["namespace_name"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: validate.ValidateEventHubNamespaceName(),
-			ExactlyOneOf: []string{"namespace_id", "namespace_name"},
-			Deprecated:   "`namespace_name` has been deprecated in favour of `namespace_id` and will be removed in v5.0 of the AzureRM Provider",
-		}
-
-		r.Schema["resource_group_name"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ExactlyOneOf: []string{"namespace_id", "resource_group_name"},
-			ValidateFunc: resourcegroups.ValidateName,
-			Deprecated:   "`resource_group_name` has been deprecated in favour of `namespace_id` and will be removed in v5.0 of the AzureRM Provider",
-		}
-	}
-
-	return r
 }
 
 func resourceEventHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -277,11 +245,6 @@ func resourceEventHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 		namespaceName = namespaceId.NamespaceName
 		resourceGroupName = namespaceId.ResourceGroupName
-	}
-
-	if !features.FivePointOh() && namespaceName == "" {
-		namespaceName = d.Get("namespace_name").(string)
-		resourceGroupName = d.Get("resource_group_name").(string)
 	}
 
 	id := eventhubs.NewEventhubID(subscriptionId, resourceGroupName, namespaceName, d.Get("name").(string))
@@ -405,11 +368,6 @@ func resourceEventHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	d.Set("name", id.EventhubName)
-
-	if !features.FivePointOh() {
-		d.Set("namespace_name", id.NamespaceName)
-		d.Set("resource_group_name", id.ResourceGroupName)
-	}
 
 	namespaceId := namespaces.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
 	d.Set("namespace_id", namespaceId.ID())
