@@ -9,7 +9,7 @@ on:
   pull_request:
     types: ['opened', 'synchronize', 'labeled', 'unlabeled']
     paths:
-      - '.github/workflows/pr-check-list-resources.yaml'
+      - 'pr-check-list-resources-required.yaml'
       - 'scripts/checks/enforce-list-for-new-resources.sh'
       - 'internal/services/**/*_resource.go'
 

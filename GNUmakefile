@@ -55,7 +55,7 @@ fmt: ## Fix Go formatting (gofmt, gofumpt, whitespace, goimports)
 	@echo "==> Fixing source code with whitespace linter..."
 	@golangci-lint run ./... --no-config --enable-only=whitespace --fix
 	@echo "==> Fixing imports code with goimports..."
-	@find . -name '*.go' | grep -v vendor | xargs goimports -w
+	@golangci-lint fmt ./... --no-config -E goimports
 
 quick-checks: ## Run the quick CI checks (formatting + provider policies)
 	@echo "==> Running the set of quick CI checks (formatting + provider policies)..."
