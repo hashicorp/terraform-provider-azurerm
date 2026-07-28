@@ -6,6 +6,19 @@ TF_SCHEMA_PANIC_ON_ERROR=1
 
 default: build
 
+#deprecated - remove at the end of 2026
+fmtcheck:
+	@echo "NOTE: 'make fmtcheck' has been renamed to 'make quick-checks' to reflect what it actually runs and will be removed in the future."
+	@$(MAKE) quick-checks
+
+tflint:
+	@echo "NOTE: 'make tflint' has been renamed to 'make tfproviderlint' to reflect what it actually runs and will be removed in the future."
+	@$(MAKE) tfproviderlint
+
+golangci-fix:
+	@echo "NOTE: 'make golangci-fix' has been renamed to 'make lint-fix' and will be removed in the future."
+	@$(MAKE) lint-fix
+
 tools:
 	@echo "==> installing required tooling..."
 	go install github.com/client9/misspell/cmd/misspell@latest
@@ -16,20 +29,31 @@ tools:
 	go install mvdan.cc/gofumpt@latest
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin v2.12.2
 
-build: fmtcheck generate
+build: quick-checks generate
 	go install
 
-fmt:
-	@echo "==> Fixing source code with gofmt..."
-	# This logic should match the search logic in scripts/checks/gofmt-check.sh
-	find . -name '*.go' | grep -v vendor | xargs gofmt -s -w
+generate: tools
+	go generate ./internal/services/...
+	go generate ./internal/provider/
 
-fumpt:
-	@echo "==> Fixing source code with Gofumpt..."
+gencheck: generate
+	@echo "==> Comparing generated code to committed code..."
+	@git diff --compact-summary --exit-code -- ./ || \
+    		(echo; echo "Unexpected difference in generated code. Run 'make generate' to update the generated code and commit."; echo "If you added or modified a resource, ensure 'go generate' directives are up to date."; exit 1)
+
+fmt:
 	# This logic should match the search logic in scripts/checks/gofmt-check.sh
+	@echo "==> Fixing source code with gofmt..."
+	find . -name '*.go' | grep -v vendor | xargs gofmt -s -w
+	@echo "==> Fixing source code with Gofumpt..."
 	find . -name '*.go' | grep -v vendor | xargs gofumpt -s -w
 
-fmtcheck:
+goimports:
+	@echo "==> Fixing imports code with goimports..."
+	@golangci-lint fmt -E goimports
+
+quick-checks:
+	@echo "==> Running the set of quick CI checks (formatting + provider policies)..."
 	@sh "$(CURDIR)/scripts/checks/gofmt-check.sh"
 	@sh "$(CURDIR)/scripts/checks/timeouts-check.sh"
 	@sh "$(CURDIR)/scripts/checks/test-package-check.sh"
@@ -40,16 +64,16 @@ terrafmt:
 	@echo "==> Fixing website terraform blocks code with terrafmt..."
 	@terrafmt fmt -p "*.html.markdown" .
 
-generate: tools
-	go generate ./internal/services/...
-	go generate ./internal/provider/
-
-goimports:
-	@echo "==> Fixing imports code with goimports..."
-	@golangci-lint fmt -E goimports
-
 lint:
 	@golangci-lint run -v ./...
+
+lint-fix:
+	@echo "==> Fixing source code with all golangci linters..."
+	golangci-lint run ./... --fix
+
+tfproviderlint:
+	./scripts/checks/tfproviderlint.sh
+
 
 shellcheck:
 	@command -v shellcheck >/dev/null || (echo "shellcheck not installed. Install via: brew install shellcheck (macOS) or apt install shellcheck (Linux)" && exit 1)
@@ -69,25 +93,10 @@ depscheck:
 	@git diff --compact-summary --exit-code -- vendor || \
 		(echo; echo "Unexpected difference in vendor/ directory. Run 'go mod vendor' command or revert any go.mod/go.sum/vendor changes and commit."; echo "Do not modify files in the vendor/ directory directly."; exit 1)
 
-gencheck: generate
-	@echo "==> Comparing generated code to committed code..."
-	@git diff --compact-summary --exit-code -- ./ || \
-    		(echo; echo "Unexpected difference in generated code. Run 'make generate' to update the generated code and commit."; echo "If you added or modified a resource, ensure 'go generate' directives are up to date."; exit 1)
-
-tfproviderlint:
-	./scripts/checks/tfproviderlint.sh
-
-tflint:
-	@echo "NOTE: 'make tflint' has been renamed to 'make tfproviderlint' to reflect what it actually runs and will be removed in the future."
-	@$(MAKE) tfproviderlint
-
 whitespace:
 	@echo "==> Fixing source code with whitespace linter..."
 	golangci-lint run ./... --no-config --disable-all --enable=whitespace --fix
 
-golangci-fix:
-	@echo "==> Fixing source code with all golangci linters..."
-	golangci-lint run ./... --fix
 
 test:
 	@TEST=$(TEST) ./scripts/checks/gradually-deprecated.sh
@@ -162,4 +171,4 @@ static-analysis:
 
 pr-check: generate build test lint tfproviderlint website-lint
 
-.PHONY: default tools build fmt fumpt fmtcheck terrafmt generate goimports lint shellcheck depscheck gencheck tfproviderlint tflint whitespace golangci-fix test test-compile testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts static-analysis pr-check
+.PHONY: default tools build fmt quick-checks fmtcheck terrafmt generate goimports lint shellcheck depscheck gencheck tfproviderlint tflint whitespace lint-fix golangci-fix test test-compile testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts static-analysis pr-check

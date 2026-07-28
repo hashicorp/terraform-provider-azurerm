@@ -109,7 +109,7 @@ jobs:
 
   # ------------------------------------------
 
-  fmtcheck:
+  quick-checks:
     needs: paths-filter
     if: needs.paths-filter.outputs.go == 'true'
     runs-on: ubuntu-latest
@@ -118,33 +118,34 @@ jobs:
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: ./.go-version
-      - run: make fmtcheck
+      - run: make quick-checks
       - name: Guidance on failure
         if: failure()
         run: |
-          echo "::error::GoLang Formatting Check failed."
+          echo "::error::Quick CI Checks failed."
           echo ""
-          echo "Run 'make fmtcheck' locally to check Go files for formatting issues."
-          echo "You can run 'make fmt' to automatically format Go files with gofmt."
+          echo "Run 'make quick-checks' locally to run the quick checks: formatting (gofmt/gofumpt),"
+          echo "custom timeouts usage, and acceptance test package naming."
+          echo "For formatting issues, 'make fmt' will fix them automatically."
 
-  fmtcheck-save-artifacts:
-    needs: fmtcheck
-    if: always() && needs.fmtcheck.result == 'failure'
+  quick-checks-save-artifacts:
+    needs: quick-checks
+    if: always() && needs.quick-checks.result == 'failure'
     uses: ./.github/workflows/ci-save-artifacts.yaml
 
-  fmtcheck-on-fail:
-    needs: fmtcheck
-    if: always() && needs.fmtcheck.result == 'failure'
+  quick-checks-on-fail:
+    needs: quick-checks
+    if: always() && needs.quick-checks.result == 'failure'
     uses: ./.github/workflows/ci-comment-failure.yaml
     with:
-      check_name: "GoLang Formatting Check"
+      check_name: "Quick CI Checks"
 
-  fmtcheck-on-success:
-    needs: fmtcheck
-    if: success() && needs.fmtcheck.result == 'success'
+  quick-checks-on-success:
+    needs: quick-checks
+    if: success() && needs.quick-checks.result == 'success'
     uses: ./.github/workflows/ci-comment-failure-outdated.yaml
     with:
-      check_name: "GoLang Formatting Check"
+      check_name: "Quick CI Checks"
 
   # ------------------------------------------
 
@@ -268,12 +269,12 @@ jobs:
   # ==========================================
 
   build:
-    needs: [paths-filter, depscheck, fmtcheck, shellcheck, website-lint, document-validate]
+    needs: [paths-filter, depscheck, quick-checks, shellcheck, website-lint, document-validate]
     if: |
       always() && 
       needs.paths-filter.outputs.go == 'true' &&
       (needs.depscheck.result == 'success' || needs.depscheck.result == 'skipped') && 
-      (needs.fmtcheck.result == 'success' || needs.fmtcheck.result == 'skipped') && 
+      (needs.quick-checks.result == 'success' || needs.quick-checks.result == 'skipped') && 
       (needs.shellcheck.result == 'success' || needs.shellcheck.result == 'skipped') && 
       (needs.website-lint.result == 'success' || needs.website-lint.result == 'skipped')
     runs-on: ubuntu-latest
@@ -313,12 +314,12 @@ jobs:
   # ------------------------------------------
 
   golangci-lint:
-    needs: [paths-filter, depscheck, fmtcheck, shellcheck, website-lint, document-validate]
+    needs: [paths-filter, depscheck, quick-checks, shellcheck, website-lint, document-validate]
     if: |
       always() && 
       needs.paths-filter.outputs.go == 'true' &&
       (needs.depscheck.result == 'success' || needs.depscheck.result == 'skipped') && 
-      (needs.fmtcheck.result == 'success' || needs.fmtcheck.result == 'skipped') && 
+      (needs.quick-checks.result == 'success' || needs.quick-checks.result == 'skipped') && 
       (needs.shellcheck.result == 'success' || needs.shellcheck.result == 'skipped') && 
       (needs.website-lint.result == 'success' || needs.website-lint.result == 'skipped')
     runs-on: custom-linux-large
@@ -367,12 +368,12 @@ jobs:
   # ------------------------------------------
 
   tfproviderlint:
-    needs: [paths-filter, depscheck, fmtcheck, shellcheck, website-lint, document-validate]
+    needs: [paths-filter, depscheck, quick-checks, shellcheck, website-lint, document-validate]
     if: |
       always() && 
       needs.paths-filter.outputs.go == 'true' &&
       (needs.depscheck.result == 'success' || needs.depscheck.result == 'skipped') && 
-      (needs.fmtcheck.result == 'success' || needs.fmtcheck.result == 'skipped') && 
+      (needs.quick-checks.result == 'success' || needs.quick-checks.result == 'skipped') && 
       (needs.shellcheck.result == 'success' || needs.shellcheck.result == 'skipped') && 
       (needs.website-lint.result == 'success' || needs.website-lint.result == 'skipped')
     runs-on: custom-linux-medium
@@ -415,12 +416,12 @@ jobs:
   # ------------------------------------------
 
   gencheck:
-    needs: [paths-filter, depscheck, fmtcheck, shellcheck, website-lint, document-validate]
+    needs: [paths-filter, depscheck, quick-checks, shellcheck, website-lint, document-validate]
     if: |
       always() && 
       needs.paths-filter.outputs.go == 'true' &&
       (needs.depscheck.result == 'success' || needs.depscheck.result == 'skipped') && 
-      (needs.fmtcheck.result == 'success' || needs.fmtcheck.result == 'skipped') && 
+      (needs.quick-checks.result == 'success' || needs.quick-checks.result == 'skipped') && 
       (needs.shellcheck.result == 'success' || needs.shellcheck.result == 'skipped') && 
       (needs.website-lint.result == 'success' || needs.website-lint.result == 'skipped')
     runs-on: custom-linux-large
@@ -460,12 +461,12 @@ jobs:
   # ------------------------------------------
 
   unit-tests:
-    needs: [paths-filter, depscheck, fmtcheck, shellcheck, website-lint, document-validate]
+    needs: [paths-filter, depscheck, quick-checks, shellcheck, website-lint, document-validate]
     if: |
       always() && 
       needs.paths-filter.outputs.go == 'true' &&
       (needs.depscheck.result == 'success' || needs.depscheck.result == 'skipped') && 
-      (needs.fmtcheck.result == 'success' || needs.fmtcheck.result == 'skipped') && 
+      (needs.quick-checks.result == 'success' || needs.quick-checks.result == 'skipped') && 
       (needs.shellcheck.result == 'success' || needs.shellcheck.result == 'skipped') && 
       (needs.website-lint.result == 'success' || needs.website-lint.result == 'skipped')
     runs-on: custom-linux-xl
@@ -521,12 +522,12 @@ jobs:
   # ------------------------------------------
 
   validate-examples:
-    needs: [paths-filter, depscheck, fmtcheck, shellcheck, website-lint, document-validate]
+    needs: [paths-filter, depscheck, quick-checks, shellcheck, website-lint, document-validate]
     if: |
       always() && 
       needs.paths-filter.outputs.examples == 'true' &&
       (needs.depscheck.result == 'success' || needs.depscheck.result == 'skipped') && 
-      (needs.fmtcheck.result == 'success' || needs.fmtcheck.result == 'skipped') && 
+      (needs.quick-checks.result == 'success' || needs.quick-checks.result == 'skipped') && 
       (needs.shellcheck.result == 'success' || needs.shellcheck.result == 'skipped') && 
       (needs.website-lint.result == 'success' || needs.website-lint.result == 'skipped')
     runs-on: custom-linux-small
