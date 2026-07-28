@@ -7,7 +7,7 @@ terraform {
       version = ">=2.76.0"
     }
     random = {
-      version = "3.1.0"
+      version = "~>5.0"
     }
   }
 }
