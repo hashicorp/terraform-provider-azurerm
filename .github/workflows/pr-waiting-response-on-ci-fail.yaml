@@ -7,7 +7,7 @@ name: Add waiting-response on failures
 
 on:
   # NOTE: these are workflow display names (not filenames), and every workflow listed
-  # here must upload the wr_actions artifact on failure (via ci-save-artifacts.yaml)
+  # here must upload the wr_actions artifact on failure (via pr-save-artifacts.yaml)
   # so the job below can identify the PR to label.
   workflow_run:
     workflows:

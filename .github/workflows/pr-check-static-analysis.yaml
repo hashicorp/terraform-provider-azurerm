@@ -42,4 +42,4 @@ jobs:
   save-artifacts-on-fail:
     needs: detect
     if: ${{ failure() }}
-    uses: ./.github/workflows/ci-save-artifacts.yaml
+    uses: ./.github/workflows/pr-save-artifacts.yaml

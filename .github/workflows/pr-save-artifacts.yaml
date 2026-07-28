@@ -1,4 +1,4 @@
-name: Save Artifacts
+name: PR Save Artifacts
 
 # One half of the artifact relay pattern (see README.md in this directory):
 # PR checks run with a read-only token (untrusted fork code), so they cannot

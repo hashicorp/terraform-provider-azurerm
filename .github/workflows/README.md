@@ -9,7 +9,6 @@ Workflow files are grouped by prefix:
 | `pr-*` | Pull request automation (triage, labels, housekeeping) |
 | `pr-check-*` | Standalone PR checks that cannot live inside `pr-checks-combined.yaml` (special runners, OIDC auth, or their own path filters) |
 | `pr-waiting-response-*` | The `waiting-response` label machinery (see below) |
-| `ci-*` | Reusable building blocks called from other workflows via `workflow_call` |
 | `issue-*` | Issue automation |
 | `milestone-*` | Milestone automation |
 | `changelog-*` | Changelog automation |
@@ -19,7 +18,12 @@ Workflow files are grouped by prefix:
 `build.yml` and `provider-release.yml` are HashiCorp Common Release Tooling (CRT)
 files referenced by external release pipelines — do not rename them.
 
-## The artifact relay pattern (why `ci-save-artifacts.yaml` exists)
+Prefixes describe what a workflow acts on, not how it is invoked. Four files are
+reusable building blocks with no triggers of their own (`workflow_call` only):
+`pr-save-artifacts.yaml`, `pr-comment-failure.yaml`,
+`pr-comment-failure-outdated.yaml`, and `issue-remove-label.yaml`.
+
+## The artifact relay pattern (why `pr-save-artifacts.yaml` exists)
 
 Several workflows need to *modify* a PR (e.g. add the `waiting-response` label when
 CI fails) — but the workflow that detects the condition is not allowed to do so:
@@ -35,7 +39,7 @@ So the two halves communicate through an artifact:
 
 ```
 pull_request workflow (untrusted, read-only, knows the PR)
-  └─ on failure: ci-save-artifacts.yaml uploads wr_actions/{ghowner,ghrepo,prnumber}.txt
+  └─ on failure: pr-save-artifacts.yaml uploads wr_actions/{ghowner,ghrepo,prnumber}.txt
        └─ workflow_run workflow (trusted, write token, blind)
             └─ downloads the artifact → labels that PR
 ```
@@ -43,7 +47,7 @@ pull_request workflow (untrusted, read-only, knows the PR)
 Concretely:
 
 - Every job in `pr-checks-combined.yaml` and every `pr-check-*` workflow calls
-  `ci-save-artifacts.yaml` on failure.
+  `pr-save-artifacts.yaml` on failure.
 - `pr-waiting-response-on-ci-fail.yaml` triggers on those workflows' **display
   names** (`workflow_run` matches names, not filenames), downloads the artifact,
   and adds the `waiting-response` label (used by project boards and the
@@ -52,7 +56,7 @@ Concretely:
   reviewer/state artifact, `pr-waiting-response-on-review.yaml` applies it.
 
 **When adding a new PR check**: if its failure should mark the PR
-`waiting-response`, the check must (a) call `ci-save-artifacts.yaml` on failure
+`waiting-response`, the check must (a) call `pr-save-artifacts.yaml` on failure
 and (b) have its display name added to the `workflow_run` list in
 `pr-waiting-response-on-ci-fail.yaml`. One without the other does nothing.
 
@@ -65,7 +69,7 @@ arbitrary PR number.
 - `workflow_run` triggers reference workflow **display names** — renaming a
   workflow's `name:` silently breaks its consumers (`pr-waiting-response-on-ci-fail.yaml`,
   `pr-waiting-response-on-review.yaml`, `pr-assign-reviewer.yaml`, `changelog-update.yaml`).
-- Reusable workflows (`ci-*`, `issue-remove-label.yaml`) are referenced by **file
-  path** in `uses:` lines.
+- Reusable workflows (`pr-save-artifacts.yaml`, `pr-comment-failure*.yaml`,
+  `issue-remove-label.yaml`) are referenced by **file path** in `uses:` lines.
 - Several checks have a self-referencing `paths:` trigger that must be updated
   when the file is renamed.

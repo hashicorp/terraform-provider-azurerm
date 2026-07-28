@@ -1,8 +1,8 @@
-name: Comment CI Failure
+name: PR Comment Failure
 
 # Reusable (workflow_call): adds a failed check to the unified "CI Build Failures"
 # PR comment, with per-check remediation guidance from the table below.
-# ci-comment-failure-outdated.yaml strikes entries through on later success, matching
+# pr-comment-failure-outdated.yaml strikes entries through on later success, matching
 # on the same check_name strings - keep the two in sync.
 
 on:

@@ -47,12 +47,12 @@ jobs:
   save-artifacts-on-fail:
     needs: check
     if: ${{ failure() }}
-    uses: ./.github/workflows/ci-save-artifacts.yaml
+    uses: ./.github/workflows/pr-save-artifacts.yaml
   comment-on-fail:
     needs: check
     if: ${{ failure() }}
-    uses: ./.github/workflows/ci-comment-failure.yaml
+    uses: ./.github/workflows/pr-comment-failure.yaml
   comment-outdated-on-pass:
     needs: check
     if: ${{ success() }}
-    uses: ./.github/workflows/ci-comment-failure-outdated.yaml
+    uses: ./.github/workflows/pr-comment-failure-outdated.yaml
