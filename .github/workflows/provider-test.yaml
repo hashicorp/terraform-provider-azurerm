@@ -88,12 +88,12 @@ jobs:
   save-artifacts-on-fail:
     needs: provider-tests
     if: ${{ failure() }}
-    uses: ./.github/workflows/save-artifacts.yaml
+    uses: ./.github/workflows/ci-save-artifacts.yaml
   comment-on-fail:
     needs: provider-tests
     if: ${{ failure() }}
-    uses: ./.github/workflows/comment-ci-failure.yaml
+    uses: ./.github/workflows/ci-comment-failure.yaml
   comment-outdated-on-pass:
     needs: provider-tests
     if: ${{ success() }}
-    uses: ./.github/workflows/comment-ci-failure-outdated.yaml
+    uses: ./.github/workflows/ci-comment-failure-outdated.yaml

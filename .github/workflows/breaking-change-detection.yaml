@@ -26,7 +26,7 @@ jobs:
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: ./.go-version
-      - run: bash ./scripts/run-breaking-change-detection.sh
+      - run: bash ./scripts/checks/breaking-change-detection.sh
       - name: Guidance on failure
         if: failure()
         run: |

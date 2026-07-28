@@ -11,16 +11,16 @@ permissions:
 
 jobs:
   remove-stale:
-    uses: ./.github/workflows/remove-issue-label.yml
+    uses: ./.github/workflows/issue-remove-label.yaml
     with:
       label-name: "stale"
   remove-waiting-response-from-issue:
-    uses: ./.github/workflows/remove-issue-label.yml
+    uses: ./.github/workflows/issue-remove-label.yaml
     if: ${{ !github.event.issue.pull_request }}
     with:
       label-name: "waiting-response"
   remove-waiting-response-from-pr:
-    uses: ./.github/workflows/remove-issue-label.yml
+    uses: ./.github/workflows/issue-remove-label.yaml
     if: (github.event.issue.pull_request && github.actor == github.event.issue.user.login)
     with:
       label-name: "waiting-response"

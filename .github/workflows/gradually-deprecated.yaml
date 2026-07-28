@@ -10,7 +10,7 @@ on:
     types: ['opened', 'synchronize']
     paths:
       - '.github/workflows/gradually-deprecated.yaml'
-      - './scripts/run-gradually-deprecated.sh'
+      - './scripts/checks/gradually-deprecated.sh'
       - '**.go'
 
 jobs:
@@ -23,7 +23,7 @@ jobs:
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: ./.go-version
-      - run: bash ./scripts/run-gradually-deprecated.sh
+      - run: bash ./scripts/checks/gradually-deprecated.sh
       - name: Guidance on failure
         if: failure()
         run: |
@@ -35,12 +35,12 @@ jobs:
   save-artifacts-on-fail:
     needs: test
     if: ${{ failure() }}
-    uses: ./.github/workflows/save-artifacts.yaml
+    uses: ./.github/workflows/ci-save-artifacts.yaml
   comment-on-fail:
     needs: test
     if: ${{ failure() }}
-    uses: ./.github/workflows/comment-ci-failure.yaml
+    uses: ./.github/workflows/ci-comment-failure.yaml
   comment-outdated-on-pass:
     needs: test
     if: ${{ success() }}
-    uses: ./.github/workflows/comment-ci-failure-outdated.yaml
+    uses: ./.github/workflows/ci-comment-failure-outdated.yaml

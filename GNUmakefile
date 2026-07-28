@@ -9,7 +9,6 @@ default: build
 
 tools:
 	@echo "==> installing required tooling..."
-	@sh "$(CURDIR)/scripts/gogetcookie.sh"
 	go install github.com/client9/misspell/cmd/misspell@latest
 	go install github.com/bflad/tfproviderlint/cmd/tfproviderlint@latest
 	go install github.com/YakDriver/tfproviderdocs@latest
@@ -23,19 +22,19 @@ build: fmtcheck generate
 
 fmt:
 	@echo "==> Fixing source code with gofmt..."
-	# This logic should match the search logic in scripts/gofmtcheck.sh
+	# This logic should match the search logic in scripts/checks/gofmt-check.sh
 	find . -name '*.go' | grep -v vendor | xargs gofmt -s -w
 
 fumpt:
 	@echo "==> Fixing source code with Gofumpt..."
-	# This logic should match the search logic in scripts/gofmtcheck.sh
+	# This logic should match the search logic in scripts/checks/gofmt-check.sh
 	find . -name '*.go' | grep -v vendor | xargs gofumpt -s -w
 
 # Currently required by tf-deploy compile, duplicated by linters
 fmtcheck:
-	@sh "$(CURDIR)/scripts/gofmtcheck.sh"
-	@sh "$(CURDIR)/scripts/timeouts.sh"
-	@sh "$(CURDIR)/scripts/check-test-package.sh"
+	@sh "$(CURDIR)/scripts/checks/gofmt-check.sh"
+	@sh "$(CURDIR)/scripts/checks/timeouts-check.sh"
+	@sh "$(CURDIR)/scripts/checks/test-package-check.sh"
 
 terrafmt:
 	@echo "==> Fixing acceptance test terraform blocks code with terrafmt..."
@@ -49,7 +48,7 @@ generate: tools
 
 goimports:
 	@echo "==> Fixing imports code with goimports..."
-	@find . -name '*.go' | grep -v vendor | grep -v generator-resource-id | while read f; do ./scripts/goimport-file.sh "$$f"; done
+	@find . -name '*.go' | grep -v vendor | grep -v generator-resource-id | while read f; do ./scripts/checks/goimport-file.sh "$$f"; done
 
 lint:
 	@golangci-lint run -v ./...
@@ -57,12 +56,12 @@ lint:
 shellcheck:
 	@command -v shellcheck >/dev/null || (echo "shellcheck not installed. Install via: brew install shellcheck (macOS) or apt install shellcheck (Linux)" && exit 1)
 	@echo "==> Checking shell scripts with shellcheck..."
-	@shellcheck scripts/*.sh || \
+	@shellcheck scripts/*.sh scripts/checks/*.sh scripts/automation/*.sh || \
 		(echo; echo "ShellCheck found issues in shell scripts."; echo "Review the errors above and fix them. See https://www.shellcheck.net/ for detailed explanations of each rule."; exit 1)
 
 depscheck:
 	@echo "==> Checking dependencies.."
-	@./scripts/track2-check.sh
+	@./scripts/checks/track2-check.sh
 	@echo "==> Checking source code with go mod tidy..."
 	@go mod tidy
 	@git diff --exit-code -- go.mod go.sum || \
@@ -78,7 +77,7 @@ gencheck: generate
     		(echo; echo "Unexpected difference in generated code. Run 'make generate' to update the generated code and commit."; echo "If you added or modified a resource, ensure 'go generate' directives are up to date."; exit 1)
 
 tfproviderlint:
-	./scripts/run-tfproviderlint.sh
+	./scripts/checks/tfproviderlint.sh
 
 tflint:
 	@echo "NOTE: 'make tflint' has been renamed to 'make tfproviderlint' to reflect what it actually runs and will be removed in the future."
@@ -93,8 +92,8 @@ golangci-fix:
 	golangci-lint run ./... --fix
 
 test:
-	@TEST=$(TEST) ./scripts/run-gradually-deprecated.sh
-	@TEST=$(TEST) ./scripts/run-test.sh
+	@TEST=$(TEST) ./scripts/checks/gradually-deprecated.sh
+	@TEST=$(TEST) ./scripts/checks/test.sh
 
 test-compile:
 	@if [ "$(TEST)" = "./..." ]; then \
@@ -133,7 +132,7 @@ website-lint:
 	@tfproviderdocs check -provider-name=azurerm -require-resource-subcategory \
 		-allowed-resource-subcategories-file website/allowed-subcategories || \
 		(echo; echo "Documentation validation failed. Check that your docs follow the provider documentation format."; echo "See: contributing/topics/guide-new-resource.md for documentation requirements."; exit 1)
-	@sh -c "'$(CURDIR)/scripts/terrafmt-website.sh'"
+	@sh -c "'$(CURDIR)/scripts/checks/terrafmt-website.sh'"
 
 website:
 ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
@@ -143,23 +142,23 @@ endif
 	@$(MAKE) -C $(GOPATH)/src/$(WEBSITE_REPO) website-provider PROVIDER_PATH=$(shell pwd) PROVIDER_NAME=azurerm
 
 document-validate:
-	@./scripts/documentfmt-validate.sh
+	@./scripts/checks/document-validate.sh
 
 document-fix:
-	@./scripts/documentfmt-fix.sh
+	@./scripts/checks/document-fix.sh
 
 document-lint:
 	go run $(CURDIR)/internal/tools/document-lint/main.go check
 
 scaffold-website:
-	./scripts/scaffold-website.sh
+	./scripts/website-scaffold.sh
 
 teamcity-test:
 	@$(MAKE) -C .teamcity tools
 	@$(MAKE) -C .teamcity test
 
 validate-examples: build
-	./scripts/validate-examples.sh
+	./scripts/checks/examples-validate.sh
 
 schemagen:
 	go run ./internal/tools/generator-schema-snapshot $(RESOURCE_TYPE)
@@ -168,7 +167,7 @@ resource-counts:
 	go test -v ./internal/provider -run=TestProvider_counts
 
 static-analysis:
-	./scripts/run-static-analysis.sh
+	./scripts/checks/static-analysis.sh
 
 pr-check: generate build test lint tfproviderlint website-lint
 

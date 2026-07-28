@@ -78,7 +78,6 @@ jobs:
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: ./.go-version
-      - run: bash scripts/gogetcookie.sh
       - run: make depscheck
       - name: Guidance on failure
         if: failure()
@@ -92,19 +91,19 @@ jobs:
   depscheck-save-artifacts:
     needs: depscheck
     if: always() && needs.depscheck.result == 'failure'
-    uses: ./.github/workflows/save-artifacts.yaml
+    uses: ./.github/workflows/ci-save-artifacts.yaml
 
   depscheck-on-fail:
     needs: depscheck
     if: always() && needs.depscheck.result == 'failure'
-    uses: ./.github/workflows/comment-ci-failure.yaml
+    uses: ./.github/workflows/ci-comment-failure.yaml
     with:
       check_name: "Vendor Dependencies Check"
 
   depscheck-on-success:
     needs: depscheck
     if: success() && needs.depscheck.result == 'success'
-    uses: ./.github/workflows/comment-ci-failure-outdated.yaml
+    uses: ./.github/workflows/ci-comment-failure-outdated.yaml
     with:
       check_name: "Vendor Dependencies Check"
 
@@ -131,19 +130,19 @@ jobs:
   fmtcheck-save-artifacts:
     needs: fmtcheck
     if: always() && needs.fmtcheck.result == 'failure'
-    uses: ./.github/workflows/save-artifacts.yaml
+    uses: ./.github/workflows/ci-save-artifacts.yaml
 
   fmtcheck-on-fail:
     needs: fmtcheck
     if: always() && needs.fmtcheck.result == 'failure'
-    uses: ./.github/workflows/comment-ci-failure.yaml
+    uses: ./.github/workflows/ci-comment-failure.yaml
     with:
       check_name: "GoLang Formatting Check"
 
   fmtcheck-on-success:
     needs: fmtcheck
     if: success() && needs.fmtcheck.result == 'success'
-    uses: ./.github/workflows/comment-ci-failure-outdated.yaml
+    uses: ./.github/workflows/ci-comment-failure-outdated.yaml
     with:
       check_name: "GoLang Formatting Check"
 
@@ -169,19 +168,19 @@ jobs:
   shellcheck-save-artifacts:
     needs: shellcheck
     if: always() && needs.shellcheck.result == 'failure'
-    uses: ./.github/workflows/save-artifacts.yaml
+    uses: ./.github/workflows/ci-save-artifacts.yaml
 
   shellcheck-on-fail:
     needs: shellcheck
     if: always() && needs.shellcheck.result == 'failure'
-    uses: ./.github/workflows/comment-ci-failure.yaml
+    uses: ./.github/workflows/ci-comment-failure.yaml
     with:
       check_name: "ShellCheck Scripts"
 
   shellcheck-on-success:
     needs: shellcheck
     if: success() && needs.shellcheck.result == 'success'
-    uses: ./.github/workflows/comment-ci-failure-outdated.yaml
+    uses: ./.github/workflows/ci-comment-failure-outdated.yaml
     with:
       check_name: "ShellCheck Scripts"
 
@@ -196,7 +195,6 @@ jobs:
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: ./.go-version
-      - run: bash scripts/gogetcookie.sh
       - run: make tools
       - run: make website-lint
       - name: Guidance on failure
@@ -212,19 +210,19 @@ jobs:
   website-lint-save-artifacts:
     needs: website-lint
     if: always() && needs.website-lint.result == 'failure'
-    uses: ./.github/workflows/save-artifacts.yaml
+    uses: ./.github/workflows/ci-save-artifacts.yaml
 
   website-lint-on-fail:
     needs: website-lint
     if: always() && needs.website-lint.result == 'failure'
-    uses: ./.github/workflows/comment-ci-failure.yaml
+    uses: ./.github/workflows/ci-comment-failure.yaml
     with:
       check_name: "Website Linting"
 
   website-lint-on-success:
     needs: website-lint
     if: success() && needs.website-lint.result == 'success'
-    uses: ./.github/workflows/comment-ci-failure-outdated.yaml
+    uses: ./.github/workflows/ci-comment-failure-outdated.yaml
     with:
       check_name: "Website Linting"
 
@@ -237,7 +235,6 @@ jobs:
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
           go-version-file: ./.go-version
-      - run: bash scripts/gogetcookie.sh
       - run: make document-validate
       - name: Guidance on failure
         if: failure()
@@ -250,19 +247,19 @@ jobs:
   document-validate-save-artifacts:
     needs: document-validate
     if: always() && needs.document-validate.result == 'failure'
-    uses: ./.github/workflows/save-artifacts.yaml
+    uses: ./.github/workflows/ci-save-artifacts.yaml
 
   document-validate-on-fail:
     needs: document-validate
     if: always() && needs.document-validate.result == 'failure'
-    uses: ./.github/workflows/comment-ci-failure.yaml
+    uses: ./.github/workflows/ci-comment-failure.yaml
     with:
       check_name: "Document Validation"
 
   document-validate-on-success:
     needs: document-validate
     if: success()
-    uses: ./.github/workflows/comment-ci-failure-outdated.yaml
+    uses: ./.github/workflows/ci-comment-failure-outdated.yaml
     with:
       check_name: "Document Validation"
 
@@ -285,7 +282,6 @@ jobs:
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: ./.go-version
-      - run: bash scripts/gogetcookie.sh
       - name: Build Provider
         run: go build -v -o /dev/null main.go
       - name: Guidance on failure
@@ -298,19 +294,19 @@ jobs:
   build-save-artifacts:
     needs: build
     if: always() && needs.build.result == 'failure'
-    uses: ./.github/workflows/save-artifacts.yaml
+    uses: ./.github/workflows/ci-save-artifacts.yaml
 
   build-on-fail:
     needs: build
     if: always() && needs.build.result == 'failure'
-    uses: ./.github/workflows/comment-ci-failure.yaml
+    uses: ./.github/workflows/ci-comment-failure.yaml
     with:
       check_name: "GoLang Compilation"
 
   build-on-success:
     needs: build
     if: success() && needs.build.result == 'success'
-    uses: ./.github/workflows/comment-ci-failure-outdated.yaml
+    uses: ./.github/workflows/ci-comment-failure-outdated.yaml
     with:
       check_name: "GoLang Compilation"
 
@@ -352,19 +348,19 @@ jobs:
   golangci-lint-save-artifacts:
     needs: golangci-lint
     if: always() && needs.golangci-lint.result == 'failure'
-    uses: ./.github/workflows/save-artifacts.yaml
+    uses: ./.github/workflows/ci-save-artifacts.yaml
 
   golangci-lint-on-fail:
     needs: golangci-lint
     if: always() && needs.golangci-lint.result == 'failure'
-    uses: ./.github/workflows/comment-ci-failure.yaml
+    uses: ./.github/workflows/ci-comment-failure.yaml
     with:
       check_name: "GoLang Linting"
 
   golangci-lint-on-success:
     needs: golangci-lint
     if: success() && needs.golangci-lint.result == 'success'
-    uses: ./.github/workflows/comment-ci-failure-outdated.yaml
+    uses: ./.github/workflows/ci-comment-failure-outdated.yaml
     with:
       check_name: "GoLang Linting"
 
@@ -385,7 +381,6 @@ jobs:
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: ./.go-version
-      - run: bash scripts/gogetcookie.sh
       - run: make tools
       - run: make tfproviderlint
       - name: Guidance on failure
@@ -401,19 +396,19 @@ jobs:
   tfproviderlint-save-artifacts:
     needs: tfproviderlint
     if: always() && needs.tfproviderlint.result == 'failure'
-    uses: ./.github/workflows/save-artifacts.yaml
+    uses: ./.github/workflows/ci-save-artifacts.yaml
 
   tfproviderlint-on-fail:
     needs: tfproviderlint
     if: always() && needs.tfproviderlint.result == 'failure'
-    uses: ./.github/workflows/comment-ci-failure.yaml
+    uses: ./.github/workflows/ci-comment-failure.yaml
     with:
       check_name: "Terraform Schema Linting"
 
   tfproviderlint-on-success:
     needs: tfproviderlint
     if: success() && needs.tfproviderlint.result == 'success'
-    uses: ./.github/workflows/comment-ci-failure-outdated.yaml
+    uses: ./.github/workflows/ci-comment-failure-outdated.yaml
     with:
       check_name: "Terraform Schema Linting"
 
@@ -434,7 +429,6 @@ jobs:
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: ./.go-version
-      - run: bash scripts/gogetcookie.sh
       - run: make gencheck
       - name: Guidance on failure
         if: failure()
@@ -447,19 +441,19 @@ jobs:
   gencheck-save-artifacts:
     needs: gencheck
     if: always() && needs.gencheck.result == 'failure'
-    uses: ./.github/workflows/save-artifacts.yaml
+    uses: ./.github/workflows/ci-save-artifacts.yaml
 
   gencheck-on-fail:
     needs: gencheck
     if: always() && needs.gencheck.result == 'failure'
-    uses: ./.github/workflows/comment-ci-failure.yaml
+    uses: ./.github/workflows/ci-comment-failure.yaml
     with:
       check_name: "Generation Check"
 
   gencheck-on-success:
     needs: gencheck
     if: success() && needs.gencheck.result == 'success'
-    uses: ./.github/workflows/comment-ci-failure-outdated.yaml
+    uses: ./.github/workflows/ci-comment-failure-outdated.yaml
     with:
       check_name: "Generation Check"
 
@@ -486,7 +480,6 @@ jobs:
         run: 'du -h -d 0 $(go env GOMODCACHE) $(go env GOCACHE) || true'
       - name: Install gotestsum
         run: go install gotest.tools/gotestsum@v1.13.0
-      - run: bash scripts/gogetcookie.sh
       - name: Run tests
         run: |
           gotestsum \
@@ -509,19 +502,19 @@ jobs:
   unit-tests-save-artifacts:
     needs: unit-tests
     if: always() && needs.unit-tests.result == 'failure'
-    uses: ./.github/workflows/save-artifacts.yaml
+    uses: ./.github/workflows/ci-save-artifacts.yaml
 
   unit-tests-on-fail:
     needs: unit-tests
     if: always() && needs.unit-tests.result == 'failure'
-    uses: ./.github/workflows/comment-ci-failure.yaml
+    uses: ./.github/workflows/ci-comment-failure.yaml
     with:
       check_name: "Unit Tests"
 
   unit-tests-on-success:
     needs: unit-tests
     if: success() && needs.unit-tests.result == 'success'
-    uses: ./.github/workflows/comment-ci-failure-outdated.yaml
+    uses: ./.github/workflows/ci-comment-failure-outdated.yaml
     with:
       check_name: "Unit Tests"
 
@@ -542,7 +535,6 @@ jobs:
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: ./.go-version
-      - run: bash scripts/gogetcookie.sh
       - run: make tools
       - run: make validate-examples
       - name: Guidance on failure
@@ -557,18 +549,18 @@ jobs:
   validate-examples-save-artifacts:
     needs: validate-examples
     if: always() && needs.validate-examples.result == 'failure'
-    uses: ./.github/workflows/save-artifacts.yaml
+    uses: ./.github/workflows/ci-save-artifacts.yaml
 
   validate-examples-on-fail:
     needs: validate-examples
     if: always() && needs.validate-examples.result == 'failure'
-    uses: ./.github/workflows/comment-ci-failure.yaml
+    uses: ./.github/workflows/ci-comment-failure.yaml
     with:
       check_name: "Validate Examples"
 
   validate-examples-on-success:
     needs: validate-examples
     if: success() && needs.validate-examples.result == 'success'
-    uses: ./.github/workflows/comment-ci-failure-outdated.yaml
+    uses: ./.github/workflows/ci-comment-failure-outdated.yaml
     with:
       check_name: "Validate Examples"

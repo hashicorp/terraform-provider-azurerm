@@ -50,6 +50,6 @@ jobs:
   remove-waiting-reponse:
     needs: add-or-remove-waiting-response
     if: needs.add-or-remove-waiting-response.outputs.artifact_outcome == 'success' && needs.add-or-remove-waiting-response.outputs.action == 'remove-waiting-response'
-    uses: ./.github/workflows/remove-issue-label.yml
+    uses: ./.github/workflows/issue-remove-label.yaml
     with:
       label-name: "waiting-response"

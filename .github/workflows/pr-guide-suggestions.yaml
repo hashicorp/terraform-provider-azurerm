@@ -13,8 +13,8 @@ on:
     paths:
       - '.github/workflows/pr-guide-suggestions.yaml'
       - 'internal/tools/pr-guide-suggestions/**'
-      - 'scripts/run-pr-guide-suggestions.sh'
-      - 'scripts/run-pr-guide-suggestions-diff.sh'
+      - 'scripts/checks/pr-guide-suggestions.sh'
+      - 'scripts/checks/pr-guide-suggestions.sh'
       - 'internal/services/**/*_resource.go'
       - 'internal/services/**/*_data_source.go'
       - 'internal/services/**/*_datasource.go'
@@ -41,7 +41,7 @@ jobs:
         shell: bash
         run: |
           set +e
-          bash ./scripts/run-pr-guide-suggestions-diff.sh > pr-guide-suggestions-output.txt 2>&1
+          bash ./scripts/checks/pr-guide-suggestions.sh > pr-guide-suggestions-output.txt 2>&1
           code=$?
           cat pr-guide-suggestions-output.txt
           echo "exit_code=${code}" >> "$GITHUB_OUTPUT"
@@ -87,7 +87,7 @@ jobs:
               echo ""
               echo "> One or more newly added schema properties violate a pr-guide-suggestions rule. Correct the property (auto-fixable naming findings can be applied with the linter's \`-fix\` flag); if the change is intentional, a maintainer can apply the \`schema-accepted\` label to bypass this check."
               echo ">"
-              echo "> Reproduce locally: \`GITHUB_BASE_REF=${BASE_REF} bash ./scripts/run-pr-guide-suggestions-diff.sh\`"
+              echo "> Reproduce locally: \`GITHUB_BASE_REF=${BASE_REF} bash ./scripts/checks/pr-guide-suggestions.sh\`"
             fi
           } > pr-guide-suggestions-comment.md
       - name: Delete pr-guide-suggestions comment when clean
@@ -112,7 +112,7 @@ jobs:
           echo "This PR adds one or more schema properties that violate a pr-guide-suggestions"
           echo "rule. See the pr-guide-suggestions comment on the pull request for details, or"
           echo "reproduce locally against the branch you are merging into:"
-          echo "  GITHUB_BASE_REF=main bash ./scripts/run-pr-guide-suggestions-diff.sh"
+          echo "  GITHUB_BASE_REF=main bash ./scripts/checks/pr-guide-suggestions.sh"
           echo ""
           echo "See internal/tools/pr-guide-suggestions/README.md for the full rule list."
           exit 1

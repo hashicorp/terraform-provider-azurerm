@@ -225,7 +225,7 @@ get_check_guidance() {
       echo "Run \`make test\` locally to reproduce and fix the failing unit tests."
       ;;
     "Static Analysis")
-      echo "Run \`bash ./scripts/run-static-analysis.sh\` locally and fix any reported issues."
+      echo "Run \`bash ./scripts/checks/static-analysis.sh\` locally and fix any reported issues."
       ;;
     shellcheck|"ShellCheck Scripts")
       echo "Run \`make shellcheck\` to check shell scripts for issues."

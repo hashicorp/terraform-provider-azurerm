@@ -4,7 +4,7 @@ on:
     branches:
       - main
     paths:
-      - '.github/workflows/mkdocs.yaml'
+      - '.github/workflows/contributor-docs-publish.yaml'
       - 'contributing/**'
   workflow_dispatch:
 

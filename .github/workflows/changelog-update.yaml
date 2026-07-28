@@ -30,7 +30,7 @@ jobs:
       - name: Download artifact from "Get Changelog Entry" workflow
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          name: changelog_entry # Match name used in changelog_entry.yml upload artifact step
+          name: changelog_entry # Match name used in changelog-entry.yaml upload artifact step
           github-token: ${{ secrets.GITHUB_TOKEN }}
           repository: ${{ github.repository }}
           run-id: ${{ steps.get-run-id.outputs.run-id }}
