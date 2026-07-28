@@ -87,8 +87,8 @@ func (d MonitorDataCollectionRuleDataSource) kindDirect(data acceptance.TestData
 %s
 
 data "azurerm_monitor_data_collection_rule" "test" {
-	name                = azurerm_monitor_data_collection_rule.test.name
-	resource_group_name = azurerm_monitor_data_collection_rule.test.resource_group_name
+  name                = azurerm_monitor_data_collection_rule.test.name
+  resource_group_name = azurerm_monitor_data_collection_rule.test.resource_group_name
 }
 `, MonitorDataCollectionRuleResource{}.kindDirect(data))
 }
