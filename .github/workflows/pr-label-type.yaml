@@ -1,5 +1,5 @@
 ---
-name: Pull Request Type
+name: PR Label Type
 
 # Labels new/edited PRs by type using the title regexes in
 # .github/labeler-pull-request-triage-type.yml.

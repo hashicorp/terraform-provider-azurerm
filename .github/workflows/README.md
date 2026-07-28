@@ -7,7 +7,7 @@ Workflow files are grouped by prefix:
 | Prefix | Purpose |
 |---|---|
 | `pr-*` | Pull request automation (triage, labels, housekeeping) |
-| `pr-check-*` | Standalone PR checks that cannot live inside `pr-validation.yaml` (special runners, OIDC auth, or their own path filters) |
+| `pr-check-*` | Standalone PR checks that cannot live inside `pr-checks-combined.yaml` (special runners, OIDC auth, or their own path filters) |
 | `pr-waiting-response-*` | The `waiting-response` label machinery (see below) |
 | `ci-*` | Reusable building blocks called from other workflows via `workflow_call` |
 | `issue-*` | Issue automation |
@@ -42,7 +42,7 @@ pull_request workflow (untrusted, read-only, knows the PR)
 
 Concretely:
 
-- Every job in `pr-validation.yaml` and every `pr-check-*` workflow calls
+- Every job in `pr-checks-combined.yaml` and every `pr-check-*` workflow calls
   `ci-save-artifacts.yaml` on failure.
 - `pr-waiting-response-on-ci-fail.yaml` triggers on those workflows' **display
   names** (`workflow_run` matches names, not filenames), downloads the artifact,

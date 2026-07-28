@@ -11,7 +11,7 @@ on:
   # so the job below can identify the PR to label.
   workflow_run:
     workflows:
-      - 'PR Validation'
+      - 'Combined PR Checks'
       - 'Provider Tests'
       - 'Check for new usages of deprecated functionality'
       - 'Enforce List Resource for New Resources'
