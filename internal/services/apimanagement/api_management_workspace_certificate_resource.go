@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/certificate"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/workspace"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -96,10 +95,6 @@ func (r ApiManagementWorkspaceCertificateResource) Arguments() map[string]*plugi
 		},
 	}
 
-	if !features.FivePointOh() {
-		args["key_vault_secret_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
-	}
-
 	return args
 }
 
@@ -157,9 +152,6 @@ func (r ApiManagementWorkspaceCertificateResource) Create() sdk.ResourceFunc {
 
 			if model.KeyVaultSecretId != "" {
 				nestedItemType := keyvault.NestedItemTypeSecret
-				if !features.FivePointOh() {
-					nestedItemType = keyvault.NestedItemTypeAny
-				}
 
 				parsedSecretId, err := keyvault.ParseNestedItemID(model.KeyVaultSecretId, keyvault.VersionTypeAny, nestedItemType)
 				if err != nil {
@@ -291,9 +283,6 @@ func (r ApiManagementWorkspaceCertificateResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("key_vault_secret_id") {
 				if model.KeyVaultSecretId != "" {
 					nestedItemType := keyvault.NestedItemTypeSecret
-					if !features.FivePointOh() {
-						nestedItemType = keyvault.NestedItemTypeAny
-					}
 					parsedSecretId, err := keyvault.ParseNestedItemID(model.KeyVaultSecretId, keyvault.VersionTypeAny, nestedItemType)
 					if err != nil {
 						return err
