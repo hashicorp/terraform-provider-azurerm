@@ -93,10 +93,10 @@ func (StorageQueueV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 			findCtx, cancel := context.WithTimeout(ctx, 1*time.Hour)
 			defer cancel()
 
-			log.Printf("[DEBUG] searching for storage account by name (`%s`) in subscription (%s)", storageAccountName, subscriptionID)
+			log.Printf("[DEBUG] searching for storage account by name (`%s`) in subscription (`%s`)", storageAccountName, subscriptionID)
 			account, err := client.FindAccount(findCtx, subscriptionID, storageAccountName)
 			if err != nil || account == nil {
-				return rawState, fmt.Errorf("locating a storage account by name (`%s`) in subscription (%s): %w", storageAccountName, subscriptionID, err)
+				return rawState, fmt.Errorf("locating a storage account by name (`%s`) in subscription (`%s`): %w", storageAccountName, subscriptionID, err)
 			}
 
 			storageAccountID = account.StorageAccountId
