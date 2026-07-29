@@ -164,41 +164,41 @@ func resolveIdentityStruct(pkgName, typeName string, importsMap map[string]strin
 
 	// Search all files in the package for the type definition
 	for _, file := range files {
-			ast.Inspect(file, func(n ast.Node) bool {
-				if found {
-					return false
-				}
-				typeSpec, ok := n.(*ast.TypeSpec)
-				if !ok || typeSpec.Name.Name != typeName {
-					return true
-				}
-
-				// Check if it's a struct
-				if structType, ok := typeSpec.Type.(*ast.StructType); ok {
-					found = true
-					for _, field := range structType.Fields.List {
-						for _, name := range field.Names {
-							fields = append(fields, name.Name)
-						}
-					}
-					return false
-				}
-
-				if ident, ok := typeSpec.Type.(*ast.Ident); ok {
-					// We need to resolve the alias by recursing
-					inferred, err := resolveIdentityStruct(pkgName, ident.Name, importsMap, isVirtual)
-					if err == nil {
-						fields = inferred.Properties
-						if inferred.HasSubscriptionID {
-							fields = append(fields, "SubscriptionId") // Will be checked again below
-						}
-						found = true
-					}
-					return false
-				}
-
+		ast.Inspect(file, func(n ast.Node) bool {
+			if found {
+				return false
+			}
+			typeSpec, ok := n.(*ast.TypeSpec)
+			if !ok || typeSpec.Name.Name != typeName {
 				return true
-			})
+			}
+
+			// Check if it's a struct
+			if structType, ok := typeSpec.Type.(*ast.StructType); ok {
+				found = true
+				for _, field := range structType.Fields.List {
+					for _, name := range field.Names {
+						fields = append(fields, name.Name)
+					}
+				}
+				return false
+			}
+
+			if ident, ok := typeSpec.Type.(*ast.Ident); ok {
+				// We need to resolve the alias by recursing
+				inferred, err := resolveIdentityStruct(pkgName, ident.Name, importsMap, isVirtual)
+				if err == nil {
+					fields = inferred.Properties
+					if inferred.HasSubscriptionID {
+						fields = append(fields, "SubscriptionId") // Will be checked again below
+					}
+					found = true
+				}
+				return false
+			}
+
+			return true
+		})
 	}
 
 	if !found {
