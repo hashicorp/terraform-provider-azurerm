@@ -89,7 +89,7 @@ type SchedulePolicyConfiguration struct {
 	SchedulePolicyType   string   `tfschema:"schedule_policy_type"`
 }
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name automanage_configuration -service-package-name automanage -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 type AutoManageConfigurationResource struct{}
 

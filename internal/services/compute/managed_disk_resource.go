@@ -32,7 +32,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name managed_disk -service-package-name compute -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name "empty"
+//go:generate go run ../../tools/generator-tests resourceidentity -test-name "empty"
 
 func resourceManagedDisk() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -216,7 +216,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				// TODO: make this case-sensitive once this bug in the Azure API has been fixed:
-				//       https://github.com/Azure/azure-rest-api-specs/issues/8132
+				//    https://github.com/Azure/azure-rest-api-specs/issues/8132
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc:     validate.DiskEncryptionSetID,
 				ConflictsWith:    []string{"secure_vm_disk_encryption_set_id"},
@@ -238,7 +238,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				// TODO: make this case-sensitive once this bug in the Azure API has been fixed:
-				//       https://github.com/Azure/azure-rest-api-specs/issues/14192
+				//    https://github.com/Azure/azure-rest-api-specs/issues/14192
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc:     diskaccesses.ValidateDiskAccessID,
 			},

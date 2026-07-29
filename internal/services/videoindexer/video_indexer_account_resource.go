@@ -3,7 +3,7 @@
 
 package videoindexer
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name video_indexer_account -service-package-name videoindexer -properties "resource_group_name,name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 import (
 	"context"

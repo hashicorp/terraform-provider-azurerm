@@ -28,7 +28,7 @@ import (
 
 const storageSyncResourceName = "azurerm_storage_sync"
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_sync -service-package-name storage -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceStorageSync() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
