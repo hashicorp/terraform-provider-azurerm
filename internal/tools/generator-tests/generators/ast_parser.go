@@ -5,6 +5,7 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"os"
 	"path/filepath"
 	"strings"
 	"unicode"
@@ -143,17 +144,26 @@ func resolveIdentityStruct(pkgName, typeName string, importsMap map[string]strin
 	}
 
 	fset := token.NewFileSet()
-	pkgs, err := parser.ParseDir(fset, pkgPath, nil, 0)
+	entries, err := os.ReadDir(pkgPath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse directory %s: %w", pkgPath, err)
+		return nil, fmt.Errorf("failed to read directory %s: %w", pkgPath, err)
+	}
+
+	var files []*ast.File
+	for _, entry := range entries {
+		if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".go") && !strings.HasSuffix(entry.Name(), "_test.go") {
+			filePath := filepath.Join(pkgPath, entry.Name())
+			if f, err := parser.ParseFile(fset, filePath, nil, 0); err == nil {
+				files = append(files, f)
+			}
+		}
 	}
 
 	var fields []string
 	found := false
 
 	// Search all files in the package for the type definition
-	for _, pkg := range pkgs {
-		for _, file := range pkg.Files {
+	for _, file := range files {
 			ast.Inspect(file, func(n ast.Node) bool {
 				if found {
 					return false
@@ -189,7 +199,6 @@ func resolveIdentityStruct(pkgName, typeName string, importsMap map[string]strin
 
 				return true
 			})
-		}
 	}
 
 	if !found {
