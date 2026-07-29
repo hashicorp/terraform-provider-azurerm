@@ -89,6 +89,11 @@ func (LinuxWebAppSiteContainerListResource) List(ctx context.Context, request li
 			rmd := sdk.NewResourceMetaData(metadata.Client, r)
 			rmd.SetID(id)
 
+			if err := pluginsdk.SetResourceIdentityData(rmd.ResourceData, id); err != nil {
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "setting Identity data", err)
+				return
+			}
+
 			state := flattenLinuxWebAppSiteContainer(*id, container, "")
 			if err := rmd.Encode(&state); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", r.ResourceType()), err)
