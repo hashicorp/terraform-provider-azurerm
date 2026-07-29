@@ -19,7 +19,6 @@ func testAccDurableTaskRetentionPolicy_resourceIdentity(t *testing.T) {
 	checkedFields := map[string]struct{}{
 		"name":                {},
 		"resource_group_name": {},
-		"scheduler_name":      {},
 		"subscription_id":     {},
 	}
 
@@ -30,7 +29,6 @@ func testAccDurableTaskRetentionPolicy_resourceIdentity(t *testing.T) {
 				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_durable_task_retention_policy.test", checkedFields),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_durable_task_retention_policy.test", tfjsonpath.New("name"), tfjsonpath.New("durable_task_scheduler_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_durable_task_retention_policy.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("durable_task_scheduler_id")),
-				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_durable_task_retention_policy.test", tfjsonpath.New("scheduler_name"), tfjsonpath.New("durable_task_scheduler_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_durable_task_retention_policy.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("durable_task_scheduler_id")),
 			},
 		},
