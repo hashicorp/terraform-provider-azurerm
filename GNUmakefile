@@ -46,12 +46,16 @@ gencheck: generate ## Check that generated code matches what is committed
 		(echo; echo "Unexpected difference in generated code. Run 'make generate' to update the generated code and commit."; echo "If you added or modified a resource, ensure 'go generate' directives are up to date."; exit 1)
 
 ##@ Formatting & Quick Checks
+# All top-level locations containing Go source, excluding vendor.
+# This list should match the one in scripts/checks/fmt-check.sh
+GOPATHS=main.go helpers internal utils version
+
 # The fixers here should match the checks in scripts/checks/fmt-check.sh
 fmt: ## Fix Go formatting (gofmt, gofumpt, whitespace, goimports)
 	@echo "==> Fixing source code with gofmt..."
-	@find . -name '*.go' | grep -v vendor | xargs gofmt -s -w
+	@gofmt -s -w $(GOPATHS)
 	@echo "==> Fixing source code with gofumpt..."
-	@find . -name '*.go' | grep -v vendor | xargs gofumpt -w
+	@gofumpt -w $(GOPATHS)
 	@echo "==> Fixing source code with whitespace linter..."
 	@golangci-lint run ./... --no-config --enable-only=whitespace --fix
 	@echo "==> Fixing imports code with goimports..."

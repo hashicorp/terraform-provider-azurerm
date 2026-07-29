@@ -10,11 +10,14 @@ for tool in gofmt gofumpt goimports golangci-lint; do
     fi
 done
 
+# All top-level locations containing Go source, excluding vendor.
+# This list should match the one in ../../GNUmakefile.
+gopaths="main.go helpers internal utils version"
+
 # Check gofmt
 echo "==> Checking that code complies with gofmt requirements..."
 
-# This filter should match the search filter in ../../GNUmakefile
-gofmt_files=$(find . -name '*.go' | grep -v vendor | xargs gofmt -s -l)
+gofmt_files=$(gofmt -s -l $gopaths)
 if [ -n "${gofmt_files}" ]; then
     echo 'gofmt needs running on the following files:'
     echo "${gofmt_files}"
@@ -25,8 +28,7 @@ fi
 # Check gofumpt
 echo "==> Checking that code complies with gofumpt requirements..."
 
-# This filter should match the search filter in ../../GNUmakefile
-gofumpt_files=$(find . -name '*.go' | grep -v vendor | xargs gofumpt -l)
+gofumpt_files=$(gofumpt -l $gopaths)
 if [ -n "${gofumpt_files}" ]; then
     echo 'gofumpt needs running on the following files:'
     echo "${gofumpt_files}"
@@ -45,8 +47,7 @@ fi
 # Check goimports
 echo "==> Checking that imports comply with goimports requirements..."
 
-# This filter should match the search filter in ../../GNUmakefile
-goimports_files=$(find . -name '*.go' | grep -v vendor | xargs goimports -l)
+goimports_files=$(goimports -l $gopaths)
 if [ -n "${goimports_files}" ]; then
     echo 'goimports needs running on the following files:'
     echo "${goimports_files}"
