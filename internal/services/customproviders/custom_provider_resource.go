@@ -3,7 +3,7 @@
 
 package customproviders
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name custom_provider -service-package-name customproviders -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 import (
 	"fmt"

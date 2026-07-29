@@ -256,6 +256,7 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 					}
 					if inferred.HasSubscriptionID {
 						d.CompareValueMap["subscription_id"] = d.ParentID
+						d.NoSubscriptionID = true
 					}
 				}
 
@@ -343,9 +344,6 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 	if len(d.KnownValues) > 0 {
 		d.KnownValueMap = make(map[string]string)
 		kv := strings.Split(d.KnownValues, ",")
-		// if len(kv)%2 != 0 {
-		// 	errors = append(errors, fmt.Errorf("known-values must be a list of an even number of name/values (comma separated values should be represented with semi-colon for replacement later) e.g. 'var1:val1,var2:val2;val3'"))
-		// }
 
 		for _, v := range kv {
 			vParts := strings.Split(v, ":")

@@ -41,13 +41,10 @@ func InferIdentityProperties(filePath string) (*InferredIdentity, error) {
 
 	// Walk AST to find Identity() or GenerateIdentitySchema
 	ast.Inspect(node, func(n ast.Node) bool {
-		if identityPkg != "" && identityType != "" {
-			return false // Already found
-		}
+		// Do not return early, as Identity() and IdentityType() can be separate methods.
 
 		switch x := n.(type) {
 		case *ast.FuncDecl:
-			// Look for Pattern A: func (r Resource) Identity() resourceids.ResourceId { return &commonids.FunctionAppId{} }
 			if x.Name != nil && (x.Name.Name == "Identity" || x.Name.Name == "VirtualIdentity") && x.Recv != nil {
 				ast.Inspect(x.Body, func(bn ast.Node) bool {
 					ret, ok := bn.(*ast.ReturnStmt)
@@ -63,6 +60,18 @@ func InferIdentityProperties(filePath string) (*InferredIdentity, error) {
 										}
 									}
 								}
+							}
+						}
+					}
+					return true
+				})
+			} else if x.Name != nil && x.Name.Name == "IdentityType" && x.Recv != nil {
+				ast.Inspect(x.Body, func(bn ast.Node) bool {
+					ret, ok := bn.(*ast.ReturnStmt)
+					if ok && len(ret.Results) == 1 {
+						if sel, sOk := ret.Results[0].(*ast.SelectorExpr); sOk {
+							if ident, iOk := sel.X.(*ast.Ident); iOk && ident.Name == "pluginsdk" && sel.Sel.Name == "ResourceTypeForIdentityVirtual" {
+								isVirtual = true
 							}
 						}
 					}
@@ -102,14 +111,14 @@ func InferIdentityProperties(filePath string) (*InferredIdentity, error) {
 		return nil, fmt.Errorf("could not locate Identity() method or GenerateIdentitySchema call in %s", filePath)
 	}
 
-	result, err := resolveIdentityStruct(identityPkg, identityType, importsMap)
+	result, err := resolveIdentityStruct(identityPkg, identityType, importsMap, isVirtual)
 	if err == nil && result != nil {
 		result.IsVirtual = isVirtual
 	}
 	return result, err
 }
 
-func resolveIdentityStruct(pkgName, typeName string, importsMap map[string]string) (*InferredIdentity, error) {
+func resolveIdentityStruct(pkgName, typeName string, importsMap map[string]string, isVirtual bool) (*InferredIdentity, error) {
 	// Map common identity packages to their relative paths in the vendor folder
 	// We assume generator-tests runs from internal/services/<package>
 	providerRoot := "../../../"
@@ -165,10 +174,9 @@ func resolveIdentityStruct(pkgName, typeName string, importsMap map[string]strin
 					return false
 				}
 
-				// Check if it's a type alias (e.g. type FunctionAppId = AppServiceId)
 				if ident, ok := typeSpec.Type.(*ast.Ident); ok {
 					// We need to resolve the alias by recursing
-					inferred, err := resolveIdentityStruct(pkgName, ident.Name, importsMap)
+					inferred, err := resolveIdentityStruct(pkgName, ident.Name, importsMap, isVirtual)
 					if err == nil {
 						fields = inferred.Properties
 						if inferred.HasSubscriptionID {
@@ -194,7 +202,7 @@ func resolveIdentityStruct(pkgName, typeName string, importsMap map[string]strin
 		if snake == "subscription_id" {
 			result.HasSubscriptionID = true
 		} else {
-			if i == len(fields)-1 {
+			if i == len(fields)-1 && !isVirtual {
 				result.Properties = append(result.Properties, "name")
 			} else {
 				result.Properties = append(result.Properties, snake)
