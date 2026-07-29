@@ -150,12 +150,12 @@ func TestAccNginxDeployment_systemAssignedIdentity(t *testing.T) {
 	})
 }
 
-func TestAccNginxDeployment_userAssignedIdentity(t *testing.T) {
+func TestAccNginxDeployment_withUserAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, nginx.DeploymentResource{}.ResourceType(), "test")
 	r := DeploymentResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.userAssignedIdentity(data),
+			Config: r.withUserAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -521,7 +521,7 @@ resource "azurerm_nginx_deployment" "test" {
 `, a.template(data), data.RandomInteger)
 }
 
-func (a DeploymentResource) userAssignedIdentity(data acceptance.TestData) string {
+func (a DeploymentResource) withUserAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 
