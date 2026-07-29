@@ -19,6 +19,8 @@ import (
 type VmwareClusterResource struct{}
 
 func TestAccVmwareCluster_basic(t *testing.T) {
+	t.Skip("Skipping as VMware Private Cloud tests fail due to QuotaExceeded: insufficient capacity in the region")
+
 	data := acceptance.BuildTestData(t, "azurerm_vmware_cluster", "test")
 	r := VmwareClusterResource{}
 
@@ -36,6 +38,8 @@ func TestAccVmwareCluster_basic(t *testing.T) {
 }
 
 func TestAccVmwareCluster_requiresImport(t *testing.T) {
+	t.Skip("Skipping as VMware Private Cloud tests fail due to QuotaExceeded: insufficient capacity in the region")
+
 	data := acceptance.BuildTestData(t, "azurerm_vmware_cluster", "test")
 	r := VmwareClusterResource{}
 
@@ -51,6 +55,8 @@ func TestAccVmwareCluster_requiresImport(t *testing.T) {
 }
 
 func TestAccVmwareCluster_update(t *testing.T) {
+	t.Skip("Skipping as VMware Private Cloud tests fail due to QuotaExceeded: insufficient capacity in the region")
+
 	data := acceptance.BuildTestData(t, "azurerm_vmware_cluster", "test")
 	r := VmwareClusterResource{}
 
