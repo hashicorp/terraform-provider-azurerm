@@ -77,8 +77,12 @@ gencheck: generate
 	@git diff --compact-summary --exit-code -- ./ || \
     		(echo; echo "Unexpected difference in generated code. Run 'make generate' to update the generated code and commit."; echo "If you added or modified a resource, ensure 'go generate' directives are up to date."; exit 1)
 
+tfproviderlint:
+	./scripts/run-tfproviderlint.sh
+
 tflint:
-	./scripts/run-tflint.sh
+	@echo "NOTE: 'make tflint' has been renamed to 'make tfproviderlint' to reflect what it actually runs and will be removed in the future."
+	@$(MAKE) tfproviderlint
 
 whitespace:
 	@echo "==> Fixing source code with whitespace linter..."
@@ -166,6 +170,6 @@ resource-counts:
 static-analysis:
 	./scripts/run-static-analysis.sh
 
-pr-check: generate build test lint tflint website-lint
+pr-check: generate build test lint tfproviderlint website-lint
 
-.PHONY: build test testacc vet fmt fmtcheck errcheck pr-check scaffold-website test-compile website website-test validate-examples resource-counts static-analysis
+.PHONY: build test testacc vet fmt fmtcheck errcheck pr-check scaffold-website test-compile website website-test validate-examples resource-counts static-analysis tfproviderlint tflint

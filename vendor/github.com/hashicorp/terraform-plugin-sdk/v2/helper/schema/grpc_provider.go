@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2019, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package schema
@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"slices"
 	"strconv"
 	"strings"
@@ -76,6 +77,7 @@ func (s *GRPCProviderServer) StopContext(ctx context.Context) context.Context {
 func (s *GRPCProviderServer) serverCapabilities() *tfprotov5.ServerCapabilities {
 	return &tfprotov5.ServerCapabilities{
 		GetProviderSchemaOptional: true,
+		GenerateResourceConfig:    true,
 	}
 }
 
@@ -1147,7 +1149,13 @@ func (s *GRPCProviderServer) PlanResourceChange(ctx context.Context, req *tfprot
 		}
 	}
 
-	if diff == nil || (len(diff.Attributes) == 0 && len(diff.Identity) == 0) {
+	// The diff carries identity over from the prior state unconditionally
+	// (see schemaMapWithIdentity.Diff), so a non-empty diff.Identity does not
+	// necessarily indicate an identity change. Treat the identity as unchanged
+	// when it matches what was supplied in the prior state.
+	identityUnchanged := diff == nil || maps.Equal(diff.Identity, priorState.Identity)
+
+	if diff == nil || (len(diff.Attributes) == 0 && identityUnchanged) {
 		// schema.Provider.Diff returns nil if it ends up making a diff with no
 		// changes, but our new interface wants us to return an actual change
 		// description that _shows_ there are no changes. This is always the
@@ -1565,11 +1573,12 @@ func (s *GRPCProviderServer) ApplyResourceChange(ctx context.Context, req *tfpro
 				op = "Update"
 			}
 
-			resp.Diagnostics = convert.AppendProtoDiag(ctx, resp.Diagnostics, fmt.Errorf(
-				"Missing Resource Identity After %s: The Terraform provider unexpectedly returned no resource identity after having no errors in the resource %s. "+
-					"This is always a problem with the provider and should be reported to the provider developer", op, strings.ToLower(op),
-			))
-
+			if !diags.HasError() {
+				resp.Diagnostics = convert.AppendProtoDiag(ctx, resp.Diagnostics, fmt.Errorf(
+					"Missing Resource Identity After %s: The Terraform provider unexpectedly returned no resource identity after having no errors in the resource %s. "+
+						"This is always a problem with the provider and should be reported to the provider developer", op, strings.ToLower(op),
+				))
+			}
 			return resp, nil
 		}
 
@@ -1779,6 +1788,109 @@ func (s *GRPCProviderServer) ImportResourceState(ctx context.Context, req *tfpro
 		}
 
 		resp.ImportedResources = append(resp.ImportedResources, importedResource)
+	}
+
+	return resp, nil
+}
+
+func (s *GRPCProviderServer) GenerateResourceConfig(ctx context.Context, req *tfprotov5.GenerateResourceConfigRequest) (*tfprotov5.GenerateResourceConfigResponse, error) {
+	ctx = logging.InitContext(ctx)
+
+	resp := &tfprotov5.GenerateResourceConfigResponse{}
+
+	schemaBlock := s.getResourceSchemaBlock(req.TypeName)
+
+	stateVal, err := msgpack.Unmarshal(req.State.MsgPack, schemaBlock.ImpliedType())
+	if err != nil {
+		resp.Diagnostics = convert.AppendProtoDiag(ctx, resp.Diagnostics, err)
+		return resp, nil
+	}
+
+	if stateVal.IsNull() {
+		resp.Diagnostics = []*tfprotov5.Diagnostic{
+			{
+				Severity: tfprotov5.DiagnosticSeverityError,
+				Summary:  "Unexpected Generate Config Request",
+				Detail: "An unexpected error was encountered when generating resource configuration. The current state was missing.\n\n" +
+					"This is always a problem with Terraform or terraform-plugin-sdk. Please report this to the provider developer.",
+			},
+		}
+
+	}
+
+	newConfigVal := stateVal
+
+	// Handle top level attributes and defaults
+	newConfigVal, err = cty.Transform(newConfigVal, func(path cty.Path, val cty.Value) (cty.Value, error) {
+		if val.IsNull() {
+			return val, nil
+		}
+
+		if len(path) == 0 {
+			return val, nil
+		}
+
+		ty := val.Type()
+		null := cty.NullVal(ty)
+
+		// find the attribute or block schema representing the value
+		attr := schemaBlock.AttributeByPath(path)
+		block := schemaBlock.BlockByPath(path)
+		switch {
+		case attr != nil:
+			// deprecated attributes
+			if attr.Deprecated {
+				return null, nil
+			}
+
+			// read-only attributes are not written in the configuration
+			if attr.Computed && !attr.Optional {
+				return null, nil
+			}
+
+			// The legacy SDK adds an Optional+Computed "id" attribute to the
+			// resource schema even if not defined in provider code.
+			// During validation, however, the presence of an extraneous "id"
+			// attribute in config will cause an error.
+			// Remove this attribute so we do not generate an "id" attribute
+			// where there is a risk that it is not in the real resource schema.
+			if path.Equals(cty.GetAttrPath("id")) && attr.Computed && attr.Optional {
+				return null, nil
+			}
+
+			// If we have "" for an optional value, assume it is actually null
+			// due to the legacy SDK.
+			if ty == cty.String {
+				if !val.IsNull() && attr.Optional && len(val.AsString()) == 0 {
+					return null, nil
+				}
+			}
+			return val, nil
+
+		case block != nil:
+			if block.Deprecated {
+				return null, nil
+			}
+		}
+
+		return val, nil
+	})
+	if err != nil {
+		configErr := fmt.Errorf("An unexpected error occurred while trying to generate resource configuration. "+
+			"This is an error in terraform-plugin-sdk used by the provider. "+
+			"Please report the following to the provider developers.\n\n"+
+			"Original Error: %s", err.Error())
+		resp.Diagnostics = convert.AppendProtoDiag(ctx, resp.Diagnostics, configErr)
+		return resp, nil
+	}
+
+	newConfigMP, err := msgpack.Marshal(newConfigVal, schemaBlock.ImpliedType())
+	if err != nil {
+		resp.Diagnostics = convert.AppendProtoDiag(ctx, resp.Diagnostics, err)
+		return resp, nil
+	}
+	resp.Config = &tfprotov5.DynamicValue{
+		MsgPack: newConfigMP,
 	}
 
 	return resp, nil
