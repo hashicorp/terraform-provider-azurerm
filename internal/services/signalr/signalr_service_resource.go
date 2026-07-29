@@ -32,7 +32,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name signalr_service -service-package-name signalr -properties "name,resource_group_name"
+//go:generate go run ../../tools/generator-tests resourceidentity
 func resourceArmSignalRService() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceArmSignalRServiceCreate,
