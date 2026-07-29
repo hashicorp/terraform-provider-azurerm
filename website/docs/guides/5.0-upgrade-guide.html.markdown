@@ -1046,6 +1046,10 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 
 * The deprecated `enable_bgp` property has been removed in favour of the `bgp_enabled` property.
 
+### `azurerm_web_application_firewall_policy`
+
+* The `policy_settings.file_upload_enforcement` property is no longer Computed and now defaults to `true` to match the API default value.
+
 ### `azurerm_windows_function_app`
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.

@@ -11,6 +11,8 @@ v/3.x:
   - '### AzureRM Provider Version\s+(|azurerm |AzureRM )(|v|V)3\.\d+'
 v/4.x:
   - '### AzureRM Provider Version\s+(|azurerm |AzureRM )(|v|V)4\.\d+'
+v/5.x:
+  - '### AzureRM Provider Version\s+(|azurerm |AzureRM )(|v|V)5\.\d+'
 service/aadb2c:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_aadb2c_directory((.|\n)*)###'
 
