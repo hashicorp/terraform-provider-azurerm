@@ -991,7 +991,7 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 
 ### `azurerm_storage_blob`
 
-* The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
+* The deprecated `storage_account_name` property has been removed in favour of the `storage_container_id` property.
 
 ### `azurerm_storage_container`
 
