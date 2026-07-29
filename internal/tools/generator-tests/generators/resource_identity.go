@@ -244,6 +244,10 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 				}
 			}
 
+			if d.ParentID != "" {
+				inferred.IsVirtual = true
+			}
+
 			if inferred.IsVirtual {
 				if d.CompareValueMap == nil {
 					d.CompareValueMap = make(map[string]string)
