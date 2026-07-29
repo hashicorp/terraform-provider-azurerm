@@ -110,6 +110,8 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 				Computed: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
+					"AgentServicePrincipal",
+					"AgentUser",
 					"User",
 					"Group",
 					"ServicePrincipal",
