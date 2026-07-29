@@ -940,7 +940,7 @@ func TestAccLogicAppStandard_runtimeScaleMonitoringEnabled(t *testing.T) {
 	})
 }
 
-func TestAccLogicAppStandard_dotnetVersion4(t *testing.T) {
+func TestAccLogicAppStandard_dotnetVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
 	r := LogicAppStandardResource{}
 
@@ -952,14 +952,6 @@ func TestAccLogicAppStandard_dotnetVersion4(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-	})
-}
-
-func TestAccLogicAppStandard_dotnetVersion5(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
-	r := LogicAppStandardResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.dotnetVersion(data, "~4", "v5.0"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -967,14 +959,6 @@ func TestAccLogicAppStandard_dotnetVersion5(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-	})
-}
-
-func TestAccLogicAppStandard_dotnetVersion6(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
-	r := LogicAppStandardResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.dotnetVersion(data, "~4", "v6.0"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -982,16 +966,15 @@ func TestAccLogicAppStandard_dotnetVersion6(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-	})
-}
-
-func TestAccLogicAppStandard_dotnetVersion8(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
-	r := LogicAppStandardResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.dotnetVersion(data, "~4", "v8.0"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.dotnetVersion(data, "~4", "v10.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
