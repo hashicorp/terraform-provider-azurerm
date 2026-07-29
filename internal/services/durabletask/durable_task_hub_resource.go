@@ -113,6 +113,8 @@ func (r TaskHubResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
+			metadata.SetID(id)
+
 			return nil
 		},
 	}

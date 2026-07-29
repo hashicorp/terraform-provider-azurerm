@@ -158,6 +158,8 @@ func (r RetentionPolicyResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating retention policy on %s: %+v", parsedId.ID(), err)
 			}
 
+			metadata.SetID(parsedId)
+
 			return nil
 		},
 	}
