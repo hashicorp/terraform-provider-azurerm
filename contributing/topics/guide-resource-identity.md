@@ -231,6 +231,29 @@ If your resource uses a **Virtual Identity** (a sub-resource that inherits its I
 
 > **Note:** If a resource ID doesn't include the `subscription_id` segment, omit it from the tests by using `-no-subscription-id`.
 
+### How the Generator Works (AST Inference)
+
+The generator reduces boilerplate by using Abstract Syntax Tree (AST) inference to automatically map the properties of an ID struct to the resource schema. 
+- **Typed SDK Wrappers:** It scans the `.go` file for the `Identity()` method to locate the identity struct, and the `IdentityType()` method to determine if it is a Virtual Identity.
+- **Legacy (Untyped) Resources:** It scans for the `pluginsdk.GenerateIdentitySchema(&struct{}, ...)` function call in the schema definition, extracting the identity struct from the first argument and checking if the second argument is `pluginsdk.ResourceTypeForIdentityVirtual` (or scanning for the older `VirtualIdentity()` method).
+- By parsing the returned `commonids` or `resourceids` struct from either pattern, it inherently knows the fields required (e.g., `SubscriptionId`, `ResourceGroupName`, `StorageAccountName`).
+- It converts these properties to `snake_case` (e.g., `resource_group_name`). 
+- By convention, the final identifier segment (e.g., `StorageAccountName`) is converted to `name` unless the resource is identified as a **Virtual Identity**.
+
+### Self-Correcting Generator Tags
+
+The `generator-tests` tool has "self-correcting" capabilities. When you run `make generate`, the tool will automatically clean up your `//go:generate` tag if it contains redundant flags:
+
+**What the self-correcting logic CAN do:**
+- **Flag Stripping:** If you provide explicit `-compare-values`, `-known-values`, or `-resource-name` flags that perfectly match what the AST infers, the generator will automatically strip those flags from your `.go` file to keep the tag clean and concise (Zero-Flags).
+- **Auto-Formatting:** When the generator rewrites the tag, it automatically runs `gofumpt` on the file so that no whitespace formatting issues are introduced.
+- **Virtual Identity Resolution:** If a resource is detected as Virtual (via `IdentityType()` or `VirtualIdentity()`) and you supply `-parent-id "xyz"`, the generator automatically expands the mapping for all the struct's fields (including `subscription_id`) to that `-parent-id`.
+
+**What the self-correcting logic CANNOT do:**
+- **Guess a Virtual Identity's Parent ID without an anchor:** While the AST detects that a resource is Virtual, it cannot magically guess which property in the schema acts as the parent ID. Therefore, you **must** supply the `-parent-id "xyz"` flag explicitly for Virtual Identities. (If the resource uses the legacy explicit `-compare-values` for *every* field pointing to the exact same parent ID, the generator *can* infer and upgrade it to `-parent-id`, but for new resources, `-parent-id` is required).
+- **Remove non-standard configurations:** If you explicitly provide `-properties` or `-compare-values` mappings that deviate intentionally from the standard struct field names, the generator will leave those flags intact.
+- **Resolve arbitrary types:** The AST inference relies on locating the standard identity structs in the `commonids` or `resourceids` packages, or inside the provider namespace. If the identity struct is deeply aliased or nested in a way it cannot trace, it will fall back and require explicit flags.
+
 There are edge cases where the AST inference cannot automatically map the properties. In these rare cases, you can fallback to explicitly defining them using `-properties` and `-compare-values`. All fields in the ID struct must be mapped to one of these options if explicit mapping is used.
 
 - `-properties`: This flag specifies the 1:1 relationship between the Resource Schema and the Resource Identity Schema fields (i.e name, resource_group_name, etc), this would be specified as `name,resource_group_name`. If the schema property name does not match the Resource Identity schema name these should be mapped accordingly. This would be specified as `{id_field_name}:{schema_field_name}`, e.g. `api_management_id:api_management_name`.
