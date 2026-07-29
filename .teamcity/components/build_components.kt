@@ -44,7 +44,6 @@ fun BuildSteps.CheckScheduleConstraints() {
                 if [[ ! ",%DAYS_OF_WEEK%," =~ ",${'$'}{DAY_NUM}," && "%DAYS_OF_WEEK%" != "*" ]]; then
                     echo "Today is day ${'$'}{DAY_NUM}. This job is constrained to run only on days: %DAYS_OF_WEEK%."
                     echo "Skipping test execution for this service."
-                    
                     # Tell TeamCity to skip subsequent steps using a service message
                     echo "##teamcity[setParameter name='env.SCHEDULE_MATCHES' value='false']"
                 else
