@@ -8,13 +8,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/eventsubscriptions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -64,7 +63,7 @@ func TestAccEventGridSystemTopicEventSubscription_eventHubID(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("event_delivery_schema").HasValue("CloudEventSchemaV1_0"),
-				check.That(data.ResourceName).Key("eventhub_endpoint_id").Exists(),
+				check.That(data.ResourceName).Key("eventhub_id").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -96,7 +95,7 @@ func TestAccEventGridSystemTopicEventSubscription_serviceBusQueueID(t *testing.T
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("event_delivery_schema").HasValue("CloudEventSchemaV1_0"),
-				check.That(data.ResourceName).Key("service_bus_queue_endpoint_id").Exists(),
+				check.That(data.ResourceName).Key("service_bus_queue_id").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -113,7 +112,7 @@ func TestAccEventGridSystemTopicEventSubscription_serviceBusTopicID(t *testing.T
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("event_delivery_schema").HasValue("CloudEventSchemaV1_0"),
-				check.That(data.ResourceName).Key("service_bus_topic_endpoint_id").Exists(),
+				check.That(data.ResourceName).Key("service_bus_topic_id").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -1164,7 +1163,7 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
 
   event_delivery_schema = "CloudEventSchemaV1_0"
 
-  eventhub_endpoint_id = azurerm_eventhub.test.id
+  eventhub_id = azurerm_eventhub.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -1247,8 +1246,8 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
   system_topic        = azurerm_eventgrid_system_topic.test.name
   resource_group_name = azurerm_resource_group.test.name
 
-  event_delivery_schema         = "CloudEventSchemaV1_0"
-  service_bus_queue_endpoint_id = azurerm_servicebus_queue.test.id
+  event_delivery_schema = "CloudEventSchemaV1_0"
+  service_bus_queue_id  = azurerm_servicebus_queue.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -1290,8 +1289,8 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
   system_topic        = azurerm_eventgrid_system_topic.test.name
   resource_group_name = azurerm_resource_group.test.name
 
-  event_delivery_schema         = "CloudEventSchemaV1_0"
-  service_bus_topic_endpoint_id = azurerm_servicebus_topic.test.id
+  event_delivery_schema = "CloudEventSchemaV1_0"
+  service_bus_topic_id  = azurerm_servicebus_topic.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -2342,7 +2341,7 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
   system_topic        = azurerm_eventgrid_system_topic.test.name
   resource_group_name = azurerm_resource_group.test.name
 
-  service_bus_topic_endpoint_id = azurerm_servicebus_topic.test.id
+  service_bus_topic_id = azurerm_servicebus_topic.test.id
 
   advanced_filtering_on_arrays_enabled = true
 
@@ -2405,7 +2404,7 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
   system_topic        = azurerm_eventgrid_system_topic.test.name
   resource_group_name = azurerm_resource_group.test.name
 
-  service_bus_topic_endpoint_id = azurerm_servicebus_topic.test.id
+  service_bus_topic_id = azurerm_servicebus_topic.test.id
 
   advanced_filtering_on_arrays_enabled = true
 
@@ -2460,7 +2459,7 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
   system_topic        = azurerm_eventgrid_system_topic.test.name
   resource_group_name = azurerm_resource_group.test.name
 
-  service_bus_topic_endpoint_id = azurerm_servicebus_topic.test.id
+  service_bus_topic_id = azurerm_servicebus_topic.test.id
 
   advanced_filtering_on_arrays_enabled = true
 
@@ -2528,7 +2527,7 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
   system_topic        = azurerm_eventgrid_system_topic.test.name
   resource_group_name = azurerm_resource_group.test.name
 
-  service_bus_topic_endpoint_id = azurerm_servicebus_topic.test.id
+  service_bus_topic_id = azurerm_servicebus_topic.test.id
 
   advanced_filtering_on_arrays_enabled = true
 
@@ -2597,7 +2596,7 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
   system_topic        = azurerm_eventgrid_system_topic.test.name
   resource_group_name = azurerm_resource_group.test.name
 
-  eventhub_endpoint_id = azurerm_eventhub.test.id
+  eventhub_id = azurerm_eventhub.test.id
 
   delivery_property {
     header_name = "test-static-1"
@@ -2647,7 +2646,7 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
   system_topic        = azurerm_eventgrid_system_topic.test.name
   resource_group_name = azurerm_resource_group.test.name
 
-  hybrid_connection_endpoint_id = azurerm_relay_hybrid_connection.test.id
+  hybrid_connection_id = azurerm_relay_hybrid_connection.test.id
 
   delivery_property {
     header_name = "test-static-1"

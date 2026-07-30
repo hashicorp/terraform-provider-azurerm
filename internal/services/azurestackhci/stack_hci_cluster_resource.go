@@ -72,8 +72,6 @@ func resourceArmStackHCICluster() *pluginsdk.Resource {
 			},
 
 			"automanage_configuration_id": {
-				// TODO: this field should be removed in 4.0 - there's an "association" API specifically for this purpose
-				// so we should be outputting this as an association resource.
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: configurationprofiles.ValidateConfigurationProfileID,

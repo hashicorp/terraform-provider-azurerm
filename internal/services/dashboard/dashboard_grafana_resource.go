@@ -24,7 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name dashboard_grafana -service-package-name dashboard -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 type DashboardGrafanaModel struct {
 	Name                              string                                            `tfschema:"name"`
@@ -202,7 +202,7 @@ func (r DashboardGrafanaResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ValidateFunc: validation.StringInSlice([]string{
-				"11", "12",
+				"12", "13",
 			}, false),
 		},
 
