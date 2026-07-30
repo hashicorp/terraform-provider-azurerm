@@ -47,10 +47,10 @@ gencheck: generate ## Check that generated code matches what is committed
 
 ##@ Formatting & Quick Checks
 # All top-level locations containing Go source, excluding vendor.
-# This list should match the one in scripts/checks/fmt-check.sh
 GOPATHS=main.go helpers internal utils version
 
 # The fixers here should match the checks in scripts/checks/fmt-check.sh
+# goimports runs via `golangci-lint fmt` as the standalone binary is single-threaded and far slower
 fmt: ## Fix Go formatting (gofmt, gofumpt, whitespace, goimports)
 	@echo "==> Fixing source code with gofmt..."
 	@gofmt -s -w $(GOPATHS)
@@ -58,8 +58,8 @@ fmt: ## Fix Go formatting (gofmt, gofumpt, whitespace, goimports)
 	@gofumpt -w $(GOPATHS)
 	@echo "==> Fixing source code with whitespace linter..."
 	@golangci-lint run ./... --no-config --enable-only=whitespace --fix
-	@echo "==> Fixing imports code with goimports..."
-	@golangci-lint fmt ./... --no-config -E goimports
+	@echo "==> Fixing imports with goimports..."
+	@golangci-lint fmt -E goimports
 
 quick-checks: ## Run the quick CI checks (formatting + provider policies)
 	@echo "==> Running the set of quick CI checks (formatting + provider policies)..."
