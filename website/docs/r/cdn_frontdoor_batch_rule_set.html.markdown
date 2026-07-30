@@ -193,7 +193,7 @@ An `actions` block supports the following:
 
 * `url_rewrite` - (Optional) A `url_rewrite` block as defined below.
 
-~> **Note:** `url_rewrite` conflicts with `url_redirect` and vice-versa.
+~> **Note:** `url_rewrite` conflicts with `url_redirect`
 
 ---
 
@@ -365,7 +365,7 @@ A `host_name` block supports the following:
 
 ---
 
-A `http_version` block supports the following:
+An `http_version` block supports the following:
 
 * `operator` - (Required) A condition operator. Possible values are `Equal` and `NotEqual`.
 
@@ -440,8 +440,6 @@ A `request_cookies` block supports the following:
 ---
 
 A `request_file_extension` block supports the following:
-
--> **Note:** `request_file_extension` identifies requests that include the specified file extension. Do not include a leading period.
 
 * `operator` - (Required) A condition operator. Possible values are `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual`, `RegEx`, `NotAny`, `NotEqual`, `NotContains`, `NotBeginsWith`, `NotEndsWith`, `NotLessThan`, `NotLessThanOrEqual`, `NotGreaterThan`, `NotGreaterThanOrEqual`, and `NotRegEx`.
 
@@ -538,8 +536,6 @@ A `socket_address` block supports the following:
 ---
 
 A `ssl_protocol` block supports the following:
-
--> **Note:** `ssl_protocol` identifies requests based on the SSL protocol of an established TLS connection.
 
 * `operator` - (Required) A condition operator. Possible values are `Equal` and `NotEqual`.
 

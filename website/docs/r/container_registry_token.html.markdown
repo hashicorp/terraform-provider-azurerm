@@ -27,10 +27,12 @@ resource "azurerm_container_registry" "example" {
   admin_enabled       = false
 
   georeplications {
-    location = "East US"
+    location                        = "East US"
+    global_endpoint_routing_enabled = true
   }
   georeplications {
-    location = "West Europe"
+    location                        = "West Europe"
+    global_endpoint_routing_enabled = true
   }
 }
 
