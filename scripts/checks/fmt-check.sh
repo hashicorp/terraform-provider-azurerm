@@ -8,13 +8,13 @@ if ! command -v golangci-lint >/dev/null; then
     exit 1
 fi
 
-# The checks here should match the fixers in the GNUmakefile `fmt` target.
+# The checks here should match the fixers in the GNUmakefile `fmt` and `goimports` targets.
 
 # Check gofmt, gofumpt and goimports via `golangci-lint fmt`, configured in ../../.golangci.yml
 echo "==> Checking that code complies with formatting requirements (gofmt, gofumpt, goimports)..."
 
 if ! golangci-lint fmt --diff; then
-    echo "You can use the command: \`make fmt\` to reformat code."
+    echo "You can use the commands: \`make fmt\` and \`make goimports\` to reformat code."
     exit 1
 fi
 

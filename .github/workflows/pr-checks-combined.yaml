@@ -135,7 +135,7 @@ jobs:
           echo ""
           echo "Run 'make quick-checks' locally to run the quick checks: formatting (gofmt/gofumpt),"
           echo "custom timeouts usage, and acceptance test package naming."
-          echo "For formatting issues, 'make fmt' will fix them automatically."
+          echo "For formatting issues, 'make fmt' and 'make goimports' will fix them automatically."
 
   quick-checks-save-artifacts:
     needs: quick-checks

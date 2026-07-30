@@ -49,15 +49,17 @@ gencheck: generate ## Check that generated code matches what is committed
 # All top-level locations containing Go source, excluding vendor.
 GOPATHS=main.go helpers internal utils version
 
-# The fixers here should match the checks in scripts/checks/fmt-check.sh
-# goimports runs via `golangci-lint fmt` as the standalone binary is single-threaded and far slower
-fmt: ## Fix Go formatting (gofmt, gofumpt, whitespace, goimports)
+# The fixers here (plus goimports below) should match the checks in scripts/checks/fmt-check.sh
+fmt: ## Fix Go formatting (gofmt, gofumpt, whitespace)
 	@echo "==> Fixing source code with gofmt..."
 	@gofmt -s -w $(GOPATHS)
 	@echo "==> Fixing source code with gofumpt..."
 	@gofumpt -w $(GOPATHS)
 	@echo "==> Fixing source code with whitespace linter..."
 	@golangci-lint run ./... --no-config --enable-only=whitespace --fix
+
+# goimports runs via `golangci-lint fmt` as the standalone binary is single-threaded and far slower
+goimports: ## Fix Go import ordering (slower than fmt, so kept separate)
 	@echo "==> Fixing imports with goimports..."
 	@golangci-lint fmt -E goimports
 
@@ -176,4 +178,4 @@ static-analysis: ## Run the static analysis checks
 
 pr-check: generate build test lint tfproviderlint website-lint ## Run the same set of checks CI runs against a PR
 
-.PHONY: default help tools build fmt quick-checks fmtcheck terrafmt generate lint shellcheck depscheck gencheck tfproviderlint tflint lint-fix golangci-fix test testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts static-analysis pr-check
+.PHONY: default help tools build fmt goimports quick-checks fmtcheck terrafmt generate lint shellcheck depscheck gencheck tfproviderlint tflint lint-fix golangci-fix test testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts static-analysis pr-check
