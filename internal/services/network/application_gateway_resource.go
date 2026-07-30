@@ -1310,6 +1310,30 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 													Type:     pluginsdk.TypeString,
 													Required: true,
 												},
+												"header_value_matcher": {
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													MaxItems: 1,
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*pluginsdk.Schema{
+															"pattern": {
+																Type:         pluginsdk.TypeString,
+																Required:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+															"ignore_case": {
+																Type:     pluginsdk.TypeBool,
+																Optional: true,
+																Default:  false,
+															},
+															"negate": {
+																Type:     pluginsdk.TypeBool,
+																Optional: true,
+																Default:  false,
+															},
+														},
+													},
+												},
 											},
 										},
 									},
@@ -4009,6 +4033,18 @@ func expandApplicationGatewayRewriteRuleSets(d *pluginsdk.ResourceData) (*[]appl
 					HeaderName:  pointer.To(c["header_name"].(string)),
 					HeaderValue: pointer.To(c["header_value"].(string)),
 				}
+				if matchers := c["header_value_matcher"].([]interface{}); len(matchers) > 0 {
+					m := matchers[0].(map[string]interface{})
+					negate := m["negate"].(bool)
+					if negate && strings.Contains(c["header_value"].(string), "{capt_header_value_matcher_") {
+						return nil, fmt.Errorf("`header_value` cannot reference `header_value_matcher` capture variables (`{capt_header_value_matcher_N}`) when `header_value_matcher.negate` is set to `true`")
+					}
+					config.HeaderValueMatcher = &applicationgateways.HeaderValueMatcher{
+						Pattern:    pointer.To(m["pattern"].(string)),
+						IgnoreCase: pointer.To(m["ignore_case"].(bool)),
+						Negate:     pointer.To(negate),
+					}
+				}
 				responseConfigurations = append(responseConfigurations, config)
 			}
 
@@ -4148,6 +4184,16 @@ func flattenApplicationGatewayRewriteRuleSets(input *[]applicationgateways.Appli
 								if config.HeaderValue != nil {
 									responseConfig["header_value"] = *config.HeaderValue
 								}
+
+								matchers := make([]interface{}, 0)
+								if m := config.HeaderValueMatcher; m != nil && pointer.From(m.Pattern) != "" {
+									matchers = append(matchers, map[string]interface{}{
+										"pattern":     pointer.From(m.Pattern),
+										"ignore_case": pointer.From(m.IgnoreCase),
+										"negate":      pointer.From(m.Negate),
+									})
+								}
+								responseConfig["header_value_matcher"] = matchers
 
 								responseConfigs = append(responseConfigs, responseConfig)
 							}
