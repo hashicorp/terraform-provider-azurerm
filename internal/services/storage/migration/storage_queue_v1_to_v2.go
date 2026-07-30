@@ -85,7 +85,7 @@ func (StorageQueueV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 
 			storageAccountName, ok := storageAccountNameRaw.(string)
 			if !ok {
-				return rawState, fmt.Errorf("expected a `storage_account_name` to be of type string, got %T", storageAccountNameRaw)
+				return rawState, fmt.Errorf("expected `storage_account_name` to be of type string, got %T", storageAccountNameRaw)
 			}
 
 			// This may seem like an excessive timeout, however, populating the accounts via the list API could take a significant amount of time
@@ -93,7 +93,7 @@ func (StorageQueueV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 			findCtx, cancel := context.WithTimeout(ctx, 1*time.Hour)
 			defer cancel()
 
-			log.Printf("[DEBUG] searching for storage account by name (`%s`) in subscription (`%s`)", storageAccountName, subscriptionID)
+			log.Printf("[DEBUG] searching for a storage account by name (`%s`) in subscription (`%s`)", storageAccountName, subscriptionID)
 			account, err := client.FindAccount(findCtx, subscriptionID, storageAccountName)
 			if err != nil || account == nil {
 				return rawState, fmt.Errorf("locating a storage account by name (`%s`) in subscription (`%s`): %w", storageAccountName, subscriptionID, err)
@@ -109,12 +109,12 @@ func (StorageQueueV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 
 		name, ok := nameRaw.(string)
 		if !ok {
-			return rawState, fmt.Errorf("expected a `name` to be of type string, got %T", nameRaw)
+			return rawState, fmt.Errorf("expected `name` to be of type string, got %T", nameRaw)
 		}
 
 		rawState["id"] = storagequeues.NewQueueID(storageAccountID.SubscriptionId, storageAccountID.ResourceGroupName, storageAccountID.StorageAccountName, name).ID()
 		rawState["storage_account_id"] = storageAccountID.ID()
-		rawState["storage_account_name"] = nil
+		delete(rawState, "storage_account_name")
 
 		return rawState, nil
 	}
