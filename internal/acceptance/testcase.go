@@ -166,11 +166,10 @@ func (td TestData) ResourceRegressionTest(t *testing.T, testResource types.TestR
 
 	os.Setenv("TF_ACC_REFRESH_AFTER_APPLY", "true")
 
-	steps[0].ExternalProviders = map[string]resource.ExternalProvider{
-		"azurerm": {
-			VersionConstraint: providerRelease([]string{previousVersion}...),
-			Source:            "hashicorp/azurerm",
-		},
+	steps[0].ExternalProviders = td.externalProviders()
+	steps[0].ExternalProviders["azurerm"] = resource.ExternalProvider{
+		VersionConstraint: providerRelease([]string{previousVersion}...),
+		Source:            "hashicorp/azurerm",
 	}
 
 	steps[1].ExternalProviders = td.externalProviders()
