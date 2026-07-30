@@ -37,7 +37,7 @@ func (KubernetesAutomaticClusterListResource) List(ctx context.Context, request 
 		return
 	}
 
-	client := metadata.Client.Containers.KubernetesClustersClient_v2026_04_01
+	client := metadata.Client.Containers.KubernetesClustersClient
 	var data sdk.DefaultListModel
 	diags := request.Config.Get(ctx, &data)
 	if diags.HasError() {
