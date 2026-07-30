@@ -3425,12 +3425,23 @@ resource "azurerm_lb_probe" "test2" {
 
 resource "azurerm_lb_rule" "test" {
   loadbalancer_id                = azurerm_lb.test.id
-  probe_id                       = azurerm_lb_probe.test2.id
+  probe_id                       = azurerm_lb_probe.test.id
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
   frontend_ip_configuration_name = local.frontend_ip_configuration_name
   name                           = "LBRule"
   protocol                       = "Tcp"
   frontend_port                  = 22
+  backend_port                   = 22
+}
+
+resource "azurerm_lb_rule" "test2" {
+  loadbalancer_id                = azurerm_lb.test.id
+  probe_id                       = azurerm_lb_probe.test2.id
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
+  frontend_ip_configuration_name = local.frontend_ip_configuration_name
+  name                           = "LBRule2"
+  protocol                       = "Tcp"
+  frontend_port                  = 23
   backend_port                   = 22
 }
 
@@ -3470,7 +3481,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 
-  depends_on = [azurerm_lb_rule.test]
+  depends_on = [azurerm_lb_rule.test2]
 }
 `, r.template(data), data.RandomInteger)
 }

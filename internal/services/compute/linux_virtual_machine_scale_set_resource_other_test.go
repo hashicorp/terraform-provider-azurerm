@@ -2221,7 +2221,7 @@ resource "azurerm_lb" "test" {
   name                = "acctestlb-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
+  sku                 = "Standard"
   frontend_ip_configuration {
     name                 = "internal"
     public_ip_address_id = azurerm_public_ip.test.id
@@ -2439,7 +2439,7 @@ resource "azurerm_lb" "test" {
   name                = "acctestlb-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
+  sku                 = "Standard"
   frontend_ip_configuration {
     name                 = "internal"
     public_ip_address_id = azurerm_public_ip.test.id
@@ -2948,12 +2948,23 @@ resource "azurerm_lb_probe" "test2" {
 
 resource "azurerm_lb_rule" "test" {
   loadbalancer_id                = azurerm_lb.test.id
-  probe_id                       = azurerm_lb_probe.test2.id
+  probe_id                       = azurerm_lb_probe.test.id
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
   frontend_ip_configuration_name = local.frontend_ip_configuration_name
   name                           = "LBRule"
   protocol                       = "Tcp"
   frontend_port                  = 22
+  backend_port                   = 22
+}
+
+resource "azurerm_lb_rule" "test2" {
+  loadbalancer_id                = azurerm_lb.test.id
+  probe_id                       = azurerm_lb_probe.test2.id
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
+  frontend_ip_configuration_name = local.frontend_ip_configuration_name
+  name                           = "LBRule2"
+  protocol                       = "Tcp"
+  frontend_port                  = 23
   backend_port                   = 22
 }
 
@@ -2995,7 +3006,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 
-  depends_on = [azurerm_lb_rule.test]
+  depends_on = [azurerm_lb_rule.test2]
 }
 `, r.template(data), data.RandomInteger)
 }
