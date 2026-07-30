@@ -20,7 +20,7 @@ func ClusterPrincipalAssignmentName(v interface{}, k string) (warnings []string,
 	}
 
 	if len(name) > 260 {
-		errors = append(errors, fmt.Errorf("%q must be (inclusive) between 4 and 22 characters long but is %d", k, len(name)))
+		errors = append(errors, fmt.Errorf("%q must be (inclusive) between 1 and 260 characters long but is %d", k, len(name)))
 	}
 
 	return warnings, errors
