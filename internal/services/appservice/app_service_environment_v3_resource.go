@@ -646,7 +646,7 @@ func expandClusterSettingsModel(input []ClusterSettingModel) *[]appserviceenviro
 	return &clusterSettings
 }
 
-// todo: remove the function in 6.0 as the the api is deprecated for app service environment v3 and the attribute is no longer populated
+// remove this function in 6.0 - the inboundNetworkDependenciesEndpoints API is not supported for App Service Environment v3 and the attribute is no longer populated.
 func flattenInboundNetworkDependencies(ctx context.Context, client *appserviceenvironments.AppServiceEnvironmentsClient, id *commonids.AppServiceEnvironmentId) (*[]AppServiceV3InboundDependencies, error) {
 	inboundNetworking, err := client.GetInboundNetworkDependenciesEndpointsComplete(ctx, *id)
 	if err != nil {
