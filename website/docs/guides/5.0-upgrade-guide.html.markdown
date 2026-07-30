@@ -783,11 +783,11 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 * The `enclave_type` property is no longer computed.
 * The deprecated `long_term_retention_policy.immutable_backups_enabled` property has been removed.
 * The `long_term_retention_policy.weekly_retention`, `long_term_retention_policy.monthly_retention` and `long_term_retention_policy.yearly_retention` properties now default to `PT0S`.
-* The `threat_detection_policy.email_account_admins` property has been removed in favour of the `threat_detection_policy.email_account_admins_enabled` property.
+* The deprecated `threat_detection_policy.email_account_admins` property has been removed in favour of the `threat_detection_policy.email_account_admins_enabled` property.
 
 ### `azurerm_mssql_database_extended_auditing_policy`
 
-* The `storage_endpoint` property has been removed in favour of the `blob_storage_endpoint` property.
+* The deprecated `storage_endpoint` property has been removed in favour of the `blob_storage_endpoint` property.
 
 ### `azurerm_mssql_elasticpool`
 
@@ -814,11 +814,11 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 
 ### `azurerm_mssql_server_extended_auditing_policy`
 
-* The `storage_endpoint` property has been removed in favour of the `blob_storage_endpoint` property.
+* The deprecated `storage_endpoint` property has been removed in favour of the `blob_storage_endpoint` property.
 
 ### `azurerm_mssql_server_security_alert_policy`
 
-* The `email_account_admins` property has been removed in favour of the `email_account_admins_enabled` property.
+* The deprecated `email_account_admins` property has been removed in favour of the `email_account_admins_enabled` property.
 
 ### `azurerm_mssql_server_transparent_data_encryption`
 
@@ -876,7 +876,7 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 
 ### `azurerm_policy_set_definition`
 
-* The `management_group_id` property has been removed in favour of the `azurerm_management_group_policy_set_definition` resource.
+* The deprecated `management_group_id` property has been removed in favour of the `azurerm_management_group_policy_set_definition` resource.
 
 ### `azurerm_powerbi_embedded`
 
@@ -1041,8 +1041,6 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 
 * The deprecated `subnet.service_endpoints` property has been removed in favour of the `subnet.service_endpoint` block.
 
-### `azurerm_mssql_virtual_machine`
-
 ### `azurerm_virtual_network_gateway_connection`
 
 * The deprecated `enable_bgp` property has been removed in favour of the `bgp_enabled` property.
@@ -1061,7 +1059,7 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 
 ### `azurerm_windows_virtual_machine`
 
-* The `enable_automatic_updates` property has been removed in favour of the `automatic_updates_enabled` property.
+* The deprecated `enable_automatic_updates` property has been removed in favour of the `automatic_updates_enabled` property.
 
 ### `azurerm_windows_virtual_machine_scale_set`
 
