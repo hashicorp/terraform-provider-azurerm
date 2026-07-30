@@ -6,7 +6,7 @@ package helper
 import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/backupshorttermretentionpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/longtermretentionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/longtermretentionpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -59,6 +59,22 @@ func LongTermRetentionPolicySchema() *pluginsdk.Schema {
 					ValidateFunc: validation.IntBetween(0, 52),
 					AtLeastOneOf: atLeastOneOf,
 				},
+
+				"immutable_backups_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+
+				"immutability_mode": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: validation.StringInSlice(longtermretentionpolicies.PossibleValuesForTimeBasedImmutabilityMode(), false),
+					DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+						return !d.Get("long_term_retention_policy.0.immutable_backups_enabled").(bool)
+					},
+				},
 			},
 		},
 	}
@@ -88,14 +104,14 @@ func ShortTermRetentionPolicySchema() *pluginsdk.Schema {
 	}
 }
 
-func ExpandLongTermRetentionPolicy(input []interface{}) *longtermretentionpolicies.BaseLongTermRetentionPolicyProperties {
+func ExpandLongTermRetentionPolicy(input []interface{}) *longtermretentionpolicies.LongTermRetentionPolicyProperties {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
 	policy := input[0].(map[string]interface{})
 
-	output := longtermretentionpolicies.BaseLongTermRetentionPolicyProperties{
+	output := longtermretentionpolicies.LongTermRetentionPolicyProperties{
 		WeeklyRetention:  pointer.To("PT0S"),
 		MonthlyRetention: pointer.To("PT0S"),
 		YearlyRetention:  pointer.To("PT0S"),
@@ -116,6 +132,22 @@ func ExpandLongTermRetentionPolicy(input []interface{}) *longtermretentionpolici
 
 	if v, ok := policy["week_of_year"].(int); ok && v != 0 {
 		output.WeekOfYear = pointer.To(int64(v))
+	}
+
+	if v, ok := policy["immutable_backups_enabled"].(bool); ok {
+		immutability := longtermretentionpolicies.TimeBasedImmutabilityDisabled
+		if v {
+			immutability = longtermretentionpolicies.TimeBasedImmutabilityEnabled
+		}
+		output.TimeBasedImmutability = pointer.To(immutability)
+
+		// The API rejects setting the immutability mode when backup immutability is not enabled, so
+		// only send it when `immutable_backups_enabled` is `true`.
+		if v {
+			if mode, ok := policy["immutability_mode"].(string); ok && mode != "" {
+				output.TimeBasedImmutabilityMode = pointer.To(longtermretentionpolicies.TimeBasedImmutabilityMode(mode))
+			}
+		}
 	}
 	return pointer.To(output)
 }
@@ -145,12 +177,24 @@ func FlattenLongTermRetentionPolicy(input *longtermretentionpolicies.LongTermRet
 		yearlyRetention = *input.Properties.YearlyRetention
 	}
 
+	immutableBackupsEnabled := false
+	if input.Properties.TimeBasedImmutability != nil {
+		immutableBackupsEnabled = *input.Properties.TimeBasedImmutability == longtermretentionpolicies.TimeBasedImmutabilityEnabled
+	}
+
+	immutabilityMode := ""
+	if input.Properties.TimeBasedImmutabilityMode != nil {
+		immutabilityMode = string(*input.Properties.TimeBasedImmutabilityMode)
+	}
+
 	return []interface{}{
 		map[string]interface{}{
-			"monthly_retention": monthlyRetention,
-			"weekly_retention":  weeklyRetention,
-			"week_of_year":      weekOfYear,
-			"yearly_retention":  yearlyRetention,
+			"monthly_retention":         monthlyRetention,
+			"weekly_retention":          weeklyRetention,
+			"week_of_year":              weekOfYear,
+			"yearly_retention":          yearlyRetention,
+			"immutable_backups_enabled": immutableBackupsEnabled,
+			"immutability_mode":         immutabilityMode,
 		},
 	}
 }
