@@ -2200,6 +2200,13 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   termination_notification {
     enabled = %t
   }
+
+  rolling_upgrade_policy {
+    max_batch_instance_percent              = 20
+    max_unhealthy_instance_percent          = 20
+    max_unhealthy_upgraded_instance_percent = 20
+    pause_time_between_batches              = "PT0S"
+  }
 }
 `, r.template(data), data.RandomInteger, enabled)
 }
@@ -2797,6 +2804,13 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 
+  rolling_upgrade_policy {
+    max_batch_instance_percent              = 20
+    max_unhealthy_instance_percent          = 20
+    max_unhealthy_upgraded_instance_percent = 20
+    pause_time_between_batches              = "PT0S"
+  }
+
   depends_on = [azurerm_lb_rule.test]
 }
 `, r.template(data), data.RandomInteger, cross_zone_upgrades_enabled, max_batch_instance_percent, max_unhealthy_instance_percent, max_unhealthy_upgraded_instance_percent, pause_time_between_batches, prioritize_unhealthy_instances_enabled, maximum_surge_instances)
@@ -3004,6 +3018,13 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
       load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
       primary                                = true
     }
+  }
+
+  rolling_upgrade_policy {
+    max_batch_instance_percent              = 20
+    max_unhealthy_instance_percent          = 20
+    max_unhealthy_upgraded_instance_percent = 20
+    pause_time_between_batches              = "PT0S"
   }
 
   depends_on = [azurerm_lb_rule.test2]

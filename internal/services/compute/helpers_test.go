@@ -4,12 +4,31 @@
 package compute
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-07-03/galleryimageversions"
 )
+
+func TestExpandVirtualMachineScaleSetAutomaticUpgradePolicy(t *testing.T) {
+	input := []interface{}{
+		map[string]interface{}{
+			"automatic_rollback_enabled":   false,
+			"automatic_os_upgrade_enabled": true,
+		},
+	}
+
+	for _, useRollingUpgradePolicy := range []bool{false, true} {
+		t.Run(fmt.Sprintf("UseRollingUpgradePolicy-%t", useRollingUpgradePolicy), func(t *testing.T) {
+			actual := ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(input, useRollingUpgradePolicy)
+			if pointer.From(actual.UseRollingUpgradePolicy) != useRollingUpgradePolicy {
+				t.Fatalf("expected useRollingUpgradePolicy to be %t", useRollingUpgradePolicy)
+			}
+		})
+	}
+}
 
 func TestSortVersions_valid(t *testing.T) {
 	testData := []struct {
