@@ -238,6 +238,28 @@ func TestAccCosmosDbSqlContainer_hierarchicalPartitionKeys(t *testing.T) {
 	})
 }
 
+func TestAccCosmosDbSqlContainer_fullTextPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
+	r := CosmosSqlContainerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.fullTextPolicy(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.fullTextPolicyUpdated(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t CosmosSqlContainerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := cosmosdb.ParseContainerID(state.ID)
 	if err != nil {
@@ -590,6 +612,125 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   }
 }
 `, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger)
+}
+
+func (CosmosSqlContainerResource) fullTextSearchTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "GlobalDocumentDB"
+
+  consistency_policy {
+    consistency_level = "Strong"
+  }
+
+  capabilities {
+    name = "EnableNoSQLFullTextSearch"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+}
+
+resource "azurerm_cosmosdb_sql_database" "test" {
+  name                = "acctest-%[1]d"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r CosmosSqlContainerResource) fullTextPolicy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_sql_container" "test" {
+  name                = "acctest-CSQLC-%[2]d"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+  database_name       = azurerm_cosmosdb_sql_database.test.name
+  partition_key_paths = ["/definition/id"]
+
+  full_text_policy {
+    default_language = "en-US"
+
+    full_text_path {
+      path     = "/text1"
+      language = "en-US"
+    }
+  }
+
+  indexing_policy {
+    indexing_mode = "consistent"
+
+    included_path {
+      path = "/*"
+    }
+
+    full_text_index {
+      path = "/text1"
+    }
+  }
+}
+`, r.fullTextSearchTemplate(data), data.RandomInteger)
+}
+
+func (r CosmosSqlContainerResource) fullTextPolicyUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_sql_container" "test" {
+  name                = "acctest-CSQLC-%[2]d"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+  database_name       = azurerm_cosmosdb_sql_database.test.name
+  partition_key_paths = ["/definition/id"]
+
+  full_text_policy {
+    default_language = "en-US"
+
+    full_text_path {
+      path     = "/text1"
+      language = "en-US"
+    }
+
+    full_text_path {
+      path     = "/text2"
+      language = "en-US"
+    }
+  }
+
+  indexing_policy {
+    indexing_mode = "consistent"
+
+    included_path {
+      path = "/*"
+    }
+
+    full_text_index {
+      path = "/text1"
+    }
+
+    full_text_index {
+      path = "/text2"
+    }
+  }
+}
+`, r.fullTextSearchTemplate(data), data.RandomInteger)
 }
 
 func (CosmosSqlContainerResource) hierarchicalPartitionKeys(data acceptance.TestData) string {

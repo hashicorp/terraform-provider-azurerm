@@ -145,6 +145,8 @@ func CosmosDbIndexingPolicySchema() *pluginsdk.Schema {
 				"composite_index": CosmosDbIndexingPolicyCompositeIndexSchema(),
 
 				"spatial_index": CosmosDbIndexingPolicySpatialIndexSchema(),
+
+				"full_text_index": CosmosDbIndexingPolicyFullTextIndexSchema(),
 			},
 		},
 	}
@@ -237,6 +239,60 @@ func CosmosDbIndexingPolicySpatialIndexSchema() *pluginsdk.Schema {
 					Computed: true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
+					},
+				},
+			},
+		},
+	}
+}
+
+func CosmosDbIndexingPolicyFullTextIndexSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"path": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
+
+func CosmosDbFullTextPolicySchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"default_language": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"full_text_path": {
+					Type:     pluginsdk.TypeList,
+					Required: true,
+					MinItems: 1,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"path": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+
+							"language": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
 					},
 				},
 			},
