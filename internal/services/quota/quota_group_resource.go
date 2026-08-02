@@ -328,7 +328,42 @@ func (r QuotaGroupResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("quota_request") {
-				if err := applyQuotaRequests(ctx, limitsClient, *id, model.QuotaRequests); err != nil {
+				old, newVal := metadata.ResourceData.GetChange("quota_request")
+
+				// Build a map of new (provider, location, resourceName) tuples so we can
+				// detect which resources were present before but are no longer in config.
+				type reqKey struct{ ResourceProvider, Location, ResourceName string }
+				newReqSet := make(map[reqKey]bool)
+				for _, raw := range newVal.(*pluginsdk.Set).List() {
+					item := raw.(map[string]interface{})
+					newReqSet[reqKey{
+						ResourceProvider: item["resource_provider_name"].(string),
+						Location:         location.Normalize(item["location"].(string)),
+						ResourceName:     item["resource_name"].(string),
+					}] = true
+				}
+
+				// For every resource_name that was in the old config but is absent from the
+				// new config, send a zero-limit PATCH so Azure returns that quota to the pool.
+				zeroRequests := make([]QuotaRequestModel, 0)
+				for _, raw := range old.(*pluginsdk.Set).List() {
+					item := raw.(map[string]interface{})
+					rp := item["resource_provider_name"].(string)
+					loc := location.Normalize(item["location"].(string))
+					rn := item["resource_name"].(string)
+					if !newReqSet[reqKey{ResourceProvider: rp, Location: loc, ResourceName: rn}] {
+						zeroRequests = append(zeroRequests, QuotaRequestModel{
+							ResourceName:         rn,
+							Location:             loc,
+							ResourceProviderName: rp,
+							Limit:                0,
+						})
+					}
+				}
+
+				// Combine zeros (for removed resources) with the new desired state.
+				allRequests := append(zeroRequests, model.QuotaRequests...)
+				if err := applyQuotaRequests(ctx, limitsClient, *id, allRequests); err != nil {
 					return err
 				}
 			}
@@ -458,19 +493,15 @@ func readQuotaRequests(ctx context.Context, client *groupquotalimits.GroupQuotaL
 	for key, configItems := range configScopes {
 		limitID := groupquotalimits.NewGroupQuotaLimitID(id.ManagementGroupId, id.GroupQuotaName, key.ResourceProvider, key.Location)
 
-		resp, err := client.List(ctx, limitID)
+		limits, httpResp, err := listAllGroupQuotaLimits(ctx, client, limitID)
 		if err != nil {
-			if response.WasNotFound(resp.HttpResponse) {
+			if response.WasNotFound(httpResp) {
 				continue
 			}
 			return nil, fmt.Errorf("reading quota limits for %s (resource provider %q, location %q): %+v", *id, key.ResourceProvider, key.Location, err)
 		}
 
-		if resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.Value == nil {
-			continue
-		}
-
-		for _, limit := range *resp.Model.Properties.Value {
+		for _, limit := range limits {
 			if limit.Properties == nil || limit.Properties.ResourceName == nil {
 				continue
 			}

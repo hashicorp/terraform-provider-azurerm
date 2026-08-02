@@ -187,9 +187,9 @@ func (r QuotaGroupSubscriptionAllocationResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			resp, err := client.GroupQuotaSubscriptionAllocationList(ctx, *id)
+			allocs, httpResp, err := listAllSubscriptionAllocations(ctx, client, *id)
 			if err != nil {
-				if response.WasNotFound(resp.HttpResponse) {
+				if response.WasNotFound(httpResp) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
@@ -205,20 +205,18 @@ func (r QuotaGroupSubscriptionAllocationResource) Read() sdk.ResourceFunc {
 				ResourceProviderName: id.ResourceProviderName,
 			}
 
-			if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.Value != nil {
-				allocations := make([]AllocationModel, 0)
-				for _, item := range *resp.Model.Properties.Value {
-					if item.Properties == nil || item.Properties.ResourceName == nil {
-						continue
-					}
-					allocations = append(allocations, AllocationModel{
-						ResourceName:   pointer.From(item.Properties.ResourceName),
-						Limit:          pointer.From(item.Properties.Limit),
-						ShareableQuota: pointer.From(item.Properties.ShareableQuota),
-					})
+			allocations := make([]AllocationModel, 0)
+			for _, item := range allocs {
+				if item.Properties == nil || item.Properties.ResourceName == nil {
+					continue
 				}
-				state.Allocations = allocations
+				allocations = append(allocations, AllocationModel{
+					ResourceName:   pointer.From(item.Properties.ResourceName),
+					Limit:          pointer.From(item.Properties.Limit),
+					ShareableQuota: pointer.From(item.Properties.ShareableQuota),
+				})
 			}
+			state.Allocations = allocations
 
 			return metadata.Encode(&state)
 		},

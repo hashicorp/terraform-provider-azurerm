@@ -35,6 +35,9 @@ func listAllGroupQuotaLimits(ctx context.Context, c *groupquotalimits.GroupQuota
 		if err != nil {
 			return items, latestHTTPResp, fmt.Errorf("parsing nextLink %q: %+v", *nextLink, err)
 		}
+		if !nextURL.IsAbs() {
+			break
+		}
 
 		req, err := c.Client.NewRequest(ctx, sdkclient.RequestOptions{
 			ContentType:         "application/json; charset=utf-8",
@@ -92,6 +95,9 @@ func listAllSubscriptionAllocations(ctx context.Context, c *subscriptionquotaall
 		nextURL, err := url.Parse(*nextLink)
 		if err != nil {
 			return items, latestHTTPResp, fmt.Errorf("parsing nextLink %q: %+v", *nextLink, err)
+		}
+		if !nextURL.IsAbs() {
+			break
 		}
 
 		req, err := c.Client.NewRequest(ctx, sdkclient.RequestOptions{
