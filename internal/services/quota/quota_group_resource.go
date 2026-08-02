@@ -362,8 +362,7 @@ func (r QuotaGroupResource) Update() sdk.ResourceFunc {
 				}
 
 				// Combine zeros (for removed resources) with the new desired state.
-				allRequests := append(zeroRequests, model.QuotaRequests...)
-				if err := applyQuotaRequests(ctx, limitsClient, *id, allRequests); err != nil {
+				if err := applyQuotaRequests(ctx, limitsClient, *id, append(zeroRequests, model.QuotaRequests...)); err != nil {
 					return err
 				}
 			}

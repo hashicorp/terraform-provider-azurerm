@@ -57,9 +57,9 @@ func (d QuotaGroupDataSource) withLocation(data acceptance.TestData) string {
 %s
 
 data "azurerm_quota_group" "test" {
-  name                  = azurerm_quota_group.test.name
-  management_group_id   = azurerm_quota_group.test.management_group_id
-  location              = "%s"
+  name                   = azurerm_quota_group.test.name
+  management_group_id    = azurerm_quota_group.test.management_group_id
+  location               = "%s"
   resource_provider_name = "Microsoft.Compute"
 }
 `, QuotaGroupResource{}.complete(data), data.Locations.Primary)

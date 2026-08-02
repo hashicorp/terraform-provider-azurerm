@@ -84,7 +84,7 @@ The `allocation` block exports the following:
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Quota` - 2025-07-15
+* `Microsoft.Management` - 2025-07-15
 
 ## Timeouts
 

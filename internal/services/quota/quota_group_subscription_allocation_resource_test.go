@@ -193,8 +193,8 @@ resource "azurerm_quota_group_subscription_allocation" "test" {
   }
 
   allocation {
-  resource_name = "standardDSv3Family"
-  limit         = 10
+    resource_name = "standardDSv3Family"
+    limit         = 10
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.Locations.Primary, data.Locations.Primary)
