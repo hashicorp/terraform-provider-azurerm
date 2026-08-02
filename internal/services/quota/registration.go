@@ -33,7 +33,10 @@ func (r Registration) WebsiteCategories() []string {
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{}
+	return []sdk.DataSource{
+		QuotaGroupDataSource{},
+		QuotaGroupSubscriptionAllocationDataSource{},
+	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
