@@ -86,9 +86,9 @@ A `quota_request` block supports the following:
 
 * `location` - (Required) The Azure region for this quota request (e.g. `eastus`).
 
-* `limit` - (Required) The requested quota limit for the resource in the given location.
+* `limit` - (Required) The requested quota limit for the resource in the given location. ~> **Note:** Azure may silently cap the approved limit to available regional capacity. The Terraform state reflects what Azure approved, which may be less than requested.
 
-* `resource_provider_name` - (Optional) The resource provider namespace. Defaults to `Microsoft.Compute`.
+* `resource_provider_name` - (Optional) The resource provider namespace. Defaults to `Microsoft.Compute`. ~> **Note:** At this time only `Microsoft.Compute` is supported by the Azure Quota Groups API.
 
 * `comment` - (Optional) A comment explaining the purpose of this quota request.
 

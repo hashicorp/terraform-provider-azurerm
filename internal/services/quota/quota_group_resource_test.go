@@ -121,7 +121,7 @@ data "azurerm_management_group" "test" {
 }
 
 resource "azurerm_quota_group" "test" {
-  name                = "acctestqg-%d"
+  name                = "acctestqg%d"
   management_group_id = data.azurerm_management_group.test.id
 }
 `, data.RandomInteger)
@@ -151,7 +151,7 @@ data "azurerm_management_group" "test" {
 }
 
 resource "azurerm_quota_group" "test" {
-  name                = "acctestqg-%d"
+  name                = "acctestqg%d"
   management_group_id = data.azurerm_management_group.test.id
   display_name        = "Acceptance Test Quota Group %d"
 

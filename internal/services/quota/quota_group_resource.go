@@ -6,6 +6,7 @@ package quota
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -64,10 +65,16 @@ func (r QuotaGroupResource) Identity() resourceids.ResourceId {
 func (r QuotaGroupResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.All(
+				validation.StringMatch(
+					regexp.MustCompile(`^[a-z][a-z0-9]*$`),
+					"must start with a lowercase letter and contain only lowercase letters and digits",
+				),
+				validation.StringLenBetween(3, 63),
+			),
 		},
 
 		"management_group_id": {
