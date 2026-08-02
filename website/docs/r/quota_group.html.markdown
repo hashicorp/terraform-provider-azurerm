@@ -98,6 +98,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Quota Group.
 
+The `quota_request` block exports the following:
+
+* `available_limit` - The amount of quota from this group's pool that remains available to be allocated to subscriptions. Updated after each apply.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:

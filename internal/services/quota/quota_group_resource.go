@@ -28,6 +28,7 @@ type QuotaRequestModel struct {
 	ResourceProviderName string `tfschema:"resource_provider_name"`
 	Limit                int64  `tfschema:"limit"`
 	Comment              string `tfschema:"comment"`
+	AvailableLimit       int64  `tfschema:"available_limit"`
 }
 
 type QuotaGroupModel struct {
@@ -134,6 +135,11 @@ func (r QuotaGroupResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"available_limit": {
+						Type:     pluginsdk.TypeInt,
+						Computed: true,
 					},
 				},
 			},
@@ -478,6 +484,7 @@ func readQuotaRequests(ctx context.Context, client *groupquotalimits.GroupQuotaL
 				ResourceProviderName: key.ResourceProvider,
 				Limit:                pointer.From(limit.Properties.Limit),
 				Comment:              pointer.From(limit.Properties.Comment),
+				AvailableLimit:       pointer.From(limit.Properties.AvailableLimit),
 			}
 			result = append(result, qr)
 		}

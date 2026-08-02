@@ -70,13 +70,15 @@ An `allocation` block supports the following:
 
 * `limit` - (Required) The quota limit to allocate to the subscription from the group pool. ~> **Note:** Azure may silently cap the allocated amount to the group's `availableLimit` if the requested `limit` exceeds the group's remaining pool. The Terraform state will reflect what Azure actually allocated.
 
-* `shareable_quota` - (Computed) The portion of this subscription's allocated quota that can be returned to the group pool (computed as `limit` minus current resource usage). This is a read-only value set by the API.
-
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Quota Group Subscription Allocation.
+
+The `allocation` block exports the following:
+
+* `shareable_quota` - The portion of this subscription's allocated quota that can be returned to the group pool (computed as `limit` minus current resource usage). This is a read-only value set by the API.
 
 ## Timeouts
 
