@@ -94,6 +94,7 @@ func (r QuotaGroupResource) Arguments() map[string]*pluginsdk.Schema {
 		"associated_subscription_ids": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
+			MaxItems: 10000,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.IsUUID,
