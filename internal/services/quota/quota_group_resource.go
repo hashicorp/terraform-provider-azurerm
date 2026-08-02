@@ -32,10 +32,10 @@ type QuotaRequestModel struct {
 }
 
 type QuotaGroupModel struct {
-	Name                      string             `tfschema:"name"`
-	ManagementGroupId         string             `tfschema:"management_group_id"`
-	DisplayName               string             `tfschema:"display_name"`
-	AssociatedSubscriptionIds []string           `tfschema:"associated_subscription_ids"`
+	Name                      string              `tfschema:"name"`
+	ManagementGroupId         string              `tfschema:"management_group_id"`
+	DisplayName               string              `tfschema:"display_name"`
+	AssociatedSubscriptionIds []string            `tfschema:"associated_subscription_ids"`
 	QuotaRequests             []QuotaRequestModel `tfschema:"quota_request"`
 }
 
@@ -540,4 +540,3 @@ func (r QuotaGroupResource) flatten(metadata sdk.ResourceMetaData, id *groupquot
 
 	return metadata.Encode(&state)
 }
-

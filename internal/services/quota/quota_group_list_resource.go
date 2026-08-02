@@ -121,4 +121,3 @@ func (QuotaGroupListResource) List(ctx context.Context, request list.ListRequest
 		}
 	}
 }
-

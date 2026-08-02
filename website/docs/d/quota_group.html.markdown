@@ -1,5 +1,5 @@
 ---
-subcategory: "Quota"
+subcategory: "Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: Data Source: azurerm_quota_group"
 description: |-
@@ -88,8 +88,14 @@ The `quota_request` block exports the following:
 
 * `available_limit` - The portion of the group's quota pool that has not yet been allocated to subscriptions.
 
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Quota` - 2025-07-15
+
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Quota Group.

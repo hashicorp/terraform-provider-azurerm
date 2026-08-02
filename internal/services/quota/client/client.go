@@ -14,10 +14,10 @@ import (
 )
 
 type Client struct {
-	GroupQuotaLimitsClient              *groupquotalimits.GroupQuotaLimitsClient
-	GroupQuotasClient                   *groupquotas.GroupQuotasClient
-	GroupQuotasSubscriptionsClient      *groupquotassubscriptions.GroupQuotasSubscriptionsClient
-	SubscriptionQuotaAllocationClient   *subscriptionquotaallocation.SubscriptionQuotaAllocationClient
+	GroupQuotaLimitsClient            *groupquotalimits.GroupQuotaLimitsClient
+	GroupQuotasClient                 *groupquotas.GroupQuotasClient
+	GroupQuotasSubscriptionsClient    *groupquotassubscriptions.GroupQuotasSubscriptionsClient
+	SubscriptionQuotaAllocationClient *subscriptionquotaallocation.SubscriptionQuotaAllocationClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {

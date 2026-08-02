@@ -1,5 +1,5 @@
 ---
-subcategory: "Quota"
+subcategory: "Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_quota_group_subscription_allocation"
 description: |-
@@ -80,9 +80,15 @@ The `allocation` block exports the following:
 
 * `shareable_quota` - The portion of this subscription's allocated quota that can be returned to the group pool (computed as `limit` minus current resource usage). This is a read-only value set by the API.
 
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Quota` - 2025-07-15
+
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Quota Group Subscription Allocation.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Quota Group Subscription Allocation.
