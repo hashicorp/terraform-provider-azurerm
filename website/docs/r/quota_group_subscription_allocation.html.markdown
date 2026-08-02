@@ -1,5 +1,5 @@
 ---
-subcategory: "Management"
+subcategory: "Quota"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_quota_group_subscription_allocation"
 description: |-
