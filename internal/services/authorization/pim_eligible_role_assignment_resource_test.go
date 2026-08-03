@@ -204,12 +204,12 @@ data "azurerm_role_definition" "test" {
 %[1]s
 
 resource "azurerm_role_management_policy" "test" {
-	scope              = data.azurerm_subscription.primary.id
-	role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_role_definition.test.id}"
+  scope              = data.azurerm_subscription.primary.id
+  role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_role_definition.test.id}"
 
-	eligible_assignment_rules {
-		expiration_required = false
-	}
+  eligible_assignment_rules {
+    expiration_required = false
+  }
 }
 
 resource "azurerm_pim_eligible_role_assignment" "test" {
@@ -224,7 +224,7 @@ resource "azurerm_pim_eligible_role_assignment" "test" {
     system = "example ticket system"
   }
 
-	depends_on = [azurerm_role_management_policy.test]
+  depends_on = [azurerm_role_management_policy.test]
 }
 `, r.template(data))
 }
