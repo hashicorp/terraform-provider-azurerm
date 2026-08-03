@@ -364,10 +364,12 @@ func resourceMonitorMetricAlert() *pluginsdk.Resource {
 			},
 
 			"severity": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Default:      3,
-				ValidateFunc: validation.IntBetween(0, 4),
+				Type:             pluginsdk.TypeString,
+				Optional:         true,
+				Default:          "3",
+				ValidateFunc:     validateMonitorSeverity,
+				StateFunc:        normalizeMonitorSeverityState,
+				DiffSuppressFunc: suppressMonitorSeverityDiff,
 			},
 
 			"window_size": {
@@ -418,7 +420,11 @@ func resourceMonitorMetricAlertCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	autoMitigate := d.Get("auto_mitigate").(bool)
 	description := d.Get("description").(string)
 	scopesRaw := d.Get("scopes").(*pluginsdk.Set).List()
-	severity := d.Get("severity").(int)
+	severityRaw := d.Get("severity").(string)
+	severity, err := normalizeMonitorSeverity(severityRaw)
+	if err != nil {
+		return fmt.Errorf("invalid severity %q: %s", severityRaw, err)
+	}
 	frequency := d.Get("frequency").(string)
 	windowSize := d.Get("window_size").(string)
 	actionRaw := d.Get("action").(*pluginsdk.Set).List()
@@ -535,7 +541,7 @@ func resourceMonitorMetricAlertFlatten(d *pluginsdk.ResourceData, id *metricaler
 		d.Set("enabled", props.Enabled)
 		d.Set("auto_mitigate", props.AutoMitigate)
 		d.Set("description", props.Description)
-		d.Set("severity", props.Severity)
+		d.Set("severity", strconv.FormatInt(props.Severity, 10))
 		d.Set("frequency", props.EvaluationFrequency)
 		d.Set("window_size", props.WindowSize)
 		if err := d.Set("scopes", props.Scopes); err != nil {
