@@ -72,6 +72,8 @@ The following arguments are supported:
 
 ---
 
+* `artifact_streaming_enabled` - (Optional) Whether `artifact streaming` is enabled. Defaults to `false`.
+
 * `capacity_reservation_group_id` - (Optional) Specifies the ID of the Capacity Reservation Group where this Node Pool should exist. Changing this forces a new resource to be created.
 
 * `auto_scaling_enabled` - (Optional) Whether to enable [auto-scaler](https://docs.microsoft.com/azure/aks/cluster-autoscaler).
