@@ -1,16 +1,18 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package containers
+package containers_test
 
 import (
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func TestKubernetesClusterKeyVaultKeyIDValidation(t *testing.T) {
-	validateFunc := resourceKubernetesCluster().
+	validateFunc := (containers.Registration{}).
+		SupportedResources()["azurerm_kubernetes_cluster"].
 		Schema["key_management_service"].
 		Elem.(*pluginsdk.Resource).
 		Schema["key_vault_key_id"].
