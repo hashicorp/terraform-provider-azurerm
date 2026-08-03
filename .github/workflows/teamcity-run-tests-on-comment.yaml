@@ -98,6 +98,7 @@ jobs:
       TCTEST_SKIP_QUEUE: 'true'
       TCTEST_TOKEN_TC: ${{ secrets.TCTEST_TOKEN_TC }}
       TCTEST_BUILD_TYPE_ID: TF_AzureRM_AZURERM_SERVICE_PUBLIC
+      TCTEST_BUILD_TYPE_ID_ADD_SERVICE_SUFFIX: 'true'
       TCTEST_REPO: terraform-providers/terraform-provider-azurerm
     steps:
       - name: Setup Go
