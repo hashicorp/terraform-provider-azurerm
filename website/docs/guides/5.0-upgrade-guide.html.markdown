@@ -877,10 +877,6 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 
 * The `management_group_id` property has been removed in favour of the `azurerm_management_group_policy_set_definition` resource.
 
-### `azurerm_postgresql_flexible_server`
-
-* The `storage_mb` property no longer accepts `4194304` when creating new servers with `create_mode = Default`, or when resizing existing servers.
-
 ### `azurerm_powerbi_embedded`
 
 * The `mode` property now defaults to `Gen2`.
