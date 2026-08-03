@@ -33,11 +33,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the share.
 
-* `storage_account_name` - (Optional) The name of the storage account in which the share exists. This property is deprecated in favour of `storage_account_id`.
-
-* `storage_account_id` - (Optional) The ID of the storage account in which the share exists.
-
-~> **Note:** One of `storage_account_name` or `storage_account_id` must be specified. When specifying `storage_account_id` the resource will use the Resource Manager API, rather than the Data Plane API.
+* `storage_account_id` - (Required) The ID of the storage account in which the share exists.
 
 ## Attributes Reference
 

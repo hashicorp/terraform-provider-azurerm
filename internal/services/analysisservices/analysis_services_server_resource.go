@@ -26,7 +26,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name analysis_services_server -service-package-name analysisservices -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceAnalysisServicesServer() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{

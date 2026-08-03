@@ -14,6 +14,6 @@ jobs:
   close-failing-ci-prs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
       - name: Process PRs with failing CI
         run: ./scripts/close-failing-ci-prs.sh -o "${{ github.repository_owner }}" -r "${{ github.event.repository.name }}" -t "${{ secrets.GITHUB_TOKEN }}" -l

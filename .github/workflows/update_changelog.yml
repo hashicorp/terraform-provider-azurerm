@@ -72,7 +72,7 @@ jobs:
           if [[  $prs -gt 0  ]]; then
               echo "existing=true" >> "$GITHUB_OUTPUT"
           fi
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
       - name: check for branch
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

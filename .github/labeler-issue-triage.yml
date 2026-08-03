@@ -11,6 +11,8 @@ v/3.x:
   - '### AzureRM Provider Version\s+(|azurerm |AzureRM )(|v|V)3\.\d+'
 v/4.x:
   - '### AzureRM Provider Version\s+(|azurerm |AzureRM )(|v|V)4\.\d+'
+v/5.x:
+  - '### AzureRM Provider Version\s+(|azurerm |AzureRM )(|v|V)5\.\d+'
 service/aadb2c:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_aadb2c_directory((.|\n)*)###'
 
@@ -69,10 +71,10 @@ service/cdn:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_cdn_((.|\n)*)###'
 
 service/cognitive-services:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(ai_services|cognitive_)((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_cognitive_((.|\n)*)###'
 
 service/communication:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(communication_service|email_communication_service|gallery_application|managed_disks|orchestrated_virtual_machine_scale_set\W+|restore_point_collection|virtual_machine_gallery_application_assignment\W+|virtual_machine_implicit_data_disk_from_source\W+|virtual_machine_restore_point\W+|virtual_machine_restore_point_collection\W+|virtual_machine_run_command\W+|virtual_machine_scale_set_standby_pool\W+)((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(communication_service|email_communication_service|gallery_application|managed_disks|orchestrated_virtual_machine_scale_set\W+|virtual_machine_gallery_application_assignment\W+|virtual_machine_implicit_data_disk_from_source\W+|virtual_machine_restore_point\W+|virtual_machine_restore_point_collection\W+|virtual_machine_run_command\W+|virtual_machine_scale_set_standby_pool\W+)((.|\n)*)###'
 
 service/connections:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(api_connection|managed_api)((.|\n)*)###'
@@ -147,7 +149,7 @@ service/event-hubs:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_eventhub((.|\n)*)###'
 
 service/extended-location:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(extended_custom_location\W+|extended_location_custom_location\W+)((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_extended_location_custom_location((.|\n)*)###'
 
 service/fabric:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_fabric_capacity((.|\n)*)###'
@@ -222,7 +224,7 @@ service/management-groups:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(management_group\W+|management_group_subscription_association\W+)((.|\n)*)###'
 
 service/maps:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_maps_((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_maps_account((.|\n)*)###'
 
 service/mongo-cluster:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_mongo_cluster((.|\n)*)###'
@@ -257,9 +259,6 @@ service/notifications:
 service/oracle:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_oracle_((.|\n)*)###'
 
-service/orbital:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_orbital_((.|\n)*)###'
-
 service/paloalto:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_palo_alto_((.|\n)*)###'
 
@@ -270,7 +269,7 @@ service/portal:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_portal_((.|\n)*)###'
 
 service/postgresql:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_postgresql_((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_postgresql_flexible_server((.|\n)*)###'
 
 service/power-bi:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_powerbi_embedded((.|\n)*)###'
@@ -363,4 +362,4 @@ service/vmware:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_vmware_((.|\n)*)###'
 
 service/workloads:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(chaos_studio_|container_connected_registry\W+|container_registry_cache_rule\W+|container_registry_credential_set\W+|container_registry_task\W+|container_registry_task_schedule_run_now\W+|container_registry_token_password\W+|kubernetes_cluster_deployment_safeguard\W+|kubernetes_cluster_extension\W+|kubernetes_cluster_trusted_access_role_binding\W+|kubernetes_fleet_manager\W+|kubernetes_fleet_member\W+|kubernetes_fleet_update_run\W+|kubernetes_fleet_update_strategy\W+|kubernetes_flux_configuration\W+|kubernetes_node_pool_snapshot\W+|workloads_sap_)((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(chaos_studio_|container_connected_registry\W+|container_registry_cache_rule\W+|container_registry_credential_set\W+|container_registry_task\W+|container_registry_task_schedule_run_now\W+|container_registry_token_password\W+|kubernetes_automatic_cluster\W+|kubernetes_cluster_deployment_safeguard\W+|kubernetes_cluster_extension\W+|kubernetes_cluster_trusted_access_role_binding\W+|kubernetes_fleet_manager\W+|kubernetes_fleet_member\W+|kubernetes_fleet_update_run\W+|kubernetes_fleet_update_strategy\W+|kubernetes_flux_configuration\W+|kubernetes_node_pool_snapshot\W+|workloads_sap_)((.|\n)*)###'
