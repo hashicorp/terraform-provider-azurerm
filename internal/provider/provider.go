@@ -299,6 +299,22 @@ func azureProvider(supportLegacyTestSuite bool, testName string) *schema.Provide
 				Description: "The API version to use for Managed Service Identity (IMDS) - for cases where the default API version is not supported by the endpoint. e.g. for Azure Container Apps.",
 			},
 
+			"msi_custom_header_name": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				DefaultFunc:  schema.EnvDefaultFunc("ARM_MSI_CUSTOM_HEADER_NAME", "X-IDENTITY-HEADER"),
+				ValidateFunc: validation.StringIsNotEmpty,
+				Description:  "The name of the custom header to send when authenticating using Managed Service Identity.",
+			},
+
+			"msi_custom_header_value": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Sensitive:   true,
+				DefaultFunc: schema.MultiEnvDefaultFunc([]string{"ARM_MSI_CUSTOM_HEADER_VALUE", "IDENTITY_HEADER"}, nil),
+				Description: "The value of the custom header to send when authenticating using Managed Service Identity.",
+			},
+
 			// Azure CLI specific fields
 			"use_cli": {
 				Type:        schema.TypeBool,
@@ -479,7 +495,7 @@ func providerConfigure(p *schema.Provider, testName string) schema.ConfigureCont
 
 			CustomManagedIdentityEndpoint:   d.Get("msi_endpoint").(string),
 			CustomManagedIdentityAPIVersion: d.Get("msi_api_version").(string),
-			CustomManagedIdentityHeaders:    clients.ManagedIdentityHeadersFromEnvironment(),
+			CustomManagedIdentityHeaders:    managedIdentityHeaders(d),
 
 			AzureCliSubscriptionIDHint: subscriptionId,
 
@@ -494,6 +510,13 @@ func providerConfigure(p *schema.Provider, testName string) schema.ConfigureCont
 
 		return buildClient(ctx, p, d, authConfig, testName)
 	}
+}
+
+func managedIdentityHeaders(d *schema.ResourceData) map[string][]string {
+	return clients.ManagedIdentityHeaders(
+		d.Get("msi_custom_header_name").(string),
+		d.Get("msi_custom_header_value").(string),
+	)
 }
 
 // buildClient is used to configure behavioral aspects of the provider. To configure the
