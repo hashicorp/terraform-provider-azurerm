@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/accountconnectionresource"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -117,6 +118,9 @@ func (r CognitiveAccountConnectionAccountManagedIdentityResource) Create() sdk.R
 				return err
 			}
 
+			locks.ByID(accountId.ID())
+			defer locks.UnlockByID(accountId.ID())
+
 			id := accountconnectionresource.NewConnectionID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.AccountName, model.Name)
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.AccountConnectionsGet(ctx, id)
@@ -196,6 +200,10 @@ func (r CognitiveAccountConnectionAccountManagedIdentityResource) Update() sdk.R
 				return err
 			}
 
+			accountId := accountconnectionresource.NewAccountID(id.SubscriptionId, id.ResourceGroupName, id.AccountName)
+			locks.ByID(accountId.ID())
+			defer locks.UnlockByID(accountId.ID())
+
 			resp, err := client.AccountConnectionsGet(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
@@ -243,6 +251,10 @@ func (r CognitiveAccountConnectionAccountManagedIdentityResource) Delete() sdk.R
 			if err != nil {
 				return err
 			}
+
+			accountId := accountconnectionresource.NewAccountID(id.SubscriptionId, id.ResourceGroupName, id.AccountName)
+			locks.ByID(accountId.ID())
+			defer locks.UnlockByID(accountId.ID())
 
 			if _, err := client.AccountConnectionsDelete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
