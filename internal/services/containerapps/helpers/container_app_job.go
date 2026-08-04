@@ -1024,12 +1024,15 @@ func FlattenContainerAppJobSecrets(input *jobs.JobSecretsCollection) []Secret {
 	result := make([]Secret, 0)
 
 	for _, v := range input.Value {
+		keyVaultSecretId := strings.TrimSpace(pointer.From(v.KeyVaultURL))
+		identity := strings.TrimSpace(pointer.From(v.Identity))
+
 		secret := Secret{
-			Identity:         pointer.From(v.Identity),
-			KeyVaultSecretId: pointer.From(v.KeyVaultURL),
+			Identity:         identity,
+			KeyVaultSecretId: keyVaultSecretId,
 			Name:             pointer.From(v.Name),
 		}
-		if v.KeyVaultURL == nil {
+		if keyVaultSecretId == "" {
 			secret.Value = pointer.From(v.Value)
 		}
 		result = append(result, secret)

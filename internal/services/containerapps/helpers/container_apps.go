@@ -1849,9 +1849,9 @@ type ContainerEnvVar struct {
 
 func ContainerEnvVarSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		MinItems: 1,
+		Type:     pluginsdk.TypeSet,
 		Optional: true,
+		Set:      containerEnvVarHash,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
@@ -1862,14 +1862,34 @@ func ContainerEnvVarSchema() *pluginsdk.Schema {
 				},
 
 				"value": {
-					Type:        pluginsdk.TypeString,
-					Optional:    true,
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					DiffSuppressFunc: func(k, oldValue, newValue string, d *pluginsdk.ResourceData) bool {
+						secretNamePath := strings.TrimSuffix(k, ".value") + ".secret_name"
+						if secretName, ok := d.Get(secretNamePath).(string); ok && secretName != "" {
+							return true
+						}
+
+						return false
+					},
 					Description: "The value for this environment variable. **NOTE:** This value is ignored if `secret_name` is used",
 				},
 
 				"secret_name": {
-					Type:        pluginsdk.TypeString,
-					Optional:    true,
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					DiffSuppressFunc: func(k, oldValue, newValue string, d *pluginsdk.ResourceData) bool {
+						if strings.TrimSpace(oldValue) == "" && strings.TrimSpace(newValue) == "" {
+							return true
+						}
+
+						valuePath := strings.TrimSuffix(k, ".secret_name") + ".value"
+						if value, ok := d.Get(valuePath).(string); ok && value != "" {
+							return true
+						}
+
+						return false
+					},
 					Description: "The name of the secret that contains the value for this environment variable.",
 				},
 			},
@@ -1879,8 +1899,9 @@ func ContainerEnvVarSchema() *pluginsdk.Schema {
 
 func ContainerEnvVarSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
+		Type:     pluginsdk.TypeSet,
 		Computed: true,
+		Set:      containerEnvVarHash,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
@@ -2851,16 +2872,56 @@ type Secret struct {
 	Value            string `tfschema:"value"`
 }
 
+func containerEnvVarHash(input interface{}) int {
+	if input == nil {
+		return 0
+	}
+
+	v, ok := input.(map[string]interface{})
+	if !ok {
+		return 0
+	}
+
+	name, _ := v["name"].(string)
+	secretName, _ := v["secret_name"].(string)
+	value, _ := v["value"].(string)
+
+	if secretName != "" {
+		return pluginsdk.HashString(strings.Join([]string{name, "secret", secretName}, "\x00"))
+	}
+
+	return pluginsdk.HashString(strings.Join([]string{name, "value", value}, "\x00"))
+}
+
+func containerSecretHash(input interface{}) int {
+	if input == nil {
+		return 0
+	}
+
+	v, ok := input.(map[string]interface{})
+	if !ok {
+		return 0
+	}
+
+	name, _ := v["name"].(string)
+
+	return pluginsdk.HashString(name)
+}
+
 func SecretsSchema() *pluginsdk.Schema {
 	s := &pluginsdk.Schema{
-		Type:      pluginsdk.TypeSet,
-		Optional:  true,
-		Sensitive: true,
+		Type:     pluginsdk.TypeSet,
+		Optional: true,
+		Set:      containerSecretHash,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"identity": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+					Default:  "",
+					DiffSuppressFunc: func(k, oldValue, newValue string, d *pluginsdk.ResourceData) bool {
+						return strings.EqualFold(oldValue, newValue)
+					},
 					ValidateFunc: validation.Any(
 						commonids.ValidateUserAssignedIdentityID,
 						validation.StringInSlice([]string{"System"}, false),
@@ -2871,6 +2932,7 @@ func SecretsSchema() *pluginsdk.Schema {
 				"key_vault_secret_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
+					Default:      "",
 					ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret),
 					Description:  "The Key Vault Secret ID. Could be either one of `id` or `versionless_id`.",
 				},
@@ -2885,6 +2947,7 @@ func SecretsSchema() *pluginsdk.Schema {
 				"value": {
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
+					Default:     "",
 					Sensitive:   true,
 					Description: "The value for this secret.",
 				},
@@ -2904,6 +2967,7 @@ func SecretsDataSourceSchema() *pluginsdk.Schema {
 		Type:      pluginsdk.TypeSet,
 		Computed:  true,
 		Sensitive: true,
+		Set:       containerSecretHash,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"identity": {
@@ -3011,15 +3075,57 @@ func FlattenContainerAppSecrets(input *containerapps.SecretsCollection) []Secret
 	}
 	result := make([]Secret, 0)
 	for _, v := range input.Value {
+		keyVaultSecretId := strings.TrimSpace(pointer.From(v.KeyVaultURL))
+		identity := strings.TrimSpace(pointer.From(v.Identity))
+
 		secret := Secret{
-			Identity:         pointer.From(v.Identity),
-			KeyVaultSecretId: pointer.From(v.KeyVaultURL),
+			Identity:         identity,
+			KeyVaultSecretId: keyVaultSecretId,
 			Name:             pointer.From(v.Name),
 		}
-		if v.KeyVaultURL == nil {
+		if keyVaultSecretId == "" {
 			secret.Value = pointer.From(v.Value)
 		}
 		result = append(result, secret)
+	}
+
+	return result
+}
+
+func PreserveContainerAppSecretValues(current []Secret, prior []Secret) []Secret {
+	if len(current) == 0 || len(prior) == 0 {
+		return current
+	}
+
+	priorValuesByName := make(map[string]string, len(prior))
+	for _, v := range prior {
+		if strings.TrimSpace(v.Name) == "" {
+			continue
+		}
+		if strings.TrimSpace(v.KeyVaultSecretId) != "" {
+			continue
+		}
+		if v.Value == "" {
+			continue
+		}
+
+		priorValuesByName[v.Name] = v.Value
+	}
+
+	result := make([]Secret, len(current))
+	copy(result, current)
+
+	for i := range result {
+		if strings.TrimSpace(result[i].KeyVaultSecretId) != "" {
+			continue
+		}
+		if result[i].Value != "" {
+			continue
+		}
+
+		if priorValue, ok := priorValuesByName[result[i].Name]; ok {
+			result[i].Value = priorValue
+		}
 	}
 
 	return result
