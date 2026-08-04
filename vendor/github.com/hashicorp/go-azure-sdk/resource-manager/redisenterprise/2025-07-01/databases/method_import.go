@@ -61,9 +61,20 @@ func (c DatabasesClient) Import(ctx context.Context, id DatabaseId, input Import
 
 // ImportThenPoll performs Import then polls until it's completed
 func (c DatabasesClient) ImportThenPoll(ctx context.Context, id DatabaseId, input ImportClusterParameters) error {
+	return c.ImportCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ImportCallbackThenPoll performs Import, runs the optional callback function, then polls until it's completed
+func (c DatabasesClient) ImportCallbackThenPoll(ctx context.Context, id DatabaseId, input ImportClusterParameters, callback func() error) error {
 	result, err := c.Import(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Import: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -126,15 +126,17 @@ func resourceKeyVaultCertificateIssuerCreateOrUpdate(d *pluginsdk.ResourceData, 
 
 	id := parse.NewIssuerID(*keyVaultBaseUri, name)
 	if d.IsNewResource() {
-		existing, err := client.GetCertificateIssuer(ctx, *keyVaultBaseUri, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("failed to check for presence of existing Certificate Issuer %q (Key Vault %q): %s", name, *keyVaultBaseUri, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.GetCertificateIssuer(ctx, *keyVaultBaseUri, name)
+			if err != nil {
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("failed to check for presence of existing Certificate Issuer %q (Key Vault %q): %s", name, *keyVaultBaseUri, err)
+				}
 			}
-		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_key_vault_certificate_issuer", id.ID())
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return tf.ImportAsExistsError("azurerm_key_vault_certificate_issuer", id.ID())
+			}
 		}
 	}
 
@@ -265,9 +267,18 @@ func resourceKeyVaultCertificateIssuerDelete(d *pluginsdk.ResourceData, meta int
 	}
 
 	if !ok {
-		log.Printf("[DEBUG] Issuer %q (Key Vault %q) was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
-		d.SetId("")
+		// parent key vault does not exist, nothing to delete
 		return nil
+	}
+
+	resp, err := client.GetCertificateIssuer(ctx, id.KeyVaultBaseUrl, id.Name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[DEBUG] Certificate Issuer %q was not found in Key Vault at URI %q - removing from state", id.Name, id.KeyVaultBaseUrl)
+			return nil
+		}
+
+		return fmt.Errorf("checking if Issuer %q in key vault %q at url %q exists: %v", id.Name, *keyVaultId, id.KeyVaultBaseUrl, err)
 	}
 
 	_, err = client.DeleteCertificateIssuer(ctx, id.KeyVaultBaseUrl, id.Name)

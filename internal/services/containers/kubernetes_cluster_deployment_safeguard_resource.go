@@ -95,14 +95,16 @@ func (r KubernetesClusterDeploymentSafeguardResource) Create() sdk.ResourceFunc 
 
 			scopeId := commonids.NewScopeID(kubernetesClusterId.ID())
 
-			existing, err := client.Get(ctx, scopeId)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", kubernetesClusterId, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, scopeId)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", kubernetesClusterId, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), kubernetesClusterId)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), kubernetesClusterId)
+				}
 			}
 
 			payload := deploymentsafeguards.DeploymentSafeguard{
@@ -116,7 +118,7 @@ func (r KubernetesClusterDeploymentSafeguardResource) Create() sdk.ResourceFunc 
 				payload.Properties.ExcludedNamespaces = pointer.To(model.ExcludedNamespaces)
 			}
 
-			if err := client.CreateThenPoll(ctx, scopeId, payload); err != nil {
+			if err := client.CreateCallbackThenPoll(ctx, scopeId, payload, metadata.SetIDCallback(kubernetesClusterId)); err != nil {
 				return fmt.Errorf("creating %s: %+v", kubernetesClusterId, err)
 			}
 

@@ -282,7 +282,7 @@ func resourceEventHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	id := eventhubs.NewEventhubID(subscriptionId, resourceGroupName, namespaceName, d.Get("name").(string))
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -290,7 +290,7 @@ func resourceEventHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 		}
 
-		if existing.Model != nil {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_eventhub", id.ID())
 		}
 	}

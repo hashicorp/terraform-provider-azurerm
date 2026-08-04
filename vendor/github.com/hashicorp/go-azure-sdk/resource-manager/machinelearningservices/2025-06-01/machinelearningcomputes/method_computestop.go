@@ -56,9 +56,20 @@ func (c MachineLearningComputesClient) ComputeStop(ctx context.Context, id Compu
 
 // ComputeStopThenPoll performs ComputeStop then polls until it's completed
 func (c MachineLearningComputesClient) ComputeStopThenPoll(ctx context.Context, id ComputeId) error {
+	return c.ComputeStopCallbackThenPoll(ctx, id, nil)
+}
+
+// ComputeStopCallbackThenPoll performs ComputeStop, runs the optional callback function, then polls until it's completed
+func (c MachineLearningComputesClient) ComputeStopCallbackThenPoll(ctx context.Context, id ComputeId, callback func() error) error {
 	result, err := c.ComputeStop(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ComputeStop: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

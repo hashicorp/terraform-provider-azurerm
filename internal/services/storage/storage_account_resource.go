@@ -44,7 +44,7 @@ import (
 	"github.com/jackofallops/giovanni/storage/2023-11-03/queue/queues"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_account -service-package-name storage -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 var (
 	storageAccountResourceName  = "azurerm_storage_account"
@@ -1153,14 +1153,14 @@ func resourceStorageAccount() *pluginsdk.Resource {
 
 					// The initial value can be either "Disabled" or "Unlocked".
 					// API error: InvalidStorageAccountImmutabilityPolicy: Storage account immutability policy state can be set to "Unlocked, Disabled".
-					//            Note that the immutability state can either be Disabled or Unlocked during account creation
+					//      Note that the immutability state can either be Disabled or Unlocked during account creation
 					if old == "" && (new.(string) != string(storageaccounts.AccountImmutabilityPolicyStateDisabled) && new.(string) != string(storageaccounts.AccountImmutabilityPolicyStateUnlocked)) {
 						return fmt.Errorf("initial value of `immutability_policy.0.state` can be either Disabled or Unlocked, got=%s", new)
 					}
 
 					// Only "Unlocked" state can be updated to "Locked"
 					// API error: InvalidStorageAccountImmutabilityPolicy: Storage account immutability policy state can be set to "Unlocked, Disabled".
-					//            Note that the immutability state can either be Disabled or Unlocked during account creation
+					//      Note that the immutability state can either be Disabled or Unlocked during account creation
 					if new.(string) == string(storageaccounts.AccountImmutabilityPolicyStateLocked) && old.(string) != string(storageaccounts.AccountImmutabilityPolicyStateUnlocked) {
 						return fmt.Errorf("`immutability_policy.0.state` can only be set to Locked from Unlocked, got=%s", old)
 					}
@@ -1345,7 +1345,6 @@ func resourceStorageAccount() *pluginsdk.Resource {
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
-								// TODO 4.0: Remove this property and determine whether to enable based on existence of the out side block.
 								"enabled": {
 									Type:     pluginsdk.TypeBool,
 									Required: true,
@@ -1392,14 +1391,16 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	locks.ByName(id.StorageAccountName, storageAccountResourceName)
 	defer locks.UnlockByName(id.StorageAccountName, storageAccountResourceName)
 
-	existing, err := client.GetProperties(ctx, id, storageaccounts.DefaultGetPropertiesOperationOptions())
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.GetProperties(ctx, id, storageaccounts.DefaultGetPropertiesOperationOptions())
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_storage_account", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_storage_account", id.ID())
+		}
 	}
 
 	accountKind := storageaccounts.Kind(d.Get("account_kind").(string))
@@ -1551,10 +1552,9 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	payload.Properties.Encryption = encryption
 
-	if err := client.CreateThenPoll(ctx, id, payload); err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, id, payload, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-
 	d.SetId(id.ID())
 	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
 		return err
@@ -1922,7 +1922,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	if err := client.CreateThenPoll(ctx, *id, payload); err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, *id, payload, sdk.SetIDCallback(meta, id, d)); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 

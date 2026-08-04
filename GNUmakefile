@@ -16,7 +16,7 @@ tools:
 	go install github.com/katbyte/terrafmt@latest
 	go install golang.org/x/tools/cmd/goimports@latest
 	go install mvdan.cc/gofumpt@latest
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin v2.4.0
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin v2.12.2
 
 build: fmtcheck generate
 	go install
@@ -39,9 +39,9 @@ fmtcheck:
 
 terrafmt:
 	@echo "==> Fixing acceptance test terraform blocks code with terrafmt..."
-	@find internal | egrep "_test.go" | sort | while read f; do terrafmt fmt -f $$f; done
+	@terrafmt fmt -f -p "*_test.go" ./internal
 	@echo "==> Fixing website terraform blocks code with terrafmt..."
-	@find . | egrep html.markdown | sort | while read f; do terrafmt fmt $$f; done
+	@terrafmt fmt -p "*.html.markdown" .
 
 generate: tools
 	go generate ./internal/services/...
@@ -77,8 +77,12 @@ gencheck: generate
 	@git diff --compact-summary --exit-code -- ./ || \
     		(echo; echo "Unexpected difference in generated code. Run 'make generate' to update the generated code and commit."; echo "If you added or modified a resource, ensure 'go generate' directives are up to date."; exit 1)
 
+tfproviderlint:
+	./scripts/run-tfproviderlint.sh
+
 tflint:
-	./scripts/run-tflint.sh
+	@echo "NOTE: 'make tflint' has been renamed to 'make tfproviderlint' to reflect what it actually runs and will be removed in the future."
+	@$(MAKE) tfproviderlint
 
 whitespace:
 	@echo "==> Fixing source code with whitespace linter..."
@@ -88,7 +92,7 @@ golangci-fix:
 	@echo "==> Fixing source code with all golangci linters..."
 	golangci-lint run ./... --fix
 
-test: fmtcheck
+test:
 	@TEST=$(TEST) ./scripts/run-gradually-deprecated.sh
 	@TEST=$(TEST) ./scripts/run-test.sh
 
@@ -100,13 +104,13 @@ test-compile:
 	fi
 	go test -c $(TEST) $(TESTARGS)
 
-testacc: fmtcheck
+testacc:
 	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout $(TESTTIMEOUT) -ldflags="-X=github.com/hashicorp/terraform-provider-azurerm/version.ProviderVersion=acc"
 
-acctests: fmtcheck
+acctests:
 	TF_ACC=1 go test -v ./internal/services/$(SERVICE) $(TESTARGS) -timeout $(TESTTIMEOUT) -ldflags="-X=github.com/hashicorp/terraform-provider-azurerm/version.ProviderVersion=acc"
 
-debugacc: fmtcheck
+debugacc:
 	TF_ACC=1 dlv test $(TEST) --headless --listen=:2345 --api-version=2 -- -test.v $(TESTARGS)
 
 prepare:
@@ -166,6 +170,6 @@ resource-counts:
 static-analysis:
 	./scripts/run-static-analysis.sh
 
-pr-check: generate build test lint tflint website-lint
+pr-check: generate build test lint tfproviderlint website-lint
 
-.PHONY: build test testacc vet fmt fmtcheck errcheck pr-check scaffold-website test-compile website website-test validate-examples resource-counts static-analysis
+.PHONY: build test testacc vet fmt fmtcheck errcheck pr-check scaffold-website test-compile website website-test validate-examples resource-counts static-analysis tfproviderlint tflint

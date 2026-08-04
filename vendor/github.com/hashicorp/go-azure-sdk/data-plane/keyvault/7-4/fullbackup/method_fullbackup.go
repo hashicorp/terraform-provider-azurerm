@@ -61,9 +61,20 @@ func (c FullBackupClient) FullBackup(ctx context.Context, input SASTokenParamete
 
 // FullBackupThenPoll performs FullBackup then polls until it's completed
 func (c FullBackupClient) FullBackupThenPoll(ctx context.Context, input SASTokenParameter) error {
+	return c.FullBackupCallbackThenPoll(ctx, input, nil)
+}
+
+// FullBackupCallbackThenPoll performs FullBackup, runs the optional callback function, then polls until it's completed
+func (c FullBackupClient) FullBackupCallbackThenPoll(ctx context.Context, input SASTokenParameter, callback func() error) error {
 	result, err := c.FullBackup(ctx, input)
 	if err != nil {
 		return fmt.Errorf("performing FullBackup: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

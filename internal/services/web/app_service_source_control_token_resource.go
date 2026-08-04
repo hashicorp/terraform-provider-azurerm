@@ -93,7 +93,9 @@ func resourceAppServiceSourceControlTokenCreateUpdate(d *pluginsdk.ResourceData,
 		return fmt.Errorf("updating %s: %s", id, err)
 	}
 
-	d.SetId(id.Type)
+	if d.IsNewResource() {
+		d.SetId(id.Type)
+	}
 
 	return resourceAppServiceSourceControlTokenRead(d, meta)
 }

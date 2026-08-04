@@ -73,10 +73,19 @@ func resourceStorageShareFile() *pluginsdk.Resource {
 		},
 
 		"source": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-			ForceNew:     true,
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ValidateFunc:  validation.StringIsNotEmpty,
+			ForceNew:      true,
+			ConflictsWith: []string{"source_content"},
+		},
+
+		"source_content": {
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ValidateFunc:  validation.StringIsNotEmpty,
+			ForceNew:      true,
+			ConflictsWith: []string{"source"},
 		},
 
 		"content_length": {
@@ -178,15 +187,17 @@ func resourceStorageShareFileCreate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("building File Share Directories Client: %s", err)
 	}
 
-	existing, err := client.GetProperties(ctx, storageShareId.ShareName, path, fileName)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.GetProperties(ctx, storageShareId.ShareName, path, fileName)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_storage_share_file", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_storage_share_file", id.ID())
+		}
 	}
 
 	input := files.CreateInput{
@@ -211,7 +222,21 @@ func resourceStorageShareFileCreate(d *pluginsdk.ResourceData, meta interface{})
 		if err != nil {
 			return fmt.Errorf("opening file: %s", err)
 		}
+		defer file.Close()
+	} else if v, ok := d.GetOk("source_content"); ok {
+		file, err = os.CreateTemp(os.TempDir(), "share-file-")
+		if err != nil {
+			return fmt.Errorf("creating temporary file: %s", err)
+		}
+		defer os.Remove(file.Name())
+		defer file.Close()
 
+		if _, err = file.WriteString(v.(string)); err != nil {
+			return fmt.Errorf("writing `source_content` to temporary file: %s", err)
+		}
+	}
+
+	if file != nil {
 		info, err := file.Stat()
 		if err != nil {
 			return fmt.Errorf("'stat'-ing File %q (File Share %q / Account %q): %v", fileName, storageShareId.ShareName, storageShareId.AccountId.AccountName, err)

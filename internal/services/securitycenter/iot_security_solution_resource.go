@@ -147,7 +147,7 @@ func resourceIotSecuritySolution() *pluginsdk.Resource {
 				},
 			},
 
-			"recommendations_enabled": {
+			"recommendations": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
@@ -286,14 +286,16 @@ func resourceIotSecuritySolutionCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	resourceId := parse.NewIotSecuritySolutionID(subscriptionId, resourceGroup, name).ID()
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Security Center Iot Security Solution %q (Resource Group %q): %+v", name, resourceGroup, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, resourceGroup, name)
+			if err != nil {
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("checking for presence of existing Security Center Iot Security Solution %q (Resource Group %q): %+v", name, resourceGroup, err)
+				}
 			}
-		}
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_iot_security_solution", resourceId)
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return tf.ImportAsExistsError("azurerm_iot_security_solution", resourceId)
+			}
 		}
 	}
 
@@ -313,7 +315,7 @@ func resourceIotSecuritySolutionCreateUpdate(d *pluginsdk.ResourceData, meta int
 			Status:                       status,
 			Export:                       expandIotSecuritySolutionExport(d.Get("events_to_export").(*pluginsdk.Set).List()),
 			IotHubs:                      utils.ExpandStringSlice(d.Get("iothub_ids").(*pluginsdk.Set).List()),
-			RecommendationsConfiguration: expandIotSecuritySolutionRecommendation(d.Get("recommendations_enabled").([]interface{})),
+			RecommendationsConfiguration: expandIotSecuritySolutionRecommendation(d.Get("recommendations").([]interface{})),
 			UnmaskedIPLoggingStatus:      unmaskedIPLoggingStatus,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -385,8 +387,8 @@ func resourceIotSecuritySolutionRead(d *pluginsdk.ResourceData, meta interface{}
 		if err := d.Set("events_to_export", flattenIotSecuritySolutionExport(prop.Export)); err != nil {
 			return fmt.Errorf("setting `events_to_export`: %s", err)
 		}
-		if err := d.Set("recommendations_enabled", flattenIotSecuritySolutionRecommendation(prop.RecommendationsConfiguration)); err != nil {
-			return fmt.Errorf("setting `recommendations_enabled`: %s", err)
+		if err := d.Set("recommendations", flattenIotSecuritySolutionRecommendation(prop.RecommendationsConfiguration)); err != nil {
+			return fmt.Errorf("setting `recommendations`: %s", err)
 		}
 		if prop.UserDefinedResources != nil {
 			d.Set("query_for_resources", prop.UserDefinedResources.Query)

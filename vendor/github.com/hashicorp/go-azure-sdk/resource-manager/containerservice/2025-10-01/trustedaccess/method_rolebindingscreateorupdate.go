@@ -62,9 +62,20 @@ func (c TrustedAccessClient) RoleBindingsCreateOrUpdate(ctx context.Context, id 
 
 // RoleBindingsCreateOrUpdateThenPoll performs RoleBindingsCreateOrUpdate then polls until it's completed
 func (c TrustedAccessClient) RoleBindingsCreateOrUpdateThenPoll(ctx context.Context, id TrustedAccessRoleBindingId, input TrustedAccessRoleBinding) error {
+	return c.RoleBindingsCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// RoleBindingsCreateOrUpdateCallbackThenPoll performs RoleBindingsCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c TrustedAccessClient) RoleBindingsCreateOrUpdateCallbackThenPoll(ctx context.Context, id TrustedAccessRoleBindingId, input TrustedAccessRoleBinding, callback func() error) error {
 	result, err := c.RoleBindingsCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing RoleBindingsCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

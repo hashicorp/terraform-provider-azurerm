@@ -35,6 +35,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
@@ -211,12 +212,14 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	id := commonids.NewSqlDatabaseID(serverId.SubscriptionId, serverId.ResourceGroupName, serverId.ServerName, name)
 
-	if existing, err := client.Get(ctx, id, databases.DefaultGetOperationOptions()); err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		if existing, err := client.Get(ctx, id, databases.DefaultGetOperationOptions()); err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+		} else {
+			return tf.ImportAsExistsError("azurerm_mssql_database", id.ID())
 		}
-	} else {
-		return tf.ImportAsExistsError("azurerm_mssql_database", id.ID())
 	}
 
 	server, err := serversClient.Get(ctx, *serverId, servers.DefaultGetOperationOptions())
@@ -484,8 +487,13 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		input.Properties.EncryptionProtector = pointer.To(keyId.ID())
 	}
 
-	if err = client.CreateOrUpdateThenPoll(ctx, id, input); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, input, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
 	}
 
 	// Wait for the ProvisioningState to become "Succeeded"
@@ -590,11 +598,6 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		if err := client.ImportThenPoll(ctx, id, importParameters); err != nil {
 			return fmt.Errorf("while import bacpac into the new database %s: %+v", id, err)
 		}
-	}
-
-	d.SetId(id.ID())
-	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
-		return err
 	}
 
 	// For Data Warehouse SKUs only
@@ -1386,13 +1389,16 @@ func flattenMsSqlServerSecurityAlertPolicy(d *pluginsdk.ResourceData, policy dat
 		return []interface{}{}
 	}
 
-	securityAlertPolicy := make(map[string]interface{})
+	securityAlertPolicy := map[string]interface{}{
+		"state":                        string(properties.State),
+		"email_account_admins_enabled": pointer.From(properties.EmailAccountAdmins),
+	}
 
-	securityAlertPolicy["state"] = string(properties.State)
-
-	securityAlertPolicy["email_account_admins"] = "Disabled"
-	if properties.EmailAccountAdmins != nil && *properties.EmailAccountAdmins {
-		securityAlertPolicy["email_account_admins"] = "Enabled"
+	if !features.FivePointOh() {
+		securityAlertPolicy["email_account_admins"] = "Disabled"
+		if properties.EmailAccountAdmins != nil && *properties.EmailAccountAdmins {
+			securityAlertPolicy["email_account_admins"] = "Enabled"
+		}
 	}
 
 	if disabledAlerts := properties.DisabledAlerts; disabledAlerts != nil {
@@ -1445,7 +1451,14 @@ func expandMsSqlDatabaseSecurityAlertPolicy(d *pluginsdk.ResourceData) databases
 		securityAlert := tdl[0].(map[string]interface{})
 
 		properties.State = databasesecurityalertpolicies.SecurityAlertsPolicyState(securityAlert["state"].(string))
-		properties.EmailAccountAdmins = pointer.To(securityAlert["email_account_admins"].(string) == string(EmailAccountAdminsStatusEnabled))
+		properties.EmailAccountAdmins = pointer.To(securityAlert["email_account_admins_enabled"].(bool))
+
+		if !features.FivePointOh() {
+			eaa, diags := d.GetRawConfigAt(sdk.ConstructCtyPath("threat_detection_policy.0.email_account_admins"))
+			if !diags.HasError() && !eaa.IsNull() {
+				properties.EmailAccountAdmins = pointer.To(securityAlert["email_account_admins"] == string(EmailAccountAdminsStatusEnabled))
+			}
+		}
 
 		if v, ok := securityAlert["disabled_alerts"]; ok {
 			alerts := v.(*pluginsdk.Set).List()
@@ -1524,10 +1537,14 @@ const (
 )
 
 func PossibleValuesForEmailAccountAdminsStatus() []string {
-	return []string{
-		string(EmailAccountAdminsStatusDisabled),
-		string(EmailAccountAdminsStatusEnabled),
+	if !features.FivePointOh() {
+		return []string{
+			string(EmailAccountAdminsStatusDisabled),
+			string(EmailAccountAdminsStatusEnabled),
+		}
 	}
+
+	return nil
 }
 
 func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
@@ -1628,7 +1645,6 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"enclave_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true, // TODO: Remove Computed in 4.0
 			ValidateFunc: validation.StringInSlice([]string{
 				string(databases.AlwaysEncryptedEnclaveTypeVBS),
 				string(databases.AlwaysEncryptedEnclaveTypeDefault),
@@ -1765,14 +1781,10 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 						},
 					},
 
-					// NOTE: this is a Boolean in SDK rather than a String
-					// TODO: update this to be `email_account_admins_enabled` in 4.0
-					"email_account_admins": {
-						Type:     pluginsdk.TypeString,
+					"email_account_admins_enabled": {
+						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						Default:  EmailAccountAdminsStatusDisabled,
-						ValidateFunc: validation.StringInSlice(PossibleValuesForEmailAccountAdminsStatus(),
-							false),
+						Default:  false,
 					},
 
 					"email_addresses": {
@@ -1874,6 +1886,32 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 	}
 
 	if !features.FivePointOh() {
+		threatDetectionPolicy := resource["threat_detection_policy"].Elem.(*pluginsdk.Resource).Schema
+		threatDetectionPolicy["email_account_admins_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"threat_detection_policy.0.email_account_admins"},
+		}
+		threatDetectionPolicy["email_account_admins"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"threat_detection_policy.0.email_account_admins_enabled"},
+			ValidateFunc:  validation.StringInSlice(PossibleValuesForEmailAccountAdminsStatus(), false),
+			Deprecated:    "`email_account_admins` has been deprecated in favour of `email_account_admins_enabled` and will be removed in v5.0 of the AzureRM Provider",
+		}
+
+		resource["enclave_type"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(databases.AlwaysEncryptedEnclaveTypeVBS),
+				string(databases.AlwaysEncryptedEnclaveTypeDefault),
+			}, false),
+		}
+
 		atLeastOneOf := []string{
 			"long_term_retention_policy.0.weekly_retention", "long_term_retention_policy.0.monthly_retention",
 			"long_term_retention_policy.0.yearly_retention", "long_term_retention_policy.0.week_of_year",

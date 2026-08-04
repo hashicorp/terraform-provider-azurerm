@@ -107,14 +107,17 @@ func resourceSpringCloudCertificateCreate(d *pluginsdk.ResourceData, meta interf
 	serviceName := d.Get("service_name").(string)
 
 	resourceId := parse.NewSpringCloudCertificateID(subscriptionId, resourceGroup, serviceName, name).ID()
-	existing, err := client.Get(ctx, resourceGroup, serviceName, name)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Spring Cloud Service Certificate %q (Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, resourceGroup, serviceName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for presence of existing Spring Cloud Service Certificate %q (Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
+			}
 		}
-	}
-	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_spring_cloud_certificate", resourceId)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_spring_cloud_certificate", resourceId)
+		}
 	}
 
 	cert := appplatform.CertificateResource{}
@@ -139,11 +142,13 @@ func resourceSpringCloudCertificateCreate(d *pluginsdk.ResourceData, meta interf
 	if err != nil {
 		return fmt.Errorf("creating Spring Cloud Certificate %q (Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
 	}
+
+	d.SetId(resourceId)
+
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation/update of %q(Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
 	}
 
-	d.SetId(resourceId)
 	return resourceSpringCloudCertificateRead(d, meta)
 }
 

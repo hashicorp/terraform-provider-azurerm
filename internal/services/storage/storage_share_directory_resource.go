@@ -141,15 +141,17 @@ func resourceStorageShareDirectoryCreate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("building File Share Directories Client: %v", err)
 	}
 
-	existing, err := client.Get(ctx, storageShareId.ShareName, directoryName)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, storageShareId.ShareName, directoryName)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %s", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_storage_share_directory", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_storage_share_directory", id.ID())
+		}
 	}
 
 	input := directories.CreateDirectoryInput{
@@ -158,6 +160,7 @@ func resourceStorageShareDirectoryCreate(d *pluginsdk.ResourceData, meta interfa
 	if _, err = client.Create(ctx, storageShareId.ShareName, directoryName, input); err != nil {
 		return fmt.Errorf("creating %s: %v", id, err)
 	}
+	d.SetId(id.ID())
 
 	// Storage Share Directories are eventually consistent
 	log.Printf("[DEBUG] Waiting for %s to become available", id)
@@ -173,8 +176,6 @@ func resourceStorageShareDirectoryCreate(d *pluginsdk.ResourceData, meta interfa
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to become available: %v", id, err)
 	}
-
-	d.SetId(id.ID())
 
 	return resourceStorageShareDirectoryRead(d, meta)
 }

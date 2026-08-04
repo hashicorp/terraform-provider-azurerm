@@ -82,6 +82,24 @@ func TestAccSecurityCenterSubscriptionPricing_update(t *testing.T) {
 	})
 }
 
+func TestAccSecurityCenterSubscriptionPricing_multiplePricingResources(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test_storage_accounts")
+	r := SecurityCenterSubscriptionPricingResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multiplePricingResources(),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tier").HasValue("Standard"),
+				check.That(data.ResourceName).Key("resource_type").HasValue("StorageAccounts"),
+				acceptance.TestCheckResourceAttr("azurerm_security_center_subscription_pricing.test_key_vaults", "tier", "Standard"),
+				acceptance.TestCheckResourceAttr("azurerm_security_center_subscription_pricing.test_key_vaults", "resource_type", "KeyVaults"),
+			),
+		},
+	})
+}
+
 func TestAccSecurityCenterSubscriptionPricing_cosmosDbs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
 	r := SecurityCenterSubscriptionPricingResource{}
@@ -380,6 +398,55 @@ provider "azurerm" {
 resource "azurerm_security_center_subscription_pricing" "test" {
   tier          = "Free"
   resource_type = "CloudPosture"
+}
+`
+}
+
+func (SecurityCenterSubscriptionPricingResource) multiplePricingResources() string {
+	return `
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_security_center_subscription_pricing" "test" {
+  tier          = "Standard"
+  resource_type = "CloudPosture"
+
+  extension {
+    name = "SensitiveDataDiscovery"
+  }
+
+  extension {
+    name = "AgentlessVmScanning"
+    additional_extension_properties = {
+      ExclusionTags = "[]"
+    }
+  }
+}
+
+resource "azurerm_security_center_subscription_pricing" "test_storage_accounts" {
+  tier          = "Standard"
+  resource_type = "StorageAccounts"
+  subplan       = "DefenderForStorageV2"
+
+  extension {
+    additional_extension_properties = {
+      CapGBPerMonthPerStorageAccount = "5000"
+      AutomatedResponse              = "None"
+      BlobScanResultsOptions         = "BlobIndexTags"
+    }
+    name = "OnUploadMalwareScanning"
+  }
+
+  extension {
+    name = "SensitiveDataDiscovery"
+  }
+}
+
+resource "azurerm_security_center_subscription_pricing" "test_key_vaults" {
+  tier          = "Standard"
+  resource_type = "KeyVaults"
+  subplan       = "PerKeyVault"
 }
 `
 }

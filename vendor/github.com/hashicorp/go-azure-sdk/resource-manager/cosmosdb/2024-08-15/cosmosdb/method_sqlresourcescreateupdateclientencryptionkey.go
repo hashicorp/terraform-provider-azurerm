@@ -62,9 +62,20 @@ func (c CosmosDBClient) SqlResourcesCreateUpdateClientEncryptionKey(ctx context.
 
 // SqlResourcesCreateUpdateClientEncryptionKeyThenPoll performs SqlResourcesCreateUpdateClientEncryptionKey then polls until it's completed
 func (c CosmosDBClient) SqlResourcesCreateUpdateClientEncryptionKeyThenPoll(ctx context.Context, id ClientEncryptionKeyId, input ClientEncryptionKeyCreateUpdateParameters) error {
+	return c.SqlResourcesCreateUpdateClientEncryptionKeyCallbackThenPoll(ctx, id, input, nil)
+}
+
+// SqlResourcesCreateUpdateClientEncryptionKeyCallbackThenPoll performs SqlResourcesCreateUpdateClientEncryptionKey, runs the optional callback function, then polls until it's completed
+func (c CosmosDBClient) SqlResourcesCreateUpdateClientEncryptionKeyCallbackThenPoll(ctx context.Context, id ClientEncryptionKeyId, input ClientEncryptionKeyCreateUpdateParameters, callback func() error) error {
 	result, err := c.SqlResourcesCreateUpdateClientEncryptionKey(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing SqlResourcesCreateUpdateClientEncryptionKey: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

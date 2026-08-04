@@ -186,17 +186,19 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("waiting for App Configuration Key %q read permission to be propagated: %+v", model.Key, err)
 			}
 
-			kv, err := client.GetKeyValue(ctx, model.Key, model.Label, "", "", "", []appconfiguration.KeyValueFields{})
-			if err != nil {
-				if v, ok := err.(autorest.DetailedError); ok {
-					if !utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
-						return fmt.Errorf("checking for presence of existing %s: %+v", nestedItemId, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				kv, err := client.GetKeyValue(ctx, model.Key, model.Label, "", "", "", []appconfiguration.KeyValueFields{})
+				if err != nil {
+					if v, ok := err.(autorest.DetailedError); ok {
+						if !utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
+							return fmt.Errorf("checking for presence of existing %s: %+v", nestedItemId, err)
+						}
+					} else {
+						return fmt.Errorf("while checking for key's %q existence: %+v", model.Key, err)
 					}
-				} else {
-					return fmt.Errorf("while checking for key's %q existence: %+v", model.Key, err)
+				} else if kv.StatusCode == 200 {
+					return tf.ImportAsExistsError(k.ResourceType(), nestedItemId.ID())
 				}
-			} else if kv.StatusCode == 200 {
-				return tf.ImportAsExistsError(k.ResourceType(), nestedItemId.ID())
 			}
 
 			entity := appconfiguration.KeyValue{

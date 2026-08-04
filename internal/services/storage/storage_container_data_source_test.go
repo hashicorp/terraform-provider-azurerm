@@ -28,48 +28,15 @@ func TestAccStorageContainerDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("metadata.%").HasValue("2"),
 				check.That(data.ResourceName).Key("metadata.k1").HasValue("v1"),
 				check.That(data.ResourceName).Key("metadata.k2").HasValue("v2"),
+				check.That(data.ResourceName).Key("url").HasValue(fmt.Sprintf("https://acctestacc%[1]s.blob.core.windows.net/acctest-container-%[1]s", data.RandomString)),
 			),
 		},
 	})
 }
 
 func (d StorageContainerDataSource) basic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-
-%s
-
-data "azurerm_storage_container" "test" {
-  name               = azurerm_storage_container.test.name
-  storage_account_id = azurerm_storage_account.test.id
-}
-`, StorageContainerResource{}.complete(data))
-}
-
-func TestAccStorageContainerDataSource_basicDeprecated(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip("skipping as test is not valid in 5.0")
-	}
-
-	data := acceptance.BuildTestData(t, "data.azurerm_storage_container", "test")
-
-	data.DataSourceTest(t, []acceptance.TestStep{
-		{
-			Config: StorageContainerDataSource{}.basicDeprecated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("container_access_type").HasValue("private"),
-				check.That(data.ResourceName).Key("has_immutability_policy").HasValue("false"),
-				check.That(data.ResourceName).Key("default_encryption_scope").HasValue(fmt.Sprintf("acctestEScontainer%d", data.RandomInteger)),
-				check.That(data.ResourceName).Key("encryption_scope_override_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("metadata.%").HasValue("2"),
-				check.That(data.ResourceName).Key("metadata.k1").HasValue("v1"),
-				check.That(data.ResourceName).Key("metadata.k2").HasValue("v2"),
-			),
-		},
-	})
-}
-
-func (d StorageContainerDataSource) basicDeprecated(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -80,7 +47,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                = "acctestsadsc%[1]s"
+  name                = "acctestacc%[1]s"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   location                 = "${azurerm_resource_group.test.location}"
@@ -95,7 +62,7 @@ resource "azurerm_storage_encryption_scope" "test" {
 }
 
 resource "azurerm_storage_container" "test" {
-  name                              = "containerdstest-%[1]s"
+  name                              = "acctest-container-%[1]s"
   storage_account_name              = "${azurerm_storage_account.test.name}"
   container_access_type             = "private"
   default_encryption_scope          = azurerm_storage_encryption_scope.test.name
@@ -110,5 +77,15 @@ data "azurerm_storage_container" "test" {
   name                 = azurerm_storage_container.test.name
   storage_account_name = azurerm_storage_container.test.storage_account_name
 }
-`, data.RandomString, data.Locations.Primary, data.RandomInteger)
+	`, data.RandomString, data.Locations.Primary, data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+
+%s
+
+data "azurerm_storage_container" "test" {
+  name               = azurerm_storage_container.test.name
+  storage_account_id = azurerm_storage_account.test.id
+}
+`, StorageContainerResource{}.complete(data))
 }

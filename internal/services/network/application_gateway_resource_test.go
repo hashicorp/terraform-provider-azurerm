@@ -584,6 +584,54 @@ func TestAccApplicationGateway_settingsPickHostNameFromBackendAddress(t *testing
 	})
 }
 
+func TestAccApplicationGateway_backendHttpSettingsValidate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	r := ApplicationGatewayResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.trustedRootCertificate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("trusted_root_certificate.0.data"),
+		{
+			Config: r.backendHttpSettingValidate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("trusted_root_certificate.0.data"),
+		{
+			Config: r.backendHttpSettingValidateUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("trusted_root_certificate.0.data"),
+		{
+			Config: r.backendHttpSettingValidate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("trusted_root_certificate.0.data"),
+	})
+}
+
+func TestAccApplicationGateway_backendHttpSettingsValidateInvalid(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	r := ApplicationGatewayResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.backendHttpSettingValidateInvalid(data),
+			ExpectError: regexp.MustCompile("`sni_name` can only be set when `sni_validation_enabled` is set to `true` in `backend_http_settings` block"),
+		},
+	})
+}
+
 func TestAccApplicationGateway_sslCertificate_keyvault_versionless(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
@@ -1422,7 +1470,7 @@ func TestAccApplicationGateway_v1SkuNameNotSupported(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.v1SkuNameNotSupported(data),
-			ExpectError: regexp.MustCompile(`new creation / update to "[^"]+" SKU name is no longer supported, please use supported SKU names: "Basic", "Standard_v2", "WAF_v2"`),
+			ExpectError: regexp.MustCompile("new creation / update to `[^`]+` SKU name is no longer supported, please use supported SKU names: `Basic`, `Standard_v2`, `WAF_v2`, refer to https://aka.ms/V1retirement"),
 		},
 	})
 }
@@ -1434,7 +1482,7 @@ func TestAccApplicationGateway_v1SkuTierNotSupported(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.v1SkuTierNotSupported(data),
-			ExpectError: regexp.MustCompile(`new creation / update to "[^"]+" SKU tier is no longer supported, please use supported SKU tiers: "Basic", "Standard_v2", "WAF_v2", refer to https://aka.ms/V1retirement`),
+			ExpectError: regexp.MustCompile("new creation / update to `[^`]+` SKU tier is no longer supported, please use supported SKU tiers: `Basic`, `Standard_v2`, `WAF_v2`, refer to https://aka.ms/V1retirement"),
 		},
 	})
 }
@@ -2611,11 +2659,12 @@ resource "azurerm_public_ip" "testStd" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acct%[2]d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.test.tenant_id}"
-  sku_name            = "standard"
+  name                       = "acct%[2]d"
+  location                   = "${azurerm_resource_group.test.location}"
+  resource_group_name        = "${azurerm_resource_group.test.name}"
+  rbac_authorization_enabled = false
+  tenant_id                  = "${data.azurerm_client_config.test.tenant_id}"
+  sku_name                   = "standard"
 
   access_policy {
     tenant_id               = "${data.azurerm_client_config.test.tenant_id}"
@@ -2778,11 +2827,12 @@ resource "azurerm_public_ip" "testStd" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acct%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.test.tenant_id
-  sku_name            = "standard"
+  name                       = "acct%[2]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.test.tenant_id
+  sku_name                   = "standard"
 
   access_policy {
     tenant_id               = data.azurerm_client_config.test.tenant_id
@@ -3565,6 +3615,305 @@ resource "azurerm_application_gateway" "test" {
   trusted_root_certificate {
     name = local.auth_cert_name
     data = file("testdata/application_gateway_test_2.crt")
+  }
+
+  http_listener {
+    name                           = local.listener_name
+    frontend_ip_configuration_name = local.frontend_ip_configuration_name
+    frontend_port_name             = local.frontend_port_name
+    protocol                       = "Http"
+  }
+
+  request_routing_rule {
+    name                       = local.request_routing_rule_name
+    rule_type                  = "Basic"
+    http_listener_name         = local.listener_name
+    backend_address_pool_name  = local.backend_address_pool_name
+    backend_http_settings_name = local.http_setting_name
+    priority                   = 10
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ApplicationGatewayResource) backendHttpSettingValidate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+# since these variables are re-used - a locals block makes this more maintainable
+locals {
+  auth_cert_name                 = "${azurerm_virtual_network.test.name}-auth"
+  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
+  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
+  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
+  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
+  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
+  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+}
+
+resource "azurerm_public_ip" "teststd" {
+  name                = "acctest-PubIpStd-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_application_gateway" "test" {
+  name                = "acctestag-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "WAF_v2"
+    tier     = "WAF_v2"
+    capacity = 2
+  }
+
+  gateway_ip_configuration {
+    name      = "my-gateway-ip-configuration"
+    subnet_id = azurerm_subnet.test.id
+  }
+
+  waf_configuration {
+    enabled                  = true
+    firewall_mode            = "Detection"
+    rule_set_type            = "OWASP"
+    rule_set_version         = "3.0"
+    file_upload_limit_mb     = 100
+    request_body_check       = true
+    max_request_body_size_kb = 100
+  }
+
+  frontend_port {
+    name = local.frontend_port_name
+    port = 80
+  }
+
+  frontend_ip_configuration {
+    name                 = local.frontend_ip_configuration_name
+    public_ip_address_id = azurerm_public_ip.teststd.id
+  }
+
+  backend_address_pool {
+    name = local.backend_address_pool_name
+  }
+
+  backend_http_settings {
+    name                                 = local.http_setting_name
+    cookie_based_affinity                = "Disabled"
+    port                                 = 443
+    protocol                             = "Https"
+    request_timeout                      = 1
+    sni_validation_enabled               = true
+    certificate_chain_validation_enabled = true
+    sni_name                             = "my.sni.name.com"
+    pick_host_name_from_backend_address  = true
+    trusted_root_certificate_names       = [local.auth_cert_name]
+  }
+
+  trusted_root_certificate {
+    name = local.auth_cert_name
+    data = file("testdata/application_gateway_test.cer")
+  }
+
+  http_listener {
+    name                           = local.listener_name
+    frontend_ip_configuration_name = local.frontend_ip_configuration_name
+    frontend_port_name             = local.frontend_port_name
+    protocol                       = "Http"
+  }
+
+  request_routing_rule {
+    name                       = local.request_routing_rule_name
+    rule_type                  = "Basic"
+    http_listener_name         = local.listener_name
+    backend_address_pool_name  = local.backend_address_pool_name
+    backend_http_settings_name = local.http_setting_name
+    priority                   = 10
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ApplicationGatewayResource) backendHttpSettingValidateUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+# since these variables are re-used - a locals block makes this more maintainable
+locals {
+  auth_cert_name                 = "${azurerm_virtual_network.test.name}-auth"
+  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
+  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
+  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
+  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
+  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
+  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+}
+
+resource "azurerm_public_ip" "teststd" {
+  name                = "acctest-PubIpStd-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_application_gateway" "test" {
+  name                = "acctestag-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "WAF_v2"
+    tier     = "WAF_v2"
+    capacity = 2
+  }
+
+  gateway_ip_configuration {
+    name      = "my-gateway-ip-configuration"
+    subnet_id = azurerm_subnet.test.id
+  }
+
+  waf_configuration {
+    enabled                  = true
+    firewall_mode            = "Detection"
+    rule_set_type            = "OWASP"
+    rule_set_version         = "3.0"
+    file_upload_limit_mb     = 100
+    request_body_check       = true
+    max_request_body_size_kb = 100
+  }
+
+  frontend_port {
+    name = local.frontend_port_name
+    port = 80
+  }
+
+  frontend_ip_configuration {
+    name                 = local.frontend_ip_configuration_name
+    public_ip_address_id = azurerm_public_ip.teststd.id
+  }
+
+  backend_address_pool {
+    name = local.backend_address_pool_name
+  }
+
+  backend_http_settings {
+    name                                 = local.http_setting_name
+    cookie_based_affinity                = "Disabled"
+    port                                 = 443
+    protocol                             = "Https"
+    request_timeout                      = 1
+    sni_validation_enabled               = false
+    certificate_chain_validation_enabled = false
+    pick_host_name_from_backend_address  = true
+    trusted_root_certificate_names       = [local.auth_cert_name]
+  }
+
+  trusted_root_certificate {
+    name = local.auth_cert_name
+    data = file("testdata/application_gateway_test.cer")
+  }
+
+  http_listener {
+    name                           = local.listener_name
+    frontend_ip_configuration_name = local.frontend_ip_configuration_name
+    frontend_port_name             = local.frontend_port_name
+    protocol                       = "Http"
+  }
+
+  request_routing_rule {
+    name                       = local.request_routing_rule_name
+    rule_type                  = "Basic"
+    http_listener_name         = local.listener_name
+    backend_address_pool_name  = local.backend_address_pool_name
+    backend_http_settings_name = local.http_setting_name
+    priority                   = 10
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ApplicationGatewayResource) backendHttpSettingValidateInvalid(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+# since these variables are re-used - a locals block makes this more maintainable
+locals {
+  auth_cert_name                 = "${azurerm_virtual_network.test.name}-auth"
+  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
+  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
+  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
+  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
+  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
+  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+}
+
+resource "azurerm_public_ip" "teststd" {
+  name                = "acctest-PubIpStd-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_application_gateway" "test" {
+  name                = "acctestag-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "WAF_v2"
+    tier     = "WAF_v2"
+    capacity = 2
+  }
+
+  gateway_ip_configuration {
+    name      = "my-gateway-ip-configuration"
+    subnet_id = azurerm_subnet.test.id
+  }
+
+  waf_configuration {
+    enabled                  = true
+    firewall_mode            = "Detection"
+    rule_set_type            = "OWASP"
+    rule_set_version         = "3.0"
+    file_upload_limit_mb     = 100
+    request_body_check       = true
+    max_request_body_size_kb = 100
+  }
+
+  frontend_port {
+    name = local.frontend_port_name
+    port = 80
+  }
+
+  frontend_ip_configuration {
+    name                 = local.frontend_ip_configuration_name
+    public_ip_address_id = azurerm_public_ip.teststd.id
+  }
+
+  backend_address_pool {
+    name = local.backend_address_pool_name
+  }
+
+  backend_http_settings {
+    name                                 = local.http_setting_name
+    cookie_based_affinity                = "Disabled"
+    port                                 = 443
+    protocol                             = "Https"
+    request_timeout                      = 1
+    sni_validation_enabled               = false
+    certificate_chain_validation_enabled = false
+    sni_name                             = "my.sni.name.com"
+    pick_host_name_from_backend_address  = true
+    trusted_root_certificate_names       = [local.auth_cert_name]
+  }
+
+  trusted_root_certificate {
+    name = local.auth_cert_name
+    data = file("testdata/application_gateway_test.cer")
   }
 
   http_listener {
@@ -4740,11 +5089,12 @@ resource "azurerm_public_ip" "testStd" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acct%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.test.tenant_id
-  sku_name            = "standard"
+  name                       = "acct%[2]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.test.tenant_id
+  sku_name                   = "standard"
 
   access_policy {
     tenant_id               = data.azurerm_client_config.test.tenant_id
@@ -4909,11 +5259,12 @@ resource "azurerm_public_ip" "testStd" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acct%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.test.tenant_id
-  sku_name            = "standard"
+  name                       = "acct%[2]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.test.tenant_id
+  sku_name                   = "standard"
 
   access_policy {
     tenant_id               = data.azurerm_client_config.test.tenant_id
@@ -6023,6 +6374,21 @@ resource "azurerm_subnet" "test" {
   virtual_network_name                          = azurerm_virtual_network.test.name
   address_prefixes                              = ["10.0.0.0/24"]
   private_link_service_network_policies_enabled = false
+
+  delegation {
+    name = "application-gateway"
+
+    service_delegation {
+      name = "Microsoft.Network/applicationGateways"
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+      ]
+    }
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "azurerm_public_ip" "test" {
@@ -6037,7 +6403,7 @@ resource "azurerm_public_ip" "test" {
 
 func (r ApplicationGatewayResource) customErrorConfigurations(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+	%s
 
 # since these variables are re-used - a locals block makes this more maintainable
 locals {
@@ -6054,43 +6420,44 @@ locals {
 }
 
 resource "azurerm_storage_account" "errors" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "acctestsa%s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
+}
 
-  static_website {
-    index_document = "index.html"
-  }
+resource "azurerm_storage_account_static_website" "errors" {
+  storage_account_id = azurerm_storage_account.errors.id
+  index_document     = "index.html"
 }
 
 resource "azurerm_storage_container" "errors" {
   name                  = "errors"
-  storage_account_name  = azurerm_storage_account.errors.name
+  storage_account_id    = azurerm_storage_account.errors.id
   container_access_type = "blob"
 }
 
 resource "azurerm_storage_blob" "error_pages" {
-  count                  = length(local.error_codes)
-  name                   = "${local.error_codes[count.index]}.html"
-  storage_account_name   = azurerm_storage_account.errors.name
-  storage_container_name = azurerm_storage_container.errors.name
-  type                   = "Block"
-  content_type           = "text/html"
+  count                = length(local.error_codes)
+  name                 = "${local.error_codes[count.index]}.html"
+  storage_container_id = azurerm_storage_container.errors.id
+  type                 = "Block"
+  content_type         = "text/html"
 
   source_content = <<HTML
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>${local.error_codes[count.index]}</title>
-  </head>
-  <body>
-    <h1>${local.error_codes[count.index]}</h1>
-  </body>
-</html>
-HTML
+	<!DOCTYPE html>
+	<html lang="en">
+	  <head>
+	    <meta charset="UTF-8" />
+	    <title>${local.error_codes[count.index]}</title>
+	  </head>
+	  <body>
+	    <h1>${local.error_codes[count.index]}</h1>
+	  </body>
+	</html>
+	HTML
 }
 
 resource "azurerm_application_gateway" "test" {
@@ -6228,7 +6595,7 @@ resource "azurerm_application_gateway" "test" {
     priority                   = 10
   }
 }
-`, r.template(data), data.RandomString, data.RandomInteger)
+	`, r.template(data), data.RandomString, data.RandomInteger)
 }
 
 func (r ApplicationGatewayResource) rewriteRuleSets_backend(data acceptance.TestData) string {
@@ -7902,8 +8269,8 @@ resource "azurerm_application_gateway" "test" {
   }
 
   ssl_profile {
-    name                         = local.ssl_profile_name
-    verify_client_cert_issuer_dn = false
+    name                                = local.ssl_profile_name
+    verify_client_certificate_issuer_dn = false
 
     ssl_policy {
       policy_type = "Predefined"
