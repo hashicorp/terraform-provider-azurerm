@@ -97,7 +97,7 @@ jobs:
       TCTEST_FILEREGEX: 'internal/services/[a-z]*/[_a-zA-Z]*(resource|data_source)'
       TCTEST_SKIP_QUEUE: 'true'
       TCTEST_TOKEN_TC: ${{ secrets.TCTEST_TOKEN_TC }}
-      TCTEST_BUILD_TYPE_ID_ADD_SERVICE_SUFFIX: TF_AzureRM_AZURERM_SERVICE_PUBLIC
+      TCTEST_BUILD_TYPE_ID: TF_AzureRM_AZURERM_SERVICE_PUBLIC
       TCTEST_REPO: terraform-providers/terraform-provider-azurerm
     steps:
       - name: Setup Go
@@ -185,14 +185,14 @@ jobs:
 
           run_tctest() {
             local out
-            out=$(tctest pr "${PR_NUMBER}" -c -q --reappend-split-character --properties "TRACKING_ID=${PR_SHA}" "$@" --json)
+            out=$(tctest pr "${PR_NUMBER}" -c -q --reappend-split-character --build-type-id-add-service-suffix --properties "TRACKING_ID=${PR_SHA}" "$@" --json)
             echo "$out"
             builds=$(printf '%s\n%s\n' "$builds" "${out:-[]}" | jq -s 'add')
           }
 
           run_tctest "${service_flag[@]}"
           if [ "$beta" = true ]; then
-            run_tctest "${service_flag[@]}" --build-type-id-add-service-suffix TF_AzureRM_AZURERM_BETA_VERSION_SERVICE_PUBLIC
+            run_tctest "${service_flag[@]}" --build-type-id TF_AzureRM_AZURERM_BETA_VERSION_SERVICE_PUBLIC
           fi
 
           {
