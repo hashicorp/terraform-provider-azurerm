@@ -1,0 +1,10 @@
+package cloudhsmclusters
+
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+type CloudHsmClusterSku struct {
+	Capacity *int64                   `json:"capacity,omitempty"`
+	Family   CloudHsmClusterSkuFamily `json:"family"`
+	Name     CloudHsmClusterSkuName   `json:"name"`
+}
