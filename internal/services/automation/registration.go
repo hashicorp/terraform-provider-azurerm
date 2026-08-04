@@ -30,6 +30,7 @@ func (r Registration) Resources() []sdk.Resource {
 	resources := []sdk.Resource{
 		AutomationConnectionTypeResource{},
 		AutomationRuntimeEnvironmentResource{},
+		AutomationRuntimeEnvironmentPackageResource{},
 		HybridRunbookWorkerGroupResource{},
 		HybridRunbookWorkerResource{},
 		PowerShell72ModuleResource{},

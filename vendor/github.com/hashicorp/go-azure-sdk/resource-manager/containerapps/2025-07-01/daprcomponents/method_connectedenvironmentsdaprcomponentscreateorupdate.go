@@ -62,9 +62,20 @@ func (c DaprComponentsClient) ConnectedEnvironmentsDaprComponentsCreateOrUpdate(
 
 // ConnectedEnvironmentsDaprComponentsCreateOrUpdateThenPoll performs ConnectedEnvironmentsDaprComponentsCreateOrUpdate then polls until it's completed
 func (c DaprComponentsClient) ConnectedEnvironmentsDaprComponentsCreateOrUpdateThenPoll(ctx context.Context, id ConnectedEnvironmentDaprComponentId, input DaprComponent) error {
+	return c.ConnectedEnvironmentsDaprComponentsCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ConnectedEnvironmentsDaprComponentsCreateOrUpdateCallbackThenPoll performs ConnectedEnvironmentsDaprComponentsCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c DaprComponentsClient) ConnectedEnvironmentsDaprComponentsCreateOrUpdateCallbackThenPoll(ctx context.Context, id ConnectedEnvironmentDaprComponentId, input DaprComponent, callback func() error) error {
 	result, err := c.ConnectedEnvironmentsDaprComponentsCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ConnectedEnvironmentsDaprComponentsCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

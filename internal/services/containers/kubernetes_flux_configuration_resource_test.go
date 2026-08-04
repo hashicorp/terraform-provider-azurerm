@@ -11,9 +11,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2024-11-01/fluxconfiguration"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2025-04-01/fluxconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -259,6 +261,20 @@ func TestAccKubernetesFluxConfiguration_gitRepositoryProviderGeneric(t *testing.
 	})
 }
 
+func TestAccKubernetesFluxConfiguration_gitRepositoryProviderGitHub(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_flux_configuration", "test")
+	r := KubernetesFluxConfigurationResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.gitRepositoryProvider(data, "GitHub"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesFluxConfiguration_gitRepositoryProviderUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_flux_configuration", "test")
 	r := KubernetesFluxConfigurationResource{}
@@ -487,8 +503,9 @@ resource "azurerm_kubernetes_flux_configuration" "test" {
 }
 
 func (r KubernetesFluxConfigurationResource) azureBlobWithAccountKey(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-				%[1]s
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+						%[1]s
 
 resource "azurerm_storage_account" "test" {
   name                     = "sa%[2]d"
@@ -524,12 +541,52 @@ resource "azurerm_kubernetes_flux_configuration" "test" {
     azurerm_kubernetes_cluster_extension.test
   ]
 }
-`, r.template(data), data.RandomInteger)
+		`, r.template(data), data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+					%[1]s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "sa%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "asc%[2]d"
+  storage_account_id    = azurerm_storage_account.test.id
+  container_access_type = "private"
+}
+
+resource "azurerm_kubernetes_flux_configuration" "test" {
+  name       = "acctest-fc-%[2]d"
+  cluster_id = azurerm_kubernetes_cluster.test.id
+  namespace  = "flux"
+
+  blob_storage {
+    container_id             = azurerm_storage_container.test.id
+    account_key              = azurerm_storage_account.test.primary_access_key
+    sync_interval_in_seconds = 800
+    timeout_in_seconds       = 800
+  }
+
+  kustomizations {
+    name = "kustomization-1"
+  }
+
+  depends_on = [
+    azurerm_kubernetes_cluster_extension.test
+  ]
+}
+	`, r.template(data), data.RandomInteger)
 }
 
 func (r KubernetesFluxConfigurationResource) azureBlobWithManagedIdentity(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-				%[1]s
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+						%[1]s
 
 resource "azurerm_storage_account" "test" {
   name                     = "sa%[2]d"
@@ -579,7 +636,60 @@ resource "azurerm_kubernetes_flux_configuration" "test" {
     azurerm_role_assignment.test_blob
   ]
 }
-`, r.template(data), data.RandomInteger)
+		`, r.template(data), data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+					%[1]s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "sa%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "asc%[2]d"
+  storage_account_id    = azurerm_storage_account.test.id
+  container_access_type = "private"
+}
+
+resource "azurerm_role_assignment" "test_queue" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Queue Data Contributor"
+  principal_id         = azurerm_kubernetes_cluster.test.kubelet_identity.0.object_id
+}
+
+resource "azurerm_role_assignment" "test_blob" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = azurerm_kubernetes_cluster.test.kubelet_identity.0.object_id
+}
+
+resource "azurerm_kubernetes_flux_configuration" "test" {
+  name       = "acctest-fc-%[2]d"
+  cluster_id = azurerm_kubernetes_cluster.test.id
+  namespace  = "flux"
+
+  blob_storage {
+    container_id = azurerm_storage_container.test.id
+    managed_identity {
+      client_id = azurerm_kubernetes_cluster.test.kubelet_identity.0.client_id
+    }
+  }
+
+  kustomizations {
+    name = "kustomization-1"
+  }
+
+  depends_on = [
+    azurerm_kubernetes_cluster_extension.test,
+    azurerm_role_assignment.test_queue,
+    azurerm_role_assignment.test_blob
+  ]
+}
+	`, r.template(data), data.RandomInteger)
 }
 
 func (r KubernetesFluxConfigurationResource) azureBlobWithSasToken(data acceptance.TestData) string {
@@ -587,8 +697,9 @@ func (r KubernetesFluxConfigurationResource) azureBlobWithSasToken(data acceptan
 	startDate := utcNow.Add(-time.Hour * 24).Format(time.RFC3339)
 	endDate := utcNow.Add(time.Hour * 48).Format(time.RFC3339)
 
-	return fmt.Sprintf(`
-				%[1]s
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+						%[1]s
 
 resource "azurerm_storage_account" "test" {
   name                     = "sa%[2]d"
@@ -657,12 +768,85 @@ resource "azurerm_kubernetes_flux_configuration" "test" {
     azurerm_kubernetes_cluster_extension.test
   ]
 }
-`, r.template(data), data.RandomInteger, startDate, endDate)
+		`, r.template(data), data.RandomInteger, startDate, endDate)
+	}
+	return fmt.Sprintf(`
+					%[1]s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "sa%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "asc%[2]d"
+  storage_account_id    = azurerm_storage_account.test.id
+  container_access_type = "private"
+}
+
+data "azurerm_storage_account_sas" "test" {
+  connection_string = azurerm_storage_account.test.primary_connection_string
+  https_only        = true
+  signed_version    = "2019-10-10"
+
+  resource_types {
+    service   = true
+    container = true
+    object    = true
+  }
+
+  services {
+    blob  = true
+    queue = false
+    table = false
+    file  = false
+  }
+
+  start  = "%[3]s"
+  expiry = "%[4]s"
+
+  permissions {
+    read    = true
+    write   = true
+    delete  = true
+    list    = true
+    add     = true
+    create  = true
+    update  = true
+    process = true
+    tag     = true
+    filter  = false
+  }
+}
+
+resource "azurerm_kubernetes_flux_configuration" "test" {
+  name       = "acctest-fc-%[2]d"
+  cluster_id = azurerm_kubernetes_cluster.test.id
+  namespace  = "flux"
+
+  blob_storage {
+    container_id = azurerm_storage_container.test.id
+    sas_token    = data.azurerm_storage_account_sas.test.sas
+  }
+
+  kustomizations {
+    name = "kustomization-1"
+  }
+
+  depends_on = [
+    azurerm_kubernetes_cluster_extension.test
+  ]
+}
+	`, r.template(data), data.RandomInteger, startDate, endDate)
 }
 
 func (r KubernetesFluxConfigurationResource) azureBlobWithServicePrincipalSecret(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-				%[1]s
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+						%[1]s
 
 provider "azuread" {}
 
@@ -731,12 +915,85 @@ resource "azurerm_kubernetes_flux_configuration" "test" {
     azurerm_role_assignment.test_blob
   ]
 }
-`, r.template(data), data.RandomInteger)
+		`, r.template(data), data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+					%[1]s
+
+provider "azuread" {}
+
+resource "azuread_application" "test" {
+  display_name = "acctestspa-%[2]d"
+}
+
+resource "azuread_service_principal" "test" {
+  client_id = azuread_application.test.client_id
+}
+
+resource "azuread_service_principal_password" "test" {
+  service_principal_id = azuread_service_principal.test.id
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "sa%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "asc%[2]d"
+  storage_account_id    = azurerm_storage_account.test.id
+  container_access_type = "private"
+}
+
+data "azurerm_client_config" "test" {
+}
+
+resource "azurerm_role_assignment" "test_queue" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Queue Data Contributor"
+  principal_id         = azuread_service_principal.test.object_id
+}
+
+resource "azurerm_role_assignment" "test_blob" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = azuread_service_principal.test.object_id
+}
+
+resource "azurerm_kubernetes_flux_configuration" "test" {
+  name       = "acctest-fc-%[2]d"
+  cluster_id = azurerm_kubernetes_cluster.test.id
+  namespace  = "flux"
+
+  blob_storage {
+    container_id = azurerm_storage_container.test.id
+    service_principal {
+      client_id     = azuread_service_principal.test.client_id
+      tenant_id     = data.azurerm_client_config.test.tenant_id
+      client_secret = azuread_service_principal_password.test.value
+    }
+  }
+
+  kustomizations {
+    name = "kustomization-1"
+  }
+
+  depends_on = [
+    azurerm_kubernetes_cluster_extension.test,
+    azurerm_role_assignment.test_queue,
+    azurerm_role_assignment.test_blob
+  ]
+}
+	`, r.template(data), data.RandomInteger)
 }
 
 func (r KubernetesFluxConfigurationResource) azureBlobWithServicePrincipalCertificate(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-				%[1]s
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+						%[1]s
 
 provider "azuread" {}
 
@@ -803,7 +1060,77 @@ resource "azurerm_kubernetes_flux_configuration" "test" {
     azurerm_role_assignment.test_blob
   ]
 }
-`, r.template(data), data.RandomInteger, os.Getenv("ARM_CLIENT_CERTIFICATE"), os.Getenv("ARM_CLIENT_CERTIFICATE_PASSWORD"))
+		`, r.template(data), data.RandomInteger, os.Getenv("ARM_CLIENT_CERTIFICATE"), os.Getenv("ARM_CLIENT_CERTIFICATE_PASSWORD"))
+	}
+	return fmt.Sprintf(`
+					%[1]s
+
+provider "azuread" {}
+
+resource "azuread_application" "test" {
+  display_name = "acctestspa-%[2]d"
+}
+
+resource "azuread_service_principal" "test" {
+  client_id = azuread_application.test.client_id
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "sa%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "asc%[2]d"
+  storage_account_id    = azurerm_storage_account.test.id
+  container_access_type = "private"
+}
+
+data "azurerm_client_config" "test" {
+}
+
+resource "azurerm_role_assignment" "test_queue" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Queue Data Contributor"
+  principal_id         = azuread_service_principal.test.object_id
+}
+
+resource "azurerm_role_assignment" "test_blob" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = azuread_service_principal.test.object_id
+}
+
+resource "azurerm_kubernetes_flux_configuration" "test" {
+  name       = "acctest-fc-%[2]d"
+  cluster_id = azurerm_kubernetes_cluster.test.id
+  namespace  = "flux"
+
+  blob_storage {
+    container_id = azurerm_storage_container.test.id
+    service_principal {
+      client_id                     = azuread_service_principal.test.client_id
+      tenant_id                     = data.azurerm_client_config.test.tenant_id
+      client_certificate_base64     = "%[3]s"
+      client_certificate_password   = "%[4]s"
+      client_certificate_send_chain = true
+    }
+  }
+
+  kustomizations {
+    name = "kustomization-1"
+  }
+
+  depends_on = [
+    azurerm_kubernetes_cluster_extension.test,
+    azurerm_role_assignment.test_queue,
+    azurerm_role_assignment.test_blob
+  ]
+}
+	`, r.template(data), data.RandomInteger, os.Getenv("ARM_CLIENT_CERTIFICATE"), os.Getenv("ARM_CLIENT_CERTIFICATE_PASSWORD"))
 }
 
 func (r KubernetesFluxConfigurationResource) kustomizationNameDuplicated(data acceptance.TestData) string {

@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2023-12-15-preview/namespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/topics"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/preflight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -213,6 +214,42 @@ func (r EventGridNamespaceResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
+func (r EventGridNamespaceResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			if metadata.ResourceDiff == nil {
+				return nil
+			}
+
+			if metadata.Client.Features.EnhancedValidation.PreflightEnabled {
+				if len(metadata.ResourceDiff.GetChangedKeysPrefix("")) > 0 || metadata.ResourceDiff.Id() == "" {
+					var model EventGridNamespaceResourceModel
+					if err := metadata.DecodeDiff(&model); err != nil {
+						return err
+					}
+
+					req, err := expandCreateForEventGridNamespace(model)
+					if err != nil {
+						return err
+					}
+
+					id := namespaces.NewNamespaceID(metadata.Client.Account.SubscriptionId, model.ResourceGroup, model.Name)
+					preflightValidate, err := preflight.NewValidationRequest(pointer.To(model.Location), pointer.To(id), "2023-12-15-preview", req)
+					if err != nil {
+						return fmt.Errorf("constructing preflight validation request: %w", err)
+					}
+
+					if err = preflightValidate.ValidateResource(ctx, metadata); err != nil {
+						return err
+					}
+				}
+			}
+			return nil
+		},
+	}
+}
+
 func (r EventGridNamespaceResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -227,42 +264,25 @@ func (r EventGridNamespaceResource) Create() sdk.ResourceFunc {
 
 			id := namespaces.NewNamespaceID(subscriptionId, model.ResourceGroup, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+					}
+				}
+
 				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
 				}
 			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
-			}
-
-			identity, err := identity.ExpandSystemAndUserAssignedMapFromModel(model.Identity)
+			namespace, err := expandCreateForEventGridNamespace(model)
 			if err != nil {
-				return fmt.Errorf("expanding `identity`: %+v", err)
+				return err
 			}
 
-			namespace := namespaces.Namespace{
-				Identity: identity,
-				Location: location.Normalize(model.Location),
-				Name:     pointer.To(model.Name),
-				Properties: &namespaces.NamespaceProperties{
-					InboundIPRules:      expandInboundIPRules(model.InboundIpRules),
-					PublicNetworkAccess: pointer.To(namespaces.PublicNetworkAccess(model.PublicNetworkAccess)),
-				},
-				Sku: &namespaces.NamespaceSku{
-					Capacity: pointer.To(model.Capacity),
-					Name:     pointer.To(namespaces.SkuName(model.Sku)),
-				},
-				Tags: pointer.To(model.Tags),
-			}
-
-			if len(model.TopicSpacesConfiguration) > 0 {
-				namespace.Properties.TopicSpacesConfiguration = expandTopicSpacesConfiguration(model.TopicSpacesConfiguration)
-			}
-
-			if err = client.CreateOrUpdateThenPoll(ctx, id, namespace); err != nil {
+			if err = client.CreateOrUpdateCallbackThenPoll(ctx, id, namespace, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -271,6 +291,34 @@ func (r EventGridNamespaceResource) Create() sdk.ResourceFunc {
 			return nil
 		},
 	}
+}
+
+func expandCreateForEventGridNamespace(model EventGridNamespaceResourceModel) (namespaces.Namespace, error) {
+	identity, err := identity.ExpandSystemAndUserAssignedMapFromModel(model.Identity)
+	if err != nil {
+		return namespaces.Namespace{}, fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
+	namespace := namespaces.Namespace{
+		Identity: identity,
+		Location: location.Normalize(model.Location),
+		Name:     pointer.To(model.Name),
+		Properties: &namespaces.NamespaceProperties{
+			InboundIPRules:      expandInboundIPRules(model.InboundIpRules),
+			PublicNetworkAccess: pointer.To(namespaces.PublicNetworkAccess(model.PublicNetworkAccess)),
+		},
+		Sku: &namespaces.NamespaceSku{
+			Capacity: pointer.To(model.Capacity),
+			Name:     pointer.To(namespaces.SkuName(model.Sku)),
+		},
+		Tags: pointer.To(model.Tags),
+	}
+
+	if len(model.TopicSpacesConfiguration) > 0 {
+		namespace.Properties.TopicSpacesConfiguration = expandTopicSpacesConfiguration(model.TopicSpacesConfiguration)
+	}
+
+	return namespace, nil
 }
 
 func (r EventGridNamespaceResource) Update() sdk.ResourceFunc {

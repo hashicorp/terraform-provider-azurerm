@@ -3,7 +3,7 @@
 
 package workloads
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name workloads_sap_three_tier_virtual_instance -service-package-name workloads -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-params "10+(data.RandomInteger%90)" -test-expect-non-empty true
+//go:generate go run ../../tools/generator-tests resourceidentity -test-params "10+(data.RandomInteger%90)" -test-expect-non-empty true
 
 import (
 	"context"
@@ -1113,13 +1113,15 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Create() sdk.ResourceFunc 
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := sapvirtualinstances.NewSapVirtualInstanceID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			identity, err := identity.ExpandUserAssignedMapFromModel(model.Identity)
@@ -1159,7 +1161,7 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Create() sdk.ResourceFunc 
 				}
 			}
 
-			if err := client.CreateThenPoll(ctx, id, *parameters); err != nil {
+			if err := client.CreateCallbackThenPoll(ctx, id, *parameters, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

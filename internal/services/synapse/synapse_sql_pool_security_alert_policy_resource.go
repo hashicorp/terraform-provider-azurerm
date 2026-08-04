@@ -122,13 +122,17 @@ func resourceSynapseSqlPoolSecurityAlertPolicyCreateUpdate(d *pluginsdk.Resource
 
 	id := parse.NewSqlPoolSecurityAlertPolicyID(sqlPoolId.SubscriptionId, sqlPoolId.ResourceGroup, sqlPoolId.WorkspaceName, sqlPoolId.Name, "Default")
 
+	// TODO: import check?
+
 	alertPolicy := expandSQLPoolSecurityAlertPolicy(d)
 
 	if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.SqlPoolName, *alertPolicy); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
 
 	return resourceSynapseSqlPoolSecurityAlertPolicyRead(d, meta)
 }

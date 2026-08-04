@@ -141,6 +141,20 @@ func resourceApiManagementLogger() *pluginsdk.Resource {
 								"application_insights.0.connection_string",
 							},
 						},
+						"identity_client_id": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ValidateFunc: validation.Any(
+								validation.IsUUID,
+								validation.StringInSlice([]string{"SystemAssigned"}, false),
+							),
+							RequiredWith: []string{
+								"application_insights.0.connection_string",
+							},
+							ConflictsWith: []string{
+								"application_insights.0.instrumentation_key",
+							},
+						},
 					},
 				},
 			},
@@ -175,15 +189,17 @@ func resourceApiManagementLoggerCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_logger", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_api_management_logger", id.ID())
+			}
 		}
 	}
 
@@ -338,6 +354,9 @@ func expandApiManagementLoggerApplicationInsights(input []interface{}) *map[stri
 	}
 	if ai["connection_string"].(string) != "" {
 		credentials["connectionString"] = ai["connection_string"].(string)
+	}
+	if clientId := ai["identity_client_id"].(string); clientId != "" {
+		credentials["identityClientId"] = clientId
 	}
 	return &credentials
 }

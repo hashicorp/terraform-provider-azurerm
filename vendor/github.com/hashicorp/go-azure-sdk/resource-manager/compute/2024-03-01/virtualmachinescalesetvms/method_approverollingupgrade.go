@@ -56,9 +56,20 @@ func (c VirtualMachineScaleSetVMsClient) ApproveRollingUpgrade(ctx context.Conte
 
 // ApproveRollingUpgradeThenPoll performs ApproveRollingUpgrade then polls until it's completed
 func (c VirtualMachineScaleSetVMsClient) ApproveRollingUpgradeThenPoll(ctx context.Context, id VirtualMachineScaleSetVirtualMachineId) error {
+	return c.ApproveRollingUpgradeCallbackThenPoll(ctx, id, nil)
+}
+
+// ApproveRollingUpgradeCallbackThenPoll performs ApproveRollingUpgrade, runs the optional callback function, then polls until it's completed
+func (c VirtualMachineScaleSetVMsClient) ApproveRollingUpgradeCallbackThenPoll(ctx context.Context, id VirtualMachineScaleSetVirtualMachineId, callback func() error) error {
 	result, err := c.ApproveRollingUpgrade(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ApproveRollingUpgrade: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

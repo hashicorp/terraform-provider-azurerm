@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -28,6 +29,26 @@ func TestAccCommunicationService_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCommunicationService_basicDeprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping since `data_location` is Required and no longer defaults to `United States` in 5.0")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_communication_service", "test")
+	r := CommunicationServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicDeprecated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("data_location").HasValue("United States"),
 			),
 		},
 		data.ImportStep(),
@@ -111,6 +132,18 @@ func (r CommunicationServiceResource) Exists(ctx context.Context, client *client
 }
 
 func (r CommunicationServiceResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_communication_service" "test" {
+  name                = "acctest-CommunicationService-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  data_location       = "United States"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CommunicationServiceResource) basicDeprecated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
