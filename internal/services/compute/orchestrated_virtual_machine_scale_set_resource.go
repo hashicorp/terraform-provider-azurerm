@@ -1537,7 +1537,7 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 
 				if policy := props.UpgradePolicy; policy != nil {
 					upgradeMode = string(pointer.From(policy.Mode))
-					flattenedRolling := FlattenVirtualMachineScaleSetRollingUpgradePolicy(policy.RollingUpgradePolicy)
+					flattenedRolling := FlattenVirtualMachineScaleSetRollingUpgradePolicy(policy.RollingUpgradePolicy, nil)
 					if err := d.Set("rolling_upgrade_policy", flattenedRolling); err != nil {
 						return fmt.Errorf("setting `rolling_upgrade_policy`: %w", err)
 					}

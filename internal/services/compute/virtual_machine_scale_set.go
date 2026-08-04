@@ -1743,8 +1743,14 @@ func ExpandVirtualMachineScaleSetRollingUpgradePolicy(input []interface{}, isZon
 	return rollingUpgradePolicy, nil
 }
 
-func FlattenVirtualMachineScaleSetRollingUpgradePolicy(input *virtualmachinescalesets.RollingUpgradePolicy) []interface{} {
+func FlattenVirtualMachineScaleSetRollingUpgradePolicy(input *virtualmachinescalesets.RollingUpgradePolicy, useRollingUpgradePolicy *bool) []interface{} {
 	if input == nil {
+		return []interface{}{}
+	}
+
+	// Azure returns a default rolling policy when UseRollingUpgradePolicy is explicitly disabled.
+	// Do not add that unconfigured ForceNew block to state.
+	if useRollingUpgradePolicy != nil && !*useRollingUpgradePolicy {
 		return []interface{}{}
 	}
 

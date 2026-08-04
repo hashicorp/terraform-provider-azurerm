@@ -961,7 +961,11 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 					return fmt.Errorf("setting `automatic_os_upgrade_policy`: %+v", err)
 				}
 
-				flattenedRolling := FlattenVirtualMachineScaleSetRollingUpgradePolicy(policy.RollingUpgradePolicy)
+				var useRollingUpgradePolicy *bool
+				if policy.AutomaticOSUpgradePolicy != nil {
+					useRollingUpgradePolicy = policy.AutomaticOSUpgradePolicy.UseRollingUpgradePolicy
+				}
+				flattenedRolling := FlattenVirtualMachineScaleSetRollingUpgradePolicy(policy.RollingUpgradePolicy, useRollingUpgradePolicy)
 				if err := d.Set("rolling_upgrade_policy", flattenedRolling); err != nil {
 					return fmt.Errorf("setting `rolling_upgrade_policy`: %+v", err)
 				}

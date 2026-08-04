@@ -2597,12 +2597,6 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     enabled = %t
   }
 
-  rolling_upgrade_policy {
-    max_batch_instance_percent              = 20
-    max_unhealthy_instance_percent          = 20
-    max_unhealthy_upgraded_instance_percent = 20
-    pause_time_between_batches              = "PT0S"
-  }
 }
 `, r.template(data), enabled)
 }
@@ -3380,13 +3374,6 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 
-  rolling_upgrade_policy {
-    max_batch_instance_percent              = 20
-    max_unhealthy_instance_percent          = 20
-    max_unhealthy_upgraded_instance_percent = 20
-    pause_time_between_batches              = "PT0S"
-  }
-
   depends_on = [azurerm_lb_rule.test]
 }
 `, r.template(data), data.RandomInteger)
@@ -3456,7 +3443,7 @@ resource "azurerm_lb_rule" "test2" {
   name                           = "LBRule2"
   protocol                       = "Tcp"
   frontend_port                  = 23
-  backend_port                   = 22
+  backend_port                   = 23
 }
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
@@ -3493,13 +3480,6 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
       load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
       primary                                = true
     }
-  }
-
-  rolling_upgrade_policy {
-    max_batch_instance_percent              = 20
-    max_unhealthy_instance_percent          = 20
-    max_unhealthy_upgraded_instance_percent = 20
-    pause_time_between_batches              = "PT0S"
   }
 
   depends_on = [azurerm_lb_rule.test2]
