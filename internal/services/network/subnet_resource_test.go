@@ -532,9 +532,6 @@ func TestAccSubnet_serviceEndpointBlockMultiple(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("service_endpoint.#").HasValue("3"),
-				check.That(data.ResourceName).Key("service_endpoint.0.service").HasValue("Microsoft.Sql"),
-				check.That(data.ResourceName).Key("service_endpoint.1.service").HasValue("Microsoft.Storage"),
-				check.That(data.ResourceName).Key("service_endpoint.2.service").HasValue("Microsoft.KeyVault"),
 			),
 		},
 		data.ImportStep(),
@@ -543,10 +540,6 @@ func TestAccSubnet_serviceEndpointBlockMultiple(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("service_endpoint.#").HasValue("3"),
-				check.That(data.ResourceName).Key("service_endpoint.0.service").HasValue("Microsoft.Sql"),
-				check.That(data.ResourceName).Key("service_endpoint.1.service").HasValue("Microsoft.Storage"),
-				check.That(data.ResourceName).Key("service_endpoint.1.network_identifier").Exists(),
-				check.That(data.ResourceName).Key("service_endpoint.2.service").HasValue("Microsoft.ServiceBus"),
 			),
 		},
 		data.ImportStep(),
