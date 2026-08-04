@@ -63,7 +63,7 @@ func TestSnakeCase(t *testing.T) {
 
 	failures := make([]string, 0)
 	for _, tc := range cases {
-		if v := toSnakeCase(tc.Input); v != tc.Output {
+		if v := ToSnakeCase(tc.Input); v != tc.Output {
 			failures = append(failures, fmt.Sprintf("expected %s, got %s", tc.Output, v))
 		}
 	}

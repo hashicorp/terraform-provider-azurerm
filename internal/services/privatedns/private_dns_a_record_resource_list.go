@@ -92,7 +92,7 @@ func (r PrivateDnsARecordListResource) List(ctx context.Context, request list.Li
 
 			id, err := privatedns.ParseRecordTypeID(pointer.From(arecord.Id))
 			if err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing PrivateDns ARecord ID", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Private DNS A Record ID", err)
 				return
 			}
 

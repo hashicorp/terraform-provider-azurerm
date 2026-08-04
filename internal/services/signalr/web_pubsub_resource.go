@@ -28,7 +28,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name web_pubsub -service-package-name signalr -properties "name,resource_group_name"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 const webPubSubResourceType = "azurerm_web_pubsub"
 

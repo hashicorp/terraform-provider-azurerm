@@ -18,7 +18,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.ResourceWithUpdate = &CognitiveAccountRaiPolicyResource{}
+var (
+	_ sdk.ResourceWithUpdate        = &CognitiveAccountRaiPolicyResource{}
+	_ sdk.ResourceWithCustomizeDiff = &CognitiveAccountRaiPolicyResource{}
+)
 
 type CognitiveAccountRaiPolicyResource struct{}
 
@@ -43,6 +46,55 @@ type AccountRaiPolicyResourceModel struct {
 	ContentFilter  []AccountRaiPolicyContentFilter `tfschema:"content_filter"`
 	Mode           string                          `tfschema:"mode"`
 	Tags           map[string]string               `tfschema:"tags"`
+}
+
+var severityThresholdNotApplicableFilterNames = []string{
+	"Jailbreak",
+	"Indirect Attack",
+	"Protected Material Text",
+	"Protected Material Code",
+}
+
+func (r CognitiveAccountRaiPolicyResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			if metadata.ResourceDiff == nil {
+				return nil
+			}
+
+			rawFilters, ok := metadata.ResourceDiff.GetOk("content_filter")
+			if !ok {
+				return nil
+			}
+
+			filters, ok := rawFilters.([]interface{})
+			if !ok {
+				return nil
+			}
+
+			for i, rawFilter := range filters {
+				filter, ok := rawFilter.(map[string]interface{})
+				if !ok {
+					continue
+				}
+
+				name, _ := filter["name"].(string)
+				severityThreshold, _ := filter["severity_threshold"].(string)
+
+				if severityThreshold == "" {
+					continue
+				}
+
+				for _, notApplicable := range severityThresholdNotApplicableFilterNames {
+					if name == notApplicable {
+						return fmt.Errorf("`severity_threshold` is not applicable for `content_filter[%d]` with name %q", i, name)
+					}
+				}
+			}
+
+			return nil
+		},
+	}
 }
 
 func (r CognitiveAccountRaiPolicyResource) Arguments() map[string]*pluginsdk.Schema {
@@ -78,23 +130,23 @@ func (r CognitiveAccountRaiPolicyResource) Arguments() map[string]*pluginsdk.Sch
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
-					"filter_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Required: true,
-					},
 					"block_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Required: true,
 					},
-					"severity_threshold": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringInSlice(raipolicies.PossibleValuesForContentLevel(), false),
+					"filter_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Required: true,
 					},
 					"source": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(raipolicies.PossibleValuesForRaiPolicyContentSource(), false),
+					},
+					"severity_threshold": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringInSlice(raipolicies.PossibleValuesForContentLevel(), false),
 					},
 				},
 			},
@@ -313,13 +365,18 @@ func expandRaiPolicyContentFilters(filters []AccountRaiPolicyContentFilter) *[]r
 
 	contentFilters := make([]raipolicies.RaiPolicyContentFilter, 0, len(filters))
 	for _, filter := range filters {
-		contentFilters = append(contentFilters, raipolicies.RaiPolicyContentFilter{
-			Name:              pointer.To(filter.Name),
-			Enabled:           pointer.To(filter.FilterEnabled),
-			Blocking:          pointer.To(filter.BlockEnabled),
-			SeverityThreshold: pointer.To(raipolicies.ContentLevel(filter.SeverityThreshold)),
-			Source:            pointer.To(raipolicies.RaiPolicyContentSource(filter.Source)),
-		})
+		f := raipolicies.RaiPolicyContentFilter{
+			Name:     pointer.To(filter.Name),
+			Enabled:  pointer.To(filter.FilterEnabled),
+			Blocking: pointer.To(filter.BlockEnabled),
+			Source:   pointer.To(raipolicies.RaiPolicyContentSource(filter.Source)),
+		}
+
+		if filter.SeverityThreshold != "" {
+			f.SeverityThreshold = pointer.To(raipolicies.ContentLevel(filter.SeverityThreshold))
+		}
+
+		contentFilters = append(contentFilters, f)
 	}
 	return &contentFilters
 }

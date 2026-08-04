@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -354,7 +354,9 @@ func TestAccNetAppVolume_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("export_policy_rule.#").HasValue("3"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("3"),
 				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
-				check.That(data.ResourceName).Key("mount_ip_addresses.#").HasValue("1"),
+				check.That(data.ResourceName).Key("mount_target.#").HasValue("1"),
+				check.That(data.ResourceName).Key("mount_target.0.ip_address").Exists(),
+				check.That(data.ResourceName).Key("mount_target.0.smb_server_fqdn").IsEmpty(),
 			),
 		},
 		data.ImportStep(),
