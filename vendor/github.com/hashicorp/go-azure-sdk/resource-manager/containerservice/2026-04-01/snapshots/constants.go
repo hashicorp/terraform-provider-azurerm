@@ -12,6 +12,7 @@ import (
 type OSSKU string
 
 const (
+	OSSKUAzureContainerLinux   OSSKU = "AzureContainerLinux"
 	OSSKUAzureLinux            OSSKU = "AzureLinux"
 	OSSKUAzureLinuxThree       OSSKU = "AzureLinux3"
 	OSSKUCBLMariner            OSSKU = "CBLMariner"
@@ -19,11 +20,13 @@ const (
 	OSSKUUbuntuTwoFourZeroFour OSSKU = "Ubuntu2404"
 	OSSKUUbuntuTwoTwoZeroFour  OSSKU = "Ubuntu2204"
 	OSSKUWindowsTwoZeroOneNine OSSKU = "Windows2019"
+	OSSKUWindowsTwoZeroTwoFive OSSKU = "Windows2025"
 	OSSKUWindowsTwoZeroTwoTwo  OSSKU = "Windows2022"
 )
 
 func PossibleValuesForOSSKU() []string {
 	return []string{
+		string(OSSKUAzureContainerLinux),
 		string(OSSKUAzureLinux),
 		string(OSSKUAzureLinuxThree),
 		string(OSSKUCBLMariner),
@@ -31,6 +34,7 @@ func PossibleValuesForOSSKU() []string {
 		string(OSSKUUbuntuTwoFourZeroFour),
 		string(OSSKUUbuntuTwoTwoZeroFour),
 		string(OSSKUWindowsTwoZeroOneNine),
+		string(OSSKUWindowsTwoZeroTwoFive),
 		string(OSSKUWindowsTwoZeroTwoTwo),
 	}
 }
@@ -50,14 +54,16 @@ func (s *OSSKU) UnmarshalJSON(bytes []byte) error {
 
 func parseOSSKU(input string) (*OSSKU, error) {
 	vals := map[string]OSSKU{
-		"azurelinux":  OSSKUAzureLinux,
-		"azurelinux3": OSSKUAzureLinuxThree,
-		"cblmariner":  OSSKUCBLMariner,
-		"ubuntu":      OSSKUUbuntu,
-		"ubuntu2404":  OSSKUUbuntuTwoFourZeroFour,
-		"ubuntu2204":  OSSKUUbuntuTwoTwoZeroFour,
-		"windows2019": OSSKUWindowsTwoZeroOneNine,
-		"windows2022": OSSKUWindowsTwoZeroTwoTwo,
+		"azurecontainerlinux": OSSKUAzureContainerLinux,
+		"azurelinux":          OSSKUAzureLinux,
+		"azurelinux3":         OSSKUAzureLinuxThree,
+		"cblmariner":          OSSKUCBLMariner,
+		"ubuntu":              OSSKUUbuntu,
+		"ubuntu2404":          OSSKUUbuntuTwoFourZeroFour,
+		"ubuntu2204":          OSSKUUbuntuTwoTwoZeroFour,
+		"windows2019":         OSSKUWindowsTwoZeroOneNine,
+		"windows2025":         OSSKUWindowsTwoZeroTwoFive,
+		"windows2022":         OSSKUWindowsTwoZeroTwoTwo,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
