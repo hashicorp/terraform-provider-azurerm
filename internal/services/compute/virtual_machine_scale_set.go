@@ -2240,3 +2240,72 @@ func flattenOrchestratedVirtualMachineScaleSetIdentity(input *identity.SystemAnd
 
 	return identity.FlattenUserAssignedMap(transform)
 }
+
+func expandVirtualMachineScaleSetSecurityProfile(input []interface{}, securityEncryptionType string) (*virtualmachinescalesets.SecurityProfile, error) {
+	encryptionType := virtualmachinescalesets.SecurityEncryptionTypes(securityEncryptionType)
+
+	if len(input) == 0 || input[0] == nil {
+		if encryptionType != "" {
+			return nil, fmt.Errorf("`security_profile` must be specified when `os_disk.0.security_encryption_type` is set")
+		}
+		return nil, nil
+	}
+
+	item := input[0].(map[string]interface{})
+	encryptionAtHost := item["host_encryption_enabled"].(bool)
+	securityType := item["security_type"].(string)
+	secureBoot := item["secure_boot_enabled"].(bool)
+	vtpm := item["vtpm_enabled"].(bool)
+
+	if encryptionAtHost && encryptionType == virtualmachinescalesets.SecurityEncryptionTypesDiskWithVMGuestState {
+		return nil, fmt.Errorf("`security_profile.0.host_encryption_enabled` cannot be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
+	}
+
+	if encryptionType != "" {
+		if encryptionType == virtualmachinescalesets.SecurityEncryptionTypesDiskWithVMGuestState && !secureBoot {
+			return nil, fmt.Errorf("`security_profile.0.secure_boot_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
+		}
+		if !vtpm {
+			return nil, fmt.Errorf("`security_profile.0.vtpm_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is set")
+		}
+		if securityType != string(virtualmachinescalesets.SecurityTypesConfidentialVM) {
+			return nil, fmt.Errorf("`security_profile.0.security_type` must be set to `%s` when `os_disk.0.security_encryption_type` is set", virtualmachinescalesets.SecurityTypesConfidentialVM)
+		}
+	} else if (secureBoot || vtpm) && securityType == "" {
+		return nil, fmt.Errorf("`security_profile.0.security_type` must be set to `%s` or `%s` when `security_profile.0.secure_boot_enabled` or `security_profile.0.vtpm_enabled` is set to `true`", virtualmachinescalesets.SecurityTypesTrustedLaunch, virtualmachinescalesets.SecurityTypesConfidentialVM)
+	}
+
+	profile := &virtualmachinescalesets.SecurityProfile{
+		EncryptionAtHost: pointer.To(encryptionAtHost),
+	}
+	if securityType != "" {
+		profile.SecurityType = pointer.To(virtualmachinescalesets.SecurityTypes(securityType))
+	}
+	if secureBoot || vtpm {
+		profile.UefiSettings = &virtualmachinescalesets.UefiSettings{
+			SecureBootEnabled: pointer.To(secureBoot),
+			VTpmEnabled:       pointer.To(vtpm),
+		}
+	}
+	return profile, nil
+}
+
+func flattenVirtualMachineScaleSetSecurityProfile(profile *virtualmachinescalesets.SecurityProfile, d *pluginsdk.ResourceData) []interface{} {
+	if profile == nil || (!d.GetRawConfig().IsNull() && pluginsdk.IsExplicitlyNullInConfig(d, "security_profile")) {
+		return []interface{}{}
+	}
+
+	securityProfile := map[string]interface{}{
+		"host_encryption_enabled": pointer.From(profile.EncryptionAtHost),
+	}
+	if profile.SecurityType != nil {
+		securityProfile["security_type"] = string(*profile.SecurityType)
+	}
+
+	if profile.UefiSettings != nil {
+		securityProfile["secure_boot_enabled"] = pointer.From(profile.UefiSettings.SecureBootEnabled)
+		securityProfile["vtpm_enabled"] = pointer.From(profile.UefiSettings.VTpmEnabled)
+	}
+
+	return []interface{}{securityProfile}
+}

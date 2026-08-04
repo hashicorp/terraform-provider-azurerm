@@ -370,6 +370,45 @@ func TestAccLinuxVirtualMachine_diskOSConfidentialVmWithGuestStateOnlySecureBoot
 	})
 }
 
+func TestAccLinuxVirtualMachine_diskOSConfidentialSecurityProfileBlock(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.diskOSSecurityProfileBlock(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("security_profile.#").HasValue("1"),
+				check.That(data.ResourceName).Key("security_profile.0.host_encryption_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("security_profile.0.security_type").HasValue("ConfidentialVM"),
+				check.That(data.ResourceName).Key("security_profile.0.secure_boot_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("security_profile.0.vtpm_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("encryption_at_host_enabled").DoesNotExist(),
+				check.That(data.ResourceName).Key("secure_boot_enabled").DoesNotExist(),
+				check.That(data.ResourceName).Key("vtpm_enabled").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.diskOSSecurityProfileBlock(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("security_profile.0.host_encryption_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.diskOSSecurityProfileBlock(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("security_profile.0.host_encryption_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLinuxVirtualMachine_diskOSConfidentialVmWithDiskAndVMGuestStateCMK(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 	r := LinuxVirtualMachineResource{}
@@ -1112,6 +1151,7 @@ resource "azurerm_linux_virtual_machine" "test" {
 func (r LinuxVirtualMachineResource) diskOSConfidentialVmWithGuestStateOnly(data acceptance.TestData, vtpm, secureBoot bool) string {
 	// Confidential VM has limited region support
 	data.Locations.Primary = "northeurope"
+
 	return fmt.Sprintf(`
 %s
 
@@ -1143,10 +1183,53 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 
-  vtpm_enabled        = %t
-  secure_boot_enabled = %t
+  security_profile {
+    security_type       = "ConfidentialVM"
+    vtpm_enabled        = %t
+    secure_boot_enabled = %t
+  }
 }
 `, r.template(data), data.RandomInteger, vtpm, secureBoot)
+}
+
+func (r LinuxVirtualMachineResource) diskOSSecurityProfileBlock(data acceptance.TestData, hostEncryptionEnabled bool) string {
+	data.Locations.Primary = "northeurope"
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                            = "acctestVM-%d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  size                            = "Standard_DC2as_v5"
+  admin_username                  = "adminuser"
+  admin_password                  = "P@$$w0rd1234!"
+  disable_password_authentication = false
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching                  = "ReadWrite"
+    storage_account_type     = "Standard_LRS"
+    security_encryption_type = "VMGuestStateOnly"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-confidential-vm-focal"
+    sku       = "20_04-lts-cvm"
+    version   = "latest"
+  }
+
+  security_profile {
+    host_encryption_enabled = %t
+    security_type           = "ConfidentialVM"
+    secure_boot_enabled     = true
+    vtpm_enabled            = true
+  }
+}
+`, r.template(data), data.RandomInteger, hostEncryptionEnabled)
 }
 
 func (r LinuxVirtualMachineResource) diskOSConfidentialVmWithDiskAndVMGuestStateCMK(data acceptance.TestData) string {
@@ -1194,8 +1277,11 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 
-  vtpm_enabled        = true
-  secure_boot_enabled = true
+  security_profile {
+    security_type       = "ConfidentialVM"
+    vtpm_enabled        = true
+    secure_boot_enabled = true
+  }
 
   depends_on = [
     azurerm_key_vault_access_policy.disk-encryption,

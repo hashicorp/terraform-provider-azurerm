@@ -156,7 +156,7 @@ The following arguments are supported:
 
 * `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Linux Virtual Machine should exist. Changing this forces a new Linux Virtual Machine to be created.
 
-* `encryption_at_host_enabled` - (Optional) Should all of the disks (including the temp disk) attached to this Virtual Machine be encrypted by enabling Encryption at Host?
+* `security_profile` - (Optional) A `security_profile` block as defined below.
 
 * `eviction_policy` - (Optional) Specifies what should happen when the Virtual Machine is evicted for price reasons when using a Spot instance. Possible values are `Deallocate` and `Delete`. Changing this forces a new resource to be created.
 
@@ -200,8 +200,6 @@ The following arguments are supported:
 
 * `secret` - (Optional) One or more `secret` blocks as defined below.
 
-* `secure_boot_enabled` - (Optional) Specifies whether secure boot should be enabled on the virtual machine. Changing this forces a new resource to be created.
-
 * `source_image_id` - (Optional) The ID of the Image which this Virtual Machine should be created from. Changing this forces a new resource to be created. Possible Image ID types include `Image ID`s, `Shared Image ID`s, `Shared Image Version ID`s, `Community Gallery Image ID`s, `Community Gallery Image Version ID`s, `Shared Gallery Image ID`s and `Shared Gallery Image Version ID`s.
 
 -> **Note:** One of either `source_image_id` or `source_image_reference` must be set.
@@ -221,8 +219,6 @@ The following arguments are supported:
 * `termination_notification` - (Optional) A `termination_notification` block as defined below.
 
 * `user_data` - (Optional) The Base64-Encoded User Data which should be used for this Virtual Machine.
-
-* `vtpm_enabled` - (Optional) Specifies whether vTPM should be enabled on the virtual machine. Changing this forces a new resource to be created.
 
 * `virtual_machine_scale_set_id` - (Optional) Specifies the Orchestrated Virtual Machine Scale Set that this Virtual Machine should be created within.
 
@@ -336,9 +332,9 @@ A `os_disk` block supports the following:
 
 * `security_encryption_type` - (Optional) Encryption Type when the Virtual Machine is a Confidential VM. Possible values are `VMGuestStateOnly` and `DiskWithVMGuestState`. Changing this forces a new resource to be created.
 
-~> **Note:** `vtpm_enabled` must be set to `true` when `security_encryption_type` is specified.
+~> **Note:** `security_profile.vtpm_enabled` must be set to `true` when `security_encryption_type` is specified.
 
-~> **Note:** `encryption_at_host_enabled` cannot be set to `true` when `security_encryption_type` is set to `DiskWithVMGuestState`.
+~> **Note:** `security_profile.host_encryption_enabled` cannot be set to `true` when `security_encryption_type` is set to `DiskWithVMGuestState`.
 
 * `write_accelerator_enabled` - (Optional) Should Write Accelerator be Enabled for this OS Disk? Defaults to `false`.
 
@@ -355,6 +351,13 @@ A `plan` block supports the following:
 * `publisher` - (Required) Specifies the Publisher of the Marketplace Image this Virtual Machine should be created from. Changing this forces a new resource to be created.
 
 ---
+
+A `security_profile` block supports the following:
+
+* `host_encryption_enabled` - (Optional) Should all of the disks (including the temp disk) attached to this Virtual Machine be encrypted by enabling Encryption at Host? Defaults to `false`.
+* `security_type` - (Optional) Specifies the secure hardware type of this Virtual Machine. Possible values are `TrustedLaunch` and `ConfidentialVM`. Required when `secure_boot_enabled` or `vtpm_enabled` is `true`; must be `ConfidentialVM` when `security_encryption_type` is set. Changing this forces a new resource to be created.
+* `secure_boot_enabled` - (Optional) Specifies whether secure boot should be enabled on the virtual machine. Defaults to `false`. Changing this forces a new resource to be created.
+* `vtpm_enabled` - (Optional) Specifies whether vTPM should be enabled on the virtual machine. Defaults to `false`. Changing this forces a new resource to be created.
 
 A `secret` block supports the following:
 
