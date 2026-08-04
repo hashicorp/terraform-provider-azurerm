@@ -6,6 +6,7 @@ package cdn_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -57,6 +58,21 @@ func TestAccCdnFrontDoorRuleSet_requiresImport(t *testing.T) {
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccCdnFrontDoorRuleSet_importBatchRuleSet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule_set", "test")
+	r := CdnFrontDoorRuleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: CdnFrontdoorBatchRuleSetResource{}.disableCacheAndNoOriginGroup(data),
+		},
+		{
+			Config:      r.batchRuleSetImport(data),
+			ExpectError: regexp.MustCompile("was provisioned using batch mode and cannot be managed by this resource"),
+		},
 	})
 }
 
@@ -129,6 +145,22 @@ resource "azurerm_cdn_frontdoor_rule_set" "import" {
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 }
 `, config)
+}
+
+func (r CdnFrontDoorRuleSetResource) batchRuleSetImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+import {
+  id = azurerm_cdn_frontdoor_batch_rule_set.test.id
+  to = azurerm_cdn_frontdoor_rule_set.test
+}
+
+resource "azurerm_cdn_frontdoor_rule_set" "test" {
+  name                     = "acctestfdruleset%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+}
+`, CdnFrontdoorBatchRuleSetResource{}.basicUnattachedRoute(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorRuleSetResource) complete(data acceptance.TestData, attachRoute bool) string {

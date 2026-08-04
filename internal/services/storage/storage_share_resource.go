@@ -4,7 +4,6 @@
 package storage
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -189,29 +188,7 @@ func resourceStorageShare() *pluginsdk.Resource {
 			Deprecated: "this property is deprecated and will be removed 5.0 and replaced by the `id` property.",
 		}
 
-		r.CustomizeDiff = func(ctx context.Context, diff *pluginsdk.ResourceDiff, i interface{}) error {
-			// Resource Manager ID in use, but change to `storage_account_id` should recreate
-			if strings.HasPrefix(diff.Id(), "/subscriptions/") && diff.HasChange("storage_account_id") {
-				return diff.ForceNew("storage_account_id")
-			}
-
-			// using legacy Data Plane ID but attempting to change the storage_account_name should recreate
-			if diff.Id() != "" && !strings.HasPrefix(diff.Id(), "/subscriptions/") && diff.HasChange("storage_account_name") {
-				// converting from storage_account_id to the deprecated storage_account_name is not supported
-				oldAccountId, _ := diff.GetChange("storage_account_id")
-				oldName, newName := diff.GetChange("storage_account_name")
-
-				if oldAccountId.(string) != "" && newName.(string) != "" {
-					return diff.ForceNew("storage_account_name")
-				}
-
-				if oldName.(string) != "" && newName.(string) != "" {
-					return diff.ForceNew("storage_account_name")
-				}
-			}
-
-			return nil
-		}
+		r.CustomizeDiff = helpers.LegacyStorageAccountResourceCustomizeDiff
 	}
 
 	return r
