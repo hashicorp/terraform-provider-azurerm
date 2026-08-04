@@ -509,6 +509,14 @@ func resourceContainerGroup() *pluginsdk.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.StringInSlice(containerinstance.PossibleValuesForContainerGroupPriority(), false),
 			},
+
+			"cce_policy": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
 		},
 		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
 			if p := d.Get("priority").(string); p == string(containerinstance.ContainerGroupPrioritySpot) {
@@ -750,6 +758,12 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		containerGroup.Properties.Priority = pointer.ToEnum[containerinstance.ContainerGroupPriority](priority)
 	}
 
+	if ccePolicy := d.Get("cce_policy").(string); ccePolicy != "" {
+		containerGroup.Properties.ConfidentialComputeProperties = &containerinstance.ConfidentialComputeProperties{
+			CcePolicy: pointer.To(ccePolicy),
+		}
+	}
+
 	// Avoid parallel provisioning if "subnet_ids" are given.
 	if subnets != nil && len(*subnets) != 0 {
 		for _, item := range *subnets {
@@ -951,6 +965,10 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 		if err := d.Set("subnet_ids", subnets); err != nil {
 			return fmt.Errorf("setting `subnet_ids`: %+v", err)
+		}
+
+		if ccProps := props.ConfidentialComputeProperties; ccProps != nil {
+			d.Set("cce_policy", pointer.From(ccProps.CcePolicy))
 		}
 
 		if kvProps := props.EncryptionProperties; kvProps != nil {
