@@ -145,8 +145,8 @@ type TargetingFeatureFilter struct {
 }
 
 type TimewindowFilterParameters struct {
-	Start string `json:"Start" tfschema:"start"`
-	End   string `json:"End"   tfschema:"end"`
+	Start string `json:"Start,omitempty" tfschema:"start"`
+	End   string `json:"End,omitempty"   tfschema:"end"`
 }
 
 type TimewindowFeatureFilter struct {
