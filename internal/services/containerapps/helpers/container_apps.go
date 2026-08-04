@@ -2883,8 +2883,10 @@ func SecretsSchema() *pluginsdk.Schema {
 				},
 
 				"value": {
-					Type:        pluginsdk.TypeString,
-					Optional:    true,
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					// NOTE: O+C Azure doesn't return a value for Key Vault backed secrets, so an omitted value would be planned as null and the set element no longer correlates during apply
+					Computed:    true,
 					Sensitive:   true,
 					Description: "The value for this secret.",
 				},
