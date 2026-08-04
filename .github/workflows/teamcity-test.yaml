@@ -1,6 +1,10 @@
 ---
 name: TeamCity Config Test
 
+# Validates the .teamcity/ Kotlin DSL configuration (Maven test run) whenever it
+# changes.
+# Display name is matched by the workflow_run list in pr-waiting-response-on-ci-fail.yaml.
+
 permissions:
   contents: read
 
@@ -34,3 +38,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
       - run: make teamcity-test
+
+  save-artifacts-on-fail:
+    needs: teamcity-test
+    if: ${{ failure() }}
+    uses: ./.github/workflows/pr-save-artifacts.yaml
