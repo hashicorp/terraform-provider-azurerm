@@ -61,7 +61,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_elastic_cloud_serverless" "test" {
   count = 2
 
-  name                        = "acctest-es-srv-${count.index}-%[1]d"
+  name                        = "acctest-es-${count.index}-%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   kind                        = "elastic-serverless-search"

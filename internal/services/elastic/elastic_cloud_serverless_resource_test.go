@@ -174,7 +174,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_elastic_cloud_serverless" "test" {
-  name                        = "acctest-es-srv-%[1]d"
+  name                        = "acctest-es-%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   kind                        = %[2]q

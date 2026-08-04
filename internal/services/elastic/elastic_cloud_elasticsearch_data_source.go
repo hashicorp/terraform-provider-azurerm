@@ -33,7 +33,7 @@ func dataSourceElasticsearch() *pluginsdk.Resource {
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validate.ElasticsearchName,
+				ValidateFunc: validate.ElasticName,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),

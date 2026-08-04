@@ -57,7 +57,7 @@ func (r ElasticCloudServerlessResource) Arguments() map[string]*pluginsdk.Schema
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ElasticsearchName,
+			ValidateFunc: validate.ElasticName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
