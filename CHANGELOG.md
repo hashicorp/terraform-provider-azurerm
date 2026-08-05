@@ -1,3 +1,4 @@
+* `azurerm_cdn_frontdoor_secret` - fix an incorrect type assertion [GH-32982]
 * `azurerm_storage_queue` - add a state migration to fix an ID parsing error when upgrading from 4.x to 5.x [GH-32914]
 ## 5.0.1 (July 30, 2026)
 
