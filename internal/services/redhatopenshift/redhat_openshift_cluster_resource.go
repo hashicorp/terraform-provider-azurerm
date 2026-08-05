@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name redhat_openshift_cluster -service-package-name redhatopenshift -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-expect-non-empty
+//go:generate go run ../../tools/generator-tests resourceidentity -test-expect-non-empty
 
 package redhatopenshift
 
