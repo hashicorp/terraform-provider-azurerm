@@ -103,8 +103,8 @@ else
   fi
 fi
 
-PASS_COUNT=$(echo "$TEST_RESULTS" | awk -F'|' '{if($2=="PASS") print}' | wc -l | tr -d ' ')
-FAIL_COUNT=$(echo "$TEST_RESULTS" | awk -F'|' '{if($2=="FAIL") print}' | wc -l | tr -d ' ')
+PASS_COUNT=$(echo "$TEST_RESULTS" | awk -F'|' 'BEGIN{c=0} $1!="" && $2=="PASS"{c++} END{print c}')
+FAIL_COUNT=$(echo "$TEST_RESULTS" | awk -F'|' 'BEGIN{c=0} $1!="" && $2=="FAIL"{c++} END{print c}')
 TOTAL=$((PASS_COUNT + FAIL_COUNT))
 
 # Fetch main branch test results early to identify new failures for comment marking

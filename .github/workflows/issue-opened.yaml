@@ -1,6 +1,9 @@
 ---
 name: Issue Opened Triage
 
+# Auto-labels newly opened issues using the title/body regexes in
+# .github/labeler-issue-triage.yml.
+
 permissions:
   issues: write
 
