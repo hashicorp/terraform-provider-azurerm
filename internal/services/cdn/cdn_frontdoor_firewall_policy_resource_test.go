@@ -5,9 +5,13 @@ package cdn_test
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/binary"
 	"fmt"
 	"regexp"
+	"strings"
 	"testing"
+	"unicode/utf16"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
@@ -163,6 +167,77 @@ func TestAccCdnFrontDoorFirewallPolicy_customBlockResponseStatusCode(t *testing.
 		},
 		data.ImportStep(),
 	})
+}
+
+func TestAccCdnFrontDoorFirewallPolicy_customBlockResponseBody(t *testing.T) {
+	// NOTE: Regression test case for issue #32966
+	body := base64.StdEncoding.EncodeToString([]byte("<html><body>" + strings.Repeat("x", 2534) + "</body></html>"))
+	testAccCdnFrontDoorFirewallPolicyCustomBlockResponseBody(t, body)
+}
+
+func TestAccCdnFrontDoorFirewallPolicy_customBlockResponseBodyUpdate(t *testing.T) {
+	// NOTE: Regression test case for issue #32966
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
+	r := CdnFrontDoorFirewallPolicyResource{}
+	body := base64.StdEncoding.EncodeToString([]byte("<html><body>" + strings.Repeat("x", 2534) + "</body></html>"))
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.customBlockResponseBody(data, body),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("custom_block_response_body").HasValue(body),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorFirewallPolicy_customBlockResponseBodyUTF16LittleEndian(t *testing.T) {
+	// NOTE: Regression test case for issue #32966
+	body := encodeUTF16Base64("<html><body>"+strings.Repeat("x", 1253)+"</body></html>", binary.LittleEndian, []byte{0xFF, 0xFE})
+	testAccCdnFrontDoorFirewallPolicyCustomBlockResponseBody(t, body)
+}
+
+func TestAccCdnFrontDoorFirewallPolicy_customBlockResponseBodyUTF16BigEndian(t *testing.T) {
+	// NOTE: Regression test case for issue #32966
+	body := encodeUTF16Base64("<html><body>"+strings.Repeat("x", 1253)+"</body></html>", binary.BigEndian, []byte{0xFE, 0xFF})
+	testAccCdnFrontDoorFirewallPolicyCustomBlockResponseBody(t, body)
+}
+
+func testAccCdnFrontDoorFirewallPolicyCustomBlockResponseBody(t *testing.T, body string) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
+	r := CdnFrontDoorFirewallPolicyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.customBlockResponseBody(data, body),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("custom_block_response_body").HasValue(body),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func encodeUTF16Base64(input string, byteOrder binary.ByteOrder, byteOrderMark []byte) string {
+	codeUnits := utf16.Encode([]rune(input))
+	body := make([]byte, len(byteOrderMark)+(len(codeUnits)*2))
+	copy(body, byteOrderMark)
+
+	for index, codeUnit := range codeUnits {
+		byteOrder.PutUint16(body[len(byteOrderMark)+(index*2):], codeUnit)
+	}
+
+	return base64.StdEncoding.EncodeToString(body)
 }
 
 func TestAccCdnFrontDoorFirewallPolicy_update(t *testing.T) {
@@ -1110,6 +1185,22 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "import" {
   mode                = "Prevention"
 }
 `, r.basic(data))
+}
+
+func (r CdnFrontDoorFirewallPolicyResource) customBlockResponseBody(data acceptance.TestData, body string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                              = "accTestWAF%d"
+  resource_group_name               = azurerm_resource_group.test.name
+  sku_name                          = azurerm_cdn_frontdoor_profile.test.sku_name
+  enabled                           = true
+  mode                              = "Prevention"
+  custom_block_response_status_code = 403
+  custom_block_response_body        = %q
+}
+`, r.template(data), data.RandomInteger, body)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) update(data acceptance.TestData) string {
