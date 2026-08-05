@@ -252,8 +252,7 @@ func resourceStorageTableCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	d.SetId(id.ID())
 
-	// Setting ACLs only supports shared key authentication (@manicminer, 2024-02-29)
-	aclClient, err := storageClient.TablesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingOnlySharedKeyAuth())
+	aclClient, err := storageClient.TablesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
 		return fmt.Errorf("building Tables Client: %v", err)
 	}
@@ -370,8 +369,7 @@ func resourceStorageTableRead(d *pluginsdk.ResourceData, meta interface{}) error
 		return nil
 	}
 
-	// Retrieving ACLs only supports shared key authentication (@manicminer, 2024-02-29)
-	aclClient, err := storageClient.TablesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingOnlySharedKeyAuth())
+	aclClient, err := storageClient.TablesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
 		return fmt.Errorf("building Tables Client: %v", err)
 	}
@@ -536,8 +534,7 @@ func resourceStorageTableUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		aclsRaw := d.Get("acl").(*pluginsdk.Set).List()
 		acls := expandStorageTableACLs(aclsRaw)
 
-		// Setting ACLs only supports shared key authentication (@manicminer, 2024-02-29)
-		aclClient, err := storageClient.TablesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingOnlySharedKeyAuth())
+		aclClient, err := storageClient.TablesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 		if err != nil {
 			return fmt.Errorf("building Tables Client: %v", err)
 		}
