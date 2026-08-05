@@ -24,7 +24,7 @@ func TestAccRoleDefinitionDataSource_basic(t *testing.T) {
 			Config: RoleDefinitionDataSource{}.basic(id, data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").Exists(),
-				RoleDefinitionDataSource{}.checkRoleDefinitionId(data, false),
+				RoleDefinitionDataSource{}.checkRoleDefinitionId(data),
 				check.That(data.ResourceName).Key("description").Exists(),
 				check.That(data.ResourceName).Key("type").Exists(),
 				check.That(data.ResourceName).Key("permissions.#").HasValue("1"),
@@ -48,7 +48,7 @@ func TestAccRoleDefinitionDataSource_basicByName(t *testing.T) {
 			Config: RoleDefinitionDataSource{}.byName(id, data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").Exists(),
-				RoleDefinitionDataSource{}.checkRoleDefinitionId(data, true),
+				RoleDefinitionDataSource{}.checkRoleDefinitionId(data),
 				check.That(data.ResourceName).Key("description").Exists(),
 				check.That(data.ResourceName).Key("type").Exists(),
 				check.That(data.ResourceName).Key("permissions.#").HasValue("1"),
@@ -71,7 +71,7 @@ func TestAccRoleDefinitionDataSource_builtIn_contributor(t *testing.T) {
 			Config: RoleDefinitionDataSource{}.builtIn("Contributor"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("id").HasValue("/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c"),
-				RoleDefinitionDataSource{}.checkRoleDefinitionId(data, true),
+				RoleDefinitionDataSource{}.checkRoleDefinitionId(data),
 				check.That(data.ResourceName).Key("description").Exists(),
 				check.That(data.ResourceName).Key("type").Exists(),
 				check.That(data.ResourceName).Key("permissions.#").HasValue("1"),
@@ -99,7 +99,7 @@ func TestAccRoleDefinitionDataSource_builtIn_owner(t *testing.T) {
 			Config: RoleDefinitionDataSource{}.builtIn("Owner"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("id").HasValue("/providers/Microsoft.Authorization/roleDefinitions/8e3af657-a8ff-443c-a75c-2fe8c4bcb635"),
-				RoleDefinitionDataSource{}.checkRoleDefinitionId(data, true),
+				RoleDefinitionDataSource{}.checkRoleDefinitionId(data),
 				check.That(data.ResourceName).Key("description").Exists(),
 				check.That(data.ResourceName).Key("type").Exists(),
 				check.That(data.ResourceName).Key("permissions.#").HasValue("1"),
@@ -119,7 +119,7 @@ func TestAccRoleDefinitionDataSource_builtIn_reader(t *testing.T) {
 			Config: RoleDefinitionDataSource{}.builtIn("Reader"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("id").HasValue("/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7"),
-				RoleDefinitionDataSource{}.checkRoleDefinitionId(data, true),
+				RoleDefinitionDataSource{}.checkRoleDefinitionId(data),
 				check.That(data.ResourceName).Key("description").Exists(),
 				check.That(data.ResourceName).Key("type").Exists(),
 				check.That(data.ResourceName).Key("permissions.#").HasValue("1"),
@@ -139,7 +139,7 @@ func TestAccRoleDefinitionDataSource_builtIn_virtualMachineContributor(t *testin
 			Config: RoleDefinitionDataSource{}.builtIn("Virtual Machine Contributor"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("id").HasValue("/providers/Microsoft.Authorization/roleDefinitions/9980e02c-c2be-4d73-94e8-173b1dc7cf3c"),
-				RoleDefinitionDataSource{}.checkRoleDefinitionId(data, true),
+				RoleDefinitionDataSource{}.checkRoleDefinitionId(data),
 				check.That(data.ResourceName).Key("description").Exists(),
 				check.That(data.ResourceName).Key("type").Exists(),
 				check.That(data.ResourceName).Key("permissions.#").HasValue("1"),
@@ -157,7 +157,7 @@ func TestAccRoleDefinitionDataSource_builtIn_event_grid_publisher(t *testing.T) 
 			Config: RoleDefinitionDataSource{}.builtIn("EventGrid TopicSpaces Publisher"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("id").HasValue("/providers/Microsoft.Authorization/roleDefinitions/a12b0b94-b317-4dcd-84a8-502ce99884c6"),
-				RoleDefinitionDataSource{}.checkRoleDefinitionId(data, true),
+				RoleDefinitionDataSource{}.checkRoleDefinitionId(data),
 				check.That(data.ResourceName).Key("description").Exists(),
 				check.That(data.ResourceName).Key("type").Exists(),
 				check.That(data.ResourceName).Key("permissions.#").HasValue("1"),
@@ -176,7 +176,7 @@ func TestAccRoleDefinitionDataSource_builtIn_key_vault_data_access_admin(t *test
 			Config: RoleDefinitionDataSource{}.builtIn("Key Vault Data Access Administrator"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("id").HasValue("/providers/Microsoft.Authorization/roleDefinitions/8b54135c-b56d-4d72-a534-26097cfdc8d8"),
-				RoleDefinitionDataSource{}.checkRoleDefinitionId(data, true),
+				RoleDefinitionDataSource{}.checkRoleDefinitionId(data),
 				check.That(data.ResourceName).Key("description").Exists(),
 				check.That(data.ResourceName).Key("type").Exists(),
 				check.That(data.ResourceName).Key("permissions.#").HasValue("1"),
@@ -248,6 +248,6 @@ data "azurerm_role_definition" "byName" {
 `, d.basic(id, data))
 }
 
-func (d RoleDefinitionDataSource) checkRoleDefinitionId(data acceptance.TestData, dataByName bool) resource.TestCheckFunc {
+func (d RoleDefinitionDataSource) checkRoleDefinitionId(data acceptance.TestData) resource.TestCheckFunc {
 	return check.That(data.ResourceName).Key("role_definition_id").IsUUID()
 }
