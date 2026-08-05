@@ -62,9 +62,20 @@ func (c VirtualWANsClient) HubRouteTablesCreateOrUpdate(ctx context.Context, id 
 
 // HubRouteTablesCreateOrUpdateThenPoll performs HubRouteTablesCreateOrUpdate then polls until it's completed
 func (c VirtualWANsClient) HubRouteTablesCreateOrUpdateThenPoll(ctx context.Context, id HubRouteTableId, input HubRouteTable) error {
+	return c.HubRouteTablesCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// HubRouteTablesCreateOrUpdateCallbackThenPoll performs HubRouteTablesCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c VirtualWANsClient) HubRouteTablesCreateOrUpdateCallbackThenPoll(ctx context.Context, id HubRouteTableId, input HubRouteTable, callback func() error) error {
 	result, err := c.HubRouteTablesCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing HubRouteTablesCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

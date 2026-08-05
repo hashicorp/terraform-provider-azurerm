@@ -207,7 +207,8 @@ func TestAccApiManagement_completeUpdateAdditionalLocations(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("certificate", // not returned from API, sensitive
+		data.ImportStep(
+			"certificate", // not returned from API, sensitive
 			"hostname_configuration.0.portal.0.certificate",                    // not returned from API, sensitive
 			"hostname_configuration.0.portal.0.certificate_password",           // not returned from API, sensitive
 			"hostname_configuration.0.developer_portal.0.certificate",          // not returned from API, sensitive
@@ -223,7 +224,8 @@ func TestAccApiManagement_completeUpdateAdditionalLocations(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("certificate", // not returned from API, sensitive
+		data.ImportStep(
+			"certificate", // not returned from API, sensitive
 			"hostname_configuration.0.portal.0.certificate",                    // not returned from API, sensitive
 			"hostname_configuration.0.portal.0.certificate_password",           // not returned from API, sensitive
 			"hostname_configuration.0.developer_portal.0.certificate",          // not returned from API, sensitive
@@ -239,7 +241,8 @@ func TestAccApiManagement_completeUpdateAdditionalLocations(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("certificate", // not returned from API, sensitive
+		data.ImportStep(
+			"certificate", // not returned from API, sensitive
 			"hostname_configuration.0.portal.0.certificate",                    // not returned from API, sensitive
 			"hostname_configuration.0.portal.0.certificate_password",           // not returned from API, sensitive
 			"hostname_configuration.0.developer_portal.0.certificate",          // not returned from API, sensitive
@@ -979,7 +982,8 @@ func TestAccApiManagement_additionalLocationGateway(t *testing.T) {
 		{
 			Config: r.additionalLocationGateway(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 	})
@@ -2201,11 +2205,12 @@ resource "azurerm_resource_group" "test" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestKV-%[4]s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acctestKV-%[4]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 }
 
 resource "azurerm_key_vault_access_policy" "test" {
@@ -2542,11 +2547,12 @@ resource "azurerm_resource_group" "test" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestKV-%[3]s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acctestKV-%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 }
 
 resource "azurerm_key_vault_access_policy" "test" {
@@ -2678,11 +2684,12 @@ resource "azurerm_resource_group" "test" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestKV-%[3]s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acctestKV-%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 }
 
 resource "azurerm_key_vault_access_policy" "test" {

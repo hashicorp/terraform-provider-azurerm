@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -112,15 +111,16 @@ func TestAccCosmosDBAccount_keyVaultUri(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.key_vault_uri(data, cosmosdb.DatabaseAccountKindMongoDB, cosmosdb.DefaultConsistencyLevelStrong),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
-				checkAccCosmosDBAccount_basic(data, cosmosdb.DefaultConsistencyLevelStrong, 1),
-			),
+	data.ResourceTest(
+		t, r, []acceptance.TestStep{
+			{
+				Config: r.key_vault_uri(data, cosmosdb.DatabaseAccountKindMongoDB, cosmosdb.DefaultConsistencyLevelStrong),
+				Check: acceptance.ComposeAggregateTestCheckFunc(
+					checkAccCosmosDBAccount_basic(data, cosmosdb.DefaultConsistencyLevelStrong, 1),
+				),
+			},
+			data.ImportStep(),
 		},
-		data.ImportStep(),
-	},
 	)
 }
 
@@ -152,10 +152,11 @@ func TestAccCosmosDBAccount_ManagedHSMUri(t *testing.T) {
 
 	if !features.FivePointOh() {
 		// remove cmkArgument parameter from `managedHSMKey` post 5.x
-		steps = append(steps, acceptance.TestStep{
-			// Tests migration path from `managed_hsm_key_id` to `key_vault_key_id` without replacing resource
-			Config: r.managedHSMKey(data, uuids, "key_vault_key_id"),
-		},
+		steps = append(
+			steps, acceptance.TestStep{
+				// Tests migration path from `managed_hsm_key_id` to `key_vault_key_id` without replacing resource
+				Config: r.managedHSMKey(data, uuids, "key_vault_key_id"),
+			},
 		)
 	}
 
@@ -1345,7 +1346,7 @@ func TestAccCosmosDBAccount_localAuthenticationDisabled(t *testing.T) {
 			Config: r.basic(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("local_authentication_disabled").HasValue("false"),
+				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -1353,7 +1354,7 @@ func TestAccCosmosDBAccount_localAuthenticationDisabled(t *testing.T) {
 			Config: r.basicWithLocalAuthenticationDisabled(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("local_authentication_disabled").HasValue("true"),
+				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -1487,17 +1488,17 @@ func TestAccCosmosDBAccount_withoutMaxAgeInSeconds(t *testing.T) {
 }
 
 func (r CosmosDBAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.DatabaseAccountID(state.ID)
+	id, err := cosmosdb.ParseDatabaseAccountID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Cosmos.DatabaseClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Cosmos.CosmosDBClient.DatabaseAccountsGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Cosmos Database (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return pointer.To(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (CosmosDBAccountResource) basic(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {
@@ -1679,7 +1680,9 @@ resource "azurerm_subnet" "subnet1" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.1.0/24"]
-  service_endpoints    = ["Microsoft.AzureCosmosDB"]
+  service_endpoint {
+    service = "Microsoft.AzureCosmosDB"
+  }
 }
 
 resource "azurerm_subnet" "subnet2" {
@@ -1687,7 +1690,9 @@ resource "azurerm_subnet" "subnet2" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
-  service_endpoints    = ["Microsoft.AzureCosmosDB"]
+  service_endpoint {
+    service = "Microsoft.AzureCosmosDB"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -2479,11 +2484,13 @@ resource "azurerm_subnet" "subnet1" {
 }
 
 resource "azurerm_subnet" "subnet2" {
-  name                                          = "acctest-SN2-%[1]d-2"
-  resource_group_name                           = azurerm_resource_group.test.name
-  virtual_network_name                          = azurerm_virtual_network.test.name
-  address_prefixes                              = ["10.0.2.0/24"]
-  service_endpoints                             = ["Microsoft.AzureCosmosDB"]
+  name                 = "acctest-SN2-%[1]d-2"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+  service_endpoint {
+    service = "Microsoft.AzureCosmosDB"
+  }
   private_endpoint_network_policies             = "Disabled"
   private_link_service_network_policies_enabled = false
 }
@@ -2718,11 +2725,12 @@ data "azuread_service_principal" "cosmosdb" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestkv-%[3]s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acctestkv-%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 
   purge_protection_enabled   = true
   soft_delete_retention_days = 7
@@ -2842,11 +2850,12 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestkv-%[3]s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acctestkv-%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 
   purge_protection_enabled   = true
   soft_delete_retention_days = 7
@@ -2992,11 +3001,12 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestkv-%[3]s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acctestkv-%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 
   purge_protection_enabled   = true
   soft_delete_retention_days = 7
@@ -3145,11 +3155,12 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestkv-%[3]s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acctestkv-%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 
   purge_protection_enabled   = true
   soft_delete_retention_days = 7
@@ -3297,6 +3308,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acc%[1]d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
@@ -4074,7 +4086,8 @@ resource "azurerm_cosmosdb_account" "test" {
 }
 
 func (CosmosDBAccountResource) basicWithLocalAuthenticationDisabled(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -4101,6 +4114,37 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   local_authentication_disabled = true
+}
+`, data.RandomInteger, data.Locations.Primary, string(kind), string(consistency))
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "%[3]s"
+
+  consistency_policy {
+    consistency_level = "%[4]s"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+
+  local_authentication_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, string(kind), string(consistency))
 }

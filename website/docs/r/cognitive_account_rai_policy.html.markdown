@@ -66,13 +66,15 @@ A `content_filter` block supports the following:
 
 * `name` - (Required) The name of the content filter.
 
-* `filter_enabled` - (Required) Whether the filter is enabled. Possible values are `true` or `false`.
-
 * `block_enabled` - (Required) Whether the filter should block content. Possible values are `true` or `false`.
 
-* `severity_threshold` - (Required) The severity threshold for the filter. Possible values are `Low`, `Medium` or `High`.
+* `filter_enabled` - (Required) Whether the filter is enabled. Possible values are `true` or `false`.
 
 * `source` - (Required) Content source to apply the content filter. Possible values are `Prompt` or `Completion`.
+
+* `severity_threshold` - (Optional) The severity threshold for the filter. Possible values are `Low`, `Medium` or `High`.
+
+-> **Note:** This is not applicable for filter types such as `Jailbreak`, `Indirect Attack`, `Protected Material Text`, and `Protected Material Code`.
 
 ## Attributes Reference
 
@@ -104,4 +106,4 @@ terraform import azurerm_cognitive_account_rai_policy.policy1 /subscriptions/000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.CognitiveServices` - 2025-06-01
+* `Microsoft.CognitiveServices` - 2026-03-01

@@ -57,9 +57,20 @@ func (c AppPlatformClient) PredefinedAcceleratorsEnable(ctx context.Context, id 
 
 // PredefinedAcceleratorsEnableThenPoll performs PredefinedAcceleratorsEnable then polls until it's completed
 func (c AppPlatformClient) PredefinedAcceleratorsEnableThenPoll(ctx context.Context, id PredefinedAcceleratorId) error {
+	return c.PredefinedAcceleratorsEnableCallbackThenPoll(ctx, id, nil)
+}
+
+// PredefinedAcceleratorsEnableCallbackThenPoll performs PredefinedAcceleratorsEnable, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) PredefinedAcceleratorsEnableCallbackThenPoll(ctx context.Context, id PredefinedAcceleratorId, callback func() error) error {
 	result, err := c.PredefinedAcceleratorsEnable(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing PredefinedAcceleratorsEnable: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

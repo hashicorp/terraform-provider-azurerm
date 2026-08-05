@@ -1,6 +1,10 @@
 ---
 name: Issue Comment Created Triage
 
+# Label housekeeping when a comment is created: clears stale, clears
+# waiting-response (always on issues; on PRs only when the author replies), and
+# re-adds waiting-response when a maintainer ends a PR comment with /wr.
+
 on:
   issue_comment:
     types: [created]
@@ -11,16 +15,16 @@ permissions:
 
 jobs:
   remove-stale:
-    uses: ./.github/workflows/remove-issue-label.yml
+    uses: ./.github/workflows/issue-remove-label.yaml
     with:
       label-name: "stale"
   remove-waiting-response-from-issue:
-    uses: ./.github/workflows/remove-issue-label.yml
+    uses: ./.github/workflows/issue-remove-label.yaml
     if: ${{ !github.event.issue.pull_request }}
     with:
       label-name: "waiting-response"
   remove-waiting-response-from-pr:
-    uses: ./.github/workflows/remove-issue-label.yml
+    uses: ./.github/workflows/issue-remove-label.yaml
     if: (github.event.issue.pull_request && github.actor == github.event.issue.user.login)
     with:
       label-name: "waiting-response"
@@ -29,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.issue.pull_request && endsWith(github.event.comment.body, '/wr')
     steps:
-      - uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         with:
           script: |
             github.rest.issues.addLabels({

@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -470,12 +471,68 @@ func TestAccMySqlFlexibleServer_createWithHsmCustomerManagedKey(t *testing.T) {
 		t.Skip("Skipping as ARM_TEST_HSM_KEY is not specified")
 	}
 
+	uuids := make([]string, 0)
+	for range 3 {
+		u, _ := uuid.GenerateUUID()
+		uuids = append(uuids, u)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
 	r := MysqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withHsmCustomerManagedKey(data),
+			Config: r.withHsmCustomerManagedKey(data, uuids),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password"),
+	})
+}
+
+func TestAccMySqlFlexibleServer_createWithHsmCustomerManagedKeyFourOhUpdate(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this test is not valid in 5.0+")
+	}
+
+	if os.Getenv("ARM_TEST_HSM_KEY") == "" {
+		t.Skip("Skipping as ARM_TEST_HSM_KEY is not specified")
+	}
+
+	uuids := make([]string, 0)
+	for range 3 {
+		u, _ := uuid.GenerateUUID()
+		uuids = append(uuids, u)
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
+	r := MysqlFlexibleServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withHsmCustomerManagedKeyFourOhHSMOnly(data, uuids),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password"),
+		{
+			// Test migration from `managed_hsm_key_id` to `key_vault_key_id`. This should plan no changes.
+			Config:             r.withHsmCustomerManagedKeyFourOh(data, "azurerm_key_vault_managed_hardware_security_module_key.test.versioned_id", uuids),
+			PlanOnly:           true,
+			ExpectNonEmptyPlan: false,
+		},
+		data.ImportStep("administrator_password"),
+		{
+			Config: r.withHsmCustomerManagedKeyFourOh(data, "azurerm_key_vault_key.test2.id", uuids),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password"),
+		{
+			Config: r.withHsmCustomerManagedKeyFourOh(data, "azurerm_key_vault_managed_hardware_security_module_key.test.versioned_id", uuids),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -711,7 +768,9 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
-  service_endpoints    = ["Microsoft.Storage"]
+  service_endpoint {
+    service = "Microsoft.Storage"
+  }
 
   delegation {
     name = "fs"
@@ -732,10 +791,9 @@ resource "azurerm_private_dns_zone" "test" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "test" {
-  name                  = "acctestVnetZone%[2]d.com"
-  private_dns_zone_name = azurerm_private_dns_zone.test.name
-  virtual_network_id    = azurerm_virtual_network.test.id
-  resource_group_name   = azurerm_resource_group.test.name
+  name                = "acctestVnetZone%[2]d.com"
+  private_dns_zone_id = azurerm_private_dns_zone.test.id
+  virtual_network_id  = azurerm_virtual_network.test.id
 
   depends_on = [azurerm_subnet.test]
 }
@@ -797,7 +855,9 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
-  service_endpoints    = ["Microsoft.Storage"]
+  service_endpoint {
+    service = "Microsoft.Storage"
+  }
 
   delegation {
     name = "fs"
@@ -818,10 +878,9 @@ resource "azurerm_private_dns_zone" "test" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "test" {
-  name                  = "acctestVnetZone%[2]d.com"
-  private_dns_zone_name = azurerm_private_dns_zone.test.name
-  virtual_network_id    = azurerm_virtual_network.test.id
-  resource_group_name   = azurerm_resource_group.test.name
+  name                = "acctestVnetZone%[2]d.com"
+  private_dns_zone_id = azurerm_private_dns_zone.test.id
+  virtual_network_id  = azurerm_virtual_network.test.id
 
   depends_on = [azurerm_subnet.test]
 }
@@ -1213,6 +1272,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acctestkv%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 90
@@ -1250,11 +1310,7 @@ resource "azurerm_key_vault_key" "test" {
 `, data.RandomInteger, data.Locations.Ternary, data.RandomString, data.RandomString)
 }
 
-func (r MysqlFlexibleServerResource) cmkWithManagedHsmTemplate(data acceptance.TestData) string {
-	roleAssignmentName1, _ := uuid.GenerateUUID()
-	roleAssignmentName2, _ := uuid.GenerateUUID()
-	roleAssignmentName3, _ := uuid.GenerateUUID()
-
+func (r MysqlFlexibleServerResource) cmkWithManagedHsmTemplate(data acceptance.TestData, uuids []string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1262,7 +1318,7 @@ provider "azurerm" {
 
 data "azurerm_client_config" "current" {}
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-mssql-%[2]s"
+  name     = "acctestRG-mssql-%[6]d"
   location = "%[1]s"
 }
 
@@ -1270,6 +1326,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acctest%[2]s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 90
@@ -1420,7 +1477,7 @@ resource "azurerm_key_vault_managed_hardware_security_module_key" "test" {
 }
 
 
-`, data.Locations.Primary, data.RandomStringOfLength(7), roleAssignmentName1, roleAssignmentName2, roleAssignmentName3)
+`, data.Locations.Primary, data.RandomString, uuids[0], uuids[1], uuids[2], data.RandomInteger)
 }
 
 func (r MysqlFlexibleServerResource) withoutCustomerManagedKey(data acceptance.TestData) string {
@@ -1465,7 +1522,7 @@ resource "azurerm_mysql_flexible_server" "test" {
 `, r.cmkTemplate(data), data.RandomInteger)
 }
 
-func (r MysqlFlexibleServerResource) withHsmCustomerManagedKey(data acceptance.TestData) string {
+func (r MysqlFlexibleServerResource) withHsmCustomerManagedKey(data acceptance.TestData, uuids []string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1483,11 +1540,107 @@ resource "azurerm_mysql_flexible_server" "test" {
   }
 
   customer_managed_key {
+    key_vault_key_id                  = azurerm_key_vault_managed_hardware_security_module_key.test.versioned_id
+    primary_user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+  }
+}
+`, r.cmkWithManagedHsmTemplate(data, uuids), data.RandomInteger)
+}
+
+func (r MysqlFlexibleServerResource) withHsmCustomerManagedKeyFourOhHSMOnly(data acceptance.TestData, uuids []string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mysql_flexible_server" "test" {
+  name                   = "acctest-fs-%[2]d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "_admin_Terraform_892123456789312"
+  administrator_password = "QAZwsx123"
+  sku_name               = "B_Standard_B1ms"
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  customer_managed_key {
     managed_hsm_key_id                = azurerm_key_vault_managed_hardware_security_module_key.test.versioned_id
     primary_user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   }
 }
-`, r.cmkWithManagedHsmTemplate(data), data.RandomInteger)
+`, r.withHsmCustomerManagedKeyFourOhTemplate(data, uuids), data.RandomInteger)
+}
+
+func (r MysqlFlexibleServerResource) withHsmCustomerManagedKeyFourOh(data acceptance.TestData, keyID string, uuids []string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mysql_flexible_server" "test" {
+  name                   = "acctest-fs-%[2]d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "_admin_Terraform_892123456789312"
+  administrator_password = "QAZwsx123"
+  sku_name               = "B_Standard_B1ms"
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  customer_managed_key {
+    key_vault_key_id                  = %[3]s
+    primary_user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+  }
+}
+`, r.withHsmCustomerManagedKeyFourOhTemplate(data, uuids), data.RandomInteger, keyID)
+}
+
+func (r MysqlFlexibleServerResource) withHsmCustomerManagedKeyFourOhTemplate(data acceptance.TestData, uuids []string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_key_vault" "test2" {
+  name                       = "acctestkv%[2]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 90
+  purge_protection_enabled   = true
+}
+
+resource "azurerm_key_vault_access_policy" "server" {
+  key_vault_id = azurerm_key_vault.test2.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = azurerm_user_assigned_identity.test.principal_id
+
+  key_permissions = ["Get", "List", "WrapKey", "UnwrapKey", "GetRotationPolicy", "SetRotationPolicy"]
+}
+
+resource "azurerm_key_vault_access_policy" "client" {
+  key_vault_id = azurerm_key_vault.test2.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  key_permissions = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy", "SetRotationPolicy"]
+}
+
+resource "azurerm_key_vault_key" "test2" {
+  name         = "test"
+  key_vault_id = azurerm_key_vault.test2.id
+  key_type     = "RSA"
+  key_size     = 2048
+  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
+
+  depends_on = [
+    azurerm_key_vault_access_policy.client,
+    azurerm_key_vault_access_policy.server,
+  ]
+}
+`, r.cmkWithManagedHsmTemplate(data, uuids), data.RandomString)
 }
 
 func (r MysqlFlexibleServerResource) enableGeoRedundantBackup(data acceptance.TestData) string {
@@ -1509,6 +1662,7 @@ resource "azurerm_key_vault" "test2" {
   name                       = "acctestkv2%s"
   location                   = azurerm_resource_group.test2.location
   resource_group_name        = azurerm_resource_group.test2.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   purge_protection_enabled   = true

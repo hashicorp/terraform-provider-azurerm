@@ -21,9 +21,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-06-01/blobservices"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-06-01/fileservices"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-06-01/storageaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/blobservices"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/fileservices"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/storageaccounts"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -44,7 +44,7 @@ import (
 	"github.com/jackofallops/giovanni/storage/2023-11-03/queue/queues"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_account -service-package-name storage -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 var (
 	storageAccountResourceName  = "azurerm_storage_account"
@@ -1153,14 +1153,14 @@ func resourceStorageAccount() *pluginsdk.Resource {
 
 					// The initial value can be either "Disabled" or "Unlocked".
 					// API error: InvalidStorageAccountImmutabilityPolicy: Storage account immutability policy state can be set to "Unlocked, Disabled".
-					//            Note that the immutability state can either be Disabled or Unlocked during account creation
+					//      Note that the immutability state can either be Disabled or Unlocked during account creation
 					if old == "" && (new.(string) != string(storageaccounts.AccountImmutabilityPolicyStateDisabled) && new.(string) != string(storageaccounts.AccountImmutabilityPolicyStateUnlocked)) {
 						return fmt.Errorf("initial value of `immutability_policy.0.state` can be either Disabled or Unlocked, got=%s", new)
 					}
 
 					// Only "Unlocked" state can be updated to "Locked"
 					// API error: InvalidStorageAccountImmutabilityPolicy: Storage account immutability policy state can be set to "Unlocked, Disabled".
-					//            Note that the immutability state can either be Disabled or Unlocked during account creation
+					//      Note that the immutability state can either be Disabled or Unlocked during account creation
 					if new.(string) == string(storageaccounts.AccountImmutabilityPolicyStateLocked) && old.(string) != string(storageaccounts.AccountImmutabilityPolicyStateUnlocked) {
 						return fmt.Errorf("`immutability_policy.0.state` can only be set to Locked from Unlocked, got=%s", old)
 					}
@@ -1345,7 +1345,6 @@ func resourceStorageAccount() *pluginsdk.Resource {
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
-								// TODO 4.0: Remove this property and determine whether to enable based on existence of the out side block.
 								"enabled": {
 									Type:     pluginsdk.TypeBool,
 									Required: true,
@@ -1392,14 +1391,16 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	locks.ByName(id.StorageAccountName, storageAccountResourceName)
 	defer locks.UnlockByName(id.StorageAccountName, storageAccountResourceName)
 
-	existing, err := client.GetProperties(ctx, id, storageaccounts.DefaultGetPropertiesOperationOptions())
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.GetProperties(ctx, id, storageaccounts.DefaultGetPropertiesOperationOptions())
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_storage_account", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_storage_account", id.ID())
+		}
 	}
 
 	accountKind := storageaccounts.Kind(d.Get("account_kind").(string))
@@ -1551,10 +1552,9 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	payload.Properties.Encryption = encryption
 
-	if err := client.CreateThenPoll(ctx, id, payload); err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, id, payload, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-
 	d.SetId(id.ID())
 	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
 		return err
@@ -1922,7 +1922,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	if err := client.CreateThenPoll(ctx, *id, payload); err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, *id, payload, sdk.SetIDCallback(meta, id, d)); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -2107,14 +2107,29 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if err := resourceStorageAccountFlatten(ctx, d, *id, resp.Model, meta); err != nil {
+	if err := resourceStorageAccountFlatten(ctx, d, *id, resp.Model, meta, true); err != nil {
 		return fmt.Errorf("encoding %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceData, id commonids.StorageAccountId, account *storageaccounts.StorageAccount, meta interface{}) error {
+func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceData, id commonids.StorageAccountId, account *storageaccounts.StorageAccount, meta interface{}, includeResource bool) error {
+	if account == nil {
+		return fmt.Errorf("unable to locate %q", id)
+	}
+
+	d.Set("name", id.StorageAccountName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+
+	if err := pluginsdk.SetResourceIdentityData(d, pointer.To(id)); err != nil {
+		return fmt.Errorf("setting resource identity data: %+v", err)
+	}
+
+	if !includeResource {
+		return nil
+	}
+
 	storageClient := meta.(*clients.Client).Storage.ResourceManager
 	storageUtils := meta.(*clients.Client).Storage
 	client := storageClient.StorageAccounts
@@ -2129,13 +2144,6 @@ func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-
-	if account == nil {
-		return fmt.Errorf("unable to locate %q", id)
-	}
-
-	d.Set("name", id.StorageAccountName)
-	d.Set("resource_group_name", id.ResourceGroupName)
 
 	listKeysOpts := storageaccounts.DefaultListKeysOperationOptions()
 	listKeysOpts.Expand = pointer.To(storageaccounts.ExpandKerb)
@@ -2309,10 +2317,6 @@ func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 
 	endpoints := flattenAccountEndpoints(primaryEndpoints, secondaryEndpoints, routingPreference)
 	endpoints.set(d)
-
-	if err = pluginsdk.SetResourceIdentityData(d, pointer.To(id)); err != nil {
-		return fmt.Errorf("setting resource identity data: %+v", err)
-	}
 
 	keys, err := client.ListKeys(ctx, id, listKeysOpts)
 	if err != nil {

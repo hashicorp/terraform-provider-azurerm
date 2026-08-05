@@ -133,7 +133,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/videoindexer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/voiceservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/workloads"
 )
@@ -156,6 +155,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		azurestackhci.Registration{},
 		batch.Registration{},
 		bot.Registration{},
+		cdn.Registration{},
 		codesigning.Registration{},
 		cognitive.Registration{},
 		communication.Registration{},
@@ -234,7 +234,6 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		systemcentervirtualmachinemanager.Registration{},
 		videoindexer.Registration{},
 		vmware.Registration{},
-		voiceservices.Registration{},
 		web.Registration{},
 		workloads.Registration{},
 	}
@@ -474,7 +473,6 @@ func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
 		trafficmanager.Registration{},
 		videoindexer.Registration{},
 		vmware.Registration{},
-		voiceservices.Registration{},
 		web.Registration{},
 		workloads.Registration{},
 	}

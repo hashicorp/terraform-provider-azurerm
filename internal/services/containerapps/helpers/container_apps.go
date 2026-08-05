@@ -1638,7 +1638,8 @@ func ContainerVolumeSchema() *pluginsdk.Schema {
 					Default:  "EmptyDir",
 					ValidateFunc: validation.StringInSlice(
 						containerapps.PossibleValuesForStorageType(),
-						false),
+						false,
+					),
 					Description: "The type of storage volume. Possible values include `AzureFile` and `EmptyDir`. Defaults to `EmptyDir`.",
 				},
 
@@ -3170,6 +3171,7 @@ type CustomScaleRule struct {
 	Metadata        map[string]string         `tfschema:"metadata"`
 	CustomRuleType  string                    `tfschema:"custom_rule_type"`
 	Authentications []ScaleRuleAuthentication `tfschema:"authentication"`
+	IdentityID      string                    `tfschema:"identity_id"`
 }
 
 func CustomScaleRuleSchema() *pluginsdk.Schema {
@@ -3231,6 +3233,15 @@ func CustomScaleRuleSchema() *pluginsdk.Schema {
 						},
 					},
 				},
+				"identity_id": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.Any(
+						commonids.ValidateUserAssignedIdentityID,
+						validation.StringInSlice([]string{"System"}, false),
+					),
+					Description: "ID of the System or User Managed Identity used to execute scale rule.",
+				},
 			},
 		},
 	}
@@ -3276,6 +3287,11 @@ func CustomScaleRuleSchemaComputed() *pluginsdk.Schema {
 							},
 						},
 					},
+				},
+				"identity_id": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "ID of the System or User Managed Identity used to execute scale rule.",
 				},
 			},
 		},
@@ -3495,6 +3511,7 @@ func (c *ContainerTemplate) expandContainerAppScaleRules() []containerapps.Scale
 			Custom: &containerapps.CustomScaleRule{
 				Metadata: pointer.To(v.Metadata),
 				Type:     pointer.To(v.CustomRuleType),
+				Identity: pointer.To(v.IdentityID),
 			},
 		}
 
@@ -3599,6 +3616,7 @@ func (c *ContainerTemplate) flattenContainerAppScaleRules(input *[]containerapps
 					Name:           pointer.From(v.Name),
 					Metadata:       pointer.From(r.Metadata),
 					CustomRuleType: pointer.From(r.Type),
+					IdentityID:     pointer.From(r.Identity),
 				}
 
 				authentications := make([]ScaleRuleAuthentication, 0)

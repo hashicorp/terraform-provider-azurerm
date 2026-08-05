@@ -62,9 +62,20 @@ func (c ClustersClient) RotateDiskEncryptionKey(ctx context.Context, id commonid
 
 // RotateDiskEncryptionKeyThenPoll performs RotateDiskEncryptionKey then polls until it's completed
 func (c ClustersClient) RotateDiskEncryptionKeyThenPoll(ctx context.Context, id commonids.HDInsightClusterId, input ClusterDiskEncryptionParameters) error {
+	return c.RotateDiskEncryptionKeyCallbackThenPoll(ctx, id, input, nil)
+}
+
+// RotateDiskEncryptionKeyCallbackThenPoll performs RotateDiskEncryptionKey, runs the optional callback function, then polls until it's completed
+func (c ClustersClient) RotateDiskEncryptionKeyCallbackThenPoll(ctx context.Context, id commonids.HDInsightClusterId, input ClusterDiskEncryptionParameters, callback func() error) error {
 	result, err := c.RotateDiskEncryptionKey(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing RotateDiskEncryptionKey: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redhatopenshift/2023-09-04/openshiftclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redhatopenshift/2025-07-25/openshiftclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -190,7 +190,7 @@ func TestAccOpenShiftCluster_basicResourceGroupName(t *testing.T) {
 }
 
 func (t OpenShiftClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := openshiftclusters.ParseProviderOpenShiftClusterID(state.ID)
+	id, err := openshiftclusters.ParseOpenShiftClusterID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -714,6 +714,7 @@ resource "azurerm_key_vault" "test" {
   name                        = "acctestKV-%[3]s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
+  rbac_authorization_enabled  = false
   tenant_id                   = data.azurerm_client_config.test.tenant_id
   sku_name                    = "premium"
   enabled_for_disk_encryption = true
@@ -902,7 +903,6 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 func (OpenShiftClusterResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  skip_provider_registration = true
   features {
     key_vault {
       recover_soft_deleted_key_vaults    = false
@@ -964,7 +964,13 @@ resource "azurerm_subnet" "main_subnet" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.0.0/23"]
-  service_endpoints    = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
+  service_endpoint {
+    service = "Microsoft.Storage"
+  }
+
+  service_endpoint {
+    service = "Microsoft.ContainerRegistry"
+  }
 
   private_link_service_network_policies_enabled = false
 }
@@ -974,7 +980,13 @@ resource "azurerm_subnet" "worker_subnet" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/23"]
-  service_endpoints    = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
+  service_endpoint {
+    service = "Microsoft.Storage"
+  }
+
+  service_endpoint {
+    service = "Microsoft.ContainerRegistry"
+  }
 }
  `, data.RandomInteger, data.Locations.Primary)
 }

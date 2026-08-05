@@ -158,23 +158,26 @@ func (m SourceControlResource) ResourceType() string {
 func (m SourceControlResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.Automation.SourceControl
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Automation.SourceControl
 
 			var model SourceControlModel
-			if err := meta.Decode(&model); err != nil {
+			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
 
-			subscriptionID := meta.Client.Account.SubscriptionId
+			subscriptionID := metadata.Client.Account.SubscriptionId
 			accountID, _ := sourcecontrol.ParseAutomationAccountID(model.AutomationAccountID)
 			id := sourcecontrol.NewSourceControlID(subscriptionID, accountID.ResourceGroupName, accountID.AutomationAccountName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if !response.WasNotFound(existing.HttpResponse) {
-				if err != nil {
-					return fmt.Errorf("retrieving %s: %v", id, err)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					if err != nil {
+						return fmt.Errorf("retrieving %s: %v", id, err)
+					}
+					return metadata.ResourceRequiresImport(m.ResourceType(), id)
 				}
-				return meta.ResourceRequiresImport(m.ResourceType(), id)
 			}
 
 			sourceType := sourcecontrol.SourceType(model.SourceType)
@@ -201,10 +204,10 @@ func (m SourceControlResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			if _, err = client.CreateOrUpdate(ctx, id, param); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, id, param); err != nil {
 				return fmt.Errorf("creating %s: %v", id, err)
 			}
-			meta.SetID(id)
+			metadata.SetID(id)
 			return nil
 		},
 	}

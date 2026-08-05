@@ -12,7 +12,8 @@ func ContainerRegistryCacheRuleName(v interface{}, k string) (warnings []string,
 	value := v.(string)
 	if !regexp.MustCompile(`^[a-zA-Z0-9]+(-[a-zA-Z0-9]+)*$`).MatchString(value) {
 		errors = append(errors, fmt.Errorf(
-			"alpha numeric characters optionally separated by '-' only are allowed in %q: %q", k, value))
+			"alpha numeric characters optionally separated by '-' only are allowed in %q: %q", k, value,
+		))
 	}
 
 	if 5 > len(value) {
@@ -20,7 +21,7 @@ func ContainerRegistryCacheRuleName(v interface{}, k string) (warnings []string,
 	}
 
 	if len(value) >= 50 {
-		errors = append(errors, fmt.Errorf("%q cannot be longer than 50 characters: %q %d", k, value, len(value)))
+		errors = append(errors, fmt.Errorf("%q cannot be longer than 49 characters: %q %d", k, value, len(value)))
 	}
 
 	return warnings, errors

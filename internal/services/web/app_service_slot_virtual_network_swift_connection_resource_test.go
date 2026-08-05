@@ -7,8 +7,10 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -161,7 +163,7 @@ func (r AppServiceSlotVirtualNetworkSwiftConnectionResource) Exists(ctx context.
 		return nil, err
 	}
 
-	resp, err := clients.Web.AppServicesClient.GetSwiftVirtualNetworkConnectionSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+	resp, err := clients.Web.AppServicesClientV1.GetSwiftVirtualNetworkConnectionSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return pointer.To(false), nil
@@ -172,17 +174,18 @@ func (r AppServiceSlotVirtualNetworkSwiftConnectionResource) Exists(ctx context.
 	return pointer.To(resp.SwiftVirtualNetworkProperties != nil), nil
 }
 
-func (t AppServiceSlotVirtualNetworkSwiftConnectionResource) disappears(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+func (r AppServiceSlotVirtualNetworkSwiftConnectionResource) disappears(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 	id, err := parse.SlotVirtualNetworkSwiftConnectionID(state.ID)
 	if err != nil {
 		return err
 	}
 
-	resp, err := clients.Web.AppServicesClient.DeleteSwiftVirtualNetworkSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
-	if err != nil {
-		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("deleting %s: %+v", id.String(), err)
-		}
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Minute)
+	defer cancel()
+
+	appSlotID := webapps.NewSlotID(id.SubscriptionId, id.ResourceGroup, id.SiteName, id.SlotName)
+	if _, err := clients.Web.WebAppsClient.DeleteSwiftVirtualNetworkSlot(ctx, appSlotID); err != nil {
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil
@@ -195,12 +198,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-appservice-%d"
-  location = "%s"
+  name     = "acctestRG-appservice-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctest-VNET-%d"
+  name                = "acctest-VNET-%[1]d"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -241,32 +244,34 @@ resource "azurerm_subnet" "test2" {
   }
 }
 
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctest-ASP-%d"
+resource "azurerm_service_plan" "test" {
+  name                = "acctest-ASP-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  os_type             = "Windows"
+  sku_name            = "S1"
+}
 
-  sku {
-    tier = "Standard"
-    size = "S1"
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctest-AS-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
+}
+
+resource "azurerm_windows_web_app_slot" "test-staging" {
+  name           = "acctest-AS-%[1]d-staging"
+  app_service_id = azurerm_windows_web_app.test.id
+
+  site_config {}
+
+  lifecycle {
+    ignore_changes = [virtual_network_subnet_id]
   }
 }
-
-resource "azurerm_app_service" "test" {
-  name                = "acctest-AS-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  app_service_plan_id = azurerm_app_service_plan.test.id
-}
-
-resource "azurerm_app_service_slot" "test-staging" {
-  name                = "acctest-AS-%d-staging"
-  app_service_name    = azurerm_app_service.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  app_service_plan_id = azurerm_app_service_plan.test.id
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r AppServiceSlotVirtualNetworkSwiftConnectionResource) app_basic(data acceptance.TestData) string {
@@ -274,8 +279,8 @@ func (r AppServiceSlotVirtualNetworkSwiftConnectionResource) app_basic(data acce
 %s
 
 resource "azurerm_app_service_slot_virtual_network_swift_connection" "test" {
-  slot_name      = azurerm_app_service_slot.test-staging.name
-  app_service_id = azurerm_app_service.test.id
+  slot_name      = azurerm_windows_web_app_slot.test-staging.name
+  app_service_id = azurerm_windows_web_app.test.id
   subnet_id      = azurerm_subnet.test1.id
 }
 `, r.app_base(data))
@@ -286,8 +291,8 @@ func (r AppServiceSlotVirtualNetworkSwiftConnectionResource) app_update(data acc
 %s
 
 resource "azurerm_app_service_slot_virtual_network_swift_connection" "test" {
-  slot_name      = azurerm_app_service_slot.test-staging.name
-  app_service_id = azurerm_app_service.test.id
+  slot_name      = azurerm_windows_web_app_slot.test-staging.name
+  app_service_id = azurerm_windows_web_app.test.id
   subnet_id      = azurerm_subnet.test2.id
 }
 `, r.app_base(data))
@@ -312,12 +317,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-functionapp-%d"
-  location = "%s"
+  name     = "acctestRG-functionapp-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctest-VNET-%d"
+  name                = "acctest-VNET-%[1]d"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -359,43 +364,45 @@ resource "azurerm_subnet" "test2" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
+  name                     = "acctestsa%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctest-ASP-%d"
+resource "azurerm_service_plan" "test" {
+  name                = "acctest-ASP-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  os_type             = "Windows"
+  sku_name            = "S1"
+}
 
-  sku {
-    tier = "Standard"
-    size = "S1"
+resource "azurerm_windows_function_app" "test" {
+  name                       = "acctest-FA-%[1]d"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  service_plan_id            = azurerm_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {}
+}
+
+resource "azurerm_windows_function_app_slot" "test-staging" {
+  name                       = "acctest-slot-%[1]d"
+  function_app_id            = azurerm_windows_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {}
+
+  lifecycle {
+    ignore_changes = [virtual_network_subnet_id]
   }
 }
-
-resource "azurerm_function_app" "test" {
-  name                       = "acctest-FA-%d"
-  resource_group_name        = azurerm_resource_group.test.name
-  location                   = azurerm_resource_group.test.location
-  app_service_plan_id        = azurerm_app_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
-}
-
-resource "azurerm_function_app_slot" "test-staging" {
-  name                       = "acctest-FA-%d-staging"
-  resource_group_name        = azurerm_resource_group.test.name
-  location                   = azurerm_resource_group.test.location
-  app_service_plan_id        = azurerm_app_service_plan.test.id
-  function_app_name          = azurerm_function_app.test.name
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r AppServiceSlotVirtualNetworkSwiftConnectionResource) function_basic(data acceptance.TestData) string {
@@ -403,8 +410,8 @@ func (r AppServiceSlotVirtualNetworkSwiftConnectionResource) function_basic(data
 %s
 
 resource "azurerm_app_service_slot_virtual_network_swift_connection" "test" {
-  slot_name      = azurerm_function_app_slot.test-staging.name
-  app_service_id = azurerm_function_app.test.id
+  slot_name      = azurerm_windows_function_app_slot.test-staging.name
+  app_service_id = azurerm_windows_function_app.test.id
   subnet_id      = azurerm_subnet.test1.id
 }
 `, r.function_base(data))
@@ -415,8 +422,8 @@ func (r AppServiceSlotVirtualNetworkSwiftConnectionResource) function_update(dat
 %s
 
 resource "azurerm_app_service_slot_virtual_network_swift_connection" "test" {
-  slot_name      = azurerm_function_app_slot.test-staging.name
-  app_service_id = azurerm_function_app.test.id
+  slot_name      = azurerm_windows_function_app_slot.test-staging.name
+  app_service_id = azurerm_windows_function_app.test.id
   subnet_id      = azurerm_subnet.test2.id
 }
 `, r.function_base(data))

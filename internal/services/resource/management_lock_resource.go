@@ -76,7 +76,8 @@ func resourceManagementLockCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	defer cancel()
 
 	id := managementlocks.NewScopedLockID(d.Get("scope").(string), d.Get("name").(string))
-	if d.IsNewResource() {
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.GetByScope(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {

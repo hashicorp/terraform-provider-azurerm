@@ -6,7 +6,6 @@ package containers
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -114,25 +113,26 @@ func (r ContainerRegistryCredentialSetResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			log.Printf("[INFO] preparing arguments for Container Registry Credential Set creation.")
-
 			registryId, err := registries.ParseRegistryID(config.ContainerRegistryId)
 			if err != nil {
 				return err
 			}
 
-			id := credentialsets.NewCredentialSetID(subscriptionId,
+			id := credentialsets.NewCredentialSetID(
+				subscriptionId,
 				registryId.ResourceGroupName,
 				registryId.RegistryName,
 				config.Name,
 			)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			identityExpanded, err := identity.ExpandSystemAssignedFromModel(config.Identity)
@@ -149,7 +149,7 @@ func (r ContainerRegistryCredentialSetResource) Create() sdk.ResourceFunc {
 				Identity: identityExpanded,
 			}
 
-			if err := client.CreateThenPoll(ctx, id, param); err != nil {
+			if err := client.CreateCallbackThenPoll(ctx, id, param, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

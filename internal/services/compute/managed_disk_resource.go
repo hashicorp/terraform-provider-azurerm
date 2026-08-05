@@ -23,6 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -31,7 +32,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name managed_disk -service-package-name compute -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name "empty"
+//go:generate go run ../../tools/generator-tests resourceidentity -test-name "empty"
 
 func resourceManagedDisk() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -215,7 +216,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				// TODO: make this case-sensitive once this bug in the Azure API has been fixed:
-				//       https://github.com/Azure/azure-rest-api-specs/issues/8132
+				//    https://github.com/Azure/azure-rest-api-specs/issues/8132
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc:     validate.DiskEncryptionSetID,
 				ConflictsWith:    []string{"secure_vm_disk_encryption_set_id"},
@@ -237,7 +238,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				// TODO: make this case-sensitive once this bug in the Azure API has been fixed:
-				//       https://github.com/Azure/azure-rest-api-specs/issues/14192
+				//    https://github.com/Azure/azure-rest-api-specs/issues/14192
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc:     diskaccesses.ValidateDiskAccessID,
 			},
@@ -321,13 +322,12 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure ARM Managed Disk creation.")
-
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	id := commonids.NewManagedDiskID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -579,17 +579,8 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
-	err := client.CreateOrUpdateThenPoll(ctx, id, createDisk)
-	if err != nil {
-		return fmt.Errorf("creating/updating Managed Disk %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	read, err := client.Get(ctx, id)
-	if err != nil {
-		return fmt.Errorf("retrieving Managed Disk %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if read.Model == nil {
-		return fmt.Errorf("reading Managed Disk %s (Resource Group %q): ID was nil", name, resourceGroup)
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, createDisk, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
+		return fmt.Errorf("creating Managed Disk %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(id.ID())
@@ -606,8 +597,6 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	skusClient := meta.(*clients.Client).Compute.SkusClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Azure ARM Managed Disk update.")
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)

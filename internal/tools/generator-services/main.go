@@ -269,6 +269,8 @@ v/3.x:
   - '### AzureRM Provider Version\s+(|azurerm |AzureRM )(|v|V)3\.\d+'
 v/4.x:
   - '### AzureRM Provider Version\s+(|azurerm |AzureRM )(|v|V)4\.\d+'
+v/5.x:
+  - '### AzureRM Provider Version\s+(|azurerm |AzureRM )(|v|V)5\.\d+'
 `
 
 const azurerm = "azurerm_"

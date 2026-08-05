@@ -141,7 +141,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 												ForceNew: true,
 												Elem: &pluginsdk.Schema{
 													Type:         pluginsdk.TypeString,
-													ValidateFunc: validate.Email,
+													ValidateFunc: validation.IsEmailAddress,
 												},
 												AtLeastOneOf: []string{"azure_devops_organization.0.permission.0.administrator_account.0.groups", "azure_devops_organization.0.permission.0.administrator_account.0.users"},
 											},
@@ -152,7 +152,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 												ForceNew: true,
 												Elem: &pluginsdk.Schema{
 													Type:         pluginsdk.TypeString,
-													ValidateFunc: validate.Email,
+													ValidateFunc: validation.IsEmailAddress,
 												},
 												AtLeastOneOf: []string{"azure_devops_organization.0.permission.0.administrator_account.0.groups", "azure_devops_organization.0.permission.0.administrator_account.0.users"},
 											},
@@ -412,12 +412,14 @@ func (r ManagedDevOpsPoolResource) Create() sdk.ResourceFunc {
 
 			id := pools.NewPoolID(subscriptionId, config.ResourceGroupName, config.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			expandedIdentity, err := identity.ExpandUserAssignedMapFromModel(config.Identity)
@@ -449,7 +451,7 @@ func (r ManagedDevOpsPoolResource) Create() sdk.ResourceFunc {
 				Tags: pointer.To(config.Tags),
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

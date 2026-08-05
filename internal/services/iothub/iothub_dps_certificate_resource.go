@@ -80,15 +80,17 @@ func resourceIotHubDPSCertificateCreate(d *pluginsdk.ResourceData, meta interfac
 
 	id := dpscertificate.NewCertificateID(subscriptionId, d.Get("resource_group_name").(string), d.Get("iot_dps_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id, dpscertificate.GetOperationOptions{IfMatch: pointer.To("")})
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing IoT Device Provisioning Service Certificate %s: %+v", id.String(), err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id, dpscertificate.GetOperationOptions{IfMatch: pointer.To("")})
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing IoT Device Provisioning Service Certificate %s: %+v", id.String(), err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_iothub_dps_certificate", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_iothub_dps_certificate", id.ID())
+		}
 	}
 
 	certificate := dpscertificate.CertificateResponse{

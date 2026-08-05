@@ -241,12 +241,15 @@ func (r GalleryApplicationVersionResource) Create() sdk.ResourceFunc {
 			}
 
 			id := galleryapplicationversions.NewApplicationVersionID(subscriptionId, galleryApplicationId.ResourceGroupName, galleryApplicationId.GalleryName, galleryApplicationId.ApplicationName, state.Name)
-			existing, err := client.Get(ctx, id, galleryapplicationversions.DefaultGetOperationOptions())
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for the presence of existing %q: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id, galleryapplicationversions.DefaultGetOperationOptions())
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for the presence of existing %q: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			payload := galleryapplicationversions.GalleryApplicationVersion{
@@ -287,7 +290,7 @@ func (r GalleryApplicationVersionResource) Create() sdk.ResourceFunc {
 				payload.Properties.PublishingProfile.Settings.PackageFileName = &state.PackageFile
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -445,7 +448,6 @@ func (r GalleryApplicationVersionResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
-			metadata.Logger.Infof("Waiting for %s to be eventually deleted", *id)
 			timeout, _ := ctx.Deadline()
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending: []string{"Exists"},
