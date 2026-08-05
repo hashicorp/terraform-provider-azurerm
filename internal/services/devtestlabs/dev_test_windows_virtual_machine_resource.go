@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package devtestlabs
@@ -8,19 +8,21 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/virtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceArmDevTestWindowsVirtualMachine() *pluginsdk.Resource {
@@ -133,7 +135,7 @@ func resourceArmDevTestWindowsVirtualMachine() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 
 			"fqdn": {
 				Type:     pluginsdk.TypeString,
@@ -154,20 +156,20 @@ func resourceArmDevTestWindowsVirtualMachineCreateUpdate(d *pluginsdk.ResourceDa
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for DevTest Windows Virtual Machine creation")
-
 	id := virtualmachines.NewVirtualMachineID(subscriptionId, d.Get("resource_group_name").(string), d.Get("lab_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, virtualmachines.GetOperationOptions{})
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id, virtualmachines.GetOperationOptions{})
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_dev_test_windows_virtual_machine", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_dev_test_windows_virtual_machine", id.ID())
+			}
 		}
 	}
 
@@ -175,7 +177,7 @@ func resourceArmDevTestWindowsVirtualMachineCreateUpdate(d *pluginsdk.ResourceDa
 	disallowPublicIPAddress := d.Get("disallow_public_ip_address").(bool)
 	labSubnetName := d.Get("lab_subnet_name").(string)
 	labVirtualNetworkId := d.Get("lab_virtual_network_id").(string)
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	notes := d.Get("notes").(string)
 	password := d.Get("password").(string)
 	size := d.Get("size").(string)
@@ -200,31 +202,35 @@ func resourceArmDevTestWindowsVirtualMachineCreateUpdate(d *pluginsdk.ResourceDa
 	}
 
 	parameters := virtualmachines.LabVirtualMachine{
-		Location: utils.String(location),
+		Location: pointer.To(location),
 		Properties: virtualmachines.LabVirtualMachineProperties{
-			AllowClaim:                 utils.Bool(allowClaim),
-			IsAuthenticationWithSshKey: utils.Bool(false),
-			DisallowPublicIPAddress:    utils.Bool(disallowPublicIPAddress),
+			AllowClaim:                 pointer.To(allowClaim),
+			IsAuthenticationWithSshKey: pointer.To(false),
+			DisallowPublicIPAddress:    pointer.To(disallowPublicIPAddress),
 			GalleryImageReference:      galleryImageReference,
-			LabSubnetName:              utils.String(labSubnetName),
-			LabVirtualNetworkId:        utils.String(labVirtualNetworkId),
+			LabSubnetName:              pointer.To(labSubnetName),
+			LabVirtualNetworkId:        pointer.To(labVirtualNetworkId),
 			NetworkInterface:           &nic,
-			OsType:                     utils.String("Windows"),
-			Notes:                      utils.String(notes),
-			Password:                   utils.String(password),
-			Size:                       utils.String(size),
-			StorageType:                utils.String(storageType),
-			UserName:                   utils.String(username),
+			OsType:                     pointer.To("Windows"),
+			Notes:                      pointer.To(notes),
+			Password:                   pointer.To(password),
+			Size:                       pointer.To(size),
+			StorageType:                pointer.To(storageType),
+			UserName:                   pointer.To(username),
 		},
 		Tags: expandTags(d.Get("tags").(map[string]interface{})),
 	}
 
-	err := client.CreateOrUpdateThenPoll(ctx, id, parameters)
-	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
-
-	d.SetId(id.ID())
 
 	return resourceArmDevTestWindowsVirtualMachineRead(d, meta)
 }
@@ -255,8 +261,8 @@ func resourceArmDevTestWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := read.Model; model != nil {
-		if location := model.Location; location != nil {
-			d.Set("location", azure.NormalizeLocation(*location))
+		if loc := model.Location; loc != nil {
+			d.Set("location", location.Normalize(*loc))
 		}
 
 		props := model.Properties

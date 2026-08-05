@@ -26,14 +26,12 @@ resource "azurerm_key_vault_managed_hardware_security_module" "example" {
   admin_object_ids         = [data.azurerm_client_config.current.object_id]
   purge_protection_enabled = false
 
-  active_config {
-    security_domain_certificate = [
-      azurerm_key_vault_certificate.cert[0].id,
-      azurerm_key_vault_certificate.cert[1].id,
-      azurerm_key_vault_certificate.cert[2].id,
-    ]
-    security_domain_quorum = 2
-  }
+  security_domain_key_vault_certificate_ids = [
+    azurerm_key_vault_certificate.cers["1"].id,
+    azurerm_key_vault_certificate.cers["2"].id,
+    azurerm_key_vault_certificate.cers["3"].id,
+  ]
+  security_domain_quorum = 2
 }
 
 // this gives your service principal the HSM Crypto User role which lets you create and destroy hsm keys
@@ -68,7 +66,7 @@ resource "azurerm_key_vault_managed_hardware_security_module_key" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -103,7 +101,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Key Vault Managed Hardware Security Module Key.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault Managed Hardware Security Module Key.
@@ -122,4 +120,4 @@ terraform import azurerm_key_vault_managed_hardware_security_module_key.example 
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.KeyVault`: 2023-07-01
+* `Microsoft.KeyVault` - 2026-02-01

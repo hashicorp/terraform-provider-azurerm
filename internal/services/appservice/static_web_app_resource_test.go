@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice_test
@@ -121,13 +121,6 @@ func TestAccAzureStaticWebApp_identity(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.withSystemAssignedUserAssignedIdentity(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
 			Config: r.withUserAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -138,24 +131,6 @@ func TestAccAzureStaticWebApp_identity(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccAzureStaticWebApp_withSystemAssignedUserAssignedIdentity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_static_web_app", "test")
-	r := StaticWebAppResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.withSystemAssignedUserAssignedIdentity(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
-				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned, UserAssigned"),
-				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -346,6 +321,28 @@ func TestAccAzureStaticWebApp_publicNetworkAccessUpdate(t *testing.T) {
 	})
 }
 
+func TestAccAzureStaticWebApp_privateEndpointUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_static_web_app", "test")
+	r := StaticWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withPrivateEndpoint(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withPrivateEndpointUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r StaticWebAppResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := staticsites.ParseStaticSiteID(state.ID)
 	if err != nil {
@@ -434,39 +431,6 @@ resource "azurerm_static_web_app" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
-}
-
-func (r StaticWebAppResource) withSystemAssignedUserAssignedIdentity(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_user_assigned_identity" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-
-  name = "acctest-%[1]d"
-}
-
-resource "azurerm_static_web_app" "test" {
-  name                = "acctestSS-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku_size            = "Standard"
-  sku_tier            = "Standard"
-
-  identity {
-    type         = "SystemAssigned, UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.test.id]
-  }
-}
-`, data.RandomInteger, data.Locations.Primary) // TODO - Put back to primary when support ticket is resolved
 }
 
 func (r StaticWebAppResource) withUserAssignedIdentity(data acceptance.TestData) string {
@@ -672,7 +636,7 @@ resource "azurerm_static_web_app" "test" {
   preview_environments_enabled       = false
 
   identity {
-    type         = "SystemAssigned, UserAssigned"
+    type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
@@ -713,4 +677,115 @@ resource "azurerm_static_web_app" "test" {
   public_network_access_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r StaticWebAppResource) withPrivateEndpoint(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvnet-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.10.0.0/24"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsnet-pe-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.10.0.0/27"]
+}
+
+resource "azurerm_static_web_app" "test" {
+  name                = "acctestswa-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku_tier            = "Standard"
+  sku_size            = "Standard"
+
+  public_network_access_enabled = false
+
+  tags = {
+    env = "test"
+  }
+}
+
+resource "azurerm_private_endpoint" "test" {
+  name                = "acctestpe-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  subnet_id           = azurerm_subnet.test.id
+
+  private_service_connection {
+    name                           = "swa"
+    private_connection_resource_id = azurerm_static_web_app.test.id
+    subresource_names              = ["staticSites"]
+    is_manual_connection           = false
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r StaticWebAppResource) withPrivateEndpointUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvnet-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.10.0.0/24"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsnet-pe-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.10.0.0/27"]
+}
+
+resource "azurerm_static_web_app" "test" {
+  name                = "acctestswa-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku_tier            = "Standard"
+  sku_size            = "Standard"
+
+  public_network_access_enabled = false
+
+  tags = {
+    env  = "test"
+    env1 = "test1"
+  }
+}
+
+resource "azurerm_private_endpoint" "test" {
+  name                = "acctestpe-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  subnet_id           = azurerm_subnet.test.id
+
+  private_service_connection {
+    name                           = "swa"
+    private_connection_resource_id = azurerm_static_web_app.test.id
+    subresource_names              = ["staticSites"]
+    is_manual_connection           = false
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

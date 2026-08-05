@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package synapse
@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/migration"
@@ -122,30 +122,33 @@ func resourceSynapseIntegrationRuntimeAzureCreateUpdate(d *pluginsdk.ResourceDat
 	}
 
 	id := parse.NewIntegrationRuntimeID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, d.Get("name").(string))
+
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, "")
+			if err != nil {
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_synapse_integration_runtime_azure", id.ID())
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return tf.ImportAsExistsError("azurerm_synapse_integration_runtime_azure", id.ID())
+			}
 		}
 	}
 
 	integrationRuntime := synapse.IntegrationRuntimeResource{
-		Name: utils.String(id.Name),
+		Name: pointer.To(id.Name),
 		Properties: synapse.ManagedIntegrationRuntime{
-			Description: utils.String(d.Get("description").(string)),
+			Description: pointer.To(d.Get("description").(string)),
 			Type:        synapse.TypeBasicIntegrationRuntimeTypeManaged,
 			ManagedIntegrationRuntimeTypeProperties: &synapse.ManagedIntegrationRuntimeTypeProperties{
 				ComputeProperties: &synapse.IntegrationRuntimeComputeProperties{
-					Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+					Location: pointer.To(location.Normalize(d.Get("location").(string))),
 					DataFlowProperties: &synapse.IntegrationRuntimeDataFlowProperties{
 						ComputeType: synapse.DataFlowComputeType(d.Get("compute_type").(string)),
-						CoreCount:   utils.Int32(int32(d.Get("core_count").(int))),
-						TimeToLive:  utils.Int32(int32(d.Get("time_to_live_min").(int))),
+						CoreCount:   pointer.To(int32(d.Get("core_count").(int))),
+						TimeToLive:  pointer.To(int32(d.Get("time_to_live_min").(int))),
 					},
 				},
 			},
@@ -156,11 +159,14 @@ func resourceSynapseIntegrationRuntimeAzureCreateUpdate(d *pluginsdk.ResourceDat
 	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
+
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
+
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting on creation for %s: %+v", id, err)
 	}
-
-	d.SetId(id.ID())
 
 	return resourceSynapseIntegrationRuntimeAzureRead(d, meta)
 }

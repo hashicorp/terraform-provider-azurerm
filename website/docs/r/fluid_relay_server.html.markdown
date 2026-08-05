@@ -91,7 +91,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Fluid Relay Server.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Fluid Relay Server.
@@ -110,4 +110,4 @@ terraform import azurerm_fluid_relay_server.example /subscriptions/00000000-0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.FluidRelay`: 2022-05-26
+* `Microsoft.FluidRelay` - 2022-05-26

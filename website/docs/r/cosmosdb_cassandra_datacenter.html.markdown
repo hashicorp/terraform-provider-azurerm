@@ -98,9 +98,7 @@ The following arguments are supported:
 
 * `managed_disk_customer_key_uri` - (Optional) The key URI of the customer key to use for the encryption of the Managed Disk.
 
-* `sku_name` - (Optional) Determines the selected sku.
-
--> **Note:** In v4.0 of the provider the `sku_name` will have a default value of `Standard_E16s_v5`.
+* `sku_name` - (Optional) Determines the selected sku. Defaults to `Standard_E16s_v5`.
 
 * `disk_count` - (Optional) Determines the number of p30 disks that are attached to each node.
 
@@ -116,7 +114,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 1 hour) Used when creating the Cassandra Datacenter.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Cassandra Datacenter.
@@ -135,4 +133,4 @@ terraform import azurerm_cosmosdb_cassandra_datacenter.example /subscriptions/12
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DocumentDB`: 2023-04-15
+* `Microsoft.DocumentDB` - 2023-04-15

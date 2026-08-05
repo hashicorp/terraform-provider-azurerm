@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dynatrace
@@ -28,12 +28,38 @@ func ExpandDynatraceUserInfo(input []UserInfo) *monitors.UserInfo {
 	}
 	v := input[0]
 
-	return pointer.To(monitors.UserInfo{
-		Country:      pointer.To(v.Country),
+	userInfo := monitors.UserInfo{
 		EmailAddress: pointer.To(v.EmailAddress),
 		FirstName:    pointer.To(v.FirstName),
 		LastName:     pointer.To(v.LastName),
-		PhoneNumber:  pointer.To(v.PhoneNumber),
+	}
+
+	if v.Country != "" {
+		userInfo.Country = pointer.To(v.Country)
+	}
+
+	if v.PhoneNumber != "" {
+		userInfo.PhoneNumber = pointer.To(v.PhoneNumber)
+	}
+
+	return pointer.To(userInfo)
+}
+
+func ExpandDynatraceEnvironmentProperties(input []EnvironmentProperties) *monitors.DynatraceEnvironmentProperties {
+	if len(input) == 0 {
+		return nil
+	}
+	v := input[0]
+
+	var environmentInfo monitors.EnvironmentInfo
+	if len(v.EnvironmentInfo) > 0 {
+		environmentInfo = monitors.EnvironmentInfo{
+			EnvironmentId: pointer.To(v.EnvironmentInfo[0].EnvironmentId),
+		}
+	}
+
+	return pointer.To(monitors.DynatraceEnvironmentProperties{
+		EnvironmentInfo: &environmentInfo,
 	})
 }
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package authorization_test
@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type PimEligibleRoleAssignmentResource struct{}
@@ -160,12 +159,12 @@ func (r PimEligibleRoleAssignmentResource) Exists(ctx context.Context, client *c
 				props.Scope != nil && strings.EqualFold(*props.Scope, scopeId.ID()) &&
 				props.PrincipalId != nil && strings.EqualFold(*props.PrincipalId, id.PrincipalId) &&
 				props.MemberType != nil && *props.MemberType == roleeligibilityschedules.MemberTypeDirect {
-				return utils.Bool(true), nil
+				return pointer.To(true), nil
 			}
 		}
 	}
 
-	return utils.Bool(false), nil
+	return pointer.To(false), nil
 }
 
 func (PimEligibleRoleAssignmentResource) template(data acceptance.TestData) string {

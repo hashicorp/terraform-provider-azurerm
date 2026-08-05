@@ -15,7 +15,7 @@ type unknownType struct {
 // on the unknown value, but all unknown values start as totally unknown
 // and we will also typically lose all unknown value refinements when
 // round-tripping through serialization formats.
-var totallyUnknown interface{} = &unknownType{}
+var totallyUnknown any = &unknownType{}
 
 // UnknownVal returns an Value that represents an unknown value of the given
 // type. Unknown values can be used to represent a value that is

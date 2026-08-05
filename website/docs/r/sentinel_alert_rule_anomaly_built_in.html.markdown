@@ -7,7 +7,7 @@ description: |-
 ---
 ## Disclaimers
 
-~> **Note:** A Built-in Anomaly Alert Rule could not be deleted. delete a Terraform managed Built-in Anomaly Alert Rule will cause the Built-in Anomaly Alert Rule to be disabled.
+~> **Note:** A Built-in Anomaly Alert Rule cannot be deleted. Deleting a Terraform managed Built-in Anomaly Alert Rule will cause the Built-in Anomaly Alert Rule to be disabled.
 
 # azurerm_sentinel_alert_rule_anomaly_built_in
 
@@ -50,9 +50,9 @@ resource "azurerm_sentinel_alert_rule_anomaly_built_in" "example" {
 
 The following arguments are supported:
 
-* `name` - (Optional) The Name of the built-in Anomaly Alert Rule.
+* `name` - (Optional) The Name of the built-in Anomaly Alert Rule. Changing this forces a new resource to be created.
 
-* `display_name` - (Optional) The Display Name of the built-in Anomaly Alert Rule.
+* `display_name` - (Optional) The Display Name of the built-in Anomaly Alert Rule. Changing this forces a new resource to be created.
 
 ~> **Note:** One of `name` or `display_name` block must be specified.
 
@@ -152,7 +152,7 @@ A `threshold_observation` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Built In Anomaly Alert Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Built In Anomaly Alert Rule.
@@ -166,3 +166,11 @@ Built In Anomaly Alert Rules can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_sentinel_alert_rule_anomaly_built_in.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.OperationalInsights/workspaces/workspace1/providers/Microsoft.SecurityInsights/securityMLAnalyticsSettings/setting1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.OperationalInsights` - 2022-10-01-preview
+
+* `Microsoft.SecurityInsights` - 2022-10-01-preview

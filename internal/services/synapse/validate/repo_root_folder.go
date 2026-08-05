@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -13,5 +13,6 @@ import (
 func RepoRootFolder() pluginsdk.SchemaValidateFunc {
 	return validation.StringMatch(
 		regexp.MustCompile(`^\/(.*\/?)*$`),
-		"Root folder must start with '/' and needs to be a valid git path")
+		"Root folder must start with '/' and needs to be a valid git path",
+	)
 }

@@ -29,24 +29,24 @@ resource "azurerm_storage_account" "example" {
 }
 
 resource "azurerm_storage_share" "example" {
-  name                 = "sharename"
-  storage_account_name = azurerm_storage_account.example.name
-  quota                = 50
+  name               = "sharename"
+  storage_account_id = azurerm_storage_account.example.id
+  quota              = 50
 }
 
 resource "azurerm_storage_share_directory" "example" {
-  name             = "example"
-  storage_share_id = azurerm_storage_share.example.id
+  name              = "example"
+  storage_share_url = azurerm_storage_share.example.url
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
 * `name` - (Required) The name (or path) of the Directory that should be created within this File Share. Changing this forces a new resource to be created.
 
-* `storage_share_id` - (Required) The Storage Share ID in which this file will be placed into. Changing this forces a new resource to be created.
+* `storage_share_url` - (Required) The Storage Share URL in which this file will be placed into. Changing this forces a new resource to be created.
 
 * `metadata` - (Optional) A mapping of metadata to assign to this Directory.
 
@@ -58,7 +58,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Storage Share Directory.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Storage Share Directory.

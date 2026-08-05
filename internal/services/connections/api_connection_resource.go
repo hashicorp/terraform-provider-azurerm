@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package connections
@@ -23,12 +23,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func resourceConnection() *pluginsdk.Resource {
+func resourceApiConnection() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
-		Create: resourceConnectionCreate,
-		Read:   resourceConnectionRead,
-		Update: resourceConnectionUpdate,
-		Delete: resourceConnectionDelete,
+		Create: resourceApiConnectionCreate,
+		Read:   resourceApiConnectionRead,
+		Update: resourceApiConnectionUpdate,
+		Delete: resourceApiConnectionDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -85,21 +85,24 @@ func resourceConnection() *pluginsdk.Resource {
 	return resource
 }
 
-func resourceConnectionCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiConnectionCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Connections.ConnectionsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := connections.NewConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_api_connection", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_api_connection", id.ID())
+		}
 	}
 
 	managedAppId, err := managedapis.ParseManagedApiID(d.Get("managed_api_id").(string))
@@ -127,10 +130,10 @@ func resourceConnectionCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	d.SetId(id.ID())
-	return resourceConnectionRead(d, meta)
+	return resourceApiConnectionRead(d, meta)
 }
 
-func resourceConnectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiConnectionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Connections.ConnectionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -177,7 +180,7 @@ func resourceConnectionRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceConnectionUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiConnectionUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Connections.ConnectionsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -221,10 +224,10 @@ func resourceConnectionUpdate(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
-	return resourceConnectionRead(d, meta)
+	return resourceApiConnectionRead(d, meta)
 }
 
-func resourceConnectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiConnectionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Connections.ConnectionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

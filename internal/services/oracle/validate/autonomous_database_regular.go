@@ -1,16 +1,15 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
 
 import (
 	"fmt"
-	"net/mail"
 	"strings"
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/autonomousdatabases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/autonomousdatabases"
 )
 
 func AutonomousDatabaseName(i interface{}, k string) (warnings []string, errors []error) {
@@ -31,7 +30,7 @@ func AutonomousDatabaseName(i interface{}, k string) (warnings []string, errors 
 	}
 
 	if len(v) > 30 {
-		return []string{}, append(errors, fmt.Errorf("%v must be 30 characers max", k))
+		return []string{}, append(errors, fmt.Errorf("%v must be 30 characters max", k))
 	}
 
 	return []string{}, []error{}
@@ -79,19 +78,6 @@ func AutonomousDatabasePassword(i interface{}, k string) (warnings []string, err
 	}
 	if strings.Contains(v, "admin") {
 		return []string{}, append(errors, fmt.Errorf("%v must not contain the username \"admin\"", k))
-	}
-
-	return []string{}, []error{}
-}
-
-func CustomerContactEmail(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		return []string{}, append(errors, fmt.Errorf("expected type of %s to be string", k))
-	}
-
-	if _, err := mail.ParseAddress(v); err != nil {
-		return []string{}, append(errors, fmt.Errorf("%v must be a valid email address", k))
 	}
 
 	return []string{}, []error{}

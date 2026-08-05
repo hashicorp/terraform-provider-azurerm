@@ -25,22 +25,19 @@ resource "azurerm_private_dns_zone" "example" {
 
 resource "azurerm_private_dns_cname_record" "example" {
   name                = "test"
-  zone_name           = azurerm_private_dns_zone.example.name
-  resource_group_name = azurerm_resource_group.example.name
+  private_dns_zone_id = azurerm_private_dns_zone.example.id
   ttl                 = 300
   record              = "contoso.com"
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
 * `name` - (Required) The name of the DNS CNAME Record. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) Specifies the resource group where the resource exists. Changing this forces a new resource to be created.
-
-* `zone_name` - (Required) Specifies the Private DNS Zone where the resource exists. Changing this forces a new resource to be created.
+* `private_dns_zone_id` - (Required) Specifies the ID of the Private DNS Zone where the resource exists. Changing this forces a new resource to be created.
 
 * `ttl` - (Required) The Time To Live (TTL) of the DNS record in seconds. Possible values are between `0` and `2147483647`.
 
@@ -58,7 +55,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Private DNS CNAME Record.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Private DNS CNAME Record.
@@ -77,4 +74,4 @@ terraform import azurerm_private_dns_cname_record.example /subscriptions/0000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network`: 2024-06-01
+* `Microsoft.Network` - 2024-06-01

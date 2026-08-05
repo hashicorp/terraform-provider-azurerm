@@ -189,6 +189,16 @@ func ResourceManagerAPI(endpoint string) *ApiEndpoint {
 	}
 }
 
+func SearchAPI(domainSuffix string) *ApiEndpoint {
+	return &ApiEndpoint{
+		domainSuffix:       pointer.To(domainSuffix),
+		endpoint:           nil,
+		appId:              pointer.To(searchAppId),
+		name:               "Search",
+		resourceIdentifier: nil,
+	}
+}
+
 func ServiceBusAPI(endpoint, domainSuffix string) Api {
 	return &ApiEndpoint{
 		domainSuffix:       pointer.To(domainSuffix),

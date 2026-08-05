@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssql
@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/serversecurityalertpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -21,10 +22,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-// TODO 4.0 - consider/investigate inlining this within the mssql_server resource now that it exists.
-
 func resourceMsSqlServerSecurityAlertPolicy() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Create: resourceMsSqlServerSecurityAlertPolicyCreate,
 		Read:   resourceMsSqlServerSecurityAlertPolicyRead,
 		Update: resourceMsSqlServerSecurityAlertPolicyUpdate,
@@ -68,7 +67,7 @@ func resourceMsSqlServerSecurityAlertPolicy() *pluginsdk.Resource {
 				},
 			},
 
-			"email_account_admins": {
+			"email_account_admins_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -113,6 +112,29 @@ func resourceMsSqlServerSecurityAlertPolicy() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		r.Schema["email_account_admins"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
+			ConflictsWith: []string{
+				"email_account_admins_enabled",
+			},
+			Deprecated: "`email_account_admins` has been deprecated in favour of `email_account_admins_enabled` and will be removed in v5.0 of the AzureRM Provider",
+		}
+
+		r.Schema["email_account_admins_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
+			ConflictsWith: []string{
+				"email_account_admins",
+			},
+		}
+	}
+
+	return r
 }
 
 func resourceMsSqlServerSecurityAlertPolicyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -120,8 +142,6 @@ func resourceMsSqlServerSecurityAlertPolicyCreate(d *pluginsdk.ResourceData, met
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for mssql server security alert policy creation")
 
 	payload := serversecurityalertpolicies.ServerSecurityAlertPolicy{}
 	resourceGroupName := d.Get("resource_group_name").(string)
@@ -134,7 +154,6 @@ func resourceMsSqlServerSecurityAlertPolicyCreate(d *pluginsdk.ResourceData, met
 
 	var disabledAlerts *[]string
 	var emailAddresses *[]string
-	var emailAdmins *bool
 	var retentionDays *int64
 	var storageAccountAccessKey *string
 	var storageEndpoint *string
@@ -157,12 +176,12 @@ func resourceMsSqlServerSecurityAlertPolicyCreate(d *pluginsdk.ResourceData, met
 	}
 	props.EmailAddresses = emailAddresses
 
-	// NOTE: The API defaults to 'true' for the 'EmailAccountAdmins'
-	// property, the provider defaults to 'false'...
-	if v, ok := d.GetOk("email_account_admins"); ok {
-		emailAdmins = pointer.To(v.(bool))
+	props.EmailAccountAdmins = pointer.To(d.Get("email_account_admins_enabled").(bool))
+	if !features.FivePointOh() {
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "email_account_admins") {
+			props.EmailAccountAdmins = pointer.To(d.Get("email_account_admins").(bool))
+		}
 	}
-	props.EmailAccountAdmins = emailAdmins
 
 	if v, ok := d.GetOk("retention_days"); ok {
 		retentionDays = pointer.To(int64(v.(int)))
@@ -182,8 +201,8 @@ func resourceMsSqlServerSecurityAlertPolicyCreate(d *pluginsdk.ResourceData, met
 	payload.Properties = props
 	serverId := commonids.NewSqlServerID(subscriptionId, resourceGroupName, serverName)
 
-	err := client.CreateOrUpdateThenPoll(ctx, serverId, payload)
-	if err != nil {
+	// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
+	if err := client.CreateOrUpdateThenPoll(ctx, serverId, payload); err != nil {
 		return fmt.Errorf("creating mssql server security alert policy: %+v", err)
 	}
 
@@ -212,8 +231,6 @@ func resourceMsSqlServerSecurityAlertPolicyRead(d *pluginsdk.ResourceData, meta 
 	client := meta.(*clients.Client).MSSQL.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] reading mssql server security alert policy")
 
 	id, err := parse.ServerSecurityAlertPolicyID(d.Id())
 	if err != nil {
@@ -257,11 +274,10 @@ func resourceMsSqlServerSecurityAlertPolicyRead(d *pluginsdk.ResourceData, meta 
 	}
 	d.Set("disabled_alerts", disabledAlerts)
 
-	var emailAdmins bool
-	if props.EmailAccountAdmins != nil {
-		emailAdmins = *props.EmailAccountAdmins
+	d.Set("email_account_admins_enabled", props.EmailAccountAdmins)
+	if !features.FivePointOh() {
+		d.Set("email_account_admins", props.EmailAccountAdmins)
 	}
-	d.Set("email_account_admins", emailAdmins)
 
 	emailAddresses := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
 	if props.EmailAddresses != nil {
@@ -300,8 +316,6 @@ func resourceMsSqlServerSecurityAlertPolicyUpdate(d *pluginsdk.ResourceData, met
 	client := meta.(*clients.Client).MSSQL.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for mssql server security alert policy update")
 
 	id, err := parse.ServerSecurityAlertPolicyID(d.Id())
 	if err != nil {
@@ -355,12 +369,14 @@ func resourceMsSqlServerSecurityAlertPolicyUpdate(d *pluginsdk.ResourceData, met
 		props.EmailAddresses = pointer.To(emailAddresses)
 	}
 
-	if d.HasChange("email_account_admins") {
-		var emailAdmins *bool
-		if v, ok := d.GetOk("email_account_admins"); ok {
-			emailAdmins = pointer.To(v.(bool))
+	if d.HasChange("email_account_admins_enabled") {
+		props.EmailAccountAdmins = pointer.To(d.Get("email_account_admins_enabled").(bool))
+	}
+
+	if !features.FivePointOh() {
+		if d.HasChange("email_account_admins") {
+			props.EmailAccountAdmins = pointer.To(d.Get("email_account_admins").(bool))
 		}
-		props.EmailAccountAdmins = emailAdmins
 	}
 
 	if d.HasChange("retention_days") {
@@ -399,8 +415,6 @@ func resourceMsSqlServerSecurityAlertPolicyDelete(d *pluginsdk.ResourceData, met
 	client := meta.(*clients.Client).MSSQL.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] deleting mssql server security alert policy")
 
 	id, err := parse.ServerSecurityAlertPolicyID(d.Id())
 	if err != nil {

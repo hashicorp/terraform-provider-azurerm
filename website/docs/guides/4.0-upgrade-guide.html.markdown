@@ -638,7 +638,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 * The deprecated `tags` property has been removed.
 
-### `azurem_cdn_endpoint`
+### `azurerm_cdn_endpoint`
 
 * The `origin_path` property is no longer Computed. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
 * The `content_types_to_compress` property is no longer Computed. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.

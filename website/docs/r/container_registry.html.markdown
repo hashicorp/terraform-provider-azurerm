@@ -29,14 +29,16 @@ resource "azurerm_container_registry" "acr" {
   sku                 = "Premium"
   admin_enabled       = false
   georeplications {
-    location                = "East US"
-    zone_redundancy_enabled = true
-    tags                    = {}
+    location                        = "East US"
+    global_endpoint_routing_enabled = true
+    zone_redundancy_enabled         = true
+    tags                            = {}
   }
   georeplications {
-    location                = "North Europe"
-    zone_redundancy_enabled = true
-    tags                    = {}
+    location                        = "North Europe"
+    global_endpoint_routing_enabled = true
+    zone_redundancy_enabled         = true
+    tags                            = {}
   }
 }
 ```
@@ -130,7 +132,7 @@ resource "azurerm_role_assignment" "example" {
 
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -160,15 +162,15 @@ The following arguments are supported:
 
 * `quarantine_policy_enabled` - (Optional) Boolean value that indicates whether quarantine policy is enabled.
 
-* `retention_policy_in_days` - (Optional) The number of days to retain and untagged manifest after which it gets purged. Defaults to `7`.
-
-* `trust_policy_enabled` - (Optional) Boolean value that indicated whether trust policy is enabled. Defaults to `false`.
+* `retention_policy_in_days` - (Optional) The number of days to retain and untagged manifest after which it gets purged.
 
 * `zone_redundancy_enabled` - (Optional) Whether zone redundancy is enabled for this Container Registry? Changing this forces a new resource to be created. Defaults to `false`.
 
 * `export_policy_enabled` - (Optional) Boolean value that indicates whether export policy is enabled. Defaults to `true`. In order to set it to `false`, make sure the `public_network_access_enabled` is also set to `false`.
 
-~> **Note:** `quarantine_policy_enabled`, `retention_policy_in_days`, `trust_policy_enabled`, `export_policy_enabled` and `zone_redundancy_enabled` are only supported on resources with the `Premium` SKU.
+* `azuread_authentication_as_arm_policy_enabled` - (Optional) Whether to use Azure Resource Manager audience token for this Container Registry? Defaults to `true`.
+
+~> **Note:** `quarantine_policy_enabled`, `retention_policy_in_days`, `export_policy_enabled` and `zone_redundancy_enabled` are only supported on resources with the `Premium` SKU.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -180,13 +182,17 @@ The following arguments are supported:
 
 * `network_rule_bypass_option` - (Optional) Whether to allow trusted Azure services to access a network-restricted Container Registry? Possible values are `None` and `AzureServices`. Defaults to `AzureServices`.
 
+* `network_rule_bypass_for_tasks_enabled` - (Optional) Whether to allow Container Registry Tasks to access a network-restricted Container Registry? Defaults to `false`.
+
+* `role_assignment_mode` - (Optional) The role assignment mode of this Container Registry. Possible values are `AbacRepositoryPermissions` and `LegacyRegistryPermissions`. Defaults to `LegacyRegistryPermissions`.
+
 ---
 
 The `georeplications` block supports the following:
 
 * `location` - (Required) A location where the container registry should be geo-replicated.
 
-* `regional_endpoint_enabled` - (Optional) Whether regional endpoint is enabled for this Container Registry?
+* `global_endpoint_routing_enabled` - (Required) Whether this geo-replicated location participates in global endpoint routing for the Container Registry's geo-replicated login server.
 
 * `zone_redundancy_enabled` - (Optional) Whether zone redundancy is enabled for this replication location? Defaults to `false`.
 
@@ -266,7 +272,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Container Registry.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container Registry.
@@ -285,4 +291,4 @@ terraform import azurerm_container_registry.example /subscriptions/00000000-0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ContainerRegistry`: 2023-11-01-preview
+* `Microsoft.ContainerRegistry` - 2025-11-01

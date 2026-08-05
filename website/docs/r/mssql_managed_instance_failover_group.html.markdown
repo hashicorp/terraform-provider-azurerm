@@ -58,10 +58,9 @@ resource "azurerm_virtual_network" "primary" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "primary" {
-  name                  = "primary-link"
-  resource_group_name   = azurerm_resource_group.primary.name
-  private_dns_zone_name = azurerm_private_dns_zone.example.name
-  virtual_network_id    = azurerm_virtual_network.primary.id
+  name                = "primary-link"
+  private_dns_zone_id = azurerm_private_dns_zone.example.id
+  virtual_network_id  = azurerm_virtual_network.primary.id
 }
 
 resource "azurerm_subnet" "primary" {
@@ -142,10 +141,9 @@ resource "azurerm_virtual_network" "failover" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "failover" {
-  name                  = "failover-link"
-  resource_group_name   = azurerm_private_dns_zone.example.resource_group_name
-  private_dns_zone_name = azurerm_private_dns_zone.example.name
-  virtual_network_id    = azurerm_virtual_network.failover.id
+  name                = "failover-link"
+  private_dns_zone_id = azurerm_private_dns_zone.example.id
+  virtual_network_id  = azurerm_virtual_network.failover.id
 }
 
 resource "azurerm_subnet" "default" {
@@ -270,7 +268,7 @@ A `partner_region` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Managed Instance Failover Group.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Managed Instance Failover Group.
@@ -289,4 +287,4 @@ terraform import azurerm_mssql_managed_instance_failover_group.example /subscrip
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Sql`: 2023-08-01-preview
+* `Microsoft.Sql` - 2023-08-01-preview

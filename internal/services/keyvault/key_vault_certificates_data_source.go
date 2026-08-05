@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package keyvault
@@ -7,16 +7,16 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
+	kv "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 func dataSourceKeyVaultCertificates() *pluginsdk.Resource {
@@ -64,7 +64,7 @@ func dataSourceKeyVaultCertificates() *pluginsdk.Resource {
 							Computed: true,
 						},
 
-						"tags": tags.SchemaDataSource(),
+						"tags": commonschema.TagsDataSource(),
 					},
 				},
 			},
@@ -90,7 +90,7 @@ func dataSourceKeyVaultCertificatesRead(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("fetching base vault url from id %q: %+v", *keyVaultId, err)
 	}
 
-	certificateList, err := client.GetCertificatesComplete(ctx, *keyVaultBaseUri, utils.Int32(25), &includePending)
+	certificateList, err := client.GetCertificatesComplete(ctx, *keyVaultBaseUri, pointer.To(int32(25)), &includePending)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *keyVaultId, err)
 	}
@@ -102,10 +102,11 @@ func dataSourceKeyVaultCertificatesRead(d *pluginsdk.ResourceData, meta interfac
 	if certificateList.Response().Value != nil {
 		for certificateList.NotDone() {
 			for _, v := range *certificateList.Response().Value {
-				nestedItem, err := parse.ParseOptionallyVersionedNestedItemID(*v.ID)
+				nestedItem, err := keyvault.ParseNestedItemID(pointer.From(v.ID), keyvault.VersionTypeAny, keyvault.NestedItemTypeCertificate)
 				if err != nil {
 					return err
 				}
+
 				names = append(names, nestedItem.Name)
 				certs = append(certs, expandCertificate(nestedItem.Name, v))
 				err = certificateList.NextWithContext(ctx)
@@ -123,7 +124,7 @@ func dataSourceKeyVaultCertificatesRead(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func expandCertificate(name string, item keyvault.CertificateItem) map[string]interface{} {
+func expandCertificate(name string, item kv.CertificateItem) map[string]interface{} {
 	cert := map[string]interface{}{
 		"name": name,
 		"id":   *item.ID,

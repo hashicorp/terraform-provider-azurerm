@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package eventgrid
@@ -7,13 +7,13 @@ import (
 	"regexp"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/eventsubscriptions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/eventsubscriptions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/hybridconnections"
-	serviceBusQueues "github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/queues"
-	serviceBusTopics "github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/topics"
+	serviceBusQueues "github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/queues"
+	serviceBusTopics "github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/topics"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -23,20 +23,13 @@ import (
 type EventSubscriptionEndpointType string
 
 const (
-	// AzureFunctionEndpoint ...
 	AzureFunctionEndpoint EventSubscriptionEndpointType = "azure_function_endpoint"
-	// EventHubEndpointID ...
-	EventHubEndpointID EventSubscriptionEndpointType = "eventhub_endpoint_id"
-	// HybridConnectionEndpointID ...
-	HybridConnectionEndpointID EventSubscriptionEndpointType = "hybrid_connection_endpoint_id"
-	// ServiceBusQueueEndpointID ...
-	ServiceBusQueueEndpointID EventSubscriptionEndpointType = "service_bus_queue_endpoint_id"
-	// ServiceBusTopicEndpointID ...
-	ServiceBusTopicEndpointID EventSubscriptionEndpointType = "service_bus_topic_endpoint_id"
-	// StorageQueueEndpoint ...
-	StorageQueueEndpoint EventSubscriptionEndpointType = "storage_queue_endpoint"
-	// WebHookEndpoint ...
-	WebHookEndpoint EventSubscriptionEndpointType = "webhook_endpoint"
+	EventHubID            EventSubscriptionEndpointType = "eventhub_id"
+	HybridConnectionID    EventSubscriptionEndpointType = "hybrid_connection_id"
+	ServiceBusQueueID     EventSubscriptionEndpointType = "service_bus_queue_id"
+	ServiceBusTopicID     EventSubscriptionEndpointType = "service_bus_topic_id"
+	StorageQueueEndpoint  EventSubscriptionEndpointType = "storage_queue_endpoint"
+	WebHookEndpoint       EventSubscriptionEndpointType = "webhook_endpoint"
 )
 
 func eventSubscriptionSchemaEventSubscriptionName() *pluginsdk.Schema {
@@ -124,7 +117,7 @@ func eventSubscriptionSchemaAzureFunctionEndpoint(conflictsWith []string) *plugi
 				"function_id": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ValidateFunc: azure.ValidateResourceID, // TODO: validation for a Function App ID
+					ValidateFunc: webapps.ValidateFunctionID,
 				},
 				"max_events_per_batch": {
 					Type:     pluginsdk.TypeInt,

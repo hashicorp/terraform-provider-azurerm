@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package main
@@ -161,7 +161,7 @@ func (teamCityServicesListGenerator) outputPath(rootDirectory string) string {
 }
 
 func (teamCityServicesListGenerator) run(outputFileName string, packagesToSkip map[string]struct{}) error {
-	template := `// Copyright (c) HashiCorp, Inc.
+	template := `// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 // NOTE: this is Generated from the Service Definitions - manual changes will be lost
 //       to re-generate this file, run 'make generate' in the root of the repository
@@ -269,6 +269,8 @@ v/3.x:
   - '### AzureRM Provider Version\s+(|azurerm |AzureRM )(|v|V)3\.\d+'
 v/4.x:
   - '### AzureRM Provider Version\s+(|azurerm |AzureRM )(|v|V)4\.\d+'
+v/5.x:
+  - '### AzureRM Provider Version\s+(|azurerm |AzureRM )(|v|V)5\.\d+'
 `
 
 const azurerm = "azurerm_"

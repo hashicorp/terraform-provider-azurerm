@@ -1,4 +1,4 @@
-# Copyright (c) HashiCorp, Inc.
+# Copyright IBM Corp. 2014, 2025
 # SPDX-License-Identifier: MPL-2.0
 
 provider "azurerm" {
@@ -20,7 +20,7 @@ resource "azurerm_storage_account" "example" {
 }
 
 resource "azurerm_storage_share" "example" {
-  name                 = "${var.prefix}storageshare"
-  storage_account_name = azurerm_storage_account.example.name
-  quota                = 100
+  name               = "${var.prefix}storageshare"
+  storage_account_id = azurerm_storage_account.example.id
+  quota              = 100
 }

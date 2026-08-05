@@ -174,7 +174,7 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 			return nil, fmt.Errorf("internal-error: polling support for the Content-Type %q was not implemented: %+v", contentType, err)
 		}
 
-		if result.Status == pollers.PollingStatusFailed || op.Status == statusFailed || op.Properties.ProvisioningState == statusFailed {
+		if strings.EqualFold(string(result.Status), string(pollers.PollingStatusFailed)) || strings.EqualFold(string(op.Status), string(statusFailed)) || strings.EqualFold(string(op.Properties.ProvisioningState), string(statusFailed)) {
 			lroError, parseError := parseErrorFromApiResponse(result.HttpResponse.Response)
 			if parseError != nil {
 				return nil, parseError
@@ -184,9 +184,11 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 				HttpResponse: result.HttpResponse,
 				Message:      lroError.Error(),
 			}
+
+			return
 		}
 
-		if result.Status == pollers.PollingStatusCancelled || op.Status == statusCanceled || op.Properties.ProvisioningState == statusCanceled {
+		if strings.EqualFold(string(result.Status), string(pollers.PollingStatusCancelled)) || strings.EqualFold(string(op.Status), string(statusCanceled)) || strings.EqualFold(string(op.Properties.ProvisioningState), string(statusCanceled)) {
 			lroError, parseError := parseErrorFromApiResponse(result.HttpResponse.Response)
 			if parseError != nil {
 				return nil, parseError
@@ -196,9 +198,11 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 				HttpResponse: result.HttpResponse,
 				Message:      lroError.Error(),
 			}
+
+			return
 		}
 
-		if result.Status == pollers.PollingStatusSucceeded || op.Status == statusSucceeded || op.Properties.ProvisioningState == statusSucceeded {
+		if strings.EqualFold(string(result.Status), string(pollers.PollingStatusSucceeded)) || strings.EqualFold(string(op.Status), string(statusSucceeded)) || strings.EqualFold(string(op.Properties.ProvisioningState), string(statusSucceeded)) {
 			result.Status = pollers.PollingStatusSucceeded
 			return
 		}
@@ -208,6 +212,13 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 	}
 
 	return result, nil
+}
+
+func (p *longRunningOperationPoller) SkipDelay() bool {
+	if p.client != nil {
+		return client.IsVcrReplaying(p.client.Transport)
+	}
+	return false
 }
 
 type operationResult struct {
@@ -238,11 +249,3 @@ const (
 	statusInProgress status = "InProgress"
 	statusSucceeded  status = "Succeeded"
 )
-
-func statusIsTerminal(s status) bool {
-	switch s {
-	case statusCanceled, statusCancelled, statusFailed, statusSucceeded, statusInProgress:
-		return true
-	}
-	return false
-}

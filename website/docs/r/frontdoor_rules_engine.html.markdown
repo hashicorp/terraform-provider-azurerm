@@ -107,7 +107,7 @@ resource "azurerm_frontdoor_rules_engine" "example_rules_engine" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -177,9 +177,17 @@ The `match_condition` block supports the following:
 
 * `value` - (Optional) (array) can contain one or more strings.
 
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the Front Door Rules Engine.
+
+* `location` - The location in which the Front Door Rules Engine exists.
+
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 6 hours) Used when creating the Frontdoor Rules Engine.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Frontdoor Rules Engine.

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package resource
@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+
+	"github.com/hashicorp/terraform-exec/tfexec"
 
 	"github.com/hashicorp/go-version"
 
@@ -25,12 +27,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 )
 
-func testStepNewImportState(ctx context.Context, t testing.T, helper *plugintest.Helper, testCaseWorkingDir *plugintest.WorkingDir, step TestStep, cfgRaw string, providers *providerFactories, stepNumber int) error {
+func testStepNewImportState(ctx context.Context, t testing.T, helper *plugintest.Helper, testCaseWorkingDir *plugintest.WorkingDir, step TestStep, priorStepCfg teststep.Config, providers *providerFactories, stepNumber int) error {
 	t.Helper()
 
 	// step.ImportStateKind implicitly defaults to the zero-value (ImportCommandWithID) for backward compatibility
 	kind := step.ImportStateKind
 	importStatePersist := step.ImportStatePersist
+
+	if step.GenerateConfig && kind == ImportCommandWithID {
+		return fmt.Errorf("GenerateConfig mode is not supported for ImportState tests using ImportCommandWithID; set ImportStateKind to ImportBlockWithID or ImportBlockWithResourceIdentity instead")
+	}
 
 	if err := importStatePreconditions(t, helper, step); err != nil {
 		return err
@@ -105,12 +111,6 @@ func testStepNewImportState(ctx context.Context, t testing.T, helper *plugintest
 		}
 	}
 
-	var inlineConfig string
-	if step.Config != "" {
-		inlineConfig = step.Config
-	} else {
-		inlineConfig = cfgRaw
-	}
 	testStepConfigRequest := config.TestStepConfigRequest{
 		StepNumber: stepNumber,
 		TestName:   t.Name(),
@@ -118,9 +118,26 @@ func testStepNewImportState(ctx context.Context, t testing.T, helper *plugintest
 	testStepConfig := teststep.Configuration(teststep.PrepareConfigurationRequest{
 		Directory:             step.ConfigDirectory,
 		File:                  step.ConfigFile,
-		Raw:                   inlineConfig,
+		Raw:                   step.Config,
 		TestStepConfigRequest: testStepConfigRequest,
 	}.Exec())
+
+	// If the current import state test step doesn't have configuration, use the prior test step config
+	if testStepConfig == nil {
+		if priorStepCfg == nil {
+			t.Fatal("Cannot import state with no specified config")
+		}
+
+		logging.HelperResourceTrace(ctx, "Using prior TestStep Config for import")
+
+		testStepConfig = priorStepCfg
+	}
+
+	// The resource address in the import block needs to be updated if this is a GenerateConfig mode test step
+	if step.GenerateConfig && stepNumber > 1 {
+		name := strings.Split(resourceName, ".")
+		resourceName = strings.Replace(resourceName, "."+name[1], ".generated", 1)
+	}
 
 	switch {
 	case step.ImportStateConfigExact:
@@ -131,10 +148,6 @@ func testStepNewImportState(ctx context.Context, t testing.T, helper *plugintest
 
 	case kind.plannable():
 		testStepConfig = appendImportBlock(testStepConfig, resourceName, importId)
-	}
-
-	if testStepConfig == nil {
-		t.Fatal("Cannot import state with no specified config")
 	}
 
 	var workingDir *plugintest.WorkingDir
@@ -157,11 +170,13 @@ func testStepNewImportState(ctx context.Context, t testing.T, helper *plugintest
 				t.Fatalf("copying state: %s", err)
 			}
 
-			err = runProviderCommand(ctx, t, workingDir, providers, func() error {
-				return workingDir.RemoveResource(ctx, resourceName)
-			})
-			if err != nil {
-				t.Fatalf("removing resource %s from copied state: %s", resourceName, err)
+			if !step.GenerateConfig {
+				err = runProviderCommand(ctx, t, workingDir, providers, func() error {
+					return workingDir.RemoveResource(ctx, resourceName)
+				})
+				if err != nil {
+					t.Fatalf("removing resource %s from copied state: %s", resourceName, err)
+				}
 			}
 		}
 	}
@@ -185,9 +200,20 @@ func testStepNewImportState(ctx context.Context, t testing.T, helper *plugintest
 func testImportBlock(ctx context.Context, t testing.T, workingDir *plugintest.WorkingDir, providers *providerFactories, resourceName string, step TestStep, priorIdentityValues map[string]any) error {
 	kind := step.ImportStateKind
 
-	err := runProviderCommandCreatePlan(ctx, t, workingDir, providers)
-	if err != nil {
-		return fmt.Errorf("generating plan with import config: %s", err)
+	if step.GenerateConfig {
+		var opts []tfexec.PlanOption
+
+		path := workingDir.BaseDir() + "/generated.tf"
+		opts = append(opts, tfexec.GenerateConfigOut(path))
+		err := runProviderCommandGenerateConfigAndCreatePlan(ctx, t, workingDir, providers, opts...)
+		if err != nil {
+			return fmt.Errorf("generating plan with import config: %s", err)
+		}
+	} else {
+		err := runProviderCommandCreatePlan(ctx, t, workingDir, providers)
+		if err != nil {
+			return fmt.Errorf("generating plan with import config: %s", err)
+		}
 	}
 
 	plan, err := runProviderCommandSavedPlan(ctx, t, workingDir, providers)
@@ -221,8 +247,9 @@ func testImportBlock(ctx context.Context, t testing.T, workingDir *plugintest.Wo
 	switch {
 	case importing == nil:
 		return fmt.Errorf("importing resource %s: expected an import operation, got %q action with plan \nstdout:\n\n%s", resourceChangeUnderTest.Address, actions, savedPlanRawStdout(ctx, t, workingDir, providers))
-
-	case !actions.NoOp():
+	// By default we want to ensure there isn't a proposed plan after importing, but for some resources this is unavoidable.
+	// An example would be importing a resource that cannot read it's entire value back from the remote API.
+	case !step.ExpectNonEmptyPlan && !actions.NoOp():
 		return fmt.Errorf("importing resource %s: expected a no-op import operation, got %q action with plan \nstdout:\n\n%s", resourceChangeUnderTest.Address, actions, savedPlanRawStdout(ctx, t, workingDir, providers))
 	}
 
@@ -421,11 +448,11 @@ func appendImportBlock(config teststep.Config, resourceName string, importID str
 
 func appendImportBlockWithIdentity(config teststep.Config, resourceName string, identityValues map[string]any) teststep.Config {
 	configBuilder := strings.Builder{}
-	configBuilder.WriteString(fmt.Sprintf(``+"\n"+
+	fmt.Fprintf(&configBuilder, ``+"\n"+
 		`import {`+"\n"+
 		`	to = %s`+"\n"+
 		`	identity = {`+"\n",
-		resourceName))
+		resourceName)
 
 	for k, v := range identityValues {
 		// It's valid for identity attributes to be null, we can just omit it from config
@@ -435,20 +462,20 @@ func appendImportBlockWithIdentity(config teststep.Config, resourceName string, 
 
 		switch v := v.(type) {
 		case bool:
-			configBuilder.WriteString(fmt.Sprintf(`		%q = %t`+"\n", k, v))
+			fmt.Fprintf(&configBuilder, `		%q = %t`+"\n", k, v)
 
 		case []any:
 			var quotedV []string
 			for _, v := range v {
 				quotedV = append(quotedV, fmt.Sprintf(`%q`, v))
 			}
-			configBuilder.WriteString(fmt.Sprintf(`		%q = [%s]`+"\n", k, strings.Join(quotedV, ", ")))
+			fmt.Fprintf(&configBuilder, `		%q = [%s]`+"\n", k, strings.Join(quotedV, ", "))
 
 		case json.Number:
-			configBuilder.WriteString(fmt.Sprintf(`		%q = %s`+"\n", k, v))
+			fmt.Fprintf(&configBuilder, `		%q = %s`+"\n", k, v)
 
 		case string:
-			configBuilder.WriteString(fmt.Sprintf(`		%q = %q`+"\n", k, v))
+			fmt.Fprintf(&configBuilder, `		%q = %q`+"\n", k, v)
 
 		default:
 			panic(fmt.Sprintf("unexpected type %T for identity value %q", v, k))

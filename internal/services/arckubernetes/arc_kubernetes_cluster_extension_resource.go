@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package arckubernetes
@@ -179,19 +179,19 @@ func (r ArcKubernetesClusterExtensionResource) Create() sdk.ResourceFunc {
 			// defined as strings because they're not enums in the swagger https://github.com/Azure/azure-rest-api-specs/pull/23545
 			connectedClusterId := arckubernetes.NewConnectedClusterID(subscriptionId, clusterID.ResourceGroupName, clusterID.ConnectedClusterName)
 			id := extensions.NewScopedExtensionID(connectedClusterId.ID(), model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
-			}
-
-			autoUpgradeMinorVersion := false
-			if model.Version == "" {
-				autoUpgradeMinorVersion = true
-			}
+			autoUpgradeMinorVersion := model.Version == ""
 
 			properties := &extensions.Extension{
 				Properties: &extensions.ExtensionProperties{
@@ -236,7 +236,7 @@ func (r ArcKubernetesClusterExtensionResource) Create() sdk.ResourceFunc {
 				properties.Properties.Version = &model.Version
 			}
 
-			if err := client.CreateThenPoll(ctx, id, *properties); err != nil {
+			if err := client.CreateCallbackThenPoll(ctx, id, *properties, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

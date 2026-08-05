@@ -65,7 +65,13 @@ resource "azurerm_subnet" "main_subnet" {
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
   address_prefixes     = ["10.0.0.0/23"]
-  service_endpoints    = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
+  service_endpoint {
+    service = "Microsoft.Storage"
+  }
+
+  service_endpoint {
+    service = "Microsoft.ContainerRegistry"
+  }
 }
 
 resource "azurerm_subnet" "worker_subnet" {
@@ -73,7 +79,13 @@ resource "azurerm_subnet" "worker_subnet" {
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
   address_prefixes     = ["10.0.2.0/23"]
-  service_endpoints    = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
+  service_endpoint {
+    service = "Microsoft.Storage"
+  }
+
+  service_endpoint {
+    service = "Microsoft.ContainerRegistry"
+  }
 }
 
 resource "azurerm_redhat_openshift_cluster" "example" {
@@ -127,7 +139,7 @@ output "console_url" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -207,7 +219,7 @@ A `cluster_profile` block supports the following:
 
 * `fips_enabled` - (Optional) Whether Federal Information Processing Standard (FIPS) validated cryptographic modules are used. Defaults to `false`. Changing this forces a new resource to be created.
 
-* `managed_resource_group_name` - (Optional) The name of a Resource Group which will be created to host VMs of Azure Red Hat OpenShift Cluster. The value cannot contain uppercase characters. Defaults to `aro-{domain}`. Changing this forces a new resource to be created.
+* `managed_resource_group_name` - (Optional) The name of a Resource Group which will be created to host VMs of Azure Red Hat OpenShift Cluster. The value cannot contain uppercase characters. Changing this forces a new resource to be created.
 
 ---
 
@@ -219,7 +231,7 @@ A `network_profile` block supports the following:
 
 * `outbound_type` - (Optional) The outbound (egress) routing method. Possible values are `Loadbalancer` and `UserDefinedRouting`. Defaults to `Loadbalancer`. Changing this forces a new resource to be created.
 
-* `preconfigured_network_security_group_enabled` - (Optional) Whether a preconfigured network security group is being used on the subnets.  Defaults to `false`.  Changing this forces a new resource to be created.
+* `preconfigured_network_security_group_enabled` - (Optional) Whether a preconfigured network security group is being used on the subnets. Defaults to `false`. Changing this forces a new resource to be created.
 
 ---
 
@@ -271,7 +283,7 @@ A `ingress_profile` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/language/resources/syntax.html#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 90 minutes) Used when creating the Red Hat OpenShift cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Red Hat OpenShift cluster.
@@ -290,4 +302,4 @@ terraform import azurerm_redhat_openshift_cluster.cluster1 /subscriptions/000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.RedHatOpenShift`: 2023-09-04
+* `Microsoft.RedHatOpenShift` - 2025-07-25

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor
@@ -103,7 +103,7 @@ func dataSourceMonitorDiagnosticCategoriesRead(d *pluginsdk.ResourceData, meta i
 				case diagnosticsettingscategories.CategoryTypeMetrics:
 					metrics = append(metrics, *v.Name)
 				default:
-					return fmt.Errorf("Unsupported category type %q", string(*category.CategoryType))
+					return fmt.Errorf("unsupported category type %q", string(*category.CategoryType))
 				}
 			}
 		}

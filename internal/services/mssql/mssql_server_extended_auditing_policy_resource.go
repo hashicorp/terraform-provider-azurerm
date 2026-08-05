@@ -1,11 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssql
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -14,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/blobauditing"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -23,7 +23,7 @@ import (
 )
 
 func resourceMsSqlServerExtendedAuditingPolicy() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Create: resourceMsSqlServerExtendedAuditingPolicyCreateUpdate,
 		Read:   resourceMsSqlServerExtendedAuditingPolicyRead,
 		Update: resourceMsSqlServerExtendedAuditingPolicyCreateUpdate,
@@ -55,8 +55,7 @@ func resourceMsSqlServerExtendedAuditingPolicy() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"storage_endpoint": {
-				// TODO 4.0: rename to `blob_storage_endpoint`
+			"blob_storage_endpoint": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.IsURLWithHTTPS,
@@ -113,6 +112,27 @@ func resourceMsSqlServerExtendedAuditingPolicy() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		r.Schema["storage_endpoint"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ValidateFunc:  validation.IsURLWithHTTPS,
+			ConflictsWith: []string{"blob_storage_endpoint"},
+			Deprecated:    "`storage_endpoint` is deprecated in favour of `blob_storage_endpoint` and will be removed in version 5.0 of the AzureRM provider",
+		}
+
+		r.Schema["blob_storage_endpoint"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ValidateFunc:  validation.IsURLWithHTTPS,
+			ConflictsWith: []string{"storage_endpoint"},
+		}
+	}
+
+	return r
 }
 
 func resourceMsSqlServerExtendedAuditingPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -121,34 +141,40 @@ func resourceMsSqlServerExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resource
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for MsSql Server Extended Auditing Policy creation.")
-
 	serverId, err := commonids.ParseSqlServerID(d.Get("server_id").(string))
 	if err != nil {
 		return err
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.ExtendedServerBlobAuditingPoliciesGet(ctx, *serverId)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("retrieving MsSql Server Extended Auditing Policy %s: %+v", serverId, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.ExtendedServerBlobAuditingPoliciesGet(ctx, *serverId)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("retrieving MsSql Server Extended Auditing Policy %s: %+v", serverId, err)
+				}
 			}
-		}
 
-		// if state is not disabled, we should import it.
-		if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" && existing.Model.Properties != nil && existing.Model.Properties.State != blobauditing.BlobAuditingPolicyStateDisabled {
-			return tf.ImportAsExistsError("azurerm_mssql_server_extended_auditing_policy", *existing.Model.Id)
+			// if state is not disabled, we should import it.
+			if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" && existing.Model.Properties != nil && existing.Model.Properties.State != blobauditing.BlobAuditingPolicyStateDisabled {
+				return tf.ImportAsExistsError("azurerm_mssql_server_extended_auditing_policy", *existing.Model.Id)
+			}
 		}
 	}
 
 	params := blobauditing.ExtendedServerBlobAuditingPolicy{
 		Properties: &blobauditing.ExtendedServerBlobAuditingPolicyProperties{
-			StorageEndpoint:             utils.String(d.Get("storage_endpoint").(string)),
-			IsStorageSecondaryKeyInUse:  utils.Bool(d.Get("storage_account_access_key_is_secondary").(bool)),
-			RetentionDays:               utils.Int64(int64(d.Get("retention_in_days").(int))),
-			IsAzureMonitorTargetEnabled: utils.Bool(d.Get("log_monitoring_enabled").(bool)),
+			StorageEndpoint:             pointer.To(d.Get("blob_storage_endpoint").(string)),
+			IsStorageSecondaryKeyInUse:  pointer.To(d.Get("storage_account_access_key_is_secondary").(bool)),
+			RetentionDays:               pointer.To(int64(d.Get("retention_in_days").(int))),
+			IsAzureMonitorTargetEnabled: pointer.To(d.Get("log_monitoring_enabled").(bool)),
 		},
+	}
+
+	if !features.FivePointOh() {
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "storage_endpoint") {
+			params.Properties.StorageEndpoint = pointer.To(d.Get("storage_endpoint").(string))
+		}
 	}
 
 	if d.Get("enabled").(bool) {
@@ -162,7 +188,7 @@ func resourceMsSqlServerExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resource
 	}
 
 	if v, ok := d.GetOk("storage_account_access_key"); ok {
-		params.Properties.StorageAccountAccessKey = utils.String(v.(string))
+		params.Properties.StorageAccountAccessKey = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("predicate_expression"); ok {
@@ -210,7 +236,10 @@ func resourceMsSqlServerExtendedAuditingPolicyRead(d *pluginsdk.ResourceData, me
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("storage_endpoint", props.StorageEndpoint)
+			d.Set("blob_storage_endpoint", props.StorageEndpoint)
+			if !features.FivePointOh() {
+				d.Set("storage_endpoint", props.StorageEndpoint)
+			}
 			d.Set("storage_account_access_key_is_secondary", props.IsStorageSecondaryKeyInUse)
 			d.Set("retention_in_days", props.RetentionDays)
 			d.Set("log_monitoring_enabled", props.IsAzureMonitorTargetEnabled)

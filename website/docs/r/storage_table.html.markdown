@@ -29,18 +29,18 @@ resource "azurerm_storage_account" "example" {
 }
 
 resource "azurerm_storage_table" "example" {
-  name                 = "mysampletable"
-  storage_account_name = azurerm_storage_account.example.name
+  name               = "mysampletable"
+  storage_account_id = azurerm_storage_account.example.id
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
 * `name` - (Required) The name of the storage table. Only Alphanumeric characters allowed, starting with a letter. Must be unique within the storage account the table is located. Changing this forces a new resource to be created.
 
-* `storage_account_name` - (Required) Specifies the storage account in which to create the storage table. Changing this forces a new resource to be created.
+* `storage_account_id` - (Required) Specifies the ID of the storage account in which to create the storage table. Changing this forces a new resource to be created.
 
 * `acl` - (Optional) One or more `acl` blocks as defined below.
 
@@ -72,7 +72,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Storage Table.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Storage Table.
@@ -84,5 +84,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Table's within a Storage Account can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_storage_table.table1 "https://example.table.core.windows.net/Tables('replace-with-table-name')"
+terraform import azurerm_storage_table.table1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Storage/storageAccounts/myaccount/tableServices/default/tables/table1
 ```

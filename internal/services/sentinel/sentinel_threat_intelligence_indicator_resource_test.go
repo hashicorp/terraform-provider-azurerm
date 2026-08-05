@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sentinel_test
@@ -8,13 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/threatintelligence"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/azuresdkhacks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SecurityInsightsIndicatorResource struct{}
@@ -24,7 +23,7 @@ func TestAccSecurityInsightsIndicator_basicDomainName(t *testing.T) {
 	r := SecurityInsightsIndicatorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, "domain-name", "http://test.com"),
+			Config: r.basic(data, "domain-name", "test.com"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -80,7 +79,7 @@ func TestAccSecurityInsightsIndicator_requiresImport(t *testing.T) {
 	r := SecurityInsightsIndicatorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, "domain-name", "http://test.com"),
+			Config: r.basic(data, "domain-name", "test.com"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -94,7 +93,7 @@ func TestAccSecurityInsightsIndicator_complete(t *testing.T) {
 	r := SecurityInsightsIndicatorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data, "domain-name", "http://test.com"),
+			Config: r.complete(data, "domain-name", "test.com"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -108,16 +107,18 @@ func TestAccSecurityInsightsIndicator_update(t *testing.T) {
 	r := SecurityInsightsIndicatorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data, "domain-name", "http://example.com"),
+			Config: r.complete(data, "domain-name", "test.com"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.update(data, "domain-name", "http://example.com"),
+			Config: r.update(data, "domain-name", "test.com"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("confidence").HasValue("10"),
+				check.That(data.ResourceName).Key("tags.0").HasValue("updated-tags"),
 			),
 		},
 		data.ImportStep(),
@@ -125,23 +126,18 @@ func TestAccSecurityInsightsIndicator_update(t *testing.T) {
 }
 
 func (r SecurityInsightsIndicatorResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ThreatIntelligenceIndicatorID(state.ID)
+	id, err := threatintelligence.ParseIndicatorID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	client := azuresdkhacks.ThreatIntelligenceIndicatorClient{
-		BaseClient: clients.Sentinel.ThreatIntelligenceClient.BaseClient,
-	}
-	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.IndicatorName)
+	client := clients.Sentinel.ThreatIntelligenceClient
+	resp, err := client.IndicatorGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
-		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.Value != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r SecurityInsightsIndicatorResource) template(data acceptance.TestData) string {
@@ -187,7 +183,7 @@ resource "azurerm_sentinel_threat_intelligence_indicator" "test" {
 }
 
 func (r SecurityInsightsIndicatorResource) requiresImport(data acceptance.TestData) string {
-	config := r.basic(data, "domain-name", "http://test.com")
+	config := r.basic(data, "domain-name", "test.com")
 	return fmt.Sprintf(`
 			%s
 
@@ -244,10 +240,10 @@ resource "azurerm_sentinel_threat_intelligence_indicator" "test" {
   workspace_id    = azurerm_log_analytics_workspace.test.id
   pattern_type    = "%s"
   pattern         = "%s"
-  confidence      = 5
+  confidence      = 10
   created_by      = "testcraeted@microsoft.com"
-  description     = "updated indicator"
-  display_name    = "updated"
+  description     = "test indicator"
+  display_name    = "test"
   language        = "en"
   pattern_version = 1
   revoked         = true
@@ -262,8 +258,8 @@ resource "azurerm_sentinel_threat_intelligence_indicator" "test" {
   granular_marking {
     language = "en"
   }
-  source            = "updated Sentinel"
-  validate_from_utc = "2022-12-15T16:00:00Z"
+  source            = "test Sentinel"
+  validate_from_utc = "2022-12-14T16:00:00Z"
 
   depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }

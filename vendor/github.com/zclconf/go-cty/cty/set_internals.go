@@ -21,9 +21,9 @@ type setRules struct {
 	Type Type
 }
 
-var _ set.OrderedRules[interface{}] = setRules{}
+var _ set.OrderedRules[any] = setRules{}
 
-func newSetRules(ety Type) set.Rules[interface{}] {
+func newSetRules(ety Type) set.Rules[any] {
 	return setRules{ety}
 }
 
@@ -43,14 +43,14 @@ func (val Value) Hash() int {
 	return int(crc32.ChecksumIEEE(hashBytes))
 }
 
-func (r setRules) Hash(v interface{}) int {
+func (r setRules) Hash(v any) int {
 	return Value{
 		ty: r.Type,
 		v:  v,
 	}.Hash()
 }
 
-func (r setRules) Equivalent(v1 interface{}, v2 interface{}) bool {
+func (r setRules) Equivalent(v1 any, v2 any) bool {
 	v1v := Value{
 		ty: r.Type,
 		v:  v1,
@@ -71,7 +71,7 @@ func (r setRules) Equivalent(v1 interface{}, v2 interface{}) bool {
 
 // SameRules is only true if the other Rules instance is also a setRules struct,
 // and the types are considered equal.
-func (r setRules) SameRules(other set.Rules[interface{}]) bool {
+func (r setRules) SameRules(other set.Rules[any]) bool {
 	rules, ok := other.(setRules)
 	if !ok {
 		return false
@@ -82,7 +82,7 @@ func (r setRules) SameRules(other set.Rules[interface{}]) bool {
 
 // Less is an implementation of set.OrderedRules so that we can iterate over
 // set elements in a consistent order, where such an order is possible.
-func (r setRules) Less(v1, v2 interface{}) bool {
+func (r setRules) Less(v1, v2 any) bool {
 	v1v := Value{
 		ty: r.Type,
 		v:  v1,

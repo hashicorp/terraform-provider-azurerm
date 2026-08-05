@@ -6,7 +6,7 @@ description: |-
   Gets information about a Container App Environment.
 ---
 
-# Data Source: azurerm_container_app_environment.
+# Data Source: azurerm_container_app_environment
 
 Use this data source to access information about an existing Container App Environment.
 
@@ -62,6 +62,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ~> **Note:** This will only be populated for Environments that have `internal_load_balancer_enabled` set to true.
 
+* `public_network_access` - The public network access setting for this Container App Environment.
+
 * `static_ip_address` - The Static IP address of the Environment.
 
 ~> **Note:** If `internal_load_balancer_enabled` is true, this will be a Private IP in the subnet, otherwise this will be allocated a Public IPv4 address.
@@ -70,7 +72,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container App Environment.
 
@@ -78,6 +80,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.App`: 2025-01-01
+* `Microsoft.App` - 2025-07-01
 
-* `Microsoft.OperationalInsights`: 2020-08-01
+* `Microsoft.OperationalInsights` - 2020-08-01

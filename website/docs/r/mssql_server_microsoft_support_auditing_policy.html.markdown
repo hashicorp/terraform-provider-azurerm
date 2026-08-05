@@ -72,11 +72,17 @@ resource "azurerm_virtual_network" "example" {
 }
 
 resource "azurerm_subnet" "example" {
-  name                                           = "subnetname-1"
-  resource_group_name                            = azurerm_resource_group.example.name
-  virtual_network_name                           = azurerm_virtual_network.example.name
-  address_prefixes                               = ["10.0.2.0/24"]
-  service_endpoints                              = ["Microsoft.Sql", "Microsoft.Storage"]
+  name                 = "subnetname-1"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
+  address_prefixes     = ["10.0.2.0/24"]
+  service_endpoint {
+    service = "Microsoft.Sql"
+  }
+
+  service_endpoint {
+    service = "Microsoft.Storage"
+  }
   enforce_private_link_endpoint_network_policies = true
 }
 
@@ -180,7 +186,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the MS SQL Server Microsoft Support Auditing Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the MS SQL Server Microsoft Support Auditing Policy.
@@ -199,4 +205,4 @@ terraform import azurerm_mssql_server_microsoft_support_auditing_policy.example 
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Sql`: 2023-08-01-preview
+* `Microsoft.Sql` - 2023-08-01-preview

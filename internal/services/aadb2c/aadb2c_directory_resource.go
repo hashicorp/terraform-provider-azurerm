@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package aadb2c
@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview/tenants"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -106,7 +105,7 @@ func (r AadB2cDirectoryResource) Arguments() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 	}
 }
 
@@ -153,17 +152,17 @@ func (r AadB2cDirectoryResource) Create() sdk.ResourceFunc {
 
 			id := tenants.NewB2CDirectoryID(subscriptionId, model.ResourceGroup, model.DomainName)
 
-			metadata.Logger.Infof("Import check for %s", id)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
-			}
-
-			metadata.Logger.Infof("Domain name availability check for %s", id)
 			availabilityResult, err := client.CheckNameAvailability(ctx, commonids.NewSubscriptionID(subscriptionId), tenants.CheckNameAvailabilityRequest{
 				Name:        &model.DomainName,
 				CountryCode: &model.CountryCode,
@@ -185,8 +184,6 @@ func (r AadB2cDirectoryResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			metadata.Logger.Infof("Creating %s", id)
-
 			properties := tenants.CreateTenant{
 				Location: tenants.Location(model.DataResidencyLocation),
 				Properties: tenants.TenantPropertiesForCreate{
@@ -202,7 +199,7 @@ func (r AadB2cDirectoryResource) Create() sdk.ResourceFunc {
 				Tags: &model.Tags,
 			}
 
-			if err := client.CreateThenPoll(ctx, id, properties); err != nil {
+			if err := client.CreateCallbackThenPoll(ctx, id, properties, metadata.SetIDCallback(&id)); err != nil {
 				return err
 			}
 
@@ -223,13 +220,10 @@ func (r AadB2cDirectoryResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("Decoding state for %s", id)
 			var state AadB2cDirectoryModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
 			}
-
-			metadata.Logger.Infof("Updating %s", id)
 
 			properties := tenants.UpdateTenant{
 				Sku: tenants.Sku{
@@ -259,7 +253,6 @@ func (r AadB2cDirectoryResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("Reading %s", id)
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
@@ -322,8 +315,6 @@ func (r AadB2cDirectoryResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-
-			metadata.Logger.Infof("Deleting %s", id)
 
 			if err := client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)

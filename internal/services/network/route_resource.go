@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -7,10 +7,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/routes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/routes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/routetables"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -21,7 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name route -service-package-name network -properties "name,route_table_name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceRoute() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -98,19 +101,22 @@ func resourceRouteCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	id := routes.NewRouteID(subscriptionId, d.Get("resource_group_name").(string), d.Get("route_table_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+		}
+
 		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			return tf.ImportAsExistsError("azurerm_route", id.ID())
 		}
 	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_route", id.ID())
-	}
-
-	locks.ByName(id.RouteTableName, routeTableResourceName)
-	defer locks.UnlockByName(id.RouteTableName, routeTableResourceName)
+	rtId := routetables.NewRouteTableID(id.SubscriptionId, id.ResourceGroupName, id.RouteTableName)
+	locks.ByID(rtId.ID())
+	defer locks.UnlockByID(rtId.ID())
 
 	route := routes.Route{
 		Name: pointer.To(id.RouteName),
@@ -124,11 +130,15 @@ func resourceRouteCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		route.Properties.NextHopIPAddress = pointer.To(v.(string))
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, route); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, route, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceRouteRead(d, meta)
 }
 
@@ -156,8 +166,9 @@ func resourceRouteUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	payload := existing.Model
 
-	locks.ByName(id.RouteTableName, routeTableResourceName)
-	defer locks.UnlockByName(id.RouteTableName, routeTableResourceName)
+	rtId := routetables.NewRouteTableID(id.SubscriptionId, id.ResourceGroupName, id.RouteTableName)
+	locks.ByID(rtId.ID())
+	defer locks.UnlockByID(rtId.ID())
 
 	if d.HasChange("address_prefix") {
 		payload.Properties.AddressPrefix = pointer.To(d.Get("address_prefix").(string))
@@ -196,12 +207,15 @@ func resourceRouteRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
+	return resourceRouteFlatten(d, id, resp.Model)
+}
 
+func resourceRouteFlatten(d *pluginsdk.ResourceData, id *routes.RouteId, model *routes.Route) error {
 	d.Set("name", id.RouteName)
 	d.Set("route_table_name", id.RouteTableName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("address_prefix", props.AddressPrefix)
 			d.Set("next_hop_type", string(props.NextHopType))
@@ -222,8 +236,9 @@ func resourceRouteDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	locks.ByName(id.RouteTableName, routeTableResourceName)
-	defer locks.UnlockByName(id.RouteTableName, routeTableResourceName)
+	rtId := routetables.NewRouteTableID(id.SubscriptionId, id.ResourceGroupName, id.RouteTableName)
+	locks.ByID(rtId.ID())
+	defer locks.UnlockByID(rtId.ID())
 
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)

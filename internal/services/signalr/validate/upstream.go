@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -13,7 +13,8 @@ func UrlTemplate(v interface{}, k string) (warnings []string, errors []error) {
 
 	if !regexp.MustCompile(`^https?://[^\s]+$`).MatchString(upstreamURL) {
 		errors = append(errors, fmt.Errorf(
-			"%q must start with http:// or https:// and must not contain whitespaces: %q", k, upstreamURL))
+			"%q must start with http:// or https:// and must not contain whitespaces: %q", k, upstreamURL,
+		))
 	}
 
 	return warnings, errors

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package authorization
@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-05-01-preview/roledefinitions"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -197,8 +198,11 @@ func (a RoleDefinitionDataSource) Read() sdk.ResourceFunc {
 						if (*roleDefinitions.Model)[0].Name == nil {
 							return nil, "fail", fmt.Errorf("loading Role Definition List: values[0].NameD is nil '%s'", config.Name)
 						}
-						defId = *(*roleDefinitions.Model)[0].Id
-						id = roledefinitions.NewScopedRoleDefinitionID(config.Scope, *(*roleDefinitions.Model)[0].Name)
+						defId = *(*roleDefinitions.Model)[0].Name
+						id = roledefinitions.NewScopedRoleDefinitionID(config.Scope, defId)
+						if !features.FivePointOh() {
+							defId = *(*roleDefinitions.Model)[0].Id
+						}
 						return id, "success", nil
 					},
 				}

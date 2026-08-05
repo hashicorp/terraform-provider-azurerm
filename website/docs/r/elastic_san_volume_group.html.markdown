@@ -48,7 +48,9 @@ resource "azurerm_subnet" "example" {
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
   address_prefixes     = ["10.0.1.0/24"]
-  service_endpoints    = ["Microsoft.Storage.Global"]
+  service_endpoint {
+    service = "Microsoft.Storage.Global"
+  }
 
 }
 
@@ -56,6 +58,7 @@ resource "azurerm_key_vault" "example" {
   name                        = "examplekv"
   location                    = azurerm_resource_group.example.location
   resource_group_name         = azurerm_resource_group.example.name
+  rbac_authorization_enabled  = false
   enabled_for_disk_encryption = true
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days  = 7
@@ -195,7 +198,7 @@ An `identity` block exports the following arguments:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Elastic SAN Volume Group.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Elastic SAN Volume Group.
@@ -214,4 +217,4 @@ terraform import azurerm_elastic_san_volume_group.example /subscriptions/0000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ElasticSan`: 2023-01-01
+* `Microsoft.ElasticSan` - 2023-01-01

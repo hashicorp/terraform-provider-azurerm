@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managedhsm
@@ -14,9 +14,12 @@ import (
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsms"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/managedhsms"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -139,7 +142,7 @@ func (r KeyVaultMHSMKeyResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.IsRFC3339Time,
 		},
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 	}
 }
 
@@ -156,6 +159,16 @@ func (r KeyVaultMHSMKeyResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			diff := metadata.ResourceDiff
+
+			// There isn't a way to remove these dates from a key so we'll recreate the resource when they are removed from config
+			for _, field := range []string{"not_before_date", "expiration_date"} {
+				oldValue, newValue := diff.GetChange(field)
+				if oldValue.(string) != "" && newValue.(string) == "" {
+					if err := diff.ForceNew(field); err != nil {
+						return err
+					}
+				}
+			}
 
 			// if any value has changed, we need to SetNewComputed on versioned_id as any change to the key is a new version
 			if diff.HasChanges("key_opts", "not_before_date", "tags", "expiration_date") {
@@ -204,21 +217,23 @@ func (r KeyVaultMHSMKeyResource) Create() sdk.ResourceFunc {
 			locks.ByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
 			defer locks.UnlockByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
 
-			existing, err := client.GetKey(ctx, endpoint.BaseURI(), id.KeyName, "")
-			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetKey(ctx, endpoint.BaseURI(), id.KeyName, "")
+				if err != nil {
+					if !utils.ResponseWasNotFound(existing.Response) {
+						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := keyvault.KeyCreateParameters{
 				Kty:    keyvault.JSONWebKeyType(config.KeyType),
 				KeyOps: expandKeyVaultKeyOptions(config.KeyOpts),
 				KeyAttributes: &keyvault.KeyAttributes{
-					Enabled: utils.Bool(true),
+					Enabled: pointer.To(true),
 				},
 
 				Tags: tags.Expand(config.Tags),
@@ -274,7 +289,7 @@ func (r KeyVaultMHSMKeyResource) Create() sdk.ResourceFunc {
 						log.Printf("[DEBUG] Key %q recovered with ID: %q", config.Name, *kid)
 					}
 				} else {
-					return fmt.Errorf("Creating Key: %+v", err)
+					return fmt.Errorf("creating Key: %+v", err)
 				}
 			}
 
@@ -329,7 +344,7 @@ func (r KeyVaultMHSMKeyResource) Read() sdk.ResourceFunc {
 				if key.N != nil {
 					nBytes, err := base64.RawURLEncoding.DecodeString(*key.N)
 					if err != nil {
-						return fmt.Errorf("Could not decode N: %+v", err)
+						return fmt.Errorf("could not decode N: %+v", err)
 					}
 					schema.KeySize = int64(len(nBytes) * 8)
 				}
@@ -382,7 +397,7 @@ func (r KeyVaultMHSMKeyResource) Update() sdk.ResourceFunc {
 			parameters := keyvault.KeyUpdateParameters{
 				KeyOps: expandKeyVaultKeyOptions(config.KeyOpts),
 				KeyAttributes: &keyvault.KeyAttributes{
-					Enabled: utils.Bool(true),
+					Enabled: pointer.To(true),
 				},
 
 				Tags: tags.Expand(config.Tags),
@@ -400,8 +415,20 @@ func (r KeyVaultMHSMKeyResource) Update() sdk.ResourceFunc {
 				parameters.KeyAttributes.Expires = &expirationUnixTime
 			}
 
-			if _, err = client.UpdateKey(ctx, id.BaseUri(), config.Name, "", parameters); err != nil {
+			resp, err := client.UpdateKey(ctx, id.BaseUri(), config.Name, "", parameters)
+			if err != nil {
 				return err
+			}
+
+			// Managed HSM serves the data plane from multiple partitions; a read immediately after an update
+			// may be routed to a stale replica, so we poll until the read-back `updated` timestamp matches
+			// the write response to ensure consistency before the framework performs its read
+			if resp.Attributes != nil && resp.Attributes.Updated != nil {
+				pollerType := custompollers.NewKeyUpdatePoller(metadata.Client.ManagedHSMs.DataPlaneKeysClient, id.BaseUri(), config.Name, *resp.Attributes.Updated)
+				poller := pollers.NewPoller(pollerType, 5*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+				if err := poller.PollUntilDone(ctx); err != nil {
+					return fmt.Errorf("waiting for key %q update to propagate: %+v", config.Name, err)
+				}
 			}
 
 			return nil

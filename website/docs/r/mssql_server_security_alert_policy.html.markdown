@@ -53,7 +53,7 @@ resource "azurerm_mssql_server_security_alert_policy" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -65,7 +65,7 @@ The following arguments are supported:
 
 * `disabled_alerts` - (Optional) Specifies an array of alerts that are disabled. Allowed values are: `Sql_Injection`, `Sql_Injection_Vulnerability`, `Access_Anomaly`, `Data_Exfiltration`, `Unsafe_Action`.
 
-* `email_account_admins` - (Optional) Are the alerts sent to the account administrators? Possible values are `true` or `false`. Defaults to `false`.
+* `email_account_admins_enabled` - (Optional) Are the alerts sent to the account administrators? Defaults to `false`.
 
 * `email_addresses` - (Optional) Specifies an array of email addresses to which the alert is sent.
 
@@ -91,7 +91,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the MSSQL Server Security Alert Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the MSSQL Server Security Alert Policy.
@@ -110,4 +110,4 @@ terraform import azurerm_mssql_server_security_alert_policy.example /subscriptio
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Sql`: 2023-08-01-preview
+* `Microsoft.Sql` - 2023-08-01-preview

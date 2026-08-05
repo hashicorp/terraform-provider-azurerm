@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -11,7 +11,8 @@ func StorageBlobIndexTagName(v interface{}, k string) (warnings []string, errors
 	value := v.(string)
 	if len(value) == 0 || len(value) > 128 {
 		errors = append(errors, fmt.Errorf(
-			"%q must be between 1 and 128 characters: %q", k, value))
+			"%q must be between 1 and 128 characters: %q", k, value,
+		))
 	}
 	return warnings, errors
 }
@@ -20,7 +21,8 @@ func StorageBlobIndexTagValue(v interface{}, k string) (warnings []string, error
 	value := v.(string)
 	if len(value) > 256 {
 		errors = append(errors, fmt.Errorf(
-			"%q must be between 0 and 256 characters: %q", k, value))
+			"%q must be between 0 and 256 characters: %q", k, value,
+		))
 	}
 	return warnings, errors
 }

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute_test
@@ -117,7 +117,6 @@ func (r VirtualMachineGalleryApplicationAssignmentResource) Exists(ctx context.C
 }
 
 func (r VirtualMachineGalleryApplicationAssignmentResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -125,7 +124,7 @@ resource "azurerm_virtual_machine_gallery_application_assignment" "test" {
   gallery_application_version_id = azurerm_gallery_application_version.test.id
   virtual_machine_id             = azurerm_linux_virtual_machine.test.id
 }
-`, template)
+`, r.template(data))
 }
 
 func (r VirtualMachineGalleryApplicationAssignmentResource) requiresImport(data acceptance.TestData) string {
@@ -141,7 +140,6 @@ resource "azurerm_virtual_machine_gallery_application_assignment" "import" {
 }
 
 func (r VirtualMachineGalleryApplicationAssignmentResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -152,11 +150,10 @@ resource "azurerm_virtual_machine_gallery_application_assignment" "test" {
   order                          = 1
   tag                            = "app"
 }
-`, template)
+`, r.template(data))
 }
 
 func (r VirtualMachineGalleryApplicationAssignmentResource) order(data acceptance.TestData, order int) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -165,33 +162,32 @@ resource "azurerm_virtual_machine_gallery_application_assignment" "test" {
   virtual_machine_id             = azurerm_linux_virtual_machine.test.id
   order                          = %d
 }
-`, template, order)
+`, r.template(data), order)
 }
 
 func (r VirtualMachineGalleryApplicationAssignmentResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
-
 resource "azurerm_storage_account" "test" {
-  name                     = "accteststr%[3]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "accteststr%[3]s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 }
 
 resource "azurerm_storage_container" "test" {
   name                  = "test"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "blob"
 }
 
 resource "azurerm_storage_blob" "test" {
-  name                   = "script"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Page"
-  size                   = 512
+  name                 = "script"
+  storage_container_id = azurerm_storage_container.test.id
+  type                 = "Page"
+  size                 = 512
 }
 
 resource "azurerm_shared_image_gallery" "test" {

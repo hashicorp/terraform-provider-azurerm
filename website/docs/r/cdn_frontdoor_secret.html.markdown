@@ -43,6 +43,7 @@ resource "azurerm_key_vault" "example" {
   name                       = "example-keyvault"
   location                   = azurerm_resource_group.example.location
   resource_group_name        = azurerm_resource_group.example.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "premium"
   soft_delete_retention_days = 7
@@ -132,8 +133,6 @@ A `customer_certificate` block supports the following:
 
 -> **Note:** If you would like to use the **latest version** of the Key Vault Certificate use the Key Vault Certificates `versionless_id` attribute as the `key_vault_certificate_id` fields value(e.g. `key_vault_certificate_id = azurerm_key_vault_certificate.example.versionless_id`).
 
-* `subject_alternative_names` - (Computed) One or more `subject alternative names` contained within the key vault certificate.
-
 ---
 
 ## Attributes Reference
@@ -144,13 +143,29 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `cdn_frontdoor_profile_name` - The name of the Front Door Profile containing this Front Door Secret.
 
+* `secret` - A `secret` block as defined below.
+
+---
+
+A `secret` block exports the following:
+
+* `customer_certificate` - A `customer_certificate` block as defined below.
+
+---
+
+A `customer_certificate` block exports the following:
+
+* `expiration_date` - The key vault certificate expiration date. 
+
+* `subject_alternative_names` - One or more `subject alternative names` contained within the key vault certificate.
+
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Front Door Secret.
+* `create` - (Defaults to 4 hours) Used when creating the Front Door Secret.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Secret.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Front Door Secret.
+* `delete` - (Defaults to 6 hours) Used when deleting the Front Door Secret.
 
 ## Import
 
@@ -159,3 +174,9 @@ Front Door Secrets can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_cdn_frontdoor_secret.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/secrets/secrets1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Cdn` - 2025-12-01

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package iothub
@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/deviceprovisioningservices/2022-02-05/dpscertificate"
@@ -16,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceIotHubDPSCertificate() *pluginsdk.Resource {
@@ -80,27 +80,29 @@ func resourceIotHubDPSCertificateCreate(d *pluginsdk.ResourceData, meta interfac
 
 	id := dpscertificate.NewCertificateID(subscriptionId, d.Get("resource_group_name").(string), d.Get("iot_dps_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id, dpscertificate.GetOperationOptions{IfMatch: utils.String("")})
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing IoT Device Provisioning Service Certificate %s: %+v", id.String(), err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id, dpscertificate.GetOperationOptions{IfMatch: pointer.To("")})
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing IoT Device Provisioning Service Certificate %s: %+v", id.String(), err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_iothub_dps_certificate", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_iothub_dps_certificate", id.ID())
+		}
 	}
 
 	certificate := dpscertificate.CertificateResponse{
 		Properties: &dpscertificate.CertificateProperties{
-			Certificate: utils.String(d.Get("certificate_content").(string)),
+			Certificate: pointer.To(d.Get("certificate_content").(string)),
 		},
 	}
 	if d.Get("is_verified").(bool) {
-		certificate.Properties.IsVerified = utils.Bool(true)
+		certificate.Properties.IsVerified = pointer.To(true)
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id, certificate, dpscertificate.CreateOrUpdateOperationOptions{IfMatch: utils.String("")}); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, certificate, dpscertificate.CreateOrUpdateOperationOptions{IfMatch: pointer.To("")}); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -119,7 +121,7 @@ func resourceIotHubDPSCertificateRead(d *pluginsdk.ResourceData, meta interface{
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id, dpscertificate.GetOperationOptions{IfMatch: utils.String("")})
+	resp, err := client.Get(ctx, *id, dpscertificate.GetOperationOptions{IfMatch: pointer.To("")})
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
@@ -153,7 +155,7 @@ func resourceIotHubDPSCertificateUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	id := dpscertificate.NewCertificateID(subscriptionId, d.Get("resource_group_name").(string), d.Get("iot_dps_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id, dpscertificate.GetOperationOptions{IfMatch: utils.String("")})
+	existing, err := client.Get(ctx, id, dpscertificate.GetOperationOptions{IfMatch: pointer.To("")})
 	if err != nil {
 		return fmt.Errorf("reading %s: %+v", id, err)
 	}
@@ -164,14 +166,14 @@ func resourceIotHubDPSCertificateUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if d.HasChange("is_verified") {
-		existing.Model.Properties.IsVerified = utils.Bool(d.Get("is_verified").(bool))
+		existing.Model.Properties.IsVerified = pointer.To(d.Get("is_verified").(bool))
 	}
 
 	if d.HasChange("certificate_content") {
-		existing.Model.Properties.Certificate = utils.String(d.Get("certificate_content").(string))
+		existing.Model.Properties.Certificate = pointer.To(d.Get("certificate_content").(string))
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id, *existing.Model, dpscertificate.CreateOrUpdateOperationOptions{IfMatch: utils.String(etag)}); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, *existing.Model, dpscertificate.CreateOrUpdateOperationOptions{IfMatch: pointer.To(etag)}); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -188,7 +190,7 @@ func resourceIotHubDPSCertificateDelete(d *pluginsdk.ResourceData, meta interfac
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id, dpscertificate.GetOperationOptions{IfMatch: utils.String("")})
+	resp, err := client.Get(ctx, *id, dpscertificate.GetOperationOptions{IfMatch: pointer.To("")})
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return nil
@@ -202,7 +204,7 @@ func resourceIotHubDPSCertificateDelete(d *pluginsdk.ResourceData, meta interfac
 
 	deleteOptions := dpscertificate.DeleteOperationOptions{
 		IfMatch:         resp.Model.Etag,
-		CertificateName: utils.String(id.CertificateName),
+		CertificateName: pointer.To(id.CertificateName),
 	}
 	if _, err := client.Delete(ctx, *id, deleteOptions); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
