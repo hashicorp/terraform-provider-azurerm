@@ -9,16 +9,14 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/storagequeues"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var _ pluginsdk.StateUpgrade = StorageQueueV1ToV2{}
+var _ pluginsdk.StateUpgrade = StorageContainerV1ToV2{}
 
-type StorageQueueV1ToV2 struct{}
+type StorageContainerV1ToV2 struct{}
 
-func (StorageQueueV1ToV2) Schema() map[string]*pluginsdk.Schema {
+func (StorageContainerV1ToV2) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
@@ -28,12 +26,34 @@ func (StorageQueueV1ToV2) Schema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 		},
+		"container_access_type": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+		},
+		"default_encryption_scope": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+		},
+		"encryption_scope_override_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		},
 		"metadata": {
 			Type:     pluginsdk.TypeMap,
 			Optional: true,
+			Computed: true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
+		},
+		"has_immutability_policy": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+		"has_legal_hold": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
 		},
 		"url": {
 			Type:     pluginsdk.TypeString,
@@ -42,7 +62,7 @@ func (StorageQueueV1ToV2) Schema() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (StorageQueueV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
+func (StorageContainerV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 		oldID, ok := rawState["id"].(string)
 		if !ok {
@@ -50,16 +70,16 @@ func (StorageQueueV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		}
 
 		// Some instances of this resource may already be using the resource manager ID, in which case this is a no-op
-		if _, err := storagequeues.ParseQueueID(oldID); err == nil {
+		if _, err := commonids.ParseStorageContainerID(oldID); err == nil {
 			return rawState, nil
 		}
 
 		storageAccountID, err := resolveStorageAccountIDForStateUpgrade(ctx, meta, rawState, func(input string) (*commonids.StorageAccountId, error) {
-			parsed, err := parse.StorageQueueResourceManagerID(input)
+			parsed, err := commonids.ParseStorageContainerID(input)
 			if err != nil {
 				return nil, err
 			}
-			id := commonids.NewStorageAccountID(parsed.SubscriptionId, parsed.ResourceGroup, parsed.StorageAccountName)
+			id := commonids.NewStorageAccountID(parsed.SubscriptionId, parsed.ResourceGroupName, parsed.StorageAccountName)
 			return &id, nil
 		})
 		if err != nil {
@@ -76,7 +96,7 @@ func (StorageQueueV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 			return rawState, fmt.Errorf("expected `name` to be of type string, got %T", nameRaw)
 		}
 
-		rawState["id"] = storagequeues.NewQueueID(storageAccountID.SubscriptionId, storageAccountID.ResourceGroupName, storageAccountID.StorageAccountName, name).ID()
+		rawState["id"] = commonids.NewStorageContainerID(storageAccountID.SubscriptionId, storageAccountID.ResourceGroupName, storageAccountID.StorageAccountName, name).ID()
 		rawState["storage_account_id"] = storageAccountID.ID()
 		delete(rawState, "storage_account_name")
 
