@@ -534,6 +534,10 @@ func TestAccSubnet_serviceEndpointBlockMultiple(t *testing.T) {
 				check.That(data.ResourceName).Key("service_endpoint.#").HasValue("3"),
 			),
 		},
+		{
+			Config:   r.serviceEndpointBlockMultipleReordered(data),
+			PlanOnly: true,
+		},
 		data.ImportStep(),
 		{
 			Config: r.serviceEndpointBlockMultipleUpdated(data),
@@ -1495,6 +1499,31 @@ resource "azurerm_subnet" "test" {
 
   service_endpoint {
     service = "Microsoft.KeyVault"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r SubnetResource) serviceEndpointBlockMultipleReordered(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctest-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+
+  service_endpoint {
+    service = "Microsoft.KeyVault"
+  }
+
+  service_endpoint {
+    service = "Microsoft.Sql"
+  }
+
+  service_endpoint {
+    service = "Microsoft.Storage"
   }
 }
 `, r.template(data), data.RandomInteger)
