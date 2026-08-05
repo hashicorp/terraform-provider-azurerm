@@ -36,34 +36,9 @@ func TestFlattenVirtualMachineScaleSetRollingUpgradePolicy(t *testing.T) {
 		MaxBatchInstancePercent: pointer.To(int64(20)),
 	}
 
-	testCases := []struct {
-		name                    string
-		useRollingUpgradePolicy *bool
-		expectedBlockCount      int
-	}{
-		{
-			name:                    "explicitly disabled",
-			useRollingUpgradePolicy: pointer.To(false),
-			expectedBlockCount:      0,
-		},
-		{
-			name:                    "explicitly enabled",
-			useRollingUpgradePolicy: pointer.To(true),
-			expectedBlockCount:      1,
-		},
-		{
-			name:               "not specified",
-			expectedBlockCount: 1,
-		},
-	}
-
-	for _, testCase := range testCases {
-		t.Run(testCase.name, func(t *testing.T) {
-			actual := FlattenVirtualMachineScaleSetRollingUpgradePolicy(input, testCase.useRollingUpgradePolicy)
-			if len(actual) != testCase.expectedBlockCount {
-				t.Fatalf("expected %d rolling upgrade policy blocks, got %d", testCase.expectedBlockCount, len(actual))
-			}
-		})
+	actual := FlattenVirtualMachineScaleSetRollingUpgradePolicy(input)
+	if len(actual) != 1 {
+		t.Fatalf("expected 1 rolling upgrade policy block, got %d", len(actual))
 	}
 }
 
