@@ -981,7 +981,7 @@ func (KubernetesClusterResource) azureKeyVaultKms(data acceptance.TestData, cont
 	if enabled {
 		kmsBlock = `
   key_management_service {
-    key_vault_key_id = azurerm_key_vault_key.test.id
+    key_vault_key_id = azurerm_key_vault_key.test.versionless_id
   }`
 	}
 
