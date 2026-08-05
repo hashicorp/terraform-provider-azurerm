@@ -26,7 +26,7 @@ golangci-fix: ## renamed to lint-fix
 tools: ## Install the tools required to develop the provider
 	@echo "==> installing required tooling..."
 	go install github.com/client9/misspell/cmd/misspell@latest
-	go install github.com/bflad/tfproviderlint/cmd/tfproviderlint@latest
+	go install github.com/bflad/tfproviderlint/cmd/tfproviderlintx@latest
 	go install github.com/YakDriver/tfproviderdocs@latest
 	go install github.com/katbyte/terrafmt@latest
 	go install golang.org/x/tools/cmd/goimports@latest
