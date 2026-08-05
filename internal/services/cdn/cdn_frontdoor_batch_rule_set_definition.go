@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdorigins"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rulesets"
 	helperValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
@@ -422,11 +421,12 @@ func flattenCdnFrontDoorBatchRuleSetRouteConfigurationOverrideOriginGroup(input 
 	}
 
 	if input.OriginGroup != nil && input.OriginGroup.Id != nil {
-		originGroupID, err := afdorigins.ParseOriginGroupID(*input.OriginGroup.Id)
+		// Azure can return IDs with inconsistently cased static segments; normalize them to avoid state drift and refresh failures (#32953).
+		originGroupID, err := normalizeFrontDoorOriginGroupID(*input.OriginGroup.Id)
 		if err != nil {
 			return result, err
 		}
-		v.CdnFrontdoorOriginGroupID = originGroupID.ID()
+		v.CdnFrontdoorOriginGroupID = originGroupID
 	}
 
 	return append(result, v), nil
