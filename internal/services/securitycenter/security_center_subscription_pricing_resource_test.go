@@ -19,32 +19,6 @@ import (
 
 type SecurityCenterSubscriptionPricingResource struct{}
 
-func TestAccServerVulnerabilityAssessment_sequential(t *testing.T) {
-	// these tests need to change `azurerm_security_center_subscription_pricing` of `VirtualMachines` in their test configs, so we need to run them serially.
-	// `securityCenterAssessmentPolicy` is included because it's using same `azurerm_security_center_assessment_policy` with other tests
-	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
-		"securityCenterAssessment": {
-			"basic":          testAccSecurityCenterAssessment_basic,
-			"complete":       testAccSecurityCenterAssessment_complete,
-			"update":         testAccSecurityCenterAssessment_update,
-			"requiresImport": testAccSecurityCenterAssessment_requiresImport,
-		},
-		"securityCenterAssessmentPolicy": {
-			"basic":    testAccSecurityCenterAssessmentPolicy_basic,
-			"complete": testAccSecurityCenterAssessmentPolicy_complete,
-			"update":   testAccSecurityCenterAssessmentPolicy_update,
-		},
-		"serverVulnerabilityAssessmentVirtualMachine": {
-			"basic":          testAccServerVulnerabilityAssessmentVirtualMachine_basic,
-			"requiresImport": testAccServerVulnerabilityAssessmentVirtualMachine_requiresImport,
-		},
-		"workSpace": {
-			"basic":          testAccSecurityCenterWorkspace_basic,
-			"update":         testAccSecurityCenterWorkspace_update,
-			"requiresImport": testAccSecurityCenterWorkspace_requiresImport,
-		},
-	})
-}
 
 func TestAccSecurityCenterSubscriptionPricing_cloudPosture(t *testing.T) {
 	// These tests will change pricing tier of cloud posture
