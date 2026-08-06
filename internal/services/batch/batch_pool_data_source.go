@@ -617,6 +617,22 @@ func startTaskDSSchema() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+					"bind_mount": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"source": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"read_only_enabled": {
+									Type:     pluginsdk.TypeBool,
+									Computed: true,
+								},
+							},
+						},
+					},
 				},
 			},
 		},
