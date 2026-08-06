@@ -8,6 +8,7 @@ import (
 	"os"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -883,7 +884,7 @@ func TestAccPluginSDK_returnsComputedFields(t *testing.T) {
 				Config: `resource "validator_computed" "test" {}`,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckResourceStateMatches(resourceName, map[string]interface{}{
-						"%":                   "9",
+						"%":                   "10", // the 8 computed fields, id, and the timeouts block
 						"id":                  "does-not-matter",
 						"hello":               "world",
 						"random_number":       "42",
@@ -982,6 +983,14 @@ func computedFieldsResource() *schema.Resource {
 					},
 				},
 			},
+		},
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 		Create: func(d *schema.ResourceData, meta interface{}) error { //nolint:staticcheck
 			d.SetId("does-not-matter")
