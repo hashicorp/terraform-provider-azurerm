@@ -65,11 +65,12 @@ func (StorageQueueV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 
 		storageAccountID := commonids.StorageAccountId{}
 		if !findAccount {
-			parsed, err := parse.StorageQueueResourceManagerID(resourceManagerID)
-			if err != nil {
-				return rawState, err
+			// The `resource_manager_id` can be malformed (see: #32950), in which case fallbacks to find account.
+			if parsed, err := parse.StorageQueueResourceManagerID(resourceManagerID); err != nil {
+				findAccount = true
+			} else {
+				storageAccountID = commonids.NewStorageAccountID(parsed.SubscriptionId, parsed.ResourceGroup, parsed.StorageAccountName)
 			}
-			storageAccountID = commonids.NewStorageAccountID(parsed.SubscriptionId, parsed.ResourceGroup, parsed.StorageAccountName)
 		}
 
 		if findAccount {
