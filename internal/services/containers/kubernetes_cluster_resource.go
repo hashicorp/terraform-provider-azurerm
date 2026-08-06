@@ -2246,7 +2246,8 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	if d.HasChange("aci_connector_linux") || d.HasChange("azure_policy_enabled") || d.HasChange("confidential_computing") || d.HasChange("http_application_routing_enabled") || d.HasChange("oms_agent") || d.HasChange("ingress_application_gateway") || d.HasChange("open_service_mesh_enabled") || d.HasChange("key_vault_secrets_provider") {
+	// lintignore:R019 // deliberate subset: only the addon-related fields that require rebuilding the addonProfiles payload
+	if d.HasChanges("aci_connector_linux", "azure_policy_enabled", "confidential_computing", "http_application_routing_enabled", "oms_agent", "ingress_application_gateway", "open_service_mesh_enabled", "key_vault_secrets_provider") {
 		updateCluster = true
 		addOns := collectKubernetesAddons(d)
 		addonProfiles, err := expandKubernetesAddOns(d, addOns, env)
@@ -2256,7 +2257,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.Model.Properties.AddonProfiles = addonProfiles
 	}
 
-	if d.HasChange("run_command_enabled") || d.HasChange("private_cluster_public_fqdn_enabled") || d.HasChange("api_server_access_profile") {
+	if d.HasChanges("run_command_enabled", "private_cluster_public_fqdn_enabled", "api_server_access_profile") {
 		updateCluster = true
 
 		apiServerProfile := expandKubernetesClusterAPIAccessProfile(d)
@@ -2627,7 +2628,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	if d.HasChange("image_cleaner_enabled") || d.HasChange("image_cleaner_interval_hours") {
+	if d.HasChanges("image_cleaner_enabled", "image_cleaner_interval_hours") {
 		updateCluster = true
 		if existing.Model.Properties.SecurityProfile == nil {
 			existing.Model.Properties.SecurityProfile = &managedclusters.ManagedClusterSecurityProfile{}

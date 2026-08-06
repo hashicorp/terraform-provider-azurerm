@@ -536,10 +536,6 @@ func expandLongTermBackupSchedule(input []LongTermBackUpScheduleDetails) *autono
 }
 
 func (r AutonomousDatabaseRegularResource) hasGeneralUpdates(metadata sdk.ResourceMetaData) bool {
-	return metadata.ResourceData.HasChange("tags") ||
-		metadata.ResourceData.HasChange("data_storage_size_in_tbs") ||
-		metadata.ResourceData.HasChange("compute_count") ||
-		metadata.ResourceData.HasChange("auto_scaling_enabled") ||
-		metadata.ResourceData.HasChange("auto_scaling_for_storage_enabled") ||
-		metadata.ResourceData.HasChange("allowed_ips")
+	// lintignore:R019 // deliberate subset: only the fields covered by the general update payload; the remaining attributes are updated via separate calls
+	return metadata.ResourceData.HasChanges("tags", "data_storage_size_in_tbs", "compute_count", "auto_scaling_enabled", "auto_scaling_for_storage_enabled", "allowed_ips")
 }

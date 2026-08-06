@@ -387,7 +387,7 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("retrieving properties for %s: %v", id, err)
 	}
 
-	if d.HasChange("content_type") || d.HasChange("cache_control") {
+	if d.HasChanges("content_type", "cache_control") {
 		input := blobs.SetPropertiesInput{
 			ContentType:  pointer.To(d.Get("content_type").(string)),
 			CacheControl: pointer.To(d.Get("cache_control").(string)),

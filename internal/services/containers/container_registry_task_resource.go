@@ -905,11 +905,11 @@ func (r ContainerRegistryTaskResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("platform") {
 				existing.Model.Properties.Platform = expandRegistryTaskPlatform(model.Platform)
 			}
-			if metadata.ResourceData.HasChange("docker_step") || metadata.ResourceData.HasChange("file_step") || metadata.ResourceData.HasChange("encoded_step") {
+			if metadata.ResourceData.HasChanges("docker_step", "file_step", "encoded_step") {
 				existing.Model.Properties.Step = expandRegistryTaskStep(model)
 			}
 
-			if metadata.ResourceData.HasChange("base_image_trigger") || metadata.ResourceData.HasChange("source_trigger") || metadata.ResourceData.HasChange("timer_trigger") {
+			if metadata.ResourceData.HasChanges("base_image_trigger", "source_trigger", "timer_trigger") {
 				existing.Model.Properties.Trigger = expandRegistryTaskTrigger(model)
 			}
 

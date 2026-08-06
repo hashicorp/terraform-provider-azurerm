@@ -295,7 +295,7 @@ func resourceStorageShareFileUpdate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	if d.HasChange("content_type") || d.HasChange("content_encoding") || d.HasChange("content_disposition") {
+	if d.HasChanges("content_type", "content_encoding", "content_disposition") {
 		input := files.SetPropertiesInput{
 			ContentType:        pointer.To(d.Get("content_type").(string)),
 			ContentEncoding:    pointer.To(d.Get("content_encoding").(string)),
