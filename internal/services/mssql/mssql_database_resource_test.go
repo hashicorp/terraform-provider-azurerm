@@ -221,6 +221,26 @@ func TestAccMsSqlDatabase_gpServerless(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlDatabase_gpServerlessWithoutMinCapacity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MssqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			// `min_capacity` is optional for serverless databases. When it is omitted the provider must not force
+			// `min_capacity: 0`, which the API rejects for SKUs that do not support a minimum capacity of `0`
+			// (e.g. `GP_S_Gen5_8`). The service applies its own default instead. See #32873.
+			Config: r.gpServerlessWithoutMinCapacity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").HasValue("GP_S_Gen5_8"),
+				check.That(data.ResourceName).Key("min_capacity").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMsSqlDatabase_updateLicenseType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MssqlDatabaseResource{}
@@ -1662,6 +1682,18 @@ resource "azurerm_mssql_database" "test" {
   auto_pause_delay_in_minutes = 90
   min_capacity                = 1.25
   sku_name                    = "GP_S_Gen5_2"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r MssqlDatabaseResource) gpServerlessWithoutMinCapacity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%[2]d"
+  server_id = azurerm_mssql_server.test.id
+  sku_name  = "GP_S_Gen5_8"
 }
 `, r.template(data), data.RandomInteger)
 }
