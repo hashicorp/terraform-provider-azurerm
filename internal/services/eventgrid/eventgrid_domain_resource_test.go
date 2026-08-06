@@ -191,6 +191,54 @@ func TestAccEventGridDomain_basicWithUserAssignedManagedIdentity(t *testing.T) {
 	})
 }
 
+func TestAccEventGridDomain_basicWithTlsMinimumVersion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_domain", "test")
+	r := EventGridDomainResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("minimum_tls_version").HasValue("1.1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccEventGridDomain_basicWithDataResidencyBoundary(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_domain", "test")
+	r := EventGridDomainResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("data_residency_boundary").HasValue("WithinRegion"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccEventGridDomain_defaultTlsMinimumVersion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_domain", "test")
+	r := EventGridDomainResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("minimum_tls_version").HasValue("1.2"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (EventGridDomainResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := domains.ParseDomainID(state.ID)
 	if err != nil {
@@ -449,6 +497,9 @@ resource "azurerm_eventgrid_domain" "test" {
     ip_mask = "10.1.0.0/16"
     action  = "Allow"
   }
+
+  minimum_tls_version     = "1.2"
+  data_residency_boundary = "WithinRegion"
 
   input_schema = "CustomEventSchema"
 
