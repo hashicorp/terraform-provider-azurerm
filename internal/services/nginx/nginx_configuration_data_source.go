@@ -17,7 +17,6 @@ import (
 )
 
 type ProtectedFileData struct {
-	Content     string `tfschema:"content,removedInNextMajorVersion"`
 	VirtualPath string `tfschema:"virtual_path"`
 	ContentHash string `tfschema:"content_hash"`
 }
