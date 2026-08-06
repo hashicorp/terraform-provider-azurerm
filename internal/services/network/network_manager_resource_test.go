@@ -124,11 +124,12 @@ func TestAccNetworkManager(t *testing.T) {
 			"ipAddressPoolNumberUpdated": testAccSubnet_ipAddressPoolNumberUpdated,
 		},
 		"VNETIPANPool": {
-			"ipAddressPool":             testAccVirtualNetwork_ipAddressPool,
-			"ipAddressPoolIPv6":         testAccVirtualNetwork_ipAddressPoolIPv6,
-			"ipAddressPoolMultiple":     testAccVirtualNetwork_ipAddressPoolMultiple,
-			"ipAddressPoolUpdateBasic":  testAccVirtualNetwork_ipAddressPoolUpdateBasic,
-			"ipAddressPoolUpdateNumber": testAccVirtualNetwork_ipAddressPoolUpdateNumber,
+			"ipAddressPool":                testAccVirtualNetwork_ipAddressPool,
+			"ipAddressPoolIPv6":            testAccVirtualNetwork_ipAddressPoolIPv6,
+			"ipAddressPoolMultiple":        testAccVirtualNetwork_ipAddressPoolMultiple,
+			"ipAddressPoolUpdateBasic":     testAccVirtualNetwork_ipAddressPoolUpdateBasic,
+			"ipAddressPoolUpdateNumber":    testAccVirtualNetwork_ipAddressPoolUpdateNumber,
+			"ipAddressPoolAddedExternally": testAccVirtualNetwork_ipAddressPoolAddedExternally,
 		},
 	}
 
