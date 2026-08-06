@@ -19,7 +19,6 @@ import (
 
 type SecurityCenterSubscriptionPricingResource struct{}
 
-
 func TestAccSecurityCenterSubscriptionPricing_cloudPosture(t *testing.T) {
 	// These tests will change pricing tier of cloud posture
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
