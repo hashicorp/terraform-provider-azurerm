@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-func TestAccPluginSDKAndDecoder(t *testing.T) {
+func TestAccPluginSDK_andDecoder(t *testing.T) {
 	os.Setenv("TF_ACC", "1") // nolint:tenv // plugin testing harness prevents this
 
 	type NestedType struct {
@@ -215,7 +215,7 @@ func TestAccPluginSDKAndDecoder(t *testing.T) {
 	})
 }
 
-func TestAccPluginSDKAndDecoderOptionalComputed(t *testing.T) {
+func TestAccPluginSDK_andDecoderOptionalComputed(t *testing.T) {
 	os.Setenv("TF_ACC", "1") // nolint:tenv // plugin testing harness prevents this
 
 	type MyType struct {
@@ -339,7 +339,7 @@ resource "validator_decoder_unspecified" "test" {}
 	})
 }
 
-func TestAccPluginSDKAndDecoderOptionalComputedOverride(t *testing.T) {
+func TestAccPluginSDK_andDecoderOptionalComputedOverride(t *testing.T) {
 	os.Setenv("TF_ACC", "1") // nolint:tenv // plugin testing harness prevents this
 
 	type MyType struct {
@@ -443,7 +443,7 @@ resource "validator_decoder_override" "test" {
 	})
 }
 
-func TestAccPluginSDKAndDecoderSets(t *testing.T) {
+func TestAccPluginSDK_andDecoderSets(t *testing.T) {
 	os.Setenv("TF_ACC", "1") // nolint:tenv // plugin testing harness prevents this
 
 	type MyType struct {
@@ -623,7 +623,7 @@ func TestAccPluginSDKAndDecoderSets(t *testing.T) {
 	})
 }
 
-func TestAccPluginSDKAndEncoder(t *testing.T) {
+func TestAccPluginSDK_andEncoder(t *testing.T) {
 	os.Setenv("TF_ACC", "1") // nolint:tenv // plugin testing harness prevents this
 
 	type NestedType struct {
@@ -862,7 +862,7 @@ func TestAccPluginSDKAndEncoder(t *testing.T) {
 	})
 }
 
-func TestAccPluginSDKReturnsComputedFields(t *testing.T) {
+func TestAccPluginSDK_returnsComputedFields(t *testing.T) {
 	os.Setenv("TF_ACC", "1") // nolint:tenv // plugin sdk always is
 
 	resourceName := "validator_computed.test"

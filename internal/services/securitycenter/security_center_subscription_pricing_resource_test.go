@@ -19,7 +19,7 @@ import (
 
 type SecurityCenterSubscriptionPricingResource struct{}
 
-func TestAccServerVulnerabilityAssessment(t *testing.T) {
+func TestAccServerVulnerabilityAssessment_sequential(t *testing.T) {
 	// these tests need to change `azurerm_security_center_subscription_pricing` of `VirtualMachines` in their test configs, so we need to run them serially.
 	// `securityCenterAssessmentPolicy` is included because it's using same `azurerm_security_center_assessment_policy` with other tests
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
