@@ -81,6 +81,25 @@ func TestAccMonitorDataCollectionRule_kindWorkspaceTransforms(t *testing.T) {
 	})
 }
 
+func TestAccMonitorDataCollectionRule_kindDirect(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_data_collection_rule", "test")
+	r := MonitorDataCollectionRuleResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.kindDirect(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("logs_ingestion_endpoint").IsNotEmpty(),
+				check.That(data.ResourceName).Key("metrics_ingestion_endpoint").IsNotEmpty(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+
+
 func TestAccMonitorDataCollectionRule_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_data_collection_rule", "test")
 	r := MonitorDataCollectionRuleResource{}
@@ -1161,4 +1180,37 @@ resource "azurerm_resource_group" "test" {
 }
 
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r MonitorDataCollectionRuleResource) kindDirect(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestlaw-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+resource "azurerm_monitor_data_collection_rule" "test" {
+  name                = "acctestmdcr-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  kind                = "Direct"
+
+  destinations {
+    log_analytics {
+      workspace_resource_id = azurerm_log_analytics_workspace.test.id
+      name                  = "dest-la"
+    }
+  }
+
+  data_flow {
+    streams      = ["Microsoft-Syslog"]
+    destinations = ["dest-la"]
+  }
+}
+`, r.template(data), data.RandomInteger)
 }

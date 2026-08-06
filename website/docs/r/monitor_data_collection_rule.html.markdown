@@ -232,9 +232,11 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `kind` - (Optional) The kind of the Data Collection Rule. Possible values are `Linux`, `Windows`, `AgentDirectToStore` and `WorkspaceTransforms`. A rule of kind `Linux` does not allow for `windows_event_log` data sources. And a rule of kind `Windows` does not allow for `syslog` data sources. If kind is not specified, all kinds of data sources are allowed.
+* `kind` - (Optional) The kind of the Data Collection Rule. Possible values are `Linux`, `Windows`, `AgentDirectToStore`, `WorkspaceTransforms` and `Direct`. A rule of kind `Linux` does not allow for `windows_event_log` data sources. And a rule of kind `Windows` does not allow for `syslog` data sources. If kind is not specified, all kinds of data sources are allowed.
 
 ~> **Note:** Once `kind` has been set, changing it forces a new Data Collection Rule to be created.
+
+~> **Note:** When `kind` is set to `Direct`, `data_sources` must not be configured, and the destination types `event_hub_direct`, `storage_blob_direct`, and `storage_table_direct` are not permitted. Azure will automatically generate the `logs_ingestion_endpoint` and `metrics_ingestion_endpoint` values.
 
 * `stream_declaration` - (Optional) A `stream_declaration` block as defined below.
 
@@ -318,7 +320,7 @@ A `destinations` block supports the following:
 
 * `storage_table_direct` - (Optional) One or more `storage_table_direct` blocks as defined below.
 
--> **Note:** `event_hub_direct`, `storage_blob_direct`, and `storage_table_direct` are only available for rules of kind `AgentDirectToStore`.
+-> **Note:** `event_hub_direct`, `storage_blob_direct`, and `storage_table_direct` are only available for rules of kind `AgentDirectToStore` and are not permitted for `Direct`.
 
 -> **Note:** At least one of `azure_monitor_metrics`, `event_hub`, `event_hub_direct`, `log_analytics`, `monitor_account`, `storage_blob`, `storage_blob_direct`,and `storage_table_direct` blocks must be specified.
 
@@ -539,6 +541,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `id` - The ID of the Data Collection Rule.
 
 * `immutable_id` - The immutable ID of the Data Collection Rule.
+
+* `logs_ingestion_endpoint` - The endpoint URL for sending logs via the Logs Ingestion API. Only populated when `kind` is set to `Direct`.
+
+* `metrics_ingestion_endpoint` - The endpoint URL for sending metrics via the Metrics Ingestion API. Only populated when `kind` is set to `Direct`.
 
 ---
 
