@@ -2247,7 +2247,16 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	// lintignore:R019 // deliberate subset: only the addon-related fields that require rebuilding the addonProfiles payload
-	if d.HasChanges("aci_connector_linux", "azure_policy_enabled", "confidential_computing", "http_application_routing_enabled", "oms_agent", "ingress_application_gateway", "open_service_mesh_enabled", "key_vault_secrets_provider") {
+	if d.HasChanges(
+		"aci_connector_linux",
+		"azure_policy_enabled",
+		"confidential_computing",
+		"http_application_routing_enabled",
+		"oms_agent",
+		"ingress_application_gateway",
+		"open_service_mesh_enabled",
+		"key_vault_secrets_provider",
+	) {
 		updateCluster = true
 		addOns := collectKubernetesAddons(d)
 		addonProfiles, err := expandKubernetesAddOns(d, addOns, env)

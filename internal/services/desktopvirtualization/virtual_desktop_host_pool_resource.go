@@ -292,7 +292,18 @@ func resourceVirtualDesktopHostPoolUpdate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	// lintignore:R019 // deliberate subset: only the fields feeding HostPoolPatchProperties; tags are applied separately above
-	if d.HasChanges("custom_rdp_properties", "description", "friendly_name", "load_balancer_type", "maximum_sessions_allowed", "preferred_app_group_type", "public_network_access", "start_vm_on_connect", "validate_environment", "scheduled_agent_updates") {
+	if d.HasChanges(
+		"custom_rdp_properties",
+		"description",
+		"friendly_name",
+		"load_balancer_type",
+		"maximum_sessions_allowed",
+		"preferred_app_group_type",
+		"public_network_access",
+		"start_vm_on_connect",
+		"validate_environment",
+		"scheduled_agent_updates",
+	) {
 		payload.Properties = &hostpool.HostPoolPatchProperties{}
 
 		if d.HasChange("custom_rdp_properties") {

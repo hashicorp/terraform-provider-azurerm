@@ -987,7 +987,13 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 				}
 
 				// lintignore:R019 // deliberate subset: the windows_configuration fields that require rolling the instances to take effect
-				if d.HasChanges("os_profile.0.windows_configuration.0.enable_automatic_updates", "os_profile.0.windows_configuration.0.provision_vm_agent", "os_profile.0.windows_configuration.0.timezone", "os_profile.0.windows_configuration.0.secret", "os_profile.0.windows_configuration.0.winrm_listener") {
+				if d.HasChanges(
+					"os_profile.0.windows_configuration.0.enable_automatic_updates",
+					"os_profile.0.windows_configuration.0.provision_vm_agent",
+					"os_profile.0.windows_configuration.0.timezone",
+					"os_profile.0.windows_configuration.0.secret",
+					"os_profile.0.windows_configuration.0.winrm_listener",
+				) {
 					updateInstances = true
 				}
 
@@ -1049,7 +1055,11 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 				patchAssessmentMode := linConfig["patch_assessment_mode"].(string)
 				patchMode := linConfig["patch_mode"].(string)
 
-				if d.HasChanges("os_profile.0.linux_configuration.0.provision_vm_agent", "os_profile.0.linux_configuration.0.disable_password_authentication", "os_profile.0.linux_configuration.0.admin_ssh_key") {
+				if d.HasChanges(
+					"os_profile.0.linux_configuration.0.provision_vm_agent",
+					"os_profile.0.linux_configuration.0.disable_password_authentication",
+					"os_profile.0.linux_configuration.0.admin_ssh_key",
+				) {
 					updateInstances = true
 				}
 

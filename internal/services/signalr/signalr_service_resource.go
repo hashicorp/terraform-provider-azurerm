@@ -427,7 +427,13 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 
 		// lintignore:R019 // deliberate subset: only the attributes mapped to SignalR feature flags; the other properties are handled by the surrounding branches
-		if d.HasChanges("connectivity_logs_enabled", "messaging_logs_enabled", "http_request_logs_enabled", "live_trace_enabled", "service_mode") {
+		if d.HasChanges(
+			"connectivity_logs_enabled",
+			"messaging_logs_enabled",
+			"http_request_logs_enabled",
+			"live_trace_enabled",
+			"service_mode",
+		) {
 			features := make([]signalr.SignalRFeature, 0)
 			if d.HasChanges("connectivity_logs_enabled", "messaging_logs_enabled", "http_request_logs_enabled") {
 				connectivityLogsNew := d.Get("connectivity_logs_enabled")

@@ -96,7 +96,11 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 		}
 	}
 
-	if metadata.ResourceData.HasChanges("active_assignment_rules.0.require_multifactor_authentication", "active_assignment_rules.0.require_justification", "active_assignment_rules.0.require_ticket_info") {
+	if metadata.ResourceData.HasChanges(
+		"active_assignment_rules.0.require_multifactor_authentication",
+		"active_assignment_rules.0.require_justification",
+		"active_assignment_rules.0.require_ticket_info",
+	) {
 		if enablementAdminEligibilityBase, ok := existingRules["Enablement_Admin_Assignment"]; ok {
 			if enablementAdminEligibility, ok := enablementAdminEligibilityBase.(rolemanagementpolicies.RoleManagementPolicyEnablementRule); ok {
 				enabledRules := make([]rolemanagementpolicies.EnablementRules, 0)
@@ -207,7 +211,11 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 		}
 	}
 
-	if metadata.ResourceData.HasChanges("activation_rules.0.require_multifactor_authentication", "activation_rules.0.require_justification", "activation_rules.0.require_ticket_info") {
+	if metadata.ResourceData.HasChanges(
+		"activation_rules.0.require_multifactor_authentication",
+		"activation_rules.0.require_justification",
+		"activation_rules.0.require_ticket_info",
+	) {
 		if enablementEndUserAssignmentBase, ok := existingRules["Enablement_EndUser_Assignment"]; ok {
 			if enablementEndUserAssignment, ok := enablementEndUserAssignmentBase.(rolemanagementpolicies.RoleManagementPolicyEnablementRule); ok {
 				enabledRules := make([]rolemanagementpolicies.EnablementRules, 0)

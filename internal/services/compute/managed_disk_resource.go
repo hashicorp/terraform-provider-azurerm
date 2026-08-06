@@ -404,7 +404,13 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		if v, ok := d.GetOk("logical_sector_size"); ok {
 			props.CreationData.LogicalSectorSize = pointer.To(int64(v.(int)))
 		}
-	} else if d.HasChanges("disk_iops_read_write", "disk_mbps_read_write", "disk_iops_read_only", "disk_mbps_read_only", "logical_sector_size") {
+	} else if d.HasChanges(
+		"disk_iops_read_write",
+		"disk_mbps_read_write",
+		"disk_iops_read_only",
+		"disk_mbps_read_only",
+		"logical_sector_size",
+	) {
 		return fmt.Errorf("[ERROR] disk_iops_read_write, disk_mbps_read_write, disk_iops_read_only, disk_mbps_read_only and logical_sector_size are only available for UltraSSD disks and PremiumV2 disks")
 	}
 
