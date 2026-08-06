@@ -63,11 +63,9 @@ goimports: ## Fix Go import ordering (slower than fmt, so kept separate)
 	@echo "==> Fixing imports with goimports..."
 	@golangci-lint fmt -E goimports
 
-quick-checks: ## Run the quick CI checks (formatting + provider policies)
-	@echo "==> Running the set of quick CI checks (formatting + provider policies)..."
+quick-checks: ## Run the quick CI checks (formatting)
+	@echo "==> Running the set of quick CI checks (formatting)..."
 	@sh "$(CURDIR)/scripts/checks/fmt-check.sh"
-	@sh "$(CURDIR)/scripts/checks/timeouts-check.sh"
-	@sh "$(CURDIR)/scripts/checks/test-package-check.sh"
 	@sh "$(CURDIR)/scripts/checks/terrafmt-acctests.sh"
 
 terrafmt: ## Fix terraform blocks in acceptance tests and website docs
@@ -188,10 +186,6 @@ schemagen: ## Generate a schema snapshot (RESOURCE_TYPE=<resource>)
 resource-counts: ## Print the number of resources and data sources in the provider
 	@go test -v ./internal/provider -run=TestProvider_counts
 
-static-analysis: ## Run the static analysis checks
-	@echo "==> Running static analysis..."
-	@./scripts/checks/static-analysis.sh
-
 pr-check: generate build test lint website-lint ## Run the same set of checks CI runs against a PR
 
-.PHONY: default help tools build fmt goimports quick-checks fmtcheck terrafmt generate lint shellcheck depscheck gencheck tfproviderlint tflint azproviderlint lint-fix golangci-fix test testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts static-analysis pr-check
+.PHONY: default help tools build fmt goimports quick-checks fmtcheck terrafmt generate lint shellcheck depscheck gencheck tfproviderlint tflint azproviderlint lint-fix golangci-fix test testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts pr-check

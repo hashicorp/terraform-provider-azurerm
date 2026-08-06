@@ -23,7 +23,7 @@ WARNING_MARKER="<!-- ci-failure-warning -->"
 # Process workflows (label bots, triage, comment actions, etc.) are excluded
 # so they cannot accidentally trigger PR closures.
 MONITORED_CHECKS=(
-  "detect"                     # breaking-change-detection + static-analysis job name
+  "detect"                     # breaking-change-detection job name
   "depscheck"                  # Vendor Dependencies Check
   "gencheck"                   # Generation Check
   "golint"                     # GoLangCI Linting
@@ -219,9 +219,6 @@ get_check_guidance() {
       ;;
     test|"Unit Tests")
       echo "Run \`make test\` locally to reproduce and fix the failing unit tests."
-      ;;
-    "Static Analysis")
-      echo "Run \`bash ./scripts/checks/static-analysis.sh\` locally and fix any reported issues."
       ;;
     shellcheck|"ShellCheck Scripts")
       echo "Run \`make shellcheck\` to check shell scripts for issues."

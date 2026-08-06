@@ -134,8 +134,8 @@ jobs:
         run: |
           echo "::error::Quick CI Checks failed."
           echo ""
-          echo "Run 'make quick-checks' locally to run the quick checks: formatting (gofmt/gofumpt),"
-          echo "custom timeouts usage, and acceptance test package naming."
+          echo "Run 'make quick-checks' locally to run the quick checks: formatting (gofmt/gofumpt)"
+          echo "and acceptance test terraform block formatting (terrafmt)."
           echo "For formatting issues, 'make fmt' and 'make goimports' will fix them automatically."
 
   quick-checks-save-artifacts:

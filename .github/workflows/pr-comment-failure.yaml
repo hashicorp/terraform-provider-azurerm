@@ -46,7 +46,7 @@ jobs:
               'Website Linting': 'Run `make website-lint` and `make document-validate` locally to check your documentation files under `website/` for formatting or validation issues.',
               'Generation Check': 'Run `make generate` locally to regenerate any auto-generated code, then commit the resulting changes.',
               'GoLangCI Linting': 'Run the Go linter locally with `make lint` and fix any reported issues.',
-              'Quick CI Checks': 'Run `make quick-checks` locally to run the quick checks: gofmt/gofumpt formatting, custom timeouts usage, and acceptance test package naming. Formatting issues can be fixed automatically with `make fmt` and `make goimports`.',
+              'Quick CI Checks': 'Run `make quick-checks` locally to run the quick checks: gofmt/gofumpt formatting and acceptance test terraform block formatting. Formatting issues can be fixed automatically with `make fmt` and `make goimports`.',
               'GoLang Compilation': 'Run `go build` or `make build` locally to reproduce and fix compilation errors.',
               'Unit Tests': 'Run `make test` locally to reproduce and fix the failing unit tests.',
               'ShellCheck Scripts': 'Run `make shellcheck` locally to check shell scripts for issues and fix any warnings or errors.',
