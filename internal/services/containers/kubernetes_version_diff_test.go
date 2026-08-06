@@ -67,6 +67,12 @@ func TestSuppressKubernetesVersionDiff(t *testing.T) {
 			expected: false,
 		},
 		{
+			name:     "exact patch pin against an alias state is a real change",
+			old:      "1.27",
+			new:      "1.27.14",
+			expected: false,
+		},
+		{
 			name:     "double-digit minor alias matches running patch version is suppressed",
 			old:      "1.34.3",
 			new:      "1.34",
