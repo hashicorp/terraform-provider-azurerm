@@ -381,7 +381,7 @@ func TestAccEventGridEventSubscription_systemIdentity(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data),
+			Config: r.systemIdentityUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("delivery_identity.#").HasValue("0"),
@@ -420,7 +420,7 @@ func TestAccEventGridEventSubscription_userIdentity(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.userIdentityUpdated(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("delivery_identity.#").HasValue("0"),
@@ -1590,104 +1590,8 @@ resource "azurerm_eventgrid_event_subscription" "test" {
 	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (EventGridEventSubscriptionResource) userIdentity(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
+func (EventGridEventSubscriptionResource) systemIdentityUpdate(data acceptance.TestData) string {
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-eg-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%[3]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_queue" "test" {
-  name                 = "mysamplequeue-%[1]d"
-  storage_account_name = azurerm_storage_account.test.name
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "dead-letter-destination"
-  storage_account_id    = azurerm_storage_account.test.id
-  container_access_type = "private"
-}
-
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctestUAI-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
-resource "azurerm_eventgrid_topic" "test" {
-  name                = "acctesteg-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  identity {
-    type = "UserAssigned"
-    identity_ids = [
-      azurerm_user_assigned_identity.test.id
-    ]
-  }
-}
-
-resource "azurerm_role_assignment" "contributor" {
-  scope                = azurerm_storage_account.test.id
-  role_definition_name = "Storage Blob Data Contributor"
-  principal_id         = azurerm_user_assigned_identity.test.principal_id
-}
-
-resource "azurerm_role_assignment" "sender" {
-  scope                = azurerm_storage_account.test.id
-  role_definition_name = "Storage Queue Data Message Sender"
-  principal_id         = azurerm_user_assigned_identity.test.principal_id
-}
-
-resource "azurerm_eventgrid_event_subscription" "test" {
-  name  = "acctesteg-%[1]d"
-  scope = azurerm_eventgrid_topic.test.id
-
-  delivery_identity {
-    type                   = "UserAssigned"
-    user_assigned_identity = azurerm_user_assigned_identity.test.id
-  }
-
-  dead_letter_identity {
-    type                   = "UserAssigned"
-    user_assigned_identity = azurerm_user_assigned_identity.test.id
-  }
-
-  storage_queue_endpoint {
-    storage_account_id = azurerm_storage_account.test.id
-    queue_name         = azurerm_storage_queue.test.name
-  }
-
-  storage_blob_dead_letter_destination {
-    storage_account_id          = azurerm_storage_account.test.id
-    storage_blob_container_name = azurerm_storage_container.test.name
-  }
-
-  depends_on = [
-    azurerm_role_assignment.contributor,
-    azurerm_role_assignment.sender
-  ]
-
-}
-		`, data.RandomInteger, data.Locations.Primary, data.RandomString)
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1721,50 +1625,32 @@ resource "azurerm_storage_container" "test" {
   container_access_type = "private"
 }
 
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctestUAI-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
 resource "azurerm_eventgrid_topic" "test" {
   name                = "acctesteg-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
   identity {
-    type = "UserAssigned"
-    identity_ids = [
-      azurerm_user_assigned_identity.test.id
-    ]
+    type = "SystemAssigned"
   }
 }
 
 resource "azurerm_role_assignment" "contributor" {
   scope                = azurerm_storage_account.test.id
   role_definition_name = "Storage Blob Data Contributor"
-  principal_id         = azurerm_user_assigned_identity.test.principal_id
+  principal_id         = azurerm_eventgrid_topic.test.identity.0.principal_id
 }
 
 resource "azurerm_role_assignment" "sender" {
   scope                = azurerm_storage_account.test.id
   role_definition_name = "Storage Queue Data Message Sender"
-  principal_id         = azurerm_user_assigned_identity.test.principal_id
+  principal_id         = azurerm_eventgrid_topic.test.identity.0.principal_id
 }
 
 resource "azurerm_eventgrid_event_subscription" "test" {
   name  = "acctesteg-%[1]d"
   scope = azurerm_eventgrid_topic.test.id
 
-  delivery_identity {
-    type                   = "UserAssigned"
-    user_assigned_identity = azurerm_user_assigned_identity.test.id
-  }
-
-  dead_letter_identity {
-    type                   = "UserAssigned"
-    user_assigned_identity = azurerm_user_assigned_identity.test.id
-  }
 
   storage_queue_endpoint {
     storage_account_id = azurerm_storage_account.test.id
@@ -1785,8 +1671,10 @@ resource "azurerm_eventgrid_event_subscription" "test" {
 	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (EventGridEventSubscriptionResource) userIdentityUpdated(data acceptance.TestData) string {
+func (EventGridEventSubscriptionResource) userIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+  
+
 provider "azurerm" {
   features {}
 }
@@ -1853,6 +1741,16 @@ resource "azurerm_role_assignment" "sender" {
 resource "azurerm_eventgrid_event_subscription" "test" {
   name  = "acctesteg-%[1]d"
   scope = azurerm_eventgrid_topic.test.id
+
+  delivery_identity {
+    type                   = "UserAssigned"
+    user_assigned_identity = azurerm_user_assigned_identity.test.id
+  }
+
+  dead_letter_identity {
+    type                   = "UserAssigned"
+    user_assigned_identity = azurerm_user_assigned_identity.test.id
+  }
 
   storage_queue_endpoint {
     storage_account_id = azurerm_storage_account.test.id
@@ -1875,6 +1773,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
 
 func (EventGridEventSubscriptionResource) deliveryProperties(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+  
 provider "azurerm" {
   features {}
 }
