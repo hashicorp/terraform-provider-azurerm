@@ -26,11 +26,10 @@ MONITORED_CHECKS=(
   "detect"                     # breaking-change-detection + static-analysis job name
   "depscheck"                  # Vendor Dependencies Check
   "gencheck"                   # Generation Check
-  "golint"                     # GoLang Linting
+  "golint"                     # GoLangCI Linting
   "test"                       # Unit Tests + gradually-deprecated job name
   "preview-api-version-linter" # Preview ARM API Version Linter
   "shellcheck"                 # ShellCheck Scripts
-  "tfproviderlint"              # Terraform Schema Linting
   "website-lint"               # Website Linting + Validate Examples job name
   "provider-tests"             # Provider Tests
 )
@@ -212,11 +211,8 @@ get_check_guidance() {
     gencheck|"Generation Check")
       echo "Run \`make generate\` to regenerate any auto-generated code, then commit the changes."
       ;;
-    golint|"GoLang Linting")
-      echo "Run the Go linter locally with \`golangci-lint run ./internal/...\` and fix any reported issues."
-      ;;
-    tfproviderlint|"Terraform Schema Linting")
-      echo "Run \`make tfproviderlint\` locally and fix any Terraform schema issues in your resource/data source definitions."
+    golint|"GoLangCI Linting")
+      echo "Run the Go linter locally with \`make lint\` and fix any reported issues."
       ;;
     detect|"Breaking Schema Changes")
       echo "Your changes contain breaking schema changes. Please review the [breaking changes guide](contributing/topics/guide-breaking-changes.md) and ensure any breaking changes are behind the appropriate feature flag."

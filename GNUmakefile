@@ -26,12 +26,12 @@ golangci-fix: ## renamed to lint-fix
 tools: ## Install the tools required to develop the provider
 	@echo "==> installing required tooling..."
 	go install github.com/client9/misspell/cmd/misspell@latest
-	go install github.com/bflad/tfproviderlint/cmd/tfproviderlint@latest
 	go install github.com/YakDriver/tfproviderdocs@latest
 	go install github.com/katbyte/terrafmt@latest
 	go install golang.org/x/tools/cmd/goimports@latest
 	go install mvdan.cc/gofumpt@latest
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin v2.12.2
+	@$(MAKE) golangci-with-modules
 
 build: quick-checks generate ## Run the quick checks, generate code, and compile the provider
 	go install
@@ -68,6 +68,7 @@ quick-checks: ## Run the quick CI checks (formatting + provider policies)
 	@sh "$(CURDIR)/scripts/checks/fmt-check.sh"
 	@sh "$(CURDIR)/scripts/checks/timeouts-check.sh"
 	@sh "$(CURDIR)/scripts/checks/test-package-check.sh"
+	@sh "$(CURDIR)/scripts/checks/terrafmt-acctests.sh"
 
 terrafmt: ## Fix terraform blocks in acceptance tests and website docs
 	@echo "==> Fixing acceptance test terraform blocks code with terrafmt..."
@@ -76,17 +77,32 @@ terrafmt: ## Fix terraform blocks in acceptance tests and website docs
 	@terrafmt fmt -p "*.html.markdown" .
 
 ##@ Linting & Dependencies
-lint: ## Check source code with the golangci linters
+# golangci-lint module plugins (azproviderlint) only exist in a custom-built binary, so lint
+# targets use scripts/golangci-with-modules, rebuilt automatically whenever the config changes.
+# The config filename and its living in the build cwd are both fixed by golangci-lint,
+# hence the cd into scripts/.
+scripts/golangci-with-modules: scripts/.custom-gcl.yml
+	@echo "==> Building golangci-lint with plugins (scripts/golangci-with-modules)..."
+	@cd scripts && golangci-lint custom
+
+golangci-with-modules: scripts/golangci-with-modules ## Build golangci-lint with plugins (automatic when scripts/.custom-gcl.yml changes)
+
+lint: scripts/golangci-with-modules ## Check source code with the golangci linters
 	@echo "==> Checking source code with golangci-lint..."
-	@golangci-lint run -v ./...
+	@./scripts/golangci-with-modules run -v ./...
 
-lint-fix: ## Fix source code with all golangci linters
+lint-fix: scripts/golangci-with-modules ## Fix source code with all golangci linters
 	@echo "==> Fixing source code with all golangci linters..."
-	@golangci-lint run ./... --fix
+	@./scripts/golangci-with-modules run ./... --fix
 
-tfproviderlint: ## Check terraform schema definitions with tfproviderlint
-	@echo "==> Checking terraform schemas with tfproviderlint..."
-	@./scripts/checks/tfproviderlint.sh
+# tfproviderlint and azproviderlint run as part of lint; these targets run just their checks
+tfproviderlint: scripts/golangci-with-modules ## Check terraform schema definitions with only the tfproviderlint checks
+	@echo "==> Checking terraform schemas with tfproviderlint (via golangci-lint)..."
+	@./scripts/golangci-with-modules run -v --enable-only tfproviderlint ./...
+
+azproviderlint: scripts/golangci-with-modules ## Check source code with only the azproviderlint checks
+	@echo "==> Checking source code with azproviderlint (via golangci-lint)..."
+	@./scripts/golangci-with-modules run -v --enable-only azproviderlint ./...
 
 shellcheck: ## Check shell scripts with shellcheck
 	@command -v shellcheck >/dev/null || (echo "shellcheck not installed. Install via: brew install shellcheck (macOS) or apt install shellcheck (Linux)" && exit 1)
@@ -176,6 +192,6 @@ static-analysis: ## Run the static analysis checks
 	@echo "==> Running static analysis..."
 	@./scripts/checks/static-analysis.sh
 
-pr-check: generate build test lint tfproviderlint website-lint ## Run the same set of checks CI runs against a PR
+pr-check: generate build test lint website-lint ## Run the same set of checks CI runs against a PR
 
-.PHONY: default help tools build fmt goimports quick-checks fmtcheck terrafmt generate lint shellcheck depscheck gencheck tfproviderlint tflint lint-fix golangci-fix test testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts static-analysis pr-check
+.PHONY: default help tools build fmt goimports quick-checks fmtcheck terrafmt generate lint shellcheck depscheck gencheck tfproviderlint tflint azproviderlint lint-fix golangci-fix test testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts static-analysis pr-check

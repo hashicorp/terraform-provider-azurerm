@@ -127,6 +127,7 @@ jobs:
       - name: Install tooling
         run: |
           curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b "$(go env GOPATH)/bin" v2.12.2
+          go install github.com/katbyte/terrafmt@latest
       - run: make quick-checks
       - name: Guidance on failure
         if: failure()
@@ -337,19 +338,26 @@ jobs:
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: ./.go-version
-      - uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
+      # The azproviderlint/tfproviderlint module plugins require a custom-built golangci-lint
+      # binary (see scripts/.custom-gcl.yml); cache it so it is only rebuilt when the config changes.
+      - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
-          version: 'v2.12.2'
-          # Use the default 'binary' install mode: it downloads the pre-built
-          # release binary instead of compiling golangci-lint from source
-          # (goinstall), which is significantly faster for a pinned version.
-          args: ./...
+          path: scripts/golangci-with-modules
+          key: golangci-with-modules-${{ hashFiles('scripts/.custom-gcl.yml') }}
+      - name: Build golangci-lint with plugins
+        run: |
+          if [ ! -x scripts/golangci-with-modules ]; then
+            curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b "$(go env GOPATH)/bin" v2.12.2
+            (cd scripts && "$(go env GOPATH)/bin/golangci-lint" custom)
+          fi
+      - name: Run golangci-lint
+        run: ./scripts/golangci-with-modules run -v ./...
       - name: Guidance on failure
         if: failure()
         run: |
-          echo "::error::GoLang Linting failed."
+          echo "::error::GoLangCI Linting failed."
           echo ""
-          echo "Run the Go linter locally: golangci-lint run -v ./internal/..."
+          echo "Run the Go linter locally: make lint (builds ./scripts/golangci-with-modules with the azproviderlint/tfproviderlint plugins)"
           echo "Fix any reported issues before pushing. Common issues include:"
           echo "  - Unused variables or imports"
           echo "  - Error return values not checked"
@@ -365,62 +373,14 @@ jobs:
     if: always() && needs.golangci-lint.result == 'failure'
     uses: ./.github/workflows/pr-comment-failure.yaml
     with:
-      check_name: "GoLang Linting"
+      check_name: "GoLangCI Linting"
 
   golangci-lint-on-success:
     needs: golangci-lint
     if: success() && needs.golangci-lint.result == 'success'
     uses: ./.github/workflows/pr-comment-failure-outdated.yaml
     with:
-      check_name: "GoLang Linting"
-
-  # ------------------------------------------
-
-  tfproviderlint:
-    needs: [paths-filter, depscheck, quick-checks, shellcheck, website-lint, document-validate]
-    if: |
-      always() && 
-      needs.paths-filter.outputs.go == 'true' &&
-      (needs.depscheck.result == 'success' || needs.depscheck.result == 'skipped') && 
-      (needs.quick-checks.result == 'success' || needs.quick-checks.result == 'skipped') && 
-      (needs.shellcheck.result == 'success' || needs.shellcheck.result == 'skipped') && 
-      (needs.website-lint.result == 'success' || needs.website-lint.result == 'skipped')
-    runs-on: custom-linux-medium
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
-      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
-        with:
-          go-version-file: ./.go-version
-      - run: make tools
-      - run: make tfproviderlint
-      - name: Guidance on failure
-        if: failure()
-        run: |
-          echo "::error::Terraform Schema Linting failed."
-          echo ""
-          echo "Run 'make tfproviderlint' locally to reproduce and fix the errors."
-          echo "This check validates Terraform schema definitions in your resource and data source code."
-          echo "Common issues include: missing descriptions, incorrect type definitions,"
-          echo "or schema validation rules that don't match the API."
-
-  tfproviderlint-save-artifacts:
-    needs: tfproviderlint
-    if: always() && needs.tfproviderlint.result == 'failure'
-    uses: ./.github/workflows/pr-save-artifacts.yaml
-
-  tfproviderlint-on-fail:
-    needs: tfproviderlint
-    if: always() && needs.tfproviderlint.result == 'failure'
-    uses: ./.github/workflows/pr-comment-failure.yaml
-    with:
-      check_name: "Terraform Schema Linting"
-
-  tfproviderlint-on-success:
-    needs: tfproviderlint
-    if: success() && needs.tfproviderlint.result == 'success'
-    uses: ./.github/workflows/pr-comment-failure-outdated.yaml
-    with:
-      check_name: "Terraform Schema Linting"
+      check_name: "GoLangCI Linting"
 
   # ------------------------------------------
 
