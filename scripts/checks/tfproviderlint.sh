@@ -20,7 +20,7 @@ function runTests {
 	tfproviderlintx \
         -AT001\
         -AT001.ignored-filename-suffixes _data_source_test.go\
-        -AT003 -AT005 -AT006 -AT007 -AT008 -AT009 -AT010 -AT011\
+        -AT003 -AT005 -AT006 -AT007 -AT008 -AT009 -AT010 -AT011 -AT012\
         -R001 -R002 -R003 -R004 -R005 -R006 -R006.package-aliases pluginsdk\
         -R007 -R010 -R011 -R012 -R013 -R014 -R015 -R016 -R017 -R019\
         -S001 -S002 -S003 -S004 -S005 -S006 -S007 -S008 -S009 -S010 -S011 -S012 -S013 -S014 -S015 -S016 -S017 -S018 -S019 -S020\
