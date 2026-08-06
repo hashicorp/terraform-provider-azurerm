@@ -599,7 +599,8 @@ func flattenCdnFrontDoorRouteRuleSetResourceArray(input *[]routes.ResourceRefere
 
 func flattenCdnFrontDoorRouteOriginGroupResourceReference(input *routes.ResourceReference) (string, error) {
 	if input != nil && input.Id != nil {
-		id, err := afdorigingroups.ParseOriginGroupID(*input.Id)
+		// The 5.0 go-azure-sdk migration changed this read path to strict parsing, regressing support for inconsistently cased IDs returned by Azure; see #32953.
+		id, err := afdorigingroups.ParseOriginGroupIDInsensitively(*input.Id)
 		if err != nil {
 			return "", err
 		}
