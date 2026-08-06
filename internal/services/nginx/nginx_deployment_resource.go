@@ -30,11 +30,6 @@ type FrontendPublic struct {
 	IpAddress []string `tfschema:"ip_address"`
 }
 
-type LoggingStorageAccount struct {
-	Name          string `tfschema:"name"`
-	ContainerName string `tfschema:"container_name"`
-}
-
 type NetworkInterface struct {
 	SubnetId string `tfschema:"subnet_id"`
 }
@@ -73,14 +68,11 @@ type DeploymentModel struct {
 	NginxVersion           string                                     `tfschema:"nginx_version"`
 	Identity               []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	Sku                    string                                     `tfschema:"sku"`
-	ManagedResourceGroup   string                                     `tfschema:"managed_resource_group,removedInNextMajorVersion"`
 	Location               string                                     `tfschema:"location"`
 	Capacity               int64                                      `tfschema:"capacity"`
 	AutoScaleProfile       []AutoScaleProfile                         `tfschema:"auto_scale_profile"`
-	DiagnoseSupportEnabled bool                                       `tfschema:"diagnose_support_enabled, removedInNextMajorVersion"`
 	Email                  string                                     `tfschema:"email"`
 	IpAddress              string                                     `tfschema:"ip_address"`
-	LoggingStorageAccount  []LoggingStorageAccount                    `tfschema:"logging_storage_account,removedInNextMajorVersion"`
 	FrontendPublic         []FrontendPublic                           `tfschema:"frontend_public"`
 	FrontendPrivate        []FrontendPrivate                          `tfschema:"frontend_private"`
 	NetworkInterface       []NetworkInterface                         `tfschema:"network_interface"`
@@ -627,10 +619,6 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 			}
 
 			req.Properties = &nginxdeployment.NginxDeploymentUpdateProperties{}
-
-			if meta.ResourceData.HasChange("diagnose_support_enabled") {
-				req.Properties.EnableDiagnosticsSupport = pointer.To(model.DiagnoseSupportEnabled)
-			}
 
 			if meta.ResourceData.HasChange("capacity") && model.Capacity > 0 {
 				req.Properties.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
