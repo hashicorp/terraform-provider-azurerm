@@ -45,6 +45,7 @@ assign_milestone "${pr_number}"
 
 # every issue this PR closes, whether via closing keywords or linked manually in
 # the UI - not just the first one mentioned in the PR body
+# shellcheck disable=SC2016 # $owner/$repo/$pr below are GraphQL variables, not shell
 linked_issues=$(gh api graphql \
   -F owner="${repo%/*}" -F repo="${repo#*/}" -F pr="${pr_number}" \
   -f query='
