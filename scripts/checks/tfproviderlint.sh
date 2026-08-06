@@ -22,7 +22,7 @@ function runTests {
         -AT001.ignored-filename-suffixes _data_source_test.go\
         -AT005 -AT006 -AT007 -AT008 -AT009 -AT010 -AT011\
         -R001 -R002 -R003 -R004 -R006 -R006.package-aliases pluginsdk\
-        -R011 -R012 -R013 -R015 -R016 -R017\
+        -R007 -R011 -R012 -R013 -R015 -R016 -R017\
         -S001 -S002 -S003 -S004 -S005 -S006 -S007 -S008 -S009 -S010 -S011 -S012 -S013 -S014 -S015 -S016 -S017 -S018 -S019 -S020\
         -S021 -S022 -S023 -S024 -S025 -S026 -S027 -S028 -S029 -S030 -S031 -S032 -S033 -S035 -S036 -S037\
         -V009 -V010\

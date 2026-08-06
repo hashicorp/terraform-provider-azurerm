@@ -794,8 +794,6 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	d.Partial(true)
-
 	existing, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(existing.HttpResponse) {
@@ -1098,8 +1096,6 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 			return fmt.Errorf("updating Node Pool %s: %+v", *id, err)
 		}
 	}
-
-	d.Partial(false)
 
 	return resourceKubernetesClusterNodePoolRead(d, meta)
 }

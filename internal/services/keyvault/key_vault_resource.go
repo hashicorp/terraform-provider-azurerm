@@ -487,8 +487,6 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	locks.ByName(id.VaultName, keyVaultResourceName)
 	defer locks.UnlockByName(id.VaultName, keyVaultResourceName)
 
-	d.Partial(true)
-
 	// first pull the existing key vault since we need to lock on several bits of its information
 	existing, err := client.Get(ctx, *id)
 	if err != nil {
@@ -684,8 +682,6 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 		}
 	}
-
-	d.Partial(false)
 
 	return resourceKeyVaultRead(d, meta)
 }

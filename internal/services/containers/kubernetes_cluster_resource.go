@@ -2159,8 +2159,6 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	d.Partial(true)
-
 	// we need to conditionally update the cluster
 	existing, err := clusterClient.Get(ctx, *id)
 	if err != nil {
@@ -2913,8 +2911,6 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			}
 		}
 	}
-
-	d.Partial(false)
 
 	return resourceKubernetesClusterRead(d, meta)
 }
