@@ -195,7 +195,7 @@ func (k storageTableDataSource) Read() sdk.ResourceFunc {
 
 			id := tables.NewTableID(*accountId, model.Name)
 
-			aclClient, err := storageClient.TablesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingOnlySharedKeyAuth())
+			aclClient, err := storageClient.TablesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 			if err != nil {
 				return fmt.Errorf("building Tables Client: %v", err)
 			}
