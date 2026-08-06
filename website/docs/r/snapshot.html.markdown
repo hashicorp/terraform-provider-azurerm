@@ -37,6 +37,50 @@ resource "azurerm_snapshot" "example" {
 }
 ```
 
+## Example Usage (Cross-Region Incremental Snapshot Copy)
+
+```hcl
+resource "azurerm_resource_group" "source" {
+  name     = "snapshot-source-rg"
+  location = "West Europe"
+}
+
+resource "azurerm_managed_disk" "source" {
+  name                 = "source-managed-disk"
+  location             = azurerm_resource_group.source.location
+  resource_group_name  = azurerm_resource_group.source.name
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = "10"
+}
+
+resource "azurerm_snapshot" "source" {
+  name                = "source-snapshot"
+  location            = azurerm_resource_group.source.location
+  resource_group_name = azurerm_resource_group.source.name
+  create_option       = "Copy"
+  source_uri          = azurerm_managed_disk.source.id
+  incremental_enabled = true
+}
+
+resource "azurerm_resource_group" "target" {
+  name     = "snapshot-target-rg"
+  location = "North Europe"
+}
+
+resource "azurerm_snapshot" "target" {
+  name                          = "target-snapshot"
+  location                      = azurerm_resource_group.target.location
+  resource_group_name           = azurerm_resource_group.target.name
+  create_option                 = "CopyStart"
+  source_resource_id            = azurerm_snapshot.source.id
+  incremental_enabled           = true
+  public_network_access_enabled = false
+}
+
+```
+
+
 ## Arguments Reference
 
 The following arguments are supported:
@@ -47,13 +91,15 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `create_option` - (Required) Indicates how the snapshot is to be created. Possible values are `Copy` or `Import`. 
+* `create_option` - (Required) Indicates how the snapshot is to be created. Possible values are `Copy`, `CopyStart` or `Import`.
 
 ~> **Note:** One of `source_uri`, `source_resource_id` or `storage_account_id` must be specified.
 
+~> **Note:** When `create_option` is set to `CopyStart` the snapshot is created using a background copy operation (for example when copying an incremental snapshot across regions). Terraform waits for the copy to reach 100% completion before finishing the create.
+
 * `source_uri` - (Optional) Specifies the URI to a Managed or Unmanaged Disk. Changing this forces a new resource to be created.
 
-* `source_resource_id` - (Optional) Specifies a reference to an existing snapshot, when `create_option` is `Copy`. Changing this forces a new resource to be created.
+* `source_resource_id` - (Optional) Specifies a reference to an existing snapshot, when `create_option` is `Copy` or `CopyStart`. Changing this forces a new resource to be created.
 
 * `storage_account_id` - (Optional) Specifies the ID of an storage account. Used with `source_uri` to allow authorization during import of unmanaged blobs from a different subscription. Changing this forces a new resource to be created.
 
