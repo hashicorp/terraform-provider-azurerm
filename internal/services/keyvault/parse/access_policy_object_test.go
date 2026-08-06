@@ -13,7 +13,8 @@ import (
 
 var _ resourceids.Id = AccessPolicyObjectId{}
 
-func TestParseAccessPolicyObjectIDFormatter(t *testing.T) {
+// lintignore:AT003 // unit test for a generated Resource ID whose Type Name begins with `Acc`
+func TestAccessPolicyObjectIDFormatter(t *testing.T) {
 	actual := NewAccessPolicyObjectID("12345678-1234-9876-4563-123456789012", "resGroup1", "vault1", "object1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.KeyVault/vaults/vault1/objectId/object1"
 	if actual != expected {
@@ -21,7 +22,8 @@ func TestParseAccessPolicyObjectIDFormatter(t *testing.T) {
 	}
 }
 
-func TestParseAccessPolicyObjectID(t *testing.T) {
+// lintignore:AT003 // unit test for a generated Resource ID whose Type Name begins with `Acc`
+func TestAccessPolicyObjectID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
