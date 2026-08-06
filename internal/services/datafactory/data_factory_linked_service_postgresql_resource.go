@@ -55,9 +55,32 @@ func resourceDataFactoryLinkedServicePostgreSQL() *pluginsdk.Resource {
 
 			"connection_string": {
 				Type:             pluginsdk.TypeString,
-				Required:         true,
+				Optional:         true,
+				ExactlyOneOf:     []string{"connection_string", "key_vault_connection_string"},
 				DiffSuppressFunc: azureRmDataFactoryLinkedServiceConnectionStringDiff,
 				ValidateFunc:     validation.StringIsNotEmpty,
+			},
+
+			"key_vault_connection_string": {
+				Type:         pluginsdk.TypeList,
+				Optional:     true,
+				ExactlyOneOf: []string{"connection_string", "key_vault_connection_string"},
+				MaxItems:     1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"linked_service_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"secret_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
 			},
 
 			"description": {
@@ -127,15 +150,7 @@ func resourceDataFactoryLinkedServicePostgreSQLCreateUpdate(d *pluginsdk.Resourc
 		}
 	}
 
-	connectionString := d.Get("connection_string").(string)
-	secureString := datafactory.SecureString{
-		Value: &connectionString,
-		Type:  datafactory.TypeSecureString,
-	}
-
-	postgresqlProperties := &datafactory.PostgreSQLLinkedServiceTypeProperties{
-		ConnectionString: &secureString,
-	}
+	postgresqlProperties := &datafactory.PostgreSQLLinkedServiceTypeProperties{}
 
 	description := d.Get("description").(string)
 
@@ -157,9 +172,22 @@ func resourceDataFactoryLinkedServicePostgreSQLCreateUpdate(d *pluginsdk.Resourc
 		postgresqlLinkedService.AdditionalProperties = v.(map[string]interface{})
 	}
 
+	if v, ok := d.GetOk("connection_string"); ok {
+		connectionString := v.(string)
+		secureString := datafactory.SecureString{
+			Value: &connectionString,
+			Type:  datafactory.TypeSecureString,
+		}
+		postgresqlLinkedService.ConnectionString = secureString
+	}
+
 	if v, ok := d.GetOk("annotations"); ok {
 		annotations := v.([]interface{})
 		postgresqlLinkedService.Annotations = &annotations
+	}
+
+	if v, ok := d.GetOk("key_vault_connection_string"); ok {
+		postgresqlLinkedService.ConnectionString = expandAzureKeyVaultSecretReference(v.([]interface{}))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -221,6 +249,20 @@ func resourceDataFactoryLinkedServicePostgreSQLRead(d *pluginsdk.ResourceData, m
 	if connectVia := postgresql.ConnectVia; connectVia != nil {
 		if connectVia.ReferenceName != nil {
 			d.Set("integration_runtime_name", connectVia.ReferenceName)
+		}
+	}
+
+	if properties := postgresql.PostgreSQLLinkedServiceTypeProperties; properties != nil {
+		if properties.ConnectionString != nil {
+			if val, ok := properties.ConnectionString.(map[string]interface{}); ok {
+				if err := d.Set("key_vault_connection_string", flattenAzureKeyVaultConnectionString(val)); err != nil {
+					return fmt.Errorf("setting `key_vault_connection_string`: %+v", err)
+				}
+			} else if val, ok := properties.ConnectionString.(string); ok {
+				d.Set("connection_string", val)
+			} else {
+				return fmt.Errorf("setting `connection_string`: %+v", err)
+			}
 		}
 	}
 
