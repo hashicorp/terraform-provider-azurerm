@@ -775,6 +775,7 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 
 	props := *model.Properties
 
+	// lintignore:R019 // deliberate subset: only the fields feeding PolicySettings; custom_rule, managed_rule and tags are applied in separate branches below
 	if d.HasChanges("custom_block_response_body", "custom_block_response_status_code", "enabled", "mode", "redirect_url", "request_body_check_enabled", "js_challenge_cookie_expiration_in_minutes", "captcha_cookie_expiration_in_minutes", "log_scrubbing") {
 		enabled := waf.PolicyEnabledStateDisabled
 		if d.Get("enabled").(bool) {

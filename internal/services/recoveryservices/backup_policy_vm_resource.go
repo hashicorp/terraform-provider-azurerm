@@ -356,6 +356,7 @@ func resourceBackupProtectionPolicyVMUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	// If anything changes inside any of the `retention_*` fields, update the `schedulePolicy` object as the API requires all timestamps match
+	// lintignore:R019 // deliberate subset: only the fields feeding schedulePolicy; the remaining attributes are applied in separate branches
 	if d.HasChanges("backup", "retention_daily", "retention_weekly", "retention_monthly", "retention_yearly") {
 		schedulePolicy, err := expandBackupProtectionPolicyVMSchedule(d, times)
 		if err != nil {

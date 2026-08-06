@@ -370,9 +370,7 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		currentSku = resourceType.Sku.Name
 	}
 
-	if d.HasChanges("cors", "upstream_endpoint", "serverless_connection_timeout_in_seconds", "identity",
-		"public_network_access_enabled", "local_auth_enabled", "aad_auth_enabled", "tls_client_cert_enabled",
-		"features", "connectivity_logs_enabled", "messaging_logs_enabled", "http_request_logs_enabled", "service_mode", "live_trace_enabled", "live_trace") {
+	if d.HasChangesExcept("sku", "tags") {
 		resourceType.Properties = &signalr.SignalRProperties{}
 
 		if d.HasChange("cors") {
@@ -428,6 +426,7 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 			}
 		}
 
+		// lintignore:R019 // deliberate subset: only the attributes mapped to SignalR feature flags; the other properties are handled by the surrounding branches
 		if d.HasChanges("connectivity_logs_enabled", "messaging_logs_enabled", "http_request_logs_enabled", "live_trace_enabled", "service_mode") {
 			features := make([]signalr.SignalRFeature, 0)
 			if d.HasChange("connectivity_logs_enabled") || d.HasChange("messaging_logs_enabled") || d.HasChange("http_request_logs_enabled") {
