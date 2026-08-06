@@ -194,8 +194,21 @@ if [ -z "$TEAMCITY_ERROR" ]; then
           | .status
         ' 2>/dev/null | head -1)
 
+    FIRST_FAILED_BRANCH=$(echo "$RAW_TEST_RESULTS_JSON" \
+      | TEST_NAME="$test_name" jq -r '
+          (.testOccurrence // [])[]
+          | select(.name == env.TEST_NAME)
+          | .firstFailed.build.branchName // ""
+        ' 2>/dev/null | head -1)
+
+    IS_NEW="false"
+    if [ "$PR_STATUS" = "FAILURE" ] && [ "$FIRST_FAILED_BRANCH" != "refs/heads/main" ] && [ -n "$FIRST_FAILED_BRANCH" ]; then
+      IS_NEW="true"
+      HAS_NEW_FAILURES="true"
+    fi
+
     if [ -z "$TEST_ID" ]; then
-      TEST_HISTORY+="${test_name}|N/A|N/A|N/A|false"$'\n'
+      TEST_HISTORY+="${test_name}|N/A|N/A|N/A|${IS_NEW}"$'\n'
       continue
     fi
 
@@ -204,21 +217,6 @@ if [ -z "$TEAMCITY_ERROR" ]; then
       -H "Accept: application/json" \
       "$TEAMCITY_SERVER_URL/app/rest/testOccurrences?locator=test:(id:${TEST_ID}),branch:refs/heads/main,count:1000&fields=testOccurrence(status,build(startDate))")
 
-    IS_NEW="false"
-    if [ "$PR_STATUS" = "FAILURE" ]; then
-      LAST_MAIN_STATUS=$(echo "$MAIN_HISTORY_JSON" | jq -r '
-        [ .testOccurrence[]?
-          | select((.build.startDate // "") != "")
-        ]
-        | sort_by(.build.startDate)
-        | last
-        | .status // ""
-      ' 2>/dev/null)
-      if [ "$LAST_MAIN_STATUS" = "SUCCESS" ]; then
-        IS_NEW="true"
-        HAS_NEW_FAILURES="true"
-      fi
-    fi
     CUTOFF_S=$(( CURRENT_TIME_S - 100 * 86400 ))
 
     MAIN_STATS=$(echo "$MAIN_HISTORY_JSON" | CUTOFF_S="$CUTOFF_S" CURRENT_TIME_S="$CURRENT_TIME_S" jq -r '
