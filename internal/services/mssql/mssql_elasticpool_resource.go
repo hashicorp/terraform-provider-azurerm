@@ -30,7 +30,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name mssql_elasticpool -service-package-name mssql -properties "resource_group_name,server_name,name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceMsSqlElasticPool() *pluginsdk.Resource {
 	r := &pluginsdk.Resource{

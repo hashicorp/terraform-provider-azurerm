@@ -209,9 +209,10 @@ func resourceCdnFrontDoorSecretDelete(d *pluginsdk.ResourceData, meta interface{
 func expandCdnFrontDoorSecretParameters(ctx context.Context, input []interface{}, clients *clients.Client) (secrets.SecretParameters, error) {
 	v := input[0].(map[string]interface{})
 
-	cc := v["customer_certificate"].(map[string]interface{})
+	cc := v["customer_certificate"].([]interface{})
+	cc0 := cc[0].(map[string]interface{})
 
-	certificateId, err := keyvault.ParseNestedItemID(cc["key_vault_certificate_id"].(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeCertificate)
+	certificateId, err := keyvault.ParseNestedItemID(cc0["key_vault_certificate_id"].(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeCertificate)
 	if err != nil {
 		return nil, err
 	}

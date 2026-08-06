@@ -20,6 +20,7 @@ on:
   push:
     branches:
       - main # limiting to main branch
+      - release/**
     paths:
       - 'version/VERSION' # and the version file, anything else is redundant for preparing releases
 
