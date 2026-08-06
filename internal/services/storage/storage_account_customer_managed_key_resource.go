@@ -24,7 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_account_customer_managed_key -service-package-name storage -compare-values "subscription_id:storage_account_id,resource_group_name:storage_account_id,storage_account_name:storage_account_id"
+//go:generate go run ../../tools/generator-tests resourceidentity -parent-id "storage_account_id"
 
 var storageAccountCustomerManagedKeyResourceName = "azurerm_storage_account_customer_managed_key"
 

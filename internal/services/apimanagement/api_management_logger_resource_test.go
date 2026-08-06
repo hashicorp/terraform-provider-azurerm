@@ -10,6 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/logger"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -119,7 +121,7 @@ func TestAccApiManagementLogger_basicApplicationInsights(t *testing.T) {
 			ResourceName:            data.ResourceName,
 			ImportState:             true,
 			ImportStateVerify:       true,
-			ImportStateVerifyIgnore: []string{"application_insights.#", "application_insights.0.connection_string", "application_insights.0.instrumentation_key", "application_insights.0.%"},
+			ImportStateVerifyIgnore: []string{"application_insights.#", "application_insights.0.connection_string", "application_insights.0.instrumentation_key", "application_insights.0.identity_client_id", "application_insights.0.%"},
 		},
 	})
 }
@@ -143,8 +145,87 @@ func TestAccApiManagementLogger_applicationInsightsConnectionString(t *testing.T
 			ResourceName:            data.ResourceName,
 			ImportState:             true,
 			ImportStateVerify:       true,
-			ImportStateVerifyIgnore: []string{"application_insights.#", "application_insights.0.connection_string", "application_insights.0.instrumentation_key", "application_insights.0.%"},
+			ImportStateVerifyIgnore: []string{"application_insights.#", "application_insights.0.connection_string", "application_insights.0.instrumentation_key", "application_insights.0.identity_client_id", "application_insights.0.%"},
 		},
+	})
+}
+
+func TestAccApiManagementLogger_applicationInsightsUserAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_logger", "test")
+	r := ApiManagementLoggerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.applicationInsightsUserAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("buffered").HasValue("true"),
+				check.That(data.ResourceName).Key("eventhub.#").HasValue("0"),
+				check.That(data.ResourceName).Key("application_insights.#").HasValue("1"),
+				check.That(data.ResourceName).Key("application_insights.0.connection_string").Exists(),
+				check.That(data.ResourceName).Key("application_insights.0.identity_client_id").Exists(),
+				check.That(data.ResourceName).Key("resource_id").Exists(),
+			),
+		},
+		data.ImportStep("application_insights.#", "application_insights.0.connection_string", "application_insights.0.instrumentation_key", "application_insights.0.identity_client_id", "application_insights.0.%"),
+	})
+}
+
+func TestAccApiManagementLogger_applicationInsightsSystemAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_logger", "test")
+	r := ApiManagementLoggerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.applicationInsightsSystemAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("buffered").HasValue("true"),
+				check.That(data.ResourceName).Key("eventhub.#").HasValue("0"),
+				check.That(data.ResourceName).Key("application_insights.#").HasValue("1"),
+				check.That(data.ResourceName).Key("application_insights.0.connection_string").Exists(),
+				check.That(data.ResourceName).Key("application_insights.0.identity_client_id").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("resource_id").Exists(),
+			),
+		},
+		data.ImportStep("application_insights.#", "application_insights.0.connection_string", "application_insights.0.instrumentation_key", "application_insights.0.identity_client_id", "application_insights.0.%"),
+	})
+}
+
+func TestAccApiManagementLogger_applicationInsightsUpdateWithUserAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_logger", "test")
+	r := ApiManagementLoggerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.applicationInsightsConnectionStringWithIdentityInfra(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("buffered").HasValue("true"),
+				check.That(data.ResourceName).Key("eventhub.#").HasValue("0"),
+				check.That(data.ResourceName).Key("application_insights.#").HasValue("1"),
+				check.That(data.ResourceName).Key("application_insights.0.connection_string").Exists(),
+				check.That(data.ResourceName).Key("resource_id").Exists(),
+			),
+		},
+		{
+			Config: r.applicationInsightsUserAssignedIdentity(data),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionUpdate),
+				},
+			},
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("buffered").HasValue("true"),
+				check.That(data.ResourceName).Key("eventhub.#").HasValue("0"),
+				check.That(data.ResourceName).Key("application_insights.#").HasValue("1"),
+				check.That(data.ResourceName).Key("application_insights.0.connection_string").Exists(),
+				check.That(data.ResourceName).Key("application_insights.0.identity_client_id").Exists(),
+				check.That(data.ResourceName).Key("resource_id").Exists(),
+			),
+		},
+		data.ImportStep("application_insights.#", "application_insights.0.connection_string", "application_insights.0.instrumentation_key", "application_insights.0.identity_client_id", "application_insights.0.%"),
 	})
 }
 
@@ -169,7 +250,7 @@ func TestAccApiManagementLogger_complete(t *testing.T) {
 			ResourceName:            data.ResourceName,
 			ImportState:             true,
 			ImportStateVerify:       true,
-			ImportStateVerifyIgnore: []string{"application_insights.#", "application_insights.0.connection_string", "application_insights.0.instrumentation_key", "application_insights.0.%"},
+			ImportStateVerifyIgnore: []string{"application_insights.#", "application_insights.0.connection_string", "application_insights.0.instrumentation_key", "application_insights.0.identity_client_id", "application_insights.0.%"},
 		},
 	})
 }
@@ -581,6 +662,188 @@ resource "azurerm_api_management_logger" "test" {
   application_insights {
     instrumentation_key = azurerm_application_insights.test.instrumentation_key
   }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (ApiManagementLoggerResource) applicationInsightsUserAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_application_insights" "test" {
+  name                          = "acctestappinsights-%[1]d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  application_type              = "other"
+  local_authentication_disabled = true
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "uai-acctestapimnglogger-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku_name = "Consumption_0"
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_application_insights.test.id
+  role_definition_name = "Monitoring Metrics Publisher"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_api_management_logger" "test" {
+  name                = "acctestapimnglogger-%[1]d"
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  resource_id         = azurerm_application_insights.test.id
+
+  application_insights {
+    connection_string  = azurerm_application_insights.test.connection_string
+    identity_client_id = azurerm_user_assigned_identity.test.client_id
+  }
+
+  depends_on = [azurerm_role_assignment.test]
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (ApiManagementLoggerResource) applicationInsightsSystemAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_application_insights" "test" {
+  name                          = "acctestappinsights-%[1]d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  application_type              = "other"
+  local_authentication_disabled = true
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku_name = "Consumption_0"
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_application_insights.test.id
+  role_definition_name = "Monitoring Metrics Publisher"
+  principal_id         = azurerm_api_management.test.identity[0].principal_id
+}
+
+resource "azurerm_api_management_logger" "test" {
+  name                = "acctestapimnglogger-%[1]d"
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  resource_id         = azurerm_application_insights.test.id
+
+  application_insights {
+    connection_string  = azurerm_application_insights.test.connection_string
+    identity_client_id = "SystemAssigned"
+  }
+
+  depends_on = [azurerm_role_assignment.test]
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (ApiManagementLoggerResource) applicationInsightsConnectionStringWithIdentityInfra(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_application_insights" "test" {
+  name                          = "acctestappinsights-%[1]d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  application_type              = "other"
+  local_authentication_disabled = true
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "uai-acctestapimnglogger-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku_name = "Consumption_0"
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_application_insights.test.id
+  role_definition_name = "Monitoring Metrics Publisher"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_api_management_logger" "test" {
+  name                = "acctestapimnglogger-%[1]d"
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  resource_id         = azurerm_application_insights.test.id
+
+  application_insights {
+    connection_string = azurerm_application_insights.test.connection_string
+  }
+
+  depends_on = [azurerm_role_assignment.test]
 }
 `, data.RandomInteger, data.Locations.Primary)
 }

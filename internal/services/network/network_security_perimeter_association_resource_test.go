@@ -3,6 +3,7 @@ package network_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -64,6 +65,18 @@ func TestAccNetworkSecurityPerimeterAssociation_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccNetworkSecurityPerimeterAssociation_surfacesAsynchronousFailure(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_security_perimeter_association", "test")
+	r := NetworkSecurityPerimeterAssociationTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.withObjectReplication(data),
+			ExpectError: regexp.MustCompile(`(?i)object replication policy`),
+		},
 	})
 }
 
@@ -169,4 +182,87 @@ resource "azurerm_network_security_perimeter_association" "test" {
   access_mode = "Enforced"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (NetworkSecurityPerimeterAssociationTestResource) withObjectReplication(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_network_security_perimeter" "test" {
+  name                = "acctestNsp-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_network_security_perimeter_profile" "test" {
+  name                          = "acctestProfile-%[1]d"
+  network_security_perimeter_id = azurerm_network_security_perimeter.test.id
+}
+
+resource "azurerm_storage_account" "source" {
+  name                     = "acctestsrc%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  blob_properties {
+    versioning_enabled  = true
+    change_feed_enabled = true
+  }
+}
+
+resource "azurerm_storage_container" "source" {
+  name                  = "source"
+  storage_account_id    = azurerm_storage_account.source.id
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_account" "destination" {
+  name                     = "acctestdst%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  blob_properties {
+    versioning_enabled  = true
+    change_feed_enabled = true
+  }
+}
+
+resource "azurerm_storage_container" "destination" {
+  name                  = "destination"
+  storage_account_id    = azurerm_storage_account.destination.id
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_object_replication" "test" {
+  source_storage_account_id      = azurerm_storage_account.source.id
+  destination_storage_account_id = azurerm_storage_account.destination.id
+
+  rules {
+    source_container_name      = azurerm_storage_container.source.name
+    destination_container_name = azurerm_storage_container.destination.name
+  }
+}
+
+resource "azurerm_network_security_perimeter_association" "test" {
+  name                                  = "acctestassoc-%[1]d"
+  network_security_perimeter_profile_id = azurerm_network_security_perimeter_profile.test.id
+  resource_id                           = azurerm_storage_account.source.id
+  access_mode                           = "Learning"
+
+  # The association PUT is accepted before Azure asynchronously rejects storage
+  # accounts that use object replication, so this dependency preserves that order.
+  depends_on = [azurerm_storage_object_replication.test]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

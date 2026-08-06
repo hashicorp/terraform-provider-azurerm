@@ -126,7 +126,6 @@ func (r StreamAnalyticsOutputTableResource) Exists(ctx context.Context, client *
 }
 
 func (r StreamAnalyticsOutputTableResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -141,14 +140,13 @@ resource "azurerm_stream_analytics_output_table" "test" {
   row_key                   = "bar"
   batch_size                = 100
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputTableResource) updated(data acceptance.TestData) string {
-	template := r.template(data)
 	if !features.FivePointOh() {
 		return fmt.Sprintf(`
-		%s
+%s
 
 resource "azurerm_storage_account" "updated" {
   name                     = "acctestaccu%[2]s"
@@ -174,10 +172,10 @@ resource "azurerm_stream_analytics_output_table" "test" {
   row_key                   = "rowkeyupdated"
   batch_size                = 50
 }
-		`, template, data.RandomString, data.RandomInteger)
+`, r.template(data), data.RandomString, data.RandomInteger)
 	}
 	return fmt.Sprintf(`
-	%s
+%s
 
 resource "azurerm_storage_account" "updated" {
   name                     = "acctestaccu%[2]s"
@@ -203,7 +201,7 @@ resource "azurerm_stream_analytics_output_table" "test" {
   row_key                   = "rowkeyupdated"
   batch_size                = 50
 }
-	`, template, data.RandomString, data.RandomInteger)
+`, r.template(data), data.RandomString, data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputTableResource) columnsToRemove(data acceptance.TestData, columns ...string) string {
@@ -212,7 +210,6 @@ func (r StreamAnalyticsOutputTableResource) columnsToRemove(data acceptance.Test
 		columnsToRemove[idx] = fmt.Sprintf(`"%s"`, columnToRemove)
 	}
 
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -228,11 +225,10 @@ resource "azurerm_stream_analytics_output_table" "test" {
   batch_size                = 100
   columns_to_remove         = [%s]
 }
-`, template, data.RandomInteger, strings.Join(columnsToRemove, ","))
+`, r.template(data), data.RandomInteger, strings.Join(columnsToRemove, ","))
 }
 
 func (r StreamAnalyticsOutputTableResource) requiresImport(data acceptance.TestData) string {
-	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -247,7 +243,7 @@ resource "azurerm_stream_analytics_output_table" "import" {
   row_key                   = azurerm_stream_analytics_output_table.test.row_key
   batch_size                = azurerm_stream_analytics_output_table.test.batch_size
 }
-`, template)
+`, r.basic(data))
 }
 
 func (r StreamAnalyticsOutputTableResource) template(data acceptance.TestData) string {

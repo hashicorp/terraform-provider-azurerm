@@ -6,23 +6,32 @@ package client
 import (
 	"fmt"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/accountconnectionresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/cognitiveservicesaccounts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/cognitiveservicesprojects"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/deployments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/raiblocklists"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/raipolicies"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	AccountsClient      *cognitiveservicesaccounts.CognitiveServicesAccountsClient
-	DeploymentsClient   *deployments.DeploymentsClient
-	ProjectsClient      *cognitiveservicesprojects.CognitiveServicesProjectsClient
-	RaiBlocklistsClient *raiblocklists.RaiBlocklistsClient
-	RaiPoliciesClient   *raipolicies.RaiPoliciesClient
+	ProjectsClient                  *cognitiveservicesprojects.CognitiveServicesProjectsClient
+	AccountConnectionResourceClient *accountconnectionresource.AccountConnectionResourceClient
+	AccountsClient                  *cognitiveservicesaccounts.CognitiveServicesAccountsClient
+	DeploymentsClient               *deployments.DeploymentsClient
+	RaiBlocklistsClient             *raiblocklists.RaiBlocklistsClient
+	RaiPoliciesClient               *raipolicies.RaiPoliciesClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
+	accountConnectionResourceClient, err := accountconnectionresource.NewAccountConnectionResourceClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Account Connection client: %+v", err)
+	}
+	o.Configure(accountConnectionResourceClient.Client, o.Authorizers.ResourceManager)
+
 	accountsClient, err := cognitiveservicesaccounts.NewCognitiveServicesAccountsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Accounts client: %+v", err)
@@ -54,10 +63,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	o.Configure(raiBlobklistsClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		AccountsClient:      accountsClient,
-		DeploymentsClient:   deploymentsClient,
-		ProjectsClient:      projectsClient,
-		RaiBlocklistsClient: raiBlobklistsClient,
-		RaiPoliciesClient:   raiPoliciesClient,
+		ProjectsClient:                  projectsClient,
+		AccountConnectionResourceClient: accountConnectionResourceClient,
+		AccountsClient:                  accountsClient,
+		DeploymentsClient:               deploymentsClient,
+		RaiBlocklistsClient:             raiBlobklistsClient,
+		RaiPoliciesClient:               raiPoliciesClient,
 	}, nil
 }
