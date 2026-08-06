@@ -227,7 +227,7 @@ To add a state migration test for the CapybaraResource state migration example a
         {
             Config: r.basicV0(data),
             Check: acceptance.ComposeTestCheckFunc(
-                check.That(data.ResourceName).Key("id").HasValue(fmt.Sprintf("/subscriptions/%[1]s/resourcegroups/acctestRG-%[2]d/providers/microsoft.animals/capybaras/acctestCapybara%[3]s", data.Subscriptions.Primary, data.RandomInteger, data.RandomString)),
+                check.That(data.ResourceName).Key("id").HasValue(fmt.Sprintf("/subscriptions/%[1]s/resourcegroups/acctestRG-%[2]d/providers/microsoft.animals/capybaras/Jimmy", data.Subscriptions.Primary, data.RandomInteger)),
             ),
         },
         // TODO: add a migration test step using the final version of the schema
@@ -269,14 +269,14 @@ To add a state migration test for the CapybaraResource state migration example a
             {
                 Config: r.basicV0(data),
                 Check: acceptance.ComposeTestCheckFunc(
-                    check.That(data.ResourceName).Key("id").HasValue(fmt.Sprintf("/subscriptions/%[1]s/resourcegroups/acctestRG-%[2]d/providers/microsoft.animals/capybaras/acctestCapybara%[3]s", data.Subscriptions.Primary, data.RandomInteger, data.RandomString)),
+                    check.That(data.ResourceName).Key("id").HasValue(fmt.Sprintf("/subscriptions/%[1]s/resourcegroups/acctestRG-%[2]d/providers/microsoft.animals/capybaras/Jimmy", data.Subscriptions.Primary, data.RandomInteger)),
                 ),
             },
             {
                 Config: r.basic(data),
                 Check: acceptance.ComposeTestCheckFunc(
                     check.That(data.ResourceName).ExistsInAzure(r),
-                    check.That(data.ResourceName).Key("id").HasValue(fmt.Sprintf("/subscriptions/%[1]s/resourceGroups/acctestRG-%[2]d/providers/Microsoft.Animals/capybaras/acctestCapybara%[3]s", data.Subscriptions.Primary, data.RandomInteger, data.RandomString)),
+                    check.That(data.ResourceName).Key("id").HasValue(fmt.Sprintf("/subscriptions/%[1]s/resourceGroups/acctestRG-%[2]d/providers/Microsoft.Animals/capybaras/Jimmy", data.Subscriptions.Primary, data.RandomInteger)),
                 ),
             },
         }, "5.42.0")
