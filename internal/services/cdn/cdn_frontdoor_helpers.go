@@ -10,22 +10,12 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afddomains"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdorigins"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/routes"
 	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
-
-func normalizeFrontDoorOriginGroupID(input string) (string, error) {
-	id, err := afdorigins.ParseOriginGroupIDInsensitively(input)
-	if err != nil {
-		return "", err
-	}
-
-	return id.ID(), nil
-}
 
 func flattenTransformSlice(input *[]waf.TransformType) []interface{} {
 	result := make([]interface{}, 0)
