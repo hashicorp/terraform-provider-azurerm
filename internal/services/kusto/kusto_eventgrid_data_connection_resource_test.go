@@ -325,7 +325,7 @@ resource "azurerm_eventhub_consumer_group" "test" {
 resource "azurerm_eventgrid_event_subscription" "test" {
   name                  = "acctest-eg-%d"
   scope                 = azurerm_storage_account.test.id
-  eventhub_endpoint_id  = azurerm_eventhub.test.id
+  eventhub_id           = azurerm_eventhub.test.id
   event_delivery_schema = "EventGridSchema"
   included_event_types  = ["Microsoft.Storage.BlobCreated", "Microsoft.Storage.BlobRenamed"]
 
