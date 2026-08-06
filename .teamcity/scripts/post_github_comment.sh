@@ -231,7 +231,7 @@ if [ -z "$TEAMCITY_ERROR" ]; then
       ($recent | map(select(.status=="SUCCESS")) | length) as $s |
       ($recent | map(select(.status=="FAILURE")) | length) as $f |
       ($s + $f) as $total |
-      (if $total > 0 then (($s * 100 / $total | floor | tostring) + "%") else "N/A" end) as $rate |
+      (if $total > 0 then (($f * 100 / $total | floor | tostring) + "%") else "N/A" end) as $rate |
       ([ .testOccurrence[]?
           | select(.status=="FAILURE" and (.build.startDate // "") != "")
           | (.build.startDate | gsub("\\+(?:[0-9]{4})$"; "Z") | strptime("%Y%m%dT%H%M%SZ") | mktime)
@@ -304,12 +304,12 @@ $1 == "" { next }
         fail_rate  = (n_hist >= 1) ? hf[1] : "N/A"
         first_fail = (n_hist >= 2) ? hf[2] : "N/A"
         last_fail  = (n_hist >= 3) ? hf[3] : "N/A"
-        is_new     = (n_hist >= 4) ? hf[4] : "false"
+        is_new     = (n_hist >= 4) ? hf[4] : "true"
     } else {
         fail_rate  = "N/A"
         first_fail = "N/A"
         last_fail  = "N/A"
-        is_new     = "false"
+        is_new     = "true"
     }
 
     if (status == "PASS") {
@@ -335,8 +335,8 @@ PR: #$PR_NUMBER
 <details>
 <summary>Test Details</summary>
 
-| Status | Test Name | Duration | % Success | First Failure (main) | Last Failure (main) |
-| :--- | :--- | ---: | ---: | ---: | ---: |
+| Status | Test Name | Duration | %❌ | First | Last |
+| :--- | :--- | ---: | --- | --- | --- |
 ${TABLE_ROWS}
 </details>
 "
