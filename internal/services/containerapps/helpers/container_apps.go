@@ -3272,7 +3272,7 @@ func HTTPScaleRuleSchema() *pluginsdk.Schema {
 				"concurrent_requests": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ValidateFunc: validate.ContainerAppScaleRuleConcurrentRequests,
+					ValidateFunc: validate.ContainerAppScaleRuleConcurrentRequestsAndConnections,
 				},
 
 				"authentication": {
@@ -3339,9 +3339,9 @@ func HTTPScaleRuleSchemaComputed() *pluginsdk.Schema {
 }
 
 type TCPScaleRule struct {
-	Name               string                    `tfschema:"name"`
-	ConcurrentRequests string                    `tfschema:"concurrent_requests"`
-	Authentications    []ScaleRuleAuthentication `tfschema:"authentication"`
+	Name                  string                    `tfschema:"name"`
+	ConcurrentConnections string                    `tfschema:"concurrent_connections"`
+	Authentications       []ScaleRuleAuthentication `tfschema:"authentication"`
 }
 
 func TCPScaleRuleSchema() *pluginsdk.Schema {
@@ -3356,10 +3356,10 @@ func TCPScaleRuleSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
-				"concurrent_requests": {
+				"concurrent_connections": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ValidateFunc: validate.ContainerAppScaleRuleConcurrentRequests,
+					ValidateFunc: validate.ContainerAppScaleRuleConcurrentRequestsAndConnections,
 				},
 
 				"authentication": {
@@ -3398,7 +3398,7 @@ func TCPScaleRuleSchemaComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"concurrent_requests": {
+				"concurrent_connections": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
@@ -3508,7 +3508,7 @@ func (c *ContainerTemplate) expandContainerAppScaleRules() []containerapps.Scale
 
 	for _, v := range c.TCPScaleRules {
 		metaData := make(map[string]string, 0)
-		metaData["concurrentRequests"] = v.ConcurrentRequests
+		metaData["concurrentConnections"] = v.ConcurrentConnections
 		r := containerapps.ScaleRule{
 			Name: pointer.To(v.Name),
 			Tcp: &containerapps.TcpScaleRule{
@@ -3618,15 +3618,15 @@ func (c *ContainerTemplate) flattenContainerAppScaleRules(input *[]containerapps
 
 			if r := v.Tcp; r != nil {
 				metaData := pointer.From(r.Metadata)
-				concurrentReqs := ""
+				concurrentConnections := ""
 
-				if m, ok := metaData["concurrentRequests"]; ok {
-					concurrentReqs = m
+				if m, ok := metaData["concurrentConnections"]; ok {
+					concurrentConnections = m
 				}
 
 				rule := TCPScaleRule{
-					Name:               pointer.From(v.Name),
-					ConcurrentRequests: concurrentReqs,
+					Name:                  pointer.From(v.Name),
+					ConcurrentConnections: concurrentConnections,
 				}
 
 				authentications := make([]ScaleRuleAuthentication, 0)
