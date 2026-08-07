@@ -96,47 +96,50 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 		}
 	}
 
-	if metadata.ResourceData.HasChange("active_assignment_rules.0.require_multifactor_authentication") ||
-		metadata.ResourceData.HasChange("active_assignment_rules.0.require_justification") ||
-		metadata.ResourceData.HasChange("active_assignment_rules.0.require_ticket_info") {
-		if enablementAdminEligibilityBase, ok := existingRules["Enablement_Admin_Assignment"]; ok {
-			if enablementAdminEligibility, ok := enablementAdminEligibilityBase.(rolemanagementpolicies.RoleManagementPolicyEnablementRule); ok {
-				enabledRules := make([]rolemanagementpolicies.EnablementRules, 0)
-				if len(model.ActiveAssignmentRules) == 1 {
-					if model.ActiveAssignmentRules[0].RequireMultiFactorAuth {
-						enabledRules = append(enabledRules, rolemanagementpolicies.EnablementRulesMultiFactorAuthentication)
+	activeAssignmentRules := metadata.ResourceData.GetRawConfig().AsValueMap()["active_assignment_rules"]
+	if !activeAssignmentRules.IsNull() && len(activeAssignmentRules.AsValueSlice()) > 0 {
+		activeRulesMap := activeAssignmentRules.AsValueSlice()[0].AsValueMap()
+
+		if !activeRulesMap["require_multifactor_authentication"].IsNull() || !activeRulesMap["require_justification"].IsNull() ||
+			!activeRulesMap["require_ticket_info"].IsNull() {
+			if enablementAdminEligibilityBase, ok := existingRules["Enablement_Admin_Assignment"]; ok {
+				if enablementAdminEligibility, ok := enablementAdminEligibilityBase.(rolemanagementpolicies.RoleManagementPolicyEnablementRule); ok {
+					enabledRules := make([]rolemanagementpolicies.EnablementRules, 0)
+					if len(model.ActiveAssignmentRules) == 1 {
+						if model.ActiveAssignmentRules[0].RequireMultiFactorAuth {
+							enabledRules = append(enabledRules, rolemanagementpolicies.EnablementRulesMultiFactorAuthentication)
+						}
+						if model.ActiveAssignmentRules[0].RequireJustification {
+							enabledRules = append(enabledRules, rolemanagementpolicies.EnablementRulesJustification)
+						}
+						if model.ActiveAssignmentRules[0].RequireTicketInfo {
+							enabledRules = append(enabledRules, rolemanagementpolicies.EnablementRulesTicketing)
+						}
 					}
-					if model.ActiveAssignmentRules[0].RequireJustification {
-						enabledRules = append(enabledRules, rolemanagementpolicies.EnablementRulesJustification)
-					}
-					if model.ActiveAssignmentRules[0].RequireTicketInfo {
-						enabledRules = append(enabledRules, rolemanagementpolicies.EnablementRulesTicketing)
-					}
+					enablementAdminEligibility.EnabledRules = pointer.To(enabledRules)
+					updatedRules = append(updatedRules, enablementAdminEligibility)
 				}
-				enablementAdminEligibility.EnabledRules = pointer.To(enabledRules)
-				updatedRules = append(updatedRules, enablementAdminEligibility)
 			}
 		}
-	}
 
-	if metadata.ResourceData.HasChange("active_assignment_rules.0.expiration_required") ||
-		metadata.ResourceData.HasChange("active_assignment_rules.0.expire_after") {
-		if expirationAdminAssignmentBase, ok := existingRules["Expiration_Admin_Assignment"]; ok {
-			if expirationAdminAssignment, ok := expirationAdminAssignmentBase.(rolemanagementpolicies.RoleManagementPolicyExpirationRule); ok {
-				expirationRequired := pointer.From(expirationAdminAssignment.IsExpirationRequired)
-				maximumDuration := pointer.From(expirationAdminAssignment.MaximumDuration)
+		if !activeRulesMap["expiration_required"].IsNull() || !activeRulesMap["expire_after"].IsNull() {
+			if expirationAdminAssignmentBase, ok := existingRules["Expiration_Admin_Assignment"]; ok {
+				if expirationAdminAssignment, ok := expirationAdminAssignmentBase.(rolemanagementpolicies.RoleManagementPolicyExpirationRule); ok {
+					expirationRequired := pointer.From(expirationAdminAssignment.IsExpirationRequired)
+					maximumDuration := pointer.From(expirationAdminAssignment.MaximumDuration)
 
-				if len(model.ActiveAssignmentRules) == 1 {
-					if expirationRequired != model.ActiveAssignmentRules[0].ExpirationRequired {
-						expirationAdminAssignment.IsExpirationRequired = pointer.To(model.ActiveAssignmentRules[0].ExpirationRequired)
+					if len(model.ActiveAssignmentRules) == 1 {
+						if expirationRequired != model.ActiveAssignmentRules[0].ExpirationRequired {
+							expirationAdminAssignment.IsExpirationRequired = pointer.To(model.ActiveAssignmentRules[0].ExpirationRequired)
+						}
+						if maximumDuration != model.ActiveAssignmentRules[0].ExpireAfter &&
+							model.ActiveAssignmentRules[0].ExpireAfter != "" {
+							expirationAdminAssignment.MaximumDuration = pointer.To(model.ActiveAssignmentRules[0].ExpireAfter)
+						}
 					}
-					if maximumDuration != model.ActiveAssignmentRules[0].ExpireAfter &&
-						model.ActiveAssignmentRules[0].ExpireAfter != "" {
-						expirationAdminAssignment.MaximumDuration = pointer.To(model.ActiveAssignmentRules[0].ExpireAfter)
-					}
+
+					updatedRules = append(updatedRules, expirationAdminAssignment)
 				}
-
-				updatedRules = append(updatedRules, expirationAdminAssignment)
 			}
 		}
 	}
