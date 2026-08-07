@@ -240,7 +240,7 @@ func (r ExadataInfraResource) Create() sdk.ResourceFunc {
 				Name:     pointer.To(model.Name),
 				Location: location.Normalize(model.Location),
 				Tags:     pointer.To(model.Tags),
-				Zones:    model.Zones,
+				Zones:    zones.Expand(model.Zones),
 				Properties: &cloudexadatainfrastructures.CloudExadataInfrastructureProperties{
 					ComputeCount:     pointer.To(model.ComputeCount),
 					DisplayName:      model.DisplayName,
@@ -336,15 +336,12 @@ func (ExadataInfraResource) Read() sdk.ResourceFunc {
 
 			if model := result.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
-				state.Zones = model.Zones
+				state.Zones = zones.Flatten(&model.Zones)
 				state.Tags = pointer.From(model.Tags)
 				if props := model.Properties; props != nil {
 					state.CustomerContacts = FlattenCustomerContacts(result.Model.Properties.CustomerContacts)
 					state.Name = pointer.From(result.Model.Name)
-					state.Location = result.Model.Location
-					state.Zones = result.Model.Zones
 					state.ResourceGroupName = id.ResourceGroupName
-					state.Tags = pointer.From(result.Model.Tags)
 					state.ComputeCount = pointer.From(props.ComputeCount)
 					state.DisplayName = props.DisplayName
 					state.StorageCount = pointer.From(props.StorageCount)
