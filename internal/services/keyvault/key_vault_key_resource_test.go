@@ -119,6 +119,21 @@ func TestAccKeyVaultKey_basicRSAHSM(t *testing.T) {
 	})
 }
 
+func TestAccKeyVaultKey_importKEK(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+	r := KeyVaultKeyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.importKEK(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("key_size", "key_vault_id"),
+	})
+}
+
 func TestAccKeyVaultKey_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
 	r := KeyVaultKeyResource{}
@@ -730,6 +745,28 @@ resource "azurerm_key_vault_key" "test" {
     "unwrapKey",
     "verify",
     "wrapKey",
+  ]
+}
+`, r.templatePremium(data), data.RandomString)
+}
+
+func (r KeyVaultKeyResource) importKEK(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_key_vault_key" "test" {
+  name            = "key-%s"
+  key_vault_id    = azurerm_key_vault.test.id
+  key_type        = "RSA-HSM"
+  key_size        = 4096
+  expiration_date = "2027-01-01T01:02:03Z"
+
+  key_opts = [
+    "import",
   ]
 }
 `, r.templatePremium(data), data.RandomString)
