@@ -209,7 +209,6 @@ resource "azurerm_bot_channels_registration" "test" {
   sku                     = "F0"
 
   endpoint                              = "https://example.com"
-  developer_app_insights_api_key        = azurerm_application_insights_api_key.test.api_key
   developer_app_insights_application_id = azurerm_application_insights.test.app_id
   developer_app_insights_key            = azurerm_application_insights.test.instrumentation_key
 
