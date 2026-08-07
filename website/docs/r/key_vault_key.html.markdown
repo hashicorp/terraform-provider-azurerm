@@ -102,7 +102,9 @@ The following arguments are supported:
 
 * `key_opts` - (Required) A list of JSON web key operations. Possible values include: `decrypt`, `encrypt`, `import`, `sign`, `unwrapKey`, `verify` and `wrapKey`. Please note these values are case-sensitive.
 
-~> **Note:** The `import` operation is mutually exclusive with all other key operations and must be the only value specified in `key_opts` when used. When `import` is specified, `expiration_date` must also be set as Azure automatically assigns an expiration date to the Key Exchange Key (KEK).
+~> **Note:** The `import` operation is mutually exclusive with all other key operations and must be the only value specified in `key_opts` when used.
+
+~> **Note:** When `import` is specified, `expiration_date` must also be set as Azure automatically assigns an expiration date to the Key.
 
 * `key_type` - (Required) Specifies the Key Type to use for this Key Vault Key. Possible values are `EC` (Elliptic Curve), `EC-HSM`, `RSA` and `RSA-HSM`. Changing this forces a new resource to be created.
 
