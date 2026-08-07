@@ -30,7 +30,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name monitor_metric_alert -service-package-name monitor -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceMonitorMetricAlert() *pluginsdk.Resource {
 	return &pluginsdk.Resource{

@@ -209,6 +209,14 @@ use computed cross-resource references for key arguments.
 
 * This deprecated resource has been retired and has been removed from the provider.
 
+### `azurerm_databricks_workspace_customer_managed_key`
+
+* This deprecated resource has been superseded by the `azurerm_databricks_workspace_root_dbfs_customer_managed_key` resource and has been removed from the provider.
+
+### `azurerm_extended_custom_location`
+
+* This deprecated resource has been renamed and superseded by `azurerm_extended_location_custom_location` and has been removed from the provider.
+
 ### `azurerm_function_app`
 
 * This deprecated resource has been superseded by `azurerm_linux_function_app` and `azurerm_windows_function_app` and has been removed from the provider.
@@ -368,6 +376,10 @@ use computed cross-resource references for key arguments.
 * The deprecated `portal.key_vault_id` property has been removed in favour of the `portal.key_vault_certificate_id` property.
 * The deprecated `scm.key_vault_id` property has been removed in favour of the `scm.key_vault_certificate_id` property.
 
+### `azurerm_app_service_managed_certificate`
+
+* The `custom_hostname_binding_id` property now validates the resource ID case-sensitively.
+
 ### `azurerm_application_gateway`
 
 * The deprecated `backend_http_settings.authentication_certificate` property has been removed.
@@ -413,7 +425,6 @@ use computed cross-resource references for key arguments.
 ### `azurerm_cdn_frontdoor_custom_domain`
 
 * The deprecated `tls.minimum_tls_version` property has been removed in favour of the `tls.minimum_version` property.
-* The `tls.minimum_version` property no longer accepts `TLS10` as a value.
 
 ### `azurerm_cdn_frontdoor_rule`
 
@@ -458,20 +469,20 @@ The `conditions.client_port_condition.negate_condition` property has been remove
 The `conditions.cookies_condition` property has been removed in favour of the `conditions.request_cookies` property.
 The `conditions.cookies_condition.cookie_name` property has been removed in favour of the `conditions.request_cookies.name` property.
 The `conditions.cookies_condition.match_values` property has been removed in favour of the `conditions.request_cookies.values` property.
-The `conditions.cookies_condition.negate_condition` property has been removed in favour negated `conditions.request_cookies.operator` values (`Not{Operator}`).
+The `conditions.cookies_condition.negate_condition` property has been removed in favour of negated `conditions.request_cookies.operator` values (`Not{Operator}`).
 
 The `conditions.host_name_condition` property has been removed in favour of the `conditions.host_name` property.
 The `conditions.host_name_condition.match_values` property has been removed in favour of the `conditions.host_name.values` property.
-The `conditions.host_name_condition.negate_condition` property has been removed in favour negated `conditions.host_name.operator` values (`Not{Operator}`).
+The `conditions.host_name_condition.negate_condition` property has been removed in favour of negated `conditions.host_name.operator` values (`Not{Operator}`).
 
 The `conditions.http_version_condition` property has been removed in favour of the `conditions.http_version` property.
 The `conditions.http_version_condition.match_values` property has been removed in favour of the `conditions.http_version.values` property.
-The `conditions.http_version_condition.negate_condition` property has been removed in favour negated `conditions.http_version.operator` values (`Not{Operator}`).
+The `conditions.http_version_condition.negate_condition` property has been removed in favour of negated `conditions.http_version.operator` values (`Not{Operator}`).
 The `conditions.http_version.operator` property is now required.
 
 The `conditions.is_device_condition` property has been removed in favour of the `conditions.device_type` property.
 The `conditions.is_device_condition.match_values` property has been removed in favour of the `conditions.device_type.values` property.
-The `conditions.is_device_condition.negate_condition` property has been removed in favour negated `conditions.device_type.operator` values (`Not{Operator}`).
+The `conditions.is_device_condition.negate_condition` property has been removed in favour of negated `conditions.device_type.operator` values (`Not{Operator}`).
 The `conditions.device_type.operator` property is now required.
 The `conditions.device_type.values` property is now required.
 
@@ -494,12 +505,12 @@ The `conditions.remote_address.values` property is now required.
 
 The `conditions.request_body_condition` property has been removed in favour of the `conditions.request_body` property.
 The `conditions.request_body_condition.match_values` property has been removed in favour of the `conditions.request_body.values` property.
-The `conditions.request_body_condition.negate_condition` property has been removed in favour negated `conditions.request_body.operator` values (`Not{Operator}`).
+The `conditions.request_body_condition.negate_condition` property has been removed in favour of negated `conditions.request_body.operator` values (`Not{Operator}`).
 
 The `conditions.request_header_condition` property has been removed in favour of the `conditions.request_header` property.
 The `conditions.request_header_condition.header_name` property has been removed in favour of the `conditions.request_header.name` property.
 The `conditions.request_header_condition.match_values` property has been removed in favour of the `conditions.request_header.values` property.
-The `conditions.request_header_condition.negate_condition` property has been removed in favour negated `conditions.request_header.operator` values (`Not{Operator}`).
+The `conditions.request_header_condition.negate_condition` property has been removed in favour of negated `conditions.request_header.operator` values (`Not{Operator}`).
 
 The `conditions.request_method_condition` property has been removed in favour of the `conditions.request_method` property.
 The `conditions.request_method_condition.match_values` property has been removed in favour of the `conditions.request_method.values` property.
@@ -508,39 +519,39 @@ The `conditions.request_method.operator` property is now required.
 
 The `conditions.request_scheme_condition` property has been removed in favour of the `conditions.request_scheme` property.
 The `conditions.request_scheme_condition.match_values` property has been removed in favour of the `conditions.request_scheme.values` property.
-The `conditions.request_scheme_condition.negate_condition` property has been removed in favour negated `conditions.request_scheme.operator` values (`Not{Operator}`).
+The `conditions.request_scheme_condition.negate_condition` property has been removed in favour of negated `conditions.request_scheme.operator` values (`Not{Operator}`).
 The `conditions.request_scheme.operator` property is now required.
 
 The `conditions.request_uri_condition` property has been removed in favour of the `conditions.request_url` property.
 The `conditions.request_uri_condition.match_values` property has been removed in favour of the `conditions.request_url.values` property.
-The `conditions.request_uri_condition.negate_condition` property has been removed in favour negated `conditions.request_url.operator` values (`Not{Operator}`).
+The `conditions.request_uri_condition.negate_condition` property has been removed in favour of negated `conditions.request_url.operator` values (`Not{Operator}`).
 
 The `conditions.server_port_condition` property has been removed in favour of the `conditions.server_port` property.
 The `conditions.server_port_condition.match_values` property has been removed in favour of the `conditions.server_port.values` property.
-The `conditions.server_port_condition.negate_condition` property has been removed in favour negated `conditions.server_port.operator` values (`Not{Operator}`).
+The `conditions.server_port_condition.negate_condition` property has been removed in favour of negated `conditions.server_port.operator` values (`Not{Operator}`).
 
 The `conditions.socket_address_condition` property has been removed in favour of the `conditions.socket_address` property.
 The `conditions.socket_address_condition.match_values` property has been removed in favour of the `conditions.socket_address.values` property.
-The `conditions.socket_address_condition.negate_condition` property has been removed in favour negated `operator` values (`Not{Operator}`).
+The `conditions.socket_address_condition.negate_condition` property has been removed in favour of negated `conditions.socket_address.operator` values (`Not{Operator}`).
 The `conditions.socket_address.operator` property is now required.
 The `conditions.socket_address.operator` property no longer accepts `Any`.
 
 The `conditions.ssl_protocol_condition` property has been removed in favour of the `conditions.ssl_protocol` property.
 The `conditions.ssl_protocol_condition.match_values` property has been removed in favour of the `conditions.ssl_protocol.values` property.
-The `conditions.ssl_protocol_condition.negate_condition` property has been removed in favour negated `conditions.ssl_protocol.operator` values (`Not{Operator}`).
+The `conditions.ssl_protocol_condition.negate_condition` property has been removed in favour of negated `conditions.ssl_protocol.operator` values (`Not{Operator}`).
 The `conditions.ssl_protocol.operator` property is now required.
 
 The `conditions.url_file_extension_condition` property has been removed in favour of the `conditions.request_file_extension` property.
 The `conditions.url_file_extension_condition.match_values` property has been removed in favour of the `conditions.request_file_extension.values` property.
-The `conditions.url_file_extension_condition.negate_condition` property has been removed in favour negated `conditions.request_file_extension.operator` values (`Not{Operator}`).
+The `conditions.url_file_extension_condition.negate_condition` property has been removed in favour of negated `conditions.request_file_extension.operator` values (`Not{Operator}`).
 
 The `conditions.url_filename_condition` property has been removed in favour of the `conditions.request_filename` property.
 The `conditions.url_filename_condition.match_values` property has been removed in favour of the `conditions.request_filename.values` property.
-The `conditions.url_filename_condition.negate_condition` property has been removed in favour negated `conditions.request_filename.operator` values (`Not{Operator}`).
+The `conditions.url_filename_condition.negate_condition` property has been removed in favour of negated `conditions.request_filename.operator` values (`Not{Operator}`).
 
 The `conditions.url_path_condition` property has been removed in favour of the `conditions.request_path` property.
 The `conditions.url_path_condition.match_values` property has been removed in favour of the `conditions.request_path.values` property.
-The `conditions.url_path_condition.negate_condition` property has been removed in favour negated `conditions.request_path.operator` values (`Not{Operator}`).
+The `conditions.url_path_condition.negate_condition` property has been removed in favour of negated `conditions.request_path.operator` values (`Not{Operator}`).
 
 ### `azurerm_cdn_frontdoor_security_policy`
 
@@ -576,8 +587,14 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 * The deprecated `managed_hsm_key_id` property has been removed in favour of the `key_vault_key_id` property.
 * The `minimal_tls_version` property no longer accepts `Tls` or `Tls11` as a value.
 
+### `azurerm_cost_anomaly_alert`
+
+* Validation for `display_name` has been changed to enforce a maximum length of 25 characters.
+* Validation for `email_subject` has been changed to enforce a maximum length of 50 characters.
+
 ### `azurerm_cost_management_scheduled_action`
 
+* Validation for `display_name` has been changed to enforce a maximum length of 25 characters.
 * Validation for `email_subject` has been changed to enforce a maximum length of 50 characters.
 
 ### `azurerm_dashboard_grafana`
@@ -601,14 +618,14 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 
 * The property `driver_version` now defaults to `V2`.
 
+### `azurerm_data_factory_pipeline`
+
+* The `moniter_metrics_after_duration` property has been removed in favour of the `monitor_metrics_after_duration` property.
+
 ### `azurerm_datadog_monitor_sso_configuration`
 
 * The deprecated `single_sign_on_enabled` property has been removed in favour of the `single_sign_on` property.
 
-### `azurerm_data_factory_pipeline`
-
-* The deprecated `moniter_metrics_after_duration` property has been removed in favour of the `monitor_metrics_after_duration` property.
-  
 ### `azurerm_dedicated_host`
 
 * The `license_type` property no longer accepts `None` as a value. Omitting the property sets `None` in the request.
@@ -616,7 +633,7 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 ### `azurerm_disk_encryption_set`
 
 * The deprecated `managed_hsm_key_id` property has been removed in favour of the `key_vault_key_id` property.
-  
+
 ### `azurerm_eventgrid_event_subscription`
 
 * Validation for `azure_function_endpoint.function_id` has been changed to validate for an Azure Function resource ID (case-sensitive) rather than validating for an Azure resource ID.
@@ -656,6 +673,46 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 ### `azurerm_federated_identity_credential`
 
 * The deprecated `parent_id` property has been removed in favour of the `user_assigned_identity_id` property.
+
+### `azurerm_hdinsight_hadoop_cluster`
+
+* The `storage_account` block's `storage_resource_id` property has been renamed to `storage_account_id` to align it with other resource naming.
+* The `storage_account` block's `storage_container_id` property has been renamed to `storage_container_url` to make it clear that this value needs to be the Data Plane URL of the container, not the ARM ID.
+* The `storage_account_gen2` block's `storage_resource_id` property has been renamed to `storage_account_id` to align with other resource naming.
+* The `storage_account_gen2` block's `managed_identity_resource_id` property has been renamed to `user_assigned_identity_id` to align with other resource naming.
+* The `tls_min_version` property is now required.
+
+### `azurerm_hdinsight_hbase_cluster`
+
+* The `storage_account` block's `storage_resource_id` property has been renamed to `storage_account_id` to align it with other resource naming.
+* The `storage_account` block's `storage_container_id` property has been renamed to `storage_container_url` to make it clear that this value needs to be the Data Plane URL of the container, not the ARM ID.
+* The `storage_account_gen2` block's `storage_resource_id` property has been renamed to `storage_account_id` to align with other resource naming.
+* The `storage_account_gen2` block's `managed_identity_resource_id` property has been renamed to `user_assigned_identity_id` to align with other resource naming.
+* The `tls_min_version` property is now required.
+
+### `azurerm_hdinsight_interactive_query_cluster`
+
+* The `storage_account` block's `storage_resource_id` property has been renamed to `storage_account_id` to align it with other resource naming.
+* The `storage_account` block's `storage_container_id` property has been renamed to `storage_container_url` to make it clear that this value needs to be the Data Plane URL of the container, not the ARM ID.
+* The `storage_account_gen2` block's `storage_resource_id` property has been renamed to `storage_account_id` to align with other resource naming.
+* The `storage_account_gen2` block's `managed_identity_resource_id` property has been renamed to `user_assigned_identity_id` to align with other resource naming.
+* The `tls_min_version` property is now required.
+
+### `azurerm_hdinsight_kafka_cluster`
+
+* The `storage_account` block's `storage_resource_id` property has been renamed to `storage_account_id` to align it with other resource naming.
+* The `storage_account` block's `storage_container_id` property has been renamed to `storage_container_url` to make it clear that this value needs to be the Data Plane URL of the container, not the ARM ID.
+* The `storage_account_gen2` block's `storage_resource_id` property has been renamed to `storage_account_id` to align with other resource naming.
+* The `storage_account_gen2` block's `managed_identity_resource_id` property has been renamed to `user_assigned_identity_id` to align with other resource naming.
+* The `tls_min_version` property is now required.
+
+### `azurerm_hdinsight_spark_cluster`
+
+* The `storage_account` block's `storage_resource_id` property has been renamed to `storage_account_id` to align it with other resource naming.
+* The `storage_account` block's `storage_container_id` property has been renamed to `storage_container_url` to make it clear that this value needs to be the Data Plane URL of the container, not the ARM ID.
+* The `storage_account_gen2` block's `storage_resource_id` property has been renamed to `storage_account_id` to align with other resource naming.
+* The `storage_account_gen2` block's `managed_identity_resource_id` property has been renamed to `user_assigned_identity_id` to align with other resource naming.
+* The `tls_min_version` property is now required.
 
 ### `azurerm_iot_security_solution`
 
@@ -711,6 +768,11 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 
 * The deprecated `enable_tcp_reset` property has been removed in favour of the `tcp_reset_enabled` property.
 
+### `azurerm_lb_rule`
+
+* The deprecated `enable_floating_ip` property has been removed in favour of the `floating_ip_enabled` property.
+* The deprecated `enable_tcp_reset` property has been removed in favour of the `tcp_reset_enabled` property.
+
 ### `azurerm_linux_function_app`
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
@@ -718,6 +780,10 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 ### `azurerm_linux_function_app_slot`
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+
+### `azurerm_linux_virtual_machine`
+
+* The deprecated `vm_agent_platform_updates_enabled` property is now read-only and can no longer be set, as this is no longer configurable through the API.
 
 ### `azurerm_linux_virtual_machine_scale_set`
 
@@ -745,6 +811,7 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 ### `azurerm_log_analytics_linked_storage_account`
 
 * The deprecated `workspace_resource_id` property has been removed and superseded by the `workspace_id` property.
+* The `workspace_id` property is now Required.
 
 ### `azurerm_log_analytics_storage_insights`
 
@@ -760,9 +827,14 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 
 * The `app_service_plan_id` property now validates that the input is an App Service Plan ID. This validation is case-sensitive.
 * The `client_certificate_mode` property now defaults to `Required` to match API default value.
+* The `public_network_access` property is no longer Computed and now defaults to `Enabled`.
 * The `site_config.min_tls_version` property no longer accepts `1.0` or `1.1` as a value.
 * The deprecated `site_config.public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
 * The `site_config.scm_min_tls_version` property no longer accepts `1.0` or `1.1` as a value.
+
+### `azurerm_machine_learning_datastore_fileshare`
+
+* The `storage_fileshare_id` property now requires a File Share Resource Manager ID in the format exposed by `azurerm_storage_share.id`; the format previously exposed by the removed `azurerm_storage_share.resource_manager_id` attribute is no longer accepted.
 
 ### `azurerm_maintenance_assignment_virtual_machine_scale_set`
 
@@ -781,6 +853,7 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 ### `azurerm_mssql_database`
 
 * The `enclave_type` property is no longer computed.
+* The `long_term_retention_policy.immutable_backups_enabled` property has been removed.
 * The `long_term_retention_policy.weekly_retention`, `long_term_retention_policy.monthly_retention` and `long_term_retention_policy.yearly_retention` properties now default to `PT0S`.
 * The `threat_detection_policy.email_account_admins` property has been removed in favour of the `threat_detection_policy.email_account_admins_enabled` property.
 
@@ -836,7 +909,7 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 
 * The deprecated `export_policy_rule.protocols_enabled` property has been removed in favour of the `export_policy_rule.protocol` property.
 
-* The deprecated `mount_ip_addresses` property has been removed in favour of the `mount_target` property.
+* The `mount_ip_addresses` property has been removed in favour of the `mount_target` property.
 
 ### `azurerm_network_watcher_flow_log`
 
@@ -875,7 +948,7 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 
 ### `azurerm_policy_set_definition`
 
-* The `management_group_id` property has been removed in favour of the `azurerm_management_group_policy_set_definition` resource.
+* The deprecated `management_group_id` property has been removed in favour of the `azurerm_management_group_policy_set_definition` resource.
 
 ### `azurerm_powerbi_embedded`
 
@@ -954,14 +1027,6 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 * The `automatic_update.automation_account_id` property is now required.
 * The `automatic_update.enabled` property has been removed. To disable, omit the `automatic_update` block.
 
-### `azurerm_spring_cloud_connection`
-
-* The `client_type` property no longer accepts `none` as a value. Omitting the property sets `none` in the request.
-
-### `azurerm_static_web_app`
-
-* The `identity.type` property no longer accepts `SystemAssigned, UserAssigned` as a value.
-
 ### `azurerm_site_recovery_replicated_vm`
 
 * The property `network_interface.failover_test_static_ip` has been removed in favour of the `network_interface.ip_configuration.failover_test_static_ip`.
@@ -972,6 +1037,14 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 * The property `network_interface.recovery_load_balancer_backend_address_pool_ids` has been removed in favour of the `network_interface.ip_configuration.recovery_load_balancer_backend_address_pool_ids` property.
 * The property `network_interface.recovery_public_ip_address_id` has been removed in favour of the `network_interface.ip_configuration.recovery_public_ip_address_id` property.
 * The property `network_interface.ip_configuration.name` is a new required property, it must be as same as the name of the ip configuration of network interface from the source VM.
+
+### `azurerm_spring_cloud_connection`
+
+* The `client_type` property no longer accepts `none` as a value. Omitting the property sets `none` in the request.
+
+### `azurerm_static_web_app`
+
+* The `identity.type` property no longer accepts `SystemAssigned, UserAssigned` as a value.
 
 ### `azurerm_storage_account`
 
@@ -991,7 +1064,8 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 
 ### `azurerm_storage_blob`
 
-* The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
+* The deprecated `storage_account_name` property has been removed in favour of the `storage_container_id` property.
+* The deprecated `storage_container_name` property has been removed in favour of the `storage_container_id` property.
 
 ### `azurerm_storage_container`
 
@@ -1001,7 +1075,7 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 ### `azurerm_storage_queue`
 
 * The deprecated `resource_manager_id` property has been removed in favour of the `id` property.
-* The deprecated `storage_account_name` property has been removed in favor of the `storage_account_id` property.
+* The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
 
 ### `azurerm_storage_share`
 
@@ -1010,11 +1084,11 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 
 ### `azurerm_storage_share_directory`
 
-* The deprecated `storage_share_id` property has been removed in favor of the `storage_share_url` property.
+* The deprecated `storage_share_id` property has been removed in favour of the `storage_share_url` property.
 
 ### `azurerm_storage_share_file`
 
-* The deprecated `storage_share_id` property has been removed in favor of the `storage_share_url` property.
+* The deprecated `storage_share_id` property has been removed in favour of the `storage_share_url` property.
 
 ### `azurerm_storage_table`
 
@@ -1026,25 +1100,27 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 
 ### `azurerm_subnet`
 
-* The deprecated `service_endpoints` property has been removed in favour of the `service_endpoint` block.
+* The `service_endpoints` property has been removed in favour of the `service_endpoint` block.
 
 ### `azurerm_synapse_spark_pool`
 
 * The `spark_version` property no longer accepts `3.2` or `3.3` as a value.
 
+### `azurerm_virtual_network`
+
+* The `subnet.service_endpoints` property has been removed in favour of the `subnet.service_endpoint` block.
+
 ### `azurerm_virtual_network_gateway`
 
 * The deprecated `enable_bgp` property has been removed in favour of the `bgp_enabled` property.
 
-### `azurerm_virtual_network`
-
-* The deprecated `subnet.service_endpoints` property has been removed in favour of the `subnet.service_endpoint` block.
-
-### `azurerm_mssql_virtual_machine`
-
 ### `azurerm_virtual_network_gateway_connection`
 
 * The deprecated `enable_bgp` property has been removed in favour of the `bgp_enabled` property.
+
+### `azurerm_web_application_firewall_policy`
+
+* The `policy_settings.file_upload_enforcement` property is no longer Computed and now defaults to `true` to match the API default value.
 
 ### `azurerm_windows_function_app`
 
@@ -1056,7 +1132,8 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 
 ### `azurerm_windows_virtual_machine`
 
-* The `enable_automatic_updates` property has been removed in favour of the `automatic_updates_enabled` property.
+* The deprecated `enable_automatic_updates` property has been removed in favour of the `automatic_updates_enabled` property.
+* The deprecated `vm_agent_platform_updates_enabled` property is now read-only and can no longer be set, as this is no longer configurable through the API.
 
 ### `azurerm_windows_virtual_machine_scale_set`
 
@@ -1078,47 +1155,6 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
 * The `virtual_network_image_pull_enabled` property now defaults to `false`.
 
-### `azurerm_hdinsight_interactive_query_cluster`
-
-* The `storage_account` block's `storage_resource_id` property has been renamed to `storage_account_id` to align it with other resource naming.
-* The `storage_account` block's `storage_container_id` property has been renamed to `storage_container_url` to make it clear that this value needs to be the Data Plane URL of the container, not the ARM ID.
-* The `storage_account_gen2` block's `storage_resource_id` property has been renamed to `storage_account_id` to align with other resource naming.
-* The `storage_account_gen2` block's `managed_identity_resource_id` property has been renamed to `user_assigned_identity_id` to align with other resource naming.
-* The `tls_min_version` property is now required.
-
-### `azurerm_hdinsight_hadoop_cluster`
-
-* The `storage_account` block's `storage_resource_id` property has been renamed to `storage_account_id` to align it with other resource naming.
-* The `storage_account` block's `storage_container_id` property has been renamed to `storage_container_url` to make it clear that this value needs to be the Data Plane URL of the container, not the ARM ID.
-* The `storage_account_gen2` block's `storage_resource_id` property has been renamed to `storage_account_id` to align with other resource naming.
-* The `storage_account_gen2` block's `managed_identity_resource_id` property has been renamed to `user_assigned_identity_id` to align with other resource naming.
-* The `tls_min_version` property is now required.
-
-### `azurerm_hdinsight_hbase_cluster`
-
-* The `storage_account` block's `storage_resource_id` property has been renamed to `storage_account_id` to align it with other resource naming.
-* The `storage_account` block's `storage_container_id` property has been renamed to `storage_container_url` to make it clear that this value needs to be the Data Plane URL of the container, not the ARM ID.
-* The `storage_account_gen2` block's `storage_resource_id` property has been renamed to `storage_account_id` to align with other resource naming.
-* The `storage_account_gen2` block's `managed_identity_resource_id` property has been renamed to `user_assigned_identity_id` to align with other resource naming.
-* The `tls_min_version` property is now required.
-
-### `azurerm_hdinsight_kafka_cluster`
-
-* The `storage_account` block's `storage_resource_id` property has been renamed to `storage_account_id` to align it with other resource naming.
-* The `storage_account` block's `storage_container_id` property has been renamed to `storage_container_url` to make it clear that this value needs to be the Data Plane URL of the container, not the ARM ID.
-* The `storage_account_gen2` block's `storage_resource_id` property has been renamed to `storage_account_id` to align with other resource naming.
-* The `storage_account_gen2` block's `managed_identity_resource_id` property has been renamed to `user_assigned_identity_id` to align with other resource naming.
-* The `tls_min_version` property is now required.
-
-### `azurerm_hdinsight_spark_cluster`
-
-* The `storage_account` block's `storage_resource_id` property has been renamed to `storage_account_id` to align it with other resource naming.
-* The `storage_account` block's `storage_container_id` property has been renamed to `storage_container_url` to make it clear that this value needs to be the Data Plane URL of the container, not the ARM ID.
-* The `storage_account_gen2` block's `storage_resource_id` property has been renamed to `storage_account_id` to align with other resource naming.
-* The `storage_account_gen2` block's `managed_identity_resource_id` property has been renamed to `user_assigned_identity_id` to align with other resource naming.
-* The `tls_min_version` property is now required.
-
-
 ## Breaking Changes in Data Sources
 
 ### `azurerm_api_management`
@@ -1137,6 +1173,10 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 ### `azurerm_batch_pool`
 
 * The deprecated `certificate` property has been removed.
+
+### `azurerm_cdn_frontdoor_custom_domain`
+
+* The deprecated `tls.minimum_tls_version` property has been removed in favour of the `tls.minimum_version` property.
 
 ### `azurerm_container_app`
 
@@ -1179,7 +1219,7 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 
 ### `azurerm_netapp_volume`
 
-* The deprecated `mount_ip_addresses` property has been removed in favour of the `mount_target` property.
+* The `mount_ip_addresses` property has been removed in favour of the `mount_target` property.
 
 ### `azurerm_nginx_configuration`
 
@@ -1191,9 +1231,18 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 * The deprecated `logging_storage_account` block has been removed.
 * The deprecated `managed_resource_group` property has been removed.
 
+### `azurerm_private_link_service`
+
+* The deprecated `enable_proxy_protocol` property has been removed in favour of the `proxy_protocol_enabled` property.
+
 ### `azurerm_role_definition`
 
 * The `role_definition_id` output attribute will now correctly return a UUID instead of a Resource Manager ID when the `name` input property is supplied.
+
+### `azurerm_servicebus_namespace_authorization_rule`
+
+* The deprecated `namespace_name` property has been removed in favour of the `namespace_id` property.
+* The deprecated `resource_group_name` property has been removed in favour of the `namespace_id` property.
 
 ### `azurerm_servicebus_namespace_disaster_recovery_config`
 
@@ -1214,6 +1263,14 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 * The deprecated `namespace_name` property has been removed in favour of the `topic_id` property.
 * The deprecated `resource_group_name` property has been removed in favour of the `topic_id` property.
 * The deprecated `topic_name` property has been removed in favour of the `topic_id` property.
+
+### `azurerm_servicebus_topic`
+
+* The deprecated `enable_batched_operations` property has been removed in favour of the `batched_operations_enabled` property.
+* The deprecated `enable_express` property has been removed in favour of the `express_enabled` property.
+* The deprecated `enable_partitioning` property has been removed in favour of the `partitioning_enabled` property.
+* The deprecated `namespace_name` property has been removed in favour of the `namespace_id` property.
+* The deprecated `resource_group_name` property has been removed in favour of the `namespace_id` property.
 
 ### `azurerm_storage_blob`
 
@@ -1239,13 +1296,17 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 
 * The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
 
+### `azurerm_storage_table_entities`
+
+* The `storage_table_id` property now requires a Resource Manager ID. The deprecated Data Plane URL format is no longer supported.
+
 ### `azurerm_storage_table_entity`
 
 * The `storage_table_id` property now requires a Resource Manager ID. The deprecated Data Plane URL format is no longer supported.
 
 ### `azurerm_subnet`
 
-* The deprecated `subnet.service_endpoints` property has been removed in favour of the `subnet.service_endpoint` block.
+* The `service_endpoints` property has been removed in favour of the `service_endpoint` block.
 
 ### `azurerm_virtual_machine_scale_set`
 
@@ -1258,4 +1319,4 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 
 ### `azurerm_virtual_network_gateway_connection`
 
-* The deprecated `enable_bgp` property has been removed in favour of the `bgp_enabled` property.
+* The `enable_bgp` property has been removed in favour of the `bgp_enabled` property.

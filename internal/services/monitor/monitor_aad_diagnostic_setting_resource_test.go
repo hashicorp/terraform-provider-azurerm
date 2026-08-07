@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -499,46 +498,6 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
 }
 
 func (MonitorAADDiagnosticSettingResource) retentionDisabled(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[3]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_kind             = "StorageV2"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_monitor_aad_diagnostic_setting" "test" {
-  name               = "acctest-DS-%[1]d"
-  storage_account_id = azurerm_storage_account.test.id
-  enabled_log {
-    category = "AuditLogs"
-  }
-  enabled_log {
-    category = "SignInLogs"
-  }
-  enabled_log {
-    category = "NonInteractiveUserSignInLogs"
-    retention_policy {
-      enabled = false
-      days    = 3
-    }
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(5))
-	}
-
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
