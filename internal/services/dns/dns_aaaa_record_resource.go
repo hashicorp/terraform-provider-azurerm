@@ -6,6 +6,7 @@ package dns
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -153,6 +154,23 @@ func resourceDnsAaaaRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters, recordsets.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	}
+
+	if d.IsNewResource() {
+		stateConf := &pluginsdk.StateChangeConf{
+			Pending: []string{"NotFound"},
+			Target:  []string{"Found"},
+			Refresh: pluginsdk.ResourceCreateRefreshFunc(func() (*http.Response, error) {
+				resp, err := client.Get(ctx, id)
+				return resp.HttpResponse, err
+			}),
+			MinTimeout:                5 * time.Second,
+			ContinuousTargetOccurence: 3,
+			Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
+		}
+		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+			return fmt.Errorf("waiting for %s to become available: %+v", id, err)
+		}
 	}
 
 	d.SetId(id.ID())
