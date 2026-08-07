@@ -41,7 +41,7 @@ type ExascaleDatabaseVirtualMachineClusterResourceModel struct {
 
 	DisplayName                     string                                              `tfschema:"display_name"`
 	EnabledEcpuCount                int64                                               `tfschema:"enabled_ecpu_count"`
-	ExascaleDbStorageVaultId        string                                              `tfschema:"exascale_database_storage_vault_id"`
+	ExascaleDbStorageVaultId        string                                              `tfschema:"oracle_exascale_database_storage_vault_id"`
 	GridImageOcid                   string                                              `tfschema:"grid_image_ocid"`
 	Hostname                        string                                              `tfschema:"hostname"`
 	NumberOfVmsInCluster            int64                                               `tfschema:"number_of_vms_in_cluster"`
@@ -103,7 +103,7 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Arguments() map[string]*plu
 			),
 		},
 
-		"exascale_database_storage_vault_id": {
+		"oracle_exascale_database_storage_vault_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -261,6 +261,7 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Arguments() map[string]*plu
 						Type:     pluginsdk.TypeList,
 						Required: true,
 						MinItems: 1,
+						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"maximum": {
@@ -539,20 +540,20 @@ func (ExascaleDatabaseVirtualMachineClusterResource) flatten(metadata sdk.Resour
 			state.EnabledEcpuCount = props.EnabledEcpuCount
 			state.ExascaleDbStorageVaultId = props.ExascaleDbStorageVaultId
 			state.GridImageOcid = pointer.From(props.GridImageOcid)
-			state.Hostname = props.Hostname
+			state.Hostname = removeHostnameSuffix(props.Hostname)
 			state.NumberOfVmsInCluster = props.NodeCount
 			state.Shape = props.Shape
 			state.SshPublicKeys = props.SshPublicKeys
 			state.SubnetId = props.SubnetId
 			state.TotalEcpuCount = props.TotalEcpuCount
-			state.VirtualMachineFileSystemStorage = FlattenVMFileSystemStorage(props.VMFileSystemStorage)
+			state.VirtualMachineFileSystemStorage = flattenVMFileSystemStorage(props.VMFileSystemStorage)
 			state.VnetId = props.VnetId
 			state.BackupSubnetCidr = pointer.From(props.BackupSubnetCidr)
 			state.ClusterName = pointer.From(props.ClusterName)
-			state.DataCollection = FlattenExadbDataCollectionOption(props.DataCollectionOptions)
+			state.DataCollection = flattenExadbDataCollectionOption(props.DataCollectionOptions)
 			state.Domain = pointer.From(props.Domain)
 			state.LicenseModel = pointer.FromEnum(props.LicenseModel)
-			state.InboundNetworkSecurityGroupRule = FlattenNetworkSecurityGroupCidr(props.NsgCidrs)
+			state.InboundNetworkSecurityGroupRule = flattenNetworkSecurityGroupCidr(props.NsgCidrs)
 			state.Ocid = pointer.From(props.Ocid)
 			state.PrivateZoneOcid = pointer.From(props.PrivateZoneOcid)
 			state.SingleClientAccessNameListenerPortTcp = pointer.From(props.ScanListenerPortTcp)

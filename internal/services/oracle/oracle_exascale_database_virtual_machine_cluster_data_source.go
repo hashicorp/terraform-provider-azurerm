@@ -36,7 +36,7 @@ type ExascaleDatabaseVirtualMachineClusterDataModel struct {
 	DisplayName                              string                                              `tfschema:"display_name"`
 	Domain                                   string                                              `tfschema:"domain"`
 	EnabledEcpuCount                         int64                                               `tfschema:"enabled_ecpu_count"`
-	ExascaleDatabaseStorageVaultId           string                                              `tfschema:"exascale_database_storage_vault_id"`
+	ExascaleDatabaseStorageVaultId           string                                              `tfschema:"oracle_exascale_database_storage_vault_id"`
 	GridInfrastructureVersion                string                                              `tfschema:"grid_infrastructure_version"`
 	GridImageOcid                            string                                              `tfschema:"grid_image_ocid"`
 	GridImageType                            string                                              `tfschema:"grid_image_type"`
@@ -155,7 +155,7 @@ func (d ExascaleDatabaseVirtualMachineClusterDataSource) Attributes() map[string
 			Computed: true,
 		},
 
-		"exascale_database_storage_vault_id": {
+		"oracle_exascale_database_storage_vault_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -482,7 +482,7 @@ func (d ExascaleDatabaseVirtualMachineClusterDataSource) Read() sdk.ResourceFunc
 				if props := model.Properties; props != nil {
 					state.BackupSubnetCidr = pointer.From(props.BackupSubnetCidr)
 					state.ClusterName = pointer.From(props.ClusterName)
-					state.DataCollection = FlattenExadbDataCollectionOption(props.DataCollectionOptions)
+					state.DataCollection = flattenExadbDataCollectionOption(props.DataCollectionOptions)
 					state.DisplayName = props.DisplayName
 					state.Domain = pointer.From(props.Domain)
 					state.EnabledEcpuCount = props.EnabledEcpuCount
@@ -499,7 +499,7 @@ func (d ExascaleDatabaseVirtualMachineClusterDataSource) Read() sdk.ResourceFunc
 					state.ListenerPort = pointer.From(props.ListenerPort)
 					state.MemorySizeInGb = pointer.From(props.MemorySizeInGbs)
 					state.NumberOfVmsInCluster = props.NodeCount
-					state.InboundNetworkSecurityGroupRule = FlattenNetworkSecurityGroupCidr(props.NsgCidrs)
+					state.InboundNetworkSecurityGroupRule = flattenNetworkSecurityGroupCidr(props.NsgCidrs)
 					state.NetworkSecurityGroupUrl = pointer.From(props.NsgURL)
 					state.OciUrl = pointer.From(props.OciURL)
 					state.Ocid = pointer.From(props.Ocid)
@@ -519,7 +519,7 @@ func (d ExascaleDatabaseVirtualMachineClusterDataSource) Read() sdk.ResourceFunc
 					state.TotalEcpuCount = props.TotalEcpuCount
 					state.TotalFileSystemStorage = flattenExadbVmClusterStorage(props.TotalFileSystemStorage)
 					state.VirtualIpIds = pointer.From(props.VipIds)
-					state.VirtualMachineFileSystemStorage = FlattenVMFileSystemStorage(props.VMFileSystemStorage)
+					state.VirtualMachineFileSystemStorage = flattenVMFileSystemStorage(props.VMFileSystemStorage)
 					state.VnetId = props.VnetId
 					state.ZoneOcid = pointer.From(props.ZoneOcid)
 				}

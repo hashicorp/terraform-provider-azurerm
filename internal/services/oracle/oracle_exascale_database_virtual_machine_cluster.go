@@ -28,7 +28,7 @@ type PortRangeModel struct {
 	Minimum int64 `tfschema:"minimum"`
 }
 
-func FlattenExadbDataCollectionOption(dataCollectionOptions *exadbvmclusters.DataCollectionOptions) []ExascaleDatabaseDataCollectionModel {
+func flattenExadbDataCollectionOption(dataCollectionOptions *exadbvmclusters.DataCollectionOptions) []ExascaleDatabaseDataCollectionModel {
 	output := make([]ExascaleDatabaseDataCollectionModel, 0)
 	if dataCollectionOptions != nil {
 		return append(output, ExascaleDatabaseDataCollectionModel{
@@ -40,14 +40,14 @@ func FlattenExadbDataCollectionOption(dataCollectionOptions *exadbvmclusters.Dat
 	return output
 }
 
-func FlattenVMFileSystemStorage(input exadbvmclusters.ExadbVMClusterStorageDetails) []ExascaleDatabaseVirtualMachineClusterStorageModel {
+func flattenVMFileSystemStorage(input exadbvmclusters.ExadbVMClusterStorageDetails) []ExascaleDatabaseVirtualMachineClusterStorageModel {
 	output := make([]ExascaleDatabaseVirtualMachineClusterStorageModel, 0)
 	return append(output, ExascaleDatabaseVirtualMachineClusterStorageModel{
 		TotalSizeInGb: input.TotalSizeInGbs,
 	})
 }
 
-func FlattenNetworkSecurityGroupCidr(input *[]exadbvmclusters.NsgCidr) []NetworkSecurityGroupRuleModel {
+func flattenNetworkSecurityGroupCidr(input *[]exadbvmclusters.NsgCidr) []NetworkSecurityGroupRuleModel {
 	output := make([]NetworkSecurityGroupRuleModel, 0)
 
 	if input != nil {

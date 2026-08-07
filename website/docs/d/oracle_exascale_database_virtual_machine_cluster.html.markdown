@@ -49,7 +49,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `enabled_ecpu_count` - The number of ECPUs enabled for an Exadata VM cluster on Exascale Infrastructure.
 
-* `exascale_database_storage_vault_id` - The OCID of the Exadata Database Storage Vault.
+* `oracle_exascale_database_storage_vault_id` - The OCID of the Exadata Database Storage Vault.
 
 * `grid_infrastructure_version` - The Oracle Grid Infrastructure (GI) software version.
 

@@ -63,14 +63,14 @@ resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
 
-  exascale_database_storage_vault_id = azurerm_oracle_exascale_database_storage_vault.example.id
-  display_name                       = "ExampleExascaleVmCluster"
-  enabled_ecpu_count                 = 8
-  hostname                           = "host"
-  grid_image_ocid                    = "ocid1.dbpatch.oc1.eu-amsterdam-1.anqw2ljrt5t4sqqad2xz3mnjtrszpuxrnkynaezs6elqzvu7t54iuq56tgkq"
-  number_of_vms_in_cluster           = 2
-  ssh_public_keys                    = [file("~/.ssh/id_rsa.pub")]
-  subnet_id                          = azurerm_subnet.example.id
+  oracle_exascale_database_storage_vault_id = azurerm_oracle_exascale_database_storage_vault.example.id
+  display_name                              = "ExampleExascaleVmCluster"
+  enabled_ecpu_count                        = 8
+  hostname                                  = "host"
+  grid_image_ocid                           = "ocid1.dbpatch.oc1.eu-amsterdam-1.anqw2ljrt5t4sqqad2xz3mnjtrszpuxrnkynaezs6elqzvu7t54iuq56tgkq"
+  number_of_vms_in_cluster                  = 2
+  ssh_public_keys                           = [file("~/.ssh/id_rsa.pub")]
+  subnet_id                                 = azurerm_subnet.example.id
   virtual_machine_file_system_storage {
     total_size_in_gb = 440
   }
@@ -94,7 +94,7 @@ The following arguments are supported:
 
 * `enabled_ecpu_count` - (Required) The number of ECPUs to enable for an Exadata VM cluster on Exascale Infrastructure. Possible values range between `8` and `200`, and must be divisible by `4`. Changing this forces a new resource to be created.
 
-* `exascale_database_storage_vault_id` - (Required) The Azure Resource ID of the Exadata Database Storage Vault. Changing this forces a new Exadata VM Cluster to be created.
+* `oracle_exascale_database_storage_vault_id` - (Required) The Azure Resource ID of the Exadata Database Storage Vault. Changing this forces a new Exadata VM Cluster to be created.
 
 * `hostname` - (Required) The hostname for the Exadata VM Cluster on Exascale Infrastructure. Changing this forces a new Exadata VM Cluster to be created.
 

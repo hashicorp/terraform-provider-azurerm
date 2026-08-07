@@ -25,7 +25,7 @@ func TestAccOracleExascaleDatabaseVirtualMachineClusterDataSource_basic(t *testi
 				check.That(data.ResourceName).Key("location").Exists(),
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
-				check.That(data.ResourceName).Key("exascale_database_storage_vault_id").Exists(),
+				check.That(data.ResourceName).Key("oracle_exascale_database_storage_vault_id").Exists(),
 				check.That(data.ResourceName).Key("display_name").Exists(),
 				check.That(data.ResourceName).Key("enabled_ecpu_count").Exists(),
 				check.That(data.ResourceName).Key("grid_image_ocid").Exists(),

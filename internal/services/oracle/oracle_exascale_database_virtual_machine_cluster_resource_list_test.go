@@ -79,18 +79,18 @@ resource "azurerm_subnet" "virtual_network_subnet2" {
 }
 
 resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "test1" {
-  location                           = "%[3]s"
-  name                               = "OFakeVm1acctest%[2]d"
-  zones                              = local.zones
-  resource_group_name                = azurerm_resource_group.test.name
-  exascale_database_storage_vault_id = azurerm_oracle_exascale_database_storage_vault.test.id
-  display_name                       = "OFakeVm1acctest%[2]d"
-  enabled_ecpu_count                 = 16
-  grid_image_ocid                    = local.grid_image_ocid
-  hostname                           = "host1"
-  number_of_vms_in_cluster           = 2
-  ssh_public_keys                    = [local.ssh_public_key]
-  subnet_id                          = azurerm_subnet.virtual_network_subnet.id
+  location                                  = "%[3]s"
+  name                                      = "vm1acctest%[2]d"
+  zones                                     = local.zones
+  resource_group_name                       = azurerm_resource_group.test.name
+  oracle_exascale_database_storage_vault_id = azurerm_oracle_exascale_database_storage_vault.test.id
+  display_name                              = "vm1acctest%[2]d"
+  enabled_ecpu_count                        = 16
+  grid_image_ocid                           = local.grid_image_ocid
+  hostname                                  = "host1"
+  number_of_vms_in_cluster                  = 2
+  ssh_public_keys                           = [local.ssh_public_key]
+  subnet_id                                 = azurerm_subnet.virtual_network_subnet.id
   virtual_machine_file_system_storage {
     total_size_in_gb = 440
   }
@@ -98,18 +98,18 @@ resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "test1" {
 }
 
 resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "test2" {
-  location                           = "%[3]s"
-  name                               = "OFakeVm2acctest%[2]d"
-  zones                              = local.zones
-  resource_group_name                = azurerm_resource_group.test.name
-  exascale_database_storage_vault_id = azurerm_oracle_exascale_database_storage_vault.test.id
-  display_name                       = "OFakeVm2acctest%[2]d"
-  enabled_ecpu_count                 = 16
-  grid_image_ocid                    = local.grid_image_ocid
-  hostname                           = "host2"
-  number_of_vms_in_cluster           = 2
-  ssh_public_keys                    = [local.ssh_public_key]
-  subnet_id                          = azurerm_subnet.virtual_network_subnet2.id
+  location                                  = "%[3]s"
+  name                                      = "vm2acctest%[2]d"
+  zones                                     = local.zones
+  resource_group_name                       = azurerm_resource_group.test.name
+  oracle_exascale_database_storage_vault_id = azurerm_oracle_exascale_database_storage_vault.test.id
+  display_name                              = "vm2acctest%[2]d"
+  enabled_ecpu_count                        = 16
+  grid_image_ocid                           = local.grid_image_ocid
+  hostname                                  = "host2"
+  number_of_vms_in_cluster                  = 2
+  ssh_public_keys                           = [local.ssh_public_key]
+  subnet_id                                 = azurerm_subnet.virtual_network_subnet2.id
   virtual_machine_file_system_storage {
     total_size_in_gb = 440
   }

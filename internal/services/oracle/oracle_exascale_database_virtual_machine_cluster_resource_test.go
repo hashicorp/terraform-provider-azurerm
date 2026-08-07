@@ -110,18 +110,18 @@ func (a ExascaleDatabaseVirtualMachineClusterResource) basic(data acceptance.Tes
 	return fmt.Sprintf(`
   %s
 resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "test" {
-  location                           = "%[3]s"
-  name                               = "OFakeVmacctest%[2]d"
-  zones                              = local.zones
-  resource_group_name                = azurerm_resource_group.test.name
-  exascale_database_storage_vault_id = azurerm_oracle_exascale_database_storage_vault.test.id
-  display_name                       = "OFakeVmacctest%[2]d"
-  enabled_ecpu_count                 = 16
-  grid_image_ocid                    = local.grid_image_ocid
-  hostname                           = "host"
-  number_of_vms_in_cluster           = 2
-  ssh_public_keys                    = [local.ssh_public_key]
-  subnet_id                          = azurerm_subnet.virtual_network_subnet.id
+  location                                  = "%[3]s"
+  name                                      = "vmacctest%[2]d"
+  zones                                     = local.zones
+  resource_group_name                       = azurerm_resource_group.test.name
+  oracle_exascale_database_storage_vault_id = azurerm_oracle_exascale_database_storage_vault.test.id
+  display_name                              = "vmacctest%[2]d"
+  enabled_ecpu_count                        = 16
+  grid_image_ocid                           = local.grid_image_ocid
+  hostname                                  = "host"
+  number_of_vms_in_cluster                  = 2
+  ssh_public_keys                           = [local.ssh_public_key]
+  subnet_id                                 = azurerm_subnet.virtual_network_subnet.id
   virtual_machine_file_system_storage {
     total_size_in_gb = 440
   }
@@ -133,18 +133,18 @@ func (a ExascaleDatabaseVirtualMachineClusterResource) complete(data acceptance.
 	return fmt.Sprintf(`
   %s
 resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "test" {
-  location                           = "%[3]s"
-  name                               = "OFakeVmacctest%[2]d"
-  zones                              = local.zones
-  resource_group_name                = azurerm_resource_group.test.name
-  exascale_database_storage_vault_id = azurerm_oracle_exascale_database_storage_vault.test.id
-  display_name                       = "OFakeVMNameTest%[2]d"
-  enabled_ecpu_count                 = 16
-  hostname                           = "host"
-  number_of_vms_in_cluster           = 2
-  shape                              = "EXADBXS"
-  ssh_public_keys                    = [local.ssh_public_key]
-  subnet_id                          = azurerm_subnet.virtual_network_subnet.id
+  location                                  = "%[3]s"
+  name                                      = "vmacctest%[2]d"
+  zones                                     = local.zones
+  resource_group_name                       = azurerm_resource_group.test.name
+  oracle_exascale_database_storage_vault_id = azurerm_oracle_exascale_database_storage_vault.test.id
+  display_name                              = "vmNameTest%[2]d"
+  enabled_ecpu_count                        = 16
+  hostname                                  = "host"
+  number_of_vms_in_cluster                  = 2
+  shape                                     = "EXADBXS"
+  ssh_public_keys                           = [local.ssh_public_key]
+  subnet_id                                 = azurerm_subnet.virtual_network_subnet.id
   virtual_machine_file_system_storage {
     total_size_in_gb = 440
   }
@@ -185,18 +185,18 @@ func (a ExascaleDatabaseVirtualMachineClusterResource) update(data acceptance.Te
 	return fmt.Sprintf(`
 %s
 resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "test" {
-  location                           = "%[3]s"
-  name                               = "OFakeVmacctest%[2]d"
-  zones                              = local.zones
-  resource_group_name                = azurerm_resource_group.test.name
-  exascale_database_storage_vault_id = azurerm_oracle_exascale_database_storage_vault.test.id
-  display_name                       = "OFakeVmacctest%[2]d"
-  enabled_ecpu_count                 = 16
-  grid_image_ocid                    = local.grid_image_ocid
-  hostname                           = "host"
-  number_of_vms_in_cluster           = 2
-  ssh_public_keys                    = [local.ssh_public_key]
-  subnet_id                          = azurerm_subnet.virtual_network_subnet.id
+  location                                  = "%[3]s"
+  name                                      = "vmacctest%[2]d"
+  zones                                     = local.zones
+  resource_group_name                       = azurerm_resource_group.test.name
+  oracle_exascale_database_storage_vault_id = azurerm_oracle_exascale_database_storage_vault.test.id
+  display_name                              = "vmacctest%[2]d"
+  enabled_ecpu_count                        = 16
+  grid_image_ocid                           = local.grid_image_ocid
+  hostname                                  = "host"
+  number_of_vms_in_cluster                  = 2
+  ssh_public_keys                           = [local.ssh_public_key]
+  subnet_id                                 = azurerm_subnet.virtual_network_subnet.id
   virtual_machine_file_system_storage {
     total_size_in_gb = 440
   }
@@ -212,18 +212,18 @@ func (a ExascaleDatabaseVirtualMachineClusterResource) requiresImport(data accep
 %s
 
 resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "import" {
-  location                           = azurerm_oracle_exascale_database_virtual_machine_cluster.test.location
-  name                               = azurerm_oracle_exascale_database_virtual_machine_cluster.test.name
-  resource_group_name                = azurerm_oracle_exascale_database_virtual_machine_cluster.test.resource_group_name
-  exascale_database_storage_vault_id = azurerm_oracle_exascale_database_virtual_machine_cluster.test.exascale_database_storage_vault_id
-  display_name                       = azurerm_oracle_exascale_database_virtual_machine_cluster.test.display_name
-  enabled_ecpu_count                 = azurerm_oracle_exascale_database_virtual_machine_cluster.test.enabled_ecpu_count
-  grid_image_ocid                    = azurerm_oracle_exascale_database_virtual_machine_cluster.test.grid_image_ocid
-  hostname                           = azurerm_oracle_exascale_database_virtual_machine_cluster.test.hostname
-  number_of_vms_in_cluster           = azurerm_oracle_exascale_database_virtual_machine_cluster.test.number_of_vms_in_cluster
-  shape                              = azurerm_oracle_exascale_database_virtual_machine_cluster.test.shape
-  ssh_public_keys                    = azurerm_oracle_exascale_database_virtual_machine_cluster.test.ssh_public_keys
-  subnet_id                          = azurerm_oracle_exascale_database_virtual_machine_cluster.test.subnet_id
+  location                                  = azurerm_oracle_exascale_database_virtual_machine_cluster.test.location
+  name                                      = azurerm_oracle_exascale_database_virtual_machine_cluster.test.name
+  resource_group_name                       = azurerm_oracle_exascale_database_virtual_machine_cluster.test.resource_group_name
+  oracle_exascale_database_storage_vault_id = azurerm_oracle_exascale_database_virtual_machine_cluster.test.oracle_exascale_database_storage_vault_id
+  display_name                              = azurerm_oracle_exascale_database_virtual_machine_cluster.test.display_name
+  enabled_ecpu_count                        = azurerm_oracle_exascale_database_virtual_machine_cluster.test.enabled_ecpu_count
+  grid_image_ocid                           = azurerm_oracle_exascale_database_virtual_machine_cluster.test.grid_image_ocid
+  hostname                                  = azurerm_oracle_exascale_database_virtual_machine_cluster.test.hostname
+  number_of_vms_in_cluster                  = azurerm_oracle_exascale_database_virtual_machine_cluster.test.number_of_vms_in_cluster
+  shape                                     = azurerm_oracle_exascale_database_virtual_machine_cluster.test.shape
+  ssh_public_keys                           = azurerm_oracle_exascale_database_virtual_machine_cluster.test.ssh_public_keys
+  subnet_id                                 = azurerm_oracle_exascale_database_virtual_machine_cluster.test.subnet_id
   virtual_machine_file_system_storage {
     total_size_in_gb = 440
   }
@@ -279,10 +279,10 @@ resource "azurerm_subnet" "virtual_network_subnet" {
 }
 
 resource "azurerm_oracle_exascale_database_storage_vault" "test" {
-  name                = "OFakeacctest%[1]d"
+  name                = "acctest%[1]d"
   location            = "%[2]s"
   resource_group_name = azurerm_resource_group.test.name
-  display_name        = "OFakeacctest%[1]d"
+  display_name        = "acctest%[1]d"
   description         = "description"
   high_capacity_database_storage {
     total_size_in_gb = 300
