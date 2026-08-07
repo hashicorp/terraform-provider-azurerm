@@ -41,6 +41,8 @@ func Default() UserFeatures {
 			PurgeSoftDeletedHSMsOnDestroy:    true,
 			PurgeSoftDeletedHSMKeysOnDestroy: true,
 			RecoverSoftDeletedHSMKeys:        true,
+
+			SetValueWoVersionOnImport: false,
 		},
 		LogAnalyticsWorkspace: LogAnalyticsWorkspaceFeatures{
 			PermanentlyDeleteOnDestroy: false,

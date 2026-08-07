@@ -151,5 +151,9 @@ func nestedItemResourceImporter(ctx context.Context, d *pluginsdk.ResourceData, 
 	}
 	d.Set("key_vault_id", keyVaultId)
 
+	if meta.(*clients.Client).Features.KeyVault.SetValueWoVersionOnImport && d.GetRawConfig().Type().HasAttribute("value_wo_version") {
+		d.Set("value_wo_version", 1)
+	}
+
 	return []*pluginsdk.ResourceData{d}, nil
 }
