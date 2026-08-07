@@ -2159,6 +2159,7 @@ func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 	var primaryEndpoints *storageaccounts.Endpoints
 	var secondaryEndpoints *storageaccounts.Endpoints
 	var routingPreference *storageaccounts.RoutingPreference
+	dnsEndpointType := storageaccounts.DnsEndpointTypeStandard
 	if account.Kind != nil {
 		accountKind = *account.Kind
 	}
@@ -2221,7 +2222,6 @@ func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 		}
 		d.Set("default_to_oauth_authentication", defaultToOAuthAuthentication)
 
-		dnsEndpointType := storageaccounts.DnsEndpointTypeStandard
 		if props.DnsEndpointType != nil {
 			dnsEndpointType = *props.DnsEndpointType
 		}
@@ -2331,7 +2331,7 @@ func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 	if keys.Model != nil && keys.Model.Keys != nil {
 		storageAccountKeys = *keys.Model.Keys
 	}
-	keysAndConnectionStrings := flattenAccountAccessKeysAndConnectionStrings(id.StorageAccountName, *storageDomainSuffix, storageAccountKeys, endpoints)
+	keysAndConnectionStrings := flattenAccountAccessKeysAndConnectionStrings(id.StorageAccountName, *storageDomainSuffix, storageAccountKeys, endpoints, dnsEndpointType)
 	keysAndConnectionStrings.set(d)
 
 	blobProperties := make([]interface{}, 0)
