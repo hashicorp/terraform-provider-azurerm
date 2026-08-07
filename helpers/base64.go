@@ -17,6 +17,7 @@ func Base64EncodeIfNot(data string) string {
 	return base64.StdEncoding.EncodeToString([]byte(data))
 }
 
+// base64IsEncoded checks if the given string is valid base64 by attempting to decode it.
 func base64IsEncoded(data string) bool {
 	_, err := base64.StdEncoding.DecodeString(data)
 	return err == nil

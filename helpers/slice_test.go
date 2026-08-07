@@ -25,10 +25,10 @@ func TestRemoveFromStringArray(t *testing.T) {
 			expected: []string{"a", "c"},
 		},
 		{
-			name:     "element found multiple times (current behavior removes first)",
+			name:     "element found multiple times",
 			elements: []string{"a", "b", "b", "c"},
 			remove:   "b",
-			expected: []string{"a", "b", "c"}, // Note: function comment says it removes all matching values, but implementation only removes first
+			expected: []string{"a", "c"}, 
 		},
 		{
 			name:     "element at beginning",

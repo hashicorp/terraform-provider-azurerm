@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"reflect"
+	"strconv"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -238,4 +239,104 @@ func TestFlattenStringSliceWithDelimiter(t *testing.T) {
 	if !reflect.DeepEqual(actualNil, []interface{}{}) {
 		t.Fatalf("expected empty slice for nil, got: %v", actualNil)
 	}
+}
+
+// --- tests for the exported generics ---
+
+func TestGenericExpandSlice(t *testing.T) {
+	t.Run("booleans", func(t *testing.T) {
+		input := []interface{}{true, false, nil, true}
+		expected := []bool{true, false, false, true}
+		actual := ExpandSlice(input, func(i bool) bool { return i }, true)
+		if actual == nil || !reflect.DeepEqual(*actual, expected) {
+			t.Fatalf("expected: %v, got: %v", expected, actual)
+		}
+	})
+
+	t.Run("struct pointers", func(t *testing.T) {
+		type MyStruct struct{ Name string }
+		s1 := &MyStruct{Name: "s1"}
+		input := []interface{}{s1, nil}
+		expected := []*MyStruct{s1, nil}
+		actual := ExpandSlice(input, func(i *MyStruct) *MyStruct { return i }, true)
+		if actual == nil || !reflect.DeepEqual(*actual, expected) {
+			t.Fatalf("expected: %v, got: %v", expected, actual)
+		}
+	})
+
+	t.Run("skip nils", func(t *testing.T) {
+		input := []interface{}{1, nil, 3}
+		expected := []int{1, 3}
+		actual := ExpandSlice(input, func(i int) int { return i }, false)
+		if actual == nil || !reflect.DeepEqual(*actual, expected) {
+			t.Fatalf("expected: %v, got: %v", expected, actual)
+		}
+	})
+}
+
+func TestGenericFlattenSlice(t *testing.T) {
+	t.Run("booleans", func(t *testing.T) {
+		input := []bool{true, false}
+		expected := []interface{}{true, false}
+		actual := FlattenSlice(&input)
+		if !reflect.DeepEqual(actual, expected) {
+			t.Fatalf("expected: %v, got: %v", expected, actual)
+		}
+	})
+
+	t.Run("structs", func(t *testing.T) {
+		type MyStruct struct{ Name string }
+		input := []MyStruct{{Name: "s1"}, {Name: "s2"}}
+		expected := []interface{}{MyStruct{Name: "s1"}, MyStruct{Name: "s2"}}
+		actual := FlattenSlice(&input)
+		if !reflect.DeepEqual(actual, expected) {
+			t.Fatalf("expected: %v, got: %v", expected, actual)
+		}
+	})
+}
+
+func TestGenericExpandMap(t *testing.T) {
+	t.Run("integers", func(t *testing.T) {
+		input := map[string]interface{}{
+			"a": 1,
+			"b": 2,
+		}
+		expected := map[string]int{
+			"a": 1,
+			"b": 2,
+		}
+		actual := ExpandMap(input, func(i int) int { return i })
+		if !reflect.DeepEqual(actual, expected) {
+			t.Fatalf("expected: %v, got: %v", expected, actual)
+		}
+	})
+
+	t.Run("booleans", func(t *testing.T) {
+		input := map[string]interface{}{
+			"a": true,
+			"b": false,
+		}
+		expected := map[string]bool{
+			"a": true,
+			"b": false,
+		}
+		actual := ExpandMap(input, func(i bool) bool { return i })
+		if !reflect.DeepEqual(actual, expected) {
+			t.Fatalf("expected: %v, got: %v", expected, actual)
+		}
+	})
+}
+
+func TestGenericExpandSliceWithDelimiter(t *testing.T) {
+	t.Run("floats", func(t *testing.T) {
+		input := []interface{}{1.1, 2.2, nil, 3.3}
+		expected := "1.1|2.2||3.3"
+		actual := ExpandSliceWithDelimiter(input, func(i float64) string {
+			return strconv.FormatFloat(i, 'f', 1, 64)
+		}, "|")
+
+		if actual == nil || *actual != expected {
+			t.Fatalf("expected: %v, got: %v", expected, actual)
+		}
+	})
 }
