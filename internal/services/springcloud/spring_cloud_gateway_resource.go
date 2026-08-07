@@ -560,7 +560,7 @@ func (s SpringCloudGatewayResource) Update() sdk.ResourceFunc {
 				properties.CorsProperties = expandGatewayGatewayCorsProperties(model.Cors)
 			}
 
-			if metadata.ResourceData.HasChange("environment_variables") || metadata.ResourceData.HasChange("sensitive_environment_variables") {
+			if metadata.ResourceData.HasChanges("environment_variables", "sensitive_environment_variables") {
 				properties.EnvironmentVariables = expandGatewayGatewayEnvironmentVariables(model.EnvironmentVariables, model.SensitiveEnvironmentVariables)
 			}
 
@@ -580,7 +580,7 @@ func (s SpringCloudGatewayResource) Update() sdk.ResourceFunc {
 				properties.SsoProperties = expandGatewaySsoProperties(model.Sso)
 			}
 
-			if metadata.ResourceData.HasChange("local_response_cache_per_instance") || metadata.ResourceData.HasChange("local_response_cache_per_route") {
+			if metadata.ResourceData.HasChanges("local_response_cache_per_instance", "local_response_cache_per_route") {
 				properties.ResponseCacheProperties = expandGatewayResponseCacheProperties(model)
 			}
 
