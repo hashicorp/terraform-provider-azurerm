@@ -11,6 +11,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/iancoleman/strcase"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
@@ -20,7 +21,7 @@ var TplFuncMap = template.FuncMap{
 	"ToLower":                        strings.ToLower,
 	"ToTitle":                        ToTitle,
 	"ToCamel":                        strcase.ToCamel,
-	"ToSnake":                        strcase.ToSnake,
+	"ToSnake":                        pluginsdk.ToSnakeCase,
 	"TfName":                         TerraformResourceName,
 	"ToString":                       ToString,
 	"ToDelim":                        strcase.ToDelimited,
@@ -37,7 +38,7 @@ var TplFuncMap = template.FuncMap{
 // TerraformResourceName generates a Terraform-compliant resource name by combining the provider and resource name.
 func TerraformResourceName(provider, resourceName string) string {
 	fmtStr := "%s_%s"
-	return fmt.Sprintf(fmtStr, strings.ToLower(provider), strcase.ToSnake(resourceName))
+	return fmt.Sprintf(fmtStr, strings.ToLower(provider), pluginsdk.ToSnakeCase(resourceName))
 }
 
 func ToString(value interface{}) string {

@@ -20,7 +20,7 @@ import (
 
 type FederatedIdentityCredentialResource struct{}
 
-func TestAccFederatedIdentityCredentialSequential(t *testing.T) {
+func TestAccFederatedIdentityCredential_sequential(t *testing.T) {
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"federatedIdentityCredential": {
 			"basic":            testAccFederatedIdentityCredential_basic,

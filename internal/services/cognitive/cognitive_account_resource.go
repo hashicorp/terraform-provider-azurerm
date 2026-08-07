@@ -37,7 +37,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name cognitive_account -properties "name,resource_group_name"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 const azureCognitiveAccountResourceName = "azurerm_cognitive_account"
 
