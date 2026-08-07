@@ -481,7 +481,7 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 						Optional:     true,
 						ValidateFunc: validate.ClusterVersion,
 						DiffSuppressFunc: func(_, old, new string, _ *pluginsdk.ResourceData) bool {
-							// The backend does not support clearing upgradeable_to via PATCH;
+							// The backend does not support clearing upgradeable_to via update;
 							// suppress the diff so removing it from config is a no-op.
 							return old != "" && new == ""
 						},
@@ -622,42 +622,71 @@ func (r RedHatOpenShiftCluster) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			var update openshiftclusters.OpenShiftClusterUpdate
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", id, err)
+			}
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", id)
+			}
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: `properties` was nil", id)
+			}
+
+			parameters := *existing.Model
+
+			parameters.SystemData = nil
+			parameters.Properties.ProvisioningState = nil
+			parameters.Properties.ConsoleProfile = nil
+			parameters.Properties.WorkerProfilesStatus = nil
+			if parameters.Properties.ClusterProfile != nil {
+				parameters.Properties.ClusterProfile.OidcIssuer = nil
+			}
+			if parameters.Properties.ApiserverProfile != nil {
+				parameters.Properties.ApiserverProfile.Url = nil
+				parameters.Properties.ApiserverProfile.IP = nil
+			}
+			if parameters.Properties.IngressProfiles != nil {
+				for i := range *parameters.Properties.IngressProfiles {
+					(*parameters.Properties.IngressProfiles)[i].IP = nil
+				}
+			}
+			if parameters.Properties.NetworkProfile != nil && parameters.Properties.NetworkProfile.LoadBalancerProfile != nil {
+				parameters.Properties.NetworkProfile.LoadBalancerProfile.EffectiveOutboundIPs = nil
+			}
+			if parameters.Properties.PlatformWorkloadIdentityProfile != nil && parameters.Properties.PlatformWorkloadIdentityProfile.PlatformWorkloadIdentities != nil {
+				for name, workloadIdentity := range *parameters.Properties.PlatformWorkloadIdentityProfile.PlatformWorkloadIdentities {
+					workloadIdentity.ClientId = nil
+					workloadIdentity.ObjectId = nil
+					(*parameters.Properties.PlatformWorkloadIdentityProfile.PlatformWorkloadIdentities)[name] = workloadIdentity
+				}
+			}
 
 			if metadata.ResourceData.HasChange("identity") {
 				expandedIdentity, err := identity.ExpandUserAssignedMapFromModel(state.Identity)
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
-				update.Identity = expandedIdentity
+				parameters.Identity = expandedIdentity
 			}
 
 			if metadata.ResourceData.HasChange("service_principal") {
-				if update.Properties == nil {
-					update.Properties = &openshiftclusters.OpenShiftClusterProperties{}
-				}
-				update.Properties.ServicePrincipalProfile = expandOpenshiftServicePrincipalProfile(state.ServicePrincipal)
+				parameters.Properties.ServicePrincipalProfile = expandOpenshiftServicePrincipalProfile(state.ServicePrincipal)
 			}
 
 			if metadata.ResourceData.HasChange("platform_workload_identity_profile") {
-				if update.Properties == nil {
-					update.Properties = &openshiftclusters.OpenShiftClusterProperties{}
-				}
-				update.Properties.PlatformWorkloadIdentityProfile = expandOpenshiftPlatformWorkloadIdentityProfile(state.PlatformWorkloadIdentityProfile)
+				parameters.Properties.PlatformWorkloadIdentityProfile = expandOpenshiftPlatformWorkloadIdentityProfile(state.PlatformWorkloadIdentityProfile)
 			}
 
 			if metadata.ResourceData.HasChange("network_profile") {
-				if update.Properties == nil {
-					update.Properties = &openshiftclusters.OpenShiftClusterProperties{}
-				}
-				update.Properties.NetworkProfile = expandOpenshiftNetworkProfile(state.NetworkProfile)
+				parameters.Properties.NetworkProfile = expandOpenshiftNetworkProfile(state.NetworkProfile)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
-				update.Tags = pointer.To(state.Tags)
+				parameters.Tags = pointer.To(state.Tags)
 			}
 
-			if err := client.UpdateThenPoll(ctx, *id, update); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, parameters); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 

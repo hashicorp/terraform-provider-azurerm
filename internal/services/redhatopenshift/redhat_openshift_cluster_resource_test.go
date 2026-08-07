@@ -226,7 +226,15 @@ func TestAccRedhatOpenshiftCluster_platformWorkloadIdentity(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.platformWorkloadIdentity(data),
+			Config: r.platformWorkloadIdentity(data, "first"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		// Update only tags to verify update works for unchanged configs.
+		{
+			Config: r.platformWorkloadIdentity(data, "second"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -240,7 +248,7 @@ func TestAccRedhatOpenshiftCluster_platformWorkloadIdentity(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.platformWorkloadIdentity(data),
+			Config: r.platformWorkloadIdentity(data, "second"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1016,7 +1024,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
     `, r.template(data), data.RandomInteger, data.RandomString, managedOutboundIpCount)
 }
 
-func (r RedhatOpenshiftClusterResource) platformWorkloadIdentity(data acceptance.TestData) string {
+func (r RedhatOpenshiftClusterResource) platformWorkloadIdentity(data acceptance.TestData, environment string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1294,6 +1302,10 @@ resource "azurerm_redhat_openshift_cluster" "test" {
     }
   }
 
+  tags = {
+    environment = "%[4]s"
+  }
+
   depends_on = [
     azurerm_role_assignment.cluster_federated_credential,
     azurerm_role_assignment.ccm_master_subnet,
@@ -1310,7 +1322,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
     azurerm_role_assignment.arorp_vnet,
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, environment)
 }
 
 func (r RedhatOpenshiftClusterResource) platformWorkloadIdentityUpdate(data acceptance.TestData) string {
