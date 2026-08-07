@@ -3,6 +3,7 @@
 FEATURES:
 
 ENHANCEMENTS:
+* `azurerm_managed_devops_pool` - add support for the `CreatorOnly` value to `azure_devops_organization.permission.kind` property [GH-32753]
 
 BUG FIXES:
 * `azurerm_dev_center_project` - parse `dev_center_id` case-insensitively and normalize the resulting value to prevent diffs [GH-32798]
