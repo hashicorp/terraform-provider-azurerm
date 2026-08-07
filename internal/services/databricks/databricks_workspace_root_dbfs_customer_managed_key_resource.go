@@ -24,7 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name databricks_workspace_root_dbfs_customer_managed_key -service-package-name databricks -compare-values "subscription_id:workspace_id,resource_group_name:workspace_id,name:workspace_id"
+//go:generate go run ../../tools/generator-tests resourceidentity -parent-id "workspace_id"
 
 func resourceDatabricksWorkspaceRootDbfsCustomerManagedKey() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
