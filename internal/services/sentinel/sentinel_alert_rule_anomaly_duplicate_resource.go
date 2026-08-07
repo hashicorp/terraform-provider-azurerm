@@ -536,7 +536,12 @@ func (r AlertRuleAnomalyDuplicateResource) Update() sdk.ResourceFunc {
 				v.Properties.SettingsStatus = securitymlanalyticssettings.SettingsStatus(config.Mode)
 			}
 
-			if rd.HasChanges("multi_select_observation", "single_select_observation", "prioritized_exclude_observation", "threshold_observation") {
+			if rd.HasChanges(
+				"multi_select_observation",
+				"single_select_observation",
+				"prioritized_exclude_observation",
+				"threshold_observation",
+			) {
 				if v.Properties.CustomizableObservations == nil {
 					v.Properties.CustomizableObservations = &securitymlanalyticssettings.AnomalySecurityMLAnalyticsCustomizableObservations{}
 				}
