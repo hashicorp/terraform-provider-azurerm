@@ -219,11 +219,13 @@ if [ -z "$TEAMCITY_ERROR" ]; then
 
     CUTOFF_S=$(( CURRENT_TIME_S - 100 * 86400 ))
 
-    MAIN_STATS=$(echo "$MAIN_HISTORY_JSON" | CUTOFF_S="$CUTOFF_S" CURRENT_TIME_S="$CURRENT_TIME_S" jq -r '
+    PCT="%"
+    TC_DATE_FMT="${PCT}Y${PCT}m${PCT}dT${PCT}H${PCT}M${PCT}SZ"
+    MAIN_STATS=$(echo "$MAIN_HISTORY_JSON" | CUTOFF_S="$CUTOFF_S" CURRENT_TIME_S="$CURRENT_TIME_S" jq -r --arg fmt "$TC_DATE_FMT" '
       [ .testOccurrence[]?
         | select(
             (.build.startDate // "") != "" and
-            (.build.startDate | gsub("\\+(?:[0-9]{4})$"; "Z") | strptime("%Y%m%dT%H%M%SZ") | mktime) >= (env.CUTOFF_S | tonumber)
+            (.build.startDate | gsub("\\+(?:[0-9]{4})$"; "Z") | strptime($fmt) | mktime) >= (env.CUTOFF_S | tonumber)
           )
       ] as $recent |
       ($recent | map(select(.status=="SUCCESS")) | length) as $s |
@@ -232,7 +234,7 @@ if [ -z "$TEAMCITY_ERROR" ]; then
       (if $total > 0 then (($f * 100 / $total | floor | tostring) + "%") else "N/A" end) as $rate |
       ([ .testOccurrence[]?
           | select(.status=="FAILURE" and (.build.startDate // "") != "")
-          | (.build.startDate | gsub("\\+(?:[0-9]{4})$"; "Z") | strptime("%Y%m%dT%H%M%SZ") | mktime)
+          | (.build.startDate | gsub("\\+(?:[0-9]{4})$"; "Z") | strptime($fmt) | mktime)
         ]) as $fail_ts_list |
       ($fail_ts_list | min // null) as $oldest_fail_ts |
       ($fail_ts_list | max // null) as $newest_fail_ts |
