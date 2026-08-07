@@ -956,7 +956,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
-	if d.HasChange("private_dns_zone_id") || d.HasChange("public_network_access_enabled") {
+	if d.HasChanges("private_dns_zone_id", "public_network_access_enabled") {
 		parameters.Properties.Network = expandArmServerNetwork(d)
 	}
 
@@ -1033,7 +1033,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 		parameters.Properties.AuthConfig = expandFlexibleServerAuthConfigForPatch(d.Get("authentication").([]interface{}))
 	}
 
-	if d.HasChange("auto_grow_enabled") || d.HasChange("storage_mb") || d.HasChange("storage_tier") {
+	if d.HasChanges("auto_grow_enabled", "storage_mb", "storage_tier") {
 		// TODO remove the additional update after https://github.com/Azure/azure-rest-api-specs/issues/22867 is fixed
 		storage := expandArmServerStorage(d)
 

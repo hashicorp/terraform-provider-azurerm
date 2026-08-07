@@ -174,6 +174,11 @@ func (td TestData) ResourceRegressionTest(t *testing.T, testResource types.TestR
 
 	steps[1].ExternalProviders = td.externalProviders()
 	steps[1].ProtoV5ProviderFactories = framework.ProtoV5ProviderFactoriesInitWithTestName(context.Background(), t.Name(), "azurerm", "azurerm-alt")
+	steps[1].ConfigPlanChecks = resource.ConfigPlanChecks{
+		PreApply: []plancheck.PlanCheck{
+			helpers.IsNotResourceAction(td.ResourceName, plancheck.ResourceActionReplace),
+		},
+	}
 
 	testCase := resource.TestCase{
 		PreCheck: func() { PreCheck(t) },

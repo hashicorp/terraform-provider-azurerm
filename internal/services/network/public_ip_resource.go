@@ -183,7 +183,19 @@ func resourcePublicIp() *pluginsdk.Resource {
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			pluginsdk.CustomizeDiffShim(func(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
 				sku := d.Get("sku").(string)
-				if strings.EqualFold(sku, string(publicipaddresses.PublicIPAddressSkuNameBasic)) && d.HasChanges("name", "resource_group_name", "location", "allocation_method", "edge_zone", "ip_version", "sku", "sku_tier", "public_ip_prefix_id", "ip_tags", "zones") {
+				if strings.EqualFold(sku, string(publicipaddresses.PublicIPAddressSkuNameBasic)) && d.HasChanges(
+					"name",
+					"resource_group_name",
+					"location",
+					"allocation_method",
+					"edge_zone",
+					"ip_version",
+					"sku",
+					"sku_tier",
+					"public_ip_prefix_id",
+					"ip_tags",
+					"zones",
+				) {
 					return errors.New(publicIPBasicSkuCreateDeprecationMessage)
 				}
 

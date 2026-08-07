@@ -515,7 +515,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Update(
 				parameters.Properties.AvailabilitySets = availabilitySets
 			}
 
-			needToRestart := metadata.ResourceData.HasChange("hardware") || metadata.ResourceData.HasChange("network_interface") || metadata.ResourceData.HasChange("storage_disk")
+			needToRestart := metadata.ResourceData.HasChanges("hardware", "network_interface", "storage_disk")
 
 			if needToRestart {
 				if err := client.StopThenPoll(ctx, commonids.NewScopeID(id.Scope), virtualmachineinstances.StopVirtualMachineOptions{

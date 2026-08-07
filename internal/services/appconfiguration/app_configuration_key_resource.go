@@ -366,7 +366,8 @@ func (k KeyResource) Update() sdk.ResourceFunc {
 
 			metadata.Client.AppConfiguration.AddToCache(*configurationStoreId, nestedItemId.ConfigurationStoreEndpoint)
 
-			if metadata.ResourceData.HasChange("value") || metadata.ResourceData.HasChange("content_type") || metadata.ResourceData.HasChange("tags") || metadata.ResourceData.HasChange("type") || metadata.ResourceData.HasChange("vault_key_reference") {
+			// lintignore:R019 // deliberate subset: only the fields feeding the KeyValue update entity
+			if metadata.ResourceData.HasChanges("value", "content_type", "tags", "type", "vault_key_reference") {
 				entity := appconfiguration.KeyValue{
 					Key:   pointer.To(model.Key),
 					Label: pointer.To(model.Label),

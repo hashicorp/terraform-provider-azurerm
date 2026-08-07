@@ -390,7 +390,15 @@ func (r GalleryApplicationVersionResource) Update() sdk.ResourceFunc {
 
 			payload := galleryapplicationversions.GalleryApplicationVersionUpdate{}
 
-			if metadata.ResourceData.HasChanges("enable_health_check", "end_of_life_date", "exclude_from_latest", "manage_actions", "source", "target_region") {
+			// lintignore:R019 // deliberate subset: only the fields feeding payload.Properties; tags are applied separately below
+			if metadata.ResourceData.HasChanges(
+				"enable_health_check",
+				"end_of_life_date",
+				"exclude_from_latest",
+				"manage_actions",
+				"source",
+				"target_region",
+			) {
 				if payload.Properties == nil {
 					payload.Properties = &galleryapplicationversions.GalleryApplicationVersionProperties{}
 				}

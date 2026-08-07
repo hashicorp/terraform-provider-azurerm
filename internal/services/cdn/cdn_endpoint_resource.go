@@ -354,10 +354,7 @@ func resourceCdnEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	// call 'PATCH' if the only thing that has changed are the tags, else
 	// call the 'PUT' instead. https://learn.microsoft.com/rest/api/cdn/endpoints/update?tabs=HTTP
 	// see issue #22326 for more details.
-	updateTypePATCH := !d.HasChanges("is_http_allowed", "is_https_allowed", "querystring_caching_behaviour", "origin_path",
-		"probe_path", "optimization_type", "origin_host_header", "content_types_to_compress", "geo_filter",
-		"is_compression_enabled", "probe_path", "geo_filter", "optimization_type", "global_delivery_rule",
-		"delivery_rule")
+	updateTypePATCH := !d.HasChangesExcept("tags")
 
 	if updateTypePATCH {
 		log.Printf("[INFO] No changes detected using PATCH for Azure ARM CDN EndPoint update.")
