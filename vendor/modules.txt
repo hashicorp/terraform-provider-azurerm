@@ -1365,8 +1365,11 @@ github.com/hashicorp/hc-install/version
 ## explicit; go 1.23.0
 github.com/hashicorp/hcl/v2
 github.com/hashicorp/hcl/v2/ext/customdecode
+github.com/hashicorp/hcl/v2/gohcl
+github.com/hashicorp/hcl/v2/hclsimple
 github.com/hashicorp/hcl/v2/hclsyntax
 github.com/hashicorp/hcl/v2/hclwrite
+github.com/hashicorp/hcl/v2/json
 # github.com/hashicorp/logutils v1.0.0
 ## explicit
 github.com/hashicorp/logutils

@@ -1,0 +1,39 @@
+---
+subcategory: "{{ .Section }}"
+layout: "azurerm"
+page_title: "Azure Resource Manager: {{ .Resource }}"
+description: |-
+    Lists {{ .FriendlyTitle }} resources.
+---
+
+# List resource: {{ .Resource }}
+
+Lists {{ .FriendlyTitle }} resources.
+
+## Example Usage
+
+{{- range .Examples }}
+
+### {{ .Heading }}
+
+```hcl
+list "{{ $.Resource }}" "example" {
+  provider = azurerm
+  config {
+  {{- if .AttributeName }}
+    {{ .AttributeName }} = {{ .AttributeExampleValue }}
+  {{- end }}
+  }
+}
+```
+{{- end }}
+
+## Argument Reference
+
+This list resource supports the following arguments:
+
+{{- range .Arguments }}
+
+* `{{ .Name }}` - ({{ .Requirement }}) {{ .Description }}
+
+{{- end }}
