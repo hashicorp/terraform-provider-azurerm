@@ -8,6 +8,8 @@ import (
 	"fmt"
 )
 
+// NormalizeJson takes a JSON string (as an interface{}), parses it, and returns it
+// as a compact, normalized string. If the input is not a string, it returns an error message.
 func NormalizeJson(jsonString interface{}) string {
 	if jsonString == nil || jsonString == "" {
 		return ""

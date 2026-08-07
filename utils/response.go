@@ -1,6 +1,8 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
+// Package utils is deprecated and has been mostly refactored into the helpers package.
+// Deprecated: Use the helpers package instead.
 package utils
 
 import (
