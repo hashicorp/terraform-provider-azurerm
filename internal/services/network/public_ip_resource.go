@@ -155,8 +155,11 @@ func resourcePublicIp() *pluginsdk.Resource {
 			},
 
 			"ip_address": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IsIPAddress,
 			},
 
 			"public_ip_prefix_id": {
@@ -300,6 +303,10 @@ func resourcePublicIpCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 
 		publicIp.Properties.DnsSettings = &dnsSettings
+	}
+
+	if v, ok := d.GetOk("ip_address"); ok {
+		publicIp.Properties.IPAddress = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("ip_tags"); ok {
