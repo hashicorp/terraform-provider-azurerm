@@ -30,6 +30,7 @@ func StorageTableDataPlaneID(input interface{}, key string) (warnings []string, 
 	return
 }
 
+// lintignore:V013 // the reserved word check is combined with a regex validation
 func StorageTableName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 	if value == "table" {

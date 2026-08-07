@@ -10,7 +10,7 @@ import (
 )
 
 // LinuxAdminPassword validates that admin_password meets the Azure API requirements for Linux Virtual Machines.
-// lintignore:V012 // false positive - this validates a string password, not an int; the int comparisons here check the password length and the number of complexity rules met
+// lintignore:V012,V013 // false positive - this validates a password; the int comparisons check length and complexity rule counts, the string comparisons check the disallowed-passwords list
 func LinuxAdminPassword(i interface{}, k string) (warnings []string, errors []error) {
 	// adminPassword must be a string.
 	v, ok := i.(string)

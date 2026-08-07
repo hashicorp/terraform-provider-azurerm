@@ -53,7 +53,7 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.ExadataName,
+			ValidateFunc: validation.StringIsNotEmpty,
 			ForceNew:     true,
 		},
 

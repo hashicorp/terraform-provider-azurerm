@@ -245,6 +245,7 @@ func (r DashboardGrafanaResource) Arguments() map[string]*pluginsdk.Schema {
 					"Standard",
 					"Essential",
 				}, false),
+				// lintignore:V013 // false positive - this emits a deprecation warning for a specific value, it does not reject values
 				func(v interface{}, k string) (warnings []string, errors []error) {
 					if val, ok := v.(string); ok && val == "Essential" {
 						warnings = append(warnings, "the `Essential` value for `sku` is deprecated and will be removed in v5.0 of the AzureRM provider")

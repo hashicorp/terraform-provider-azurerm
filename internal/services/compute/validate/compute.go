@@ -68,6 +68,7 @@ func SharedImageIdentifierAttribute(maxLength int) func(interface{}, string) ([]
 	}
 }
 
+// lintignore:V013 // "latest" and "recent" are valid in addition to the version number format
 func SharedImageVersionName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
@@ -94,6 +95,7 @@ func GalleryApplicationName(v interface{}, k string) (warnings []string, errors 
 	return warnings, errors
 }
 
+// lintignore:V013 // "latest" and "recent" are valid in addition to the version number format
 func GalleryApplicationVersionName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 

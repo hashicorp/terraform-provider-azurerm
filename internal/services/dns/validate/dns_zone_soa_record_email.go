@@ -9,6 +9,7 @@ import (
 	"strings"
 )
 
+// lintignore:V013 // false positive - this validates an email; the string comparisons check for empty segments
 func DnsZoneSOARecordEmail(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 

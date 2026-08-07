@@ -98,18 +98,3 @@ func PatchingMode(i interface{}, k string) (warnings []string, errors []error) {
 
 	return
 }
-
-func ExadataName(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return
-	}
-
-	if v == "" {
-		errors = append(errors, fmt.Errorf("%v must not be an empty string", k))
-		return
-	}
-
-	return
-}

@@ -10,6 +10,7 @@ import (
 )
 
 // IsUUIDOrEmpty is a ValidateFunc that ensures a string can be parsed as UUID or is empty
+// lintignore:V013 // false positive - empty is valid in addition to any UUID
 func IsUUIDOrEmpty(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {

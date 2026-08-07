@@ -8,6 +8,7 @@ import (
 	"regexp"
 )
 
+// lintignore:V013 // false positive - this validates a name; the string comparison checks for empty values
 func IoTHubDpsCertificateName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 

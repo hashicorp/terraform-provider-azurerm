@@ -855,7 +855,7 @@ func validatePasswordComplexityLinux(input interface{}, key string) (warnings []
 	return validatePasswordComplexity(input, key, 6, 72)
 }
 
-// lintignore:V012 // false positive - this validates a string password, not an int; the int comparisons here check the password length and the number of complexity rules met
+// lintignore:V012,V013 // false positive - this validates a password; the int comparisons check length and complexity rule counts, the string comparisons check the disallowed-passwords list
 func validatePasswordComplexity(input interface{}, key string, min int, max int) (warnings []string, errors []error) {
 	password, ok := input.(string)
 	if !ok {

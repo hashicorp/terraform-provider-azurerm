@@ -182,6 +182,7 @@ func IsURLWithScheme(validSchemes []string) func(interface{}, string) ([]string,
 }
 
 // IsURLWithPath is a SchemaValidateFunc that tests if the provided value is of type string and a valid URL with a path
+// lintignore:V013 // false positive - this validates a URL; the string comparisons check for empty values
 func IsURLWithPath(i interface{}, k string) (_ []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {

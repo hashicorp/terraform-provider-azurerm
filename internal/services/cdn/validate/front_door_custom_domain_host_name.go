@@ -10,7 +10,7 @@ import (
 	helperValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 )
 
-// lintignore:V014 // false positive: this validates FQDN label strings, not membership of an integer set
+// lintignore:V014,V013 // false positive - this validates FQDN labels; the comparisons check empty/wildcard labels, not membership of a fixed set
 func FrontDoorCustomDomainHostName(i interface{}, k string) (_ []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {

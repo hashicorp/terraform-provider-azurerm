@@ -10,6 +10,7 @@ import (
 )
 
 // WindowsAdminUsername validates that admin_username meets the Azure API requirements for Windows Virtual Machines.
+// lintignore:V013 // the disallowed-usernames check is combined with length and trailing dot rules
 func WindowsAdminUsername(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
