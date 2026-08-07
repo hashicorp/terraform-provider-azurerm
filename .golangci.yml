@@ -1,14 +1,24 @@
 # Copyright (c) HashiCorp, Inc.
 # SPDX-License-Identifier: MPL-2.0
 
+# NOTE: this config enables the azproviderlint and tfproviderlint module plugins, which only
+# exist in the custom-built binary produced by 'make golangci-with-modules' (see
+# scripts/.custom-gcl.yml) — run lints via 'make lint' / './scripts/golangci-with-modules run',
+# not stock golangci-lint.
 version: "2"
 run:
   modules-download-mode: vendor
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+
 linters:
   default: none
   enable:
     - asasalint
     - asciicheck
+    - azproviderlint
     - bidichk
     - decorder
     - dupword
@@ -23,11 +33,28 @@ linters:
     - reassign
     - staticcheck
     - tagalign
+    - tfproviderlint
     - unconvert
     - unparam
     - unused
     - wastedassign
     - whitespace
+
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - vendor$
+      - internal/services/.*/.*_gen.go$
+      - /sdk/
+      - third_party$
+      - builtin$
+      - examples$
+
   settings:
     errcheck:
       exclude-functions:
@@ -53,23 +80,49 @@ linters:
         - json
         - tfschema
         - computed
-  exclusions:
-    generated: lax
-    presets:
-      - comments
-      - common-false-positives
-      - legacy
-      - std-error-handling
-    paths:
-      - vendor$
-      - internal/services/.*/.*_gen.go$
-      - /sdk/
-      - third_party$
-      - builtin$
-      - examples$
-issues:
-  max-issues-per-linter: 0
-  max-same-issues: 0
+
+    custom:
+      azproviderlint:
+        type: module
+        settings:
+          disable:
+            - AZG001 # 'err' assignment should be combined many MANY hits, to fix in another pr
+            - AZR002 # splite create and udpate: ~350 todo over time
+            - AZT002 #tests should not obtain credentials via os.Getenv - investigate in a later pr
+            - AZR004 #Resource IDs should not be compared with == or != - to fix in a later commit
+            - AZR003 # d.Get should not be used within a Delete function as it does not work as expected during deletion
+      tfproviderlint:
+        type: module
+        settings:
+          # All checks run except those disabled below: two permanent azurerm convention
+          # conflicts (AT002, AT004), and checks with pre-existing findings (counts from
+          # 2026-08) disabled until the findings are cleaned up — to enable one, remove it
+          # from this list and fix what 'make tfproviderlint' then reports. The upstream-
+          # removed no-op stubs (R008, S034, V002-V008) are not worth listing.
+          disable:
+            - AT002 # flags ImportState tests as extraneous, but azurerm intentionally has separate _requiresImport acceptance tests
+            - AT003 # acceptance test function names should include an underscore — 63 findings
+            - AT004 # flags TestStep Configs declaring provider blocks, but azurerm test configs intentionally declare provider "azurerm" { features {} }
+            - AT012 # files should not mix multiple acceptance test name prefixes — 34 findings
+            - R005 # multiple HasChange() calls should combine into one HasChanges() — 19 findings
+            - R007 # deprecated d.Partial() usage — 2 findings
+            - R009 # avoid panic() — 27 findings, mostly intentional panics in internal/tools generators and the internal/acceptance test framework
+            - R010 # prefer d.Get() over d.GetChange() when only the new value is used — 5 findings
+            - R018 # prefer retry/wait helpers over time.Sleep() — 28 findings, many deliberate PreConfig waits in acceptance tests
+            - R019 # HasChanges() with many arguments should use HasChangesExcept() — 5 findings
+            - V001 # custom validators replaceable with validation.StringMatch() — 196 findings
+            - V011 # custom validators replaceable with validation.StringLenBetween() — 43 findings
+            - V012 # custom validators replaceable with validation.IntAtLeast()/IntAtMost()/IntBetween() — 16 findings
+            - V013 # custom validators replaceable with validation.StringInSlice()/StringNotInSlice() — 20 findings
+            - V014 # custom validators replaceable with validation.IntInSlice()/IntNotInSlice() — 1 finding
+          flags:
+            - check: AT001
+              flag: ignored-filename-suffixes
+              value: _data_source_test.go
+            - check: R006
+              flag: package-aliases
+              value: pluginsdk
+
 formatters:
   enable:
     - gofmt
