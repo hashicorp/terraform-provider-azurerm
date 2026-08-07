@@ -8,6 +8,7 @@ import (
 	"regexp"
 )
 
+// lintignore:V011 // the length check is combined with character/format rules
 func ApplicationVersion(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 

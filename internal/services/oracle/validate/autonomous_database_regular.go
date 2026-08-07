@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/autonomousdatabases"
 )
 
+// lintignore:V011 // the length check is combined with character/format rules
 func AutonomousDatabaseName(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
@@ -36,6 +37,7 @@ func AutonomousDatabaseName(i interface{}, k string) (warnings []string, errors 
 	return []string{}, []error{}
 }
 
+// lintignore:V011 // the length check is combined with password complexity rules
 func AutonomousDatabasePassword(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {

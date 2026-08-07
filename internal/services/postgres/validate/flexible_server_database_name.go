@@ -13,7 +13,7 @@ const (
 	maxLength = 63
 )
 
-// lintignore:V012 // false positive - this validates a string, not an int; the int comparison here checks the string length
+// lintignore:V012,V011 // false positive - this validates a string, not an int; the int comparison here checks the string length
 func FlexibleServerDatabaseName(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {

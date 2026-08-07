@@ -8,6 +8,7 @@ import (
 	"regexp"
 )
 
+// lintignore:V011 // the length check is combined with character/format rules
 func DashboardName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 

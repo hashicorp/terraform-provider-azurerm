@@ -8,6 +8,7 @@ import (
 	"unicode"
 )
 
+// lintignore:V011 // the length check is combined with character/format rules
 func ResourceAnchorName(i interface{}, k string) (warnings []string, errors []error) {
 	var validationErrors []error
 

@@ -34,6 +34,7 @@ func RuleActionUrlRedirectPath() pluginsdk.SchemaValidateFunc {
 }
 
 func RuleActionUrlRedirectQueryString() pluginsdk.SchemaValidateFunc {
+	// lintignore:V011 // the length check is combined with query string format rules
 	return func(i interface{}, s string) ([]string, []error) {
 		querystring := i.(string)
 

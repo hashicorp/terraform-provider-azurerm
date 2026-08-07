@@ -779,6 +779,7 @@ func FlattenOrchestratedVirtualMachineScaleSetOSProfile(input *virtualmachinesca
 	return []interface{}{output}
 }
 
+// lintignore:V011 // the length check is combined with a disallowed-usernames list
 func validateAdminUsernameWindows(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
@@ -814,6 +815,7 @@ func validateAdminUsernameWindows(input interface{}, key string) (warnings []str
 	return
 }
 
+// lintignore:V011 // the length check is combined with a disallowed-usernames list
 func validateAdminUsernameLinux(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
@@ -855,7 +857,7 @@ func validatePasswordComplexityLinux(input interface{}, key string) (warnings []
 	return validatePasswordComplexity(input, key, 6, 72)
 }
 
-// lintignore:V012,V013 // false positive - this validates a password; the int comparisons check length and complexity rule counts, the string comparisons check the disallowed-passwords list
+// lintignore:V012,V013,V011 // false positive - this validates a password; the int comparisons check length and complexity rule counts, the string comparisons check the disallowed-passwords list
 func validatePasswordComplexity(input interface{}, key string, min int, max int) (warnings []string, errors []error) {
 	password, ok := input.(string)
 	if !ok {

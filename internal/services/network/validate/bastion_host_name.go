@@ -8,6 +8,7 @@ import (
 	"regexp"
 )
 
+// lintignore:V011 // the length check is combined with character/format rules
 func BastionHostName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 	if !regexp.MustCompile(`^[A-Za-z0-9][a-zA-Z0-9_.-]+[a-zA-Z0-9_]$`).MatchString(value) {

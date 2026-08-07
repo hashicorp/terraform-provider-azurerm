@@ -10,6 +10,7 @@ import (
 )
 
 // RedisEnterpriseName - validates that the passed interface contains a valid Redis Enterprise Name
+// lintignore:V011 // the length check is combined with character/format rules
 func RedisEnterpriseName(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {

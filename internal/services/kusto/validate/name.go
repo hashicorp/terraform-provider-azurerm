@@ -8,6 +8,7 @@ import (
 	"regexp"
 )
 
+// lintignore:V011 // the length check is combined with character/format rules
 func DataConnectionName(v interface{}, k string) (warnings []string, errors []error) {
 	name := v.(string)
 
@@ -26,6 +27,7 @@ func DataConnectionName(v interface{}, k string) (warnings []string, errors []er
 	return warnings, errors
 }
 
+// lintignore:V011 // the length check is combined with character/format rules
 func EntityName(v interface{}, k string) (warnings []string, errors []error) {
 	name := v.(string)
 
@@ -44,6 +46,7 @@ func EntityName(v interface{}, k string) (warnings []string, errors []error) {
 	return warnings, errors
 }
 
+// lintignore:V011 // the length check is combined with character/format rules
 func ClusterName(v interface{}, k string) (warnings []string, errors []error) {
 	name := v.(string)
 
@@ -58,6 +61,7 @@ func ClusterName(v interface{}, k string) (warnings []string, errors []error) {
 	return warnings, errors
 }
 
+// lintignore:V011 // the length check is combined with character/format rules
 func DatabaseName(v interface{}, k string) (warnings []string, errors []error) {
 	name := v.(string)
 
@@ -76,6 +80,7 @@ func DatabaseName(v interface{}, k string) (warnings []string, errors []error) {
 	return warnings, errors
 }
 
+// lintignore:V011 // the length check is combined with character/format rules
 func DatabasePrincipalAssignmentName(v interface{}, k string) (warnings []string, errors []error) {
 	name := v.(string)
 

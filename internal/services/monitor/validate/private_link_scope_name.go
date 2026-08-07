@@ -8,6 +8,7 @@ import (
 	"regexp"
 )
 
+// lintignore:V011 // the length check is combined with character/format rules
 func PrivateLinkScopeName(i interface{}, k string) (warning []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {

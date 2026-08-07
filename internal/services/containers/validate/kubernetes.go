@@ -53,6 +53,7 @@ func KubernetesClusterName(i interface{}, k string) (warnings []string, errors [
 	return warnings, errors
 }
 
+// lintignore:V011 // the length check is combined with character/format rules
 func KubernetesDNSPrefix(i interface{}, k string) (warnings []string, errors []error) {
 	dnsPrefix, ok := i.(string)
 	if !ok {

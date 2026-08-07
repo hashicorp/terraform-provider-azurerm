@@ -13,6 +13,7 @@ import (
 // letters/numbers/hyphens/periods, must start and end with a letter or number,
 // must not contain consecutive periods or "."- / "-." sequences, and must not
 // look like an IPv4 address.
+// lintignore:V011 // the length check is combined with character/format rules
 func BucketName(v interface{}, k string) (warnings []string, errors []error) {
 	value, ok := v.(string)
 	if !ok {
