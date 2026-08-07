@@ -759,7 +759,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_key_vault_key" "test" {
-  name            = "key-%s"
+  name            = "acctestkey-%s"
   key_vault_id    = azurerm_key_vault.test.id
   key_type        = "RSA-HSM"
   key_size        = 4096
