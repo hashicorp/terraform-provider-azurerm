@@ -429,7 +429,7 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 			Network:          expandArmServerNetwork(d),
 			HighAvailability: expandFlexibleServerHighAvailability(d.Get("high_availability").([]interface{})),
 			Backup:           expandArmServerBackup(d),
-			DataEncryption:   expandFlexibleServerDataEncryption(d, d.Get("customer_managed_key").([]interface{})),
+			DataEncryption:   expandFlexibleServerDataEncryption(d.Get("customer_managed_key").([]interface{})),
 		},
 		Sku:  sku,
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -743,7 +743,7 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("customer_managed_key") {
-		parameters.Properties.DataEncryption = expandFlexibleServerDataEncryption(d, d.Get("customer_managed_key").([]interface{}))
+		parameters.Properties.DataEncryption = expandFlexibleServerDataEncryption(d.Get("customer_managed_key").([]interface{}))
 	}
 
 	if d.HasChange("identity") {
@@ -1075,7 +1075,7 @@ func flattenFlexibleServerHighAvailability(ha *servers.HighAvailability) []inter
 	}
 }
 
-func expandFlexibleServerDataEncryption(d *pluginsdk.ResourceData, input []interface{}) *servers.DataEncryption {
+func expandFlexibleServerDataEncryption(input []interface{}) *servers.DataEncryption {
 	if len(input) == 0 || input[0] == nil {
 		det := servers.DataEncryptionTypeSystemManaged
 		return &servers.DataEncryption{
