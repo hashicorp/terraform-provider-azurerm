@@ -4,16 +4,11 @@
 package validate
 
 import (
-	"fmt"
 	"regexp"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func DataboxEdgeCity(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	if !regexp.MustCompile(`^[\s\S]{2,30}$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf("%q must be between 2 and 30 characters in length", k))
-	}
-
-	return warnings, errors
+func DataboxEdgeCity(v interface{}, k string) ([]string, []error) {
+	return validation.StringMatch(regexp.MustCompile(`^[\s\S]{2,30}$`), "must be between 2 and 30 characters in length")(v, k)
 }

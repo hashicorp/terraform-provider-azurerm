@@ -9,6 +9,7 @@ import (
 	"strings"
 )
 
+// lintignore:V001 // the regex check is combined with locale map lookups
 func PostgresqlDatabaseCollation(v interface{}, k string) (warnings []string, errors []error) {
 	originalValue, ok := v.(string)
 	if !ok {

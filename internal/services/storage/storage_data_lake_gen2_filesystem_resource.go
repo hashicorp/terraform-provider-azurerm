@@ -449,7 +449,7 @@ func resourceStorageDataLakeGen2FileSystemDelete(d *pluginsdk.ResourceData, meta
 	return nil
 }
 
-// lintignore:V011 // the length check is combined with character/format rules
+// lintignore:V011,V001 // the length check is combined with character/format rules
 func validateStorageDataLakeGen2FileSystemName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 	if !regexp.MustCompile(`^\$root$|^[0-9a-z-]+$`).MatchString(value) {

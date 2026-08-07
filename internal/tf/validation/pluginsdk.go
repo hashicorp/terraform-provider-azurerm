@@ -243,6 +243,13 @@ func StringDoesNotContainAny(chars string) func(interface{}, string) ([]string, 
 	return validation.StringDoesNotContainAny(chars)
 }
 
+// StringDoesNotMatch returns a SchemaValidateFunc which tests if the provided value
+// does not match a given regexp. Optionally an error message can be provided to
+// return something friendlier than "must not match some globby regexp".
+func StringDoesNotMatch(r *regexp.Regexp, message string) func(interface{}, string) ([]string, []error) {
+	return validation.StringDoesNotMatch(r, message)
+}
+
 // StringInSlice returns a SchemaValidateFunc which tests if the provided value
 // is of type string and matches the value of an element in the valid slice
 // will test with in lower case if ignoreCase is true

@@ -9,7 +9,7 @@ import (
 )
 
 // PoolName validates the name of a Batch pool
-// lintignore:V011 // the length check is combined with character/format rules
+// lintignore:V011,V001 // the length check is combined with character/format rules
 func PoolName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 	if !regexp.MustCompile(`^[a-zA-Z0-9_-]+$`).MatchString(value) {

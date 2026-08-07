@@ -8,7 +8,7 @@ import (
 	"regexp"
 )
 
-// lintignore:V013,V011 // the reserved-logins check is combined with length and character rules
+// lintignore:V013,V011,V001 // the reserved-logins check is combined with length and character rules
 func FlexibleServerAdministratorLogin(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {

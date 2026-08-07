@@ -8,7 +8,7 @@ import (
 	"regexp"
 )
 
-// lintignore:V011 // the length check is combined with character/format rules
+// lintignore:V011,V001 // the length check is combined with character/format rules
 func AccountName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 	if !regexp.MustCompile(`^[a-z0-9]+$`).MatchString(value) {

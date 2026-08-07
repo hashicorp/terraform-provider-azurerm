@@ -10,6 +10,7 @@ import (
 
 // BucketPath validates that the given value is an absolute POSIX-style path used
 // as the mount path inside a NetApp Files bucket.
+// lintignore:V001 // two regexes with different error messages
 func BucketPath(v interface{}, k string) (warnings []string, errors []error) {
 	value, ok := v.(string)
 	if !ok {

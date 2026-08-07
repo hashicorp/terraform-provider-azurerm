@@ -8,7 +8,7 @@ import (
 	"regexp"
 )
 
-// lintignore:V012 // false positive - this validates a string, not an int; the int comparison here checks the string length
+// lintignore:V012,V001 // false positive - this validates a string, not an int; the int comparison here checks the string length
 func LogAnalyticsWorkspaceName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 

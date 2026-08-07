@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-// lintignore:V012 // false positive - this validates a string, not an int; the int comparison here checks the string length
+// lintignore:V012,V001 // false positive - this validates a string, not an int; the int comparison here checks the string length
 func SharedImageGalleryName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 	// Image gallery name accepts only alphanumeric, dots and underscores in the name (no dashes)
@@ -29,7 +29,7 @@ func SharedImageGalleryName(v interface{}, k string) (warnings []string, errors 
 	return warnings, errors
 }
 
-// lintignore:V012 // false positive - this validates a string, not an int; the int comparison here checks the string length
+// lintignore:V012,V001 // false positive - this validates a string, not an int; the int comparison here checks the string length
 func SharedImageName(v interface{}, k string) (warnings []string, errors []error) {
 	// different from the shared image gallery name
 	value := v.(string)
@@ -47,7 +47,7 @@ func SharedImageName(v interface{}, k string) (warnings []string, errors []error
 }
 
 func SharedImageIdentifierAttribute(maxLength int) func(interface{}, string) ([]string, []error) {
-	// lintignore:V012 // false positive - this validates a string, not an int; the int comparison here checks the string length
+	// lintignore:V012,V001 // false positive - this validates a string, not an int; the int comparison here checks the string length
 	return func(v interface{}, k string) (warnings []string, errors []error) {
 		value := v.(string)
 
@@ -68,7 +68,7 @@ func SharedImageIdentifierAttribute(maxLength int) func(interface{}, string) ([]
 	}
 }
 
-// lintignore:V013 // "latest" and "recent" are valid in addition to the version number format
+// lintignore:V013,V001 // "latest" and "recent" are valid in addition to the version number format
 func SharedImageVersionName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
@@ -79,7 +79,7 @@ func SharedImageVersionName(v interface{}, k string) (warnings []string, errors 
 	return warnings, errors
 }
 
-// lintignore:V012 // false positive - this validates a string, not an int; the int comparison here checks the string length
+// lintignore:V012,V001 // false positive - this validates a string, not an int; the int comparison here checks the string length
 func GalleryApplicationName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
@@ -95,7 +95,7 @@ func GalleryApplicationName(v interface{}, k string) (warnings []string, errors 
 	return warnings, errors
 }
 
-// lintignore:V013 // "latest" and "recent" are valid in addition to the version number format
+// lintignore:V013,V001 // "latest" and "recent" are valid in addition to the version number format
 func GalleryApplicationVersionName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 

@@ -9,6 +9,7 @@ import (
 	"strings"
 )
 
+// lintignore:V001 // the regex check is combined with an illegal-suffix list
 func NamespaceName(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {

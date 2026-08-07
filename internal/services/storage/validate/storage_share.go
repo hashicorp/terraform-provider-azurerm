@@ -30,7 +30,7 @@ func StorageShareDataPlaneID(input interface{}, key string) (warnings []string, 
 	return
 }
 
-// lintignore:V011 // the length check is combined with character/format rules
+// lintignore:V011,V001 // the length check is combined with character/format rules
 func StorageShareName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 	if !regexp.MustCompile(`^[0-9a-z-]+$`).MatchString(value) {

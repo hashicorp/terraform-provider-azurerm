@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-// lintignore:V011 // the length check is combined with character/format rules
+// lintignore:V011,V001 // the length check is combined with character/format rules
 func ManagedRedisDatabaseGeoreplicationGroupName(val interface{}, argName string) ([]string, []error) {
 	v, ok := val.(string)
 	if !ok {

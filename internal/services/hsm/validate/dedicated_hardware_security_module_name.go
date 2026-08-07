@@ -8,6 +8,7 @@ import (
 	"regexp"
 )
 
+// lintignore:V001 // two regexes with different error messages
 func DedicatedHardwareSecurityModuleName(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {

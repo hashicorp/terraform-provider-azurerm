@@ -8,7 +8,7 @@ import (
 	"regexp"
 )
 
-// lintignore:V012,V011 // false positive - this validates a string password, not an int; the int comparisons here check the password length and the number of complexity rules met
+// lintignore:V012,V011,V001 // false positive - this validates a string password, not an int; the int comparisons here check the password length and the number of complexity rules met
 func ValidatePasswordComplexity(input interface{}, key string) (warnings []string, errors []error) {
 	password, ok := input.(string)
 	if !ok {

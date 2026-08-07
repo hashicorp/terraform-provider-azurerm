@@ -8,6 +8,7 @@ import (
 	"regexp"
 )
 
+// lintignore:V001 // two regexes with different error messages
 func StorageShareDirectoryName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 	// Per: https://learn.microsoft.com/en-us/rest/api/storageservices/naming-and-referencing-shares--directories--files--and-metadata#directory-and-file-names

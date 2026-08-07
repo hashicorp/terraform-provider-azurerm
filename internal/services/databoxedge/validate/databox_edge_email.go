@@ -4,16 +4,11 @@
 package validate
 
 import (
-	"fmt"
 	"regexp"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func DataboxEdgeEmail(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	if !regexp.MustCompile(`^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf("%q must contain an at symbol and have a domain of at least two characters in length", k))
-	}
-
-	return warnings, errors
+func DataboxEdgeEmail(v interface{}, k string) ([]string, []error) {
+	return validation.StringMatch(regexp.MustCompile(`^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$`), "must contain an at symbol and have a domain of at least two characters in length")(v, k)
 }
