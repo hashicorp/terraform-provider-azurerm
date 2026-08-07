@@ -28,7 +28,7 @@ func TestRemoveFromStringArray(t *testing.T) {
 			name:     "element found multiple times",
 			elements: []string{"a", "b", "b", "c"},
 			remove:   "b",
-			expected: []string{"a", "c"}, 
+			expected: []string{"a", "c"},
 		},
 		{
 			name:     "element at beginning",
