@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/serversecurityalertpolicies"
 	"github.com/hashicorp/go-cty/cty"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -30,7 +31,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 const (
@@ -965,11 +965,11 @@ func expandSecurityAlertPolicy(i interface{}) *serversecurityalertpolicies.Serve
 	}
 
 	if v, ok := block["disabled_alerts"]; ok {
-		props.DisabledAlerts = utils.ExpandStringSlice(v.(*pluginsdk.Set).List())
+		props.DisabledAlerts = helpers.ExpandStringSlice(v.(*pluginsdk.Set).List())
 	}
 
 	if v, ok := block["email_addresses"]; ok {
-		props.EmailAddresses = utils.ExpandStringSlice(v.(*pluginsdk.Set).List())
+		props.EmailAddresses = helpers.ExpandStringSlice(v.(*pluginsdk.Set).List())
 	}
 
 	if v, ok := block["email_account_admins"]; ok {
@@ -1043,7 +1043,7 @@ func flattenSecurityAlertPolicySet(input *[]string) []interface{} {
 		return make([]interface{}, 0)
 	}
 
-	return utils.FlattenStringSlice(input)
+	return helpers.FlattenStringSlice(input)
 }
 
 func postgreSqlStateRefreshFunc(ctx context.Context, client *servers.ServersClient, id servers.ServerId) pluginsdk.StateRefreshFunc {

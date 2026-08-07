@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworkpeerings"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -171,11 +172,11 @@ func resourceVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if v, ok := d.GetOk("local_subnet_names"); ok {
-		peer.Properties.LocalSubnetNames = utils.ExpandStringSlice(v.([]interface{}))
+		peer.Properties.LocalSubnetNames = helpers.ExpandStringSlice(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("remote_subnet_names"); ok {
-		peer.Properties.RemoteSubnetNames = utils.ExpandStringSlice(v.([]interface{}))
+		peer.Properties.RemoteSubnetNames = helpers.ExpandStringSlice(v.([]interface{}))
 	}
 
 	vnetId := commonids.NewVirtualNetworkID(subscriptionId, d.Get("resource_group_name").(string), d.Get("virtual_network_name").(string))
@@ -271,10 +272,10 @@ func resourceVirtualNetworkPeeringUpdate(d *pluginsdk.ResourceData, meta interfa
 		existing.Model.Properties.AllowVirtualNetworkAccess = pointer.To(d.Get("allow_virtual_network_access").(bool))
 	}
 	if d.HasChange("local_subnet_names") {
-		existing.Model.Properties.LocalSubnetNames = utils.ExpandStringSlice(d.Get("local_subnet_names").([]interface{}))
+		existing.Model.Properties.LocalSubnetNames = helpers.ExpandStringSlice(d.Get("local_subnet_names").([]interface{}))
 	}
 	if d.HasChange("remote_subnet_names") {
-		existing.Model.Properties.RemoteSubnetNames = utils.ExpandStringSlice(d.Get("remote_subnet_names").([]interface{}))
+		existing.Model.Properties.RemoteSubnetNames = helpers.ExpandStringSlice(d.Get("remote_subnet_names").([]interface{}))
 	}
 	if d.HasChange("use_remote_gateways") {
 		existing.Model.Properties.UseRemoteGateways = pointer.To(d.Get("use_remote_gateways").(bool))

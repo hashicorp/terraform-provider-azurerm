@@ -11,6 +11,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
@@ -557,13 +558,13 @@ func expandDataFactorySchedule(input []interface{}) *datafactory.RecurrenceSched
 	}
 
 	if monthdays := value["days_of_month"].([]interface{}); len(monthdays) > 0 {
-		schedule.MonthDays = utils.ExpandInt32Slice(monthdays)
+		schedule.MonthDays = helpers.ExpandInt32Slice(monthdays)
 	}
 	if minutes := value["minutes"].([]interface{}); len(minutes) > 0 {
-		schedule.Minutes = utils.ExpandInt32Slice(minutes)
+		schedule.Minutes = helpers.ExpandInt32Slice(minutes)
 	}
 	if hours := value["hours"].([]interface{}); len(hours) > 0 {
-		schedule.Hours = utils.ExpandInt32Slice(hours)
+		schedule.Hours = helpers.ExpandInt32Slice(hours)
 	}
 
 	return &schedule
@@ -575,10 +576,10 @@ func flattenDataFactorySchedule(schedule *datafactory.RecurrenceSchedule) []inte
 	}
 	value := make(map[string]interface{})
 	if schedule.Minutes != nil {
-		value["minutes"] = utils.FlattenInt32Slice(schedule.Minutes)
+		value["minutes"] = helpers.FlattenInt32Slice(schedule.Minutes)
 	}
 	if schedule.Hours != nil {
-		value["hours"] = utils.FlattenInt32Slice(schedule.Hours)
+		value["hours"] = helpers.FlattenInt32Slice(schedule.Hours)
 	}
 	if schedule.WeekDays != nil {
 		weekDays := make([]interface{}, 0)
@@ -588,7 +589,7 @@ func flattenDataFactorySchedule(schedule *datafactory.RecurrenceSchedule) []inte
 		value["days_of_week"] = weekDays
 	}
 	if schedule.MonthDays != nil {
-		value["days_of_month"] = utils.FlattenInt32Slice(schedule.MonthDays)
+		value["days_of_month"] = helpers.FlattenInt32Slice(schedule.MonthDays)
 	}
 	if schedule.MonthlyOccurrences != nil {
 		monthlyOccurrences := make([]interface{}, 0)
