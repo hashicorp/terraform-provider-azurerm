@@ -532,6 +532,11 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 				},
 			},
 
+			"smb_oauth_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"dns_endpoint_type": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -651,6 +656,11 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			if err := d.Set("azure_files_authentication", flattenAccountAzureFilesAuthentication(props.AzureFilesIdentityBasedAuthentication)); err != nil {
 				return fmt.Errorf("setting `azure_files_authentication`: %+v", err)
 			}
+			smbOAuthEnabled := false
+			if afa := props.AzureFilesIdentityBasedAuthentication; afa != nil && afa.SmbOAuthSettings != nil {
+				smbOAuthEnabled = pointer.From(afa.SmbOAuthSettings.IsSmbOAuthEnabled)
+			}
+			d.Set("smb_oauth_enabled", smbOAuthEnabled)
 		}
 	}
 
