@@ -17,8 +17,8 @@ func DeprecatedInSixPointOh(deprecationMessage string) string {
 	return deprecationMessage
 }
 
-// SixPointOh returns whether this provider is running in 5.0 mode
-// that is to say - the final 5.0 release
+// SixPointOh returns whether this provider is running in 6.0 mode
+// that is to say - the final 6.0 release
 //
 // This exists to allow breaking changes to be piped through the provider
 // during the development of 5.x until 6.0 is ready.

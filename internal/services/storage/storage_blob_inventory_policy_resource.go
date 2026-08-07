@@ -24,7 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_blob_inventory_policy -service-package-name storage -compare-values "subscription_id:storage_account_id,resource_group_name:storage_account_id,storage_account_name:storage_account_id"
+//go:generate go run ../../tools/generator-tests resourceidentity -parent-id "storage_account_id"
 
 func resourceStorageBlobInventoryPolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{

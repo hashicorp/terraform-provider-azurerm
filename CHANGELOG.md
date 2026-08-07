@@ -1,3 +1,15 @@
+## 5.0.1 (July 30, 2026)
+
+NOTES:
+
+In addition to the bug fixes below, a number of resource documentation pages and the 5.0-upgrade-guide have been updated.
+
+BUG FIXES:
+
+* `azurerm_cdn_frontdoor_origin` - fix a regression that prevented valid values as input to `private_link.private_link_target_id` ([#32912](https://github.com/hashicorp/terraform-provider-azurerm/issues/32912))
+* `azurerm_storage_queue` - add a state migration for the `id` field, fixing the upgrade path from 4.x to 5.x ([#32914](https://github.com/hashicorp/terraform-provider-azurerm/issues/32914))
+* `azurerm_storage_table_entity` - add a state migration for the `storage_table_id` field, fixing the upgrade path from 4.x to 5.x ([#32929](https://github.com/hashicorp/terraform-provider-azurerm/issues/32929))
+
 ## 5.0.0 (July 27, 2026)
 
 NOTES:

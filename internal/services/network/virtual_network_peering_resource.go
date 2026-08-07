@@ -23,7 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name virtual_network_peering -service-package-name network -properties "name,resource_group_name,virtual_network_name"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceVirtualNetworkPeering() *pluginsdk.Resource {
 	return &pluginsdk.Resource{

@@ -7,7 +7,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -19,7 +18,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
@@ -40,7 +38,7 @@ var frontDoorCustomDomainCustomizedCipherSuitesForTls12 = []string{
 }
 
 func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceCdnFrontDoorCustomDomainCreate,
 		Read:   resourceCdnFrontDoorCustomDomainRead,
 		Update: resourceCdnFrontDoorCustomDomainUpdate,
@@ -204,34 +202,6 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["tls"].Elem.(*pluginsdk.Resource).Schema["minimum_tls_version"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			ConflictsWith: []string{"tls.0.minimum_version"},
-			// NOTE: O+C so both `minimum_tls_version` and `minimum_version` appear in state during v4.x for backward compatibility
-			Computed:   true,
-			Deprecated: "`minimum_tls_version` has been deprecated in favour of `minimum_version` and will be removed in v5.0 of the AzureRM provider",
-			ValidateFunc: validation.StringInSlice([]string{
-				string(afddomains.AfdMinimumTlsVersionTLSOneTwo),
-				string(afddomains.AfdMinimumTlsVersionTLSOneZero),
-			}, false),
-		}
-
-		resource.Schema["tls"].Elem.(*pluginsdk.Resource).Schema["minimum_version"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			ConflictsWith: []string{"tls.0.minimum_tls_version"},
-			// NOTE: O+C so both `minimum_tls_version` and `minimum_version` appear in state during v4.x for backward compatibility
-			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(afddomains.AfdMinimumTlsVersionTLSOneTwo),
-			}, false),
-		}
-	}
-
-	return resource
 }
 
 func resourceCdnFrontDoorCustomDomainCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -424,10 +394,6 @@ func expandAfdDomainTlsParameters(d *pluginsdk.ResourceData, input []interface{}
 	certType := v["certificate_type"].(string)
 	secretRaw := v["cdn_frontdoor_secret_id"].(string)
 	secretWasConfigured := false
-	minimumVersionConfigured := false
-	minimumTlsVersionConfigured := false
-
-	var minTlsVersion string
 
 	if rawConfig := d.GetRawConfig(); !rawConfig.IsNull() {
 		tlsConfig := rawConfig.GetAttr("tls")
@@ -435,26 +401,11 @@ func expandAfdDomainTlsParameters(d *pluginsdk.ResourceData, input []interface{}
 			tlsBlock := tlsConfig.AsValueSlice()[0]
 			if !tlsBlock.IsNull() {
 				secretWasConfigured = !tlsBlock.GetAttr("cdn_frontdoor_secret_id").IsNull()
-				minimumVersionConfigured = !tlsBlock.GetAttr("minimum_version").IsNull()
-				if !features.FivePointOh() {
-					minimumTlsVersionConfigured = !tlsBlock.GetAttr("minimum_tls_version").IsNull()
-				}
 			}
 		}
 	}
 
-	if !features.FivePointOh() {
-		switch {
-		case minimumVersionConfigured:
-			minTlsVersion = v["minimum_version"].(string)
-		case minimumTlsVersionConfigured:
-			minTlsVersion = v["minimum_tls_version"].(string)
-		default:
-			minTlsVersion = string(afddomains.AfdMinimumTlsVersionTLSOneTwo)
-		}
-	} else {
-		minTlsVersion = v["minimum_version"].(string)
-	}
+	minTlsVersion := v["minimum_version"].(string)
 
 	cipherSuiteRaw := v["cipher_suite"].([]interface{})
 
@@ -631,10 +582,6 @@ func flattenAfdDomainHttpsParameters(input *afddomains.AFDDomainHTTPSParameters,
 		"minimum_version":         minTlsVersion,
 	}
 
-	if !features.FivePointOh() {
-		result["minimum_tls_version"] = minTlsVersion
-	}
-
 	return []interface{}{result}
 }
 
@@ -739,8 +686,6 @@ func frontDoorCustomDomainTlsCustomizeDiff(_ context.Context, diff *pluginsdk.Re
 	}
 
 	rawConfig := diff.GetRawConfig()
-	minimumVersionConfigured := false
-	minimumTlsVersionConfigured := false
 	tls13Configured := false
 
 	if !rawConfig.IsNull() {
@@ -748,11 +693,6 @@ func frontDoorCustomDomainTlsCustomizeDiff(_ context.Context, diff *pluginsdk.Re
 		if !tlsConfig.IsNull() && tlsConfig.LengthInt() > 0 {
 			tlsBlock := tlsConfig.AsValueSlice()[0]
 			if !tlsBlock.IsNull() {
-				minimumVersionConfigured = !tlsBlock.GetAttr("minimum_version").IsNull()
-				if !features.FivePointOh() {
-					minimumTlsVersionConfigured = !tlsBlock.GetAttr("minimum_tls_version").IsNull()
-				}
-
 				cipherConfig := tlsBlock.GetAttr("cipher_suite")
 				if !cipherConfig.IsNull() && cipherConfig.LengthInt() > 0 {
 					cipherBlock := cipherConfig.AsValueSlice()[0]
@@ -767,14 +707,6 @@ func frontDoorCustomDomainTlsCustomizeDiff(_ context.Context, diff *pluginsdk.Re
 						}
 					}
 				}
-			}
-		}
-	}
-
-	if !features.FivePointOh() {
-		if minimumTlsVersionConfigured {
-			if minTlsVersion := tls["minimum_tls_version"].(string); strings.EqualFold(minTlsVersion, string(afddomains.AfdMinimumTlsVersionTLSOneZero)) {
-				return errors.New("support for TLS 1.0 and 1.1 was retired on March 1, 2025. Please use `minimum_version = \"TLS12\"` instead")
 			}
 		}
 	}
@@ -884,22 +816,11 @@ func frontDoorCustomDomainTlsCustomizeDiff(_ context.Context, diff *pluginsdk.Re
 
 		minimumVersion := ""
 
-		if !features.FivePointOh() {
-			switch {
-			case minimumVersionConfigured:
-				minimumVersion = tls["minimum_version"].(string)
-			case minimumTlsVersionConfigured:
-				minimumVersion = tls["minimum_tls_version"].(string)
-			default:
-				minimumVersion = string(afddomains.AfdMinimumTlsVersionTLSOneTwo)
-			}
-		} else {
-			if rawMin := tls["minimum_version"]; rawMin != nil {
-				if minStr, ok := rawMin.(string); ok {
-					minimumVersion = minStr
-				} else {
-					return errors.New("unexpected value for `tls.minimum_version`: expected string")
-				}
+		if rawMin := tls["minimum_version"]; rawMin != nil {
+			if minStr, ok := rawMin.(string); ok {
+				minimumVersion = minStr
+			} else {
+				return errors.New("unexpected value for `tls.minimum_version`: expected string")
 			}
 		}
 
