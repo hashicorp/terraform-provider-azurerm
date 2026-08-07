@@ -74,13 +74,12 @@ func (StorageContainerV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 			return rawState, nil
 		}
 
-		storageAccountID, err := resolveStorageAccountIDForStateUpgrade(ctx, meta, rawState, func(input string) (*commonids.StorageAccountId, error) {
-			parsed, err := commonids.ParseStorageContainerID(input)
+		storageAccountID, err := resolveStorageAccountIDForStateUpgrade(ctx, meta, rawState, func(idstr string) (*commonids.StorageAccountId, error) {
+			id, err := commonids.ParseStorageContainerID(idstr)
 			if err != nil {
 				return nil, err
 			}
-			id := commonids.NewStorageAccountID(parsed.SubscriptionId, parsed.ResourceGroupName, parsed.StorageAccountName)
-			return &id, nil
+			return new(commonids.NewStorageAccountID(id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName)), nil
 		})
 		if err != nil {
 			return rawState, err

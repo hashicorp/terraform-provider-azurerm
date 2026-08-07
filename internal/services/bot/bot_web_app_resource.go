@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -27,7 +26,7 @@ import (
 )
 
 func resourceBotWebApp() *pluginsdk.Resource {
-	r := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceBotWebAppCreate,
 		Read:   resourceBotWebAppRead,
 		Update: resourceBotWebAppUpdate,
@@ -170,23 +169,6 @@ func resourceBotWebApp() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	if !features.FivePointOh() {
-		r.Schema["microsoft_app_type"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			// Note: O+C because Azure sets a value for this if omitted
-			Computed: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(botservice.MsaAppTypeMultiTenant),
-				string(botservice.MsaAppTypeSingleTenant),
-				string(botservice.MsaAppTypeUserAssignedMSI),
-			}, false),
-		}
-	}
-
-	return r
 }
 
 func resourceBotWebAppCreate(d *pluginsdk.ResourceData, meta interface{}) error {

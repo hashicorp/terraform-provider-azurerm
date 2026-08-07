@@ -16,10 +16,13 @@ import (
 
 // resolveStorageAccountIDForStateUpgrade determines the parent storage account ID during a state migration
 // from a data plane ID to a resource manager ID. It first attempts to use the `resource_manager_id` attribute
-// (introduced in v3.39.0) and falls back to looking the account up by name for states created before then.
+// (only if it is a valid id) and falls back to looking the account up by name for states created before then.
 func resolveStorageAccountIDForStateUpgrade(ctx context.Context, meta any, rawState map[string]any, parseResourceManagerID func(string) (*commonids.StorageAccountId, error)) (*commonids.StorageAccountId, error) {
 	if resourceManagerID, ok := rawState["resource_manager_id"].(string); ok {
-		return parseResourceManagerID(resourceManagerID)
+		// The `resource_manager_id` can be malformed (see: #32950), in which case fallbacks to find account.
+		if storageAccountID, err := parseResourceManagerID(resourceManagerID); err == nil {
+			return storageAccountID, nil
+		}
 	}
 
 	// `resource_manager_id` was introduced in v3.39.0

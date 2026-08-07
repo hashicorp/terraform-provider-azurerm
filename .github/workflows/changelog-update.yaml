@@ -105,7 +105,7 @@ jobs:
           
           #new pull request for new release needs the headers all added to the top
           FILE="CHANGELOG.md"
-          version=$(head -n 1 "$FILE")
+          version=$(grep -m1 '^## [0-9]' "$FILE")
           IFS='.' read major minor patch <<< "$version"
           ((minor++))
           patch=$(echo $patch | sed 's/ (.*)//')

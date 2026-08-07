@@ -54,13 +54,12 @@ func (StorageQueueV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 			return rawState, nil
 		}
 
-		storageAccountID, err := resolveStorageAccountIDForStateUpgrade(ctx, meta, rawState, func(input string) (*commonids.StorageAccountId, error) {
-			parsed, err := parse.StorageQueueResourceManagerID(input)
+		storageAccountID, err := resolveStorageAccountIDForStateUpgrade(ctx, meta, rawState, func(idstr string) (*commonids.StorageAccountId, error) {
+			id, err := parse.StorageQueueResourceManagerID(idstr)
 			if err != nil {
 				return nil, err
 			}
-			id := commonids.NewStorageAccountID(parsed.SubscriptionId, parsed.ResourceGroup, parsed.StorageAccountName)
-			return &id, nil
+			return new(commonids.NewStorageAccountID(id.SubscriptionId, id.ResourceGroup, id.StorageAccountName)), nil
 		})
 		if err != nil {
 			return rawState, err
