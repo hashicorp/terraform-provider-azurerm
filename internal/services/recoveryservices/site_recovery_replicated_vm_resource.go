@@ -306,6 +306,13 @@ func resourceSiteRecoveryReplicatedVMCustomizeDiff(_ context.Context, diff *plug
 		return nil
 	}
 
+	managedDisks := rawConfig.GetAttr("managed_disk")
+	if diff.Id() == "" && !managedDisks.IsNull() && !managedDisks.IsWhollyKnown() {
+		if err := diff.SetNewComputed("managed_disk"); err != nil {
+			return fmt.Errorf("marking `managed_disk` as computed: %+v", err)
+		}
+	}
+
 	networkInterfaces := rawConfig.GetAttr("network_interface")
 	if !networkInterfaces.IsKnown() || networkInterfaces.IsNull() {
 		return nil
