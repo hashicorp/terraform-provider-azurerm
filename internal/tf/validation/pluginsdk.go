@@ -101,17 +101,10 @@ func IntInSlice(valid []int) func(interface{}, string) ([]string, []error) {
 	return validation.IntInSlice(valid)
 }
 
-func IntPositive(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(int)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be int", i))
-		return
-	}
-	if v <= 0 {
-		errors = append(errors, fmt.Errorf("expected %s to be positive, got %d", k, v))
-		return
-	}
-	return
+// IntPositive is a SchemaValidateFunc which tests if the provided value
+// is of type int and is positive
+func IntPositive(i interface{}, k string) ([]string, []error) {
+	return validation.IntAtLeast(1)(i, k)
 }
 
 // IsCIDR is a SchemaValidateFunc which tests if the provided value is of type string and a valid CIDR

@@ -174,7 +174,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validate.ManagedDiskSizeGB,
+				ValidateFunc: validation.IntBetween(0, 65536),
 			},
 
 			"upload_size_bytes": {

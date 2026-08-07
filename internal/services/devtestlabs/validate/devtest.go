@@ -20,6 +20,7 @@ func DevTestLabName() pluginsdk.SchemaValidateFunc {
 }
 
 func DevTestVirtualMachineName(maxLength int) pluginsdk.SchemaValidateFunc {
+	// lintignore:V012 // false positive - this validates a string, not an int; the int comparison here checks the string length
 	return func(i interface{}, k string) ([]string, []error) {
 		v, ok := i.(string)
 		if !ok {

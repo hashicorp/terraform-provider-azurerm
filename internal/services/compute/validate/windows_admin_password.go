@@ -10,6 +10,7 @@ import (
 )
 
 // WindowsAdminPassword validates that admin_password meets the Azure API requirements for Windows Virtual Machines.
+// lintignore:V012 // false positive - this validates a string password, not an int; the int comparisons here check the password length and the number of complexity rules met
 func WindowsAdminPassword(i interface{}, k string) (warnings []string, errors []error) {
 	// adminPassword must be a string.
 	v, ok := i.(string)
