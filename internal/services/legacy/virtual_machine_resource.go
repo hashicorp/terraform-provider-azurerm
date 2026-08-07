@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -37,7 +38,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/blobs"
 )
 
@@ -48,7 +48,7 @@ func userDataDiffSuppressFunc(_, old, new string, _ *pluginsdk.ResourceData) boo
 func userDataStateFunc(v interface{}) string {
 	switch s := v.(type) {
 	case string:
-		s = utils.Base64EncodeIfNot(s)
+		s = helpers.Base64EncodeIfNot(s)
 		hash := sha1.Sum([]byte(s))
 		return hex.EncodeToString(hash[:])
 	default:
@@ -1425,7 +1425,7 @@ func expandAzureRmVirtualMachineOsProfile(d *pluginsdk.ResourceData) (*virtualma
 	}
 
 	if v := osProfile["custom_data"].(string); v != "" {
-		v = utils.Base64EncodeIfNot(v)
+		v = helpers.Base64EncodeIfNot(v)
 		profile.CustomData = &v
 	}
 

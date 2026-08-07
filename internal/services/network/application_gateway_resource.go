@@ -25,6 +25,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/applicationgateways"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -34,7 +35,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity
@@ -42,7 +42,7 @@ import (
 func base64EncodedStateFunc(v interface{}) string {
 	switch s := v.(type) {
 	case string:
-		return utils.Base64EncodeIfNot(s)
+		return helpers.Base64EncodeIfNot(s)
 	default:
 		return ""
 	}
@@ -2393,7 +2393,7 @@ func expandApplicationGatewayTrustedRootCertificates(certs []interface{}) (*[]ap
 		case data != "" && kvsid != "":
 			return nil, fmt.Errorf("only one of `key_vault_secret_id` or `data` must be specified for the `trusted_root_certificate` block %q", name)
 		case data != "":
-			output.Properties.Data = pointer.To(utils.Base64EncodeIfNot(data))
+			output.Properties.Data = pointer.To(helpers.Base64EncodeIfNot(data))
 		case kvsid != "":
 			output.Properties.KeyVaultSecretId = pointer.To(kvsid)
 		default:
@@ -2957,7 +2957,7 @@ func expandApplicationGatewayHTTPListeners(d *pluginsdk.ResourceData, gatewayID 
 		}
 
 		if len(hosts) > 0 {
-			listener.Properties.HostNames = utils.ExpandStringSlice(hosts)
+			listener.Properties.HostNames = helpers.ExpandStringSlice(hosts)
 		}
 
 		if sslCertName := v["ssl_certificate_name"].(string); sslCertName != "" {
@@ -3031,7 +3031,7 @@ func flattenApplicationGatewayHTTPListeners(input *[]applicationgateways.Applica
 			}
 
 			if hostnames := props.HostNames; hostnames != nil {
-				output["host_names"] = utils.FlattenStringSlice(hostnames)
+				output["host_names"] = helpers.FlattenStringSlice(hostnames)
 			}
 
 			output["protocol"] = props.Protocol
@@ -3101,7 +3101,7 @@ func expandApplicationGatewayListeners(input []interface{}, appGwID applicationg
 		}
 
 		if hosts := v["host_names"].(*pluginsdk.Set).List(); len(hosts) > 0 {
-			listener.Properties.HostNames = utils.ExpandStringSlice(hosts)
+			listener.Properties.HostNames = helpers.ExpandStringSlice(hosts)
 		}
 
 		if sslCertName := v["ssl_certificate_name"].(string); sslCertName != "" {
@@ -4396,7 +4396,7 @@ func expandApplicationGatewaySslCertificates(d *pluginsdk.ResourceData) (*[]appl
 			return nil, fmt.Errorf("only one of `key_vault_secret_id` or `data` must be specified for the `ssl_certificate` block %q", name)
 		} else if data != "" {
 			// data must be base64 encoded
-			output.Properties.Data = pointer.To(utils.Base64EncodeIfNot(data))
+			output.Properties.Data = pointer.To(helpers.Base64EncodeIfNot(data))
 
 			output.Properties.Password = pointer.To(password)
 		} else if kvsid != "" {
@@ -4457,7 +4457,7 @@ func flattenApplicationGatewaySslCertificates(input *[]applicationgateways.Appli
 
 				if name == existingName {
 					if data := existingCerts["data"]; data != nil {
-						v := utils.Base64EncodeIfNot(data.(string))
+						v := helpers.Base64EncodeIfNot(data.(string))
 						output["data"] = v
 					}
 
@@ -4492,7 +4492,7 @@ func expandApplicationGatewayTrustedClientCertificates(d *pluginsdk.ResourceData
 		// nolint gocritic
 		if data != "" {
 			// data must be base64 encoded
-			output.Properties.Data = pointer.To(utils.Base64EncodeIfNot(data))
+			output.Properties.Data = pointer.To(helpers.Base64EncodeIfNot(data))
 		} else {
 			return nil, fmt.Errorf("`data` must be specified for the `trusted_client_certificate` block %q", name)
 		}

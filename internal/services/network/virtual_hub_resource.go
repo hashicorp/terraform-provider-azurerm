@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -25,7 +26,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity
@@ -427,7 +427,7 @@ func expandVirtualHubRoute(input []interface{}) *virtualwans.VirtualHubRouteTabl
 		nextHopIpAddress := v["next_hop_ip_address"].(string)
 
 		results = append(results, virtualwans.VirtualHubRoute{
-			AddressPrefixes:  utils.ExpandStringSlice(addressPrefixes),
+			AddressPrefixes:  helpers.ExpandStringSlice(addressPrefixes),
 			NextHopIPAddress: pointer.To(nextHopIpAddress),
 		})
 	}
@@ -446,7 +446,7 @@ func flattenVirtualHubRoute(input *virtualwans.VirtualHubRouteTable) []interface
 	}
 
 	for _, item := range *input.Routes {
-		addressPrefixes := utils.FlattenStringSlice(item.AddressPrefixes)
+		addressPrefixes := helpers.FlattenStringSlice(item.AddressPrefixes)
 		nextHopIpAddress := ""
 
 		if item.NextHopIPAddress != nil {
