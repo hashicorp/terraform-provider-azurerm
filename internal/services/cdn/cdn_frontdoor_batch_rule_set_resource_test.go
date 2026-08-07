@@ -1362,9 +1362,11 @@ resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
     }
 
     conditions {
+      # Azure accepts leading slashes in request path values.
       request_path {
-        values   = ["data/"]
-        operator = "BeginsWith"
+        operator   = "Equal"
+        values     = ["/"]
+        transforms = ["Lowercase"]
       }
 
       request_path {

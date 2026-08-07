@@ -417,11 +417,9 @@ func (CdnFrontDoorBatchRuleSetResource) Arguments() map[string]*pluginsdk.Schema
 											Optional: true,
 											MaxItems: 25,
 											Elem: &pluginsdk.Schema{
-												Type: pluginsdk.TypeString,
-												ValidateFunc: validation.All(
-													validation.StringIsNotEmpty,
-													validation.StringDoesNotStartWithOneOf("/"),
-												),
+												// Azure ignores a leading slash in request path values, so both forms are valid.
+												Type:         pluginsdk.TypeString,
+												ValidateFunc: validation.StringIsNotEmpty,
 											},
 										},
 										"transforms": cdnFrontDoorBatchRuleSetConditionTransformsSchema(),
