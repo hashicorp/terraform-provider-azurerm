@@ -26,7 +26,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name web_application_firewall_policy -properties "name,resource_group_name"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -393,10 +393,10 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 								NOTE: O+C: This value defaults to true but is only available under certain conditions (i.e. when version is 3.2)
 									managed_rules {
 										managed_rule_set {
-										  type    = "OWASP"
-										  version = "3.2"
+										 type  = "OWASP"
+										 version = "3.2"
 										}
-									  }
+									 }
 							*/
 							Optional: true,
 						},

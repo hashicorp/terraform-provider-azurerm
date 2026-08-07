@@ -33,7 +33,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name mssql_virtual_machine -compare-values "subscription_id:virtual_machine_id,resource_group_name:virtual_machine_id,name:virtual_machine_id"
+//go:generate go run ../../tools/generator-tests resourceidentity -parent-id "virtual_machine_id"
 
 func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{

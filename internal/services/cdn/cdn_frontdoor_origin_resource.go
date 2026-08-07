@@ -9,12 +9,16 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdorigingroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdorigins"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/privatelinkservices"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/applicationgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -111,9 +115,16 @@ func resourceCdnFrontDoorOrigin() *pluginsdk.Resource {
 						"location": commonschema.Location(),
 
 						"private_link_target_id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: privatelinkservices.ValidatePrivateLinkServiceID,
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.Any(
+								apimanagementservice.ValidateServiceID,
+								applicationgateways.ValidateApplicationGatewayID,
+								commonids.ValidateAppServiceID,
+								commonids.ValidateStorageAccountID,
+								managedenvironments.ValidateManagedEnvironmentID,
+								privatelinkservices.ValidatePrivateLinkServiceID,
+							),
 						},
 
 						"request_message": {

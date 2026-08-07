@@ -29,7 +29,7 @@ import (
 	"github.com/jackofallops/kermit/sdk/attestation/2022-08-01/attestation"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name attestation_provider -service-package-name attestation -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basicForResourceIdentity
+//go:generate go run ../../tools/generator-tests resourceidentity -test-name basicForResourceIdentity
 
 func resourceAttestationProvider() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -160,8 +160,8 @@ func resourceAttestationProviderCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	// NOTE: This maybe an slice in a future release or even a slice of slices
-	//       The service team does not currently have any user data for this
-	//       pluginsdk.
+	//    The service team does not currently have any user data for this
+	//    pluginsdk.
 	policySigningCertificate := d.Get("policy_signing_certificate_data").(string)
 
 	if policySigningCertificate != "" {

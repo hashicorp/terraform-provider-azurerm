@@ -38,7 +38,7 @@ import (
 	dataplane "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name key_vault -service-package-name keyvault -properties "name,resource_group_name"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 var keyVaultResourceName = "azurerm_key_vault"
 
