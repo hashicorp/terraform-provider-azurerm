@@ -1,8 +1,8 @@
 ---
 name: Link Milestone
 
-# When a PR merges to main, assigns it and its linked issues to the current
-# milestone using stephybun/link-milestone.
+# When a PR merges to main, assigns it and all issues it closes to the next
+# unreleased milestone via scripts/automation/milestone-link.sh.
 
 permissions: {}
 
@@ -20,14 +20,11 @@ jobs:
       pull-requests: write
       issues: write
     steps:
-      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
-        with:
-          # we cannot use go-version-file here because no repositories are checked out so there is no file to reference
-          go-version: '1.26'
-      - run: |
-          go install github.com/stephybun/link-milestone@1e48f06f81570d223831a9fca0fd8bb0ad11c7da
-          link-milestone
+      # pull_request_target checks out the base branch (main), not the PR head
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+      - name: "Link Milestone"
+        shell: bash
+        run: bash ./scripts/automation/milestone-link.sh
         env:
           PR_NUMBER: ${{ github.event.number }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
