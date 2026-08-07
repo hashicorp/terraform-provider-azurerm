@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2025-09-01/mongoclusters"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -85,7 +84,7 @@ func (r MongoClusterResource) ResourceType() string {
 }
 
 func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
-	args := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			ForceNew: true,
 			Required: true,
@@ -290,12 +289,6 @@ func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 	}
-
-	if !features.FivePointOh() {
-		args["customer_managed_key"].Elem.(*pluginsdk.Resource).Schema["key_vault_key_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeAny)
-	}
-
-	return args
 }
 
 func (r MongoClusterResource) Attributes() map[string]*pluginsdk.Schema {

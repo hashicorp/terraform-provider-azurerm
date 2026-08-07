@@ -24,7 +24,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/custompollers"
 	managedHSMValidation "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
@@ -36,7 +35,7 @@ import (
 )
 
 func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
-	r := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceArmKeyVaultManagedHardwareSecurityModuleCreate,
 		Read:   resourceArmKeyVaultManagedHardwareSecurityModuleRead,
 		Delete: resourceArmKeyVaultManagedHardwareSecurityModuleDelete,
@@ -175,12 +174,6 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	if !features.FivePointOh() {
-		r.Schema["security_domain_key_vault_certificate_ids"].Elem.(*pluginsdk.Schema).ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny)
-	}
-
-	return r
 }
 
 func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -488,12 +481,7 @@ func securityDomainDownload(ctx context.Context, sdClient *kv74.HSMSecurityDomai
 			continue
 		}
 
-		nestedItemType := keyvault.NestedItemTypeCertificate
-		if !features.FivePointOh() {
-			nestedItemType = keyvault.NestedItemTypeAny
-		}
-
-		keyID, err := keyvault.ParseNestedItemID(certIDStr, keyvault.VersionTypeVersioned, nestedItemType)
+		keyID, err := keyvault.ParseNestedItemID(certIDStr, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeCertificate)
 		if err != nil {
 			return "", fmt.Errorf("parsing %q: %+v", certIDStr, err)
 		}

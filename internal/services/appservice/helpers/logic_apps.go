@@ -34,8 +34,6 @@ type LogicAppSiteConfig struct {
 	VNETRouteAllEnabled           bool            `tfschema:"vnet_route_all_enabled"`
 	AutoSwapSlotName              string          `tfschema:"auto_swap_slot_name"`
 	IpRestrictionDefaultAction    string          `tfschema:"ip_restriction_default_action"`
-
-	PublicNetworkAccessEnabled bool `tfschema:"public_network_access_enabled,removedInNextMajorVersion"`
 }
 
 func SchemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
