@@ -3,6 +3,7 @@ package cognitive
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -297,11 +298,25 @@ func (r CognitiveAccountProjectResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			if err := client.ProjectsDeleteThenPoll(ctx, *id); err != nil {
-				return fmt.Errorf("deleting %s: %+v", *id, err)
+			// Deleting connections attached to a project causes Azure to transition the
+			// project into a non-terminal provisioning state while it processes the
+			// cascading changes. During this window Azure returns 412 IfMatchPreconditionFailed
+			// on any DELETE because the underlying SDK sends no If-Match header. Retrying
+			// with backoff allows Azure to reach a stable state before the DELETE is accepted.
+			for attempt := 0; ; attempt++ {
+				if err := client.ProjectsDeleteThenPoll(ctx, *id); err != nil {
+					if strings.Contains(err.Error(), "IfMatchPreconditionFailed") && attempt < 4 {
+						select {
+						case <-time.After(15 * time.Second):
+							continue
+						case <-ctx.Done():
+							return fmt.Errorf("deleting %s: context cancelled waiting for stable state: %+v", *id, ctx.Err())
+						}
+					}
+					return fmt.Errorf("deleting %s: %+v", *id, err)
+				}
+				return nil
 			}
-
-			return nil
 		},
 	}
 }
