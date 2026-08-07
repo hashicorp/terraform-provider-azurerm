@@ -104,6 +104,7 @@ var services = mapOf(
         "privatednsresolver" to "Private DNS Resolver",
         "purview" to "Purview",
         "qumulo" to "Qumulo",
+        "quota" to "Quota",
         "recoveryservices" to "Recovery Services",
         "redhatopenshift" to "Red Hat OpenShift",
         "redis" to "Redis",

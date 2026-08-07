@@ -474,6 +474,11 @@ service/qumulo:
   - any-glob-to-any-file:
     - internal/services/qumulo/**/*
 
+service/quota:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/quota/**/*
+
 service/recovery-services:
 - changed-files:
   - any-glob-to-any-file:
