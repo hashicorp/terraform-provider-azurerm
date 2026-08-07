@@ -2845,6 +2845,7 @@ func SecretsSchema() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
 					Sensitive:   true,
+					Default:     "",
 					Description: "The value for this secret.",
 				},
 			},
