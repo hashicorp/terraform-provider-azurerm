@@ -48,9 +48,10 @@ func resourceStorageQueue() *pluginsdk.Resource {
 			return err
 		}),
 
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.QueueV0ToV1{},
+			1: migration.StorageQueueV1ToV2{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{

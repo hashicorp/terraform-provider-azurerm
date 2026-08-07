@@ -35,7 +35,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
@@ -108,7 +107,7 @@ func resourceApiManagementService() *pluginsdk.Resource {
 }
 
 func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": schemaz.SchemaApiManagementName(),
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -639,108 +638,6 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
-
-	if !features.FivePointOh() {
-		s["protocols"].Elem.(*pluginsdk.Resource).Schema["enable_http2"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"protocols.0.http2_enabled"},
-			Deprecated:    "`protocols.enable_http2` has been deprecated in favour of the `protocols.http2_enabled` property and will be removed in v5.0 of the AzureRM Provider",
-		}
-		s["protocols"].Elem.(*pluginsdk.Resource).Schema["http2_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"protocols.0.enable_http2"},
-		}
-
-		s["security"].Elem.(*pluginsdk.Resource).Schema["enable_backend_ssl30"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"security.0.backend_ssl30_enabled"},
-			Deprecated:    "`security.enable_backend_ssl30` has been deprecated in favour of the `security.backend_ssl30_enabled` property and will be removed in v5.0 of the AzureRM Provider",
-		}
-		s["security"].Elem.(*pluginsdk.Resource).Schema["backend_ssl30_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"security.0.enable_backend_ssl30"},
-		}
-
-		s["security"].Elem.(*pluginsdk.Resource).Schema["enable_backend_tls10"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"security.0.backend_tls10_enabled"},
-			Deprecated:    "`security.enable_backend_tls10` has been deprecated in favour of the `security.backend_tls10_enabled` property and will be removed in v5.0 of the AzureRM Provider",
-		}
-		s["security"].Elem.(*pluginsdk.Resource).Schema["backend_tls10_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"security.0.enable_backend_tls10"},
-		}
-
-		s["security"].Elem.(*pluginsdk.Resource).Schema["enable_backend_tls11"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"security.0.backend_tls11_enabled"},
-			Deprecated:    "`security.enable_backend_tls11` has been deprecated in favour of the `security.backend_tls11_enabled` property and will be removed in v5.0 of the AzureRM Provider",
-		}
-		s["security"].Elem.(*pluginsdk.Resource).Schema["backend_tls11_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"security.0.enable_backend_tls11"},
-		}
-
-		s["security"].Elem.(*pluginsdk.Resource).Schema["enable_frontend_ssl30"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"security.0.frontend_ssl30_enabled"},
-			Deprecated:    "`security.enable_frontend_ssl30` has been deprecated in favour of the `security.frontend_ssl30_enabled` property and will be removed in v5.0 of the AzureRM Provider",
-		}
-		s["security"].Elem.(*pluginsdk.Resource).Schema["frontend_ssl30_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"security.0.enable_frontend_ssl30"},
-		}
-
-		s["security"].Elem.(*pluginsdk.Resource).Schema["enable_frontend_tls10"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"security.0.frontend_tls10_enabled"},
-			Deprecated:    "`security.enable_frontend_tls10` has been deprecated in favour of the `security.frontend_tls10_enabled` property and will be removed in v5.0 of the AzureRM Provider",
-		}
-		s["security"].Elem.(*pluginsdk.Resource).Schema["frontend_tls10_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"security.0.enable_frontend_tls10"},
-		}
-
-		s["security"].Elem.(*pluginsdk.Resource).Schema["enable_frontend_tls11"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"security.0.frontend_tls11_enabled"},
-			Deprecated:    "`security.enable_frontend_tls11` has been deprecated in favour of the `security.frontend_tls11_enabled` property and will be removed in v5.0 of the AzureRM Provider",
-		}
-		s["security"].Elem.(*pluginsdk.Resource).Schema["frontend_tls11_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"security.0.enable_frontend_tls11"},
-		}
-	}
-
-	return s
 }
 
 func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -1528,42 +1425,30 @@ func expandAzureRmApiManagementHostnameConfigurations(d *pluginsdk.ResourceData)
 		hostnameV := hostnameRawVal.(map[string]interface{})
 
 		managementVs := hostnameV["management"].([]interface{})
-		for idx, managementV := range managementVs {
+		for _, managementV := range managementVs {
 			v := managementV.(map[string]interface{})
 			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypeManagement)
-			if !features.FivePointOh() {
-				output = expandApiManagementCommonHostnameConfigurationFourPointOh(d, v, apimanagementservice.HostnameTypeManagement, fmt.Sprintf("hostname_configuration.0.management.%d", idx))
-			}
 			results = append(results, output)
 		}
 
 		portalVs := hostnameV["portal"].([]interface{})
-		for idx, portalV := range portalVs {
+		for _, portalV := range portalVs {
 			v := portalV.(map[string]interface{})
 			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypePortal)
-			if !features.FivePointOh() {
-				output = expandApiManagementCommonHostnameConfigurationFourPointOh(d, v, apimanagementservice.HostnameTypePortal, fmt.Sprintf("hostname_configuration.0.portal.%d", idx))
-			}
 			results = append(results, output)
 		}
 
 		developerPortalVs := hostnameV["developer_portal"].([]interface{})
-		for idx, developerPortalV := range developerPortalVs {
+		for _, developerPortalV := range developerPortalVs {
 			v := developerPortalV.(map[string]interface{})
 			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypeDeveloperPortal)
-			if !features.FivePointOh() {
-				output = expandApiManagementCommonHostnameConfigurationFourPointOh(d, v, apimanagementservice.HostnameTypeDeveloperPortal, fmt.Sprintf("hostname_configuration.0.developer_portal.%d", idx))
-			}
 			results = append(results, output)
 		}
 
 		proxyVs := hostnameV["proxy"].([]interface{})
-		for idx, proxyV := range proxyVs {
+		for _, proxyV := range proxyVs {
 			v := proxyV.(map[string]interface{})
 			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypeProxy)
-			if !features.FivePointOh() {
-				output = expandApiManagementCommonHostnameConfigurationFourPointOh(d, v, apimanagementservice.HostnameTypeProxy, fmt.Sprintf("hostname_configuration.0.proxy.%d", idx))
-			}
 
 			if value, ok := v["default_ssl_binding"]; ok {
 				output.DefaultSslBinding = pointer.To(value.(bool))
@@ -1573,12 +1458,9 @@ func expandAzureRmApiManagementHostnameConfigurations(d *pluginsdk.ResourceData)
 		}
 
 		scmVs := hostnameV["scm"].([]interface{})
-		for idx, scmV := range scmVs {
+		for _, scmV := range scmVs {
 			v := scmV.(map[string]interface{})
 			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypeScm)
-			if !features.FivePointOh() {
-				output = expandApiManagementCommonHostnameConfigurationFourPointOh(d, v, apimanagementservice.HostnameTypeScm, fmt.Sprintf("hostname_configuration.0.scm.%d", idx))
-			}
 			results = append(results, output)
 		}
 	}
@@ -1614,40 +1496,6 @@ func expandApiManagementCommonHostnameConfiguration(input map[string]interface{}
 	return output
 }
 
-func expandApiManagementCommonHostnameConfigurationFourPointOh(d *pluginsdk.ResourceData, input map[string]interface{}, hostnameType apimanagementservice.HostnameType, addressPrefix string) apimanagementservice.HostnameConfiguration {
-	output := apimanagementservice.HostnameConfiguration{
-		Type: hostnameType,
-	}
-	if v, ok := input["certificate"]; ok && v.(string) != "" {
-		output.EncodedCertificate = pointer.To(v.(string))
-	}
-	if v, ok := input["certificate_password"]; ok && v.(string) != "" {
-		output.CertificatePassword = pointer.To(v.(string))
-	}
-	if v, ok := input["host_name"]; ok && v.(string) != "" {
-		output.HostName = v.(string)
-	}
-	if v, ok := input["key_vault_certificate_id"]; ok && v.(string) != "" {
-		output.KeyVaultId = pointer.To(v.(string))
-	}
-	if !features.FivePointOh() {
-		rawKeyVaultID, diags := d.GetRawConfigAt(sdk.ConstructCtyPath(fmt.Sprintf("%s.key_vault_id", addressPrefix)))
-		if !diags.HasError() && !rawKeyVaultID.IsNull() {
-			output.KeyVaultId = pointer.To(input["key_vault_id"].(string))
-		}
-	}
-
-	if v, ok := input["negotiate_client_certificate"]; ok {
-		output.NegotiateClientCertificate = pointer.To(v.(bool))
-	}
-
-	if v, ok := input["ssl_keyvault_identity_client_id"]; ok && v.(string) != "" {
-		output.IdentityClientId = pointer.To(v.(string))
-	}
-
-	return output
-}
-
 func flattenApiManagementHostnameConfigurations(input *[]apimanagementservice.HostnameConfiguration, d *pluginsdk.ResourceData) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
@@ -1667,10 +1515,6 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagementservice.Ho
 		output["negotiate_client_certificate"] = pointer.From(config.NegotiateClientCertificate)
 		output["key_vault_certificate_id"] = pointer.From(config.KeyVaultId)
 		output["ssl_keyvault_identity_client_id"] = pointer.From(config.IdentityClientId)
-
-		if !features.FivePointOh() {
-			output["key_vault_id"] = pointer.From(config.KeyVaultId)
-		}
 
 		if config.Certificate != nil {
 			if config.Certificate.Expiry != "" {
@@ -1888,27 +1732,6 @@ func expandApiManagementCustomProperties(d *pluginsdk.ResourceData, skuIsConsump
 		frontendProtocolTls10 = v["frontend_tls10_enabled"].(bool)
 		frontendProtocolTls11 = v["frontend_tls11_enabled"].(bool)
 
-		if !features.FivePointOh() {
-			if val, ok := d.GetOk("security.0.enable_backend_ssl30"); ok {
-				backendProtocolSsl3 = val.(bool)
-			}
-			if val, ok := d.GetOk("security.0.enable_backend_tls10"); ok {
-				backendProtocolTls10 = val.(bool)
-			}
-			if val, ok := d.GetOk("security.0.enable_backend_tls11"); ok {
-				backendProtocolTls11 = val.(bool)
-			}
-			if val, ok := d.GetOk("security.0.enable_frontend_ssl30"); ok {
-				frontendProtocolSsl3 = val.(bool)
-			}
-			if val, ok := d.GetOk("security.0.enable_frontend_tls10"); ok {
-				frontendProtocolTls10 = val.(bool)
-			}
-			if val, ok := d.GetOk("security.0.enable_frontend_tls11"); ok {
-				frontendProtocolTls11 = val.(bool)
-			}
-		}
-
 		if v, exists := v["triple_des_ciphers_enabled"]; exists {
 			tripleDesCiphers = v.(bool)
 		}
@@ -1925,9 +1748,6 @@ func expandApiManagementCustomProperties(d *pluginsdk.ResourceData, skuIsConsump
 		tlsRsaWithAes128CbcShaCiphers = v["tls_rsa_with_aes128_cbc_sha_ciphers_enabled"].(bool)
 
 		if skuIsConsumption && frontendProtocolSsl3 {
-			if !features.FivePointOh() {
-				return nil, errors.New("`frontend_ssl30_enabled`/`enable_frontend_ssl30` are not supported for Sku Tier `Consumption`")
-			}
 			return nil, errors.New("`frontend_ssl30_enabled` is not supported for Sku Tier `Consumption`")
 		}
 
@@ -1998,11 +1818,6 @@ func expandApiManagementCustomProperties(d *pluginsdk.ResourceData, skuIsConsump
 	if vp := d.Get("protocols").([]interface{}); len(vp) > 0 {
 		vpr := vp[0].(map[string]interface{})
 		enableHttp2 := vpr["http2_enabled"].(bool)
-		if !features.FivePointOh() {
-			if v, ok := d.GetOk("protocols.0.enable_http2"); ok {
-				enableHttp2 = v.(bool)
-			}
-		}
 		customProperties[apimHttp2Protocol] = strconv.FormatBool(enableHttp2)
 	}
 
@@ -2031,20 +1846,8 @@ func flattenApiManagementSecurityCustomProperties(input map[string]string, skuIs
 	output["frontend_tls10_enabled"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolTls10)
 	output["frontend_tls11_enabled"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolTls11)
 
-	if !features.FivePointOh() {
-		output["enable_backend_ssl30"] = parseApiManagementNilableDictionary(input, apimBackendProtocolSsl3)
-		output["enable_backend_tls10"] = parseApiManagementNilableDictionary(input, apimBackendProtocolTls10)
-		output["enable_backend_tls11"] = parseApiManagementNilableDictionary(input, apimBackendProtocolTls11)
-		output["enable_frontend_tls10"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolTls10)
-		output["enable_frontend_tls11"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolTls11)
-	}
-
 	if !skuIsConsumption {
 		output["frontend_ssl30_enabled"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolSsl3)
-
-		if !features.FivePointOh() {
-			output["enable_frontend_ssl30"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolSsl3)
-		}
 
 		output["triple_des_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTripleDesCiphers)
 		output["tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsEcdheEcdsaWithAes256CbcShaCiphers)
@@ -2066,10 +1869,6 @@ func flattenApiManagementProtocolsCustomProperties(input map[string]string) []in
 	output := make(map[string]interface{})
 
 	output["http2_enabled"] = parseApiManagementNilableDictionary(input, apimHttp2Protocol)
-
-	if !features.FivePointOh() {
-		output["enable_http2"] = parseApiManagementNilableDictionary(input, apimHttp2Protocol)
-	}
 
 	return []interface{}{output}
 }

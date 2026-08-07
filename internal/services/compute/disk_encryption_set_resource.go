@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskencryptionsets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -31,7 +30,7 @@ import (
 )
 
 func resourceDiskEncryptionSet() *pluginsdk.Resource {
-	r := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceDiskEncryptionSetCreate,
 		Read:   resourceDiskEncryptionSetRead,
 		Update: resourceDiskEncryptionSetUpdate,
@@ -108,27 +107,6 @@ func resourceDiskEncryptionSet() *pluginsdk.Resource {
 			}),
 		),
 	}
-
-	if !features.FivePointOh() {
-		r.Schema["key_vault_key_id"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny),
-			ExactlyOneOf: []string{"managed_hsm_key_id", "key_vault_key_id"},
-		}
-
-		r.Schema["managed_hsm_key_id"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny),
-			ExactlyOneOf: []string{"managed_hsm_key_id", "key_vault_key_id"},
-			Deprecated:   "`managed_hsm_key_id` has been deprecated in favour of `key_vault_key_id` and will be removed in v5.0 of the AzureRM Provider",
-		}
-	}
-
-	return r
 }
 
 func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -155,34 +133,16 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 	rotationToLatestKeyVersionEnabled := d.Get("auto_key_rotation_enabled").(bool)
 	activeKey := &diskencryptionsets.KeyForDiskEncryptionSet{}
 
-	if !features.FivePointOh() && !d.GetRawConfig().AsValueMap()["managed_hsm_key_id"].IsNull() {
-		key, err := keyvault.ParseNestedItemID(d.Get("managed_hsm_key_id").(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
-		if err != nil {
-			return err
-		}
-
-		keyURL, err := getKeyURL(ctx, key, rotationToLatestKeyVersionEnabled, meta)
-		if err != nil {
-			return err
-		}
-		activeKey.KeyURL = keyURL
-	} else {
-		nestedItemType := keyvault.NestedItemTypeKey
-		if !features.FivePointOh() {
-			nestedItemType = keyvault.NestedItemTypeAny
-		}
-
-		key, err := keyvault.ParseNestedItemID(d.Get("key_vault_key_id").(string), keyvault.VersionTypeAny, nestedItemType)
-		if err != nil {
-			return err
-		}
-
-		keyURL, err := getKeyURL(ctx, key, rotationToLatestKeyVersionEnabled, meta)
-		if err != nil {
-			return err
-		}
-		activeKey.KeyURL = keyURL
+	key, err := keyvault.ParseNestedItemID(d.Get("key_vault_key_id").(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
+	if err != nil {
+		return err
 	}
+
+	keyURL, err := getKeyURL(ctx, key, rotationToLatestKeyVersionEnabled, meta)
+	if err != nil {
+		return err
+	}
+	activeKey.KeyURL = keyURL
 
 	expandedIdentity, err := expandDiskEncryptionSetIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
@@ -251,12 +211,7 @@ func resourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("federated_client_id", pointer.From(props.FederatedClientId))
 
 			if props.ActiveKey != nil && props.ActiveKey.KeyURL != "" {
-				nestedItemType := keyvault.NestedItemTypeKey
-				if !features.FivePointOh() {
-					nestedItemType = keyvault.NestedItemTypeAny
-				}
-
-				key, err := keyvault.ParseNestedItemID(props.ActiveKey.KeyURL, keyvault.VersionTypeAny, nestedItemType)
+				key, err := keyvault.ParseNestedItemID(props.ActiveKey.KeyURL, keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 				if err != nil {
 					return err
 				}
@@ -267,13 +222,6 @@ func resourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta interface{}) 
 				}
 
 				d.Set("key_vault_key_id", key.ID())
-				if !features.FivePointOh() {
-					if key.IsManagedHSM() {
-						d.Set("managed_hsm_key_id", key.ID())
-					} else {
-						d.Set("managed_hsm_key_id", "")
-					}
-				}
 			}
 		}
 
@@ -320,25 +268,6 @@ func resourceDiskEncryptionSetUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	rotationToLatestKeyVersionEnabled := d.Get("auto_key_rotation_enabled").(bool)
 
-	if !features.FivePointOh() && d.HasChange("managed_hsm_key_id") {
-		if update.Properties == nil {
-			update.Properties = &diskencryptionsets.DiskEncryptionSetUpdateProperties{
-				ActiveKey: &diskencryptionsets.KeyForDiskEncryptionSet{},
-			}
-		}
-
-		key, err := keyvault.ParseNestedItemID(d.Get("managed_hsm_key_id").(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
-		if err != nil {
-			return err
-		}
-
-		keyURL, err := getKeyURL(ctx, key, rotationToLatestKeyVersionEnabled, meta)
-		if err != nil {
-			return err
-		}
-		update.Properties.ActiveKey.KeyURL = keyURL
-	}
-
 	if d.HasChange("key_vault_key_id") {
 		if update.Properties == nil {
 			update.Properties = &diskencryptionsets.DiskEncryptionSetUpdateProperties{
@@ -346,12 +275,7 @@ func resourceDiskEncryptionSetUpdate(d *pluginsdk.ResourceData, meta interface{}
 			}
 		}
 
-		nestedItemType := keyvault.NestedItemTypeKey
-		if !features.FivePointOh() {
-			nestedItemType = keyvault.NestedItemTypeAny
-		}
-
-		key, err := keyvault.ParseNestedItemID(d.Get("key_vault_key_id").(string), keyvault.VersionTypeAny, nestedItemType)
+		key, err := keyvault.ParseNestedItemID(d.Get("key_vault_key_id").(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 		if err != nil {
 			return err
 		}
