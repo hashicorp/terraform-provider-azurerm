@@ -1,3 +1,17 @@
+## 5.1.0 (Unreleased)
+
+FEATURES:
+
+ENHANCEMENTS:
+* `azurerm_managed_devops_pool` - add support for the `CreatorOnly` value to `azure_devops_organization.permission.kind` property [GH-32753]
+
+BUG FIXES:
+* `azurerm_dev_center_project` - parse `dev_center_id` case-insensitively and normalize the resulting value to prevent diffs [GH-32798]
+* `azurerm_storage_queue` - extend state migration to handle a malformed `resource_manager_id` [GH-32979]
+* `azurerm_cdn_frontdoor_batch_ruleset` - parse `rule.actions.route_configuration_override.origin_group.cdn_frontdoor_origin_group_id` case-insensitively and normalize the resulting value to prevent diffs [GH-32980]
+* `azurerm_cdn_frontdoor_route` - parse `cdn_frontdoor_origin_group_id` case-insensitively and normalize the resulting value to prevent diffs [GH-32980]
+* `azurerm_cdn_frontdoor_secret` - fix an incorrect type assertion [GH-32982]
+
 ## 5.0.1 (July 30, 2026)
 
 NOTES:
