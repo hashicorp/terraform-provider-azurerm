@@ -335,6 +335,8 @@ type ApplicationStackLinux struct {
 	DockerRegistryUsername string `tfschema:"docker_registry_username"`
 	DockerRegistryPassword string `tfschema:"docker_registry_password"`
 	DockerImageName        string `tfschema:"docker_image_name"`
+
+	SiteContainersEnabled bool `tfschema:"site_containers_enabled"`
 }
 
 var linuxApplicationStackConstraint = []string{
@@ -345,6 +347,7 @@ var linuxApplicationStackConstraint = []string{
 	"site_config.0.application_stack.0.php_version",
 	"site_config.0.application_stack.0.python_version",
 	"site_config.0.application_stack.0.go_version",
+	"site_config.0.application_stack.0.site_containers_enabled",
 }
 
 func linuxApplicationStackSchema() *pluginsdk.Schema {
@@ -491,6 +494,13 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					Optional:  true,
 					Sensitive: true,
 				},
+
+				"site_containers_enabled": {
+					Type:         pluginsdk.TypeBool,
+					Optional:     true,
+					Default:      false,
+					ExactlyOneOf: linuxApplicationStackConstraint,
+				},
 			},
 		},
 	}
@@ -576,6 +586,11 @@ func linuxApplicationStackSchemaComputed() *pluginsdk.Schema {
 					Type:      pluginsdk.TypeString,
 					Computed:  true,
 					Sensitive: true,
+				},
+
+				"site_containers_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
 				},
 			},
 		},
