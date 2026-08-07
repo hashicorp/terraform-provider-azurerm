@@ -560,6 +560,7 @@ func (r ManagedRedisResource) Update() sdk.ResourceFunc {
 						return fmt.Errorf("creating %s: %+v", dbId, err)
 					}
 				default:
+					// lintignore:R019 // deliberate subsets: the first branch lists fields requiring database re-creation, the second lists fields updatable in place
 					if metadata.ResourceData.HasChanges(
 						"default_database.0.clustering_policy",
 						"default_database.0.geo_replication_group_name",

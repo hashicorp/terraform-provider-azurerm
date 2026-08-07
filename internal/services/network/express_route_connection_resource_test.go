@@ -18,7 +18,7 @@ import (
 
 type ExpressRouteConnectionResource struct{}
 
-func TestAccExpressRouteConnection(t *testing.T) {
+func TestAccExpressRouteConnection_sequential(t *testing.T) {
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"Resource": {
 			"basic":          testAccExpressRouteConnection_basic,

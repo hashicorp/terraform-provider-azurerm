@@ -1729,7 +1729,7 @@ func TestAccLinuxFunctionApp_storageAccountKeyVaultSecretVersionless(t *testing.
 	})
 }
 
-func TestAccLinuxFunctionAppASEv3_basicWithVnetProperties(t *testing.T) {
+func TestAccLinuxFunctionApp_ASEv3BasicWithVnetProperties(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
 	r := LinuxFunctionAppResource{}
 
