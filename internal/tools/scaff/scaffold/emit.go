@@ -56,17 +56,65 @@ func Emit(res *ir.ResourceIR, opts EmitOptions) string {
 	fmt.Fprintf(&sb, "list         = %t\n", opts.List)
 	fmt.Fprintf(&sb, "data_source  = %t\n\n", opts.DataSource)
 
+	// Build a map from BlockModel.Name → the dot-separated tf_name prefix that
+	// addresses it from the top level. This lets block properties be emitted
+	// with a fully-qualified tf_name (e.g. "encryption.key_vault_properties.keyvault_uri")
+	// so the generated file is immediately usable as a path-qualified rename target.
+	blockPrefix := buildBlockPrefixes(res)
+
 	for _, p := range res.TopLevel {
-		writeAttribute(&sb, p)
+		if p.SourcePath == "" {
+			continue
+		}
+		writeAttribute(&sb, p, "")
 	}
 	for _, b := range res.Blocks {
 		fmt.Fprintf(&sb, "# --- block %s ---\n", b.Name)
+		prefix := blockPrefix[b.Name]
 		for _, p := range b.Properties {
-			writeAttribute(&sb, p)
+			if p.SourcePath == "" {
+				continue
+			}
+			writeAttribute(&sb, p, prefix)
 		}
 	}
 
 	return sb.String()
+}
+
+// buildBlockPrefixes returns a map from BlockModel.Name to the dot-separated
+// tf_name path prefix for that block (e.g. "Encryption" → "encryption",
+// "KeyVaultProperties" → "encryption.key_vault_properties"). It walks
+// res.TopLevel and recurses into nested blocks so every depth is covered.
+func buildBlockPrefixes(res *ir.ResourceIR) map[string]string {
+	byName := make(map[string]*ir.BlockModel, len(res.Blocks))
+	for _, b := range res.Blocks {
+		byName[b.Name] = b
+	}
+
+	result := make(map[string]string, len(res.Blocks))
+
+	var walk func(props []*ir.Property, parentPrefix string)
+	walk = func(props []*ir.Property, parentPrefix string) {
+		for _, p := range props {
+			if !p.IsBlock || p.BlockName == "" {
+				continue
+			}
+			var prefix string
+			if parentPrefix == "" {
+				prefix = p.TFName
+			} else {
+				prefix = parentPrefix + "." + p.TFName
+			}
+			result[p.BlockName] = prefix
+			if b, ok := byName[p.BlockName]; ok {
+				walk(b.Properties, prefix)
+			}
+		}
+	}
+	walk(res.TopLevel, "")
+
+	return result
 }
 
 func writeHeaderAttr(sb *strings.Builder, key, val string) {
@@ -75,10 +123,15 @@ func writeHeaderAttr(sb *strings.Builder, key, val string) {
 
 // writeAttribute renders a single `attribute` block reflecting the property's
 // current schema mapping. Only flags that are set are emitted, so editing is
-// additive.
-func writeAttribute(sb *strings.Builder, p *ir.Property) {
+// additive. blockPrefix is the dot-separated path to the containing block (e.g.
+// "encryption.key_vault_properties"); empty string for top-level properties.
+func writeAttribute(sb *strings.Builder, p *ir.Property, blockPrefix string) {
+	tfName := p.TFName
+	if blockPrefix != "" {
+		tfName = blockPrefix + "." + p.TFName
+	}
 	fmt.Fprintf(sb, "attribute %q {\n", p.SourcePath)
-	fmt.Fprintf(sb, "  tf_name = %q\n", p.TFName)
+	fmt.Fprintf(sb, "  tf_name = %q\n", tfName)
 	if p.Required {
 		sb.WriteString("  required = true\n")
 	}

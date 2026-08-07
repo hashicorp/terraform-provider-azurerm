@@ -95,7 +95,7 @@ func setIDCallVar(st ast.Stmt) (string, bool) {
 
 // addGoGenerateEdit inserts the resource-identity test go:generate directive
 // beneath the import block, unless one is already present.
-func (r *Resource) addGoGenerateEdit(e *editor, resourceName, properties string) {
+func (r *Resource) addGoGenerateEdit(e *editor, parentId string) {
 	if r.hasResourceIdentityGoGenerate() {
 		return
 	}
@@ -103,8 +103,12 @@ func (r *Resource) addGoGenerateEdit(e *editor, resourceName, properties string)
 	if importDecl == nil {
 		return
 	}
-	line := fmt.Sprintf("\n\n//go:generate go run ../../tools/generator-tests resourceidentity -resource-name %s -service-package-name %s -properties %q",
-		resourceName, r.Package, properties)
+	parentInsert := ""
+	if parentId != "" {
+		parentInsert = fmt.Sprintf("-parent-id %q", parentId)
+	}
+	line := fmt.Sprintf("\n\n//go:generate go run ../../tools/generator-tests resourceidentity %q",
+		parentInsert)
 	e.insert(r.offset(importDecl.End()), line)
 }
 

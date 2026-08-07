@@ -18,7 +18,26 @@ import (
 // When a Pandora IR is present (info.PandoraIR != nil), it also:
 //   - Updates block model field names to match the IR
 //   - Replaces old expand/flatten calls with the IR-generated typed ones
+//
+// When renames are present (info.Renames is non-empty), it updates CRUD code
+// references from old field names to new field names.
 func (info *Info) applyModelTransforms() {
+	// Apply renames first, before other transformations.
+	if len(info.Renames) > 0 {
+		if info.CreateBody != "" {
+			info.CreateBody = applyFieldRenames(info.CreateBody, info.Renames)
+		}
+		if info.UpdateBody != "" {
+			info.UpdateBody = applyFieldRenames(info.UpdateBody, info.Renames)
+		}
+		if info.ReadBody != "" {
+			info.ReadBody = applyFieldRenames(info.ReadBody, info.Renames)
+		}
+		if info.DeleteBody != "" {
+			info.DeleteBody = applyFieldRenames(info.DeleteBody, info.Renames)
+		}
+	}
+
 	// When we have an IR, update the block field names so the model struct and
 	// the expand/flatten functions agree.
 	if info.PandoraIR != nil {
@@ -76,6 +95,20 @@ func isTransformableField(f *SchemaField) bool {
 		return true
 	}
 	return false
+}
+
+// applyFieldRenames replaces Get/Set calls from old field names to new field names.
+// It handles both quoted string keys like "old_name" and bar d.Get("old_name") patterns.
+func applyFieldRenames(body string, renames map[string]string) string {
+	// For each rename mapping, replace quoted field name keys.
+	// We replace both d.Get("oldName") and d.Set("oldName", ...) patterns.
+	for oldName, newName := range renames {
+		// Replace "oldName" in Get calls: metadata.ResourceData.Get("oldName")
+		oldKey := `"` + oldName + `"`
+		newKey := `"` + newName + `"`
+		body = strings.ReplaceAll(body, oldKey, newKey)
+	}
+	return body
 }
 
 // --- Create / Update (Decode pass) -------------------------------------------

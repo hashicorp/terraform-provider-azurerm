@@ -115,7 +115,7 @@ func (d regenData) regen(ui cli.Ui) error {
 		return err
 	}
 
-	warnings, err := scaffold.Apply(res, m)
+	warnings, _, err := scaffold.Apply(res, m)
 	for _, w := range warnings {
 		ui.Warn(w)
 	}

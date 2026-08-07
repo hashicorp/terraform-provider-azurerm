@@ -77,6 +77,10 @@ type Info struct {
 	// generated from the Pandora IR blocks. It is appended to the generated file.
 	ExpandFlattenSrc string
 
+	// Renames maps old field names to new field names when properties have been
+	// renamed via schema customization. Used to update CRUD code references.
+	Renames map[string]string
+
 	// Imports from the original file (path -> alias, "" means no alias).
 	Imports map[string]string
 
@@ -131,6 +135,7 @@ func Analyze(path string) (*Info, error) {
 		DeleteFunc:     base.DeleteFunc,
 		HasUpdate:      base.UpdateFunc != "",
 		Imports:        map[string]string{},
+		Renames:        map[string]string{},
 		fset:           fset,
 		file:           file,
 		src:            src,

@@ -222,8 +222,7 @@ go run ./internal/tools/scaff upgrade -input="internal/tools/scaff/examples/upgr
 ```
 
 In an HCL input file `list` defaults to `true`, so a block need only set
-`list = false` to opt out. See [`examples/upgrade.hcl`](examples/upgrade.hcl) and
-[`examples/upgrade-network.hcl`](examples/upgrade-network.hcl).
+`list = false` to opt out. See [`examples/upgrade.hcl`].
 
 > **Note:** when running against real service directories, keep `write = false`
 > (dry run) until you've reviewed the output. Writing applies changes in place.

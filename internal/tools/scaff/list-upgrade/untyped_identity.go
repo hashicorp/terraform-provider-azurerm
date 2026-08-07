@@ -50,7 +50,7 @@ func (r *Resource) addUntypedIdentityEdits(e *editor, opts UpgradeOptions) error
 		props = "name,resource_group_name"
 	}
 	if opts.ResourceName != "" {
-		r.addGoGenerateEdit(e, opts.ResourceName, props)
+		r.addGoGenerateEdit(e, r.ParentAttr)
 	}
 	return nil
 }

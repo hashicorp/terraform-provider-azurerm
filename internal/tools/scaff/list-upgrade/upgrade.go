@@ -93,12 +93,9 @@ func (r *Resource) upgradeTyped(opts UpgradeOptions) (newSrc []byte, changed boo
 				return nil, false, fmt.Errorf("adding identity to flatten: %w", err)
 			}
 		}
-		props := opts.IdentityProperties
-		if props == "" {
-			props = "name,resource_group_name"
-		}
+
 		if opts.ResourceName != "" {
-			r.addGoGenerateEdit(e, opts.ResourceName, props)
+			r.addGoGenerateEdit(e, r.ParentAttr)
 		}
 	}
 

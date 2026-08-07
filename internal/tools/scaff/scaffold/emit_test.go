@@ -52,7 +52,9 @@ func TestEmitRoundTrip(t *testing.T) {
 			t.Errorf("emitted mapping missing attribute %q", want)
 		}
 	}
-	if got := byPath["properties.profile.sku"]; got.TFName == nil || *got.TFName != "sku" {
+	// Block properties are emitted with a path-qualified tf_name so the user can
+	// see the nesting context and use the value directly as a path-qualified rename.
+	if got := byPath["properties.profile.sku"]; got.TFName == nil || *got.TFName != "profile.sku" {
 		t.Errorf("sku tf_name not round-tripped: %+v", got)
 	}
 }
@@ -74,7 +76,7 @@ func TestEmitApplyRoundTrip(t *testing.T) {
 	}
 
 	fresh := fixtureIR()
-	warnings, err := Apply(fresh, m)
+	warnings, _, err := Apply(fresh, m)
 	if err != nil {
 		t.Fatalf("Apply: %v", err)
 	}
