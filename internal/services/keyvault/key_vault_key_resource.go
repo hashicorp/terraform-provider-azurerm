@@ -314,8 +314,7 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 						return errors.New("`import` must be the only value in `key_opts` as it is mutually exclusive with all other key operations")
 					}
 
-					// Azure automatically assigns an expiration date to an `import` Key Exchange Key (KEK),
-					// so `expiration_date` must be set explicitly to avoid a persistent diff
+					// Azure automatically assigns an expiration date to an `import` Key Exchange Key (KEK)
 					if d.Get("expiration_date").(string) == "" {
 						return errors.New("`expiration_date` must be set when `key_opts` contains `import`")
 					}
