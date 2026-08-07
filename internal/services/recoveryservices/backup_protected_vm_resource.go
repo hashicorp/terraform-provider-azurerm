@@ -268,7 +268,7 @@ func resourceRecoveryServicesBackupProtectedVMUpdate(d *pluginsdk.ResourceData, 
 		properties.PolicyId = pointer.To(d.Get("backup_policy_id").(string))
 	}
 
-	if d.HasChange("exclude_disk_luns") || d.HasChange("include_disk_luns") {
+	if d.HasChanges("exclude_disk_luns", "include_disk_luns") {
 		properties.ExtendedProperties = expandDiskExclusion(d)
 	}
 
