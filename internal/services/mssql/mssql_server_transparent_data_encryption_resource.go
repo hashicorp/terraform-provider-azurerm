@@ -4,6 +4,7 @@
 package mssql
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"strings"
@@ -59,9 +60,10 @@ func resourceMsSqlTransparentDataEncryption() *pluginsdk.Resource {
 			},
 
 			"key_vault_key_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
+				Type:             pluginsdk.TypeString,
+				Optional:         true,
+				DiffSuppressFunc: diffSuppressKeyVaultVersionedKey,
+				ValidateFunc:     keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 			},
 
 			"auto_rotation_enabled": {
@@ -77,6 +79,10 @@ func resourceMsSqlTransparentDataEncryption() *pluginsdk.Resource {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			DiffSuppressFunc: func(_, oldValue, newValue string, d *schema.ResourceData) bool {
+				if diffSuppressKeyVaultVersionedKey("", oldValue, newValue, d) {
+					return true
+				}
+
 				if newValue == "" {
 					// If using `managed_hsm_key_id`, `key_vault_key_id` will also be set
 					// ignore diff if the 2 are equal.
@@ -88,7 +94,7 @@ func resourceMsSqlTransparentDataEncryption() *pluginsdk.Resource {
 
 				return false
 			},
-			ValidateFunc:  keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
+			ValidateFunc:  keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 			ConflictsWith: []string{"managed_hsm_key_id"},
 		}
 
@@ -96,6 +102,10 @@ func resourceMsSqlTransparentDataEncryption() *pluginsdk.Resource {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			DiffSuppressFunc: func(_, oldValue, newValue string, d *schema.ResourceData) bool {
+				if diffSuppressKeyVaultVersionedKey("", oldValue, newValue, d) {
+					return true
+				}
+
 				if newValue == "" {
 					// If using `key_vault_key_id` with MHSM key, `managed_hsm_key_id` will also be set
 					// ignore diff if the 2 are equal.
@@ -107,7 +117,7 @@ func resourceMsSqlTransparentDataEncryption() *pluginsdk.Resource {
 
 				return false
 			},
-			ValidateFunc:  keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
+			ValidateFunc:  keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 			ConflictsWith: []string{"key_vault_key_id"},
 			Deprecated:    "`managed_hsm_key_id` has been deprecated in favour of `key_vault_key_id` and will be removed in v5.0 of the AzureRM provider",
 		}
@@ -147,20 +157,28 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceDat
 
 	var key *keyvault.NestedItemID
 	if v, ok := d.GetOk("key_vault_key_id"); ok {
-		keyId, err := keyvault.ParseNestedItemID(v.(string), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
+		key, err = keyvault.ParseNestedItemID(v.(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 		if err != nil {
 			return err
 		}
-		key = keyId
+
+		key, err = resourceMsSqlTransparentDataEncryptionVersionedKey(ctx, key, "key_vault_key_id", d.Get("auto_rotation_enabled").(bool), meta)
+		if err != nil {
+			return err
+		}
 	}
 
 	if !features.FivePointOh() {
 		if !pluginsdk.IsExplicitlyNullInConfig(d, "managed_hsm_key_id") {
-			keyId, err := keyvault.ParseNestedItemID(d.Get("managed_hsm_key_id").(string), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
+			key, err = keyvault.ParseNestedItemID(d.Get("managed_hsm_key_id").(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 			if err != nil {
 				return err
 			}
-			key = keyId
+
+			key, err = resourceMsSqlTransparentDataEncryptionVersionedKey(ctx, key, "managed_hsm_key_id", d.Get("auto_rotation_enabled").(bool), meta)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -298,4 +316,70 @@ func resourceMsSqlTransparentDataEncryptionKeyVaultName(keyVaultURL string) (str
 	}
 
 	return strings.Split(parsedURL.Host, ".")[0], nil
+}
+
+// If versionless KV key is used in config/state, suppress the diff with versioned key.
+// This is needed because backend API will return back a versioned key if it's given versionless one
+func diffSuppressKeyVaultVersionedKey(_, oldValue, newValue string, d *schema.ResourceData) bool {
+	if d == nil || !d.Get("auto_rotation_enabled").(bool) {
+		return false
+	}
+
+	newId, err := keyvault.ParseNestedItemID(newValue, keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
+	if err != nil {
+		return false
+	}
+
+	if newId.Version != "" {
+		return false
+	}
+
+	oldId, err := keyvault.ParseNestedItemID(oldValue, keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
+	if err != nil {
+		return false
+	}
+
+	return strings.EqualFold(oldId.KeyVaultBaseURL, newId.KeyVaultBaseURL) && strings.EqualFold(oldId.Name, newId.Name)
+}
+
+func resourceMsSqlTransparentDataEncryptionVersionedKey(ctx context.Context, id *keyvault.NestedItemID, fieldName string, autoRotationEnabled bool, meta interface{}) (*keyvault.NestedItemID, error) {
+	if id.Version != "" {
+		return id, nil
+	}
+
+	if !autoRotationEnabled {
+		return nil, fmt.Errorf("`%s` must be a versioned Key Vault Key ID when `auto_rotation_enabled` is false", fieldName)
+	}
+
+	var keyUrl string
+	if id.IsManagedHSM() {
+		resp, err := meta.(*clients.Client).ManagedHSMs.DataPlaneKeysClient.GetKey(ctx, id.KeyVaultBaseURL, id.Name, "")
+		if err != nil {
+			return nil, err
+		}
+
+		if resp.Key != nil {
+			keyUrl = pointer.From(resp.Key.Kid)
+		}
+	} else {
+		resp, err := meta.(*clients.Client).KeyVault.ManagementClient.GetKey(ctx, id.KeyVaultBaseURL, id.Name, "")
+		if err != nil {
+			return nil, err
+		}
+
+		if resp.Key != nil {
+			keyUrl = pointer.From(resp.Key.Kid)
+		}
+	}
+
+	if keyUrl == "" {
+		return nil, fmt.Errorf("retrieving latest version for Key Vault Key %q at %q: empty key ID returned", id.Name, id.KeyVaultBaseURL)
+	}
+
+	versionedId, err := keyvault.ParseNestedItemID(keyUrl, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
+	if err != nil {
+		return nil, err
+	}
+
+	return versionedId, nil
 }
