@@ -26,8 +26,9 @@ import (
 )
 
 var (
-	_ sdk.ResourceWithUpdate   = ExascaleDatabaseVirtualMachineClusterResource{}
-	_ sdk.ResourceWithIdentity = ExascaleDatabaseVirtualMachineClusterResource{}
+	_ sdk.ResourceWithUpdate        = ExascaleDatabaseVirtualMachineClusterResource{}
+	_ sdk.ResourceWithIdentity      = ExascaleDatabaseVirtualMachineClusterResource{}
+	_ sdk.ResourceWithCustomizeDiff = ExascaleDatabaseVirtualMachineClusterResource{}
 )
 
 type ExascaleDatabaseVirtualMachineClusterResource struct{}
@@ -332,6 +333,23 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Arguments() map[string]*plu
 		"tags": commonschema.Tags(),
 
 		"zones": commonschema.ZonesMultipleRequiredForceNew(),
+	}
+}
+
+func (ExascaleDatabaseVirtualMachineClusterResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			if metadata.ResourceDiff == nil {
+				return nil
+			}
+
+			_, errors := validate.ExascaleDatabaseVirtualMachineClusterSSHPublicKeys(metadata.ResourceDiff.Get("ssh_public_keys"), "ssh_public_keys")
+			if len(errors) > 0 {
+				return errors[0]
+			}
+
+			return nil
+		},
 	}
 }
 
