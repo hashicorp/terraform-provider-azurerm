@@ -20,7 +20,7 @@ list "azurerm_container_app_session_pool" "example" {
 }
 ```
 
-### List all Container App Session Pools in a specific resource group
+### List all Container App Session Pools in a specific Resource Group
 
 ```hcl
 list "azurerm_container_app_session_pool" "example" {
@@ -35,8 +35,6 @@ list "azurerm_container_app_session_pool" "example" {
 
 This list resource supports the following arguments:
 
-* `resource_group_name` - (Optional) The name of the resource group to query.
+* `resource_group_name` - (Optional) The name of the Resource Group to query.
 
 * `subscription_id` - (Optional) The Subscription ID to query. Defaults to the value specified in the Provider Configuration.
-
-~> **Note:** The `value` of each `secret` block is not returned by the Azure API, so listed Container App Session Pools do not include secret values.

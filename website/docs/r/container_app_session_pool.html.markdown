@@ -24,6 +24,10 @@ resource "azurerm_container_app_session_pool" "example" {
   location                = azurerm_resource_group.example.location
   container_type          = "PythonLTS"
   max_concurrent_sessions = 5
+
+  pool_management_type       = "Dynamic"
+  lifecycle_type             = "Timed"
+  cooldown_period_in_seconds = 300
 }
 ```
 
@@ -41,15 +45,15 @@ The following arguments are supported:
 
 * `max_concurrent_sessions` - (Required) The maximum number of sessions which can run concurrently in this Container App Session Pool.
 
----
+* `pool_management_type` - (Required) The management type of this Container App Session Pool. The Azure REST API defines `Dynamic` and `Manual`; however, Azure Container Apps currently supports creating session pools only with `Dynamic`, so `Manual` cannot be configured at this time. Changing this forces a new resource to be created.
 
 * `container_app_environment_id` - (Optional) The ID of the Container App Environment in which this Container App Session Pool should exist. Changing this forces a new resource to be created.
 
 ~> **Note:** The Container App Environment must be of type `Workload profile`. `Consumption only` environments are not supported.
 
-* `cooldown_period_in_seconds` - (Optional) The number of seconds a session remains alive once it becomes idle. Possible values range between `300` and `3600`. Defaults to `300`.
+* `cooldown_period_in_seconds` - (Optional) The number of seconds a session remains alive once it becomes idle. Possible values range between `300` and `3600`.
 
-~> **Note:** `cooldown_period_in_seconds` only applies when `lifecycle_type` is set to `Timed`, and conflicts with `max_alive_period_in_seconds`.
+~> **Note:** `cooldown_period_in_seconds` must be specified when `lifecycle_type` is set to `Timed`, cannot be specified otherwise, and conflicts with `max_alive_period_in_seconds`.
 
 * `custom_container_template` - (Optional) A `custom_container_template` block as defined below.
 
@@ -59,9 +63,11 @@ The following arguments are supported:
 
 ~> **Note:** `identity` may only be specified when `container_type` is set to `CustomContainer`.
 
-* `lifecycle_type` - (Optional) The lifecycle type of the sessions in this Container App Session Pool. Possible values are `OnContainerExit` and `Timed`. Defaults to `Timed`.
+* `lifecycle_type` - (Optional) The lifecycle type of the sessions in this Container App Session Pool. Possible values are `OnContainerExit` and `Timed`.
 
-~> **Note:** `lifecycle_type`, `cooldown_period_in_seconds` and `max_alive_period_in_seconds` are only used when `pool_management_type` is set to `Dynamic`.
+~> **Note:** `lifecycle_type` must be specified when `pool_management_type` is set to `Dynamic`.
+
+~> **Note:** `OnContainerExit` can only be used when `container_type` is set to `CustomContainer`.
 
 * `managed_identity_setting` - (Optional) One or more `managed_identity_setting` blocks as defined below. Changing this forces a new resource to be created.
 
@@ -69,13 +75,11 @@ The following arguments are supported:
 
 * `max_alive_period_in_seconds` - (Optional) The maximum number of seconds a session remains alive.
 
-~> **Note:** `max_alive_period_in_seconds` only applies when `lifecycle_type` is set to `OnContainerExit`, and conflicts with `cooldown_period_in_seconds`.
+~> **Note:** `max_alive_period_in_seconds` must be specified when `lifecycle_type` is set to `OnContainerExit`, cannot be specified otherwise, and conflicts with `cooldown_period_in_seconds`.
 
 * `network_egress_enabled` - (Optional) Should sessions in this Container App Session Pool be able to make outbound network requests? Defaults to `false`.
 
-* `pool_management_type` - (Optional) The management type of this Container App Session Pool. Possible values are `Dynamic` and `Manual`. Defaults to `Dynamic`. Changing this forces a new resource to be created.
-
-* `ready_session_instances` - (Optional) The minimum number of sessions which are kept ready in this Container App Session Pool.
+* `ready_session_instances` - (Optional) The minimum number of sessions which are kept ready in this Container App Session Pool. This must be greater than `0` and less than `max_concurrent_sessions`.
 
 * `secret` - (Optional) One or more `secret` blocks as defined below.
 
@@ -105,7 +109,7 @@ A `custom_container_template` block supports the following:
 
 * `container` - (Required) One or more `container` blocks as defined below.
 
-* `ingress_target_port` - (Optional) The target port in the container which receives traffic from the ingress. Possible values range between `1` and `65535`.
+* `ingress_target_port` - (Required) The target port in the container which receives traffic from the ingress. Possible values range between `1` and `65535`.
 
 * `registry` - (Optional) A `registry` block as defined below.
 
@@ -125,7 +129,7 @@ An `env` block supports the following:
 
 An `identity` block supports the following:
 
-* `type` - (Required) The type of Managed Identity assigned to this Container App Session Pool. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
+* `type` - (Required) The type of Managed Identity assigned to this Container App Session Pool. Possible values are `SystemAssigned`, `UserAssigned`, and `SystemAssigned, UserAssigned`.
 
 * `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Container App Session Pool.
 
@@ -194,10 +198,10 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 ## Import
 
-Container App Session Pools can be imported using the `resource id`, e.g.
+A Container App Session Pool can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_container_app_session_pool.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resources/providers/Microsoft.App/sessionPools/examplesessionpool
+terraform import azurerm_container_app_session_pool.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.App/sessionPools/sessionPool1
 ```
 
 ## API Providers
