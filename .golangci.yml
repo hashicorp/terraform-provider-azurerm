@@ -20,6 +20,7 @@ linters:
     - asciicheck
     - azproviderlint
     - bidichk
+    - deadcode
     - decorder
     - dupword
     - durationcheck
@@ -92,6 +93,17 @@ linters:
             - AZR004 #Resource IDs should not be compared with == or != - to fix in a later commit
             - AZR003 # d.Get should not be used within a Delete function as it does not work as expected during deletion
             - AZS003 # optional-only list blocks allow empty blocks ('foo {}') which can panic expand functions or cause spurious diffs - ~170 hits (plus ~125 in frozen migration schemas) to fix in a later pr
+      deadcode:
+        type: module
+        # whole-program dead code detection (SSA + RTA reachability, wrapping x/tools
+        # cmd/deadcode) — the full-program scan runs once on first use
+        settings:
+          # acceptance tests are entry points: code they need is genuinely needed (the
+          # framework and helpers live in non-test files interleaved with production
+          # code), while production code kept alive only by its own unit tests is still
+          # reported dead. test: true would hide that class; test: false floods the
+          # report with everything only acceptance tests reach
+          treat-functions-as-used: '^TestAcc'
       tfproviderlint:
         type: module
         settings:

@@ -7,3 +7,7 @@ plugins:
   - module: "github.com/katbyte/tfproviderlint-golangci"
     import: "github.com/katbyte/tfproviderlint-golangci/plugin"
     version: v0.31.0
+  - module: "github.com/katbyte/deadcode-golangci"
+    import: "github.com/katbyte/deadcode-golangci/plugin"
+    # TEMP: build from the local checkout until root-funcs is pushed, then restore: version: main
+    path: /Users/kt/hashi/2026/deadcode-golangci

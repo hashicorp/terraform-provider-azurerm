@@ -102,6 +102,15 @@ azproviderlint: scripts/golangci-with-modules ## Check source code with only the
 	@echo "==> Checking source code with azproviderlint (via golangci-lint)..."
 	@./scripts/golangci-with-modules run -v --enable-only azproviderlint ./...
 
+# TEMP: dev helpers for the dead code cleanup - remove once the backlog PR lands
+deadcode: scripts/golangci-with-modules ## Report dead code with only the deadcode linter
+	@echo "==> Checking source code with deadcode (via golangci-lint)..."
+	@./scripts/golangci-with-modules run -v --enable-only deadcode ./...
+
+deadcode-fix: scripts/golangci-with-modules ## Remove dead code (removals cascade - rerun until clean, then go build ./... && make test)
+	@echo "==> Removing dead code with deadcode --fix (via golangci-lint)..."
+	@./scripts/golangci-with-modules run --enable-only deadcode --fix ./...
+
 shellcheck: ## Check shell scripts with shellcheck
 	@command -v shellcheck >/dev/null || (echo "shellcheck not installed. Install via: brew install shellcheck (macOS) or apt install shellcheck (Linux)" && exit 1)
 	@echo "==> Checking shell scripts with shellcheck..."
@@ -188,4 +197,4 @@ resource-counts: ## Print the number of resources and data sources in the provid
 
 pr-check: generate build test lint website-lint ## Run the same set of checks CI runs against a PR
 
-.PHONY: default help tools build fmt goimports quick-checks fmtcheck terrafmt generate lint shellcheck depscheck gencheck tfproviderlint tflint azproviderlint lint-fix golangci-fix test testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts pr-check
+.PHONY: default help tools build fmt goimports quick-checks fmtcheck terrafmt generate lint shellcheck depscheck gencheck tfproviderlint tflint azproviderlint deadcode deadcode-fix lint-fix golangci-fix test testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts pr-check
