@@ -21,6 +21,8 @@ import (
 
 type CostManagementScheduledActionResource struct{}
 
+var _ sdk.ResourceWithCustomizeDiff = CostManagementScheduledActionResource{}
+
 type CostManagementScheduledActionModel struct {
 	Name               string   `tfschema:"name"`
 	DisplayName        string   `tfschema:"display_name"`
@@ -37,8 +39,6 @@ type CostManagementScheduledActionModel struct {
 	StartDate          string   `tfschema:"start_date"`
 	EndDate            string   `tfschema:"end_date"`
 }
-
-var _ sdk.Resource = CostManagementScheduledActionResource{}
 
 func (r CostManagementScheduledActionResource) Arguments() map[string]*pluginsdk.Schema {
 	resource := map[string]*pluginsdk.Schema{
@@ -92,8 +92,10 @@ func (r CostManagementScheduledActionResource) Arguments() map[string]*pluginsdk
 		},
 
 		"email_address_sender": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// O+C: When using User principal to run Terraform (e.g. `az login`), this attribute is optional in the request and will be set as the user's email address in return if omitted.
+			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -153,6 +155,18 @@ func (r CostManagementScheduledActionResource) Arguments() map[string]*pluginsdk
 	}
 
 	return resource
+}
+
+func (r CostManagementScheduledActionResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			if metadata.Client.Account.AuthenticatedAsAServicePrincipal && metadata.ResourceDiff.Get("email_address_sender") == "" {
+				return fmt.Errorf("`email_address_sender` is required when authenticated as a service principal")
+			}
+			return nil
+		},
+	}
 }
 
 func (r CostManagementScheduledActionResource) Attributes() map[string]*pluginsdk.Schema {
