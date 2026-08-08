@@ -13,6 +13,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -56,6 +57,12 @@ func resourceNatGateway() *pluginsdk.Resource {
 			if diff.Get("sku_name").(string) == string(natgateways.NatGatewaySkuNameStandardVTwo) {
 				if !diff.GetRawConfig().AsValueMap()["zones"].IsNull() {
 					return fmt.Errorf("%s resources with `sku_name` set to `%s` are zone-redundant by default, Azure automatically deploys across all available zones. The `zones` argument must be omitted", natGatewayResourceName, natgateways.NatGatewaySkuNameStandardVTwo)
+				}
+			}
+
+			if !diff.GetRawConfig().AsValueMap()["source_virtual_network_id"].IsNull() {
+				if diff.Get("sku_name").(string) != string(natgateways.NatGatewaySkuNameStandardVTwo) {
+					return fmt.Errorf("`source_virtual_network_id` can only be set when `sku_name` is set to `%s`", natgateways.NatGatewaySkuNameStandardVTwo)
 				}
 			}
 
@@ -108,6 +115,13 @@ func resourceNatGatewaySchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"source_virtual_network_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: commonids.ValidateVirtualNetworkID,
+		},
+
 		"resource_guid": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -149,6 +163,12 @@ func resourceNatGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 			Name: pointer.To(natgateways.NatGatewaySkuName(d.Get("sku_name").(string))),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if v, ok := d.GetOk("source_virtual_network_id"); ok {
+		parameters.Properties.SourceVirtualNetwork = &natgateways.SubResource{
+			Id: pointer.To(v.(string)),
+		}
 	}
 
 	zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
@@ -203,7 +223,10 @@ func resourceNatGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		Properties: &natgateways.NatGatewayPropertiesFormat{
 			IdleTimeoutInMinutes: props.IdleTimeoutInMinutes,
 			PublicIPAddresses:    props.PublicIPAddresses, // note: these can be managed via the separate resource
+			PublicIPAddressesV6:  props.PublicIPAddressesV6,
 			PublicIPPrefixes:     props.PublicIPPrefixes,
+			PublicIPPrefixesV6:   props.PublicIPPrefixesV6,
+			SourceVirtualNetwork: props.SourceVirtualNetwork,
 		},
 		Sku:   existing.Model.Sku,
 		Tags:  existing.Model.Tags,
@@ -269,6 +292,15 @@ func resourceNatGatewayFlatten(d *pluginsdk.ResourceData, id *natgateways.NatGat
 		if props := model.Properties; props != nil {
 			d.Set("idle_timeout_in_minutes", props.IdleTimeoutInMinutes)
 			d.Set("resource_guid", props.ResourceGuid)
+			sourceVirtualNetworkId := ""
+			if props.SourceVirtualNetwork != nil && props.SourceVirtualNetwork.Id != nil {
+				vnetId, err := commonids.ParseVirtualNetworkIDInsensitively(*props.SourceVirtualNetwork.Id)
+				if err != nil {
+					return err
+				}
+				sourceVirtualNetworkId = vnetId.ID()
+			}
+			d.Set("source_virtual_network_id", sourceVirtualNetworkId)
 		}
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
