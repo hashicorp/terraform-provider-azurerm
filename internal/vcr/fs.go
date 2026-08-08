@@ -17,6 +17,7 @@ import (
 // reviewing is inconvenient.
 type GzipFS struct{}
 
+//nolint:deadcode // not currently used, kept around for when gzipped cassettes are needed again
 func (fs *GzipFS) ReadFile(name string) ([]byte, error) {
 	f, err := os.Open(name)
 	if err != nil {
@@ -33,6 +34,7 @@ func (fs *GzipFS) ReadFile(name string) ([]byte, error) {
 	return io.ReadAll(r)
 }
 
+//nolint:deadcode // not currently used, kept around for when gzipped cassettes are needed again
 func (fs *GzipFS) WriteFile(name string, data []byte) error {
 	dir := filepath.Dir(name)
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
@@ -60,6 +62,7 @@ func (fs *GzipFS) WriteFile(name string, data []byte) error {
 	return err
 }
 
+//nolint:deadcode // not currently used, kept around for when gzipped cassettes are needed again
 func (fs *GzipFS) IsFileExists(name string) bool {
 	_, err := os.Stat(name)
 	return !os.IsNotExist(err)

@@ -109,7 +109,15 @@ deadcode: scripts/golangci-with-modules ## Report dead code with only the deadco
 
 deadcode-fix: scripts/golangci-with-modules ## Remove dead code (removals cascade - rerun until clean, then go build ./... && make test)
 	@echo "==> Removing dead code with deadcode --fix (via golangci-lint)..."
-	@./scripts/golangci-with-modules run --enable-only deadcode --fix ./...
+	@./scripts/golangci-with-modules run --enable-only deadcode --fix ./... || true
+	@$(MAKE) goimports
+	@echo "==> Removing files left empty by dead code removal..."
+	@git diff --name-only --diff-filter=M -- '*.go' | while read -r f; do \
+		grep -q '^//go:generate' "$$f" && continue; \
+		if [ -z "$$(sed -e 's|//.*||' -e '/^[[:space:]]*$$/d' "$$f" | grep -v '^package ')" ]; then \
+			echo "    rm $$f"; rm "$$f"; \
+		fi; \
+	done; true
 
 shellcheck: ## Check shell scripts with shellcheck
 	@command -v shellcheck >/dev/null || (echo "shellcheck not installed. Install via: brew install shellcheck (macOS) or apt install shellcheck (Linux)" && exit 1)

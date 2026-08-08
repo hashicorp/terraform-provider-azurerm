@@ -9,6 +9,8 @@ package features
 // This can be used for the following scenarios:
 //   - Signify resources which will be Deprecated in 6.0, but not Removed (which will happen in a later release).
 //   - For properties undergoing a rename, where the renamed property will only be introduced in the next release
+//
+//nolint:deadcode // 6.0 scaffolding: unreachable until 6.0 changes start landing
 func DeprecatedInSixPointOh(deprecationMessage string) string {
 	if !SixPointOh() {
 		return ""
@@ -28,6 +30,8 @@ func DeprecatedInSixPointOh(deprecationMessage string) string {
 // ** SHOULD NOT BE SET IN PRODUCTION ENVIRONMENTS **
 // Setting `ARM_SIXPOINTZERO_BETA` will cause irreversible changes
 // to your state.
+//
+//nolint:deadcode // 6.0 scaffolding: unreachable until 6.0 changes start landing
 func SixPointOh() bool {
 	return false // TODO - remove and uncomment after the release of 5.0
 	// return strings.EqualFold(os.Getenv("ARM_SIXPOINTZERO_BETA"), "true")
