@@ -381,13 +381,17 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 							workspaceId, err := findWorkspaceResourceIDFromCustomerID(ctx, metadata, *appLogsConfig.LogAnalyticsConfiguration.CustomerId)
 							// During refreshing stage, `GetRawConfig()` may return null value.
 
-							if err == nil {
-								if workspaceId != nil {
-									state.LogAnalyticsWorkspaceId = workspaceId.ID()
-								} else {
-									state.LogAnalyticsWorkspaceId = existingState.LogAnalyticsWorkspaceId
-								}
-							}
+							// NOTE: `findWorkspaceResourceIDFromCustomerID` only lists Log Analytics
+							// Workspaces within the provider's configured/default subscription, so it
+							// cannot resolve a Workspace that lives in a different subscription than the
+							// Container App Environment - a supported cross-subscription configuration.
+							// That lookup either finds no match (workspaceId == nil, err == nil) or, if
+							// that subscription has no Log Analytics Workspaces of its own at all, returns
+							// an error. In both cases fall back to the value already known to Terraform
+							// rather than discarding it, otherwise `log_analytics_workspace_id` is
+							// persisted as an empty string and every subsequent plan shows a perpetual
+							// diff. See https://github.com/hashicorp/terraform-provider-azurerm/issues/32705
+							state.LogAnalyticsWorkspaceId = resolveLogAnalyticsWorkspaceId(workspaceId, err, existingState.LogAnalyticsWorkspaceId)
 						}
 					}
 
@@ -637,6 +641,26 @@ func findWorkspaceResourceIDFromCustomerID(ctx context.Context, meta sdk.Resourc
 	}
 
 	return nil, nil
+}
+
+// resolveLogAnalyticsWorkspaceId determines the value that should be persisted to
+// `log_analytics_workspace_id` in state, given the outcome of attempting to resolve the ARM
+// resource ID of a Log Analytics Workspace from its `customerId` (a GUID, which is all the
+// Container App Environment API returns - see `findWorkspaceResourceIDFromCustomerID`).
+//
+// That lookup is scoped to a single subscription (the provider's configured/default
+// subscription) and therefore cannot resolve a Workspace that lives in a different subscription
+// than the Container App Environment. When that happens the lookup either finds no match
+// (workspaceId == nil, lookupErr == nil) or - if that subscription contains no Log Analytics
+// Workspaces of its own at all - returns an error. In either case the previously known value
+// must be preserved rather than discarded, otherwise the field is persisted as an empty string
+// and every subsequent plan shows a perpetual diff.
+func resolveLogAnalyticsWorkspaceId(workspaceId *workspaces.WorkspaceId, lookupErr error, existingValue string) string {
+	if lookupErr == nil && workspaceId != nil {
+		return workspaceId.ID()
+	}
+
+	return existingValue
 }
 
 func getSharedKeyForWorkspace(ctx context.Context, meta sdk.ResourceMetaData, workspaceID string) (*string, *string, error) {
