@@ -39,6 +39,8 @@ type DataCollectionRule struct {
 	Destinations             []Destination          `tfschema:"destinations"`
 	ImmutableId              string                 `tfschema:"immutable_id"`
 	Kind                     string                 `tfschema:"kind"`
+	LogsIngestionEndpoint    string                 `tfschema:"logs_ingestion_endpoint"`
+	MetricsIngestionEndpoint string                 `tfschema:"metrics_ingestion_endpoint"`
 	Name                     string                 `tfschema:"name"`
 	Location                 string                 `tfschema:"location"`
 	ResourceGroupName        string                 `tfschema:"resource_group_name"`
@@ -867,6 +869,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 					"Windows",
 					"AgentDirectToStore",
 					"WorkspaceTransforms",
+					"Direct",
 				},
 				false,
 			),
@@ -912,6 +915,14 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 func (r DataCollectionRuleResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"immutable_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"logs_ingestion_endpoint": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"metrics_ingestion_endpoint": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -1015,6 +1026,7 @@ func (r DataCollectionRuleResource) Read() sdk.ResourceFunc {
 			var dataFlows []DataFlow
 			var dataSources []DataSource
 			var destinations []Destination
+			var logsIngestionEndpoint, metricsIngestionEndpoint string
 			var streamDeclaration []StreamDeclaration
 
 			if model := resp.Model; model != nil {
@@ -1037,6 +1049,7 @@ func (r DataCollectionRuleResource) Read() sdk.ResourceFunc {
 					dataFlows = flattenDataCollectionRuleDataFlows(prop.DataFlows)
 					dataSources = flattenDataCollectionRuleDataSources(prop.DataSources)
 					destinations = flattenDataCollectionRuleDestinations(prop.Destinations)
+					logsIngestionEndpoint, metricsIngestionEndpoint = flattenDataCollectionRuleEndpoints(prop.Endpoints)
 					immutableId = flattenStringPtr(prop.ImmutableId)
 					streamDeclaration = flattenDataCollectionRuleStreamDeclarations(prop.StreamDeclarations)
 				}
@@ -1053,6 +1066,8 @@ func (r DataCollectionRuleResource) Read() sdk.ResourceFunc {
 				ImmutableId:              immutableId,
 				Kind:                     kind,
 				Location:                 loc,
+				LogsIngestionEndpoint:    logsIngestionEndpoint,
+				MetricsIngestionEndpoint: metricsIngestionEndpoint,
 				StreamDeclaration:        streamDeclaration,
 				Tags:                     tag,
 			})
@@ -2045,6 +2060,14 @@ func flattenDataCollectionRuleDestinations(input *datacollectionrules.Destinatio
 	}}
 }
 
+func flattenDataCollectionRuleEndpoints(input *datacollectionrules.EndpointsSpec) (string, string) {
+	if input == nil {
+		return "", ""
+	}
+
+	return pointer.From(input.LogsIngestion), pointer.From(input.MetricsIngestion)
+}
+
 func flattenDataCollectionRuleDestinationMetrics(input *datacollectionrules.AzureMonitorMetricsDestination) []AzureMonitorMetric {
 	if input == nil {
 		return make([]AzureMonitorMetric, 0)
@@ -2188,6 +2211,7 @@ func (r DataCollectionRuleResource) CustomizeDiff() sdk.ResourceFunc {
 					return err
 				}
 			}
+
 			return nil
 		},
 	}
