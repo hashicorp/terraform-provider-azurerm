@@ -1,4 +1,4 @@
-package v2024_09_30_preview
+package v2025_10_13
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -6,8 +6,8 @@ package v2024_09_30_preview
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2024-09-30-preview/certificateprofiles"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2024-09-30-preview/codesigningaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2025-10-13/certificateprofiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2025-10-13/codesigningaccounts"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
