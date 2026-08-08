@@ -17,8 +17,14 @@ import (
 
 var _ pollers.PollerType = &DataPlaneFileShareAvailabilityPoller{}
 
+const fileServiceResourceNotFoundErrorCode = "ResourceNotFound"
+
+type fileServicesClient interface {
+	GetServiceProperties(ctx context.Context, id commonids.StorageAccountId) (fileservices.GetServicePropertiesOperationResponse, error)
+}
+
 type DataPlaneFileShareAvailabilityPoller struct {
-	client           *fileservices.FileServicesClient
+	client           fileServicesClient
 	storageAccountId commonids.StorageAccountId
 }
 
@@ -31,8 +37,14 @@ func NewDataPlaneFileShareAvailabilityPoller(client *storageClients.Client, acco
 
 func (d *DataPlaneFileShareAvailabilityPoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
 	resp, err := d.client.GetServiceProperties(ctx, d.storageAccountId)
+	serviceIsBeingProvisioned := response.WasNotFound(resp.HttpResponse) &&
+		resp.OData != nil &&
+		resp.OData.Error != nil &&
+		resp.OData.Error.Code != nil &&
+		*resp.OData.Error.Code == fileServiceResourceNotFoundErrorCode
+
 	if err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
+		if !serviceIsBeingProvisioned {
 			return nil, pollers.PollingFailedError{
 				Message: err.Error(),
 				HttpResponse: &client.Response{
@@ -41,7 +53,7 @@ func (d *DataPlaneFileShareAvailabilityPoller) Poll(ctx context.Context) (*polle
 			}
 		}
 	}
-	if response.WasNotFound(resp.HttpResponse) {
+	if serviceIsBeingProvisioned {
 		return &pollers.PollResult{
 			HttpResponse: &client.Response{
 				Response: resp.HttpResponse,

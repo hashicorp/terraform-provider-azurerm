@@ -1573,6 +1573,22 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	supportLevel := availableFunctionalityForAccount(accountKind, accountTier, replicationType)
+	if supportLevel.supportShare {
+		// The storage account LRO can complete before the ARM File Service child resource is available.
+		// Wait during creation so the immediate state refresh can read its service properties reliably.
+		fileServiceAccount, err := storageUtils.GetAccount(ctx, id)
+		if err != nil {
+			return fmt.Errorf("retrieving %s: %+v", id, err)
+		}
+		if fileServiceAccount == nil {
+			return fmt.Errorf("unable to locate %q", id)
+		}
+
+		if err := waitForFileServiceToBecomeAvailableForAccount(ctx, storageUtils, fileServiceAccount); err != nil {
+			return fmt.Errorf("waiting for the File Service for %s to become available: %+v", id, err)
+		}
+	}
+
 	// Start of Data Plane access - this entire block can be removed for 5.0, as the data_plane_available flag becomes redundant at that time.
 	if !features.FivePointOh() && dataPlaneAvailable {
 		dataPlaneClient := meta.(*clients.Client).Storage

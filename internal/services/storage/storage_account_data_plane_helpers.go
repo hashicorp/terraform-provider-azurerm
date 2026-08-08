@@ -64,6 +64,23 @@ func availableFunctionalityForAccount(kind storageaccounts.Kind, tier storageacc
 	}
 }
 
+func waitForFileServiceToBecomeAvailableForAccount(ctx context.Context, client *client.Client, account *client.AccountDetails) error {
+	const initialDelayDuration = 10 * time.Second
+
+	log.Printf("[DEBUG] waiting for the File Service to become available")
+	pollerType, err := custompollers.NewDataPlaneFileShareAvailabilityPoller(client, account)
+	if err != nil {
+		return fmt.Errorf("building File Service Poller: %+v", err)
+	}
+
+	poller := pollers.NewPoller(pollerType, initialDelayDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+	if err = poller.PollUntilDone(ctx); err != nil {
+		return fmt.Errorf("waiting for the File Service to become available: %+v", err)
+	}
+
+	return nil
+}
+
 func waitForDataPlaneToBecomeAvailableForAccount(ctx context.Context, client *client.Client, account *client.AccountDetails, supportLevel storageAccountServiceSupportLevel) error {
 	initialDelayDuration := 10 * time.Second
 
@@ -91,20 +108,6 @@ func waitForDataPlaneToBecomeAvailableForAccount(ctx context.Context, client *cl
 		if err = poller.PollUntilDone(ctx); err != nil {
 			if !connectionError(err) {
 				return fmt.Errorf("waiting for the Queues Service to become available: %+v", err)
-			}
-		}
-	}
-
-	if supportLevel.supportShare {
-		log.Printf("[DEBUG] waiting for the File Service to become available")
-		pollerType, err := custompollers.NewDataPlaneFileShareAvailabilityPoller(client, account)
-		if err != nil {
-			return fmt.Errorf("building File Share Poller: %+v", err)
-		}
-		poller := pollers.NewPoller(pollerType, initialDelayDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-		if err = poller.PollUntilDone(ctx); err != nil {
-			if !connectionError(err) {
-				return fmt.Errorf("waiting for the File Service to become available: %+v", err)
 			}
 		}
 	}
