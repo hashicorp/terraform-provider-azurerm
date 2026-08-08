@@ -1089,6 +1089,14 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("NODE|%s", linuxAppStack.NodeVersion))
 		}
 
+		if linuxAppStack.GoVersion != "" {
+			appSettings = append(appSettings, webapps.NameValuePair{
+				Name:  pointer.To("FUNCTIONS_WORKER_RUNTIME"),
+				Value: pointer.To("golang"),
+			})
+			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("GO|%s", linuxAppStack.GoVersion))
+		}
+
 		if linuxAppStack.PythonVersion != "" {
 			appSettings = append(appSettings, webapps.NameValuePair{
 				Name:  pointer.To("FUNCTIONS_WORKER_RUNTIME"),
