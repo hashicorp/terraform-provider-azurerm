@@ -1,4 +1,4 @@
-package tenantconfiguration
+package tenantconfigurations
 
 import (
 	"context"
@@ -36,7 +36,7 @@ func (p *ListCustomPager) NextPageLink() *odata.Link {
 }
 
 // List ...
-func (c TenantConfigurationClient) List(ctx context.Context) (result ListOperationResponse, err error) {
+func (c TenantConfigurationsClient) List(ctx context.Context) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -75,12 +75,12 @@ func (c TenantConfigurationClient) List(ctx context.Context) (result ListOperati
 }
 
 // ListComplete retrieves all the results into a single object
-func (c TenantConfigurationClient) ListComplete(ctx context.Context) (ListCompleteResult, error) {
+func (c TenantConfigurationsClient) ListComplete(ctx context.Context) (ListCompleteResult, error) {
 	return c.ListCompleteMatchingPredicate(ctx, ConfigurationOperationPredicate{})
 }
 
 // ListCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c TenantConfigurationClient) ListCompleteMatchingPredicate(ctx context.Context, predicate ConfigurationOperationPredicate) (result ListCompleteResult, err error) {
+func (c TenantConfigurationsClient) ListCompleteMatchingPredicate(ctx context.Context, predicate ConfigurationOperationPredicate) (result ListCompleteResult, err error) {
 	items := make([]Configuration, 0)
 
 	resp, err := c.List(ctx)
