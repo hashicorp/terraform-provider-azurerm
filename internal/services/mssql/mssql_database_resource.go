@@ -31,9 +31,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/transparentdataencryptions"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	helperValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
@@ -1394,13 +1392,6 @@ func flattenMsSqlServerSecurityAlertPolicy(d *pluginsdk.ResourceData, policy dat
 		"email_account_admins_enabled": pointer.From(properties.EmailAccountAdmins),
 	}
 
-	if !features.FivePointOh() {
-		securityAlertPolicy["email_account_admins"] = "Disabled"
-		if properties.EmailAccountAdmins != nil && *properties.EmailAccountAdmins {
-			securityAlertPolicy["email_account_admins"] = "Enabled"
-		}
-	}
-
 	if disabledAlerts := properties.DisabledAlerts; disabledAlerts != nil {
 		flattenedAlerts := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
 		for _, a := range *disabledAlerts {
@@ -1452,13 +1443,6 @@ func expandMsSqlDatabaseSecurityAlertPolicy(d *pluginsdk.ResourceData) databases
 
 		properties.State = databasesecurityalertpolicies.SecurityAlertsPolicyState(securityAlert["state"].(string))
 		properties.EmailAccountAdmins = pointer.To(securityAlert["email_account_admins_enabled"].(bool))
-
-		if !features.FivePointOh() {
-			eaa, diags := d.GetRawConfigAt(sdk.ConstructCtyPath("threat_detection_policy.0.email_account_admins"))
-			if !diags.HasError() && !eaa.IsNull() {
-				properties.EmailAccountAdmins = pointer.To(securityAlert["email_account_admins"] == string(EmailAccountAdminsStatusEnabled))
-			}
-		}
 
 		if v, ok := securityAlert["disabled_alerts"]; ok {
 			alerts := v.(*pluginsdk.Set).List()
@@ -1529,26 +1513,8 @@ func resourceMsSqlDatabaseMaintenanceNames() []string {
 	}
 }
 
-type EmailAccountAdminsStatus string
-
-const (
-	EmailAccountAdminsStatusDisabled EmailAccountAdminsStatus = "Disabled"
-	EmailAccountAdminsStatusEnabled  EmailAccountAdminsStatus = "Enabled"
-)
-
-func PossibleValuesForEmailAccountAdminsStatus() []string {
-	if !features.FivePointOh() {
-		return []string{
-			string(EmailAccountAdminsStatusDisabled),
-			string(EmailAccountAdminsStatusEnabled),
-		}
-	}
-
-	return nil
-}
-
 func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
-	resource := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -1884,92 +1850,6 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
-
-	if !features.FivePointOh() {
-		threatDetectionPolicy := resource["threat_detection_policy"].Elem.(*pluginsdk.Resource).Schema
-		threatDetectionPolicy["email_account_admins_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"threat_detection_policy.0.email_account_admins"},
-		}
-		threatDetectionPolicy["email_account_admins"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"threat_detection_policy.0.email_account_admins_enabled"},
-			ValidateFunc:  validation.StringInSlice(PossibleValuesForEmailAccountAdminsStatus(), false),
-			Deprecated:    "`email_account_admins` has been deprecated in favour of `email_account_admins_enabled` and will be removed in v5.0 of the AzureRM Provider",
-		}
-
-		resource["enclave_type"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(databases.AlwaysEncryptedEnclaveTypeVBS),
-				string(databases.AlwaysEncryptedEnclaveTypeDefault),
-			}, false),
-		}
-
-		atLeastOneOf := []string{
-			"long_term_retention_policy.0.weekly_retention", "long_term_retention_policy.0.monthly_retention",
-			"long_term_retention_policy.0.yearly_retention", "long_term_retention_policy.0.week_of_year",
-		}
-		resource["long_term_retention_policy"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Computed: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					// WeeklyRetention - The weekly retention policy for an LTR backup in an ISO 8601 format.
-					"weekly_retention": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: helperValidate.ISO8601Duration,
-						AtLeastOneOf: atLeastOneOf,
-					},
-
-					// MonthlyRetention - The monthly retention policy for an LTR backup in an ISO 8601 format.
-					"monthly_retention": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: helperValidate.ISO8601Duration,
-						AtLeastOneOf: atLeastOneOf,
-					},
-
-					// YearlyRetention - The yearly retention policy for an LTR backup in an ISO 8601 format.
-					"yearly_retention": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: helperValidate.ISO8601Duration,
-						AtLeastOneOf: atLeastOneOf,
-					},
-
-					// WeekOfYear - The week of year to take the yearly backup in an ISO 8601 format.
-					"week_of_year": {
-						Type:         pluginsdk.TypeInt,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: validation.IntBetween(0, 52),
-						AtLeastOneOf: atLeastOneOf,
-					},
-
-					"immutable_backups_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
-					},
-				},
-			},
-		}
-	}
-
-	return resource
 }
 
 func calculateMaxSizeBytes(v float64) (*int64, error) {
