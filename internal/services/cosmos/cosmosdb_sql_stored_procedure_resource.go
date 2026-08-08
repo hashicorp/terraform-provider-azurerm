@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -28,7 +28,7 @@ func resourceCosmosDbSQLStoredProcedure() *pluginsdk.Resource {
 		Delete: resourceCosmosDbSQLStoredProcedureDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := cosmosdb.ParseStoredProcedureID(id)
+			_, err := openapis.ParseStoredProcedureID(id)
 			return err
 		}),
 
@@ -80,12 +80,12 @@ func resourceCosmosDbSQLStoredProcedure() *pluginsdk.Resource {
 }
 
 func resourceCosmosDbSQLStoredProcedureCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := cosmosdb.NewStoredProcedureID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("database_name").(string), d.Get("container_name").(string), d.Get("name").(string))
+	id := openapis.NewStoredProcedureID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("database_name").(string), d.Get("container_name").(string), d.Get("name").(string))
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.SqlResourcesGetSqlStoredProcedure(ctx, id)
@@ -97,13 +97,13 @@ func resourceCosmosDbSQLStoredProcedureCreate(d *pluginsdk.ResourceData, meta in
 		}
 	}
 
-	storedProcParams := cosmosdb.SqlStoredProcedureCreateUpdateParameters{
-		Properties: cosmosdb.SqlStoredProcedureCreateUpdateProperties{
-			Resource: cosmosdb.SqlStoredProcedureResource{
+	storedProcParams := openapis.SqlStoredProcedureCreateUpdateParameters{
+		Properties: openapis.SqlStoredProcedureCreateUpdateProperties{
+			Resource: openapis.SqlStoredProcedureResource{
 				Id:   id.StoredProcedureName,
 				Body: pointer.To(d.Get("body").(string)),
 			},
-			Options: &cosmosdb.CreateUpdateOptions{},
+			Options: &openapis.CreateUpdateOptions{},
 		},
 	}
 
@@ -117,12 +117,12 @@ func resourceCosmosDbSQLStoredProcedureCreate(d *pluginsdk.ResourceData, meta in
 }
 
 func resourceCosmosDbSQLStoredProcedureUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := cosmosdb.ParseStoredProcedureID(d.Id())
+	id, err := openapis.ParseStoredProcedureID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -131,13 +131,13 @@ func resourceCosmosDbSQLStoredProcedureUpdate(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("retrieving %s: %w", id, err)
 	}
 
-	storedProcParams := cosmosdb.SqlStoredProcedureCreateUpdateParameters{
-		Properties: cosmosdb.SqlStoredProcedureCreateUpdateProperties{
-			Resource: cosmosdb.SqlStoredProcedureResource{
+	storedProcParams := openapis.SqlStoredProcedureCreateUpdateParameters{
+		Properties: openapis.SqlStoredProcedureCreateUpdateProperties{
+			Resource: openapis.SqlStoredProcedureResource{
 				Id:   id.StoredProcedureName,
 				Body: pointer.To(d.Get("body").(string)),
 			},
-			Options: &cosmosdb.CreateUpdateOptions{},
+			Options: &openapis.CreateUpdateOptions{},
 		},
 	}
 
@@ -149,12 +149,12 @@ func resourceCosmosDbSQLStoredProcedureUpdate(d *pluginsdk.ResourceData, meta in
 }
 
 func resourceCosmosDbSQLStoredProcedureRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := cosmosdb.ParseStoredProcedureID(d.Id())
+	id, err := openapis.ParseStoredProcedureID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -183,12 +183,12 @@ func resourceCosmosDbSQLStoredProcedureRead(d *pluginsdk.ResourceData, meta inte
 }
 
 func resourceCosmosDbSQLStoredProcedureDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := cosmosdb.ParseStoredProcedureID(d.Id())
+	id, err := openapis.ParseStoredProcedureID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -29,7 +29,7 @@ func resourceCosmosDbCassandraTable() *pluginsdk.Resource {
 		Delete: resourceCosmosDbCassandraTableDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := cosmosdb.ParseCassandraKeyspaceTableID(id)
+			_, err := openapis.ParseCassandraKeyspaceTableID(id)
 			return err
 		}),
 
@@ -52,7 +52,7 @@ func resourceCosmosDbCassandraTable() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: cosmosdb.ValidateCassandraKeyspaceID,
+				ValidateFunc: openapis.ValidateCassandraKeyspaceID,
 			},
 
 			"default_ttl": {
@@ -86,17 +86,17 @@ func resourceCosmosDbCassandraTable() *pluginsdk.Resource {
 }
 
 func resourceCosmosDbCassandraTableCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	keyspaceId, err := cosmosdb.ParseCassandraKeyspaceID(d.Get("cassandra_keyspace_id").(string))
+	keyspaceId, err := openapis.ParseCassandraKeyspaceID(d.Get("cassandra_keyspace_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := cosmosdb.NewCassandraKeyspaceTableID(meta.(*clients.Client).Account.SubscriptionId, keyspaceId.ResourceGroupName, keyspaceId.DatabaseAccountName, keyspaceId.CassandraKeyspaceName, d.Get("name").(string))
+	id := openapis.NewCassandraKeyspaceTableID(meta.(*clients.Client).Account.SubscriptionId, keyspaceId.ResourceGroupName, keyspaceId.DatabaseAccountName, keyspaceId.CassandraKeyspaceName, d.Get("name").(string))
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.CassandraResourcesGetCassandraTable(ctx, id)
@@ -108,10 +108,10 @@ func resourceCosmosDbCassandraTableCreate(d *pluginsdk.ResourceData, meta interf
 		}
 	}
 
-	table := cosmosdb.CassandraTableCreateUpdateParameters{
-		Properties: cosmosdb.CassandraTableCreateUpdateProperties{
-			Options: &cosmosdb.CreateUpdateOptions{},
-			Resource: cosmosdb.CassandraTableResource{
+	table := openapis.CassandraTableCreateUpdateParameters{
+		Properties: openapis.CassandraTableCreateUpdateProperties{
+			Options: &openapis.CreateUpdateOptions{},
+			Resource: openapis.CassandraTableResource{
 				Id:     id.TableName,
 				Schema: expandTableSchema(d),
 			},
@@ -146,12 +146,12 @@ func resourceCosmosDbCassandraTableCreate(d *pluginsdk.ResourceData, meta interf
 }
 
 func resourceCosmosDbCassandraTableUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := cosmosdb.ParseCassandraKeyspaceTableID(d.Id())
+	id, err := openapis.ParseCassandraKeyspaceTableID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -177,14 +177,14 @@ func resourceCosmosDbCassandraTableUpdate(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("retrieving %s: resource was nil", id)
 	}
 
-	table := cosmosdb.CassandraTableCreateUpdateParameters{
-		Properties: cosmosdb.CassandraTableCreateUpdateProperties{
-			Resource: cosmosdb.CassandraTableResource{
+	table := openapis.CassandraTableCreateUpdateParameters{
+		Properties: openapis.CassandraTableCreateUpdateProperties{
+			Resource: openapis.CassandraTableResource{
 				Id:         id.TableName,
 				Schema:     existing.Model.Properties.Resource.Schema,
 				DefaultTtl: existing.Model.Properties.Resource.DefaultTtl,
 			},
-			Options: &cosmosdb.CreateUpdateOptions{},
+			Options: &openapis.CreateUpdateOptions{},
 		},
 	}
 
@@ -206,12 +206,12 @@ func resourceCosmosDbCassandraTableUpdate(d *pluginsdk.ResourceData, meta interf
 }
 
 func resourceCosmosDbCassandraTableRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := cosmosdb.ParseCassandraKeyspaceTableID(d.Id())
+	id, err := openapis.ParseCassandraKeyspaceTableID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -226,7 +226,7 @@ func resourceCosmosDbCassandraTableRead(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("cassandra_keyspace_id", cosmosdb.NewCassandraKeyspaceID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName, id.CassandraKeyspaceName).ID())
+	d.Set("cassandra_keyspace_id", openapis.NewCassandraKeyspaceID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName, id.CassandraKeyspaceName).ID())
 	d.Set("name", id.TableName)
 
 	if respModel := resp.Model; respModel != nil {
@@ -239,7 +239,7 @@ func resourceCosmosDbCassandraTableRead(d *pluginsdk.ResourceData, meta interfac
 		}
 	}
 
-	databaseAccountID := cosmosdb.NewDatabaseAccountID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName)
+	databaseAccountID := openapis.NewDatabaseAccountID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName)
 	accResp, err := client.DatabaseAccountsGet(ctx, databaseAccountID)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", databaseAccountID, err)
@@ -262,12 +262,12 @@ func resourceCosmosDbCassandraTableRead(d *pluginsdk.ResourceData, meta interfac
 }
 
 func resourceCosmosDbCassandraTableDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := cosmosdb.ParseCassandraKeyspaceTableID(d.Id())
+	id, err := openapis.ParseCassandraKeyspaceTableID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -279,7 +279,7 @@ func resourceCosmosDbCassandraTableDelete(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func expandTableSchema(d *pluginsdk.ResourceData) *cosmosdb.CassandraSchema {
+func expandTableSchema(d *pluginsdk.ResourceData) *openapis.CassandraSchema {
 	i := d.Get("schema").([]interface{})
 
 	if len(i) == 0 || i[0] == nil {
@@ -287,7 +287,7 @@ func expandTableSchema(d *pluginsdk.ResourceData) *cosmosdb.CassandraSchema {
 	}
 	input := i[0].(map[string]interface{})
 
-	cassandraSchema := cosmosdb.CassandraSchema{}
+	cassandraSchema := openapis.CassandraSchema{}
 
 	if v, ok := input["column"].([]interface{}); ok {
 		cassandraSchema.Columns = expandTableSchemaColumns(v)
@@ -304,11 +304,11 @@ func expandTableSchema(d *pluginsdk.ResourceData) *cosmosdb.CassandraSchema {
 	return &cassandraSchema
 }
 
-func expandTableSchemaColumns(input []interface{}) *[]cosmosdb.Column {
-	columns := make([]cosmosdb.Column, 0)
+func expandTableSchemaColumns(input []interface{}) *[]openapis.Column {
+	columns := make([]openapis.Column, 0)
 	for _, col := range input {
 		data := col.(map[string]interface{})
-		column := cosmosdb.Column{
+		column := openapis.Column{
 			Name: pointer.To(data["name"].(string)),
 			Type: pointer.To(data["type"].(string)),
 		}
@@ -318,11 +318,11 @@ func expandTableSchemaColumns(input []interface{}) *[]cosmosdb.Column {
 	return &columns
 }
 
-func expandTableSchemaPartitionKeys(input []interface{}) *[]cosmosdb.CassandraPartitionKey {
-	keys := make([]cosmosdb.CassandraPartitionKey, 0)
+func expandTableSchemaPartitionKeys(input []interface{}) *[]openapis.CassandraPartitionKey {
+	keys := make([]openapis.CassandraPartitionKey, 0)
 	for _, key := range input {
 		data := key.(map[string]interface{})
-		k := cosmosdb.CassandraPartitionKey{
+		k := openapis.CassandraPartitionKey{
 			Name: pointer.To(data["name"].(string)),
 		}
 		keys = append(keys, k)
@@ -331,11 +331,11 @@ func expandTableSchemaPartitionKeys(input []interface{}) *[]cosmosdb.CassandraPa
 	return &keys
 }
 
-func expandTableSchemaClusterKeys(input []interface{}) *[]cosmosdb.ClusterKey {
-	keys := make([]cosmosdb.ClusterKey, 0)
+func expandTableSchemaClusterKeys(input []interface{}) *[]openapis.ClusterKey {
+	keys := make([]openapis.ClusterKey, 0)
 	for _, key := range input {
 		data := key.(map[string]interface{})
-		k := cosmosdb.ClusterKey{
+		k := openapis.ClusterKey{
 			Name:    pointer.To(data["name"].(string)),
 			OrderBy: pointer.To(data["order_by"].(string)),
 		}
@@ -345,7 +345,7 @@ func expandTableSchemaClusterKeys(input []interface{}) *[]cosmosdb.ClusterKey {
 	return &keys
 }
 
-func flattenTableSchema(input *cosmosdb.CassandraSchema) []interface{} {
+func flattenTableSchema(input *openapis.CassandraSchema) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -360,7 +360,7 @@ func flattenTableSchema(input *cosmosdb.CassandraSchema) []interface{} {
 	return results
 }
 
-func flattenTableSchemaColumns(input *[]cosmosdb.Column) []interface{} {
+func flattenTableSchemaColumns(input *[]openapis.Column) []interface{} {
 	if input == nil {
 		return nil
 	}
@@ -385,7 +385,7 @@ func flattenTableSchemaColumns(input *[]cosmosdb.Column) []interface{} {
 	return columns
 }
 
-func flattenTableSchemaPartitionKeys(input *[]cosmosdb.CassandraPartitionKey) []interface{} {
+func flattenTableSchemaPartitionKeys(input *[]openapis.CassandraPartitionKey) []interface{} {
 	if input == nil {
 		return nil
 	}
@@ -405,7 +405,7 @@ func flattenTableSchemaPartitionKeys(input *[]cosmosdb.CassandraPartitionKey) []
 	return keys
 }
 
-func flattenTableSchemaClusterKeys(input *[]cosmosdb.ClusterKey) []interface{} {
+func flattenTableSchemaClusterKeys(input *[]openapis.ClusterKey) []interface{} {
 	if input == nil {
 		return nil
 	}

@@ -10,8 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2025-10-15/mongorbacs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
@@ -49,7 +48,7 @@ func (r CosmosDbMongoRoleDefinitionResource) ModelObject() interface{} {
 }
 
 func (r CosmosDbMongoRoleDefinitionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return mongorbacs.ValidateMongodbRoleDefinitionID
+	return openapis.ValidateMongodbRoleDefinitionID
 }
 
 func (r CosmosDbMongoRoleDefinitionResource) Arguments() map[string]*pluginsdk.Schema {
@@ -58,7 +57,7 @@ func (r CosmosDbMongoRoleDefinitionResource) Arguments() map[string]*pluginsdk.S
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: cosmosdb.ValidateMongodbDatabaseID,
+			ValidateFunc: openapis.ValidateMongodbDatabaseID,
 		},
 
 		"role_name": {
@@ -130,14 +129,14 @@ func (r CosmosDbMongoRoleDefinitionResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.Cosmos.MongoRBACClient
-			databaseId, err := cosmosdb.ParseMongodbDatabaseID(model.CosmosMongoDatabaseId)
+			client := metadata.Client.Cosmos.OpenapisClient
+			databaseId, err := openapis.ParseMongodbDatabaseID(model.CosmosMongoDatabaseId)
 			if err != nil {
 				return err
 			}
 
 			mongoRoleDefinitionId := fmt.Sprintf("%s.%s", databaseId.MongodbDatabaseName, model.RoleName)
-			id := mongorbacs.NewMongodbRoleDefinitionID(databaseId.SubscriptionId, databaseId.ResourceGroupName, databaseId.DatabaseAccountName, mongoRoleDefinitionId)
+			id := openapis.NewMongodbRoleDefinitionID(databaseId.SubscriptionId, databaseId.ResourceGroupName, databaseId.DatabaseAccountName, mongoRoleDefinitionId)
 
 			locks.ByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
 			defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
@@ -153,9 +152,9 @@ func (r CosmosDbMongoRoleDefinitionResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			roleType := mongorbacs.MongoRoleDefinitionTypeCustomRole
-			parameters := mongorbacs.MongoRoleDefinitionCreateUpdateParameters{
-				Properties: &mongorbacs.MongoRoleDefinitionResource{
+			roleType := openapis.MongoRoleDefinitionTypeCustomRole
+			parameters := openapis.MongoRoleDefinitionCreateUpdateParameters{
+				Properties: &openapis.MongoRoleDefinitionResource{
 					DatabaseName: pointer.To(databaseId.MongodbDatabaseName),
 					Roles:        expandInheritedRoles(model.InheritedRoleNames, databaseId.MongodbDatabaseName),
 					RoleName:     pointer.To(model.RoleName),
@@ -178,9 +177,9 @@ func (r CosmosDbMongoRoleDefinitionResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Cosmos.MongoRBACClient
+			client := metadata.Client.Cosmos.OpenapisClient
 
-			id, err := mongorbacs.ParseMongodbRoleDefinitionID(metadata.ResourceData.Id())
+			id, err := openapis.ParseMongodbRoleDefinitionID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -203,14 +202,14 @@ func (r CosmosDbMongoRoleDefinitionResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: properties was nil", id)
 			}
 
-			databaseId, err := cosmosdb.ParseMongodbDatabaseID(model.CosmosMongoDatabaseId)
+			databaseId, err := openapis.ParseMongodbDatabaseID(model.CosmosMongoDatabaseId)
 			if err != nil {
 				return err
 			}
 
-			roleType := mongorbacs.MongoRoleDefinitionTypeCustomRole
-			parameters := mongorbacs.MongoRoleDefinitionCreateUpdateParameters{
-				Properties: &mongorbacs.MongoRoleDefinitionResource{
+			roleType := openapis.MongoRoleDefinitionTypeCustomRole
+			parameters := openapis.MongoRoleDefinitionCreateUpdateParameters{
+				Properties: &openapis.MongoRoleDefinitionResource{
 					DatabaseName: pointer.To(databaseId.MongodbDatabaseName),
 					RoleName:     pointer.To(model.RoleName),
 					Roles:        expandInheritedRoles(model.InheritedRoleNames, databaseId.MongodbDatabaseName),
@@ -232,9 +231,9 @@ func (r CosmosDbMongoRoleDefinitionResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Cosmos.MongoRBACClient
+			client := metadata.Client.Cosmos.OpenapisClient
 
-			id, err := mongorbacs.ParseMongodbRoleDefinitionID(metadata.ResourceData.Id())
+			id, err := openapis.ParseMongodbRoleDefinitionID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -252,7 +251,7 @@ func (r CosmosDbMongoRoleDefinitionResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if properties := model.Properties; properties != nil {
-					databaseId := cosmosdb.NewMongodbDatabaseID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName, pointer.From(properties.DatabaseName))
+					databaseId := openapis.NewMongodbDatabaseID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName, pointer.From(properties.DatabaseName))
 
 					state.CosmosMongoDatabaseId = databaseId.ID()
 					state.RoleName = pointer.From(properties.RoleName)
@@ -270,9 +269,9 @@ func (r CosmosDbMongoRoleDefinitionResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Cosmos.MongoRBACClient
+			client := metadata.Client.Cosmos.OpenapisClient
 
-			id, err := mongorbacs.ParseMongodbRoleDefinitionID(metadata.ResourceData.Id())
+			id, err := openapis.ParseMongodbRoleDefinitionID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -289,14 +288,14 @@ func (r CosmosDbMongoRoleDefinitionResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandPrivilege(input []Privilege) *[]mongorbacs.Privilege {
+func expandPrivilege(input []Privilege) *[]openapis.Privilege {
 	if len(input) == 0 {
 		return nil
 	}
 
-	result := make([]mongorbacs.Privilege, 0, len(input))
+	result := make([]openapis.Privilege, 0, len(input))
 	for _, v := range input {
-		output := mongorbacs.Privilege{
+		output := openapis.Privilege{
 			Actions:  pointer.To(v.Actions),
 			Resource: expandResource(v.Resource),
 		}
@@ -307,7 +306,7 @@ func expandPrivilege(input []Privilege) *[]mongorbacs.Privilege {
 	return &result
 }
 
-func flattenPrivilege(input *[]mongorbacs.Privilege) []Privilege {
+func flattenPrivilege(input *[]openapis.Privilege) []Privilege {
 	if input == nil {
 		return []Privilege{}
 	}
@@ -325,13 +324,13 @@ func flattenPrivilege(input *[]mongorbacs.Privilege) []Privilege {
 	return result
 }
 
-func expandResource(input []Resource) *mongorbacs.PrivilegeResource {
+func expandResource(input []Resource) *openapis.PrivilegeResource {
 	if len(input) == 0 {
 		return nil
 	}
 
 	privilegeResource := &input[0]
-	result := mongorbacs.PrivilegeResource{}
+	result := openapis.PrivilegeResource{}
 
 	if privilegeResource.CollectionName != "" {
 		result.Collection = pointer.To(privilegeResource.CollectionName)
@@ -344,7 +343,7 @@ func expandResource(input []Resource) *mongorbacs.PrivilegeResource {
 	return &result
 }
 
-func flattenResource(input *mongorbacs.PrivilegeResource) []Resource {
+func flattenResource(input *openapis.PrivilegeResource) []Resource {
 	var result []Resource
 	if input == nil {
 		return result
@@ -358,14 +357,14 @@ func flattenResource(input *mongorbacs.PrivilegeResource) []Resource {
 	return append(result, resource)
 }
 
-func expandInheritedRoles(input []string, dbName string) *[]mongorbacs.Role {
+func expandInheritedRoles(input []string, dbName string) *[]openapis.Role {
 	if len(input) == 0 {
 		return nil
 	}
 
-	result := make([]mongorbacs.Role, 0, len(input))
+	result := make([]openapis.Role, 0, len(input))
 	for _, v := range input {
-		inheritedRole := mongorbacs.Role{
+		inheritedRole := openapis.Role{
 			Db:   pointer.To(dbName),
 			Role: pointer.To(v),
 		}
@@ -376,7 +375,7 @@ func expandInheritedRoles(input []string, dbName string) *[]mongorbacs.Role {
 	return &result
 }
 
-func flattenInheritedRoles(input *[]mongorbacs.Role) []string {
+func flattenInheritedRoles(input *[]openapis.Role) []string {
 	if input == nil {
 		return []string{}
 	}

@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -82,11 +82,11 @@ func SchemaCorsRule() *pluginsdk.Schema {
 	}
 }
 
-func ExpandCosmosCorsRule(input []interface{}) *[]cosmosdb.CorsPolicy {
+func ExpandCosmosCorsRule(input []interface{}) *[]openapis.CorsPolicy {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
-	corsRules := make([]cosmosdb.CorsPolicy, 0)
+	corsRules := make([]openapis.CorsPolicy, 0)
 
 	if len(input) == 0 {
 		return &corsRules
@@ -94,7 +94,7 @@ func ExpandCosmosCorsRule(input []interface{}) *[]cosmosdb.CorsPolicy {
 
 	for _, attr := range input {
 		corsRuleAttr := attr.(map[string]interface{})
-		corsRule := cosmosdb.CorsPolicy{}
+		corsRule := openapis.CorsPolicy{}
 		corsRule.AllowedOrigins = strings.Join(*utils.ExpandStringSlice(corsRuleAttr["allowed_origins"].([]interface{})), ",")
 		corsRule.ExposedHeaders = pointer.To(strings.Join(*utils.ExpandStringSlice(corsRuleAttr["exposed_headers"].([]interface{})), ","))
 		corsRule.AllowedHeaders = pointer.To(strings.Join(*utils.ExpandStringSlice(corsRuleAttr["allowed_headers"].([]interface{})), ","))
@@ -110,7 +110,7 @@ func ExpandCosmosCorsRule(input []interface{}) *[]cosmosdb.CorsPolicy {
 	return &corsRules
 }
 
-func FlattenCosmosCorsRule(input *[]cosmosdb.CorsPolicy) []interface{} {
+func FlattenCosmosCorsRule(input *[]openapis.CorsPolicy) []interface{} {
 	corsRules := make([]interface{}, 0)
 
 	if input == nil || len(*input) == 0 {

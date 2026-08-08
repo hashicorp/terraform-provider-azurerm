@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -29,7 +29,7 @@ func resourceCosmosDbMongoDatabase() *pluginsdk.Resource {
 		Delete: resourceCosmosDbMongoDatabaseDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := cosmosdb.ParseMongodbDatabaseID(id)
+			_, err := openapis.ParseMongodbDatabaseID(id)
 			return err
 		}),
 
@@ -75,12 +75,12 @@ func resourceCosmosDbMongoDatabase() *pluginsdk.Resource {
 }
 
 func resourceCosmosDbMongoDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := cosmosdb.NewMongodbDatabaseID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
+	id := openapis.NewMongodbDatabaseID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.MongoDBResourcesGetMongoDBDatabase(ctx, id)
@@ -92,12 +92,12 @@ func resourceCosmosDbMongoDatabaseCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	db := cosmosdb.MongoDBDatabaseCreateUpdateParameters{
-		Properties: cosmosdb.MongoDBDatabaseCreateUpdateProperties{
-			Resource: cosmosdb.MongoDBDatabaseResource{
+	db := openapis.MongoDBDatabaseCreateUpdateParameters{
+		Properties: openapis.MongoDBDatabaseCreateUpdateProperties{
+			Resource: openapis.MongoDBDatabaseResource{
 				Id: id.MongodbDatabaseName,
 			},
-			Options: &cosmosdb.CreateUpdateOptions{},
+			Options: &openapis.CreateUpdateOptions{},
 		},
 	}
 
@@ -121,12 +121,12 @@ func resourceCosmosDbMongoDatabaseCreate(d *pluginsdk.ResourceData, meta interfa
 }
 
 func resourceCosmosDbMongoDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := cosmosdb.ParseMongodbDatabaseID(d.Id())
+	id, err := openapis.ParseMongodbDatabaseID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -149,12 +149,12 @@ func resourceCosmosDbMongoDatabaseUpdate(d *pluginsdk.ResourceData, meta interfa
 }
 
 func resourceCosmosDbMongoDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := cosmosdb.ParseMongodbDatabaseID(d.Id())
+	id, err := openapis.ParseMongodbDatabaseID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -173,7 +173,7 @@ func resourceCosmosDbMongoDatabaseRead(d *pluginsdk.ResourceData, meta interface
 	d.Set("account_name", id.DatabaseAccountName)
 	d.Set("name", id.MongodbDatabaseName)
 
-	databaseAccountID := cosmosdb.NewDatabaseAccountID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName)
+	databaseAccountID := openapis.NewDatabaseAccountID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName)
 	accResp, err := client.DatabaseAccountsGet(ctx, databaseAccountID)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", databaseAccountID, err)
@@ -198,12 +198,12 @@ func resourceCosmosDbMongoDatabaseRead(d *pluginsdk.ResourceData, meta interface
 }
 
 func resourceCosmosDbMongoDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := cosmosdb.ParseMongodbDatabaseID(d.Id())
+	id, err := openapis.ParseMongodbDatabaseID(d.Id())
 	if err != nil {
 		return err
 	}

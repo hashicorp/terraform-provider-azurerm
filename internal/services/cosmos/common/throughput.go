@@ -7,11 +7,11 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-func GetThroughputFromResult(throughputResponse cosmosdb.ThroughputSettingsGetResults) *int64 {
+func GetThroughputFromResult(throughputResponse openapis.ThroughputSettingsGetResults) *int64 {
 	props := throughputResponse.Properties
 	if props == nil {
 		return nil
@@ -29,10 +29,10 @@ func ConvertThroughputFromResourceData(throughput interface{}) *int64 {
 	return pointer.To(int64(throughput.(int)))
 }
 
-func ExpandCosmosDBThroughputSettingsUpdateParameters(d *pluginsdk.ResourceData) cosmosdb.ThroughputSettingsUpdateParameters {
-	throughputParameters := cosmosdb.ThroughputSettingsUpdateParameters{
-		Properties: cosmosdb.ThroughputSettingsUpdateProperties{
-			Resource: cosmosdb.ThroughputSettingsResource{},
+func ExpandCosmosDBThroughputSettingsUpdateParameters(d *pluginsdk.ResourceData) openapis.ThroughputSettingsUpdateParameters {
+	throughputParameters := openapis.ThroughputSettingsUpdateParameters{
+		Properties: openapis.ThroughputSettingsUpdateProperties{
+			Resource: openapis.ThroughputSettingsResource{},
 		},
 	}
 
@@ -49,7 +49,7 @@ func ExpandCosmosDBThroughputSettingsUpdateParameters(d *pluginsdk.ResourceData)
 	return throughputParameters
 }
 
-func SetResourceDataThroughputFromResponse(throughputResponse cosmosdb.ThroughputSettingsGetResults, d *pluginsdk.ResourceData) {
+func SetResourceDataThroughputFromResponse(throughputResponse openapis.ThroughputSettingsGetResults, d *pluginsdk.ResourceData) {
 	d.Set("throughput", GetThroughputFromResult(throughputResponse))
 
 	autoscaleSettings := FlattenCosmosDbAutoscaleSettings(throughputResponse)

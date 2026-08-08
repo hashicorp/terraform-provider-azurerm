@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/managedcassandras"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -32,7 +32,7 @@ func resourceCassandraDatacenter() *pluginsdk.Resource {
 		Delete: resourceCassandraDatacenterDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := managedcassandras.ParseDataCenterID(id)
+			_, err := openapis.ParseDataCenterID(id)
 			return err
 		}),
 
@@ -55,7 +55,7 @@ func resourceCassandraDatacenter() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: managedcassandras.ValidateCassandraClusterID,
+				ValidateFunc: openapis.ValidateCassandraClusterID,
 			},
 
 			"location": commonschema.Location(),
@@ -132,15 +132,15 @@ func resourceCassandraDatacenter() *pluginsdk.Resource {
 }
 
 func resourceCassandraDatacenterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.ManagedCassandraClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	clusterId, err := managedcassandras.ParseCassandraClusterID(d.Get("cassandra_cluster_id").(string))
+	clusterId, err := openapis.ParseCassandraClusterID(d.Get("cassandra_cluster_id").(string))
 	if err != nil {
 		return err
 	}
-	id := managedcassandras.NewDataCenterID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.CassandraClusterName, d.Get("name").(string))
+	id := openapis.NewDataCenterID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.CassandraClusterName, d.Get("name").(string))
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.CassandraDataCentersGet(ctx, id)
@@ -154,8 +154,8 @@ func resourceCassandraDatacenterCreate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	payload := managedcassandras.DataCenterResource{
-		Properties: &managedcassandras.DataCenterResourceProperties{
+	payload := openapis.DataCenterResource{
+		Properties: &openapis.DataCenterResourceProperties{
 			DelegatedSubnetId:  pointer.To(d.Get("delegated_management_subnet_id").(string)),
 			NodeCount:          pointer.To(int64(d.Get("node_count").(int))),
 			AvailabilityZone:   pointer.To(d.Get("availability_zones_enabled").(bool)),
@@ -191,11 +191,11 @@ func resourceCassandraDatacenterCreate(d *pluginsdk.ResourceData, meta interface
 }
 
 func resourceCassandraDatacenterRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.ManagedCassandraClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := managedcassandras.ParseDataCenterID(d.Id())
+	id, err := openapis.ParseDataCenterID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -210,7 +210,7 @@ func resourceCassandraDatacenterRead(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("reading %q: %+v", id, err)
 	}
 
-	clusterId := managedcassandras.NewCassandraClusterID(id.SubscriptionId, id.ResourceGroupName, id.CassandraClusterName)
+	clusterId := openapis.NewCassandraClusterID(id.SubscriptionId, id.ResourceGroupName, id.CassandraClusterName)
 	d.Set("name", id.DataCenterName)
 	d.Set("cassandra_cluster_id", clusterId.ID())
 	if model := resp.Model; model != nil {
@@ -235,17 +235,17 @@ func resourceCassandraDatacenterRead(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func resourceCassandraDatacenterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.ManagedCassandraClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := managedcassandras.ParseDataCenterID(d.Id())
+	id, err := openapis.ParseDataCenterID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	payload := managedcassandras.DataCenterResource{
-		Properties: &managedcassandras.DataCenterResourceProperties{
+	payload := openapis.DataCenterResource{
+		Properties: &openapis.DataCenterResourceProperties{
 			DelegatedSubnetId:  pointer.To(d.Get("delegated_management_subnet_id").(string)),
 			NodeCount:          pointer.To(int64(d.Get("node_count").(int))),
 			Sku:                pointer.To(d.Get("sku_name").(string)),
@@ -276,8 +276,8 @@ func resourceCassandraDatacenterUpdate(d *pluginsdk.ResourceData, meta interface
 	// It has to wait a while after that. Then the property can be updated successfully.
 	stateConf := &pluginsdk.StateChangeConf{
 		Delay:      1 * time.Minute,
-		Pending:    []string{string(managedcassandras.ManagedCassandraProvisioningStateUpdating)},
-		Target:     []string{string(managedcassandras.ManagedCassandraProvisioningStateSucceeded)},
+		Pending:    []string{string(openapis.ManagedCassandraProvisioningStateUpdating)},
+		Target:     []string{string(openapis.ManagedCassandraProvisioningStateSucceeded)},
 		Refresh:    cassandraDatacenterStateRefreshFunc(ctx, client, *id),
 		MinTimeout: 15 * time.Second,
 		Timeout:    d.Timeout(pluginsdk.TimeoutUpdate),
@@ -291,11 +291,11 @@ func resourceCassandraDatacenterUpdate(d *pluginsdk.ResourceData, meta interface
 }
 
 func resourceCassandraDatacenterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.ManagedCassandraClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := managedcassandras.ParseDataCenterID(d.Id())
+	id, err := openapis.ParseDataCenterID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -307,7 +307,7 @@ func resourceCassandraDatacenterDelete(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func cassandraDatacenterStateRefreshFunc(ctx context.Context, client *managedcassandras.ManagedCassandrasClient, id managedcassandras.DataCenterId) pluginsdk.StateRefreshFunc {
+func cassandraDatacenterStateRefreshFunc(ctx context.Context, client *openapis.OpenapisClient, id openapis.DataCenterId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.CassandraDataCentersGet(ctx, id)
 		if err != nil {
@@ -323,7 +323,7 @@ func cassandraDatacenterStateRefreshFunc(ctx context.Context, client *managedcas
 	}
 }
 
-func flattenCassandraDatacenterSeedNodes(input *[]managedcassandras.SeedNode) []interface{} {
+func flattenCassandraDatacenterSeedNodes(input *[]openapis.SeedNode) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results

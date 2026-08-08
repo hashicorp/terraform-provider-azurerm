@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
 )
 
 var (
@@ -18,7 +18,7 @@ var (
 func TestCosmosDBIpRulesToIpRangeFilter(t *testing.T) {
 	testData := []struct {
 		Name     string
-		Input    *[]cosmosdb.IPAddressOrRange
+		Input    *[]openapis.IPAddressOrRange
 		Expected []string
 	}{
 		{
@@ -28,14 +28,14 @@ func TestCosmosDBIpRulesToIpRangeFilter(t *testing.T) {
 		},
 		{
 			Name: "One element",
-			Input: &[]cosmosdb.IPAddressOrRange{
+			Input: &[]openapis.IPAddressOrRange{
 				{IPAddressOrRange: &ipAddressOne},
 			},
 			Expected: []string{"127.0.0.1/32"},
 		},
 		{
 			Name: "Multiple elements",
-			Input: &[]cosmosdb.IPAddressOrRange{
+			Input: &[]openapis.IPAddressOrRange{
 				{IPAddressOrRange: &ipAddressOne},
 				{IPAddressOrRange: &ipAddressTwo},
 			},
@@ -58,24 +58,24 @@ func TestCosmosDBIpRangeFilterToIpRules(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    []string
-		Expected *[]cosmosdb.IPAddressOrRange
+		Expected *[]openapis.IPAddressOrRange
 	}{
 		{
 			Name:     "Empty",
 			Input:    []string{},
-			Expected: &[]cosmosdb.IPAddressOrRange{},
+			Expected: &[]openapis.IPAddressOrRange{},
 		},
 		{
 			Name:  "One element",
 			Input: []string{ipAddressOne},
-			Expected: &[]cosmosdb.IPAddressOrRange{
+			Expected: &[]openapis.IPAddressOrRange{
 				{IPAddressOrRange: &ipAddressOne},
 			},
 		},
 		{
 			Name:  "Multiple elements",
 			Input: []string{ipAddressOne, ipAddressTwo},
-			Expected: &[]cosmosdb.IPAddressOrRange{
+			Expected: &[]openapis.IPAddressOrRange{
 				{IPAddressOrRange: &ipAddressOne},
 				{IPAddressOrRange: &ipAddressTwo},
 			},
