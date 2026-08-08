@@ -133,6 +133,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `inbound_network_dependencies` - An `inbound_network_dependencies` block as defined below.
 
+~> **Note:** `inbound_network_dependencies` is deprecated and will be removed in v6.0 of the AzureRM Provider. The `inboundNetworkDependenciesEndpoints` API is not supported on App Service Environment v3, so this attribute is no longer populated. Refer to the [App Service Environment networking documentation](https://learn.microsoft.com/en-us/azure/app-service/environment/networking) for the required inbound ports and addresses.
+
 * `internal_inbound_ip_addresses` - The internal inbound IP addresses of the App Service Environment V3.
 
 * `ip_ssl_address_count` - The number of IP SSL addresses reserved for the App Service Environment V3.
