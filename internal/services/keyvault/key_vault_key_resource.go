@@ -101,6 +101,7 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 					ValidateFunc: validation.StringInSlice([]string{
 						string(keys.JsonWebKeyOperationDecrypt),
 						string(keys.JsonWebKeyOperationEncrypt),
+						string(keys.JsonWebKeyOperationImport),
 						string(keys.JsonWebKeyOperationSign),
 						string(keys.JsonWebKeyOperationUnwrapKey),
 						string(keys.JsonWebKeyOperationVerify),
@@ -299,6 +300,26 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 				return false
 			}),
 			func(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+				opts := d.Get("key_opts").([]interface{})
+				hasImport := false
+				for _, opt := range opts {
+					if strings.EqualFold(opt.(string), string(keys.JsonWebKeyOperationImport)) {
+						hasImport = true
+						break
+					}
+				}
+
+				if hasImport {
+					if len(opts) > 1 {
+						return errors.New("`import` must be the only value in `key_opts` as it is mutually exclusive with all other key operations")
+					}
+
+					// Azure automatically assigns an expiration date to an `import` Key Exchange Key (KEK)
+					if d.Get("expiration_date").(string) == "" {
+						return errors.New("`expiration_date` must be set when `key_opts` contains `import`")
+					}
+				}
+
 				if p := d.Get("release_policy").([]any); len(p) > 0 {
 					if t := d.Get("key_type").(string); !slices.Contains([]string{string(keys.JsonWebKeyTypeRSANegativeHSM), string(keys.JsonWebKeyTypeECNegativeHSM)}, t) {
 						return fmt.Errorf("when `release_policy` is set, `key_type` must be `RSA-HSM` or `EC-HSM`, got `%s`", t)
