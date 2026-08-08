@@ -10,50 +10,51 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/endpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/storagemovers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	storageMoverValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storagemover/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_mover_source_endpoint -service-package-name storagemover -properties "name" -compare-values "subscription_id:storage_mover_id,resource_group_name:storage_mover_id,storage_mover_name:storage_mover_id"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_mover_nfs_file_share_target_endpoint -service-package-name storagemover -properties "name" -compare-values "subscription_id:storage_mover_id,resource_group_name:storage_mover_id,storage_mover_name:storage_mover_id"
 
-type StorageMoverSourceEndpointModel struct {
-	Name           string               `tfschema:"name"`
-	StorageMoverId string               `tfschema:"storage_mover_id"`
-	Export         string               `tfschema:"export"`
-	Host           string               `tfschema:"host"`
-	NfsVersion     endpoints.NfsVersion `tfschema:"nfs_version"`
-	Description    string               `tfschema:"description"`
+type StorageMoverNfsFileShareTargetEndpointModel struct {
+	Name             string `tfschema:"name"`
+	StorageMoverId   string `tfschema:"storage_mover_id"`
+	FileShareName    string `tfschema:"file_share_name"`
+	StorageAccountId string `tfschema:"storage_account_id"`
+	Description      string `tfschema:"description"`
 }
 
-type StorageMoverSourceEndpointResource struct{}
+type StorageMoverNfsFileShareTargetEndpointResource struct{}
 
 var (
-	_ sdk.ResourceWithIdentity = StorageMoverSourceEndpointResource{}
-	_ sdk.ResourceWithUpdate   = StorageMoverSourceEndpointResource{}
+	_ sdk.ResourceWithUpdate   = StorageMoverNfsFileShareTargetEndpointResource{}
+	_ sdk.ResourceWithIdentity = StorageMoverNfsFileShareTargetEndpointResource{}
 )
 
-func (r StorageMoverSourceEndpointResource) Identity() resourceids.ResourceId {
-	return &endpoints.EndpointId{}
+func (r StorageMoverNfsFileShareTargetEndpointResource) ResourceType() string {
+	return "azurerm_storage_mover_nfs_file_share_target_endpoint"
 }
 
-func (r StorageMoverSourceEndpointResource) ResourceType() string {
-	return "azurerm_storage_mover_source_endpoint"
+func (r StorageMoverNfsFileShareTargetEndpointResource) ModelObject() interface{} {
+	return &StorageMoverNfsFileShareTargetEndpointModel{}
 }
 
-func (r StorageMoverSourceEndpointResource) ModelObject() interface{} {
-	return &StorageMoverSourceEndpointModel{}
-}
-
-func (r StorageMoverSourceEndpointResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r StorageMoverNfsFileShareTargetEndpointResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return endpoints.ValidateEndpointID
 }
 
-func (r StorageMoverSourceEndpointResource) Arguments() map[string]*pluginsdk.Schema {
+func (r StorageMoverNfsFileShareTargetEndpointResource) Identity() resourceids.ResourceId {
+	return &endpoints.EndpointId{}
+}
+
+func (r StorageMoverNfsFileShareTargetEndpointResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -69,49 +70,37 @@ func (r StorageMoverSourceEndpointResource) Arguments() map[string]*pluginsdk.Sc
 			ValidateFunc: storagemovers.ValidateStorageMoverID,
 		},
 
-		"host": {
+		"file_share_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validate.StorageShareName,
 		},
 
-		"export": {
+		"storage_account_id": {
 			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"nfs_version": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  string(endpoints.NfsVersionNFSauto),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(endpoints.NfsVersionNFSauto),
-				string(endpoints.NfsVersionNFSvFour),
-				string(endpoints.NfsVersionNFSvThree),
-			}, false),
+			ValidateFunc: commonids.ValidateStorageAccountID,
 		},
 
 		"description": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validation.StringLenBetween(0, 1024),
 		},
 	}
 }
 
-func (r StorageMoverSourceEndpointResource) Attributes() map[string]*pluginsdk.Schema {
+func (r StorageMoverNfsFileShareTargetEndpointResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r StorageMoverSourceEndpointResource) Create() sdk.ResourceFunc {
+func (r StorageMoverNfsFileShareTargetEndpointResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model StorageMoverSourceEndpointModel
+			var model StorageMoverNfsFileShareTargetEndpointModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -123,11 +112,10 @@ func (r StorageMoverSourceEndpointResource) Create() sdk.ResourceFunc {
 			}
 
 			id := endpoints.NewEndpointID(storageMoverId.SubscriptionId, storageMoverId.ResourceGroupName, storageMoverId.StorageMoverName, model.Name)
-
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for existing %s: %+v", id, err)
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
 
 				if !response.WasNotFound(existing.HttpResponse) {
@@ -136,15 +124,14 @@ func (r StorageMoverSourceEndpointResource) Create() sdk.ResourceFunc {
 			}
 
 			properties := endpoints.Endpoint{
-				Properties: endpoints.NfsMountEndpointProperties{
-					Export:     model.Export,
-					Host:       model.Host,
-					NfsVersion: &model.NfsVersion,
+				Properties: endpoints.AzureStorageNfsFileShareEndpointProperties{
+					FileShareName:            model.FileShareName,
+					StorageAccountResourceId: model.StorageAccountId,
 				},
 			}
 
 			if model.Description != "" {
-				if v, ok := properties.Properties.(endpoints.NfsMountEndpointProperties); ok {
+				if v, ok := properties.Properties.(endpoints.AzureStorageNfsFileShareEndpointProperties); ok {
 					v.Description = pointer.To(model.Description)
 					properties.Properties = v
 				}
@@ -163,7 +150,7 @@ func (r StorageMoverSourceEndpointResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r StorageMoverSourceEndpointResource) Update() sdk.ResourceFunc {
+func (r StorageMoverNfsFileShareTargetEndpointResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -174,7 +161,7 @@ func (r StorageMoverSourceEndpointResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var model StorageMoverSourceEndpointModel
+			var model StorageMoverNfsFileShareTargetEndpointModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -186,11 +173,11 @@ func (r StorageMoverSourceEndpointResource) Update() sdk.ResourceFunc {
 
 			properties := resp.Model
 			if properties == nil {
-				return fmt.Errorf("retrieving %s: model was nil", *id)
+				return fmt.Errorf("retrieving %s: `model` was nil", *id)
 			}
 
 			if metadata.ResourceData.HasChange("description") {
-				if v, ok := properties.Properties.(endpoints.NfsMountEndpointProperties); ok {
+				if v, ok := properties.Properties.(endpoints.AzureStorageNfsFileShareEndpointProperties); ok {
 					v.Description = pointer.To(model.Description)
 					properties.Properties = v
 				}
@@ -205,7 +192,7 @@ func (r StorageMoverSourceEndpointResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r StorageMoverSourceEndpointResource) Read() sdk.ResourceFunc {
+func (r StorageMoverNfsFileShareTargetEndpointResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -225,42 +212,29 @@ func (r StorageMoverSourceEndpointResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			return r.flatten(metadata, id, resp.Model)
+			state := StorageMoverNfsFileShareTargetEndpointModel{
+				Name:           id.EndpointName,
+				StorageMoverId: storagemovers.NewStorageMoverID(id.SubscriptionId, id.ResourceGroupName, id.StorageMoverName).ID(),
+			}
+
+			if model := resp.Model; model != nil {
+				if v, ok := model.Properties.(endpoints.AzureStorageNfsFileShareEndpointProperties); ok {
+					state.FileShareName = v.FileShareName
+					state.StorageAccountId = v.StorageAccountResourceId
+
+					state.Description = pointer.From(v.Description)
+				}
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
+			}
+			return metadata.Encode(&state)
 		},
 	}
 }
 
-func (r StorageMoverSourceEndpointResource) flatten(metadata sdk.ResourceMetaData, id *endpoints.EndpointId, model *endpoints.Endpoint) error {
-	state := StorageMoverSourceEndpointModel{
-		Name:           id.EndpointName,
-		StorageMoverId: storagemovers.NewStorageMoverID(id.SubscriptionId, id.ResourceGroupName, id.StorageMoverName).ID(),
-	}
-
-	if model != nil {
-		if v, ok := model.Properties.(endpoints.NfsMountEndpointProperties); ok {
-			state.Export = v.Export
-			state.Host = v.Host
-
-			if v := v.NfsVersion; v != nil {
-				state.NfsVersion = *v
-			}
-
-			description := ""
-			if v.Description != nil {
-				description = *v.Description
-			}
-			state.Description = description
-		}
-	}
-
-	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
-		return err
-	}
-
-	return metadata.Encode(&state)
-}
-
-func (r StorageMoverSourceEndpointResource) Delete() sdk.ResourceFunc {
+func (r StorageMoverNfsFileShareTargetEndpointResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
