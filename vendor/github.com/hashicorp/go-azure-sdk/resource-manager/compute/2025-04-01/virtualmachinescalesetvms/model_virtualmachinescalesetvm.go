@@ -2,6 +2,7 @@ package virtualmachinescalesetvms
 
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/systemdata"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 )
 
@@ -19,6 +20,7 @@ type VirtualMachineScaleSetVM struct {
 	Properties *VirtualMachineScaleSetVMProperties `json:"properties,omitempty"`
 	Resources  *[]VirtualMachineExtension          `json:"resources,omitempty"`
 	Sku        *Sku                                `json:"sku,omitempty"`
+	SystemData *systemdata.SystemData              `json:"systemData,omitempty"`
 	Tags       *map[string]string                  `json:"tags,omitempty"`
 	Type       *string                             `json:"type,omitempty"`
 	Zones      *zones.Schema                       `json:"zones,omitempty"`

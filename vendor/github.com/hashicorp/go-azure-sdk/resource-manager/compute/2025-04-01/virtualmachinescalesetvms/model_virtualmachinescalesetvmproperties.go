@@ -23,6 +23,7 @@ type VirtualMachineScaleSetVMProperties struct {
 	OsProfile                   *OSProfile                                           `json:"osProfile,omitempty"`
 	ProtectionPolicy            *VirtualMachineScaleSetVMProtectionPolicy            `json:"protectionPolicy,omitempty"`
 	ProvisioningState           *string                                              `json:"provisioningState,omitempty"`
+	ResilientVMDeletionStatus   *ResilientVMDeletionStatus                           `json:"resilientVMDeletionStatus,omitempty"`
 	SecurityProfile             *SecurityProfile                                     `json:"securityProfile,omitempty"`
 	StorageProfile              *StorageProfile                                      `json:"storageProfile,omitempty"`
 	TimeCreated                 *string                                              `json:"timeCreated,omitempty"`
