@@ -253,3 +253,17 @@ func resourceDataProtectionBackupInstanceBlobStorageDelete(d *schema.ResourceDat
 
 	return nil
 }
+
+func policyProtectionStateRefreshFunc(ctx context.Context, client *backupinstanceresources.BackupInstanceResourcesClient, id backupinstanceresources.BackupInstanceId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.BackupInstancesGet(ctx, id)
+		if err != nil {
+			return nil, "", fmt.Errorf("retrieving DataProtection BackupInstance (%q): %+v", id, err)
+		}
+		if res.Model == nil || res.Model.Properties == nil || res.Model.Properties.ProtectionStatus == nil || res.Model.Properties.ProtectionStatus.Status == nil {
+			return nil, "", fmt.Errorf("reading DataProtection BackupInstance (%q) protection status: %+v", id, err)
+		}
+
+		return res, string(*res.Model.Properties.ProtectionStatus.Status), nil
+	}
+}
