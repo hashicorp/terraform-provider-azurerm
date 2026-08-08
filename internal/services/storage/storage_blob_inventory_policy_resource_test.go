@@ -273,6 +273,7 @@ resource "azurerm_storage_blob_inventory_policy" "test" {
       include_snapshots     = true
       prefix_match          = ["*/test"]
       exclude_prefixes      = ["syslog.log"]
+      created_within_days   = 20
     }
   }
 }
@@ -348,6 +349,7 @@ resource "azurerm_storage_blob_inventory_policy" "test" {
       include_deleted       = true
       include_snapshots     = true
       prefix_match          = ["*/test"]
+      created_within_days   = 100
     }
   }
 

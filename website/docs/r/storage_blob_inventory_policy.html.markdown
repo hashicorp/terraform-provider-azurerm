@@ -13,10 +13,6 @@ Manages a Storage Blob Inventory Policy.
 ## Example Usage
 
 ```hcl
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -73,6 +69,8 @@ A `filter` block supports the following:
 
 ~> **Note:** The `rules.*.schema_fields` for this rule has to include `BlobType` so that you can specify the `blob_types`.
 
+* `exclude_prefixes` - (Optional) A set of strings for blob prefixes to be excluded. Maximum of 10 blob prefixes.
+
 * `include_blob_versions` - (Optional) Includes blob versions in blob inventory or not? Defaults to `false`.
 
 ~> **Note:** The `rules.*.schema_fields` for this rule has to include `IsCurrentVersion` and `VersionId` so that you can specify the `include_blob_versions`.
@@ -85,9 +83,11 @@ A `filter` block supports the following:
 
 ~> **Note:** The `rules.*.schema_fields` for this rule has to include `Snapshot` so that you can specify the `include_snapshots`.
 
-* `prefix_match` - (Optional) A set of strings for blob prefixes to be matched. Maximum of 10 blob prefixes.
+* `created_within_days` - (Optional) The number of days in the past to filter blob creation time. Possible values range between `1` and `36500`.
 
-* `exclude_prefixes` - (Optional) A set of strings for blob prefixes to be excluded. Maximum of 10 blob prefixes.
+~> **Note:** The `rules.*.schema_fields` for this rule has to include `Creation-Time` so that you can specify the `created_within_days` filter.
+
+* `prefix_match` - (Optional) A set of strings for blob prefixes to be matched. Maximum of 10 blob prefixes.
 
 ---
 
@@ -124,7 +124,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 ## Import
 
-Storage Blob Inventory Policies can be imported using the `resource id`, e.g.
+A Storage Blob Inventory Policy can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_storage_blob_inventory_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Storage/storageAccounts/storageAccount1
