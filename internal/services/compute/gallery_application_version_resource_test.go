@@ -324,9 +324,6 @@ resource "azurerm_storage_blob" "test" {
 func (r GalleryApplicationVersionResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-provider "azurerm" {
-  features {}
-}
 
 resource "azurerm_gallery_application_version" "test" {
   name                   = "0.0.1"
