@@ -195,7 +195,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				"docker_registry_url": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+					ValidateFunc: validation.IsURLWithHTTPorHTTPSOrEmpty,
 					RequiredWith: []string{"site_config.0.application_stack.0.docker_image_name"},
 				},
 
@@ -476,7 +476,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 				"docker_registry_url": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+					ValidateFunc: validation.IsURLWithHTTPorHTTPSOrEmpty,
 					RequiredWith: []string{"site_config.0.application_stack.0.docker_image_name"},
 				},
 
