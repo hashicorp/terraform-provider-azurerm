@@ -6,6 +6,7 @@ package cognitive
 import (
 	"context"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -25,6 +26,7 @@ type cognitiveDeploymentModel struct {
 	Model                    []DeploymentModelModel `tfschema:"model"`
 	RaiPolicyName            string                 `tfschema:"rai_policy_name"`
 	Sku                      []DeploymentSkuModel   `tfschema:"sku"`
+	SpilloverDeploymentName  string                 `tfschema:"spillover_deployment_name"`
 	VersionUpgradeOption     string                 `tfschema:"version_upgrade_option"`
 }
 
@@ -45,6 +47,8 @@ type DeploymentSkuModel struct {
 type CognitiveDeploymentResource struct{}
 
 var _ sdk.Resource = CognitiveDeploymentResource{}
+
+var _ sdk.ResourceWithCustomizeDiff = CognitiveDeploymentResource{}
 
 func (r CognitiveDeploymentResource) ResourceType() string {
 	return "azurerm_cognitive_deployment"
@@ -173,6 +177,12 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
+		"spillover_deployment_name": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
 		"version_upgrade_option": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
@@ -188,6 +198,34 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 
 func (r CognitiveDeploymentResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
+}
+
+func (r CognitiveDeploymentResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			var config cognitiveDeploymentModel
+			if err := metadata.DecodeDiff(&config); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			if config.SpilloverDeploymentName == "" || len(config.Sku) == 0 {
+				return nil
+			}
+
+			spilloverSupportedSkuNames := []string{
+				"DataZoneProvisionedManaged",
+				"GlobalProvisionedManaged",
+				"ProvisionedManaged",
+			}
+
+			if skuName := config.Sku[0].Name; !slices.Contains(spilloverSupportedSkuNames, skuName) {
+				return fmt.Errorf("`spillover_deployment_name` can only be set when `sku.0.name` is `DataZoneProvisionedManaged`, `GlobalProvisionedManaged`, or `ProvisionedManaged`, got `%s`", skuName)
+			}
+
+			return nil
+		},
+	}
 }
 
 func (r CognitiveDeploymentResource) Create() sdk.ResourceFunc {
@@ -238,6 +276,10 @@ func (r CognitiveDeploymentResource) Create() sdk.ResourceFunc {
 			if model.VersionUpgradeOption != "" {
 				option := deployments.DeploymentModelVersionUpgradeOption(model.VersionUpgradeOption)
 				properties.Properties.VersionUpgradeOption = &option
+			}
+
+			if model.SpilloverDeploymentName != "" {
+				properties.Properties.SpilloverDeploymentName = &model.SpilloverDeploymentName
 			}
 
 			properties.Sku = expandDeploymentSkuModel(model.Sku)
@@ -297,6 +339,10 @@ func (r CognitiveDeploymentResource) Update() sdk.ResourceFunc {
 				properties.Properties.Model.Version = pointer.To(model.Model[0].Version)
 			}
 
+			if metadata.ResourceData.HasChange("spillover_deployment_name") {
+				properties.Properties.SpilloverDeploymentName = pointer.To(model.SpilloverDeploymentName)
+			}
+
 			properties.Properties.VersionUpgradeOption = pointer.To(deployments.DeploymentModelVersionUpgradeOption(model.VersionUpgradeOption))
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *properties); err != nil {
@@ -344,6 +390,7 @@ func (r CognitiveDeploymentResource) Read() sdk.ResourceFunc {
 
 				state.DynamicThrottlingEnabled = pointer.From(properties.DynamicThrottlingEnabled)
 				state.RaiPolicyName = pointer.From(properties.RaiPolicyName)
+				state.SpilloverDeploymentName = pointer.From(properties.SpilloverDeploymentName)
 				state.VersionUpgradeOption = string(pointer.From(properties.VersionUpgradeOption))
 			}
 			if sku := flattenDeploymentSkuModel(model.Sku); sku != nil {
