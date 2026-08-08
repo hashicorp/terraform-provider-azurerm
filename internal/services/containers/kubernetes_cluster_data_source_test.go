@@ -348,6 +348,8 @@ func TestAccDataSourceKubernetesCluster_addOnProfileAzurePolicy(t *testing.T) {
 }
 
 func TestAccDataSourceKubernetesCluster_addOnProfileRouting(t *testing.T) {
+	t.Skip("HTTP Application Routing can no longer be enabled on new AKS clusters")
+
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
