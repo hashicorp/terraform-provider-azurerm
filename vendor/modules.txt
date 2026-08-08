@@ -1005,6 +1005,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-11-01/contact
 github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-11-01/contactprofile
 github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-11-01/groundstation
 github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-11-01/spacecraft
+github.com/hashicorp/go-azure-sdk/resource-manager/orbitalplanetarycomputer/2026-04-15/geocatalogs
 github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08
 github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/certificateobjectglobalrulestackresources
 github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/certificateobjectlocalrulestackresources
