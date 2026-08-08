@@ -53,7 +53,7 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.ExadataName,
+			ValidateFunc: validation.StringIsNotEmpty,
 			ForceNew:     true,
 		},
 
@@ -63,7 +63,7 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 		"compute_count": {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
-			ValidateFunc: validate.ComputeCount,
+			ValidateFunc: validation.IntBetween(2, 32),
 			ForceNew:     true,
 		},
 
@@ -91,7 +91,7 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 		"storage_count": {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
-			ValidateFunc: validate.StorageCount,
+			ValidateFunc: validation.IntBetween(3, 64),
 			ForceNew:     true,
 		},
 
@@ -140,7 +140,7 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 						Optional:     true,
 						Computed:     true,
 						ForceNew:     true,
-						ValidateFunc: validate.LeadTimeInWeeks,
+						ValidateFunc: validation.IntBetween(1, 4),
 					},
 
 					"months": {
@@ -177,7 +177,7 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 						ForceNew: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeInt,
-							ValidateFunc: validate.WeeksOfMonth,
+							ValidateFunc: validation.IntBetween(1, 4),
 						},
 					},
 				},

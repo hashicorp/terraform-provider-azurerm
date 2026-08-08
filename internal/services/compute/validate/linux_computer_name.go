@@ -18,6 +18,7 @@ func LinuxComputerNamePrefix(i interface{}, k string) (warnings []string, errors
 	return LinuxComputerName(i, k, 58, true)
 }
 
+// lintignore:V012,V011 // false positive - this validates a string, not an int; the int comparison here checks the string length
 func LinuxComputerName(i interface{}, k string, maxLength int, allowDashSuffix bool) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {

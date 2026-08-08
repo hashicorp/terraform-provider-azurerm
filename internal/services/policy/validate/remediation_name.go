@@ -8,6 +8,7 @@ import (
 	"strings"
 )
 
+// lintignore:V011 // the length check is combined with character/format rules
 func RemediationName(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {

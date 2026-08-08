@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 )
 
+// lintignore:V013 // "default" is valid in addition to any Azure location
 func RedisCacheLocation(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {

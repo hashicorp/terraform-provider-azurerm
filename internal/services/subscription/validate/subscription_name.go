@@ -9,6 +9,7 @@ import (
 	"regexp"
 )
 
+// lintignore:V013,V011,V001 // false positive - this validates a name; the string comparison checks for empty values
 func SubscriptionName(i interface{}, k string) (warnings []string, errs []error) {
 	v, ok := i.(string)
 	if !ok {

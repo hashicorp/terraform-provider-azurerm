@@ -19,6 +19,7 @@ func WindowsComputerNamePrefix(i interface{}, k string) (warnings []string, erro
 	return windowsComputerName(i, k, 9, true)
 }
 
+// lintignore:V012,V011 // false positive - this validates a string, not an int; the int comparison here checks the string length
 func windowsComputerName(i interface{}, k string, maxLength int, allowDashSuffix bool) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {

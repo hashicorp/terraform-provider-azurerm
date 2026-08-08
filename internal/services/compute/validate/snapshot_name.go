@@ -8,6 +8,7 @@ import (
 	"regexp"
 )
 
+// lintignore:V012,V001 // false positive - this validates a string, not an int; the int comparison here checks the string length
 func SnapshotName(v interface{}, k string) (warnings []string, errors []error) {
 	// a-z, A-Z, 0-9, _ and -. The max name length is 80
 	value := v.(string)

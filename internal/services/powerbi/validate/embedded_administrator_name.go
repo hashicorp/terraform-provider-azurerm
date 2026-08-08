@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-uuid"
 )
 
+// lintignore:V001 // a UUID is valid in addition to the regex
 func EmbeddedAdministratorName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 

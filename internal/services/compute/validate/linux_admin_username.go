@@ -9,6 +9,7 @@ import (
 )
 
 // LinuxAdminUsername validates that admin_username meets the Azure API requirements for Linux Virtual Machines.
+// lintignore:V013,V011 // the disallowed-usernames check is combined with length rules
 func LinuxAdminUsername(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {

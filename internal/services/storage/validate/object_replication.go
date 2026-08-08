@@ -10,6 +10,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/date"
 )
 
+// lintignore:V013 // "OnlyNewObjects" and "Everything" are valid in addition to any RFC3339 date
 func ObjectReplicationCopyBlobsCreatedAfter(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {

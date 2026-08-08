@@ -5,6 +5,7 @@ package validate
 
 import "fmt"
 
+// lintignore:V012 // -1 (disabled) is valid in addition to the range
 func DatabaseAutoPauseDelay(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(int)
 	if !ok {
