@@ -12,9 +12,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedserversecurityalertpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedserversecurityalertpolicies"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -120,9 +122,10 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyCreate(d *pluginsdk.Resource
 
 	managedInstanceId := commonids.NewSqlManagedInstanceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("managed_instance_name").(string))
 
-	err := client.CreateOrUpdateThenPoll(ctx, managedInstanceId, *alertPolicy)
-	if err != nil {
-		return fmt.Errorf("updating managed instance security alert policy: %v", err)
+	pollerType := custompollers.NewManagedInstanceSecurityAlertPolicyPoller(client, managedInstanceId, *alertPolicy)
+	poller := pollers.NewPoller(pollerType, 0, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+	if err := poller.PollUntilDone(ctx); err != nil {
+		return fmt.Errorf("creating Security Alert Policy for %s: %+v", managedInstanceId, err)
 	}
 
 	result, err := client.Get(ctx, managedInstanceId)
@@ -227,9 +230,10 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyUpdate(d *pluginsdk.Resource
 		payload.Properties.StorageEndpoint = nil
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, managedInstanceId, *payload)
-	if err != nil {
-		return fmt.Errorf("updating managed instance security alert policy: %v", err)
+	pollerType := custompollers.NewManagedInstanceSecurityAlertPolicyPoller(client, managedInstanceId, *payload)
+	poller := pollers.NewPoller(pollerType, 0, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+	if err := poller.PollUntilDone(ctx); err != nil {
+		return fmt.Errorf("updating Security Alert Policy for %s: %+v", managedInstanceId, err)
 	}
 
 	d.SetId(id.ID())
