@@ -23,7 +23,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/migration"
@@ -112,7 +111,7 @@ func (r LinuxFunctionAppResource) IDValidationFunc() pluginsdk.SchemaValidateFun
 }
 
 func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
-	args := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -325,12 +324,6 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "The local path and filename of the Zip packaged application to deploy to this Linux Function App. **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`.",
 		},
 	}
-
-	if !features.FivePointOh() {
-		args["storage_key_vault_secret_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
-	}
-
-	return args
 }
 
 func (r LinuxFunctionAppResource) Attributes() map[string]*pluginsdk.Schema {
