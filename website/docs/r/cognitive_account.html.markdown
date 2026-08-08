@@ -14,6 +14,25 @@ Manages a Cognitive Services Account.
 
 -> **Note:** The Azure Provider will attempt to Purge the Cognitive Services Account during deletion. This feature can be disabled using the `features` block within the `provider` block, see [the provider documentation on the features block](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block) for more information.
 
+~> **Note:** The state of an `azurerm_cognitive_account` is coupled to the state of its Azure child resources. Whenever any of the child resources listed below is created, updated or deleted, the parent account's `provisioningState` transitions out of `Succeeded` (typically to `Accepted`) until the child operation finishes propagating. During that window the parent account is **not** in a terminal state, and operations that touch the parent (including Terraform Read/Update) may fail, time out, or observe transient values. The provider serialises Terraform-managed child resources against the parent via a per-account lock, but out-of-band changes (Azure Portal, CLI, AzAPI, REST, or any other tool) cannot be coordinated. The known Azure child resource types of `Microsoft.CognitiveServices/accounts` are:
+
+| ARM child type | Managed by AzureRM today |
+|---|---|
+| `accounts/deployments` | `azurerm_cognitive_deployment` |
+| `accounts/managedComputeDeployments` | not currently managed |
+| `accounts/commitmentPlans` | not currently managed |
+| `accounts/defenderForAISettings` | not currently managed |
+| `accounts/encryptionScopes` | not currently managed |
+| `accounts/raiPolicies` | `azurerm_cognitive_account_rai_policy` |
+| `accounts/raiBlocklists` | `azurerm_cognitive_account_rai_blocklist` |
+| `accounts/raiTopics` | not currently managed |
+| `accounts/raiToolLabels` | not currently managed |
+| `accounts/raiModerationlists` | not currently managed |
+| `accounts/raiIfcRules` | not currently managed |
+| `accounts/sharedCommitmentPlanAssociations` | not currently managed |
+
+~> **Note:** A common consequence of this coupling is that creating an `azurerm_private_endpoint` against the Cognitive Services Account while the account is not in a terminal `provisioningState` will fail. If you create or modify child resources (for example `azurerm_cognitive_deployment`) and the private endpoint in the same configuration, add an explicit `depends_on` from the `azurerm_private_endpoint` to those child resources so the private endpoint is only created once the account has returned to `Succeeded`.
+
 ## Example Usage
 
 ```hcl
