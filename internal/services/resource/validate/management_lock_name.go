@@ -4,21 +4,14 @@
 package validate
 
 import (
-	"fmt"
 	"regexp"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-// lintignore:V011,V001 // the length check is combined with character/format rules
-func ManagementLockName(v interface{}, k string) (warnings []string, errors []error) {
-	input := v.(string)
-
-	if !regexp.MustCompile(`[A-Za-z0-9-_]`).MatchString(input) {
-		errors = append(errors, fmt.Errorf("%s can only consist of alphanumeric characters, dashes and underscores", k))
-	}
-
-	if len(input) >= 260 {
-		errors = append(errors, fmt.Errorf("%s can only be a maximum of 260 characters", k))
-	}
-
-	return warnings, errors
+func ManagementLockName(v interface{}, k string) ([]string, []error) {
+	return validation.All(
+		validation.StringMatch(regexp.MustCompile(`[A-Za-z0-9-_]`), "can only consist of alphanumeric characters, dashes and underscores"),
+		validation.StringLenBetween(0, 259),
+	)(v, k)
 }

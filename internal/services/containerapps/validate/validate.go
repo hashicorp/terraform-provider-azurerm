@@ -8,6 +8,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 func InitTimeout(i interface{}, k string) (warnings []string, errors []error) {
@@ -125,33 +127,12 @@ func ContainerAppContainerName(i interface{}, k string) (warnings []string, erro
 	return
 }
 
-// lintignore:V011 // the length check is combined with character/format rules
-func ContainerAppJobName(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return
-	}
-
-	if len(v) == 1 {
-		if matched := regexp.MustCompile(`^[a-z0-9]$`).Match([]byte(v)); !matched {
-			errors = append(errors, fmt.Errorf("%q must consist of lower case alphanumeric characters, '-', or '.', start and end with an alphanumeric character", k))
-		}
-	} else {
-		if matched := regexp.MustCompile(`^([a-z0-9])[a-z0-9-]*[a-z0-9]$`).Match([]byte(v)); !matched || strings.HasSuffix(v, "-") {
-			errors = append(errors, fmt.Errorf("%q must consist of lower case alphanumeric characters, or '-', start and end with an alphanumeric character", k))
-		}
-	}
-
-	if len(v) > 32 {
-		errors = append(errors, fmt.Errorf("%q must not exceed 32 characters", k))
-	}
-
-	if strings.Contains(v, "--") {
-		errors = append(errors, fmt.Errorf("%q must not contain --", k))
-	}
-
-	return
+func ContainerAppJobName(i interface{}, k string) ([]string, []error) {
+	return validation.All(
+		validation.StringMatch(regexp.MustCompile(`^[a-z0-9]([a-z0-9-]*[a-z0-9])?$`), "must consist of lower case alphanumeric characters, or '-', start and end with an alphanumeric character"),
+		validation.StringLenBetween(0, 32),
+		validation.StringDoesNotMatch(regexp.MustCompile(`--`), "must not contain --"),
+	)(i, k)
 }
 
 func LowerCaseAlphaNumericWithHyphensAndPeriods(i interface{}, k string) (warnings []string, errors []error) {

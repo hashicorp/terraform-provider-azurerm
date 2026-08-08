@@ -6,39 +6,17 @@ package validate
 import (
 	"fmt"
 	"regexp"
-	"unicode"
-	"unicode/utf8"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/cloudvmclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-// lintignore:V011,V001 // the length check is combined with character/format rules
-func CloudVMClusterName(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return
-	}
-
-	if len(v) < 1 || len(v) > 255 {
-		errors = append(errors, fmt.Errorf("name must be %d to %d characters", 1, 255))
-		return
-	}
-
-	firstChar, _ := utf8.DecodeRuneInString(v)
-	if !unicode.IsLetter(firstChar) && firstChar != '_' {
-		errors = append(errors, fmt.Errorf("name must start with a letter or underscore (_)"))
-		return
-	}
-
-	re := regexp.MustCompile("--")
-	if re.MatchString(v) {
-		errors = append(errors, fmt.Errorf("name must not contain any consecutive hyphers (--)"))
-		return
-	}
-
-	return
+func CloudVMClusterName(i interface{}, k string) ([]string, []error) {
+	return validation.All(
+		validation.StringLenBetween(1, 255),
+		validation.StringMatch(regexp.MustCompile(`^[\p{L}_]`), "must start with a letter or underscore (_)"),
+		validation.StringDoesNotMatch(regexp.MustCompile("--"), "must not contain any consecutive hyphers (--)"),
+	)(i, k)
 }
 
 func DataStorageSizeInTbs(i interface{}, k string) (warnings []string, errors []error) {

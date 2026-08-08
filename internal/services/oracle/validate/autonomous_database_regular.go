@@ -5,36 +5,20 @@ package validate
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 	"unicode"
-	"unicode/utf8"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/autonomousdatabases"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-// lintignore:V011 // the length check is combined with character/format rules
-func AutonomousDatabaseName(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		return []string{}, append(errors, fmt.Errorf("expected type of %s to be string", k))
-	}
-
-	firstChar, _ := utf8.DecodeRuneInString(v)
-	if !unicode.IsLetter(firstChar) {
-		return []string{}, append(errors, fmt.Errorf("%v must start with a letter", k))
-	}
-
-	for _, r := range v {
-		if !unicode.IsLetter(r) && !unicode.IsNumber(r) {
-			return []string{}, append(errors, fmt.Errorf("%v must contain only letters and numbers", k))
-		}
-	}
-
-	if len(v) > 30 {
-		return []string{}, append(errors, fmt.Errorf("%v must be 30 characters max", k))
-	}
-
-	return []string{}, []error{}
+func AutonomousDatabaseName(i interface{}, k string) ([]string, []error) {
+	return validation.All(
+		validation.StringMatch(regexp.MustCompile(`^\p{L}`), "must start with a letter"),
+		validation.StringMatch(regexp.MustCompile(`^[\p{L}\p{N}]*$`), "must contain only letters and numbers"),
+		validation.StringLenBetween(0, 30),
+	)(i, k)
 }
 
 // lintignore:V011 // the length check is combined with password complexity rules
