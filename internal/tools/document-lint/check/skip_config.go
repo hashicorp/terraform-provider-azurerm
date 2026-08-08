@@ -30,6 +30,9 @@ var skipProps = []string{
 	"/azurerm_orchestrated_virtual_machine_scale_set.os_profile.(windows|linux)_configuration.secret.certificate",
 	"/azurerm_eventgrid_event_subscription.advanced_filter.*",
 	"/azurerm_eventgrid_system_topic_event_subscription.advanced_filter.*",
+
+	// managed_disk ForceNew is enforced in CustomizeDiff, not the schema flag
+	"/azurerm_site_recovery_replicated_vm.managed_disk.(disk_id|staging_storage_account_id|target_resource_group_id|target_disk_encryption_set_id)",
 }
 
 var skipConfig = &struct {
