@@ -159,6 +159,7 @@ type Ingress struct {
 	IpSecurityRestrictions []IpSecurityRestriction `tfschema:"ip_security_restriction"`
 	ClientCertificateMode  string                  `tfschema:"client_certificate_mode"`
 	Cors                   []Cors                  `tfschema:"cors"`
+	SessionAffinity        string                  `tfschema:"session_affinity"`
 }
 
 type Cors struct {
@@ -284,6 +285,13 @@ func ContainerAppIngressSchema() *pluginsdk.Schema {
 					}, false),
 					Description: "Client certificate mode for mTLS authentication. Ignore indicates server drops client certificate on forwarding. Accept indicates server forwards client certificate but does not require a client certificate. Require indicates server requires a client certificate.",
 				},
+
+				"session_affinity": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForAffinity(), false),
+					Description:  "The session affinity for the Container App. Possible values include `sticky` and `none`. Defaults to `none`.",
+				},
 			},
 		},
 	}
@@ -388,6 +396,12 @@ func ContainerAppIngressSchemaComputed() *pluginsdk.Schema {
 					Computed:    true,
 					Description: "Client certificate mode for mTLS authentication. Ignore indicates server drops client certificate on forwarding. Accept indicates server forwards client certificate but does not require a client certificate. Require indicates server requires a client certificate.",
 				},
+
+				"session_affinity": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The session affinity for the Container App. Possible values include `sticky` and `none`.",
+				},
 			},
 		},
 	}
@@ -415,6 +429,13 @@ func ExpandContainerAppIngress(input []Ingress, appName string) *containerapps.I
 	if ingress.ClientCertificateMode != "" {
 		clientCertificateMode := containerapps.IngressClientCertificateMode(ingress.ClientCertificateMode)
 		result.ClientCertificateMode = &clientCertificateMode
+	}
+
+	if ingress.SessionAffinity != "" {
+		affinity := containerapps.Affinity(ingress.SessionAffinity)
+		result.StickySessions = &containerapps.IngressStickySessions{
+			Affinity: &affinity,
+		}
 	}
 
 	return result
@@ -490,6 +511,10 @@ func FlattenContainerAppIngress(input *containerapps.Ingress, appName string) []
 
 	if ingress.CorsPolicy != nil {
 		result.Cors = flattenCorsPolicy(ingress.CorsPolicy)
+	}
+
+	if ingress.StickySessions != nil && ingress.StickySessions.Affinity != nil {
+		result.SessionAffinity = string(*ingress.StickySessions.Affinity)
 	}
 
 	return []Ingress{result}
