@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/resourceguardresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/resourceguards"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2025-08-01/vaults"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/resourceguardproxy"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2025-08-01/resourceguardproxy"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -96,7 +96,7 @@ func (r VaultGuardProxyResource) Create() sdk.ResourceFunc {
 				Id:   pointer.To(id.ID()),
 				Type: pointer.To(VaultGuardResourceType),
 				Properties: pointer.To(resourceguardproxy.ResourceGuardProxyBase{
-					ResourceGuardResourceId: pointer.To(plan.ResourceGuardId),
+					ResourceGuardResourceId: plan.ResourceGuardId,
 				}),
 			}
 
@@ -134,10 +134,10 @@ func (r VaultGuardProxyResource) Read() sdk.ResourceFunc {
 				VaultId: vaultId.ID(),
 			}
 
-			if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.ResourceGuardResourceId != nil {
+			if resp.Model != nil && resp.Model.Properties != nil {
 				// Resource Guards created outside of Terraform may have a lowercased `resourceGroups` segment
 				// which is persisted to the proxy even when the API is provided correct casing on creation, so we need to parse this insensitively before setting it into state
-				resourceGuardID, err := resourceguardresources.ParseResourceGuardIDInsensitively(*resp.Model.Properties.ResourceGuardResourceId)
+				resourceGuardID, err := resourceguardresources.ParseResourceGuardIDInsensitively(resp.Model.Properties.ResourceGuardResourceId)
 				if err != nil {
 					return err
 				}
