@@ -151,12 +151,12 @@ resource "azurerm_automation_module" "test" {
 }
 
 resource "azurerm_automation_module" "second" {
-  name                    = "AzureRmMinus"
+  name                    = "PackageManagement"
   resource_group_name     = azurerm_resource_group.test.name
   automation_account_name = azurerm_automation_account.test.name
 
   module_link {
-    uri = "https://www.powershellgallery.com/api/v2/package/AzureRmMinus/0.3.0.0"
+    uri = "https://cdn.powershellgallery.com/packages/packagemanagement.1.4.8.1.nupkg"
   }
 
   depends_on = [azurerm_automation_module.test]
