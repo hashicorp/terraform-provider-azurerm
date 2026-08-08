@@ -57,6 +57,7 @@ func (r CognitiveAccountProjectResource) CustomizeDiff() sdk.ResourceFunc {
 				return nil
 			}
 			// Azure API issue: description and display_name cannot be updated to empty values, see: https://github.com/Azure/azure-rest-api-specs/issues/38422
+			// a new comment appears
 			if oldDesc, newDesc := metadata.ResourceDiff.GetChange("description"); oldDesc.(string) != "" && newDesc.(string) == "" {
 				if err := metadata.ResourceDiff.ForceNew("description"); err != nil {
 					return err

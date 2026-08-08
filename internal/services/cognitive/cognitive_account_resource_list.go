@@ -38,7 +38,7 @@ func (r CognitiveAccountListResource) List(ctx context.Context, request list.Lis
 		stream.Results = list.ListResultsStreamDiagnostics(diags)
 		return
 	}
-
+	// comments everywhere
 	results := make([]cognitiveservicesaccounts.Account, 0)
 
 	subscriptionID := metadata.SubscriptionId

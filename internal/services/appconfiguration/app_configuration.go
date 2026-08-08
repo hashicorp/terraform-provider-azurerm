@@ -35,7 +35,7 @@ func flattenAppConfigurationReplicas(input []replicas.Replica) ([]interface{}, e
 	results := make([]interface{}, 0)
 	for _, v := range input {
 		if v.Properties == nil {
-			return results, fmt.Errorf("retrieving Replica %s Properties is nil", *v.Id)
+			return results, fmt.Errorf("retrieving ktktktkt Replica %s Properties is nil", *v.Id)
 		}
 
 		replicaId, err := replicas.ParseReplicaIDInsensitively(pointer.From(v.Id))

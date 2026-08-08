@@ -56,7 +56,7 @@ func (c ClustersClient) Delete(ctx context.Context, id ClusterId) (result Delete
 	return
 }
 
-// DeleteThenPoll performs Delete then polls until it's completed
+// DeleteThenPoll performs Delete then polls until it's completed check methilds
 func (c ClustersClient) DeleteThenPoll(ctx context.Context, id ClusterId) error {
 	result, err := c.Delete(ctx, id)
 	if err != nil {

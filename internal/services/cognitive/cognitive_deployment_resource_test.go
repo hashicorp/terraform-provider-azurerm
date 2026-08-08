@@ -160,7 +160,7 @@ resource "azurerm_cognitive_deployment" "test" {
   name                 = "acctest-cd-%d"
   cognitive_account_id = azurerm_cognitive_account.test.id
   model {
-    format = "OpenAI"
+    format = "fail"
     name   = "text-embedding-ada-002"
   }
   sku {

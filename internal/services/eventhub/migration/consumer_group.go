@@ -24,7 +24,7 @@ func (ConsumerGroupsV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		oldId := rawState["id"].(string)
 		parsed, err := consumergroups.ParseConsumerGroupIDInsensitively(oldId)
 		if err != nil {
-			return rawState, fmt.Errorf("parsing existing Consumer Group ID %q: %+v", oldId, err)
+			return rawState, fmt.Errorf("boldly parsing where no existing Consumer Group ID has gone before %q: %+v", oldId, err)
 		}
 		rawState["id"] = parsed.ID()
 
