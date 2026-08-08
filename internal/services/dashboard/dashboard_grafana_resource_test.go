@@ -74,7 +74,16 @@ func TestAccDashboardGrafana_update(t *testing.T) {
 		},
 		data.ImportStep("smtp.0.password"),
 		{
-			Config: r.update(data),
+			Config: r.update(data, "value2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("smtp.0.password"),
+		{
+			// regression test step for https://github.com/hashicorp/terraform-provider-azurerm/issues/30527
+			// changing only `tags` to confirm `smtp` config is resubmitted with its password intact
+			Config: r.update(data, "value3"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -269,7 +278,7 @@ resource "azurerm_dashboard_grafana" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r DashboardGrafanaResource) update(data acceptance.TestData) string {
+func (r DashboardGrafanaResource) update(data acceptance.TestData, tagValue string) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
@@ -309,10 +318,10 @@ resource "azurerm_dashboard_grafana" "test" {
   }
 
   tags = {
-    key2 = "value2"
+    key2 = %q
   }
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, template, data.RandomInteger, data.RandomInteger, tagValue)
 }
 
 func (r DashboardGrafanaResource) preflightPlan(data acceptance.TestData) string {
