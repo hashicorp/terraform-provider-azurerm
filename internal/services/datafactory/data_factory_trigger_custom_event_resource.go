@@ -207,13 +207,9 @@ func resourceDataFactoryTriggerCustomEventCreateUpdate(d *pluginsdk.ResourceData
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	if d.Get("activated").(bool) {
-		future, err := client.Start(ctx, id.ResourceGroup, id.FactoryName, id.Name)
-		if err != nil {
-			return fmt.Errorf("starting %s: %+v", id, err)
-		}
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting on start %s: %+v", id, err)
+	if v, ok := d.GetOk("activated"); ok && v.(bool) {
+		if err = startDataFactoryEventTrigger(ctx, *client, id); err != nil {
+			return err
 		}
 	}
 
