@@ -17,6 +17,8 @@ At this time you cannot use a Virtual Network with in-line Subnets in conjunctio
 
 ## Example Usage
 
+### IPv4 Only
+
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
@@ -47,6 +49,29 @@ resource "azurerm_subnet" "example" {
 }
 ```
 
+### Dual-Stack (IPv4 + IPv6)
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_virtual_network" "example" {
+  name                = "example-vnet"
+  address_space       = ["10.0.0.0/16", "fd00::/48"]
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_subnet" "example" {
+  name                 = "example-subnet"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
+  address_prefixes     = ["10.0.1.0/24", "fd00::/64"]
+}
+```
+
 ## Arguments Reference
 
 The following arguments are supported:
@@ -59,7 +84,7 @@ The following arguments are supported:
 
 ---
 
-* `address_prefixes` - (Optional) The address prefixes to use for the subnet.
+* `address_prefixes` - (Optional) The address prefixes to use for the subnet. Both IPv4 and IPv6 CIDR blocks are supported. For a dual-stack subnet, specify one IPv4 and one IPv6 prefix (e.g. `["10.0.1.0/24", "fd00::/64"]`). Each prefix must fall within the parent virtual network's `address_space`.
 
 -> **Note:** Exactly one of `address_prefixes` or `ip_address_pool` must be specified.
 
