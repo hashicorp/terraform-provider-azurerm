@@ -698,6 +698,22 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				},
 			},
 
+			"key_policy": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MinItems: 1,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"expiration_period_in_days": {
+							Type:         pluginsdk.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntAtLeast(1),
+						},
+					},
+				},
+			},
+
 			"allowed_copy_scope": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -1446,6 +1462,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			NetworkAcls:                  expandAccountNetworkRules(d.Get("network_rules").([]interface{}), tenantId),
 			PublicNetworkAccess:          pointer.To(publicNetworkAccess),
 			SasPolicy:                    expandAccountSASPolicy(d.Get("sas_policy").([]interface{})),
+			KeyPolicy:                    expandAccountKeyPolicy(d.Get("key_policy").([]interface{})),
 		},
 		Sku: storageaccounts.Sku{
 			Name: storageaccounts.SkuName(fmt.Sprintf("%s%s_%s", string(accountTier), provisionedBillingModelVersion, replicationType)),
@@ -1888,6 +1905,9 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		// TODO: Currently, there is no way to represent a `null` value in the payload - instead it will be omitted, `sas_policy` can not be disabled once enabled.
 		props.SasPolicy = expandAccountSASPolicy(d.Get("sas_policy").([]interface{}))
 	}
+	if d.HasChange("key_policy") {
+		props.KeyPolicy = expandAccountKeyPolicy(d.Get("key_policy").([]interface{}))
+	}
 	if d.HasChange("sftp_enabled") {
 		props.IsSftpEnabled = pointer.To(d.Get("sftp_enabled").(bool))
 	}
@@ -2298,6 +2318,10 @@ func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 
 		if err := d.Set("sas_policy", flattenAccountSASPolicy(props.SasPolicy)); err != nil {
 			return fmt.Errorf("setting `sas_policy`: %+v", err)
+		}
+
+		if err := d.Set("key_policy", flattenAccountKeyPolicy(props.KeyPolicy)); err != nil {
+			return fmt.Errorf("setting `key_policy`: %+v", err)
 		}
 
 		supportLevel = availableFunctionalityForAccount(accountKind, accountTier, accountReplicationType)
@@ -3633,6 +3657,29 @@ func flattenAccountSASPolicy(input *storageaccounts.SasPolicy) []interface{} {
 		output = append(output, map[string]interface{}{
 			"expiration_action": string(input.ExpirationAction),
 			"expiration_period": input.SasExpirationPeriod,
+		})
+	}
+
+	return output
+}
+
+func expandAccountKeyPolicy(input []interface{}) *storageaccounts.KeyPolicy {
+	if len(input) == 0 {
+		return nil
+	}
+
+	raw := input[0].(map[string]interface{})
+	return &storageaccounts.KeyPolicy{
+		KeyExpirationPeriodInDays: int64(raw["expiration_period_in_days"].(int)),
+	}
+}
+
+func flattenAccountKeyPolicy(input *storageaccounts.KeyPolicy) []interface{} {
+	output := make([]interface{}, 0)
+
+	if input != nil {
+		output = append(output, map[string]interface{}{
+			"expiration_period_in_days": input.KeyExpirationPeriodInDays,
 		})
 	}
 
