@@ -153,7 +153,6 @@ func VirtualMachineScaleSetGalleryApplicationSchema() *pluginsdk.Schema {
 				"version_id": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ForceNew:     true,
 					ValidateFunc: galleryapplicationversions.ValidateApplicationVersionID,
 				},
 
@@ -161,7 +160,6 @@ func VirtualMachineScaleSetGalleryApplicationSchema() *pluginsdk.Schema {
 				"configuration_blob_uri": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ForceNew:     true,
 					ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 				},
 
@@ -169,7 +167,6 @@ func VirtualMachineScaleSetGalleryApplicationSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      0,
-					ForceNew:     true,
 					ValidateFunc: validation.IntBetween(0, math.MaxInt32),
 				},
 
@@ -177,7 +174,6 @@ func VirtualMachineScaleSetGalleryApplicationSchema() *pluginsdk.Schema {
 				"tag": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
