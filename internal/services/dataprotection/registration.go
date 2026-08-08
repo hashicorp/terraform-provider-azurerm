@@ -14,7 +14,9 @@ import (
 type Registration struct{}
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
-	return []sdk.FrameworkListWrappedResource{}
+	return []sdk.FrameworkListWrappedResource{
+		DataProtectionBackupVaultResourceGuardAssociationListResource{},
+	}
 }
 
 func (r Registration) Actions() []func() action.Action {
@@ -100,5 +102,6 @@ func (r Registration) Resources() []sdk.Resource {
 		DataProtectionBackupPolicyMySQLFlexibleServerResource{},
 		DataProtectionBackupPolicyPostgreSQLFlexibleServerResource{},
 		DataProtectionBackupVaultCustomerManagedKeyResource{},
+		DataProtectionBackupVaultResourceGuardAssociationResource{},
 	}
 }
