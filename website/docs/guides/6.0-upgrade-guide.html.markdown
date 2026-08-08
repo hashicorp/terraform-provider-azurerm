@@ -1,0 +1,54 @@
+---
+layout: "azurerm"
+page_title: "Azure Resource Manager: 6.0 Upgrade Guide"
+description: |-
+Azure Resource Manager: 6.0 Upgrade Guide
+
+---
+
+# Azure Provider
+
+## Azure Provider Version 6.0
+
+Version 6.0 of the Azure Provider is a major release that includes breaking changes and behavioural differences. This guide covers the most significant changes and explains how to upgrade from v4.x to v6.0.
+
+When upgrading to version 6.0 of the Azure Provider, we recommend upgrading to the latest version of [Terraform](https://developer.hashicorp.com/terraform/install).
+
+### Pinning your Provider Version
+
+We recommend pinning the version of each Provider you use in Terraform. You can do this using the `version` attribute within the `required_providers` block:
+
+```hcl
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "=6.0.0"
+    }
+  }
+}
+
+provider "azurerm" {
+  features {}
+}
+```
+
+More information on [how to pin the version of a Terraform Provider being used can be found on the Terraform Website](https://developer.hashicorp.com/terraform/language/providers/requirements#require-providers).
+
+---
+
+## What's changed in Version 6.0 of the Azure Provider?
+
+* [Resource Provider Registration Changes](#resource-provider-registration-changes)
+* [Removed Resources](#removed-resources)
+* [Removed Data Sources](#removed-data-sources)
+* [Breaking Changes in Resources](#breaking-changes-in-resources)
+* [Breaking Changes in Data Sources](#breaking-changes-in-data-sources)
+
+## Removed Resources
+
+## Removed Data Sources
+
+## Breaking Changes in Resources
+
+## Breaking Changes in Data Sources
