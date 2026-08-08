@@ -23,6 +23,7 @@ import (
 
 func possibleEventSubscriptionEndpointTypes() []string {
 	return []string{
+		string(AzureAlertMonitor),
 		string(AzureFunctionEndpoint),
 		string(EventHubID),
 		string(HybridConnectionID),
@@ -86,6 +87,13 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 			"event_delivery_schema": eventSubscriptionSchemaEventDeliverySchema(),
 
 			"expiration_time_utc": eventSubscriptionSchemaExpirationTimeUTC(),
+
+			"azure_alert_monitor": eventSubscriptionSchemaAzureAlertMonitorEndpoint(
+				utils.RemoveFromStringArray(
+					possibleEventSubscriptionEndpointTypes(),
+					string(AzureAlertMonitor),
+				),
+			),
 
 			"azure_function_endpoint": eventSubscriptionSchemaAzureFunctionEndpoint(
 				utils.RemoveFromStringArray(
@@ -321,10 +329,14 @@ func resourceEventGridEventSubscriptionRead(d *pluginsdk.ResourceData, meta inte
 				return fmt.Errorf("setting `azure_function_endpoint` for %s: %+v", *id, err)
 			}
 
-			d.Set("eventhub_id", flattenEventSubscriptionDestinationEventHub(destination))
-			d.Set("hybrid_connection_id", flattenEventSubscriptionDestinationHybridConnection(destination))
-			d.Set("service_bus_queue_id", flattenEventSubscriptionDestinationServiceBusQueueEndpoint(destination))
-			d.Set("service_bus_topic_id", flattenEventSubscriptionDestinationServiceBusTopicEndpoint(destination))
+			if err := d.Set("azure_alert_monitor", flattenEventSubscriptionDestinationAzureAlertMonitor(destination)); err != nil {
+				return fmt.Errorf("setting `azure_alert_monitor` for %s: %+v", *id, err)
+			}
+
+			d.Set("eventhub_endpoint_id", flattenEventSubscriptionDestinationEventHub(destination))
+			d.Set("hybrid_connection_endpoint_id", flattenEventSubscriptionDestinationHybridConnection(destination))
+			d.Set("service_bus_queue_endpoint_id", flattenEventSubscriptionDestinationServiceBusQueueEndpoint(destination))
+			d.Set("service_bus_topic_endpoint_id", flattenEventSubscriptionDestinationServiceBusTopicEndpoint(destination))
 			if err := d.Set("storage_queue_endpoint", flattenEventSubscriptionDestinationStorageQueueEndpoint(destination)); err != nil {
 				return fmt.Errorf("setting `storage_queue_endpoint` for %s: %+v", *id, err)
 			}
