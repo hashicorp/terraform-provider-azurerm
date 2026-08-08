@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	lbparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
 	lbvalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -522,7 +523,11 @@ func resourceNetworkInterfaceFlatten(d *pluginsdk.ResourceData, id *commonids.Ne
 			d.Set("accelerated_networking_enabled", props.EnableAcceleratedNetworking)
 			d.Set("mac_address", props.MacAddress)
 
-			if err := d.Set("ip_configuration", flattenNetworkInterfaceIPConfigurations(props.IPConfigurations)); err != nil {
+			ipConfig, err := flattenNetworkInterfaceIPConfigurations(props.IPConfigurations)
+			if err != nil {
+				return err
+			}
+			if err := d.Set("ip_configuration", ipConfig); err != nil {
 				return fmt.Errorf("setting `ip_configuration`: %+v", err)
 			}
 		}
@@ -654,9 +659,9 @@ func expandNetworkInterfaceIPConfigurations(input []interface{}) (*[]networkinte
 	return &ipConfigs, nil
 }
 
-func flattenNetworkInterfaceIPConfigurations(input *[]networkinterfaces.NetworkInterfaceIPConfiguration) []interface{} {
+func flattenNetworkInterfaceIPConfigurations(input *[]networkinterfaces.NetworkInterfaceIPConfiguration) ([]interface{}, error) {
 	if input == nil {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	result := make([]interface{}, 0)
@@ -670,7 +675,11 @@ func flattenNetworkInterfaceIPConfigurations(input *[]networkinterfaces.NetworkI
 
 		subnetId := ""
 		if props.Subnet != nil && props.Subnet.Id != nil {
-			subnetId = *props.Subnet.Id
+			v, err := commonids.ParseSubnetIDInsensitively(*props.Subnet.Id)
+			if err != nil {
+				return nil, err
+			}
+			subnetId = v.ID()
 		}
 
 		privateIPAddress := ""
@@ -690,7 +699,11 @@ func flattenNetworkInterfaceIPConfigurations(input *[]networkinterfaces.NetworkI
 
 		publicIPAddressId := ""
 		if props.PublicIPAddress != nil && props.PublicIPAddress.Id != nil {
-			publicIPAddressId = *props.PublicIPAddress.Id
+			v, err := commonids.ParsePublicIPAddressIDInsensitively(*props.PublicIPAddress.Id)
+			if err != nil {
+				return nil, err
+			}
+			publicIPAddressId = v.ID()
 		}
 
 		primary := false
@@ -700,7 +713,11 @@ func flattenNetworkInterfaceIPConfigurations(input *[]networkinterfaces.NetworkI
 
 		gatewayLBFrontendIPConfigId := ""
 		if props.GatewayLoadBalancer != nil && props.GatewayLoadBalancer.Id != nil {
-			gatewayLBFrontendIPConfigId = *props.GatewayLoadBalancer.Id
+			v, err := lbparse.LoadBalancerFrontendIpConfigurationIDInsensitively(*props.GatewayLoadBalancer.Id)
+			if err != nil {
+				return nil, err
+			}
+			gatewayLBFrontendIPConfigId = v.ID()
 		}
 
 		result = append(result, map[string]interface{}{
@@ -714,7 +731,7 @@ func flattenNetworkInterfaceIPConfigurations(input *[]networkinterfaces.NetworkI
 			"gateway_load_balancer_frontend_ip_configuration_id": gatewayLBFrontendIPConfigId,
 		})
 	}
-	return result
+	return result, nil
 }
 
 func expandNetworkInterfaceDnsServers(input []interface{}) []string {

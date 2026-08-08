@@ -233,7 +233,11 @@ func dataSourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{})
 			return fmt.Errorf("setting `private_ip_addresses`: %+v", err)
 		}
 
-		if err := d.Set("ip_configuration", flattenNetworkInterfaceIPConfigurations(props.IPConfigurations)); err != nil {
+		ipConfig, err := flattenNetworkInterfaceIPConfigurations(props.IPConfigurations)
+		if err != nil {
+			return err
+		}
+		if err := d.Set("ip_configuration", ipConfig); err != nil {
 			return fmt.Errorf("setting `ip_configuration`: %+v", err)
 		}
 
