@@ -91,6 +91,7 @@ linters:
             - AZT002 #tests should not obtain credentials via os.Getenv - investigate in a later pr
             - AZR004 #Resource IDs should not be compared with == or != - to fix in a later commit
             - AZR003 # d.Get should not be used within a Delete function as it does not work as expected during deletion
+            - AZS003 # optional-only list blocks allow empty blocks ('foo {}') which can panic expand functions or cause spurious diffs - ~170 hits (plus ~125 in frozen migration schemas) to fix in a later pr
       tfproviderlint:
         type: module
         settings:
