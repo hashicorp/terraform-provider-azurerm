@@ -62,9 +62,20 @@ func (c NginxConfigurationClient) ConfigurationsCreateOrUpdate(ctx context.Conte
 
 // ConfigurationsCreateOrUpdateThenPoll performs ConfigurationsCreateOrUpdate then polls until it's completed
 func (c NginxConfigurationClient) ConfigurationsCreateOrUpdateThenPoll(ctx context.Context, id ConfigurationId, input NginxConfigurationRequest) error {
+	return c.ConfigurationsCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ConfigurationsCreateOrUpdateCallbackThenPoll performs ConfigurationsCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c NginxConfigurationClient) ConfigurationsCreateOrUpdateCallbackThenPoll(ctx context.Context, id ConfigurationId, input NginxConfigurationRequest, callback func() error) error {
 	result, err := c.ConfigurationsCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ConfigurationsCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -1,4 +1,4 @@
-# Copyright (c) HashiCorp, Inc.
+# Copyright IBM Corp. 2014, 2025
 # SPDX-License-Identifier: MPL-2.0
 
 provider "azurerm" {
@@ -39,6 +39,7 @@ resource "azurerm_key_vault" "example" {
   name                            = "${var.prefix}anfakv"
   location                        = azurerm_resource_group.example.location
   resource_group_name             = azurerm_resource_group.example.name
+  rbac_authorization_enabled      = false
   enabled_for_disk_encryption     = true
   enabled_for_deployment          = true
   enabled_for_template_deployment = true

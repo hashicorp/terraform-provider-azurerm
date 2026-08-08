@@ -57,9 +57,20 @@ func (c CapacitiesClient) Suspend(ctx context.Context, id CapacityId) (result Su
 
 // SuspendThenPoll performs Suspend then polls until it's completed
 func (c CapacitiesClient) SuspendThenPoll(ctx context.Context, id CapacityId) error {
+	return c.SuspendCallbackThenPoll(ctx, id, nil)
+}
+
+// SuspendCallbackThenPoll performs Suspend, runs the optional callback function, then polls until it's completed
+func (c CapacitiesClient) SuspendCallbackThenPoll(ctx context.Context, id CapacityId, callback func() error) error {
 	result, err := c.Suspend(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Suspend: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage_test
@@ -10,13 +10,13 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/file/files"
 )
 
@@ -249,7 +249,7 @@ func (StorageShareFileResourceDeprecated) Exists(ctx context.Context, clients *c
 		return nil, fmt.Errorf("retrieving Account %q for File %q (Share %q): %s", id.AccountId.AccountName, id.FileName, id.ShareName, err)
 	}
 	if account == nil {
-		return utils.Bool(false), nil
+		return pointer.To(false), nil
 	}
 
 	client, err := clients.Storage.FileShareFilesDataPlaneClient(ctx, *account, clients.Storage.DataPlaneOperationSupportingAnyAuthMethod())
@@ -264,11 +264,12 @@ func (StorageShareFileResourceDeprecated) Exists(ctx context.Context, clients *c
 		}
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (StorageShareFileResourceDeprecated) template(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -291,7 +292,32 @@ resource "azurerm_storage_share" "test" {
   storage_account_name = azurerm_storage_account.test.name
   quota                = 50
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+		`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_share" "test" {
+  name               = "fileshare"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 50
+}
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r StorageShareFileResourceDeprecated) basic(data acceptance.TestData) string {
@@ -310,7 +336,8 @@ resource "azurerm_storage_share_file" "test" {
 }
 
 func (r StorageShareFileResourceDeprecated) basicAzureADAuth(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   storage_use_azuread = true
   features {}
@@ -343,7 +370,42 @@ resource "azurerm_storage_share_file" "test" {
     hello = "world"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+		`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  storage_use_azuread = true
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_share" "test" {
+  name               = "fileshare"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 50
+}
+
+resource "azurerm_storage_share_file" "test" {
+  name             = "file"
+  storage_share_id = azurerm_storage_share.test.id
+
+  metadata = {
+    hello = "world"
+  }
+}
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r StorageShareFileResourceDeprecated) requiresImport(data acceptance.TestData) string {

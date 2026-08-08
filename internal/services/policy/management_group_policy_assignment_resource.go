@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package policy
@@ -6,6 +6,7 @@ package policy
 import (
 	"regexp"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	managementGroupValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/validate"
@@ -13,10 +14,39 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.ResourceWithUpdate = ManagementGroupAssignmentResource{}
-
 type ManagementGroupAssignmentResource struct {
 	base assignmentBaseResource
+}
+
+var _ sdk.ResourceWithUpdate = ManagementGroupAssignmentResource{}
+
+func (r ManagementGroupAssignmentResource) ResourceType() string {
+	return "azurerm_management_group_policy_assignment"
+}
+
+func (r ManagementGroupAssignmentResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return validate.ManagementGroupAssignmentID
+}
+
+type ManagementGroupAssignmentModel struct {
+	Name                 string                                     `tfschema:"name"`
+	ManagementGroupId    string                                     `tfschema:"management_group_id"`
+	PolicyDefinitionId   string                                     `tfschema:"policy_definition_id"`
+	Description          string                                     `tfschema:"description"`
+	DisplayName          string                                     `tfschema:"display_name"`
+	Location             string                                     `tfschema:"location"`
+	Enforce              bool                                       `tfschema:"enforce"`
+	Metadata             string                                     `tfschema:"metadata"`
+	Parameters           string                                     `tfschema:"parameters"`
+	NotScopes            []string                                   `tfschema:"not_scopes"`
+	Identity             []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	NonComplianceMessage []assignmentNonComplianceMessageModel      `tfschema:"non_compliance_message"`
+	Overrides            []assignmentOverrideModel                  `tfschema:"overrides"`
+	ResourceSelectors    []assignmentResourceSelectorModel          `tfschema:"resource_selectors"`
+}
+
+func (r ManagementGroupAssignmentResource) ModelObject() interface{} {
+	return &ManagementGroupAssignmentModel{}
 }
 
 func (r ManagementGroupAssignmentResource) Arguments() map[string]*pluginsdk.Schema {
@@ -50,26 +80,14 @@ func (r ManagementGroupAssignmentResource) Create() sdk.ResourceFunc {
 	return r.base.createFunc(r.ResourceType(), "management_group_id")
 }
 
-func (r ManagementGroupAssignmentResource) Delete() sdk.ResourceFunc {
-	return r.base.deleteFunc()
-}
-
-func (r ManagementGroupAssignmentResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ManagementGroupAssignmentID
-}
-
-func (r ManagementGroupAssignmentResource) ModelObject() interface{} {
-	return nil
-}
-
 func (r ManagementGroupAssignmentResource) Read() sdk.ResourceFunc {
 	return r.base.readFunc("management_group_id")
 }
 
-func (r ManagementGroupAssignmentResource) ResourceType() string {
-	return "azurerm_management_group_policy_assignment"
-}
-
 func (r ManagementGroupAssignmentResource) Update() sdk.ResourceFunc {
 	return r.base.updateFunc()
+}
+
+func (r ManagementGroupAssignmentResource) Delete() sdk.ResourceFunc {
+	return r.base.deleteFunc()
 }

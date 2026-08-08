@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud
@@ -456,12 +456,14 @@ func (s SpringCloudGatewayResource) Create() sdk.ResourceFunc {
 			}
 			id := appplatform.NewGatewayID(springId.SubscriptionId, springId.ResourceGroupName, springId.ServiceName, model.Name)
 
-			existing, err := client.GatewaysGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(s.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GatewaysGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(s.ResourceType(), id)
+				}
 			}
 
 			service, err := client.ServicesGet(ctx, *springId)
@@ -496,12 +498,11 @@ func (s SpringCloudGatewayResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			err = client.GatewaysCreateOrUpdateThenPoll(ctx, id, gatewayResource)
-			if err != nil {
+			if err := client.GatewaysCreateOrUpdateCallbackThenPoll(ctx, id, gatewayResource, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}
@@ -560,7 +561,7 @@ func (s SpringCloudGatewayResource) Update() sdk.ResourceFunc {
 				properties.CorsProperties = expandGatewayGatewayCorsProperties(model.Cors)
 			}
 
-			if metadata.ResourceData.HasChange("environment_variables") || metadata.ResourceData.HasChange("sensitive_environment_variables") {
+			if metadata.ResourceData.HasChanges("environment_variables", "sensitive_environment_variables") {
 				properties.EnvironmentVariables = expandGatewayGatewayEnvironmentVariables(model.EnvironmentVariables, model.SensitiveEnvironmentVariables)
 			}
 
@@ -580,7 +581,7 @@ func (s SpringCloudGatewayResource) Update() sdk.ResourceFunc {
 				properties.SsoProperties = expandGatewaySsoProperties(model.Sso)
 			}
 
-			if metadata.ResourceData.HasChange("local_response_cache_per_instance") || metadata.ResourceData.HasChange("local_response_cache_per_route") {
+			if metadata.ResourceData.HasChanges("local_response_cache_per_instance", "local_response_cache_per_route") {
 				properties.ResponseCacheProperties = expandGatewayResponseCacheProperties(model)
 			}
 

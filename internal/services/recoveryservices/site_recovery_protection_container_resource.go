@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices
@@ -6,6 +6,8 @@ package recoveryservices
 import (
 	"fmt"
 	"time"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -72,7 +74,7 @@ func resourceSiteRecoveryProtectionContainerCreate(d *pluginsdk.ResourceData, me
 
 	id := replicationprotectioncontainers.NewReplicationProtectionContainerID(subscriptionId, resGroup, vaultName, fabricName, name)
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -89,11 +91,9 @@ func resourceSiteRecoveryProtectionContainerCreate(d *pluginsdk.ResourceData, me
 		Properties: &replicationprotectioncontainers.CreateProtectionContainerInputProperties{},
 	}
 
-	err := client.CreateThenPoll(ctx, id, parameters)
-	if err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating site recovery protection container %s (fabric %s): %+v", name, fabricName, err)
 	}
-
 	d.SetId(id.ID())
 
 	return resourceSiteRecoveryProtectionContainerRead(d, meta)

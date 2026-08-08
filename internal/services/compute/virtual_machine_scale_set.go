@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networksecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
@@ -118,14 +118,12 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
-				// TODO 4.0: change this from enable_* to *_enabled
-				"enable_accelerated_networking": {
+				"accelerated_networking_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
 				},
-				// TODO 4.0: change this from enable_* to *_enabled
-				"enable_ip_forwarding": {
+				"ip_forwarding_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
@@ -441,13 +439,11 @@ func VirtualMachineScaleSetNetworkInterfaceSchemaForDataSource() *pluginsdk.Sche
 						Type: pluginsdk.TypeString,
 					},
 				},
-				// TODO 4.0: change this from enable_* to *_enabled
-				"enable_accelerated_networking": {
+				"accelerated_networking_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
-				// TODO 4.0: change this from enable_* to *_enabled
-				"enable_ip_forwarding": {
+				"ip_forwarding_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
@@ -748,8 +744,8 @@ func ExpandVirtualMachineScaleSetNetworkInterface(input []interface{}) (*[]virtu
 				DnsSettings: &virtualmachinescalesets.VirtualMachineScaleSetNetworkConfigurationDnsSettings{
 					DnsServers: dnsServers,
 				},
-				EnableAcceleratedNetworking: pointer.To(raw["enable_accelerated_networking"].(bool)),
-				EnableIPForwarding:          pointer.To(raw["enable_ip_forwarding"].(bool)),
+				EnableAcceleratedNetworking: pointer.To(raw["accelerated_networking_enabled"].(bool)),
+				EnableIPForwarding:          pointer.To(raw["ip_forwarding_enabled"].(bool)),
 				IPConfigurations:            ipConfigurations,
 				Primary:                     pointer.To(raw["primary"].(bool)),
 			},
@@ -887,8 +883,8 @@ func ExpandVirtualMachineScaleSetNetworkInterfaceUpdate(input []interface{}) (*[
 				DnsSettings: &virtualmachinescalesets.VirtualMachineScaleSetNetworkConfigurationDnsSettings{
 					DnsServers: dnsServers,
 				},
-				EnableAcceleratedNetworking: pointer.To(raw["enable_accelerated_networking"].(bool)),
-				EnableIPForwarding:          pointer.To(raw["enable_ip_forwarding"].(bool)),
+				EnableAcceleratedNetworking: pointer.To(raw["accelerated_networking_enabled"].(bool)),
+				EnableIPForwarding:          pointer.To(raw["ip_forwarding_enabled"].(bool)),
 				IPConfigurations:            &ipConfigurations,
 				Primary:                     pointer.To(raw["primary"].(bool)),
 			},
@@ -1028,15 +1024,15 @@ func FlattenVirtualMachineScaleSetNetworkInterface(input *[]virtualmachinescales
 			}
 
 			results = append(results, map[string]interface{}{
-				"name":                          v.Name,
-				"auxiliary_mode":                auxiliaryMode,
-				"auxiliary_sku":                 auxiliarySku,
-				"dns_servers":                   dnsServers,
-				"enable_accelerated_networking": enableAcceleratedNetworking,
-				"enable_ip_forwarding":          enableIPForwarding,
-				"ip_configuration":              ipConfigurations,
-				"network_security_group_id":     networkSecurityGroupId,
-				"primary":                       primary,
+				"name":                           v.Name,
+				"auxiliary_mode":                 auxiliaryMode,
+				"auxiliary_sku":                  auxiliarySku,
+				"dns_servers":                    dnsServers,
+				"accelerated_networking_enabled": enableAcceleratedNetworking,
+				"ip_forwarding_enabled":          enableIPForwarding,
+				"ip_configuration":               ipConfigurations,
+				"network_security_group_id":      networkSecurityGroupId,
+				"primary":                        primary,
 			})
 		}
 	}
@@ -1208,16 +1204,14 @@ func VirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 					Default:  false,
 				},
 
-				// TODO rename `ultra_ssd_disk_iops_read_write` to `disk_iops_read_write` in 4.0
-				"ultra_ssd_disk_iops_read_write": {
+				"disk_iops_read_write": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntAtLeast(1),
 					Computed:     true,
 				},
 
-				// TODO rename `ultra_ssd_disk_mbps_read_write` to `disk_mbps_read_write` in 4.0
-				"ultra_ssd_disk_mbps_read_write": {
+				"disk_mbps_read_write": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntAtLeast(1),
@@ -1256,22 +1250,16 @@ func ExpandVirtualMachineScaleSetDataDisk(input []interface{}, ultraSSDEnabled b
 			}
 		}
 
-		var iops int
-		if diskIops, ok := raw["ultra_ssd_disk_iops_read_write"]; ok && diskIops.(int) > 0 {
-			iops = diskIops.(int)
-		}
+		iops, mbps := raw["disk_iops_read_write"].(int), raw["disk_mbps_read_write"].(int)
 
-		if iops > 0 && !ultraSSDEnabled && storageAccountType != virtualmachinescalesets.StorageAccountTypesPremiumVTwoLRS {
-			return nil, fmt.Errorf("`ultra_ssd_disk_iops_read_write` can only be set when `storage_account_type` is set to `PremiumV2_LRS` or `UltraSSD_LRS`")
-		}
+		if !ultraSSDEnabled && storageAccountType != virtualmachinescalesets.StorageAccountTypesPremiumVTwoLRS {
+			if iops > 0 {
+				return nil, fmt.Errorf("`disk_iops_read_write` can only be set when `storage_account_type` is set to `PremiumV2_LRS` or `UltraSSD_LRS`")
+			}
 
-		var mbps int
-		if diskMbps, ok := raw["ultra_ssd_disk_mbps_read_write"]; ok && diskMbps.(int) > 0 {
-			mbps = diskMbps.(int)
-		}
-
-		if mbps > 0 && !ultraSSDEnabled && storageAccountType != virtualmachinescalesets.StorageAccountTypesPremiumVTwoLRS {
-			return nil, fmt.Errorf("`ultra_ssd_disk_mbps_read_write` can only be set when `storage_account_type` is set to `PremiumV2_LRS` or `UltraSSD_LRS`")
+			if mbps > 0 {
+				return nil, fmt.Errorf("`disk_mbps_read_write` can only be set when `storage_account_type` is set to `PremiumV2_LRS` or `UltraSSD_LRS`")
+			}
 		}
 
 		// Do not set value unless value is greater than 0 - issue 15516
@@ -1333,16 +1321,16 @@ func FlattenVirtualMachineScaleSetDataDisk(input *[]virtualmachinescalesets.Virt
 		}
 
 		dataDisk := map[string]interface{}{
-			"name":                           name,
-			"caching":                        string(pointer.From(v.Caching)),
-			"create_option":                  string(v.CreateOption),
-			"lun":                            v.Lun,
-			"disk_encryption_set_id":         diskEncryptionSetId,
-			"disk_size_gb":                   diskSizeGb,
-			"storage_account_type":           storageAccountType,
-			"ultra_ssd_disk_iops_read_write": iops,
-			"ultra_ssd_disk_mbps_read_write": mbps,
-			"write_accelerator_enabled":      writeAcceleratorEnabled,
+			"name":                      name,
+			"caching":                   pointer.FromEnum(v.Caching),
+			"create_option":             string(v.CreateOption),
+			"lun":                       v.Lun,
+			"disk_encryption_set_id":    diskEncryptionSetId,
+			"disk_size_gb":              diskSizeGb,
+			"storage_account_type":      storageAccountType,
+			"disk_iops_read_write":      iops,
+			"disk_mbps_read_write":      mbps,
+			"write_accelerator_enabled": writeAcceleratorEnabled,
 		}
 
 		output = append(output, dataDisk)
@@ -1600,12 +1588,11 @@ func VirtualMachineScaleSetAutomatedOSUpgradePolicySchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				// TODO: should these be optional + defaulted?
-				"disable_automatic_rollback": {
+				"automatic_rollback_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Required: true,
 				},
-				// TODO 4.0: change this from enable_* to *_enabled
-				"enable_automatic_os_upgrade": {
+				"automatic_os_upgrade_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Required: true,
 				},
@@ -1621,8 +1608,8 @@ func ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(input []interface{}) *vi
 
 	raw := input[0].(map[string]interface{})
 	return &virtualmachinescalesets.AutomaticOSUpgradePolicy{
-		DisableAutomaticRollback: pointer.To(raw["disable_automatic_rollback"].(bool)),
-		EnableAutomaticOSUpgrade: pointer.To(raw["enable_automatic_os_upgrade"].(bool)),
+		DisableAutomaticRollback: pointer.To(!raw["automatic_rollback_enabled"].(bool)),
+		EnableAutomaticOSUpgrade: pointer.To(raw["automatic_os_upgrade_enabled"].(bool)),
 	}
 }
 
@@ -1631,20 +1618,10 @@ func FlattenVirtualMachineScaleSetAutomaticOSUpgradePolicy(input *virtualmachine
 		return []interface{}{}
 	}
 
-	disableAutomaticRollback := false
-	if input.DisableAutomaticRollback != nil {
-		disableAutomaticRollback = *input.DisableAutomaticRollback
-	}
-
-	enableAutomaticOSUpgrade := false
-	if input.EnableAutomaticOSUpgrade != nil {
-		enableAutomaticOSUpgrade = *input.EnableAutomaticOSUpgrade
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"disable_automatic_rollback":  disableAutomaticRollback,
-			"enable_automatic_os_upgrade": enableAutomaticOSUpgrade,
+			"automatic_rollback_enabled":   !pointer.From(input.DisableAutomaticRollback),
+			"automatic_os_upgrade_enabled": pointer.From(input.EnableAutomaticOSUpgrade),
 		},
 	}
 }
@@ -1987,18 +1964,18 @@ func virtualMachineScaleSetExtensionHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["publisher"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["type"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["type_handler_version"].(string)))
-		buf.WriteString(fmt.Sprintf("%t-", m["auto_upgrade_minor_version"].(bool)))
+		fmt.Fprintf(&buf, "%s-", m["name"].(string))
+		fmt.Fprintf(&buf, "%s-", m["publisher"].(string))
+		fmt.Fprintf(&buf, "%s-", m["type"].(string))
+		fmt.Fprintf(&buf, "%s-", m["type_handler_version"].(string))
+		fmt.Fprintf(&buf, "%t-", m["auto_upgrade_minor_version"].(bool))
 
 		if v, ok = m["force_update_tag"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v))
+			fmt.Fprintf(&buf, "%s-", v)
 		}
 
 		if v, ok := m["provision_after_extensions"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v))
+			fmt.Fprintf(&buf, "%s-", v)
 		}
 
 		// we need to ensure the whitespace is consistent
@@ -2008,7 +1985,7 @@ func virtualMachineScaleSetExtensionHash(v interface{}) int {
 			if err == nil {
 				serializedSettings, err := pluginsdk.FlattenJsonToString(expandedSettings)
 				if err == nil {
-					buf.WriteString(fmt.Sprintf("%s-", serializedSettings))
+					fmt.Fprintf(&buf, "%s-", serializedSettings)
 				}
 			}
 		}
@@ -2020,7 +1997,7 @@ func virtualMachineScaleSetExtensionHash(v interface{}) int {
 				if err == nil {
 					serializedSettings, err := pluginsdk.FlattenJsonToString(expandedSettings)
 					if err == nil {
-						buf.WriteString(fmt.Sprintf("%s-", serializedSettings))
+						fmt.Fprintf(&buf, "%s-", serializedSettings)
 					}
 				}
 			}
@@ -2029,8 +2006,8 @@ func virtualMachineScaleSetExtensionHash(v interface{}) int {
 		if v, ok := m["protected_settings_from_key_vault"]; ok {
 			protectedSettingsFromKeyVault := v.([]interface{})
 			if len(protectedSettingsFromKeyVault) > 0 {
-				buf.WriteString(fmt.Sprintf("%s-", protectedSettingsFromKeyVault[0].(map[string]interface{})["secret_url"].(string)))
-				buf.WriteString(fmt.Sprintf("%s-", protectedSettingsFromKeyVault[0].(map[string]interface{})["source_vault_id"].(string)))
+				fmt.Fprintf(&buf, "%s-", protectedSettingsFromKeyVault[0].(map[string]interface{})["secret_url"].(string))
+				fmt.Fprintf(&buf, "%s-", protectedSettingsFromKeyVault[0].(map[string]interface{})["source_vault_id"].(string))
 			}
 		}
 	}

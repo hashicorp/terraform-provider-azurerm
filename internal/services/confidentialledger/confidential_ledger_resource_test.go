@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package confidentialledger_test
@@ -18,7 +18,7 @@ import (
 
 type ConfidentialLedgerResource struct{}
 
-func TestAccConfidentialLedgerSequential(t *testing.T) {
+func TestAccConfidentialLedger_sequential(t *testing.T) {
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"confidentialLedger": {
 			"public":         testAccConfidentialLedger_public,
@@ -363,7 +363,7 @@ func (ConfidentialLedgerResource) template(data acceptance.TestData) string {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-ledger-%[1]d"
+  name     = "acctestrgledger%[1]d"
   location = "%[2]s"
 }
 

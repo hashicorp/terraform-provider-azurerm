@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -133,13 +133,15 @@ func resourceArmApiManagementIdentityProviderAADB2CCreateUpdate(d *pluginsdk.Res
 	id := identityprovider.NewIdentityProviderID(meta.(*clients.Client).Account.SubscriptionId, resourceGroup, serviceName, identityprovider.IdentityProviderTypeAadBTwoC)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id.String(), err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id.String(), err)
+				}
+			} else {
+				return tf.ImportAsExistsError("azurerm_api_management_identity_provider_aadb2c", id.ID())
 			}
-		} else {
-			return tf.ImportAsExistsError("azurerm_api_management_identity_provider_aadb2c", id.ID())
 		}
 	}
 

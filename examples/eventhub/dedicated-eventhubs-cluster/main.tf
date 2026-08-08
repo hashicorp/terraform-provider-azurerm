@@ -1,4 +1,4 @@
-# Copyright (c) HashiCorp, Inc.
+# Copyright IBM Corp. 2014, 2025
 # SPDX-License-Identifier: MPL-2.0
 
 provider "azurerm" {
@@ -26,9 +26,8 @@ resource "azurerm_eventhub_namespace" "example" {
 }
 
 resource "azurerm_eventhub" "example" {
-  name                = "${var.prefix}-eventhub"
-  resource_group_name = azurerm_resource_group.example.name
-  namespace_name      = azurerm_eventhub_namespace.example.name
-  partition_count     = 40
-  message_retention   = 1
+  name              = "${var.prefix}-eventhub"
+  namespace_id      = azurerm_eventhub_namespace.example.id
+  partition_count   = 40
+  message_retention = 1
 }

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -127,10 +127,14 @@ func resourceVirtualHubRouteTableRouteCreate(d *pluginsdk.ResourceData, meta int
 	id := parse.NewHubRouteTableRouteID(routeTableId.SubscriptionId, routeTableId.ResourceGroupName, routeTableId.VirtualHubName, routeTableId.HubRouteTableName, name)
 
 	routes := make([]virtualwans.HubRoute, 0)
+	exists := false
 	if hubRoutes := props.Routes; hubRoutes != nil {
 		for _, r := range *hubRoutes {
 			if r.Name == name {
-				return tf.ImportAsExistsError("azurerm_virtual_hub_route_table_route", id.ID())
+				exists = true
+				if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+					return tf.ImportAsExistsError("azurerm_virtual_hub_route_table_route", id.ID())
+				}
 			}
 		}
 		routes = *props.Routes
@@ -143,11 +147,14 @@ func resourceVirtualHubRouteTableRouteCreate(d *pluginsdk.ResourceData, meta int
 			NextHop:         d.Get("next_hop").(string),
 		}
 
-		routes = append(routes, result)
+		if !exists {
+			routes = append(routes, result)
+		}
 	}
 
 	routeTable.Model.Properties.Routes = pointer.To(routes)
 
+	// // TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
 	if err := client.HubRouteTablesCreateOrUpdateThenPoll(ctx, *routeTableId, *routeTable.Model); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}

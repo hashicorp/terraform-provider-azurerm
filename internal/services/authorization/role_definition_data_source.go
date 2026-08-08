@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package authorization
@@ -192,8 +192,9 @@ func (a RoleDefinitionDataSource) Read() sdk.ResourceFunc {
 						return pluginsdk.NonRetryableError(fmt.Errorf("loading Role Definition List: values[0].NameD is nil '%s'", config.Name))
 					}
 
-					defId = *(*roleDefinitions.Model)[0].Id
-					id = roledefinitions.NewScopedRoleDefinitionID(config.Scope, *(*roleDefinitions.Model)[0].Name)
+					defId = *(*roleDefinitions.Model)[0].Name
+					id = roledefinitions.NewScopedRoleDefinitionID(config.Scope, defId)
+
 					return nil
 				})
 				if err != nil {

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package loganalytics
@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -16,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceLogAnalyticsWorkspace() *pluginsdk.Resource {
@@ -49,6 +49,16 @@ func dataSourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 
 			"daily_quota_gb": {
 				Type:     pluginsdk.TypeFloat,
+				Computed: true,
+			},
+
+			"internet_ingestion_access_type": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"internet_query_access_type": {
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -122,8 +132,11 @@ func dataSourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interfa
 			if props.WorkspaceCapping != nil && props.WorkspaceCapping.DailyQuotaGb != nil {
 				d.Set("daily_quota_gb", props.WorkspaceCapping.DailyQuotaGb)
 			} else {
-				d.Set("daily_quota_gb", utils.Float(-1))
+				d.Set("daily_quota_gb", pointer.To(-1))
 			}
+
+			d.Set("internet_ingestion_access_type", string(pointer.From(props.PublicNetworkAccessForIngestion)))
+			d.Set("internet_query_access_type", string(pointer.From(props.PublicNetworkAccessForQuery)))
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {

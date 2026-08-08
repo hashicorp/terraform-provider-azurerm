@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage_test
@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/file/directories"
 )
 
@@ -203,11 +203,11 @@ func (r StorageShareDirectoryResourceDeprecated) Exists(ctx context.Context, cli
 	resp, err := dirClient.Get(ctx, id.ShareName, id.DirectoryPath)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Storage Share %q (File Share %q in %s): %+v", id.DirectoryPath, id.ShareName, account.StorageAccountId, err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r StorageShareDirectoryResourceDeprecated) basic(data acceptance.TestData) string {
@@ -223,7 +223,8 @@ resource "azurerm_storage_share_directory" "test" {
 }
 
 func (r StorageShareDirectoryResourceDeprecated) basicAzureADAuth(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   storage_use_azuread = true
   features {}
@@ -252,7 +253,38 @@ resource "azurerm_storage_share_directory" "test" {
   name             = "dir"
   storage_share_id = azurerm_storage_share.test.id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+		`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  storage_use_azuread = true
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_share" "test" {
+  name               = "fileshare"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 50
+}
+
+resource "azurerm_storage_share_directory" "test" {
+  name             = "dir"
+  storage_share_id = azurerm_storage_share.test.id
+}
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r StorageShareDirectoryResourceDeprecated) uppercase(data acceptance.TestData) string {
@@ -358,7 +390,8 @@ resource "azurerm_storage_share_directory" "dos" {
 }
 
 func (r StorageShareDirectoryResourceDeprecated) template(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -381,5 +414,30 @@ resource "azurerm_storage_share" "test" {
   storage_account_name = azurerm_storage_account.test.name
   quota                = 50
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+		`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_share" "test" {
+  name               = "fileshare"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 50
+}
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

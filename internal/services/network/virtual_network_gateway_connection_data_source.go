@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -57,8 +57,7 @@ func dataSourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_bgp": {
+			"bgp_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
@@ -234,7 +233,7 @@ func dataSourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, me
 		props := model.Properties
 
 		d.Set("authorization_key", props.AuthorizationKey)
-		d.Set("enable_bgp", props.EnableBgp)
+		d.Set("bgp_enabled", props.EnableBgp)
 		d.Set("ingress_bytes_transferred", props.IngressBytesTransferred)
 		d.Set("egress_bytes_transferred", props.EgressBytesTransferred)
 		d.Set("use_policy_based_traffic_selectors", props.UsePolicyBasedTrafficSelectors)

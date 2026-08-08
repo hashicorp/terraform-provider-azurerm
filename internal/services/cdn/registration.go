@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn
@@ -13,6 +13,8 @@ import (
 type Registration struct{}
 
 var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+
+var _ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
 
 var _ sdk.FrameworkServiceRegistration = Registration{}
 
@@ -33,6 +35,7 @@ func (r Registration) WebsiteCategories() []string {
 }
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
+// lintignore:AZNR005
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		// CDN
@@ -49,9 +52,24 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	}
 }
 
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{
+		CdnFrontDoorBatchRuleSetDataSource{},
+		CdnFrontDoorSecurityPolicyDataSource{},
+	}
+}
+
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		CdnFrontDoorBatchRuleSetResource{},
+		CdnFrontDoorRuleResource{},
+	}
+}
+
 // SupportedResources returns the supported Resources supported by this Service
+// lintignore:AZNR005
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
-	resources := map[string]*pluginsdk.Resource{
+	return map[string]*pluginsdk.Resource{
 		// CDN
 		"azurerm_cdn_endpoint":               resourceCdnEndpoint(),
 		"azurerm_cdn_endpoint_custom_domain": resourceArmCdnEndpointCustomDomain(),
@@ -66,13 +84,10 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_cdn_frontdoor_origin_group":              resourceCdnFrontDoorOriginGroup(),
 		"azurerm_cdn_frontdoor_profile":                   resourceCdnFrontDoorProfile(),
 		"azurerm_cdn_frontdoor_route":                     resourceCdnFrontDoorRoute(),
-		"azurerm_cdn_frontdoor_rule":                      resourceCdnFrontDoorRule(),
 		"azurerm_cdn_frontdoor_rule_set":                  resourceCdnFrontDoorRuleSet(),
 		"azurerm_cdn_frontdoor_secret":                    resourceCdnFrontDoorSecret(),
 		"azurerm_cdn_frontdoor_security_policy":           resourceCdnFrontDoorSecurityPolicy(),
 	}
-
-	return resources
 }
 
 func (r Registration) Actions() []func() action.Action {
@@ -94,5 +109,7 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 }
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
-	return []sdk.FrameworkListWrappedResource{}
+	return []sdk.FrameworkListWrappedResource{
+		CdnFrontDoorBatchRuleSetListResource{},
+	}
 }

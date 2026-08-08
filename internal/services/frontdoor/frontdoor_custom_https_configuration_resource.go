@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package frontdoor
@@ -9,6 +9,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2020-05-01/frontdoors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -18,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceFrontDoorCustomHTTPSConfiguration() *pluginsdk.Resource {
@@ -298,10 +298,10 @@ func makeCustomHTTPSConfiguration(customHttpsConfiguration map[string]interface{
 		customHTTPSConfigurationUpdate.CertificateSource = frontdoors.FrontDoorCertificateSourceAzureKeyVault
 		customHTTPSConfigurationUpdate.KeyVaultCertificateSourceParameters = &frontdoors.KeyVaultCertificateSourceParameters{
 			Vault: &frontdoors.KeyVaultCertificateSourceParametersVault{
-				Id: utils.String(vaultId),
+				Id: pointer.To(vaultId),
 			},
-			SecretName:    utils.String(vaultSecret),
-			SecretVersion: utils.String(vaultVersion),
+			SecretName:    pointer.To(vaultSecret),
+			SecretVersion: pointer.To(vaultVersion),
 		}
 	} else {
 		customHTTPSConfigurationUpdate.CertificateSource = frontdoors.FrontDoorCertificateSourceFrontDoor

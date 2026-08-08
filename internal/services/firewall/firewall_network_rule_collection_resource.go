@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package firewall
@@ -178,12 +178,12 @@ func resourceFirewallNetworkRuleCollectionCreateUpdate(d *pluginsdk.ResourceData
 	}
 	priority := d.Get("priority").(int)
 	newRuleCollection := azurefirewalls.AzureFirewallNetworkRuleCollection{
-		Name: utils.String(name),
+		Name: pointer.To(name),
 		Properties: &azurefirewalls.AzureFirewallNetworkRuleCollectionPropertiesFormat{
 			Action: &azurefirewalls.AzureFirewallRCAction{
 				Type: pointer.To(azurefirewalls.AzureFirewallRCActionType(d.Get("action").(string))),
 			},
-			Priority: utils.Int64(int64(priority)),
+			Priority: pointer.To(int64(priority)),
 			Rules:    networkRules,
 		},
 	}
@@ -210,16 +210,23 @@ func resourceFirewallNetworkRuleCollectionCreateUpdate(d *pluginsdk.ResourceData
 
 		ruleCollections[index] = newRuleCollection
 	} else {
+		exists := false
 		if d.IsNewResource() && index != -1 {
-			return tf.ImportAsExistsError("azurerm_firewall_network_rule_collection", id)
+			exists = true
+			if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				return tf.ImportAsExistsError("azurerm_firewall_network_rule_collection", id)
+			}
 		}
 
 		// first double check it doesn't already exist
-		ruleCollections = append(ruleCollections, newRuleCollection)
+		if !exists {
+			ruleCollections = append(ruleCollections, newRuleCollection)
+		}
 	}
 
 	firewall.Model.Properties.NetworkRuleCollections = &ruleCollections
 
+	// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
 	if err := client.CreateOrUpdateThenPoll(ctx, firewallId, *firewall.Model); err != nil {
 		return fmt.Errorf("creating/updating Network Rule Collection %q in Firewall %q (Resource Group %q): %+v", name, firewallName, resourceGroup, err)
 	}
@@ -436,8 +443,8 @@ func expandFirewallNetworkRules(input []interface{}) (*[]azurefirewalls.AzureFir
 		}
 
 		ruleToAdd := azurefirewalls.AzureFirewallNetworkRule{
-			Name:                 utils.String(name),
-			Description:          utils.String(description),
+			Name:                 pointer.To(name),
+			Description:          pointer.To(description),
 			SourceAddresses:      &sourceAddresses,
 			SourceIPGroups:       &sourceIpGroups,
 			DestinationAddresses: &destinationAddresses,

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworkpeerings"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -22,7 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-const virtualNetworkPeeringResourceType = "azurerm_virtual_network_peering"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceVirtualNetworkPeering() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -30,11 +31,12 @@ func resourceVirtualNetworkPeering() *pluginsdk.Resource {
 		Read:   resourceVirtualNetworkPeeringRead,
 		Update: resourceVirtualNetworkPeeringUpdate,
 		Delete: resourceVirtualNetworkPeeringDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := virtualnetworkpeerings.ParseVirtualNetworkPeeringID(id)
-			return err
-		}),
 
+		Importer: pluginsdk.ImporterValidatingIdentity(&virtualnetworkpeerings.VirtualNetworkPeeringId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&virtualnetworkpeerings.VirtualNetworkPeeringId{}),
+		},
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -137,15 +139,18 @@ func resourceVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, meta interfa
 	defer cancel()
 
 	id := virtualnetworkpeerings.NewVirtualNetworkPeeringID(subscriptionId, d.Get("resource_group_name").(string), d.Get("virtual_network_name").(string), d.Get("name").(string))
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_virtual_network_peering", id.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
+		}
+
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_virtual_network_peering", id.ID())
+		}
 	}
 
 	peer := virtualnetworkpeerings.VirtualNetworkPeering{
@@ -173,9 +178,17 @@ func resourceVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, meta interfa
 		peer.Properties.RemoteSubnetNames = utils.ExpandStringSlice(v.([]interface{}))
 	}
 
-	locks.ByID(virtualNetworkPeeringResourceType)
-	defer locks.UnlockByID(virtualNetworkPeeringResourceType)
+	vnetId := commonids.NewVirtualNetworkID(subscriptionId, d.Get("resource_group_name").(string), d.Get("virtual_network_name").(string))
+	remoteVnetId, err := commonids.ParseVirtualNetworkID(d.Get("remote_virtual_network_id").(string))
+	if err != nil {
+		return err
+	}
 
+	vnetIDsToLock := []string{vnetId.ID(), remoteVnetId.ID()}
+	locks.MultipleByID(&vnetIDsToLock)
+	defer locks.UnlockMultipleByID(&vnetIDsToLock)
+
+	// TODO: implement `CallbackThenPoll`, rework to remove StateChangeConf
 	deadline, ok := ctx.Deadline()
 	if !ok {
 		return fmt.Errorf("internal-error: context had no deadline")
@@ -212,6 +225,9 @@ func resourceVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceVirtualNetworkPeeringRead(d, meta)
 }
@@ -226,8 +242,15 @@ func resourceVirtualNetworkPeeringUpdate(d *pluginsdk.ResourceData, meta interfa
 		return err
 	}
 
-	locks.ByID(virtualNetworkPeeringResourceType)
-	defer locks.UnlockByID(virtualNetworkPeeringResourceType)
+	vnetId := commonids.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroupName, id.VirtualNetworkName)
+	remoteVnetId, err := commonids.ParseVirtualNetworkID(d.Get("remote_virtual_network_id").(string))
+	if err != nil {
+		return err
+	}
+
+	vnetIDsToLock := []string{vnetId.ID(), remoteVnetId.ID()}
+	locks.MultipleByID(&vnetIDsToLock)
+	defer locks.UnlockMultipleByID(&vnetIDsToLock)
 
 	existing, err := client.Get(ctx, *id)
 	if err != nil {
@@ -287,12 +310,15 @@ func resourceVirtualNetworkPeeringRead(d *pluginsdk.ResourceData, meta interface
 		}
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
+	return resourceVirtualNetworkPeeringFlatten(d, id, resp.Model)
+}
 
+func resourceVirtualNetworkPeeringFlatten(d *pluginsdk.ResourceData, id *virtualnetworkpeerings.VirtualNetworkPeeringId, model *virtualnetworkpeerings.VirtualNetworkPeering) error {
 	d.Set("name", id.VirtualNetworkPeeringName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("virtual_network_name", id.VirtualNetworkName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if peer := model.Properties; peer != nil {
 			d.Set("allow_virtual_network_access", peer.AllowVirtualNetworkAccess)
 			d.Set("allow_forwarded_traffic", peer.AllowForwardedTraffic)
@@ -315,7 +341,7 @@ func resourceVirtualNetworkPeeringRead(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceVirtualNetworkPeeringDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -328,8 +354,15 @@ func resourceVirtualNetworkPeeringDelete(d *pluginsdk.ResourceData, meta interfa
 		return err
 	}
 
-	locks.ByID(virtualNetworkPeeringResourceType)
-	defer locks.UnlockByID(virtualNetworkPeeringResourceType)
+	vnetId := commonids.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroupName, id.VirtualNetworkName)
+	remoteVnetId, err := commonids.ParseVirtualNetworkID(d.Get("remote_virtual_network_id").(string))
+	if err != nil {
+		return err
+	}
+
+	vnetIDsToLock := []string{vnetId.ID(), remoteVnetId.ID()}
+	locks.MultipleByID(&vnetIDsToLock)
+	defer locks.UnlockMultipleByID(&vnetIDsToLock)
 
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)

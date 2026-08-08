@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos_test
@@ -8,13 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CosmosDbCassandraKeyspaceResource struct{}
@@ -31,6 +30,21 @@ func TestAccCosmosDbCassandraKeyspace_basic(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccCosmosDbCassandraKeyspace_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_keyspace", "test")
+	r := CosmosDbCassandraKeyspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
@@ -121,18 +135,18 @@ func TestAccCosmosDbCassandraKeyspace_serverless(t *testing.T) {
 	})
 }
 
-func (t CosmosDbCassandraKeyspaceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.CassandraKeyspaceID(state.ID)
+func (r CosmosDbCassandraKeyspaceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := cosmosdb.ParseCassandraKeyspaceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Cosmos.CassandraClient.GetCassandraKeyspace(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name)
+	resp, err := clients.Cosmos.CosmosDBClient.CassandraResourcesGetCassandraKeyspace(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Cosmos Cassandra Keyspace (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (CosmosDbCassandraKeyspaceResource) basic(data acceptance.TestData) string {
@@ -145,6 +159,18 @@ resource "azurerm_cosmosdb_cassandra_keyspace" "test" {
   account_name        = azurerm_cosmosdb_account.test.name
 }
 `, CosmosDBAccountResource{}.capabilities(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableCassandra"}), data.RandomInteger)
+}
+
+func (r CosmosDbCassandraKeyspaceResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_cassandra_keyspace" "import" {
+  name                = azurerm_cosmosdb_cassandra_keyspace.test.name
+  resource_group_name = azurerm_cosmosdb_cassandra_keyspace.test.resource_group_name
+  account_name        = azurerm_cosmosdb_cassandra_keyspace.test.account_name
+}
+`, r.basic(data), data.RandomInteger)
 }
 
 func (CosmosDbCassandraKeyspaceResource) throughput(data acceptance.TestData, throughput int) string {

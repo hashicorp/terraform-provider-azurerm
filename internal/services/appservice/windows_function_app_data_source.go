@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -462,7 +462,7 @@ func (m *WindowsFunctionAppDataSourceModel) unpackWindowsFunctionAppSettings(inp
 	for k, v := range *input.Properties {
 		switch k {
 		case "FUNCTIONS_EXTENSION_VERSION":
-			m.FunctionExtensionsVersion = (v)
+			m.FunctionExtensionsVersion = v
 
 		case "WEBSITE_NODE_DEFAULT_VERSION": // Note - This is only set if it's not the default of 12, but we collect it from WindowsFxVersion so can discard it here
 		case "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING":

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package acceptance
@@ -106,19 +106,20 @@ func (td TestData) CheckWithClientWithoutResource(check ClientCheckFunc) resourc
 	)
 }
 
-func (td TestData) ImportBlockWithIDStep() resource.TestStep {
-	return resource.TestStep{
-		ResourceName:    td.ResourceName,
-		ImportState:     true,
-		ImportStateKind: resource.ImportBlockWithID,
-	}
+func (td TestData) ImportBlockWithIDStep(expectNonEmptyPlan bool) resource.TestStep {
+	return td.ImportStepBlock(resource.ImportBlockWithID, expectNonEmptyPlan)
 }
 
-func (td TestData) ImportBlockWithResourceIdentityStep() resource.TestStep {
+func (td TestData) ImportBlockWithResourceIdentityStep(expectNonEmptyPlan bool) resource.TestStep {
+	return td.ImportStepBlock(resource.ImportBlockWithResourceIdentity, expectNonEmptyPlan)
+}
+
+func (td TestData) ImportStepBlock(kind resource.ImportStateKind, expectNonEmptyPlan bool) resource.TestStep {
 	return resource.TestStep{
-		ResourceName:    td.ResourceName,
-		ImportState:     true,
-		ImportStateKind: resource.ImportBlockWithResourceIdentity,
+		ResourceName:       td.ResourceName,
+		ExpectNonEmptyPlan: expectNonEmptyPlan,
+		ImportState:        true,
+		ImportStateKind:    kind,
 	}
 }
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation_test
@@ -12,7 +12,7 @@ import (
 
 type AutomationAccountDataSource struct{}
 
-func TestAccDataSourceAutomationAccount(t *testing.T) {
+func TestAccDataSourceAutomationAccount_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_automation_account", "test")
 
 	data.DataSourceTest(t, []acceptance.TestStep{

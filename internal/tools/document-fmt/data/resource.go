@@ -1,9 +1,12 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package data
 
-import "fmt"
+import (
+	"fmt"
+	"path/filepath"
+)
 
 type ResourceType string
 
@@ -35,5 +38,5 @@ func (r ResourceType) String() string {
 }
 
 func expectedResourceCodePath(pattern string, name string, service Service, resourceType ResourceType) string {
-	return fmt.Sprintf(pattern, service.Path, name, ResourceTypeToFileSuffix[resourceType])
+	return filepath.FromSlash(fmt.Sprintf(pattern, service.Path, name, ResourceTypeToFileSuffix[resourceType]))
 }

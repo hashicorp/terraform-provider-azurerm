@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package privatedns_test
@@ -96,7 +96,7 @@ func TestAccPrivateDnsZone_withSOARecord(t *testing.T) {
 	})
 }
 
-func (t PrivateDnsZoneResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r PrivateDnsZoneResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := privatezones.ParsePrivateDnsZoneID(state.ID)
 	if err != nil {
 		return nil, err

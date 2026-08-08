@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cdnfrontdoorruleconditions
@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-09-01/rules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rules"
 	helperValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -283,8 +283,7 @@ func ExpandCdnFrontDoorRemoteAddressCondition(input []interface{}) (*[]rules.Del
 			}
 
 			// Check for CIDR overlap and CIDR duplicates in the match values
-			_, err := validate.FrontDoorRuleCidrOverlap(item["match_values"].([]interface{}), "match_values")
-			if err != nil {
+			if _, err := validate.FrontDoorRuleCidrOverlap(item["match_values"].([]interface{}), "match_values"); err != nil {
 				return nil, fmt.Errorf("%q is invalid: %+v", conditionMapping.ConfigName, err)
 			}
 		}
@@ -508,7 +507,7 @@ func ExpandCdnFrontDoorRequestSchemeCondition(input []interface{}) (*[]rules.Del
 			Name: conditionMapping.Name,
 			Parameters: rules.RequestSchemeMatchConditionParameters{
 				TypeName:        conditionMapping.TypeName,
-				Operator:        rules.Operator(item["operator"].(string)),
+				Operator:        rules.RequestSchemeMatchConditionParametersOperator(item["operator"].(string)),
 				NegateCondition: pointer.To(item["negate_condition"].(bool)),
 				MatchValues:     expandRequestSchemeMatchValues(matchValuesRaw),
 			},
@@ -741,8 +740,7 @@ func ExpandCdnFrontDoorSocketAddressCondition(input []interface{}) (*[]rules.Del
 			}
 
 			// Check for CIDR overlap and CIDR duplicates in the match values
-			_, err := validate.FrontDoorRuleCidrOverlap(item["match_values"].([]interface{}), "match_values")
-			if err != nil {
+			if _, err := validate.FrontDoorRuleCidrOverlap(item["match_values"].([]interface{}), "match_values"); err != nil {
 				return nil, fmt.Errorf("%q is invalid: %+v", conditionMapping.ConfigName, err)
 			}
 		}

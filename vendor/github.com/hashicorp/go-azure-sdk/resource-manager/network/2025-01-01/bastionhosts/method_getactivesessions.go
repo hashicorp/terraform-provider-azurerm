@@ -76,9 +76,20 @@ func (c BastionHostsClient) GetActiveSessions(ctx context.Context, id BastionHos
 
 // GetActiveSessionsThenPoll performs GetActiveSessions then polls until it's completed
 func (c BastionHostsClient) GetActiveSessionsThenPoll(ctx context.Context, id BastionHostId) error {
+	return c.GetActiveSessionsCallbackThenPoll(ctx, id, nil)
+}
+
+// GetActiveSessionsCallbackThenPoll performs GetActiveSessions, runs the optional callback function, then polls until it's completed
+func (c BastionHostsClient) GetActiveSessionsCallbackThenPoll(ctx context.Context, id BastionHostId, callback func() error) error {
 	result, err := c.GetActiveSessions(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing GetActiveSessions: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

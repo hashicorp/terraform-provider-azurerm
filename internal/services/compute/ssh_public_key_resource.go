@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -20,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSshPublicKey() *pluginsdk.Resource {
@@ -76,27 +76,30 @@ func resourceSshPublicKeyCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	defer cancel()
 
 	id := sshpublickeys.NewSshPublicKeyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	resp, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
-		}
-	}
 
-	if !response.WasNotFound(resp.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_ssh_public_key", id.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		resp, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
+		}
+
+		if !response.WasNotFound(resp.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_ssh_public_key", id.ID())
+		}
 	}
 
 	payload := sshpublickeys.SshPublicKeyResource{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &sshpublickeys.SshPublicKeyResourceProperties{
-			PublicKey: utils.String(d.Get("public_key").(string)),
+			PublicKey: pointer.To(d.Get("public_key").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if _, err := client.Create(ctx, id, payload); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -153,15 +156,14 @@ func resourceSshPublicKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		return err
 	}
 
-	_, err = client.Get(ctx, *id)
-	if err != nil {
+	if _, err = client.Get(ctx, *id); err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	payload := sshpublickeys.SshPublicKeyUpdateResource{}
 	if d.HasChange("public_key") {
 		payload.Properties = &sshpublickeys.SshPublicKeyResourceProperties{
-			PublicKey: utils.String(d.Get("public_key").(string)),
+			PublicKey: pointer.To(d.Get("public_key").(string)),
 		}
 	}
 	if d.HasChange("tags") {

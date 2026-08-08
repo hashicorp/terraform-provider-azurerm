@@ -2,6 +2,9 @@
 
 This guide covers adding Resource Identity to a new or existing resource. For more information on Resource Identity, see [Resources - Identity](https://developer.hashicorp.com/terraform/plugin/sdkv2/resources/identity).
 
+> [!IMPORTANT]
+> **Resource Identity is mandatory for all new resources.** It is also a prerequisite for [List Resources](guide-list-resource.md), which are equally required. If your resource cannot support Resource Identity (see caveats below), please explain why in the PR description.
+
 > The provider's Resource Identity generator does not yet support all identity types. `commonids.CompositeResourceID` and any custom resource IDs (i.e. not one provided by `commonids` or `go-azure-sdk/resource-manager`) are not supported.
 
 ## Adding Resource Identity
@@ -39,7 +42,34 @@ To add Resource Identity to a typed resource, we will need to implement the `sdk
     }
     ```
 
-3. Update the `Read()` function to include a step setting the Resource Identity data into state. Resource Identity data does not have to be set manually, we can make use of the `pluginsdk.SetResourceIdentityData` helper function.
+3. Update the `Create()` function to include a step setting the Resource Identity data into state, this should be done right after we set the `id` attribute. Resource Identity data does not have to be set manually, we can make use of the `pluginsdk.SetResourceIdentityData` helper function. 
+
+    ```go
+    func (r ExampleResource) Create() sdk.ResourceFunc {
+        return sdk.ResourceFunc{
+            Timeout: 30 * time.Minute,
+            Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+                client := metadata.Client.Service.ExampleClient
+                
+                id := examplepackage.NewExampleResourceID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
+
+                ...
+                
+                // If the resource uses a `CallbackThenPoll` method, ensure the callback function is updated to `SetIDAndIdentityCallBack`.
+                if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, param, metadata.SetIDAndIdentityCallback(&id)); err != nil {
+                    return fmt.Errorf("creating %s: %+v", &id, err)
+                }
+                
+                metadata.SetID(id)
+                return pluginsdk.SetResourceIdentityData(metadata.ResourceData, id)
+            },
+        }
+    }
+    ```
+   
+   > **Note:** While this may seem redundant given `Read()` gets called after `Create()`, this is done to prevent `Missing Resource Identity After Create` errors, in the event something errors after setting the `id` attribute.
+
+4. Update the `Read()` function to include a step setting the Resource Identity data into state.
 
     ```go
     func (r ExampleResource) Read() sdk.ResourceFunc {
@@ -64,7 +94,7 @@ To add Resource Identity to a typed resource, we will need to implement the `sdk
     }
     ```
 
-4. Add an acceptance test to ensure the identity data is accurately set into state, please reference [Resource Identity Tests](#resource-identity-tests).
+5. Add an acceptance test to ensure the identity data is accurately set into state, please reference [Resource Identity Tests](#resource-identity-tests).
 
 ### Untyped Resources
 
@@ -128,8 +158,38 @@ To add Resource Identity to an untyped resource, follow the steps below.
             }
         }
     ```
+3. Update the `resourceExampleCreate()` function to include a step setting the Resource Identity data into state, this should be done right after we set the `id` attribute. Resource Identity data does not have to be set manually, we can make use of the `pluginsdk.SetResourceIdentityData` helper function.
 
-3. Update the `resourceExampleRead` function to include a step setting the Resource Identity data into state. Resource Identity data does not have to be set manually, we can make use of the `pluginsdk.SetResourceIdentityData` helper function.
+    ```go
+    func resourceExampleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+        Timeout: 30 * time.Minute,
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            client := meta.(*clients.Client).Compute.DedicatedHostsClient
+            ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+            defer cancel()
+            
+            id := examplepackage.NewExampleResourceID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
+
+            ...
+
+            // If the resource uses a `CallbackThenPoll` method, ensure the callback function is updated to `SetIDAndIdentityCallBack`.
+            if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, param, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
+               return fmt.Errorf("creating %s: %+v", &id, err)
+            }
+            
+            d.SetId(id.ID())
+            if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+                return err
+            }
+            
+            return resourceExampleRead(d, meta)
+        }
+    }
+    ```
+
+   > **Note:** While this may seem redundant given `resourceExampleRead()` gets called after `resourceExampleCreate()`, this is done to prevent `Missing Resource Identity After Create` errors, in the event a function call errors after setting the `id` attribute.
+
+4. Update the `resourceExampleRead` function to include a step setting the Resource Identity data into state. Resource Identity data does not have to be set manually, we can make use of the `pluginsdk.SetResourceIdentityData` helper function.
 
     ```go
         func resourceExampleRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -144,14 +204,12 @@ To add Resource Identity to an untyped resource, follow the steps below.
             
             ...
             
-            // Most of the time we can simply replace the final `return nil` line with the return below.
-            // Note: there are a number of resources that conditionally return earlier in the read function before reaching the final `return nil` line.
-            // Keep an eye out for these, as they can cause test failures that are tedious to diagnose.
+            // Usually we can simply replace the final `return nil` line with the return below.
             return pluginsdk.SetResourceIdentityData(d, id)
         }
     ```
 
-4. Add an acceptance test to ensure the identity data is accurately set into state, please reference [Resource Identity Tests](#resource-identity-tests).
+5. Add an acceptance test to ensure the identity data is accurately set into state, please reference [Resource Identity Tests](#resource-identity-tests).
 
 ## Resource Identity Tests
 
@@ -159,15 +217,48 @@ Just like the schema, Resource Identity tests are entirely generated. This is do
 
 The schema is generated for us by taking different parts of the ID and converting them to snake_case. By default, if the last segment ends in `Name`, it will not be converted to snake case in the schema but rather set to `name`. 
 
-For the tests to generate properly, you will need to specify a combination of `-properties`, `-known-values`, and `-compare-values` inputs. All fields in the ID struct must be mapped to one of these options.
+For the vast majority of resources, the `generator-tests` tool uses Abstract Syntax Tree (AST) inference to automatically inspect the Go file, locate the ID struct, and infer the correct property mappings. This means you can simply provide the base command with zero flags:
 
-To go through these in order:
+```go
+//go:generate go run ../../tools/generator-tests resourceidentity
+```
+
+If your resource uses a **Virtual Identity** (a sub-resource that inherits its ID entirely from a parent resource), you will need to specify the `-parent-id` flag with the name of the parent ID property in the schema (e.g. `-parent-id workspace_id`). The tool will automatically expand this to map all ID fields to that parent ID.
+
+```go
+//go:generate go run ../../tools/generator-tests resourceidentity -parent-id parent_resource_id
+```
+
+> **Note:** If a resource ID doesn't include the `subscription_id` segment, omit it from the tests by using `-no-subscription-id`.
+
+### How the Generator Works (AST Inference)
+
+The generator reduces boilerplate by using Abstract Syntax Tree (AST) inference to automatically map the properties of an ID struct to the resource schema. 
+- **Typed SDK Wrappers:** It scans the `.go` file for the `Identity()` method to locate the identity struct, and the `IdentityType()` method to determine if it is a Virtual Identity.
+- **Legacy (Untyped) Resources:** It scans for the `pluginsdk.GenerateIdentitySchema(&struct{}, ...)` function call in the schema definition, extracting the identity struct from the first argument and checking if the second argument is `pluginsdk.ResourceTypeForIdentityVirtual` (or scanning for the older `VirtualIdentity()` method).
+- By parsing the returned `commonids` or `resourceids` struct from either pattern, it inherently knows the fields required (e.g., `SubscriptionId`, `ResourceGroupName`, `StorageAccountName`).
+- It converts these properties to `snake_case` (e.g., `resource_group_name`). 
+- By convention, the final identifier segment (e.g., `StorageAccountName`) is converted to `name` unless the resource is identified as a **Virtual Identity**.
+
+### Self-Correcting Generator Tags
+
+The `generator-tests` tool has "self-correcting" capabilities. When you run `make generate`, the tool will automatically clean up your `//go:generate` tag if it contains redundant flags:
+
+**What the self-correcting logic CAN do:**
+- **Flag Stripping:** If you provide explicit `-compare-values`, `-known-values`, or `-resource-name` flags that perfectly match what the AST infers, the generator will automatically strip those flags from your `.go` file to keep the tag clean and concise (Zero-Flags).
+- **Auto-Formatting:** When the generator rewrites the tag, it automatically runs `gofumpt` on the file so that no whitespace formatting issues are introduced.
+- **Virtual Identity Resolution:** If a resource is detected as Virtual (via `IdentityType()` or `VirtualIdentity()`) and you supply `-parent-id "xyz"`, the generator automatically expands the mapping for all the struct's fields (including `subscription_id`) to that `-parent-id`.
+
+**What the self-correcting logic CANNOT do:**
+- **Guess a Virtual Identity's Parent ID without an anchor:** While the AST detects that a resource is Virtual, it cannot magically guess which property in the schema acts as the parent ID. Therefore, you **must** supply the `-parent-id "xyz"` flag explicitly for Virtual Identities. (If the resource uses the legacy explicit `-compare-values` for *every* field pointing to the exact same parent ID, the generator *can* infer and upgrade it to `-parent-id`, but for new resources, `-parent-id` is required).
+- **Remove non-standard configurations:** If you explicitly provide `-properties` or `-compare-values` mappings that deviate intentionally from the standard struct field names, the generator will leave those flags intact.
+- **Resolve arbitrary types:** The AST inference relies on locating the standard identity structs in the `commonids` or `resourceids` packages, or inside the provider namespace. If the identity struct is deeply aliased or nested in a way it cannot trace, it will fall back and require explicit flags.
+
+There are edge cases where the AST inference cannot automatically map the properties. In these rare cases, you can fallback to explicitly defining them using `-properties` and `-compare-values`. All fields in the ID struct must be mapped to one of these options if explicit mapping is used.
 
 - `-properties`: This flag specifies the 1:1 relationship between the Resource Schema and the Resource Identity Schema fields (i.e name, resource_group_name, etc), this would be specified as `name,resource_group_name`. If the schema property name does not match the Resource Identity schema name these should be mapped accordingly. This would be specified as `{id_field_name}:{schema_field_name}`, e.g. `api_management_id:api_management_name`.
 
-- `-known-values`: This flag specifies values that are not exposed in the resource schema, but are present in the Resource Identity schema, e.g. a subscription ID. This would be specified as `{id_field_name}:{known_value}`, e.g. `subscription_id:data.Subscriptions.Primary`.
-
-- `-compare-values`: This flag allows for comparing values that are exposed in the resource schema through another resource ID. This comes up when we use a parent resource ID in the schema but the Resource Identity Schema uses the individual parts of that parent ID. This would be specified as `{id_field_name}:{schema_field_id_name}`, e.g. `virtual_network_name:virtual_network_id`.
+- `-compare-values`: This flag allows for comparing values that are exposed in the resource schema through another resource ID. This comes up when we use a parent resource ID in the schema but the Resource Identity Schema uses the individual parts of that parent ID. This would be specified as `{id_field_name}:{schema_field_id_name}`, e.g. `subscription_id:virtual_network_id,virtual_network_name:virtual_network_id`.
 
 Please reference the [Resource Identity Test Generator](../../internal/tools/generator-tests/generators/resource_identity.go) for additional options that are used less frequently.
 
@@ -180,12 +271,15 @@ import (
     "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
-// A basic example where the Resource Identity fields map directly to the resource schema
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name example_resource -service-package-name example -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+// A basic example where the AST parser infers everything (Zero-Flags)
+//go:generate go run ../../tools/generator-tests resourceidentity
 
-// An example where individual Resource Identity field values exist in a parent ID 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name example_resource -service-package-name example -properties "name" -compare-values "parent_name:parent_resource_id" -known-values "subscription_id:data.Subscriptions.Primary"
-  
+// An example where the resource is a sub-resource utilizing a Virtual Identity
+//go:generate go run ../../tools/generator-tests resourceidentity -parent-id parent_resource_id
+
+// An example of a resource ID that doesn't contain the `subscription_id` segment, e.g. management groups
+//go:generate go run ../../tools/generator-tests resourceidentity -no-subscription-id
+
 type ExampleResource struct{}
   
 var _ sdk.ResourceWithIdentity = ExampleResource{}

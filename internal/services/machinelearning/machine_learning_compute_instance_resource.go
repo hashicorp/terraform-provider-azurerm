@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package machinelearning
@@ -15,13 +15,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/machinelearningcomputes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -51,7 +52,8 @@ func resourceComputeInstance() *pluginsdk.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
 					regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9-]{3,24}$`),
-					"It can include letters, digits and dashes. It must start with a letter, end with a letter or digit, and be between 3 and 24 characters in length."),
+					"It can include letters, digits and dashes. It must start with a letter, end with a letter or digit, and be between 3 and 24 characters in length.",
+				),
 			},
 
 			"machine_learning_workspace_id": {
@@ -170,7 +172,7 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	workspaceID, _ := workspaces.ParseWorkspaceID(d.Get("machine_learning_workspace_id").(string))
 	id := machinelearningcomputes.NewComputeID(subscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, d.Get("name").(string))
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.ComputeGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -223,7 +225,7 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	parameters := machinelearningcomputes.ComputeResource{
 		Identity: identity,
-		Location: pointer.To(azure.NormalizeLocation(*model.Location)),
+		Location: pointer.To(location.Normalize(*model.Location)),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
@@ -251,14 +253,9 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	parameters.Properties = props
 
-	future, err := client.ComputeCreateOrUpdate(ctx, id, parameters)
-	if err != nil {
+	if err := client.ComputeCreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating Machine Learning %s: %+v", id, err)
 	}
-	if err := future.Poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("waiting for creation of Machine Learning %s: %+v", id, err)
-	}
-
 	d.SetId(id.ID())
 
 	return resourceComputeInstanceRead(d, meta)
@@ -326,7 +323,7 @@ func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta interface{}) er
 			}
 		}
 
-		d.Set("node_public_ip_enabled", props.Properties.ConnectivityEndpoints != nil && props.Properties.ConnectivityEndpoints.PublicIPAddress != nil)
+		d.Set("node_public_ip_enabled", pointer.From(props.Properties.EnableNodePublicIP))
 	}
 
 	return tags.FlattenAndSet(d, resp.Model.Tags)

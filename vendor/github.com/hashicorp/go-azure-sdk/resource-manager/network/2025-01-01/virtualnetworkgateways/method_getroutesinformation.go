@@ -87,9 +87,20 @@ func (c VirtualNetworkGatewaysClient) GetRoutesInformation(ctx context.Context, 
 
 // GetRoutesInformationThenPoll performs GetRoutesInformation then polls until it's completed
 func (c VirtualNetworkGatewaysClient) GetRoutesInformationThenPoll(ctx context.Context, id VirtualNetworkGatewayId, options GetRoutesInformationOperationOptions) error {
+	return c.GetRoutesInformationCallbackThenPoll(ctx, id, options, nil)
+}
+
+// GetRoutesInformationCallbackThenPoll performs GetRoutesInformation, runs the optional callback function, then polls until it's completed
+func (c VirtualNetworkGatewaysClient) GetRoutesInformationCallbackThenPoll(ctx context.Context, id VirtualNetworkGatewayId, options GetRoutesInformationOperationOptions, callback func() error) error {
 	result, err := c.GetRoutesInformation(ctx, id, options)
 	if err != nil {
 		return fmt.Errorf("performing GetRoutesInformation: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

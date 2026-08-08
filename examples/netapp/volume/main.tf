@@ -1,4 +1,4 @@
-# Copyright (c) HashiCorp, Inc.
+# Copyright IBM Corp. 2014, 2025
 # SPDX-License-Identifier: MPL-2.0
 
 provider "azurerm" {
@@ -68,10 +68,10 @@ resource "azurerm_netapp_volume" "example" {
   storage_quota_in_gb = 100
 
   export_policy_rule {
-    rule_index        = 1
-    allowed_clients   = ["0.0.0.0/0"]
-    protocols_enabled = ["NFSv4.1"]
-    unix_read_only    = false
-    unix_read_write   = true
+    rule_index      = 1
+    allowed_clients = ["0.0.0.0/0"]
+    protocol        = ["NFSv4.1"]
+    unix_read_only  = false
+    unix_read_write = true
   }
 }

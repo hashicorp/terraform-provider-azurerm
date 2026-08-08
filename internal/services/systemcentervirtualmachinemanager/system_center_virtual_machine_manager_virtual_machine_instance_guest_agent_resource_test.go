@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package systemcentervirtualmachinemanager_test
@@ -20,7 +20,7 @@ import (
 
 type SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResource struct{}
 
-func TestAccSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentSequential(t *testing.T) {
+func TestAccSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgent_sequential(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests because the testing is against the same Hybrid Machine
 
 	if os.Getenv("ARM_TEST_CUSTOM_LOCATION_ID") == "" || os.Getenv("ARM_TEST_FQDN") == "" || os.Getenv("ARM_TEST_USERNAME") == "" || os.Getenv("ARM_TEST_PASSWORD") == "" {

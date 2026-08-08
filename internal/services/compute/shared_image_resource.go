@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -29,7 +30,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name shared_image -service-package-name compute -properties "name,resource_group_name,gallery_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceSharedImage() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -292,18 +293,19 @@ func resourceSharedImageCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Shared Image creation.")
 	id := galleryimages.NewGalleryImageID(subscriptionId, d.Get("resource_group_name").(string), d.Get("gallery_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_shared_image", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_shared_image", id.ID())
+		}
 	}
 
 	recommended, err := expandGalleryImageRecommended(d)
@@ -346,11 +348,14 @@ func resourceSharedImageCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		image.Properties.OsState = galleryimages.OperatingSystemStateTypesGeneralized
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, image); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, image, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceSharedImageRead(d, meta)
 }
@@ -409,7 +414,12 @@ func resourceSharedImageUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		payload.Properties.ReleaseNoteUri = pointer.To(d.Get("release_note_uri").(string))
 	}
 
-	if d.HasChanges("max_recommended_vcpu_count", "min_recommended_vcpu_count", "max_recommended_memory_in_gb", "min_recommended_memory_in_gb") {
+	if d.HasChanges(
+		"max_recommended_vcpu_count",
+		"min_recommended_vcpu_count",
+		"max_recommended_memory_in_gb",
+		"min_recommended_memory_in_gb",
+	) {
 		recommended, err := expandGalleryImageRecommended(d)
 		if err != nil {
 			return err
@@ -504,7 +514,7 @@ func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 			d.Set("os_type", string(props.OsType))
 
-			architecture := string((galleryimages.ArchitectureXSixFour))
+			architecture := string(galleryimages.ArchitectureXSixFour)
 			if props.Architecture != nil {
 				architecture = string(*props.Architecture)
 			}

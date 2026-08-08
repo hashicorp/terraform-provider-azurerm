@@ -1,11 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package batch
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -209,35 +208,6 @@ func flattenBatchPoolStartTask(oldConfig *pluginsdk.ResourceData, startTask *poo
 	return append(results, result)
 }
 
-// flattenBatchPoolCertificateReferences flattens a Batch pool certificate reference
-func flattenBatchPoolCertificateReferences(armCertificates *[]pool.CertificateReference) []interface{} {
-	if armCertificates == nil {
-		return []interface{}{}
-	}
-	output := make([]interface{}, 0)
-
-	for _, armCertificate := range *armCertificates {
-		certificate := map[string]interface{}{}
-
-		certificate["id"] = armCertificate.Id
-		if armCertificate.StoreLocation != nil {
-			certificate["store_location"] = string(*armCertificate.StoreLocation)
-		}
-		if armCertificate.StoreName != nil {
-			certificate["store_name"] = *armCertificate.StoreName
-		}
-		visibility := &pluginsdk.Set{F: pluginsdk.HashString}
-		if armCertificate.Visibility != nil {
-			for _, armVisibility := range *armCertificate.Visibility {
-				visibility.Add(string(armVisibility))
-			}
-		}
-		certificate["visibility"] = visibility
-		output = append(output, certificate)
-	}
-	return output
-}
-
 // flattenBatchPoolContainerConfiguration flattens a Batch pool container configuration
 func flattenBatchPoolContainerConfiguration(d *pluginsdk.ResourceData, armContainerConfiguration *pool.ContainerConfiguration) interface{} {
 	result := make(map[string]interface{})
@@ -326,7 +296,7 @@ func findBatchPoolContainerRegistryPassword(d *pluginsdk.ResourceData, armServer
 func findSensitiveInfoForMountConfig(targetType string, sourceType string, sourceValue string, mountType string, d *pluginsdk.ResourceData) string {
 	if num, ok := d.GetOk("mount.#"); ok {
 		n := num.(int)
-		for i := 0; i < n; i++ {
+		for i := range n {
 			if src, ok := d.GetOk(fmt.Sprintf("mount.%d.%v.0.%v", i, mountType, sourceType)); ok && src == sourceValue {
 				return d.Get(fmt.Sprintf("mount.%d.%v.0.%v", i, mountType, targetType)).(string)
 			}
@@ -438,7 +408,7 @@ func flattenBatchPoolUserAccount(d *pluginsdk.ResourceData, account *pool.UserAc
 
 	if num, ok := d.GetOk("user_accounts.#"); ok {
 		n := num.(int)
-		for i := 0; i < n; i++ {
+		for i := range n {
 			if src, nameOk := d.GetOk(fmt.Sprintf("user_accounts.%d.name", i)); nameOk && src == account.Name {
 				userAccount["password"] = d.Get(fmt.Sprintf("user_accounts.%d.password", i)).(string)
 				userAccountIndex = i
@@ -576,45 +546,6 @@ func expandBatchPoolContainerRegistry(ref map[string]interface{}) (*pool.Contain
 	return &containerRegistry, nil
 }
 
-// ExpandBatchPoolCertificateReferences expands Batch pool certificate references
-func ExpandBatchPoolCertificateReferences(list []interface{}) (*[]pool.CertificateReference, error) {
-	result := make([]pool.CertificateReference, 0, len(list))
-	for _, tempItem := range list {
-		item := tempItem.(map[string]interface{})
-		certificateReference, err := expandBatchPoolCertificateReference(item)
-		if err != nil {
-			return nil, err
-		}
-		result = append(result, *certificateReference)
-	}
-	return &result, nil
-}
-
-func expandBatchPoolCertificateReference(ref map[string]interface{}) (*pool.CertificateReference, error) {
-	if len(ref) == 0 {
-		return nil, errors.New("storage image reference should be defined")
-	}
-
-	id := ref["id"].(string)
-	storeLocation := ref["store_location"].(string)
-	storeName := ref["store_name"].(string)
-	visibilityRefs := ref["visibility"].(*pluginsdk.Set)
-	var visibility []pool.CertificateVisibility
-	if visibilityRefs != nil {
-		for _, visibilityRef := range visibilityRefs.List() {
-			visibility = append(visibility, pool.CertificateVisibility(visibilityRef.(string)))
-		}
-	}
-
-	certificateReference := &pool.CertificateReference{
-		Id:            id,
-		StoreLocation: pointer.To(pool.CertificateStoreLocation(storeLocation)),
-		StoreName:     &storeName,
-		Visibility:    &visibility,
-	}
-	return certificateReference, nil
-}
-
 // ExpandBatchPoolStartTask expands Batch pool start task
 func ExpandBatchPoolStartTask(list []interface{}) (*pool.StartTask, error) {
 	if len(list) == 0 || list[0] == nil {
@@ -706,7 +637,7 @@ func ExpandBatchPoolStartTask(list []interface{}) (*pool.StartTask, error) {
 			resourceId := v.(string)
 			if resourceId != "" {
 				identityReference := pool.ComputeNodeIdentityReference{
-					ResourceId: utils.String(resourceId),
+					ResourceId: pointer.To(resourceId),
 				}
 				resourceFile.IdentityReference = &identityReference
 			}
@@ -734,7 +665,7 @@ func ExpandBatchPoolStartTask(list []interface{}) (*pool.StartTask, error) {
 			settingMap := containerSettingsList[0].(map[string]interface{})
 			containerSettings.ImageName = settingMap["image_name"].(string)
 			if containerRunOptions, ok := settingMap["run_options"]; ok {
-				containerSettings.ContainerRunOptions = utils.String(containerRunOptions.(string))
+				containerSettings.ContainerRunOptions = pointer.To(containerRunOptions.(string))
 			}
 			if registries, ok := settingMap["registry"].([]interface{}); ok && len(registries) > 0 && registries[0] != nil {
 				containerRegMap := registries[0].(map[string]interface{})
@@ -797,7 +728,7 @@ func expandBatchPoolVirtualMachineConfig(d *pluginsdk.ResourceData) (*pool.Virtu
 	}
 
 	if licenseType, ok := d.GetOk("license_type"); ok {
-		result.LicenseType = utils.String(licenseType.(string))
+		result.LicenseType = pointer.To(licenseType.(string))
 	}
 
 	if v, ok := d.GetOk("node_placement"); ok {
@@ -877,7 +808,7 @@ func expandBatchPoolWindowsConfiguration(list []interface{}) *pool.WindowsConfig
 
 	item := list[0].(map[string]interface{})["enable_automatic_updates"].(bool)
 	return &pool.WindowsConfiguration{
-		EnableAutomaticUpdates: utils.Bool(item),
+		EnableAutomaticUpdates: pointer.To(item),
 	}
 }
 
@@ -912,15 +843,15 @@ func expandBatchPoolExtension(ref map[string]interface{}) (*pool.VmExtension, er
 	}
 
 	if autoUpgradeMinorVersion, ok := ref["auto_upgrade_minor_version"]; ok {
-		result.AutoUpgradeMinorVersion = utils.Bool(autoUpgradeMinorVersion.(bool))
+		result.AutoUpgradeMinorVersion = pointer.To(autoUpgradeMinorVersion.(bool))
 	}
 
 	if autoUpgradeEnabled, ok := ref["automatic_upgrade_enabled"]; ok {
-		result.EnableAutomaticUpgrade = utils.Bool(autoUpgradeEnabled.(bool))
+		result.EnableAutomaticUpgrade = pointer.To(autoUpgradeEnabled.(bool))
 	}
 
 	if typeHandlerVersion, ok := ref["type_handler_version"]; ok {
-		result.TypeHandlerVersion = utils.String(typeHandlerVersion.(string))
+		result.TypeHandlerVersion = pointer.To(typeHandlerVersion.(string))
 	}
 
 	if settings, ok := ref["settings_json"]; ok {
@@ -1084,15 +1015,15 @@ func expandBatchPoolAzureBlobFileSystemConfiguration(list []interface{}) (*pool.
 	}
 
 	if accountKey, ok := configMap["account_key"]; ok && accountKey != "" {
-		result.AccountKey = utils.String(accountKey.(string))
+		result.AccountKey = pointer.To(accountKey.(string))
 	} else if sasKey, ok := configMap["sas_key"]; ok && sasKey != "" {
-		result.SasKey = utils.String(sasKey.(string))
+		result.SasKey = pointer.To(sasKey.(string))
 	} else if computedIDRef, err := expandBatchPoolIdentityReference(configMap); err == nil {
 		result.IdentityReference = computedIDRef
 	}
 
 	if blobfuseOptions, ok := configMap["blobfuse_options"]; ok {
-		result.BlobfuseOptions = utils.String(blobfuseOptions.(string))
+		result.BlobfuseOptions = pointer.To(blobfuseOptions.(string))
 	}
 	return &result, nil
 }
@@ -1111,7 +1042,7 @@ func expandBatchPoolAzureFileShareConfiguration(list []interface{}) (*pool.Azure
 	}
 
 	if mountOptions, ok := configMap["mount_options"]; ok {
-		result.MountOptions = utils.String(mountOptions.(string))
+		result.MountOptions = pointer.To(mountOptions.(string))
 	}
 
 	return &result, nil
@@ -1131,7 +1062,7 @@ func expandBatchPoolCIFSMountConfiguration(list []interface{}) (*pool.CIFSMountC
 	}
 
 	if mountOptions, ok := configMap["mount_options"]; ok {
-		result.MountOptions = utils.String(mountOptions.(string))
+		result.MountOptions = pointer.To(mountOptions.(string))
 	}
 
 	return &result, nil
@@ -1149,7 +1080,7 @@ func expandBatchPoolNFSMountConfiguration(list []interface{}) (*pool.NFSMountCon
 	}
 
 	if mountOptions, ok := configMap["mount_options"]; ok {
-		result.MountOptions = utils.String(mountOptions.(string))
+		result.MountOptions = pointer.To(mountOptions.(string))
 	}
 	return &result, nil
 }
@@ -1157,7 +1088,7 @@ func expandBatchPoolNFSMountConfiguration(list []interface{}) (*pool.NFSMountCon
 func expandBatchPoolIdentityReference(ref map[string]interface{}) (*pool.ComputeNodeIdentityReference, error) {
 	var result pool.ComputeNodeIdentityReference
 	if iid, ok := ref["identity_id"]; ok && iid != "" {
-		result.ResourceId = utils.String(iid.(string))
+		result.ResourceId = pointer.To(iid.(string))
 		return &result, nil
 	}
 	return nil, fmt.Errorf("identity_id is empty")
@@ -1177,7 +1108,7 @@ func ExpandBatchPoolNetworkConfiguration(list []interface{}) (*pool.NetworkConfi
 	}
 
 	if v, ok := networkConfigValue["accelerated_networking_enabled"]; ok {
-		networkConfiguration.EnableAcceleratedNetworking = pointer.FromBool(v.(bool))
+		networkConfiguration.EnableAcceleratedNetworking = pointer.To(v.(bool))
 	}
 
 	if v, ok := networkConfigValue["subnet_id"]; ok {
@@ -1416,12 +1347,12 @@ func expandBatchPoolUserAccount(ref map[string]interface{}) pool.UserAccount {
 			var linuxUserConfig pool.LinuxUserConfiguration
 			if uid, ok := linuxUserConfigMap["uid"]; ok {
 				linuxUserConfig = pool.LinuxUserConfiguration{
-					Uid: utils.Int64(int64(uid.(int))),
-					Gid: utils.Int64(int64(linuxUserConfigMap["gid"].(int))),
+					Uid: pointer.To(int64(uid.(int))),
+					Gid: pointer.To(int64(linuxUserConfigMap["gid"].(int))),
 				}
 			}
 			if sshPrivateKey, ok := linuxUserConfigMap["ssh_private_key"]; ok {
-				linuxUserConfig.SshPrivateKey = utils.String(sshPrivateKey.(string))
+				linuxUserConfig.SshPrivateKey = pointer.To(sshPrivateKey.(string))
 			}
 			result.LinuxUserConfiguration = &linuxUserConfig
 		}

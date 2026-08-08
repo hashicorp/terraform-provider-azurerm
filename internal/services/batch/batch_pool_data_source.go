@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package batch
@@ -145,33 +145,6 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 							Computed: true,
 							Elem: &pluginsdk.Resource{
 								Schema: batchPoolDataContainerRegistry(),
-							},
-						},
-					},
-				},
-			},
-			"certificate": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"store_location": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"store_name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"visibility": {
-							Type:     pluginsdk.TypeSet,
-							Computed: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
 							},
 						},
 					},
@@ -836,7 +809,7 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 								extension["settings_json"] = item.Settings
 							}
 
-							for i := 0; i < n; i++ {
+							for i := range n {
 								if v, ok := d.GetOk(fmt.Sprintf("extensions.%d.name", i)); ok && v == item.Name {
 									extension["protected_settings"] = d.Get(fmt.Sprintf("extensions.%d.protected_settings", i))
 									break
@@ -880,10 +853,6 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 						d.Set("windows", windowsConfig)
 					}
 				}
-			}
-
-			if err := d.Set("certificate", flattenBatchPoolCertificateReferences(props.Certificates)); err != nil {
-				return fmt.Errorf("setting `certificate`: %v", err)
 			}
 
 			d.Set("start_task", flattenBatchPoolStartTask(d, props.StartTask))

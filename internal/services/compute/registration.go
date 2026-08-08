@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -99,7 +99,6 @@ func (r Registration) Resources() []sdk.Resource {
 		VirtualMachineRunCommandResource{},
 		GalleryApplicationResource{},
 		GalleryApplicationVersionResource{},
-		RestorePointCollectionResource{},
 		VirtualMachineRestorePointCollectionResource{},
 		VirtualMachineRestorePointResource{},
 		VirtualMachineGalleryApplicationAssignmentResource{},
