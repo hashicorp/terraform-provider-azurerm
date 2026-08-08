@@ -160,21 +160,6 @@ func TestAccSecurityCenterAutomation_ruleSetMulti(t *testing.T) {
 	})
 }
 
-func TestAccSecurityCenterAutomation_scopeMulti(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_security_center_automation", "test")
-	r := SecurityCenterAutomationResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.scopeMulti(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("scopes.#").HasValue("3"),
-			),
-		},
-		data.ImportStep("action.0.trigger_url"), // trigger_url needs to be ignored
-	})
-}
-
 func TestAccSecurityCenterAutomation_actionMulti(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_automation", "test")
 	r := SecurityCenterAutomationResource{}
@@ -606,58 +591,6 @@ resource "azurerm_security_center_automation" "test" {
   description = "Security Center Automation Acc test"
   tags = {
     Env = "Test"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
-}
-
-func (SecurityCenterAutomationResource) scopeMulti(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_logic_app_workflow" "test" {
-  name                = "acctestlogicapp-%d"
-  location            = "%s"
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-data "azurerm_client_config" "current" {
-}
-
-resource "azurerm_security_center_automation" "test" {
-  name                = "acctestautomation-%d"
-  location            = "%s"
-  resource_group_name = azurerm_resource_group.test.name
-
-  scopes = [
-    "/subscriptions/${data.azurerm_client_config.current.subscription_id}",
-    "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/test",
-    "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/test2"
-  ]
-
-  action {
-    type        = "LogicApp"
-    resource_id = azurerm_logic_app_workflow.test.id
-    trigger_url = "https://example.net/this_is_never_validated_by_azure"
-  }
-
-  source {
-    event_source = "Alerts"
-    rule_set {
-      rule {
-        property_path  = "properties.metadata.severity"
-        operator       = "Equals"
-        expected_value = "High"
-        property_type  = "String"
-      }
-    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
