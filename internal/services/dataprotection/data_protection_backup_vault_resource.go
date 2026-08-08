@@ -12,8 +12,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupvaultresources"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
@@ -112,6 +114,36 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice(backupvaultresources.PossibleValuesForImmutabilityState(), false),
 			},
 
+			"encryption_settings": {
+				Type:       pluginsdk.TypeList,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Optional:   true,
+				// NOTE: O+C - `encryption_settings` is populated when the properties are configured via `azurerm_data_protection_backup_vault_customer_managed_key` resource
+				Computed: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"identity_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+						},
+
+						"key_vault_key_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
+						},
+
+						"infrastructure_encryption_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+					},
+				},
+			},
+
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"tags": commonschema.Tags(),
@@ -131,6 +163,25 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 
 			pluginsdk.ForceNewIfChange("soft_delete", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old.(string) == string(backupvaultresources.SoftDeleteStateAlwaysOn) && new.(string) != string(backupvaultresources.SoftDeleteStateAlwaysOn)
+			}),
+
+			pluginsdk.ForceNewIfChange("encryption_settings", func(ctx context.Context, oldRaw, newRaw, meta interface{}) bool {
+				oldPopulated := false
+				newPopulated := false
+
+				if old := oldRaw.([]interface{}); len(old) > 0 && old[0] != nil {
+					oldPopulated = len(old[0].(map[string]interface{})) > 0
+				}
+
+				if new := newRaw.([]interface{}); len(new) > 0 && new[0] != nil {
+					newPopulated = len(new[0].(map[string]interface{})) > 0
+				}
+
+				return oldPopulated && !newPopulated
+			}),
+
+			pluginsdk.ForceNewIfChange("encryption_settings.0.infrastructure_encryption_enabled", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old.(bool) != new.(bool)
 			}),
 
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
@@ -155,11 +206,12 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
+	encryptionEnabledWithSystemAssignedIdentity := false
 	id := backupvaultresources.NewBackupVaultID(subscriptionId, resourceGroup, name)
+	existing, err := client.BackupVaultsGet(ctx, id)
 
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-			existing, err := client.BackupVaultsGet(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for existing DataProtection BackupVault (%q): %+v", id, err)
@@ -167,6 +219,14 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 			}
 			if !response.WasNotFound(existing.HttpResponse) {
 				return tf.ImportAsExistsError("azurerm_data_protection_backup_vault", id.ID())
+			}
+		}
+	} else {
+		if securitySettings := existing.Model.Properties.SecuritySettings; securitySettings != nil {
+			if encryptionSettings := securitySettings.EncryptionSettings; encryptionSettings != nil {
+				if kekIdentity := encryptionSettings.KekIdentity; kekIdentity != nil && *kekIdentity.IdentityType == backupvaultresources.IdentityTypeSystemAssigned {
+					encryptionEnabledWithSystemAssignedIdentity = true
+				}
 			}
 		}
 	}
@@ -211,6 +271,19 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 
 	if v, ok := d.GetOk("retention_duration_in_days"); ok {
 		parameters.Properties.SecuritySettings.SoftDeleteSettings.RetentionDurationInDays = pointer.To(v.(float64))
+	}
+
+	if v, ok := d.GetOk("encryption_settings"); ok {
+		if encryptionEnabledWithSystemAssignedIdentity {
+			log.Printf("[INFO] Customer Managed Keys settings in `encryption_settings` block of `azurerm_data_protection_backup_vault` resource will overwrite settings of `azurerm_data_protection_backup_vault_customer_managed_key` resource. If `azurerm_data_protection_backup_vault_customer_managed_key` resource exists in Terraform configurations, please remove it to avoid confusion.")
+		}
+
+		encryptionSettings, err := expandBackupVaultEncryptionSettings(v.([]interface{}))
+		if err != nil {
+			return err
+		}
+
+		parameters.Properties.SecuritySettings.EncryptionSettings = encryptionSettings
 	}
 
 	if d.IsNewResource() {
@@ -273,6 +346,8 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta inter
 				d.Set("soft_delete", string(pointer.From(softDelete.State)))
 				d.Set("retention_duration_in_days", pointer.From(softDelete.RetentionDurationInDays))
 			}
+
+			d.Set("encryption_settings", pointer.From(flattenBackupVaultEncryptionSettings(securitySetting.EncryptionSettings)))
 		}
 		d.Set("immutability", string(immutability))
 
@@ -367,4 +442,58 @@ func flattenBackupVaultDppIdentityDetails(input *backupvaultresources.DppIdentit
 	}
 
 	return identity.FlattenSystemAndUserAssignedMap(config)
+}
+
+func expandBackupVaultEncryptionSettings(input []interface{}) (*backupvaultresources.EncryptionSettings, error) {
+	if len(input) == 0 || input[0] == nil {
+		return nil, nil
+	}
+
+	v := input[0].(map[string]interface{})
+	output := &backupvaultresources.EncryptionSettings{
+		KekIdentity: &backupvaultresources.CmkKekIdentity{
+			IdentityId:   pointer.To(v["identity_id"].(string)),
+			IdentityType: pointer.To(backupvaultresources.IdentityTypeUserAssigned),
+		},
+		State: pointer.To(backupvaultresources.EncryptionStateEnabled),
+	}
+
+	keyId, err := keyvault.ParseNestedItemID(v["key_vault_key_id"].(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
+	if err != nil {
+		return nil, err
+	}
+
+	output.KeyVaultProperties = &backupvaultresources.CmkKeyVaultProperties{
+		KeyUri: pointer.To(keyId.ID()),
+	}
+
+	if v["infrastructure_encryption_enabled"].(bool) {
+		output.InfrastructureEncryption = pointer.To(backupvaultresources.InfrastructureEncryptionStateEnabled)
+	} else {
+		output.InfrastructureEncryption = pointer.To(backupvaultresources.InfrastructureEncryptionStateDisabled)
+	}
+
+	return output, nil
+}
+
+func flattenBackupVaultEncryptionSettings(input *backupvaultresources.EncryptionSettings) *[]interface{} {
+	if input == nil {
+		return &[]interface{}{}
+	}
+
+	output := make(map[string]interface{})
+
+	if input.KekIdentity != nil && input.KekIdentity.IdentityId != nil {
+		output["identity_id"] = pointer.From(input.KekIdentity.IdentityId)
+	}
+
+	if input.KeyVaultProperties != nil && input.KeyVaultProperties.KeyUri != nil {
+		output["key_vault_key_id"] = pointer.From(input.KeyVaultProperties.KeyUri)
+	}
+
+	if input.InfrastructureEncryption != nil {
+		output["infrastructure_encryption_enabled"] = pointer.From(input.InfrastructureEncryption) == backupvaultresources.InfrastructureEncryptionStateEnabled
+	}
+
+	return &[]interface{}{output}
 }
