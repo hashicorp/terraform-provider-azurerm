@@ -175,7 +175,9 @@ EOT
 
 The following arguments are supported:
 
-* `name` - (Optional) A unique UUID/GUID for this Role Assignment - one will be generated if not specified. Changing this forces a new resource to be created.
+* `name` - (Optional) The UUID for this Role Assignment. If omitted, a UUID will be generated. Changing this forces a new resource to be created.
+
+-> **Note:** When `name` is omitted, a deterministic UUIDv5 is generated from the `scope`, `principal_id`, and `role_definition_id`, matching the naming behavior used by ARM templates, Bicep, and the Azure CLI.
 
 * `scope` - (Required) The scope at which the Role Assignment applies to, such as `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333`, `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup`, or `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup/providers/Microsoft.Compute/virtualMachines/myVM`, or `/providers/Microsoft.Management/managementGroups/myMG`. Changing this forces a new resource to be created.
 
