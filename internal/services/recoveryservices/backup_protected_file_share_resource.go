@@ -308,6 +308,35 @@ func resourceBackupProtectedFileShareDelete(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
+	features := meta.(*clients.Client).Features.RecoveryService
+
+	if features.FileShareBackupStopProtectionAndRetainDataOnDestroy {
+		existing, err := client.Get(ctx, *id, protecteditems.GetOperationOptions{})
+		if err != nil {
+			if response.WasNotFound(existing.HttpResponse) {
+				return nil
+			}
+			return fmt.Errorf("retrieving %s: %+v", *id, err)
+		}
+
+		targetState := protecteditems.ProtectionStateProtectionStopped
+
+		if existing.Model != nil && existing.Model.Properties != nil {
+			if item, ok := existing.Model.Properties.(protecteditems.AzureFileshareProtectedItem); ok {
+				item.ProtectionState = &targetState
+				update := protecteditems.ProtectedItemResource{
+					Properties: item,
+				}
+
+				if err := client.CreateOrUpdateThenPoll(ctx, *id, update); err != nil {
+					return fmt.Errorf("setting protection to %s and retaining data for %s: %+v", targetState, *id, err)
+				}
+
+				return nil
+			}
+		}
+	}
+
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
