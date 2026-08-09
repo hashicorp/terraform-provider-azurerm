@@ -94,7 +94,7 @@ func (r MsSqlManagedInstanceResource) ModelObject() interface{} {
 }
 
 func (r MsSqlManagedInstanceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ManagedInstanceID
+	return commonids.ValidateSqlManagedInstanceID
 }
 
 func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
@@ -247,7 +247,7 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 		"dns_zone_partner_id": {
 			Type:         schema.TypeString,
 			Optional:     true,
-			ValidateFunc: validate.ManagedInstanceID,
+			ValidateFunc: commonids.ValidateSqlManagedInstanceID,
 		},
 
 		"hybrid_secondary_usage": {

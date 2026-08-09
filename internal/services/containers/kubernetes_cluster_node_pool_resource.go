@@ -154,7 +154,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: computeValidate.HostGroupID,
+			ValidateFunc: commonids.ValidateDedicatedHostGroupID,
 		},
 
 		// Optional

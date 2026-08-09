@@ -13,10 +13,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/endpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -44,7 +44,7 @@ func resourceCdnEndpoint() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.EndpointID(id)
+			_, err := endpoints.ParseEndpointID(id)
 			return err
 		}),
 
@@ -226,10 +226,10 @@ func resourceCdnEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewEndpointID(subscriptionId, d.Get("resource_group_name").(string), d.Get("profile_name").(string), d.Get("name").(string))
+	id := endpoints.NewEndpointID(subscriptionId, d.Get("resource_group_name").(string), d.Get("profile_name").(string), d.Get("name").(string))
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-		existing, err := endpointsClient.Get(ctx, id.ResourceGroup, id.ProfileName, id.Name)
+		existing, err := endpointsClient.Get(ctx, id.ResourceGroupName, id.ProfileName, id.EndpointName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -295,7 +295,7 @@ func resourceCdnEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		endpoint.Origins = &origins
 	}
 
-	profile, err := profilesClient.Get(ctx, id.ResourceGroup, id.ProfileName)
+	profile, err := profilesClient.Get(ctx, id.ResourceGroupName, id.ProfileName)
 	if err != nil {
 		return fmt.Errorf("retrieving parent CDN Profile for %s: %+v", id, err)
 	}
@@ -317,7 +317,7 @@ func resourceCdnEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
-	future, err := endpointsClient.Create(ctx, id.ResourceGroup, id.ProfileName, id.Name, endpoint)
+	future, err := endpointsClient.Create(ctx, id.ResourceGroupName, id.ProfileName, id.EndpointName, endpoint)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -336,7 +336,7 @@ func resourceCdnEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EndpointID(d.Id())
+	id, err := endpoints.ParseEndpointID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -369,7 +369,7 @@ func resourceCdnEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			Tags:                               tags.Expand(t),
 		}
 
-		future, err := endpointsClient.Update(ctx, id.ResourceGroup, id.ProfileName, id.Name, endpoint)
+		future, err := endpointsClient.Update(ctx, id.ResourceGroupName, id.ProfileName, id.EndpointName, endpoint)
 		if err != nil {
 			return fmt.Errorf("updating %s: %+v", *id, err)
 		}
@@ -425,7 +425,7 @@ func resourceCdnEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			endpoint.Origins = &origins
 		}
 
-		profile, err := profilesClient.Get(ctx, id.ResourceGroup, id.ProfileName)
+		profile, err := profilesClient.Get(ctx, id.ResourceGroupName, id.ProfileName)
 		if err != nil {
 			return fmt.Errorf("retrieving parent CDN Profile for %s: %+v", id, err)
 		}
@@ -447,7 +447,7 @@ func resourceCdnEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			}
 		}
 
-		future, err := endpointsClient.Create(ctx, id.ResourceGroup, id.ProfileName, id.Name, endpoint)
+		future, err := endpointsClient.Create(ctx, id.ResourceGroupName, id.ProfileName, id.EndpointName, endpoint)
 		if err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
 		}
@@ -465,12 +465,12 @@ func resourceCdnEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EndpointID(d.Id())
+	id, err := endpoints.ParseEndpointID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.ProfileName, id.EndpointName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -480,8 +480,8 @@ func resourceCdnEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.EndpointName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("profile_name", id.ProfileName)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
@@ -536,12 +536,12 @@ func resourceCdnEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EndpointID(d.Id())
+	id, err := endpoints.ParseEndpointID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.ProfileName, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroupName, id.ProfileName, id.EndpointName)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}

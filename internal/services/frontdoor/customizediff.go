@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2020-05-01/frontdoors"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -26,13 +25,13 @@ func customizeHttpsConfigurationCustomizeDiff(ctx context.Context, d *pluginsdk.
 	}
 
 	if v, ok := d.GetOk("frontend_endpoint_id"); ok && v.(string) != "" {
-		id, err := parse.FrontendEndpointID(v.(string))
+		id, err := frontdoors.ParseFrontendEndpointID(v.(string))
 		if err != nil {
 			return err
 		}
 
 		if err := customHttpsSettings(d); err != nil {
-			return fmt.Errorf("validating Front Door Custom Https Configuration for Endpoint %q (Front Door %q / Resource Group %q): %+v", id.Name, id.FrontDoorName, id.ResourceGroup, err)
+			return fmt.Errorf("validating Front Door Custom Https Configuration for Endpoint %q (Front Door %q / Resource Group %q): %+v", id.FrontendEndpointName, id.FrontDoorName, id.ResourceGroupName, err)
 		}
 	}
 

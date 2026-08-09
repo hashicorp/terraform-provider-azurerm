@@ -7,7 +7,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -60,7 +60,7 @@ func (CdnProfileV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		// summary:
 		// resourcegroups -> resourceGroups
 		oldId := rawState["id"].(string)
-		id, err := parse.ProfileIDInsensitively(oldId)
+		id, err := profiles.ParseProfileIDInsensitively(oldId)
 		if err != nil {
 			return rawState, err
 		}

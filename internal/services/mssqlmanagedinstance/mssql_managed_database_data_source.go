@@ -41,7 +41,7 @@ func (d MsSqlManagedDatabaseDataSource) ModelObject() interface{} {
 }
 
 func (d MsSqlManagedDatabaseDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ManagedDatabaseID
+	return commonids.ValidateSqlManagedInstanceDatabaseID
 }
 
 func (d MsSqlManagedDatabaseDataSource) Arguments() map[string]*pluginsdk.Schema {
