@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/storagequeues"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -66,10 +65,10 @@ func (StorageQueueV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		storageAccountID := commonids.StorageAccountId{}
 		if !findAccount {
 			// The `resource_manager_id` can be malformed (see: #32950), in which case fallbacks to find account.
-			if parsed, err := parse.StorageQueueResourceManagerID(resourceManagerID); err != nil {
+			if parsed, err := storagequeues.ParseQueueIDInsensitively(resourceManagerID); err != nil {
 				findAccount = true
 			} else {
-				storageAccountID = commonids.NewStorageAccountID(parsed.SubscriptionId, parsed.ResourceGroup, parsed.StorageAccountName)
+				storageAccountID = commonids.NewStorageAccountID(parsed.SubscriptionId, parsed.ResourceGroupName, parsed.StorageAccountName)
 			}
 		}
 
