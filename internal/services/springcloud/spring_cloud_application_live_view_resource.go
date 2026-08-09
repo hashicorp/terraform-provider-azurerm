@@ -9,11 +9,11 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	appplatform_rm "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -45,7 +45,7 @@ func (s SpringCloudApplicationLiveViewResource) ModelObject() interface{} {
 }
 
 func (s SpringCloudApplicationLiveViewResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.SpringCloudApplicationLiveViewID
+	return appplatform_rm.ValidateApplicationLiveViewID
 }
 
 func (s SpringCloudApplicationLiveViewResource) Arguments() map[string]*schema.Schema {
@@ -61,7 +61,7 @@ func (s SpringCloudApplicationLiveViewResource) Arguments() map[string]*schema.S
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.SpringCloudServiceID,
+			ValidateFunc: commonids.ValidateSpringCloudServiceID,
 		},
 	}
 }
@@ -80,14 +80,14 @@ func (s SpringCloudApplicationLiveViewResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.AppPlatform.ApplicationLiveViewsClient
-			springId, err := parse.SpringCloudServiceID(model.SpringCloudServiceId)
+			springId, err := commonids.ParseSpringCloudServiceID(model.SpringCloudServiceId)
 			if err != nil {
 				return fmt.Errorf("parsing spring service ID: %+v", err)
 			}
-			id := parse.NewSpringCloudApplicationLiveViewID(springId.SubscriptionId, springId.ResourceGroup, springId.SpringName, model.Name)
+			id := appplatform_rm.NewApplicationLiveViewID(springId.SubscriptionId, springId.ResourceGroupName, springId.ServiceName, model.Name)
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-				existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.ApplicationLiveViewName)
+				existing, err := client.Get(ctx, id.ResourceGroupName, id.SpringName, id.ApplicationLiveViewName)
 				if err != nil && !utils.ResponseWasNotFound(existing.Response) {
 					return fmt.Errorf("checking for existing %s: %+v", id, err)
 				}
@@ -97,7 +97,7 @@ func (s SpringCloudApplicationLiveViewResource) Create() sdk.ResourceFunc {
 			}
 
 			applicationLiveViewResource := appplatform.ApplicationLiveViewResource{}
-			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.ApplicationLiveViewName, applicationLiveViewResource)
+			future, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.SpringName, id.ApplicationLiveViewName, applicationLiveViewResource)
 			if err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -119,12 +119,12 @@ func (s SpringCloudApplicationLiveViewResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppPlatform.ApplicationLiveViewsClient
 
-			id, err := parse.SpringCloudApplicationLiveViewID(metadata.ResourceData.Id())
+			id, err := appplatform_rm.ParseApplicationLiveViewID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			resp, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.ApplicationLiveViewName)
+			resp, err := client.Get(ctx, id.ResourceGroupName, id.SpringName, id.ApplicationLiveViewName)
 			if err != nil {
 				if utils.ResponseWasNotFound(resp.Response) {
 					return metadata.MarkAsGone(id)
@@ -134,7 +134,7 @@ func (s SpringCloudApplicationLiveViewResource) Read() sdk.ResourceFunc {
 			}
 			state := SpringCloudApplicationLiveViewModel{
 				Name:                 id.ApplicationLiveViewName,
-				SpringCloudServiceId: parse.NewSpringCloudServiceID(id.SubscriptionId, id.ResourceGroup, id.SpringName).ID(),
+				SpringCloudServiceId: commonids.NewSpringCloudServiceID(id.SubscriptionId, id.ResourceGroupName, id.SpringName).ID(),
 			}
 			return metadata.Encode(&state)
 		},
@@ -147,12 +147,12 @@ func (s SpringCloudApplicationLiveViewResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppPlatform.ApplicationLiveViewsClient
 
-			id, err := parse.SpringCloudApplicationLiveViewID(metadata.ResourceData.Id())
+			id, err := appplatform_rm.ParseApplicationLiveViewID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			future, err := client.Delete(ctx, id.ResourceGroup, id.SpringName, id.ApplicationLiveViewName)
+			future, err := client.Delete(ctx, id.ResourceGroupName, id.SpringName, id.ApplicationLiveViewName)
 			if err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}

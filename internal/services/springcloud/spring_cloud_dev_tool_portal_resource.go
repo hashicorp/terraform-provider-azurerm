@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -73,7 +74,7 @@ func (s SpringCloudDevToolPortalResource) Arguments() map[string]*schema.Schema 
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.SpringCloudServiceID,
+			ValidateFunc: commonids.ValidateSpringCloudServiceID,
 		},
 
 		"application_accelerator_enabled": {
@@ -145,11 +146,11 @@ func (s SpringCloudDevToolPortalResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.AppPlatform.DevToolPortalClient
-			springId, err := parse.SpringCloudServiceID(model.SpringCloudServiceId)
+			springId, err := commonids.ParseSpringCloudServiceID(model.SpringCloudServiceId)
 			if err != nil {
 				return fmt.Errorf("parsing spring service ID: %+v", err)
 			}
-			id := parse.NewSpringCloudDevToolPortalID(springId.SubscriptionId, springId.ResourceGroup, springId.SpringName, model.Name)
+			id := parse.NewSpringCloudDevToolPortalID(springId.SubscriptionId, springId.ResourceGroupName, springId.ServiceName, model.Name)
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.DevToolPortalName)
@@ -246,7 +247,7 @@ func (s SpringCloudDevToolPortalResource) Read() sdk.ResourceFunc {
 			}
 			state := SpringCloudDevToolPortalModel{
 				Name:                 id.DevToolPortalName,
-				SpringCloudServiceId: parse.NewSpringCloudServiceID(id.SubscriptionId, id.ResourceGroup, id.SpringName).ID(),
+				SpringCloudServiceId: commonids.NewSpringCloudServiceID(id.SubscriptionId, id.ResourceGroup, id.SpringName).ID(),
 			}
 
 			var model SpringCloudDevToolPortalModel

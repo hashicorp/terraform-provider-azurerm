@@ -12,11 +12,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	appplatform_rm "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -39,7 +39,7 @@ func resourceSpringCloudCertificate() *pluginsdk.Resource {
 		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.SpringCloudCertificateID(id)
+			_, err := appplatform_rm.ParseCertificateID(id)
 			return err
 		}),
 
@@ -106,7 +106,7 @@ func resourceSpringCloudCertificateCreate(d *pluginsdk.ResourceData, meta interf
 	resourceGroup := d.Get("resource_group_name").(string)
 	serviceName := d.Get("service_name").(string)
 
-	resourceId := parse.NewSpringCloudCertificateID(subscriptionId, resourceGroup, serviceName, name).ID()
+	resourceId := appplatform_rm.NewCertificateID(subscriptionId, resourceGroup, serviceName, name).ID()
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, name)
@@ -157,23 +157,23 @@ func resourceSpringCloudCertificateRead(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SpringCloudCertificateID(d.Id())
+	id, err := appplatform_rm.ParseCertificateID(d.Id())
 	if err != nil {
 		return err
 	}
-	resp, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.CertificateName)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.SpringName, id.CertificateName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Spring Cloud Certificate %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading Spring Cloud Certificate %q (Spring Cloud Service %q / Resource Group %q): %+v", id.CertificateName, id.SpringName, id.ResourceGroup, err)
+		return fmt.Errorf("reading Spring Cloud Certificate %q (Spring Cloud Service %q / Resource Group %q): %+v", id.CertificateName, id.SpringName, id.ResourceGroupName, err)
 	}
 
 	d.Set("name", id.CertificateName)
 	d.Set("service_name", id.SpringName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if props, ok := resp.Properties.AsKeyVaultCertificateProperties(); ok && props != nil {
 		d.Set("thumbprint", props.Thumbprint)
@@ -191,14 +191,14 @@ func resourceSpringCloudCertificateDelete(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SpringCloudCertificateID(d.Id())
+	id, err := appplatform_rm.ParseCertificateID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.SpringName, id.CertificateName)
+	future, err := client.Delete(ctx, id.ResourceGroupName, id.SpringName, id.CertificateName)
 	if err != nil {
-		return fmt.Errorf("deleting Spring Cloud Certificate %q (Spring Cloud Service %q / Resource Group %q): %+v", id.CertificateName, id.SpringName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Spring Cloud Certificate %q (Spring Cloud Service %q / Resource Group %q): %+v", id.CertificateName, id.SpringName, id.ResourceGroupName, err)
 	}
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for deletion of %q: %+v", id, err)

@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -75,7 +74,7 @@ func (s SpringCloudConfigurationServiceResource) Arguments() map[string]*schema.
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.SpringCloudServiceID,
+			ValidateFunc: commonids.ValidateSpringCloudServiceID,
 		},
 
 		"generation": {
@@ -128,7 +127,7 @@ func (s SpringCloudConfigurationServiceResource) Arguments() map[string]*schema.
 					"ca_certificate_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validate.SpringCloudCertificateID,
+						ValidateFunc: appplatform.ValidateCertificateID,
 					},
 
 					"host_key": {

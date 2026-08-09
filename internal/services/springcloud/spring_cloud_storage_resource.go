@@ -9,12 +9,12 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	appplatform_rm "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-prevew/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -44,7 +44,7 @@ func resourceSpringCloudStorage() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.SpringCloudStorageID(id)
+			_, err := appplatform_rm.ParseStorageID(id)
 			return err
 		}),
 
@@ -60,7 +60,7 @@ func resourceSpringCloudStorage() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.SpringCloudServiceID,
+				ValidateFunc: commonids.ValidateSpringCloudServiceID,
 			},
 
 			"storage_account_name": {
@@ -84,16 +84,16 @@ func resourceSpringCloudStorageCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	springCloudId, err := parse.SpringCloudServiceID(d.Get("spring_cloud_service_id").(string))
+	springCloudId, err := commonids.ParseSpringCloudServiceID(d.Get("spring_cloud_service_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewSpringCloudStorageID(subscriptionId, springCloudId.ResourceGroup, springCloudId.SpringName, d.Get("name").(string))
+	id := appplatform_rm.NewStorageID(subscriptionId, springCloudId.ResourceGroupName, springCloudId.ServiceName, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-			existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.StorageName)
+			existing, err := client.Get(ctx, id.ResourceGroupName, id.SpringName, id.StorageName)
 			if err != nil {
 				if !utils.ResponseWasNotFound(existing.Response) {
 					return fmt.Errorf("checking for existing %q: %+v", id, err)
@@ -112,7 +112,7 @@ func resourceSpringCloudStorageCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			StorageType: appplatform.StorageTypeStorageAccount,
 		},
 	}
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.StorageName, storageResource)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.SpringName, id.StorageName, storageResource)
 	if err != nil {
 		return fmt.Errorf("creating/updating %q: %+v", id, err)
 	}
@@ -133,12 +133,12 @@ func resourceSpringCloudStorageRead(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SpringCloudStorageID(d.Id())
+	id, err := appplatform_rm.ParseStorageID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.StorageName)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.SpringName, id.StorageName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] %q does not exist - removing from state", id)
@@ -148,7 +148,7 @@ func resourceSpringCloudStorageRead(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("retrieving %q: %+v", id, err)
 	}
 	d.Set("name", id.StorageName)
-	d.Set("spring_cloud_service_id", parse.NewSpringCloudServiceID(id.SubscriptionId, id.ResourceGroup, id.SpringName).ID())
+	d.Set("spring_cloud_service_id", commonids.NewSpringCloudServiceID(id.SubscriptionId, id.ResourceGroupName, id.SpringName).ID())
 	if resp.Properties != nil {
 		if props, ok := resp.Properties.AsStorageAccount(); ok {
 			d.Set("storage_account_name", props.AccountName)
@@ -162,12 +162,12 @@ func resourceSpringCloudStorageDelete(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SpringCloudStorageID(d.Id())
+	id, err := appplatform_rm.ParseStorageID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.SpringName, id.StorageName)
+	future, err := client.Delete(ctx, id.ResourceGroupName, id.SpringName, id.StorageName)
 	if err != nil {
 		return fmt.Errorf("deleting %q: %+v", id, err)
 	}

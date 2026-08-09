@@ -9,12 +9,11 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	appplatform_rm "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -44,7 +43,7 @@ func resourceSpringCloudGatewayCustomDomain() *pluginsdk.Resource {
 		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.SpringCloudGatewayCustomDomainID(id)
+			_, err := appplatform_rm.ParseGatewayDomainID(id)
 			return err
 		}),
 
@@ -59,7 +58,7 @@ func resourceSpringCloudGatewayCustomDomain() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.SpringCloudGatewayID,
+				ValidateFunc: appplatform_rm.ValidateGatewayID,
 			},
 
 			"thumbprint": {
@@ -77,15 +76,15 @@ func resourceSpringCloudGatewayCustomDomainCreateUpdate(d *pluginsdk.ResourceDat
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	gatewayId, err := parse.SpringCloudGatewayID(d.Get("spring_cloud_gateway_id").(string))
+	gatewayId, err := appplatform_rm.ParseGatewayID(d.Get("spring_cloud_gateway_id").(string))
 	if err != nil {
 		return err
 	}
-	id := parse.NewSpringCloudGatewayCustomDomainID(subscriptionId, gatewayId.ResourceGroup, gatewayId.SpringName, gatewayId.GatewayName, d.Get("name").(string))
+	id := appplatform_rm.NewGatewayDomainID(subscriptionId, gatewayId.ResourceGroupName, gatewayId.SpringName, gatewayId.GatewayName, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-			existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.GatewayName, id.DomainName)
+			existing, err := client.Get(ctx, id.ResourceGroupName, id.SpringName, id.GatewayName, id.DomainName)
 			if err != nil {
 				if !utils.ResponseWasNotFound(existing.Response) {
 					return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -102,7 +101,7 @@ func resourceSpringCloudGatewayCustomDomainCreateUpdate(d *pluginsdk.ResourceDat
 			Thumbprint: pointer.To(d.Get("thumbprint").(string)),
 		},
 	}
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.GatewayName, id.DomainName, gatewayCustomDomainResource)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.SpringName, id.GatewayName, id.DomainName, gatewayCustomDomainResource)
 	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
@@ -123,12 +122,12 @@ func resourceSpringCloudGatewayCustomDomainRead(d *pluginsdk.ResourceData, meta 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SpringCloudGatewayCustomDomainID(d.Id())
+	id, err := appplatform_rm.ParseGatewayDomainID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.GatewayName, id.DomainName)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.SpringName, id.GatewayName, id.DomainName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] appplatform %q does not exist - removing from state", d.Id())
@@ -138,7 +137,7 @@ func resourceSpringCloudGatewayCustomDomainRead(d *pluginsdk.ResourceData, meta 
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 	d.Set("name", id.DomainName)
-	d.Set("spring_cloud_gateway_id", parse.NewSpringCloudGatewayID(id.SubscriptionId, id.ResourceGroup, id.SpringName, id.GatewayName).ID())
+	d.Set("spring_cloud_gateway_id", appplatform_rm.NewGatewayID(id.SubscriptionId, id.ResourceGroupName, id.SpringName, id.GatewayName).ID())
 	if props := resp.Properties; props != nil {
 		d.Set("thumbprint", props.Thumbprint)
 	}
@@ -150,12 +149,12 @@ func resourceSpringCloudGatewayCustomDomainDelete(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SpringCloudGatewayCustomDomainID(d.Id())
+	id, err := appplatform_rm.ParseGatewayDomainID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.SpringName, id.GatewayName, id.DomainName)
+	future, err := client.Delete(ctx, id.ResourceGroupName, id.SpringName, id.GatewayName, id.DomainName)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}

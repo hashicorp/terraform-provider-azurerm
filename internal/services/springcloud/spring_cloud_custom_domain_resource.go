@@ -9,11 +9,11 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	appplatform_rm "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -37,7 +37,7 @@ func resourceSpringCloudCustomDomain() *pluginsdk.Resource {
 		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.SpringCloudCustomDomainID(id)
+			_, err := appplatform_rm.ParseDomainID(id)
 			return err
 		}),
 
@@ -60,7 +60,7 @@ func resourceSpringCloudCustomDomain() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.SpringCloudAppID,
+				ValidateFunc: appplatform_rm.ValidateAppID,
 			},
 
 			"certificate_name": {
@@ -87,18 +87,18 @@ func resourceSpringCloudCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta
 	defer cancel()
 
 	name := d.Get("name").(string)
-	appId, err := parse.SpringCloudAppID(d.Get("spring_cloud_app_id").(string))
+	appId, err := appplatform_rm.ParseAppID(d.Get("spring_cloud_app_id").(string))
 	if err != nil {
 		return err
 	}
 
-	resourceId := parse.NewSpringCloudCustomDomainID(appId.SubscriptionId, appId.ResourceGroup, appId.SpringName, appId.AppName, name).ID()
+	resourceId := appplatform_rm.NewDomainID(appId.SubscriptionId, appId.ResourceGroupName, appId.SpringName, appId.AppName, name).ID()
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-			existing, err := client.Get(ctx, appId.ResourceGroup, appId.SpringName, appId.AppName, name)
+			existing, err := client.Get(ctx, appId.ResourceGroupName, appId.SpringName, appId.AppName, name)
 			if err != nil {
 				if !utils.ResponseWasNotFound(existing.Response) {
-					return fmt.Errorf("making Read request on AzureRM Spring Cloud Custom Domain %q (Spring Cloud service %q / App %q / rcsource group %q): %+v", name, appId.SpringName, appId.AppName, appId.ResourceGroup, err)
+					return fmt.Errorf("making Read request on AzureRM Spring Cloud Custom Domain %q (Spring Cloud service %q / App %q / rcsource group %q): %+v", name, appId.SpringName, appId.AppName, appId.ResourceGroupName, err)
 				}
 			}
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -114,9 +114,9 @@ func resourceSpringCloudCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, appId.ResourceGroup, appId.SpringName, appId.AppName, name, domain)
+	future, err := client.CreateOrUpdate(ctx, appId.ResourceGroupName, appId.SpringName, appId.AppName, name, domain)
 	if err != nil {
-		return fmt.Errorf("creating/update Spring Cloud Custom Domain %q (Spring Cloud service %q / App %q / rcsource group %q): %+v", name, appId.SpringName, appId.AppName, appId.ResourceGroup, err)
+		return fmt.Errorf("creating/update Spring Cloud Custom Domain %q (Spring Cloud service %q / App %q / rcsource group %q): %+v", name, appId.SpringName, appId.AppName, appId.ResourceGroupName, err)
 	}
 
 	if d.IsNewResource() {
@@ -124,7 +124,7 @@ func resourceSpringCloudCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of %q(Spring Cloud service %q / App %q / rcsource group %q): %+v", name, appId.SpringName, appId.AppName, appId.ResourceGroup, err)
+		return fmt.Errorf("waiting for creation/update of %q(Spring Cloud service %q / App %q / rcsource group %q): %+v", name, appId.SpringName, appId.AppName, appId.ResourceGroupName, err)
 	}
 	return resourceSpringCloudCustomDomainRead(d, meta)
 }
@@ -134,23 +134,23 @@ func resourceSpringCloudCustomDomainRead(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SpringCloudCustomDomainID(d.Id())
+	id, err := appplatform_rm.ParseDomainID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.AppName, id.DomainName)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.SpringName, id.AppName, id.DomainName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Spring Cloud Custom Domain %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading Spring Cloud Custom Domain %q (Spring Cloud service %q / App %q / rcsource group %q): %+v", id.DomainName, id.SpringName, id.AppName, id.ResourceGroup, err)
+		return fmt.Errorf("reading Spring Cloud Custom Domain %q (Spring Cloud service %q / App %q / rcsource group %q): %+v", id.DomainName, id.SpringName, id.AppName, id.ResourceGroupName, err)
 	}
 
 	d.Set("name", id.DomainName)
-	d.Set("spring_cloud_app_id", parse.NewSpringCloudAppID(id.SubscriptionId, id.ResourceGroup, id.SpringName, id.AppName).ID())
+	d.Set("spring_cloud_app_id", appplatform_rm.NewAppID(id.SubscriptionId, id.ResourceGroupName, id.SpringName, id.AppName).ID())
 	if props := resp.Properties; props != nil {
 		d.Set("certificate_name", props.CertName)
 		d.Set("thumbprint", props.Thumbprint)
@@ -164,14 +164,14 @@ func resourceSpringCloudCustomDomainDelete(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SpringCloudCustomDomainID(d.Id())
+	id, err := appplatform_rm.ParseDomainID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.SpringName, id.AppName, id.DomainName)
+	future, err := client.Delete(ctx, id.ResourceGroupName, id.SpringName, id.AppName, id.DomainName)
 	if err != nil {
-		return fmt.Errorf("deleting Spring Cloud Custom Domain %q (Spring Cloud service %q / App %q / rcsource group %q): %+v", id.DomainName, id.SpringName, id.AppName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Spring Cloud Custom Domain %q (Spring Cloud service %q / App %q / rcsource group %q): %+v", id.DomainName, id.SpringName, id.AppName, id.ResourceGroupName, err)
 	}
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for deletion of %q: %+v", id, err)

@@ -9,13 +9,12 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	appplatform_rm "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -45,7 +44,7 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.SpringCloudGatewayRouteConfigID(id)
+			_, err := appplatform_rm.ParseRouteConfigID(id)
 			return err
 		}),
 
@@ -60,7 +59,7 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.SpringCloudGatewayID,
+				ValidateFunc: appplatform_rm.ValidateGatewayID,
 			},
 
 			"open_api": {
@@ -90,7 +89,7 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 			"spring_cloud_app_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.SpringCloudAppID,
+				ValidateFunc: appplatform_rm.ValidateAppID,
 			},
 
 			"filters": {
@@ -193,15 +192,15 @@ func resourceSpringCloudGatewayRouteConfigCreateUpdate(d *pluginsdk.ResourceData
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	gatewayId, err := parse.SpringCloudGatewayID(d.Get("spring_cloud_gateway_id").(string))
+	gatewayId, err := appplatform_rm.ParseGatewayID(d.Get("spring_cloud_gateway_id").(string))
 	if err != nil {
 		return err
 	}
-	id := parse.NewSpringCloudGatewayRouteConfigID(subscriptionId, gatewayId.ResourceGroup, gatewayId.SpringName, gatewayId.GatewayName, d.Get("name").(string))
+	id := appplatform_rm.NewRouteConfigID(subscriptionId, gatewayId.ResourceGroupName, gatewayId.SpringName, gatewayId.GatewayName, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-			existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.GatewayName, id.RouteConfigName)
+			existing, err := client.Get(ctx, id.ResourceGroupName, id.SpringName, id.GatewayName, id.RouteConfigName)
 			if err != nil {
 				if !utils.ResponseWasNotFound(existing.Response) {
 					return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -233,7 +232,7 @@ func resourceSpringCloudGatewayRouteConfigCreateUpdate(d *pluginsdk.ResourceData
 		gatewayRouteConfigResource.Properties.Predicates = helpers.ExpandStringSlice(predicates)
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.GatewayName, id.RouteConfigName, gatewayRouteConfigResource)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.SpringName, id.GatewayName, id.RouteConfigName, gatewayRouteConfigResource)
 	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
@@ -254,12 +253,12 @@ func resourceSpringCloudGatewayRouteConfigRead(d *pluginsdk.ResourceData, meta i
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SpringCloudGatewayRouteConfigID(d.Id())
+	id, err := appplatform_rm.ParseRouteConfigID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.GatewayName, id.RouteConfigName)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.SpringName, id.GatewayName, id.RouteConfigName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] appplatform %q does not exist - removing from state", d.Id())
@@ -269,13 +268,13 @@ func resourceSpringCloudGatewayRouteConfigRead(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 	d.Set("name", id.RouteConfigName)
-	d.Set("spring_cloud_gateway_id", parse.NewSpringCloudGatewayID(id.SubscriptionId, id.ResourceGroup, id.SpringName, id.GatewayName).ID())
+	d.Set("spring_cloud_gateway_id", appplatform_rm.NewGatewayID(id.SubscriptionId, id.ResourceGroupName, id.SpringName, id.GatewayName).ID())
 	if props := resp.Properties; props != nil {
 		// The returned value has inconsistent casing
 		// TODO: Remove the normalization codes once the following issue is fixed.
 		// Issue: https://github.com/Azure/azure-rest-api-specs/issues/22845
 		if props.AppResourceID != nil {
-			appId, err := parse.SpringCloudAppIDInsensitively(*props.AppResourceID)
+			appId, err := appplatform_rm.ParseAppIDInsensitively(*props.AppResourceID)
 			if err != nil {
 				return fmt.Errorf("parsing `spring_cloud_app_id`: %+v", err)
 			}
@@ -306,12 +305,12 @@ func resourceSpringCloudGatewayRouteConfigDelete(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SpringCloudGatewayRouteConfigID(d.Id())
+	id, err := appplatform_rm.ParseRouteConfigID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.SpringName, id.GatewayName, id.RouteConfigName)
+	future, err := client.Delete(ctx, id.ResourceGroupName, id.SpringName, id.GatewayName, id.RouteConfigName)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
