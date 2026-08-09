@@ -12,6 +12,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/fileshares"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -297,7 +299,7 @@ func TestAccStorageShare_migrateFromStorageIDShouldFail(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
 	r := StorageShareResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -308,8 +310,12 @@ func TestAccStorageShare_migrateFromStorageIDShouldFail(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config:      r.withAccountName(data),
-			ExpectError: regexp.MustCompile("expected action to not be Replace"),
+			Config: r.withAccountName(data),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
 		},
 	})
 }
@@ -381,19 +387,8 @@ func (r StorageShareResource) Destroy(ctx context.Context, client *clients.Clien
 }
 
 func (r StorageShareResource) basic(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-	%s
-
-resource "azurerm_storage_share" "test" {
-  name                 = "testshare%s"
-  storage_account_name = azurerm_storage_account.test.name
-  quota                = 5
-}
-	`, r.template(data), data.RandomString)
-	}
 	return fmt.Sprintf(`
-%s
+	%s
 
 resource "azurerm_storage_share" "test" {
   name               = "testshare%s"
@@ -638,17 +633,6 @@ resource "azurerm_storage_share" "test" {
 }
 
 func (r StorageShareResource) requiresImport(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-	%s
-
-resource "azurerm_storage_share" "import" {
-  name                 = azurerm_storage_share.test.name
-  storage_account_name = azurerm_storage_share.test.storage_account_name
-  quota                = azurerm_storage_share.test.quota
-}
-	`, r.basic(data))
-	}
 	return fmt.Sprintf(`
 %s
 

@@ -25,7 +25,7 @@ type ManagementGroupSubscriptionAssociation struct{}
 // all testcases in this file share the same subscription instance so that
 // these testcases have to be run sequentially.
 
-func TestAccManagementGroupSubscriptionAssociation(t *testing.T) {
+func TestAccManagementGroupSubscriptionAssociation_sequential(t *testing.T) {
 	testCases := map[string]map[string]func(t *testing.T){
 		"Resource": {
 			"basic":          testAccManagementGroupSubscriptionAssociation_basic,

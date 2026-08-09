@@ -13,17 +13,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatedns"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name private_dns_a_record -properties "name,private_dns_zone_name:zone_name,resource_group_name" -compare-values "record_type:id"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name private_dns_a_record -properties "name" -compare-values "subscription_id:private_dns_zone_id,resource_group_name:private_dns_zone_id,private_dns_zone_name:private_dns_zone_id,record_type:id"
 
 func resourcePrivateDnsARecord() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -47,23 +46,17 @@ func resourcePrivateDnsARecord() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				// lower-cased due to the broken API https://github.com/Azure/azure-rest-api-specs/issues/6641
-				ValidateFunc: validate.LowerCasedString,
-			},
-
-			// TODO: in 4.0 make `name` case sensitive and replace `resource_group_name` and `zone_name` with `private_zone_id`
-
-			// TODO: make this case sensitive once the API's fixed https://github.com/Azure/azure-rest-api-specs/issues/6641
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
-
-			"zone_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validation.StringIsNotWhiteSpace,
+			},
+
+			"private_dns_zone_id": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: privatezones.ValidatePrivateDnsZoneID,
 			},
 
 			"records": {
@@ -89,7 +82,7 @@ func resourcePrivateDnsARecord() *pluginsdk.Resource {
 	}
 }
 
-func resourcePrivateDnsARecordImporter(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+func resourcePrivateDnsARecordImporter(_ context.Context, d *pluginsdk.ResourceData, _ interface{}) ([]*pluginsdk.ResourceData, error) {
 	resourceId, err := privatedns.ParseRecordTypeID(d.Id())
 	if err != nil {
 		return []*pluginsdk.ResourceData{d}, err
@@ -102,11 +95,16 @@ func resourcePrivateDnsARecordImporter(ctx context.Context, d *pluginsdk.Resourc
 
 func resourcePrivateDnsARecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).PrivateDns.RecordSetsClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := privatedns.NewRecordTypeID(subscriptionId, d.Get("resource_group_name").(string), d.Get("zone_name").(string), privatedns.RecordTypeA, d.Get("name").(string))
+	privateDNSZoneID, err := privatezones.ParsePrivateDnsZoneID(d.Get("private_dns_zone_id").(string))
+	if err != nil {
+		return err
+	}
+
+	id := privatedns.NewRecordTypeID(privateDNSZoneID.SubscriptionId, privateDNSZoneID.ResourceGroupName, privateDNSZoneID.PrivateDnsZoneName, privatedns.RecordTypeA, d.Get("name").(string))
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			existing, err := client.RecordSetsGet(ctx, id)
@@ -172,8 +170,7 @@ func resourcePrivateDnsARecordRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 func resourcePrivateDnsARecordFlatten(d *pluginsdk.ResourceData, id *privatedns.RecordTypeId, model *privatedns.RecordSet) error {
 	d.Set("name", id.RelativeRecordSetName)
-	d.Set("zone_name", id.PrivateDnsZoneName)
-	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("private_dns_zone_id", privatezones.NewPrivateDnsZoneID(id.SubscriptionId, id.ResourceGroupName, id.PrivateDnsZoneName).ID())
 
 	if model != nil {
 		if props := model.Properties; props != nil {
