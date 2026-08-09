@@ -12,12 +12,12 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -60,7 +60,7 @@ func resourceSynapseLinkedService() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.WorkspaceID,
+				ValidateFunc: workspaces.ValidateWorkspaceID,
 			},
 
 			"type": {
@@ -245,17 +245,17 @@ func resourceSynapseLinkedServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("could not determine Synapse domain suffix for environment %q", environment.Name)
 	}
 
-	workspaceId, err := parse.WorkspaceID(d.Get("synapse_workspace_id").(string))
+	workspaceId, err := workspaces.ParseWorkspaceID(d.Get("synapse_workspace_id").(string))
 	if err != nil {
 		return err
 	}
 
-	client, err := synapseClient.LinkedServiceClient(workspaceId.Name, *synapseDomainSuffix)
+	client, err := synapseClient.LinkedServiceClient(workspaceId.WorkspaceName, *synapseDomainSuffix)
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewLinkedServiceID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, d.Get("name").(string))
+	id := parse.NewLinkedServiceID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, d.Get("name").(string))
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			existing, err := client.GetLinkedService(ctx, id.Name, "")
@@ -362,7 +362,7 @@ func resourceSynapseLinkedServiceRead(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	d.Set("name", id.Name)
-	d.Set("synapse_workspace_id", parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID())
+	d.Set("synapse_workspace_id", workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID())
 
 	byteArr, err := json.Marshal(resp.Properties)
 	if err != nil {
