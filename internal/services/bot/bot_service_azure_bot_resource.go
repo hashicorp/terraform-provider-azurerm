@@ -15,8 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -60,7 +58,7 @@ func (r AzureBotServiceResource) ModelObject() interface{} {
 }
 
 func (r AzureBotServiceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.BotServiceID
+	return commonids.ValidateBotServiceID
 }
 
 func (r AzureBotServiceResource) ResourceType() string {
@@ -221,10 +219,10 @@ func (r AzureBotServiceResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			id := parse.NewBotServiceID(subscriptionId, config.ResourceGroupName, config.Name)
+			id := commonids.NewBotServiceID(subscriptionId, config.ResourceGroupName, config.Name)
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-				existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+				existing, err := client.Get(ctx, id.ResourceGroupName, id.BotServiceName)
 				if err != nil {
 					if !utils.ResponseWasNotFound(existing.Response) {
 						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -237,7 +235,7 @@ func (r AzureBotServiceResource) Create() sdk.ResourceFunc {
 
 			displayName := config.DisplayName
 			if displayName == "" {
-				displayName = id.Name
+				displayName = id.BotServiceName
 			}
 
 			publicNetworkEnabled := botservice.PublicNetworkAccessEnabled
@@ -286,7 +284,7 @@ func (r AzureBotServiceResource) Create() sdk.ResourceFunc {
 				props.Properties.MsaAppMSIResourceID = pointer.To(config.MicrosoftAppMsiId)
 			}
 
-			if _, err := client.Create(ctx, id.ResourceGroup, id.Name, props); err != nil {
+			if _, err := client.Create(ctx, id.ResourceGroupName, id.BotServiceName, props); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -302,12 +300,12 @@ func (r AzureBotServiceResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Bot.BotClient
 
-			id, err := parse.BotServiceID(metadata.ResourceData.Id())
+			id, err := commonids.ParseBotServiceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+			resp, err := client.Get(ctx, id.ResourceGroupName, id.BotServiceName)
 			if err != nil {
 				if utils.ResponseWasNotFound(resp.Response) {
 					return metadata.MarkAsGone(id)
@@ -316,8 +314,8 @@ func (r AzureBotServiceResource) Read() sdk.ResourceFunc {
 			}
 
 			state := BotServiceModel{
-				Name:              id.Name,
-				ResourceGroupName: id.ResourceGroup,
+				Name:              id.BotServiceName,
+				ResourceGroupName: id.ResourceGroupName,
 				Location:          location.NormalizeNilable(resp.Location),
 			}
 
@@ -377,12 +375,12 @@ func (r AzureBotServiceResource) Delete() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Bot.BotClient
-			id, err := parse.BotServiceID(metadata.ResourceData.Id())
+			id, err := commonids.ParseBotServiceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			if _, err = client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
+			if _, err = client.Delete(ctx, id.ResourceGroupName, id.BotServiceName); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
@@ -396,7 +394,7 @@ func (r AzureBotServiceResource) Update() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Bot.BotClient
-			id, err := parse.BotServiceID(metadata.ResourceData.Id())
+			id, err := commonids.ParseBotServiceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -406,7 +404,7 @@ func (r AzureBotServiceResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+			existing, err := client.Get(ctx, id.ResourceGroupName, id.BotServiceName)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
@@ -463,7 +461,7 @@ func (r AzureBotServiceResource) Update() sdk.ResourceFunc {
 				existing.Tags = tags.Expand(config.Tags)
 			}
 
-			if _, err := client.Update(ctx, id.ResourceGroup, id.Name, existing); err != nil {
+			if _, err := client.Update(ctx, id.ResourceGroupName, id.BotServiceName, existing); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -476,12 +474,12 @@ func (r AzureBotServiceResource) CustomImporter() sdk.ResourceRunFunc {
 	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 		client := metadata.Client.Bot.BotClient
 
-		id, err := parse.BotServiceID(metadata.ResourceData.Id())
+		id, err := commonids.ParseBotServiceID(metadata.ResourceData.Id())
 		if err != nil {
 			return err
 		}
 
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		resp, err := client.Get(ctx, id.ResourceGroupName, id.BotServiceName)
 		if err != nil {
 			return fmt.Errorf("retrieving %s: %+v", *id, err)
 		}

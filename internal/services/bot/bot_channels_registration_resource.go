@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -42,20 +41,20 @@ func resourceBotChannelsRegistration() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := parse.BotServiceID(id)
+			_, err := commonids.ParseBotServiceID(id)
 			return err
 		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
 			client := meta.(*clients.Client).Bot.BotClient
 
-			id, err := parse.BotServiceID(d.Id())
+			id, err := commonids.ParseBotServiceID(d.Id())
 			if err != nil {
 				return nil, err
 			}
 
-			resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+			resp, err := client.Get(ctx, id.ResourceGroupName, id.BotServiceName)
 			if err != nil {
 				if utils.ResponseWasNotFound(resp.Response) {
-					return nil, fmt.Errorf("the Bot Channels Registration %q was not found in Resource Group %q", id.Name, id.ResourceGroup)
+					return nil, fmt.Errorf("the Bot Channels Registration %q was not found in Resource Group %q", id.BotServiceName, id.ResourceGroupName)
 				}
 
 				return nil, fmt.Errorf("retrieving %s: %+v", id, err)
@@ -194,13 +193,13 @@ func resourceBotChannelsRegistrationCreate(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceId := parse.NewBotServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resourceId := commonids.NewBotServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.Name)
+		existing, err := client.Get(ctx, resourceId.ResourceGroupName, resourceId.BotServiceName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Bot Channels Registration %q (Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Bot Channels Registration %q (Resource Group %q): %+v", resourceId.BotServiceName, resourceId.ResourceGroupName, err)
 			}
 		}
 		if !utils.ResponseWasNotFound(existing.Response) {
@@ -210,7 +209,7 @@ func resourceBotChannelsRegistrationCreate(d *pluginsdk.ResourceData, meta inter
 
 	displayName := d.Get("display_name").(string)
 	if displayName == "" {
-		displayName = resourceId.Name
+		displayName = resourceId.BotServiceName
 	}
 
 	bot := botservice.Bot{
@@ -248,8 +247,8 @@ func resourceBotChannelsRegistrationCreate(d *pluginsdk.ResourceData, meta inter
 		bot.Properties.MsaAppMSIResourceID = pointer.To(v.(string))
 	}
 
-	if _, err := client.Create(ctx, resourceId.ResourceGroup, resourceId.Name, bot); err != nil {
-		return fmt.Errorf("creating Bot Channels Registration %q (Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
+	if _, err := client.Create(ctx, resourceId.ResourceGroupName, resourceId.BotServiceName, bot); err != nil {
+		return fmt.Errorf("creating Bot Channels Registration %q (Resource Group %q): %+v", resourceId.BotServiceName, resourceId.ResourceGroupName, err)
 	}
 
 	d.SetId(resourceId.ID())
@@ -268,24 +267,24 @@ func resourceBotChannelsRegistrationRead(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BotServiceID(d.Id())
+	id, err := commonids.ParseBotServiceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.BotServiceName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Bot Channels Registration %q (Resource Group %q) was not found - removing from state", id.Name, id.ResourceGroup)
+			log.Printf("[INFO] Bot Channels Registration %q (Resource Group %q) was not found - removing from state", id.BotServiceName, id.ResourceGroupName)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Bot Channels Registration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Bot Channels Registration %q (Resource Group %q): %+v", id.BotServiceName, id.ResourceGroupName, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.BotServiceName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if sku := resp.Sku; sku != nil {
@@ -320,7 +319,7 @@ func resourceBotChannelsRegistrationUpdate(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BotServiceID(d.Id())
+	id, err := commonids.ParseBotServiceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -328,7 +327,7 @@ func resourceBotChannelsRegistrationUpdate(d *pluginsdk.ResourceData, meta inter
 	t := d.Get("tags").(map[string]interface{})
 	displayName := d.Get("display_name").(string)
 	if displayName == "" {
-		displayName = id.Name
+		displayName = id.BotServiceName
 	}
 
 	bot := botservice.Bot{
@@ -375,8 +374,8 @@ func resourceBotChannelsRegistrationUpdate(d *pluginsdk.ResourceData, meta inter
 		bot.Properties.PublicNetworkAccess = publicNetworkAccessEnabled
 	}
 
-	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, bot); err != nil {
-		return fmt.Errorf("updating Bot Channels Registration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	if _, err := client.Update(ctx, id.ResourceGroupName, id.BotServiceName, bot); err != nil {
+		return fmt.Errorf("updating Bot Channels Registration %q (Resource Group %q): %+v", id.BotServiceName, id.ResourceGroupName, err)
 	}
 
 	return resourceBotChannelsRegistrationRead(d, meta)
@@ -387,15 +386,15 @@ func resourceBotChannelsRegistrationDelete(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BotServiceID(d.Id())
+	id, err := commonids.ParseBotServiceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Delete(ctx, id.ResourceGroupName, id.BotServiceName)
 	if err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("deleting Bot Channels Registration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("deleting Bot Channels Registration %q (Resource Group %q): %+v", id.BotServiceName, id.ResourceGroupName, err)
 		}
 	}
 
