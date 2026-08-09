@@ -226,7 +226,9 @@ func resourceDataProtectionBackupInstanceBlobStorageRead(d *schema.ResourceData,
 				if dataStoreParas := policyParas.BackupDatasourceParametersList; dataStoreParas != nil {
 					if dsp := pointer.From(dataStoreParas); len(dsp) > 0 {
 						if parameter, ok := dsp[0].(backupinstanceresources.BlobBackupDatasourceParameters); ok {
-							d.Set("storage_account_container_names", utils.FlattenStringSlice(&parameter.ContainersList))
+							if err := d.Set("storage_account_container_names", utils.FlattenStringSlice(&parameter.ContainersList)); err != nil {
+								return fmt.Errorf("setting `storage_account_container_names`: %+v", err)
+							}
 						}
 					}
 				}
