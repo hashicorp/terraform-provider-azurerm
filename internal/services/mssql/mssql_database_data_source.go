@@ -39,7 +39,7 @@ func dataSourceMsSqlDatabase() *pluginsdk.Resource {
 			"server_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validate.ServerID,
+				ValidateFunc: commonids.ValidateSqlServerID,
 			},
 
 			"collation": {

@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -77,7 +76,7 @@ func (r MsSqlFailoverGroupResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ServerID,
+			ValidateFunc: commonids.ValidateSqlServerID,
 		},
 
 		"partner_server": {
@@ -312,7 +311,7 @@ func (r MsSqlFailoverGroupResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			serverId := parse.NewServerID(subscriptionId, id.ResourceGroupName, id.ServerName)
+			serverId := commonids.NewSqlServerID(subscriptionId, id.ResourceGroupName, id.ServerName)
 
 			model := MsSqlFailoverGroupModel{
 				Name:     id.FailoverGroupName,

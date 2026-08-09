@@ -1560,7 +1560,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ServerID,
+			ValidateFunc: commonids.ValidateSqlServerID,
 		},
 
 		"auto_pause_delay_in_minutes": {
@@ -1639,7 +1639,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"elastic_pool_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validate.ElasticPoolID,
+			ValidateFunc: commonids.ValidateSqlElasticPoolID,
 		},
 
 		"enclave_type": {

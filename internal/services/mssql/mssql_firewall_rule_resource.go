@@ -10,11 +10,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/firewallrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -50,7 +49,7 @@ func resourceMsSqlFirewallRule() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ServerID,
+				ValidateFunc: commonids.ValidateSqlServerID,
 			},
 
 			"start_ip_address": {
@@ -79,12 +78,12 @@ func resourceMsSqlFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	serverId, err := parse.ServerID(d.Get("server_id").(string))
+	serverId, err := commonids.ParseSqlServerID(d.Get("server_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing server ID %q: %+v", d.Get("server_id"), err)
 	}
 
-	id := firewallrules.NewFirewallRuleID(serverId.SubscriptionId, serverId.ResourceGroup, serverId.Name, d.Get("name").(string))
+	id := firewallrules.NewFirewallRuleID(serverId.SubscriptionId, serverId.ResourceGroupName, serverId.ServerName, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
@@ -149,7 +148,7 @@ func resourceMsSqlFirewallRuleRead(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
-	serverId := parse.NewServerID(id.SubscriptionId, id.ResourceGroupName, id.ServerName)
+	serverId := commonids.NewSqlServerID(id.SubscriptionId, id.ResourceGroupName, id.ServerName)
 	d.Set("server_id", serverId.ID())
 
 	return nil

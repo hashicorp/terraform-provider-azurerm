@@ -63,7 +63,7 @@ func (d MsSqlFailoverGroupDataSource) Arguments() map[string]*pluginsdk.Schema {
 		"server_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.ServerID,
+			ValidateFunc: commonids.ValidateSqlServerID,
 		},
 	}
 }
