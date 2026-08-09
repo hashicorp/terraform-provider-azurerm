@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/restorables"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -95,15 +95,15 @@ func dataSourceCosmosDbRestorableDatabaseAccounts() *pluginsdk.Resource {
 }
 
 func dataSourceCosmosDbRestorableDatabaseAccountsRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.RestorablesClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	locationName := d.Get("location").(string)
-	id := restorables.NewRestorableDatabaseAccountID(meta.(*clients.Client).Account.SubscriptionId, locationName, "read")
+	id := openapis.NewRestorableDatabaseAccountID(meta.(*clients.Client).Account.SubscriptionId, locationName, "read")
 
-	locationID := restorables.NewLocationID(id.SubscriptionId, location.Normalize(locationName))
+	locationID := openapis.NewLocationID(id.SubscriptionId, location.Normalize(locationName))
 	resp, err := client.RestorableDatabaseAccountsListByLocation(ctx, locationID)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
@@ -114,11 +114,9 @@ func dataSourceCosmosDbRestorableDatabaseAccountsRead(d *pluginsdk.ResourceData,
 
 	d.Set("location", locationName)
 
-	if resp.Model != nil {
-		if v := resp.Model.Value; v != nil {
-			if err := d.Set("accounts", flattenCosmosDbRestorableDatabaseAccounts(v, d.Get("name").(string))); err != nil {
-				return fmt.Errorf("flattening `accounts`: %+v", err)
-			}
+	if v := resp.Model; v != nil {
+		if err := d.Set("accounts", flattenCosmosDbRestorableDatabaseAccounts(v, d.Get("name").(string))); err != nil {
+			return fmt.Errorf("flattening `accounts`: %+v", err)
 		}
 	}
 
@@ -127,7 +125,7 @@ func dataSourceCosmosDbRestorableDatabaseAccountsRead(d *pluginsdk.ResourceData,
 	return nil
 }
 
-func flattenCosmosDbRestorableDatabaseAccounts(input *[]restorables.RestorableDatabaseAccountGetResult, accountName string) []interface{} {
+func flattenCosmosDbRestorableDatabaseAccounts(input *[]openapis.RestorableDatabaseAccountGetResult, accountName string) []interface{} {
 	result := make([]interface{}, 0)
 
 	if input == nil {
@@ -149,7 +147,7 @@ func flattenCosmosDbRestorableDatabaseAccounts(input *[]restorables.RestorableDa
 	return result
 }
 
-func flattenCosmosDbRestorableDatabaseAccountsRestorableLocations(input *[]restorables.RestorableLocationResource) []interface{} {
+func flattenCosmosDbRestorableDatabaseAccountsRestorableLocations(input *[]openapis.RestorableLocationResource) []interface{} {
 	result := make([]interface{}, 0)
 
 	if input == nil {

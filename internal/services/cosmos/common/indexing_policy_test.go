@@ -7,13 +7,13 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
 )
 
 func TestValidateAzureRmCosmosDbIndexingPolicy(t *testing.T) {
 	cases := []struct {
 		Name        string
-		Value       *cosmosdb.IndexingPolicy
+		Value       *openapis.IndexingPolicy
 		ExpectError bool
 	}{
 		{
@@ -23,23 +23,23 @@ func TestValidateAzureRmCosmosDbIndexingPolicy(t *testing.T) {
 		},
 		{
 			Name: "no included_path or excluded_path with Consistent indexing_mode",
-			Value: &cosmosdb.IndexingPolicy{
-				IndexingMode: pointer.To(cosmosdb.IndexingModeConsistent),
+			Value: &openapis.IndexingPolicy{
+				IndexingMode: pointer.To(openapis.IndexingModeConsistent),
 			},
 			ExpectError: false,
 		},
 		{
 			Name: "no included_path or excluded_path with None indexing_mode",
-			Value: &cosmosdb.IndexingPolicy{
-				IndexingMode: pointer.To(cosmosdb.IndexingModeNone),
+			Value: &openapis.IndexingPolicy{
+				IndexingMode: pointer.To(openapis.IndexingModeNone),
 			},
 			ExpectError: false,
 		},
 		{
 			Name: "included_path with /*",
-			Value: &cosmosdb.IndexingPolicy{
-				IndexingMode: pointer.To(cosmosdb.IndexingModeConsistent),
-				IncludedPaths: &[]cosmosdb.IncludedPath{
+			Value: &openapis.IndexingPolicy{
+				IndexingMode: pointer.To(openapis.IndexingModeConsistent),
+				IncludedPaths: &[]openapis.IncludedPath{
 					{
 						Path: pointer.To("/*"),
 					},
@@ -52,9 +52,9 @@ func TestValidateAzureRmCosmosDbIndexingPolicy(t *testing.T) {
 		},
 		{
 			Name: "excluded_path with /*",
-			Value: &cosmosdb.IndexingPolicy{
-				IndexingMode: pointer.To(cosmosdb.IndexingModeConsistent),
-				ExcludedPaths: &[]cosmosdb.ExcludedPath{
+			Value: &openapis.IndexingPolicy{
+				IndexingMode: pointer.To(openapis.IndexingModeConsistent),
+				ExcludedPaths: &[]openapis.ExcludedPath{
 					{
 						Path: pointer.To("/*"),
 					},
@@ -67,9 +67,9 @@ func TestValidateAzureRmCosmosDbIndexingPolicy(t *testing.T) {
 		},
 		{
 			Name: "included_path with /* and excluded_path",
-			Value: &cosmosdb.IndexingPolicy{
-				IndexingMode: pointer.To(cosmosdb.IndexingModeConsistent),
-				IncludedPaths: &[]cosmosdb.IncludedPath{
+			Value: &openapis.IndexingPolicy{
+				IndexingMode: pointer.To(openapis.IndexingModeConsistent),
+				IncludedPaths: &[]openapis.IncludedPath{
 					{
 						Path: pointer.To("/*"),
 					},
@@ -77,7 +77,7 @@ func TestValidateAzureRmCosmosDbIndexingPolicy(t *testing.T) {
 						Path: pointer.To("/foo/?"),
 					},
 				},
-				ExcludedPaths: &[]cosmosdb.ExcludedPath{
+				ExcludedPaths: &[]openapis.ExcludedPath{
 					{
 						Path: pointer.To("/testing/?"),
 					},
@@ -90,9 +90,9 @@ func TestValidateAzureRmCosmosDbIndexingPolicy(t *testing.T) {
 		},
 		{
 			Name: "included_path and excluded_path with /*",
-			Value: &cosmosdb.IndexingPolicy{
-				IndexingMode: pointer.To(cosmosdb.IndexingModeConsistent),
-				IncludedPaths: &[]cosmosdb.IncludedPath{
+			Value: &openapis.IndexingPolicy{
+				IndexingMode: pointer.To(openapis.IndexingModeConsistent),
+				IncludedPaths: &[]openapis.IncludedPath{
 					{
 						Path: pointer.To("/*"),
 					},
@@ -100,7 +100,7 @@ func TestValidateAzureRmCosmosDbIndexingPolicy(t *testing.T) {
 						Path: pointer.To("/foo/?"),
 					},
 				},
-				ExcludedPaths: &[]cosmosdb.ExcludedPath{
+				ExcludedPaths: &[]openapis.ExcludedPath{
 					{
 						Path: pointer.To("/*"),
 					},
@@ -116,9 +116,9 @@ func TestValidateAzureRmCosmosDbIndexingPolicy(t *testing.T) {
 		},
 		{
 			Name: "missing /* from included_path",
-			Value: &cosmosdb.IndexingPolicy{
-				IndexingMode: pointer.To(cosmosdb.IndexingModeConsistent),
-				IncludedPaths: &[]cosmosdb.IncludedPath{
+			Value: &openapis.IndexingPolicy{
+				IndexingMode: pointer.To(openapis.IndexingModeConsistent),
+				IncludedPaths: &[]openapis.IncludedPath{
 					{
 						Path: pointer.To("/testing/?"),
 					},
@@ -131,9 +131,9 @@ func TestValidateAzureRmCosmosDbIndexingPolicy(t *testing.T) {
 		},
 		{
 			Name: "missing /* with included_path and excluded_path",
-			Value: &cosmosdb.IndexingPolicy{
-				IndexingMode: pointer.To(cosmosdb.IndexingModeConsistent),
-				IncludedPaths: &[]cosmosdb.IncludedPath{
+			Value: &openapis.IndexingPolicy{
+				IndexingMode: pointer.To(openapis.IndexingModeConsistent),
+				IncludedPaths: &[]openapis.IncludedPath{
 					{
 						Path: pointer.To("/foo/?"),
 					},
@@ -141,7 +141,7 @@ func TestValidateAzureRmCosmosDbIndexingPolicy(t *testing.T) {
 						Path: pointer.To("/foo/?"),
 					},
 				},
-				ExcludedPaths: &[]cosmosdb.ExcludedPath{
+				ExcludedPaths: &[]openapis.ExcludedPath{
 					{
 						Path: pointer.To("/bar/?"),
 					},
@@ -154,9 +154,9 @@ func TestValidateAzureRmCosmosDbIndexingPolicy(t *testing.T) {
 		},
 		{
 			Name: "indexing_mode None with included_path",
-			Value: &cosmosdb.IndexingPolicy{
-				IndexingMode: pointer.To(cosmosdb.IndexingModeNone),
-				IncludedPaths: &[]cosmosdb.IncludedPath{
+			Value: &openapis.IndexingPolicy{
+				IndexingMode: pointer.To(openapis.IndexingModeNone),
+				IncludedPaths: &[]openapis.IncludedPath{
 					{
 						Path: pointer.To("/*"),
 					},
@@ -166,9 +166,9 @@ func TestValidateAzureRmCosmosDbIndexingPolicy(t *testing.T) {
 		},
 		{
 			Name: "indexing_mode None with excluded_path",
-			Value: &cosmosdb.IndexingPolicy{
-				IndexingMode: pointer.To(cosmosdb.IndexingModeNone),
-				ExcludedPaths: &[]cosmosdb.ExcludedPath{
+			Value: &openapis.IndexingPolicy{
+				IndexingMode: pointer.To(openapis.IndexingModeNone),
+				ExcludedPaths: &[]openapis.ExcludedPath{
 					{
 						Path: pointer.To("/*"),
 					},
@@ -178,14 +178,14 @@ func TestValidateAzureRmCosmosDbIndexingPolicy(t *testing.T) {
 		},
 		{
 			Name: "indexing_mode None with included_path and excluded_path",
-			Value: &cosmosdb.IndexingPolicy{
-				IndexingMode: pointer.To(cosmosdb.IndexingModeNone),
-				IncludedPaths: &[]cosmosdb.IncludedPath{
+			Value: &openapis.IndexingPolicy{
+				IndexingMode: pointer.To(openapis.IndexingModeNone),
+				IncludedPaths: &[]openapis.IncludedPath{
 					{
 						Path: pointer.To("/*"),
 					},
 				},
-				ExcludedPaths: &[]cosmosdb.ExcludedPath{
+				ExcludedPaths: &[]openapis.ExcludedPath{
 					{
 						Path: pointer.To("/testing/?"),
 					},

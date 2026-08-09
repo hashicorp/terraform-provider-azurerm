@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/streamingjobs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -64,7 +64,7 @@ func (r OutputCosmosDBResource) Arguments() map[string]*pluginsdk.Schema {
 		"cosmosdb_sql_database_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: cosmosdb.ValidateSqlDatabaseID,
+			ValidateFunc: openapis.ValidateSqlDatabaseID,
 		},
 
 		"container_name": {
@@ -138,7 +138,7 @@ func (r OutputCosmosDBResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			databaseId, err := cosmosdb.ParseSqlDatabaseID(model.Database)
+			databaseId, err := openapis.ParseSqlDatabaseID(model.Database)
 			if err != nil {
 				return err
 			}
@@ -207,7 +207,7 @@ func (r OutputCosmosDBResource) Read() sdk.ResourceFunc {
 
 					state.AccountKey = metadata.ResourceData.Get("cosmosdb_account_key").(string)
 
-					databaseId := cosmosdb.NewSqlDatabaseID(id.SubscriptionId, id.ResourceGroupName, *output.Properties.AccountId, *output.Properties.Database)
+					databaseId := openapis.NewSqlDatabaseID(id.SubscriptionId, id.ResourceGroupName, *output.Properties.AccountId, *output.Properties.Database)
 					state.Database = databaseId.ID()
 
 					collectionName := ""
@@ -277,7 +277,7 @@ func (r OutputCosmosDBResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			databaseId, err := cosmosdb.ParseSqlDatabaseID(state.Database)
+			databaseId, err := openapis.ParseSqlDatabaseID(state.Database)
 			if err != nil {
 				return err
 			}
