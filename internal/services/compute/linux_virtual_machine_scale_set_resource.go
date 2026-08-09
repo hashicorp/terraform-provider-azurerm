@@ -20,6 +20,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryimages"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-07-03/galleryimageversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -1384,8 +1386,8 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 			ValidateFunc: validation.Any(
 				images.ValidateImageID,
-				validate.SharedImageID,
-				validate.SharedImageVersionID,
+				galleryimages.ValidateGalleryImageID,
+				galleryimageversions.ValidateImageVersionID,
 				validate.CommunityGalleryImageID,
 				validate.CommunityGalleryImageVersionID,
 				validate.SharedGalleryImageID,
