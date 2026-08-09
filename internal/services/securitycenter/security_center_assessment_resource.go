@@ -10,11 +10,11 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2021-06-01/assessmentsmetadata"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -45,7 +45,7 @@ func resourceSecurityCenterAssessment() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.AssessmentMetadataID,
+				ValidateFunc: assessmentsmetadata.ValidateProviderAssessmentMetadataID,
 			},
 
 			"target_resource_id": {
@@ -102,7 +102,7 @@ func resourceSecurityCenterAssessmentCreateUpdate(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	metadataID, err := parse.AssessmentMetadataID(d.Get("assessment_policy_id").(string))
+	metadataID, err := assessmentsmetadata.ParseProviderAssessmentMetadataID(d.Get("assessment_policy_id").(string))
 	if err != nil {
 		return err
 	}
@@ -163,7 +163,7 @@ func resourceSecurityCenterAssessmentRead(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("retrieving Security Center Assessment %q (target resource id %q) : %+v", id.Name, id.TargetResourceID, err)
 	}
 
-	d.Set("assessment_policy_id", parse.NewAssessmentMetadataID(subscriptionID, id.Name).ID())
+	d.Set("assessment_policy_id", assessmentsmetadata.NewProviderAssessmentMetadataID(subscriptionID, id.Name).ID())
 	d.Set("target_resource_id", id.TargetResourceID)
 	if props := resp.AssessmentProperties; props != nil {
 		d.Set("additional_data", utils.FlattenMapStringPtrString(props.AdditionalData))
