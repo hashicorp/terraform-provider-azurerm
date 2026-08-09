@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/basebackuppolicyresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -217,7 +216,7 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) Create() sdk.Reso
 				return err
 			}
 
-			snapshotResourceGroupId := resourceParse.NewResourceGroupID(metadata.Client.Account.SubscriptionId, model.SnapshotResourceGroupName)
+			snapshotResourceGroupId := commonids.NewResourceGroupID(metadata.Client.Account.SubscriptionId, model.SnapshotResourceGroupName)
 			parameters := backupinstanceresources.BackupInstanceResource{
 				Properties: &backupinstanceresources.BackupInstance{
 					DataSourceInfo: backupinstanceresources.Datasource{
@@ -306,11 +305,11 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) Read() sdk.Resour
 						if dataStorePara := policyParameters.DataStoreParametersList; dataStorePara != nil {
 							if dsp := pointer.From(dataStorePara); len(dsp) > 0 {
 								if parameter, ok := dsp[0].(backupinstanceresources.AzureOperationalStoreParameters); ok && parameter.ResourceGroupId != nil {
-									resourceGroupId, err := resourceParse.ResourceGroupID(*parameter.ResourceGroupId)
+									resourceGroupId, err := commonids.ParseResourceGroupID(*parameter.ResourceGroupId)
 									if err != nil {
 										return err
 									}
-									state.SnapshotResourceGroupName = resourceGroupId.ResourceGroup
+									state.SnapshotResourceGroupName = resourceGroupId.ResourceGroupName
 								}
 							}
 						}
