@@ -130,7 +130,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: containerValidate.ClusterID,
+			ValidateFunc: commonids.ValidateKubernetesClusterID,
 		},
 
 		"node_count": {

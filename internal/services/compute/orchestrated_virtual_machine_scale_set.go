@@ -546,7 +546,7 @@ func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 					// presumably this'll take effect once key rotation is supported a few months post-GA?
 					// however for now let's make this ForceNew since it can't be (successfully) updated
 					ForceNew:     true,
-					ValidateFunc: validate.DiskEncryptionSetID,
+					ValidateFunc: commonids.ValidateDiskEncryptionSetID,
 				},
 
 				"disk_size_gb": {
@@ -687,7 +687,7 @@ func OrchestratedVirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 					// presumably this'll take effect once key rotation is supported a few months post-GA?
 					// however for now let's make this ForceNew since it can't be (successfully) updated
 					ForceNew:     true,
-					ValidateFunc: validate.DiskEncryptionSetID,
+					ValidateFunc: commonids.ValidateDiskEncryptionSetID,
 				},
 
 				"disk_size_gb": {
