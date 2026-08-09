@@ -32,7 +32,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -49,7 +48,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 		Update: resourceSiteRecoveryReplicatedItemUpdate,
 		Delete: resourceSiteRecoveryReplicatedItemDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ReplicationProtectedItemID(id)
+			_, err := replicationprotecteditems.ParseReplicationProtectedItemID(id)
 			return err
 		}),
 		CustomizeDiff: resourceSiteRecoveryReplicatedVMCustomizeDiff,
