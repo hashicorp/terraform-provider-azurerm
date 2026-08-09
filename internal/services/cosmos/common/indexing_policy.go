@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2025-10-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -92,6 +92,22 @@ func ExpandAzureRmCosmosDBIndexingPolicySpatialIndexes(input []interface{}) *[]c
 	return &indexes
 }
 
+func expandAzureRmCosmosDBIndexingPolicyFullTextIndexes(input []interface{}) *[]cosmosdb.FullTextIndexPath {
+	if len(input) == 0 {
+		return nil
+	}
+
+	indexes := make([]cosmosdb.FullTextIndexPath, 0, len(input))
+	for _, v := range input {
+		block := v.(map[string]interface{})
+		indexes = append(indexes, cosmosdb.FullTextIndexPath{
+			Path: block["path"].(string),
+		})
+	}
+
+	return &indexes
+}
+
 func ExpandAzureRmCosmosDbIndexingPolicy(d *pluginsdk.ResourceData) *cosmosdb.IndexingPolicy {
 	i := d.Get("indexing_policy").([]interface{})
 
@@ -114,6 +130,10 @@ func ExpandAzureRmCosmosDbIndexingPolicy(d *pluginsdk.ResourceData) *cosmosdb.In
 	}
 
 	policy.SpatialIndexes = ExpandAzureRmCosmosDBIndexingPolicySpatialIndexes(input["spatial_index"].([]interface{}))
+
+	if v, ok := input["full_text_index"].([]interface{}); ok {
+		policy.FullTextIndexes = expandAzureRmCosmosDBIndexingPolicyFullTextIndexes(v)
+	}
 
 	return policy
 }
@@ -228,6 +248,22 @@ func flattenCosmosDBIndexingPolicySpatialIndexesTypes(input *[]cosmosdb.SpatialT
 	return types
 }
 
+func flattenCosmosDBIndexingPolicyFullTextIndexes(input *[]cosmosdb.FullTextIndexPath) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	indexes := make([]interface{}, 0, len(*input))
+
+	for _, v := range *input {
+		indexes = append(indexes, map[string]interface{}{
+			"path": v.Path,
+		})
+	}
+
+	return indexes
+}
+
 func FlattenAzureRmCosmosDbIndexingPolicy(indexingPolicy *cosmosdb.IndexingPolicy) []interface{} {
 	results := make([]interface{}, 0)
 	if indexingPolicy == nil {
@@ -240,6 +276,7 @@ func FlattenAzureRmCosmosDbIndexingPolicy(indexingPolicy *cosmosdb.IndexingPolic
 	result["excluded_path"] = flattenCosmosDBIndexingPolicyExcludedPaths(indexingPolicy.ExcludedPaths)
 	result["composite_index"] = FlattenCosmosDBIndexingPolicyCompositeIndexes(indexingPolicy.CompositeIndexes)
 	result["spatial_index"] = FlattenCosmosDBIndexingPolicySpatialIndexes(indexingPolicy.SpatialIndexes)
+	result["full_text_index"] = flattenCosmosDBIndexingPolicyFullTextIndexes(indexingPolicy.FullTextIndexes)
 
 	results = append(results, result)
 	return results

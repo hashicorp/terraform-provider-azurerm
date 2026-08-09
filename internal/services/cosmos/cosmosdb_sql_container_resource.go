@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2025-10-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -142,6 +142,8 @@ func resourceCosmosDbSQLContainer() *pluginsdk.Resource {
 				},
 			},
 			"indexing_policy": common.CosmosDbIndexingPolicySchema(),
+
+			"full_text_policy": common.CosmosDbFullTextPolicySchema(),
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
@@ -191,6 +193,7 @@ func resourceCosmosDbSQLContainerCreate(d *pluginsdk.ResourceData, meta interfac
 				Id:                       id.ContainerName,
 				IndexingPolicy:           indexingPolicy,
 				ConflictResolutionPolicy: common.ExpandCosmosDbConflicResolutionPolicy(d.Get("conflict_resolution_policy").([]interface{})),
+				FullTextPolicy:           expandCosmosSQLContainerFullTextPolicy(d.Get("full_text_policy").([]interface{})),
 			},
 			Options: &cosmosdb.CreateUpdateOptions{},
 		},
@@ -266,6 +269,7 @@ func resourceCosmosDbSQLContainerUpdate(d *pluginsdk.ResourceData, meta interfac
 			Resource: cosmosdb.SqlContainerResource{
 				Id:             id.ContainerName,
 				IndexingPolicy: indexingPolicy,
+				FullTextPolicy: expandCosmosSQLContainerFullTextPolicy(d.Get("full_text_policy").([]interface{})),
 			},
 			Options: &cosmosdb.CreateUpdateOptions{},
 		},
@@ -359,6 +363,10 @@ func resourceCosmosDbSQLContainerRead(d *pluginsdk.ResourceData, meta interface{
 				if err := d.Set("conflict_resolution_policy", common.FlattenCosmosDbConflictResolutionPolicy(res.ConflictResolutionPolicy)); err != nil {
 					return fmt.Errorf("setting `conflict_resolution_policy`: %+v", err)
 				}
+
+				if err := d.Set("full_text_policy", flattenCosmosSQLContainerFullTextPolicy(res.FullTextPolicy)); err != nil {
+					return fmt.Errorf("setting `full_text_policy`: %+v", err)
+				}
 			}
 		}
 	}
@@ -427,6 +435,51 @@ func expandCosmosSQLContainerUniqueKeys(s *pluginsdk.Set) *[]cosmosdb.UniqueKey 
 	}
 
 	return &keys
+}
+
+func expandCosmosSQLContainerFullTextPolicy(input []interface{}) *cosmosdb.FullTextPolicy {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+
+	paths := make([]cosmosdb.FullTextPath, 0)
+	for _, item := range v["full_text_path"].([]interface{}) {
+		path := item.(map[string]interface{})
+		paths = append(paths, cosmosdb.FullTextPath{
+			Path:     path["path"].(string),
+			Language: pointer.To(path["language"].(string)),
+		})
+	}
+
+	return &cosmosdb.FullTextPolicy{
+		DefaultLanguage: pointer.To(v["default_language"].(string)),
+		FullTextPaths:   &paths,
+	}
+}
+
+func flattenCosmosSQLContainerFullTextPolicy(input *cosmosdb.FullTextPolicy) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	paths := make([]interface{}, 0)
+	if input.FullTextPaths != nil {
+		for _, v := range *input.FullTextPaths {
+			paths = append(paths, map[string]interface{}{
+				"path":     v.Path,
+				"language": pointer.From(v.Language),
+			})
+		}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"default_language": pointer.From(input.DefaultLanguage),
+			"full_text_path":   paths,
+		},
+	}
 }
 
 func flattenCosmosSQLContainerUniqueKeys(keys *[]cosmosdb.UniqueKey) *[]map[string]interface{} {
