@@ -9,11 +9,11 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/staticsites"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -60,12 +60,12 @@ func TestAccAzureStaticSiteCustomDomain_requiresImport(t *testing.T) {
 }
 
 func (r StaticSiteCustomDomainResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.StaticSiteCustomDomainID(state.ID)
+	id, err := staticsites.ParseCustomDomainID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Web.StaticSitesClientV1.GetStaticSiteCustomDomain(ctx, id.ResourceGroup, id.StaticSiteName, id.CustomDomainName)
+	resp, err := clients.Web.StaticSitesClientV1.GetStaticSiteCustomDomain(ctx, id.ResourceGroupName, id.StaticSiteName, id.CustomDomainName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return pointer.To(false), nil

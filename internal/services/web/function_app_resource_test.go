@@ -11,11 +11,11 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -1278,17 +1278,17 @@ func TestAccFunctionApp_dotnetVersion6(t *testing.T) {
 }
 
 func (r FunctionAppResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FunctionAppID(state.ID)
+	id, err := commonids.ParseFunctionAppID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Web.AppServicesClientV1.Get(ctx, id.ResourceGroup, id.SiteName)
+	resp, err := clients.Web.AppServicesClientV1.Get(ctx, id.ResourceGroupName, id.SiteName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return pointer.To(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Function App %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Function App %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroupName, err)
 	}
 
 	// The SDK defines 404 as an "ok" status code..
@@ -1301,12 +1301,12 @@ func (r FunctionAppResource) Exists(ctx context.Context, clients *clients.Client
 
 func (r FunctionAppResource) hasContentShareAppSetting(shouldExist bool) func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		id, err := parse.FunctionAppID(state.ID)
+		id, err := commonids.ParseFunctionAppID(state.ID)
 		if err != nil {
 			return err
 		}
 
-		appSettingsResp, err := clients.Web.AppServicesClientV1.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
+		appSettingsResp, err := clients.Web.AppServicesClientV1.ListApplicationSettings(ctx, id.ResourceGroupName, id.SiteName)
 		if err != nil {
 			return fmt.Errorf("listing AppSettings: %+v", err)
 		}

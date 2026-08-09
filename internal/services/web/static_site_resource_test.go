@@ -9,11 +9,11 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/staticsites"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -235,12 +235,12 @@ func TestAccAzureStaticSite_appSettings(t *testing.T) {
 }
 
 func (r StaticSiteResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.StaticSiteID(state.ID)
+	id, err := staticsites.ParseStaticSiteID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Web.StaticSitesClientV1.GetStaticSite(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Web.StaticSitesClientV1.GetStaticSite(ctx, id.ResourceGroupName, id.StaticSiteName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return pointer.To(false), nil

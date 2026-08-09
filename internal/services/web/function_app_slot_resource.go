@@ -16,10 +16,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	webValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -36,7 +36,7 @@ func resourceFunctionAppSlot() *pluginsdk.Resource {
 		Update: resourceFunctionAppSlotUpdate,
 		Delete: resourceFunctionAppSlotDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.FunctionAppSlotID(id)
+			_, err := webapps.ParseSlotID(id)
 			return err
 		}),
 
@@ -231,10 +231,10 @@ func resourceFunctionAppSlotCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("could not determine Storage domain suffix for environment %q", meta.(*clients.Client).Account.Environment.Name)
 	}
 
-	id := parse.NewFunctionAppSlotID(subscriptionId, d.Get("resource_group_name").(string), d.Get("function_app_name").(string), d.Get("name").(string))
+	id := webapps.NewSlotID(subscriptionId, d.Get("resource_group_name").(string), d.Get("function_app_name").(string), d.Get("name").(string))
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-		existing, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+		existing, err := client.GetSlot(ctx, id.ResourceGroupName, id.SiteName, id.SlotName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of %s: %s", id, err)
@@ -295,7 +295,7 @@ func resourceFunctionAppSlotCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		siteEnvelope.Identity = appServiceIdentity
 	}
 
-	createFuture, err := client.CreateOrUpdateSlot(ctx, id.ResourceGroup, id.SiteName, siteEnvelope, id.SlotName)
+	createFuture, err := client.CreateOrUpdateSlot(ctx, id.ResourceGroupName, id.SiteName, siteEnvelope, id.SlotName)
 	if err != nil {
 		return err
 	}
@@ -315,7 +315,7 @@ func resourceFunctionAppSlotCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		SiteAuthSettingsProperties: &authSettings,
 	}
 
-	if _, err := client.UpdateAuthSettingsSlot(ctx, id.ResourceGroup, id.SiteName, auth, id.SlotName); err != nil {
+	if _, err := client.UpdateAuthSettingsSlot(ctx, id.ResourceGroupName, id.SiteName, auth, id.SlotName); err != nil {
 		return fmt.Errorf("updating auth settings for %s: %+s", id, err)
 	}
 
@@ -332,7 +332,7 @@ func resourceFunctionAppSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("could not determine Storage domain suffix for environment %q", meta.(*clients.Client).Account.Environment.Name)
 	}
 
-	id, err := parse.FunctionAppSlotID(d.Id())
+	id, err := webapps.ParseSlotID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -357,7 +357,7 @@ func resourceFunctionAppSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	var currentAppSettings map[string]*string
-	appSettingsList, err := client.ListApplicationSettingsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+	appSettingsList, err := client.ListApplicationSettingsSlot(ctx, id.ResourceGroupName, id.SiteName, id.SlotName)
 	if err != nil {
 		return fmt.Errorf("reading App Settings for %s: %+v", id, err)
 	}
@@ -369,7 +369,7 @@ func resourceFunctionAppSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	siteConfig, err := expandFunctionAppSiteConfig(d)
 	if err != nil {
-		return fmt.Errorf("expanding `site_config` for Slot %q (Function App %q / Resource Group %q): %s", id.SlotName, id.SiteName, id.ResourceGroup, err)
+		return fmt.Errorf("expanding `site_config` for Slot %q (Function App %q / Resource Group %q): %s", id.SlotName, id.SiteName, id.ResourceGroupName, err)
 	}
 
 	siteConfig.AppSettings = &basicAppSettings
@@ -395,14 +395,14 @@ func resourceFunctionAppSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		siteEnvelope.Identity = appServiceIdentity
 	}
 
-	future, err := client.CreateOrUpdateSlot(ctx, id.ResourceGroup, id.SiteName, siteEnvelope, id.SlotName)
+	future, err := client.CreateOrUpdateSlot(ctx, id.ResourceGroupName, id.SiteName, siteEnvelope, id.SlotName)
 	if err != nil {
-		return fmt.Errorf("updating Slot %q (Function App %q / Resource Group %q): %s", id.SlotName, id.SiteName, id.ResourceGroup, err)
+		return fmt.Errorf("updating Slot %q (Function App %q / Resource Group %q): %s", id.SlotName, id.SiteName, id.ResourceGroupName, err)
 	}
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		return fmt.Errorf("waiting for update of Slot %q (Function App %q / Resource Group %q): %s", id.SlotName, id.SiteName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for update of Slot %q (Function App %q / Resource Group %q): %s", id.SlotName, id.SiteName, id.ResourceGroupName, err)
 	}
 
 	appSettings := expandFunctionAppSlotAppSettings(d, basicAppSettings)
@@ -410,20 +410,20 @@ func resourceFunctionAppSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		Properties: appSettings,
 	}
 
-	if _, err = client.UpdateApplicationSettingsSlot(ctx, id.ResourceGroup, id.SiteName, settings, id.SlotName); err != nil {
-		return fmt.Errorf("updating Application Settings for Function App Slot %q (Function App %q / Resource Group %q): %+v", id.SlotName, id.SiteName, id.ResourceGroup, err)
+	if _, err = client.UpdateApplicationSettingsSlot(ctx, id.ResourceGroupName, id.SiteName, settings, id.SlotName); err != nil {
+		return fmt.Errorf("updating Application Settings for Function App Slot %q (Function App %q / Resource Group %q): %+v", id.SlotName, id.SiteName, id.ResourceGroupName, err)
 	}
 
 	if d.HasChange("site_config") {
 		siteConfig, err := expandFunctionAppSiteConfig(d)
 		if err != nil {
-			return fmt.Errorf("expanding `site_config` for Slot %q (Function App %q / Resource Group %q): %s", id.SlotName, id.SiteName, id.ResourceGroup, err)
+			return fmt.Errorf("expanding `site_config` for Slot %q (Function App %q / Resource Group %q): %s", id.SlotName, id.SiteName, id.ResourceGroupName, err)
 		}
 		siteConfigResource := web.SiteConfigResource{
 			SiteConfig: &siteConfig,
 		}
-		if _, err := client.CreateOrUpdateConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, siteConfigResource, id.SlotName); err != nil {
-			return fmt.Errorf("updating Configuration for Slot %q (Function App %q / Resource Group %q): %+v", id.SlotName, id.SiteName, id.ResourceGroup, err)
+		if _, err := client.CreateOrUpdateConfigurationSlot(ctx, id.ResourceGroupName, id.SiteName, siteConfigResource, id.SlotName); err != nil {
+			return fmt.Errorf("updating Configuration for Slot %q (Function App %q / Resource Group %q): %+v", id.SlotName, id.SiteName, id.ResourceGroupName, err)
 		}
 	}
 
@@ -435,8 +435,8 @@ func resourceFunctionAppSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			SiteAuthSettingsProperties: &authSettingsProperties,
 		}
 
-		if _, err := client.UpdateAuthSettingsSlot(ctx, id.ResourceGroup, id.SiteName, authSettings, id.SlotName); err != nil {
-			return fmt.Errorf("updating Authentication Settings for Slot %q (Function App %q / Resource Group %q): %+v", id.SlotName, id.SiteName, id.ResourceGroup, err)
+		if _, err := client.UpdateAuthSettingsSlot(ctx, id.ResourceGroupName, id.SiteName, authSettings, id.SlotName); err != nil {
+			return fmt.Errorf("updating Authentication Settings for Slot %q (Function App %q / Resource Group %q): %+v", id.SlotName, id.SiteName, id.ResourceGroupName, err)
 		}
 	}
 
@@ -447,8 +447,8 @@ func resourceFunctionAppSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			Properties: connectionStrings,
 		}
 
-		if _, err := client.UpdateConnectionStringsSlot(ctx, id.ResourceGroup, id.SiteName, properties, id.SlotName); err != nil {
-			return fmt.Errorf("updating Connection Strings for Slot %q (Function App %q / Resource Group %q): %+v", id.SlotName, id.SiteName, id.ResourceGroup, err)
+		if _, err := client.UpdateConnectionStringsSlot(ctx, id.ResourceGroupName, id.SiteName, properties, id.SlotName); err != nil {
+			return fmt.Errorf("updating Connection Strings for Slot %q (Function App %q / Resource Group %q): %+v", id.SlotName, id.SiteName, id.ResourceGroupName, err)
 		}
 	}
 
@@ -460,37 +460,37 @@ func resourceFunctionAppSlotRead(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FunctionAppSlotID(d.Id())
+	id, err := webapps.ParseSlotID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+	resp, err := client.GetSlot(ctx, id.ResourceGroupName, id.SiteName, id.SlotName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Function App Slot %q (Function App %q / Resource Group %q) was not found - removing from state", id.SlotName, id.SiteName, id.ResourceGroup)
+			log.Printf("[DEBUG] Function App Slot %q (Function App %q / Resource Group %q) was not found - removing from state", id.SlotName, id.SiteName, id.ResourceGroupName)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("makeing read request on AzureRM Function App Slot %q (Function App %q / Resource Group %q): %s", id.SlotName, id.SiteName, id.ResourceGroup, err)
+		return fmt.Errorf("makeing read request on AzureRM Function App Slot %q (Function App %q / Resource Group %q): %s", id.SlotName, id.SiteName, id.ResourceGroupName, err)
 	}
 
-	appSettingsResp, err := client.ListApplicationSettingsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+	appSettingsResp, err := client.ListApplicationSettingsSlot(ctx, id.ResourceGroupName, id.SiteName, id.SlotName)
 	if err != nil {
 		if utils.ResponseWasNotFound(appSettingsResp.Response) {
-			log.Printf("[DEBUG] Application Settings of AzureRM Function App Slot %q (Function App %q / Resource Group %q) were not found", id.SlotName, id.SiteName, id.ResourceGroup)
+			log.Printf("[DEBUG] Application Settings of AzureRM Function App Slot %q (Function App %q / Resource Group %q) were not found", id.SlotName, id.SiteName, id.ResourceGroupName)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on AzureRM Function App Slot %q (Function App %q / Resource Group %q) AppSettings: %+v", id.SlotName, id.SiteName, id.ResourceGroup, err)
+		return fmt.Errorf("making Read request on AzureRM Function App Slot %q (Function App %q / Resource Group %q) AppSettings: %+v", id.SlotName, id.SiteName, id.ResourceGroupName, err)
 	}
 
-	connectionStringsResp, err := client.ListConnectionStringsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+	connectionStringsResp, err := client.ListConnectionStringsSlot(ctx, id.ResourceGroupName, id.SiteName, id.SlotName)
 	if err != nil {
-		return fmt.Errorf("making Read request on AzureRM Function App Slot %q (Function App %q / Resource Group %q) ConnectionStrings: %+v", id.SlotName, id.SiteName, id.ResourceGroup, err)
+		return fmt.Errorf("making Read request on AzureRM Function App Slot %q (Function App %q / Resource Group %q) ConnectionStrings: %+v", id.SlotName, id.SiteName, id.ResourceGroupName, err)
 	}
 
-	siteCredFuture, err := client.ListPublishingCredentialsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+	siteCredFuture, err := client.ListPublishingCredentialsSlot(ctx, id.ResourceGroupName, id.SiteName, id.SlotName)
 	if err != nil {
 		return err
 	}
@@ -500,15 +500,15 @@ func resourceFunctionAppSlotRead(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 	siteCredResp, err := siteCredFuture.Result(*client)
 	if err != nil {
-		return fmt.Errorf("making Read request on AzureRM Function App Slot %q (Function App %q / Resource Group %q) Site Credentials: %+v", id.SlotName, id.SiteName, id.ResourceGroup, err)
+		return fmt.Errorf("making Read request on AzureRM Function App Slot %q (Function App %q / Resource Group %q) Site Credentials: %+v", id.SlotName, id.SiteName, id.ResourceGroupName, err)
 	}
-	authResp, err := client.GetAuthSettingsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+	authResp, err := client.GetAuthSettingsSlot(ctx, id.ResourceGroupName, id.SiteName, id.SlotName)
 	if err != nil {
-		return fmt.Errorf("retrieving the AuthSettings for AzureRM Function App Slot %q (Function App %q / Resource Group %q): %+v", id.SlotName, id.SiteName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving the AuthSettings for AzureRM Function App Slot %q (Function App %q / Resource Group %q): %+v", id.SlotName, id.SiteName, id.ResourceGroupName, err)
 	}
 
 	d.Set("name", id.SlotName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("function_app_name", id.SiteName)
 	d.Set("kind", resp.Kind)
 	osType := ""
@@ -582,7 +582,7 @@ func resourceFunctionAppSlotRead(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("setting `identity`: %s", err)
 	}
 
-	configResp, err := client.GetConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+	configResp, err := client.GetConfigurationSlot(ctx, id.ResourceGroupName, id.SiteName, id.SlotName)
 	if err != nil {
 		return fmt.Errorf("making Read request on AzureRM Function App Configuration %q: %+v", id.SlotName, err)
 	}
@@ -610,14 +610,14 @@ func resourceFunctionAppSlotDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FunctionAppSlotID(d.Id())
+	id, err := webapps.ParseSlotID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	deleteMetrics := true
 	deleteEmptyServerFarm := false
-	resp, err := client.DeleteSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName, &deleteMetrics, &deleteEmptyServerFarm)
+	resp, err := client.DeleteSlot(ctx, id.ResourceGroupName, id.SiteName, id.SlotName, &deleteMetrics, &deleteEmptyServerFarm)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return err
@@ -685,13 +685,13 @@ func getBasicFunctionAppSlotAppSettings(d *pluginsdk.ResourceData, appServiceTie
 }
 
 func getFunctionAppSlotServiceTier(ctx context.Context, appServicePlanID string, meta interface{}) (string, error) {
-	id, err := parse.AppServicePlanID(appServicePlanID)
+	id, err := commonids.ParseAppServicePlanID(appServicePlanID)
 	if err != nil {
 		return "", fmt.Errorf("[ERROR] Unable to parse App Service Plan ID %q: %+v", appServicePlanID, err)
 	}
 
 	appServicePlansClient := meta.(*clients.Client).Web.AppServicePlansClientV1
-	appServicePlan, err := appServicePlansClient.Get(ctx, id.ResourceGroup, id.ServerFarmName)
+	appServicePlan, err := appServicePlansClient.Get(ctx, id.ResourceGroupName, id.ServerFarmName)
 	if err != nil {
 		return "", fmt.Errorf("[ERROR] Could not retrieve App Service Plan ID %q: %+v", appServicePlanID, err)
 	}

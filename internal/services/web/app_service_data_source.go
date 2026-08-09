@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -164,9 +163,9 @@ func dataSourceAppServiceRead(d *pluginsdk.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewAppServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := commonids.NewAppServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.SiteName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("%s was not found", id)
@@ -174,27 +173,27 @@ func dataSourceAppServiceRead(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("making Read request on %s: %+v", id, err)
 	}
 
-	configResp, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
+	configResp, err := client.GetConfiguration(ctx, id.ResourceGroupName, id.SiteName)
 	if err != nil {
 		return fmt.Errorf("making Read request on %s Configuration: %+v", id, err)
 	}
 
-	appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
+	appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroupName, id.SiteName)
 	if err != nil {
 		return fmt.Errorf("making Read request on %s AppSettings: %+v", id, err)
 	}
 
-	connectionStringsResp, err := client.ListConnectionStrings(ctx, id.ResourceGroup, id.SiteName)
+	connectionStringsResp, err := client.ListConnectionStrings(ctx, id.ResourceGroupName, id.SiteName)
 	if err != nil {
 		return fmt.Errorf("making Read request on %s ConnectionStrings: %+v", id, err)
 	}
 
-	scmResp, err := client.GetSourceControl(ctx, id.ResourceGroup, id.SiteName)
+	scmResp, err := client.GetSourceControl(ctx, id.ResourceGroupName, id.SiteName)
 	if err != nil {
 		return fmt.Errorf("making Read request on %s Source Control: %+v", id, err)
 	}
 
-	siteCredFuture, err := client.ListPublishingCredentials(ctx, id.ResourceGroup, id.SiteName)
+	siteCredFuture, err := client.ListPublishingCredentials(ctx, id.ResourceGroupName, id.SiteName)
 	if err != nil {
 		return err
 	}
@@ -210,7 +209,7 @@ func dataSourceAppServiceRead(d *pluginsdk.ResourceData, meta interface{}) error
 	d.SetId(id.ID())
 
 	d.Set("name", id.SiteName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.SiteProperties; props != nil {

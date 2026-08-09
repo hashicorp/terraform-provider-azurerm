@@ -14,9 +14,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/staticsites"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -33,7 +33,7 @@ func resourceStaticSite() *pluginsdk.Resource {
 		Update:             resourceStaticSiteCreateOrUpdate,
 		Delete:             resourceStaticSiteDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.StaticSiteID(id)
+			_, err := staticsites.ParseStaticSiteID(id)
 			return err
 		}),
 
@@ -108,11 +108,11 @@ func resourceStaticSiteCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewStaticSiteID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := staticsites.NewStaticSiteID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-			existing, err := client.GetStaticSite(ctx, id.ResourceGroup, id.Name)
+			existing, err := client.GetStaticSite(ctx, id.ResourceGroupName, id.StaticSiteName)
 			if err != nil {
 				if !utils.ResponseWasNotFound(existing.Response) {
 					return fmt.Errorf("failed checking for presence of existing %s: %+v", id, err)
@@ -150,7 +150,7 @@ func resourceStaticSiteCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.CreateOrUpdateStaticSite(ctx, id.ResourceGroup, id.Name, siteEnvelope)
+	future, err := client.CreateOrUpdateStaticSite(ctx, id.ResourceGroupName, id.StaticSiteName, siteEnvelope)
 	if err != nil {
 		return fmt.Errorf("failed creating %s: %+v", id, err)
 	}
@@ -168,7 +168,7 @@ func resourceStaticSiteCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{
 			Properties: expandStaticSiteAppSettings(d),
 		}
 
-		if _, err := client.CreateOrUpdateStaticSiteAppSettings(ctx, id.ResourceGroup, id.Name, settings); err != nil {
+		if _, err := client.CreateOrUpdateStaticSiteAppSettings(ctx, id.ResourceGroupName, id.StaticSiteName, settings); err != nil {
 			return fmt.Errorf("updating Application Settings for %s: %+v", id, err)
 		}
 	}
@@ -181,22 +181,22 @@ func resourceStaticSiteRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.StaticSiteID(d.Id())
+	id, err := staticsites.ParseStaticSiteID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.GetStaticSite(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.GetStaticSite(ctx, id.ResourceGroupName, id.StaticSiteName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Static Site %q (resource group %q) was not found - removing from state", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] Static Site %q (resource group %q) was not found - removing from state", id.StaticSiteName, id.ResourceGroupName)
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("failed making Read request on %s: %+v", id, err)
 	}
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.StaticSiteName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	identity, err := flattenStaticSiteIdentity(resp.Identity)
 	if err != nil {
@@ -228,7 +228,7 @@ func resourceStaticSiteRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("sku_size", skuName)
 	d.Set("sku_tier", skuTier)
 
-	secretResp, err := client.ListStaticSiteSecrets(ctx, id.ResourceGroup, id.Name)
+	secretResp, err := client.ListStaticSiteSecrets(ctx, id.ResourceGroupName, id.StaticSiteName)
 	if err != nil {
 		return fmt.Errorf("listing secretes for %s: %v", id, err)
 	}
@@ -239,7 +239,7 @@ func resourceStaticSiteRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 	d.Set("api_key", apiKey)
 
-	appSettingsResp, err := client.ListStaticSiteAppSettings(ctx, id.ResourceGroup, id.Name)
+	appSettingsResp, err := client.ListStaticSiteAppSettings(ctx, id.ResourceGroupName, id.StaticSiteName)
 	if err != nil {
 		return fmt.Errorf("making Read request for app settings on %s: %+v", id, err)
 	}
@@ -256,12 +256,12 @@ func resourceStaticSiteDelete(d *pluginsdk.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.StaticSiteID(d.Id())
+	id, err := staticsites.ParseStaticSiteID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.DeleteStaticSite(ctx, id.ResourceGroup, id.Name)
+	future, err := client.DeleteStaticSite(ctx, id.ResourceGroupName, id.StaticSiteName)
 	if err != nil {
 		if !response.WasNotFound(future.Response()) {
 			return err

@@ -11,12 +11,12 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -33,7 +33,7 @@ func resourceAppServicePlan() *pluginsdk.Resource {
 		Update: resourceAppServicePlanCreateUpdate,
 		Delete: resourceAppServicePlanDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.AppServicePlanID(id)
+			_, err := commonids.ParseAppServicePlanID(id)
 			return err
 		}),
 
@@ -158,11 +158,11 @@ func resourceAppServicePlanCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewAppServicePlanID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := commonids.NewAppServicePlanID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-			existing, err := client.Get(ctx, id.ResourceGroup, id.ServerFarmName)
+			existing, err := client.Get(ctx, id.ResourceGroupName, id.ServerFarmName)
 			if err != nil {
 				if !utils.ResponseWasNotFound(existing.Response) {
 					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
@@ -228,7 +228,7 @@ func resourceAppServicePlanCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		appServicePlan.Reserved = pointer.To(reserved)
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerFarmName, appServicePlan)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.ServerFarmName, appServicePlan)
 	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
@@ -249,31 +249,31 @@ func resourceAppServicePlanRead(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AppServicePlanID(d.Id())
+	id, err := commonids.ParseAppServicePlanID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerFarmName)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.ServerFarmName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] App Service Plan %q was not found in Resource Group %q - removnig from state!", id.ServerFarmName, id.ResourceGroup)
+			log.Printf("[DEBUG] App Service Plan %q was not found in Resource Group %q - removnig from state!", id.ServerFarmName, id.ResourceGroupName)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on App Service Plan %q (Resource Group %q): %+v", id.ServerFarmName, id.ResourceGroup, err)
+		return fmt.Errorf("making Read request on App Service Plan %q (Resource Group %q): %+v", id.ServerFarmName, id.ResourceGroupName, err)
 	}
 
 	// A 404 doesn't error from the app service plan sdk so we'll add this check here to catch resource not found responses
 	if utils.ResponseWasNotFound(resp.Response) {
-		log.Printf("[DEBUG] App Service Plan %q was not found in Resource Group %q - removing from state!", id.ServerFarmName, id.ResourceGroup)
+		log.Printf("[DEBUG] App Service Plan %q was not found in Resource Group %q - removing from state!", id.ServerFarmName, id.ResourceGroupName)
 		d.SetId("")
 		return nil
 	}
 
 	d.Set("name", id.ServerFarmName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	if loc := resp.Location; loc != nil {
 		d.Set("location", location.Normalize(*loc))
 	}
@@ -316,15 +316,15 @@ func resourceAppServicePlanDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AppServicePlanID(d.Id())
+	id, err := commonids.ParseAppServicePlanID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.ServerFarmName)
+	resp, err := client.Delete(ctx, id.ResourceGroupName, id.ServerFarmName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("deleting App Service Plan %q (Resource Group %q): %+v", id.ServerFarmName, id.ResourceGroup, err)
+			return fmt.Errorf("deleting App Service Plan %q (Resource Group %q): %+v", id.ServerFarmName, id.ResourceGroupName, err)
 		}
 	}
 

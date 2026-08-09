@@ -10,10 +10,9 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/staticsites"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -32,7 +31,7 @@ func resourceStaticSiteCustomDomain() *pluginsdk.Resource {
 		Read:               resourceStaticSiteCustomDomainRead,
 		Delete:             resourceStaticSiteCustomDomainDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.StaticSiteCustomDomainID(id)
+			_, err := staticsites.ParseCustomDomainID(id)
 			return err
 		}),
 
@@ -47,7 +46,7 @@ func resourceStaticSiteCustomDomain() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.StaticSiteID,
+				ValidateFunc: staticsites.ValidateStaticSiteID,
 			},
 
 			"domain_name": {
@@ -81,18 +80,18 @@ func resourceStaticSiteCustomDomainCreate(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	staticSiteId, err := parse.StaticSiteID(d.Get("static_site_id").(string))
+	staticSiteId, err := staticsites.ParseStaticSiteID(d.Get("static_site_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewStaticSiteCustomDomainID(staticSiteId.SubscriptionId, staticSiteId.ResourceGroup, staticSiteId.Name, d.Get("domain_name").(string))
-	if _, err = client.GetStaticSite(ctx, id.ResourceGroup, id.StaticSiteName); err != nil {
+	id := staticsites.NewCustomDomainID(staticSiteId.SubscriptionId, staticSiteId.ResourceGroupName, staticSiteId.StaticSiteName, d.Get("domain_name").(string))
+	if _, err = client.GetStaticSite(ctx, id.ResourceGroupName, id.StaticSiteName); err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *staticSiteId, err)
 	}
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-		existing, err := client.GetStaticSiteCustomDomain(ctx, staticSiteId.ResourceGroup, id.StaticSiteName, id.CustomDomainName)
+		existing, err := client.GetStaticSiteCustomDomain(ctx, staticSiteId.ResourceGroupName, id.StaticSiteName, id.CustomDomainName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -115,7 +114,7 @@ func resourceStaticSiteCustomDomainCreate(d *pluginsdk.ResourceData, meta interf
 		},
 	}
 
-	future, err := client.CreateOrUpdateStaticSiteCustomDomain(ctx, staticSiteId.ResourceGroup, id.StaticSiteName, id.CustomDomainName, siteEnvelope)
+	future, err := client.CreateOrUpdateStaticSiteCustomDomain(ctx, staticSiteId.ResourceGroupName, id.StaticSiteName, id.CustomDomainName, siteEnvelope)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -145,7 +144,7 @@ func resourceStaticSiteCustomDomainCreate(d *pluginsdk.ResourceData, meta interf
 			MinTimeout: 20 * time.Second,
 			Timeout:    time.Until(deadline),
 			Refresh: func() (interface{}, string, error) {
-				domain, err := client.GetStaticSiteCustomDomain(ctx, staticSiteId.ResourceGroup, id.StaticSiteName, id.CustomDomainName)
+				domain, err := client.GetStaticSiteCustomDomain(ctx, staticSiteId.ResourceGroupName, id.StaticSiteName, id.CustomDomainName)
 				if err != nil {
 					return domain, "Error", fmt.Errorf("retrieving %s: %+v", id, err)
 				}
@@ -165,7 +164,7 @@ func resourceStaticSiteCustomDomainCreate(d *pluginsdk.ResourceData, meta interf
 	// we set `validation_token` into state here since it's removed from the API once it's been validated
 	// setting it in the read would overwrite the value with an empty string and cause a diff, since this
 	// is not a user specifiable field we don't need to be concerned with it at import time either
-	resp, err := client.GetStaticSiteCustomDomain(ctx, staticSiteId.ResourceGroup, id.StaticSiteName, id.CustomDomainName)
+	resp, err := client.GetStaticSiteCustomDomain(ctx, staticSiteId.ResourceGroupName, id.StaticSiteName, id.CustomDomainName)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -179,12 +178,12 @@ func resourceStaticSiteCustomDomainRead(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.StaticSiteCustomDomainID(d.Id())
+	id, err := staticsites.ParseCustomDomainID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.GetStaticSiteCustomDomain(ctx, id.ResourceGroup, id.StaticSiteName, id.CustomDomainName)
+	resp, err := client.GetStaticSiteCustomDomain(ctx, id.ResourceGroupName, id.StaticSiteName, id.CustomDomainName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] %s was not found - removing from state", *id)
@@ -194,7 +193,7 @@ func resourceStaticSiteCustomDomainRead(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	d.Set("domain_name", id.CustomDomainName)
-	d.Set("static_site_id", parse.NewStaticSiteID(id.SubscriptionId, id.ResourceGroup, id.StaticSiteName).ID())
+	d.Set("static_site_id", staticsites.NewStaticSiteID(id.SubscriptionId, id.ResourceGroupName, id.StaticSiteName).ID())
 
 	return nil
 }
@@ -204,12 +203,12 @@ func resourceStaticSiteCustomDomainDelete(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.StaticSiteCustomDomainID(d.Id())
+	id, err := staticsites.ParseCustomDomainID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.DeleteStaticSiteCustomDomain(ctx, id.ResourceGroup, id.StaticSiteName, id.CustomDomainName)
+	future, err := client.DeleteStaticSiteCustomDomain(ctx, id.ResourceGroupName, id.StaticSiteName, id.CustomDomainName)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}

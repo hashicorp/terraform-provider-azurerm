@@ -9,9 +9,10 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -24,7 +25,7 @@ func resourceAppServiceActiveSlot() *pluginsdk.Resource {
 		Update: resourceAppServiceActiveSlotCreateUpdate,
 		Delete: resourceAppServiceActiveSlotDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.AppServiceID(id)
+			_, err := commonids.ParseAppServiceID(id)
 			return err
 		}),
 
@@ -60,11 +61,11 @@ func resourceAppServiceActiveSlotCreateUpdate(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	appServiceId := parse.NewAppServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("app_service_name").(string))
+	appServiceId := commonids.NewAppServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("app_service_name").(string))
 	preserveVnet := true
-	id := parse.NewAppServiceSlotID(appServiceId.SubscriptionId, appServiceId.ResourceGroup, appServiceId.SiteName, d.Get("app_service_slot_name").(string))
+	id := webapps.NewSlotID(appServiceId.SubscriptionId, appServiceId.ResourceGroupName, appServiceId.SiteName, d.Get("app_service_slot_name").(string))
 
-	resp, err := client.Get(ctx, appServiceId.ResourceGroup, appServiceId.SiteName)
+	resp, err := client.Get(ctx, appServiceId.ResourceGroupName, appServiceId.SiteName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("%s was not found", appServiceId)
@@ -72,7 +73,7 @@ func resourceAppServiceActiveSlotCreateUpdate(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("making Read request on %s: %+v", id, err)
 	}
 
-	if _, err = client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName); err != nil {
+	if _, err = client.GetSlot(ctx, id.ResourceGroupName, id.SiteName, id.SlotName); err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("%s was not found", id)
 		}
@@ -84,7 +85,7 @@ func resourceAppServiceActiveSlotCreateUpdate(d *pluginsdk.ResourceData, meta in
 		PreserveVnet: &preserveVnet,
 	}
 
-	future, err := client.SwapSlotWithProduction(ctx, id.ResourceGroup, id.SiteName, cmsSlotEntity)
+	future, err := client.SwapSlotWithProduction(ctx, id.ResourceGroupName, id.SiteName, cmsSlotEntity)
 	if err != nil {
 		return fmt.Errorf("swapping %s: %+v", id, err)
 	}
@@ -102,15 +103,15 @@ func resourceAppServiceActiveSlotRead(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AppServiceID(d.Id())
+	id, err := commonids.ParseAppServiceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.SiteName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] App Service %q (resource group %q) was not found - removing from state", id.SiteName, id.ResourceGroup)
+			log.Printf("[DEBUG] App Service %q (resource group %q) was not found - removing from state", id.SiteName, id.ResourceGroupName)
 			d.SetId("")
 			return nil
 		}

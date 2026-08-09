@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	webValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -37,7 +36,7 @@ func resourceFunctionApp() *pluginsdk.Resource {
 		Update: resourceFunctionAppUpdate,
 		Delete: resourceFunctionAppDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.FunctionAppID(id)
+			_, err := commonids.ParseFunctionAppID(id)
 			return err
 		}),
 
@@ -254,10 +253,10 @@ func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("could not determine Storage domain suffix for environment %q", meta.(*clients.Client).Account.Environment.Name)
 	}
 
-	id := parse.NewFunctionAppID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := commonids.NewAppServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
+		existing, err := client.Get(ctx, id.ResourceGroupName, id.SiteName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
@@ -347,7 +346,7 @@ func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		siteEnvelope.Identity = appServiceIdentity
 	}
 
-	createFuture, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)
+	createFuture, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.SiteName, siteEnvelope)
 	if err != nil {
 		return err
 	}
@@ -367,7 +366,7 @@ func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		sourceControl := &web.SiteSourceControl{}
 		sourceControl.SiteSourceControlProperties = sourceControlProperties
 		// TODO - Do we need to lock the function app for updates?
-		future, err := client.CreateOrUpdateSourceControl(ctx, id.ResourceGroup, id.SiteName, *sourceControl)
+		future, err := client.CreateOrUpdateSourceControl(ctx, id.ResourceGroupName, id.SiteName, *sourceControl)
 		if err != nil {
 			return fmt.Errorf("failed to create %s: %+v", id, err)
 		}
@@ -384,7 +383,7 @@ func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		SiteAuthSettingsProperties: &authSettings,
 	}
 
-	if _, err := client.UpdateAuthSettings(ctx, id.ResourceGroup, id.SiteName, auth); err != nil {
+	if _, err := client.UpdateAuthSettings(ctx, id.ResourceGroupName, id.SiteName, auth); err != nil {
 		return fmt.Errorf("updating auth settings for %s: %+v", id, err)
 	}
 
@@ -401,7 +400,7 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("could not determine Storage domain suffix for environment %q", meta.(*clients.Client).Account.Environment.Name)
 	}
 
-	id, err := parse.FunctionAppID(d.Id())
+	id, err := commonids.ParseFunctionAppID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -428,7 +427,7 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	var currentAppSettings map[string]*string
-	appSettingsList, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
+	appSettingsList, err := client.ListApplicationSettings(ctx, id.ResourceGroupName, id.SiteName)
 	if err != nil {
 		return fmt.Errorf("reading App Settings for %s: %+v", id, err)
 	}
@@ -443,7 +442,7 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	siteConfig, err := expandFunctionAppSiteConfig(d)
 	if err != nil {
-		return fmt.Errorf("expanding `site_config` for Function App %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
+		return fmt.Errorf("expanding `site_config` for Function App %q (Resource Group %q): %s", id.SiteName, id.ResourceGroupName, err)
 	}
 
 	siteConfig.AppSettings = &basicAppSettings
@@ -487,20 +486,20 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		siteEnvelope.Identity = appServiceIdentity
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.SiteName, siteEnvelope)
 	if err != nil {
-		return fmt.Errorf("updating Function App %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+		return fmt.Errorf("updating Function App %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroupName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of Function App %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for update of Function App %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroupName, err)
 	}
 
 	settings := web.StringDictionary{
 		Properties: appSettings,
 	}
 
-	if _, err = client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, settings); err != nil {
+	if _, err = client.UpdateApplicationSettings(ctx, id.ResourceGroupName, id.SiteName, settings); err != nil {
 		return fmt.Errorf("updating Application Settings for Function App %q: %+v", id.SiteName, err)
 	}
 
@@ -513,7 +512,7 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	if d.HasChange("site_config") || hasSourceControl {
 		siteConfig, err := expandFunctionAppSiteConfig(d)
 		if err != nil {
-			return fmt.Errorf("expanding `site_config` for Function App %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
+			return fmt.Errorf("expanding `site_config` for Function App %q (Resource Group %q): %s", id.SiteName, id.ResourceGroupName, err)
 		}
 		siteConfigResource := web.SiteConfigResource{
 			SiteConfig: &siteConfig,
@@ -525,7 +524,7 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			siteConfigResource.ScmType = web.ScmTypeNone
 		}
 
-		if _, err := client.CreateOrUpdateConfiguration(ctx, id.ResourceGroup, id.SiteName, siteConfigResource); err != nil {
+		if _, err := client.CreateOrUpdateConfiguration(ctx, id.ResourceGroupName, id.SiteName, siteConfigResource); err != nil {
 			return fmt.Errorf("updating Configuration for Function App %q: %+v", id.SiteName, err)
 		}
 	}
@@ -535,9 +534,9 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		sourceControlProperties := expandAppServiceSiteSourceControl(d)
 		sourceControl := &web.SiteSourceControl{}
 		sourceControl.SiteSourceControlProperties = sourceControlProperties
-		scFuture, err := client.CreateOrUpdateSourceControl(ctx, id.ResourceGroup, id.SiteName, *sourceControl)
+		scFuture, err := client.CreateOrUpdateSourceControl(ctx, id.ResourceGroupName, id.SiteName, *sourceControl)
 		if err != nil {
-			return fmt.Errorf("failed to create App Service Source Control for %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+			return fmt.Errorf("failed to create App Service Source Control for %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroupName, err)
 		}
 
 		err = scFuture.WaitForCompletionRef(ctx, client.Client)
@@ -545,7 +544,7 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			return fmt.Errorf("failed waiting for App Service Source Control configuration: %+v", err)
 		}
 
-		sc, err := client.GetSourceControl(ctx, id.ResourceGroup, id.SiteName)
+		sc, err := client.GetSourceControl(ctx, id.ResourceGroupName, id.SiteName)
 		if err != nil {
 			return fmt.Errorf("failed reading back App Service Source Control for %q", *sc.Name)
 		}
@@ -559,7 +558,7 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			SiteAuthSettingsProperties: &authSettingsProperties,
 		}
 
-		if _, err := client.UpdateAuthSettings(ctx, id.ResourceGroup, id.SiteName, authSettings); err != nil {
+		if _, err := client.UpdateAuthSettings(ctx, id.ResourceGroupName, id.SiteName, authSettings); err != nil {
 			return fmt.Errorf("updating Authentication Settings for Function App %q: %+v", id.SiteName, err)
 		}
 	}
@@ -571,7 +570,7 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			Properties: connectionStrings,
 		}
 
-		if _, err := client.UpdateConnectionStrings(ctx, id.ResourceGroup, id.SiteName, properties); err != nil {
+		if _, err := client.UpdateConnectionStrings(ctx, id.ResourceGroupName, id.SiteName, properties); err != nil {
 			return fmt.Errorf("updating Connection Strings for App Service %q: %+v", id.SiteName, err)
 		}
 	}
@@ -584,37 +583,37 @@ func resourceFunctionAppRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FunctionAppID(d.Id())
+	id, err := commonids.ParseFunctionAppID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.SiteName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Function App %q (resource group %q) was not found - removing from state", id.SiteName, id.ResourceGroup)
+			log.Printf("[DEBUG] Function App %q (resource group %q) was not found - removing from state", id.SiteName, id.ResourceGroupName)
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("making Read request on AzureRM Function App %q: %+v", id.SiteName, err)
 	}
 
-	appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
+	appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroupName, id.SiteName)
 	if err != nil {
 		if utils.ResponseWasNotFound(appSettingsResp.Response) {
-			log.Printf("[DEBUG] Application Settings of Function App %q (resource group %q) were not found", id.SiteName, id.ResourceGroup)
+			log.Printf("[DEBUG] Application Settings of Function App %q (resource group %q) were not found", id.SiteName, id.ResourceGroupName)
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("making Read request on AzureRM Function App AppSettings %q: %+v", id.SiteName, err)
 	}
 
-	connectionStringsResp, err := client.ListConnectionStrings(ctx, id.ResourceGroup, id.SiteName)
+	connectionStringsResp, err := client.ListConnectionStrings(ctx, id.ResourceGroupName, id.SiteName)
 	if err != nil {
 		return fmt.Errorf("making Read request on AzureRM Function App ConnectionStrings %q: %+v", id.SiteName, err)
 	}
 
-	siteCredFuture, err := client.ListPublishingCredentials(ctx, id.ResourceGroup, id.SiteName)
+	siteCredFuture, err := client.ListPublishingCredentials(ctx, id.ResourceGroupName, id.SiteName)
 	if err != nil {
 		return err
 	}
@@ -626,13 +625,13 @@ func resourceFunctionAppRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	if err != nil {
 		return fmt.Errorf("making Read request on AzureRM App Service Site Credential %q: %+v", id.SiteName, err)
 	}
-	authResp, err := client.GetAuthSettings(ctx, id.ResourceGroup, id.SiteName)
+	authResp, err := client.GetAuthSettings(ctx, id.ResourceGroupName, id.SiteName)
 	if err != nil {
-		return fmt.Errorf("retrieving the AuthSettings for Function App %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving the AuthSettings for Function App %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroupName, err)
 	}
 
 	d.Set("name", id.SiteName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("kind", resp.Kind)
 	osType := ""
 	if v := resp.Kind; v != nil && strings.Contains(*v, "linux") {
@@ -735,7 +734,7 @@ func resourceFunctionAppRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		return fmt.Errorf("setting `identity`: %s", err)
 	}
 
-	configResp, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
+	configResp, err := client.GetConfiguration(ctx, id.ResourceGroupName, id.SiteName)
 	if err != nil {
 		return fmt.Errorf("making Read request on AzureRM Function App Configuration %q: %+v", id.SiteName, err)
 	}
@@ -750,7 +749,7 @@ func resourceFunctionAppRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		return fmt.Errorf("setting `auth_settings`: %s", err)
 	}
 
-	scmResp, err := client.GetSourceControl(ctx, id.ResourceGroup, id.SiteName)
+	scmResp, err := client.GetSourceControl(ctx, id.ResourceGroupName, id.SiteName)
 	if err != nil {
 		return fmt.Errorf("making Read request on Function App Source Control %q: %+v", id.SiteName, err)
 	}
@@ -772,14 +771,14 @@ func resourceFunctionAppDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FunctionAppID(d.Id())
+	id, err := commonids.ParseFunctionAppID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	deleteMetrics := true
 	deleteEmptyServerFarm := false
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.SiteName, &deleteMetrics, &deleteEmptyServerFarm)
+	resp, err := client.Delete(ctx, id.ResourceGroupName, id.SiteName, &deleteMetrics, &deleteEmptyServerFarm)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return err
