@@ -1221,7 +1221,7 @@ func TestAccAppService_detailedErrorMessagesLogs(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_failedRequestTracingLogs(t *testing.T) {
+func TestAccAppService_failedRequestTracingLogs(t *testing.T) {
 	if features.FivePointOh() {
 		t.Skip("Skipping as this resource was removed in 5.0")
 	}

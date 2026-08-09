@@ -95,27 +95,28 @@ linters:
       tfproviderlint:
         type: module
         settings:
-          # All checks run except those disabled below: two permanent azurerm convention
-          # conflicts (AT002, AT004), and checks with pre-existing findings (counts from
-          # 2026-08) disabled until the findings are cleaned up — to enable one, remove it
-          # from this list and fix what 'make tfproviderlint' then reports. The upstream-
-          # removed no-op stubs (R008, S034, V002-V008) are not worth listing.
+          # All checks (including the tfproviderlintx X* checks, via extended) run except
+          # those disabled below: permanent azurerm convention conflicts, and checks with
+          # pre-existing findings (counts from 2026-08) disabled until the findings are
+          # cleaned up — to enable one, remove it from this list and fix what
+          # 'make tfproviderlint' then reports. The upstream-removed no-op stubs
+          # (R008, S034, V002-V008) are not worth listing.
+          extended: true
           disable:
             - AT002 # flags ImportState tests as extraneous, but azurerm intentionally has separate _requiresImport acceptance tests
-            - AT003 # acceptance test function names should include an underscore — 63 findings
             - AT004 # flags TestStep Configs declaring provider blocks, but azurerm test configs intentionally declare provider "azurerm" { features {} }
-            - AT012 # files should not mix multiple acceptance test name prefixes — 34 findings
-            - R005 # multiple HasChange() calls should combine into one HasChanges() — 19 findings
-            - R007 # deprecated d.Partial() usage — 2 findings
             - R009 # avoid panic() — 27 findings, mostly intentional panics in internal/tools generators and the internal/acceptance test framework
-            - R010 # prefer d.Get() over d.GetChange() when only the new value is used — 5 findings
             - R018 # prefer retry/wait helpers over time.Sleep() — 28 findings, many deliberate PreConfig waits in acceptance tests
-            - R019 # HasChanges() with many arguments should use HasChangesExcept() — 5 findings
             - V001 # custom validators replaceable with validation.StringMatch() — 196 findings
             - V011 # custom validators replaceable with validation.StringLenBetween() — 43 findings
             - V012 # custom validators replaceable with validation.IntAtLeast()/IntAtMost()/IntBetween() — 16 findings
             - V013 # custom validators replaceable with validation.StringInSlice()/StringNotInSlice() — 20 findings
-            - V014 # custom validators replaceable with validation.IntInSlice()/IntNotInSlice() — 1 finding
+            - XR001 # GetOkExists() usage — widely used across azurerm, needs case-by-case review
+            - XR004 # complex-type Set() calls without error checking — many pre-existing findings
+            - XR005 # resources should configure Description — azurerm does not use schema descriptions (docs are hand-written)
+            - XR007 # avoid os/exec.Command() — intentional uses in internal/tools and test helpers
+            - XS001 # schema attributes should configure Description — azurerm does not use schema descriptions (docs are hand-written)
+            - XS002 # schema attributes should be listed alphabetically — azurerm orders schemas required/optional/computed by convention
           flags:
             - check: AT001
               flag: ignored-filename-suffixes

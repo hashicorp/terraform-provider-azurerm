@@ -13,7 +13,7 @@ import (
 
 type SubscriptionTemplateDeploymentDataSource struct{}
 
-func TestAccDataSourceSubscriptionTemplateDeployment(t *testing.T) {
+func TestAccDataSourceSubscriptionTemplateDeployment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_subscription_template_deployment", "test")
 	r := SubscriptionTemplateDeploymentDataSource{}
 
