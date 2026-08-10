@@ -77,12 +77,16 @@ formatters:
     - gofumpt
     - goimports
   settings:
-    # gci merges blank-line-separated import groups into the two canonical sections
-    # (stdlib, then everything else) - goimports alone preserves existing groups
+    # gci merges blank-line-separated import groups into canonical sections
+    # (stdlib, side-effect imports, then everything else) - goimports alone preserves
+    # existing groups. Side-effect (`_`) imports get their own section as they carry
+    # explanatory comments, which goimports requires a blank line in front of.
     gci:
       sections:
         - standard
+        - blank
         - default
+      custom-order: true
   exclusions:
     generated: lax
     paths:
