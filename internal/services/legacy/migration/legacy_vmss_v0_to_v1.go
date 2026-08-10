@@ -514,10 +514,9 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 
 					"managed_disk_type": {
-						Type:          pluginsdk.TypeString,
-						Optional:      true,
-						Computed:      true,
-						ConflictsWith: []string{"storage_profile_os_disk.vhd_containers"},
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Computed: true,
 					},
 
 					"caching": {

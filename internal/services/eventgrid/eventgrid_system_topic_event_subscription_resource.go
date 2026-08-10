@@ -12,10 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/eventsubscriptions"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -36,7 +34,7 @@ func possibleSystemTopicEventSubscriptionEndpointTypes() []string {
 }
 
 func resourceEventGridSystemTopicEventSubscription() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceEventGridSystemTopicEventSubscriptionCreateUpdate,
 		Read:   resourceEventGridSystemTopicEventSubscriptionRead,
 		Update: resourceEventGridSystemTopicEventSubscriptionCreateUpdate,
@@ -140,12 +138,6 @@ func resourceEventGridSystemTopicEventSubscription() *pluginsdk.Resource {
 			"delivery_property": eventSubscriptionSchemaDeliveryProperty(),
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["azure_function_endpoint"].Elem.(*pluginsdk.Resource).Schema["function_id"].ValidateFunc = azure.ValidateResourceID
-	}
-
-	return resource
 }
 
 func resourceEventGridSystemTopicEventSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
