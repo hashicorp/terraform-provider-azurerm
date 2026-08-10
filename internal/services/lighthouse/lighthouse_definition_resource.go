@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/managedservices/2022-10-01/registrationdefinitions"
 	"github.com/hashicorp/go-uuid"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -20,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceLighthouseDefinition() *pluginsdk.Resource {
@@ -353,7 +353,7 @@ func flattenLighthouseDefinitionAuthorization(input []registrationdefinitions.Au
 			"role_definition_id":            item.RoleDefinitionId,
 			"principal_id":                  item.PrincipalId,
 			"principal_display_name":        principalIDDisplayName,
-			"delegated_role_definition_ids": utils.FlattenStringSlice(item.DelegatedRoleDefinitionIds),
+			"delegated_role_definition_ids": helpers.FlattenStringSlice(item.DelegatedRoleDefinitionIds),
 		})
 	}
 
@@ -364,7 +364,7 @@ func expandLighthouseDefinitionAuthorization(input []interface{}) []registration
 	results := make([]registrationdefinitions.Authorization, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		delegatedRoleDefinitionIds := utils.ExpandStringSlice(v["delegated_role_definition_ids"].(*pluginsdk.Set).List())
+		delegatedRoleDefinitionIds := helpers.ExpandStringSlice(v["delegated_role_definition_ids"].(*pluginsdk.Set).List())
 		result := registrationdefinitions.Authorization{
 			RoleDefinitionId:           v["role_definition_id"].(string),
 			PrincipalId:                v["principal_id"].(string),
