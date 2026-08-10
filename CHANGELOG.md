@@ -12,6 +12,7 @@ ENHANCEMENTS:
 * `azurerm_managed_devops_pool` - add support for the `CreatorOnly` value to `azure_devops_organization.permission.kind` property [GH-32753]
 
 BUG FIXES:
+* `azurerm_storage_container` - add a state migration for the `id` field, fixing the upgrade path from 4.x to 5.x [GH-32978]
 * `azurerm_dev_center_project` - parse `dev_center_id` case-insensitively and normalize the resulting value to prevent diffs [GH-32798]
 * `azurerm_storage_queue` - extend state migration to handle a malformed `resource_manager_id` [GH-32979]
 * `azurerm_cdn_frontdoor_batch_ruleset` - parse `rule.actions.route_configuration_override.origin_group.cdn_frontdoor_origin_group_id` case-insensitively and normalize the resulting value to prevent diffs [GH-32980]
