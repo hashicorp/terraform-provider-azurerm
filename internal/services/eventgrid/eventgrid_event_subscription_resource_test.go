@@ -1269,6 +1269,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
 }
 	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
+
 func (EventGridEventSubscriptionResource) userIdentityUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
