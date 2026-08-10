@@ -303,6 +303,7 @@ func validateCdnFrontDoorRuleModifyHeaderAction(blockName, headerAction, value s
 	return nil
 }
 
+// lintignore:V013,V011 // false positive - this validates a query string; the string comparison checks for empty values
 func validateCdnFrontDoorUrlRedirectActionQueryString(i interface{}, k string) (_ []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
