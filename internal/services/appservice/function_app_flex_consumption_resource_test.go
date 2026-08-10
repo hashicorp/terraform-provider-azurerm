@@ -22,7 +22,7 @@ type FunctionAppFlexConsumptionResource struct{}
 
 // remove in 5.0 starts
 func TestAccFunctionAppFlexConsumption_FourPointOhBasic(t *testing.T) {
-	if features.FivePointOh() {
+	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
@@ -41,7 +41,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhBasic(t *testing.T) {
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhDeploymentStorageUpdate(t *testing.T) {
-	if features.FivePointOh() {
+	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
@@ -76,7 +76,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhDeploymentStorageUpdate(t *tes
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhDeploymentStorageIdentityUpdate(t *testing.T) {
-	if features.FivePointOh() {
+	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
@@ -111,7 +111,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhDeploymentStorageIdentityUpdat
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhDeploymentStorageUaiUpdate(t *testing.T) {
-	if features.FivePointOh() {
+	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
@@ -138,7 +138,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhDeploymentStorageUaiUpdate(t *
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhSwapSchema(t *testing.T) {
-	if features.FivePointOh() {
+	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
@@ -173,7 +173,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhSwapSchema(t *testing.T) {
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhSwapSchemaSystemIdentity(t *testing.T) {
-	if features.FivePointOh() {
+	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
@@ -200,7 +200,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhSwapSchemaSystemIdentity(t *te
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhSwapSchemaUserAssigned(t *testing.T) {
-	if features.FivePointOh() {
+	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
@@ -227,7 +227,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhSwapSchemaUserAssigned(t *test
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhSwapSchemaStorageKvUpdate(t *testing.T) {
-	if features.FivePointOh() {
+	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
@@ -254,7 +254,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhSwapSchemaStorageKvUpdate(t *t
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhConnectionString(t *testing.T) {
-	if features.FivePointOh() {
+	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
@@ -273,7 +273,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhConnectionString(t *testing.T)
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhStickySettings(t *testing.T) {
-	if features.FivePointOh() {
+	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
@@ -292,7 +292,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhStickySettings(t *testing.T) {
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhConnectionStringUpdate(t *testing.T) {
-	if features.FivePointOh() {
+	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
@@ -327,7 +327,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhConnectionStringUpdate(t *test
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhComplete(t *testing.T) {
-	if features.FivePointOh() {
+	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
@@ -346,7 +346,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhComplete(t *testing.T) {
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhAppSettings(t *testing.T) {
-	if features.FivePointOh() {
+	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
@@ -365,7 +365,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhAppSettings(t *testing.T) {
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhAppSettingsUpdate(t *testing.T) {
-	if features.FivePointOh() {
+	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
@@ -400,7 +400,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhAppSettingsUpdate(t *testing.T
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhRuntimePython(t *testing.T) {
-	if features.FivePointOh() {
+	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
@@ -419,7 +419,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhRuntimePython(t *testing.T) {
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhInstanceMemoryUpdate(t *testing.T) {
-	if features.FivePointOh() {
+	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
@@ -454,7 +454,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhInstanceMemoryUpdate(t *testin
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhAlwaysReadyUpdateName(t *testing.T) {
-	if features.FivePointOh() {
+	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
@@ -497,7 +497,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhAlwaysReadyUpdateName(t *testi
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhAlwaysReadyInstanceCountError(t *testing.T) {
-	if features.FivePointOh() {
+	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
@@ -512,7 +512,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhAlwaysReadyInstanceCountError(
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhAlwaysReadyUpdate(t *testing.T) {
-	if features.FivePointOh() {
+	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
@@ -539,7 +539,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhAlwaysReadyUpdate(t *testing.T
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhMaxInstanceCount(t *testing.T) {
-	if features.FivePointOh() {
+	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
@@ -574,7 +574,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhMaxInstanceCount(t *testing.T)
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhHttpsOnlyUpdate(t *testing.T) {
-	if features.FivePointOh() {
+	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
@@ -609,7 +609,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhHttpsOnlyUpdate(t *testing.T) 
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhvNetIntegrationWithVnetProperties(t *testing.T) {
-	if features.FivePointOh() {
+	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
@@ -631,7 +631,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhvNetIntegrationWithVnetPropert
 }
 
 func TestAccFunctionAppFlexConsumption_FourPointOhHttpConcurrencyUpdate(t *testing.T) {
-	if features.FivePointOh() {
+	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
@@ -3080,7 +3080,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
 }
 
 func (r FunctionAppFlexConsumptionResource) java(data acceptance.TestData, javaVersion string) string {
-	if !features.FivePointOh() {
+	if !features.SixPointOh() {
 		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3139,7 +3139,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
 }
 
 func (r FunctionAppFlexConsumptionResource) dotNet(data acceptance.TestData, dotNetVersion string) string {
-	if !features.FivePointOh() {
+	if !features.SixPointOh() {
 		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3198,7 +3198,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
 }
 
 func (r FunctionAppFlexConsumptionResource) powerShell(data acceptance.TestData, powerShellVersion string) string {
-	if !features.FivePointOh() {
+	if !features.SixPointOh() {
 		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3257,7 +3257,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
 }
 
 func (r FunctionAppFlexConsumptionResource) runtimeNode(data acceptance.TestData, nodeVersion string) string {
-	if !features.FivePointOh() {
+	if !features.SixPointOh() {
 		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3840,11 +3840,11 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 func (FunctionAppFlexConsumptionResource) template(data acceptance.TestData) string {
-	if !features.FivePointOh() {
+	if !features.SixPointOh() {
 		return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-LFA-%[1]d"
-  location = "eastus2"
+  location = "%[2]s"
 }
 
 resource "azurerm_application_insights" "test" {
@@ -3949,7 +3949,7 @@ resource "azurerm_service_plan" "test" {
   os_type             = "Linux"
   sku_name            = "FC1"
 }
-		`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString) // location needs to be hardcoded for the moment because flex isn't available in all regions yet and appservice already has location overrides in TC
+		`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 	}
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -4047,11 +4047,11 @@ resource "azurerm_service_plan" "test" {
   os_type             = "Linux"
   sku_name            = "FC1"
 }
-	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString) // location needs to be hardcoded for the moment because flex isn't available in all regions yet and appservice already has location overrides in TC
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
 func (FunctionAppFlexConsumptionResource) templateEnabledAiDetector(data acceptance.TestData) string {
-	if !features.FivePointOh() {
+	if !features.SixPointOh() {
 		return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-LFA-%[1]d"
@@ -4129,7 +4129,7 @@ resource "azurerm_service_plan" "test" {
   os_type             = "Linux"
   sku_name            = "FC1"
 }
-		`, data.RandomInteger, "eastus2", data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger) // location needs to be hardcoded for the moment because flex isn't available in all regions yet and appservice already has location overrides in TC
+		`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger)
 	}
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -4199,5 +4199,5 @@ resource "azurerm_service_plan" "test" {
   os_type             = "Linux"
   sku_name            = "FC1"
 }
-	`, data.RandomInteger, "eastus2", data.RandomString, data.RandomInteger) // location needs to be hardcoded for the moment because flex isn't available in all regions yet and appservice already has location overrides in TC
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }

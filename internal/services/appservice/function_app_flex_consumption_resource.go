@@ -376,7 +376,7 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 
 		"tags": commonschema.Tags(),
 	}
-	if !features.FivePointOh() {
+	if !features.SixPointOh() {
 		schema["backend_storage"].Computed = true
 		schema["backend_storage"].Optional = true
 		schema["backend_storage"].Required = false
@@ -576,7 +576,7 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 			backendSaConStr, backendStorageUseMsi := expandBackendStorage(backendStorage, storageDomainSuffix)
 			deploymentStorage, deploymentSaConStr := expandDeploymentStorage(functionAppFlexConsumption.DeploymentStorage, DeploymentStorageConnStr, storageDomainSuffix)
 
-			if !features.FivePointOh() && deploymentStorage == nil {
+			if !features.SixPointOh() && deploymentStorage == nil {
 				deploymentStorage = &webapps.FunctionsDeploymentStorage{
 					Type:  pointer.To(webapps.FunctionsDeploymentStorageType(functionAppFlexConsumption.StorageContainerType)),
 					Value: pointer.To(functionAppFlexConsumption.StorageContainerEndpoint),
@@ -869,7 +869,7 @@ func (r FunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 					if faConfigDeployment := functionAppConfig.Deployment; faConfigDeployment != nil && faConfigDeployment.Storage != nil {
 						deploymentStorage := flattenDeploymentStorage(faConfigDeployment.Storage, deploymentSaConStr)
 						state.DeploymentStorage = []DeploymentStorage{deploymentStorage}
-						if !features.FivePointOh() {
+						if !features.SixPointOh() {
 							state.StorageContainerType = string(pointer.From(faConfigDeployment.Storage.Type))
 							state.StorageContainerEndpoint = pointer.From(&deploymentStorage.ContainerEndPoint)
 							if faConfigDeployment.Storage.Authentication != nil {
@@ -1036,7 +1036,7 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 			_, deploymentStorageKey := helpers.ParseWebJobsStorageString(deploymentSaConStrVal)
 			deploymentStorage := model.Properties.FunctionAppConfig.Deployment.Storage
 
-			if !features.FivePointOh() {
+			if !features.SixPointOh() {
 				endpoint, err := url.Parse(state.StorageContainerEndpoint)
 				if err != nil {
 					return fmt.Errorf("parsing storage container endpoint error, the expected format is https://storagename.blob.core.windows.net/containername, the received value is %s", state.StorageContainerEndpoint)
