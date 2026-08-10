@@ -4,6 +4,7 @@ package virtualmachinescalesetvms
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AdditionalCapabilities struct {
-	HibernationEnabled *bool `json:"hibernationEnabled,omitempty"`
-	UltraSSDEnabled    *bool `json:"ultraSSDEnabled,omitempty"`
+	EnableFips1403Encryption *bool `json:"enableFips1403Encryption,omitempty"`
+	HibernationEnabled       *bool `json:"hibernationEnabled,omitempty"`
+	UltraSSDEnabled          *bool `json:"ultraSSDEnabled,omitempty"`
 }

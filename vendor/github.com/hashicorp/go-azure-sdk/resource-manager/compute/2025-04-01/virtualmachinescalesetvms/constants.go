@@ -53,24 +53,24 @@ func parseCachingTypes(input string) (*CachingTypes, error) {
 	return &out, nil
 }
 
-type ComponentNames string
+type ComponentName string
 
 const (
-	ComponentNamesMicrosoftNegativeWindowsNegativeShellNegativeSetup ComponentNames = "Microsoft-Windows-Shell-Setup"
+	ComponentNameMicrosoftNegativeWindowsNegativeShellNegativeSetup ComponentName = "Microsoft-Windows-Shell-Setup"
 )
 
-func PossibleValuesForComponentNames() []string {
+func PossibleValuesForComponentName() []string {
 	return []string{
-		string(ComponentNamesMicrosoftNegativeWindowsNegativeShellNegativeSetup),
+		string(ComponentNameMicrosoftNegativeWindowsNegativeShellNegativeSetup),
 	}
 }
 
-func (s *ComponentNames) UnmarshalJSON(bytes []byte) error {
+func (s *ComponentName) UnmarshalJSON(bytes []byte) error {
 	var decoded string
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)
 	}
-	out, err := parseComponentNames(decoded)
+	out, err := parseComponentName(decoded)
 	if err != nil {
 		return fmt.Errorf("parsing %q: %+v", decoded, err)
 	}
@@ -78,16 +78,16 @@ func (s *ComponentNames) UnmarshalJSON(bytes []byte) error {
 	return nil
 }
 
-func parseComponentNames(input string) (*ComponentNames, error) {
-	vals := map[string]ComponentNames{
-		"microsoft-windows-shell-setup": ComponentNamesMicrosoftNegativeWindowsNegativeShellNegativeSetup,
+func parseComponentName(input string) (*ComponentName, error) {
+	vals := map[string]ComponentName{
+		"microsoft-windows-shell-setup": ComponentNameMicrosoftNegativeWindowsNegativeShellNegativeSetup,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
 	// otherwise presume it's an undefined value and best-effort it
-	out := ComponentNames(input)
+	out := ComponentName(input)
 	return &out, nil
 }
 
@@ -557,13 +557,15 @@ func parseIPVersions(input string) (*IPVersions, error) {
 type InstanceViewTypes string
 
 const (
-	InstanceViewTypesInstanceView InstanceViewTypes = "instanceView"
-	InstanceViewTypesUserData     InstanceViewTypes = "userData"
+	InstanceViewTypesInstanceView   InstanceViewTypes = "instanceView"
+	InstanceViewTypesResiliencyView InstanceViewTypes = "resiliencyView"
+	InstanceViewTypesUserData       InstanceViewTypes = "userData"
 )
 
 func PossibleValuesForInstanceViewTypes() []string {
 	return []string{
 		string(InstanceViewTypesInstanceView),
+		string(InstanceViewTypesResiliencyView),
 		string(InstanceViewTypesUserData),
 	}
 }
@@ -583,8 +585,9 @@ func (s *InstanceViewTypes) UnmarshalJSON(bytes []byte) error {
 
 func parseInstanceViewTypes(input string) (*InstanceViewTypes, error) {
 	vals := map[string]InstanceViewTypes{
-		"instanceview": InstanceViewTypesInstanceView,
-		"userdata":     InstanceViewTypesUserData,
+		"instanceview":   InstanceViewTypesInstanceView,
+		"resiliencyview": InstanceViewTypesResiliencyView,
+		"userdata":       InstanceViewTypesUserData,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
@@ -812,14 +815,60 @@ func parseMode(input string) (*Mode, error) {
 	return &out, nil
 }
 
+type Modes string
+
+const (
+	ModesAudit    Modes = "Audit"
+	ModesDisabled Modes = "Disabled"
+	ModesEnforce  Modes = "Enforce"
+)
+
+func PossibleValuesForModes() []string {
+	return []string{
+		string(ModesAudit),
+		string(ModesDisabled),
+		string(ModesEnforce),
+	}
+}
+
+func (s *Modes) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseModes(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseModes(input string) (*Modes, error) {
+	vals := map[string]Modes{
+		"audit":    ModesAudit,
+		"disabled": ModesDisabled,
+		"enforce":  ModesEnforce,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := Modes(input)
+	return &out, nil
+}
+
 type NetworkApiVersion string
 
 const (
+	NetworkApiVersionTwoZeroTwoTwoNegativeOneOneNegativeZeroOne  NetworkApiVersion = "2022-11-01"
 	NetworkApiVersionTwoZeroTwoZeroNegativeOneOneNegativeZeroOne NetworkApiVersion = "2020-11-01"
 )
 
 func PossibleValuesForNetworkApiVersion() []string {
 	return []string{
+		string(NetworkApiVersionTwoZeroTwoTwoNegativeOneOneNegativeZeroOne),
 		string(NetworkApiVersionTwoZeroTwoZeroNegativeOneOneNegativeZeroOne),
 	}
 }
@@ -839,6 +888,7 @@ func (s *NetworkApiVersion) UnmarshalJSON(bytes []byte) error {
 
 func parseNetworkApiVersion(input string) (*NetworkApiVersion, error) {
 	vals := map[string]NetworkApiVersion{
+		"2022-11-01": NetworkApiVersionTwoZeroTwoTwoNegativeOneOneNegativeZeroOne,
 		"2020-11-01": NetworkApiVersionTwoZeroTwoZeroNegativeOneOneNegativeZeroOne,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
@@ -985,24 +1035,24 @@ func parseOperatingSystemTypes(input string) (*OperatingSystemTypes, error) {
 	return &out, nil
 }
 
-type PassNames string
+type PassName string
 
 const (
-	PassNamesOobeSystem PassNames = "OobeSystem"
+	PassNameOobeSystem PassName = "OobeSystem"
 )
 
-func PossibleValuesForPassNames() []string {
+func PossibleValuesForPassName() []string {
 	return []string{
-		string(PassNamesOobeSystem),
+		string(PassNameOobeSystem),
 	}
 }
 
-func (s *PassNames) UnmarshalJSON(bytes []byte) error {
+func (s *PassName) UnmarshalJSON(bytes []byte) error {
 	var decoded string
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)
 	}
-	out, err := parsePassNames(decoded)
+	out, err := parsePassName(decoded)
 	if err != nil {
 		return fmt.Errorf("parsing %q: %+v", decoded, err)
 	}
@@ -1010,16 +1060,16 @@ func (s *PassNames) UnmarshalJSON(bytes []byte) error {
 	return nil
 }
 
-func parsePassNames(input string) (*PassNames, error) {
-	vals := map[string]PassNames{
-		"oobesystem": PassNamesOobeSystem,
+func parsePassName(input string) (*PassName, error) {
+	vals := map[string]PassName{
+		"oobesystem": PassNameOobeSystem,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
 	// otherwise presume it's an undefined value and best-effort it
-	out := PassNames(input)
+	out := PassName(input)
 	return &out, nil
 }
 
@@ -1184,6 +1234,53 @@ func parsePublicIPAllocationMethod(input string) (*PublicIPAllocationMethod, err
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := PublicIPAllocationMethod(input)
+	return &out, nil
+}
+
+type ResilientVMDeletionStatus string
+
+const (
+	ResilientVMDeletionStatusDisabled   ResilientVMDeletionStatus = "Disabled"
+	ResilientVMDeletionStatusEnabled    ResilientVMDeletionStatus = "Enabled"
+	ResilientVMDeletionStatusFailed     ResilientVMDeletionStatus = "Failed"
+	ResilientVMDeletionStatusInProgress ResilientVMDeletionStatus = "InProgress"
+)
+
+func PossibleValuesForResilientVMDeletionStatus() []string {
+	return []string{
+		string(ResilientVMDeletionStatusDisabled),
+		string(ResilientVMDeletionStatusEnabled),
+		string(ResilientVMDeletionStatusFailed),
+		string(ResilientVMDeletionStatusInProgress),
+	}
+}
+
+func (s *ResilientVMDeletionStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseResilientVMDeletionStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseResilientVMDeletionStatus(input string) (*ResilientVMDeletionStatus, error) {
+	vals := map[string]ResilientVMDeletionStatus{
+		"disabled":   ResilientVMDeletionStatusDisabled,
+		"enabled":    ResilientVMDeletionStatusEnabled,
+		"failed":     ResilientVMDeletionStatusFailed,
+		"inprogress": ResilientVMDeletionStatusInProgress,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ResilientVMDeletionStatus(input)
 	return &out, nil
 }
 
