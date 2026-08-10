@@ -1084,6 +1084,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	// 'DatabaseAccountCreateUpdateParameters' below or
 	// are included in the 'DatabaseAccountCreateUpdateParameters'
 	// later, however we need to know if they changed or not...
+	// lintignore:R019 // deliberate subset: geo_location, identity, default_identity and multi-write settings must be updated in separate atomic calls (see NOTE below)
 	updateRequired := d.HasChanges("consistency_policy", "virtual_network_rule", "cors_rule", "access_key_metadata_writes_enabled",
 		"network_acl_bypass_for_azure_services", "network_acl_bypass_ids", "analytical_storage",
 		"capacity", "restore", "mongo_server_version",
