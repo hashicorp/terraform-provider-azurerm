@@ -864,12 +864,12 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   data_disk {
-    storage_account_type           = "PremiumV2_LRS"
-    caching                        = "None"
-    disk_size_gb                   = 10
-    lun                            = 10
-    ultra_ssd_disk_iops_read_write = %d
-    ultra_ssd_disk_mbps_read_write = %d
+    storage_account_type = "PremiumV2_LRS"
+    caching              = "None"
+    disk_size_gb         = 10
+    lun                  = 10
+    disk_iops_read_write = %d
+    disk_mbps_read_write = %d
   }
 
   network_interface {
@@ -964,11 +964,11 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   data_disk {
-    storage_account_type           = "UltraSSD_LRS"
-    caching                        = "None"
-    disk_size_gb                   = 10
-    lun                            = 10
-    ultra_ssd_disk_iops_read_write = 101
+    storage_account_type = "UltraSSD_LRS"
+    caching              = "None"
+    disk_size_gb         = 10
+    lun                  = 10
+    disk_iops_read_write = 101
   }
 
   additional_capabilities {
@@ -1016,11 +1016,11 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   data_disk {
-    storage_account_type           = "UltraSSD_LRS"
-    caching                        = "None"
-    disk_size_gb                   = 10
-    lun                            = 10
-    ultra_ssd_disk_mbps_read_write = 11
+    storage_account_type = "UltraSSD_LRS"
+    caching              = "None"
+    disk_size_gb         = 10
+    lun                  = 10
+    disk_mbps_read_write = 11
   }
 
   additional_capabilities {
@@ -1068,12 +1068,12 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   data_disk {
-    storage_account_type           = "UltraSSD_LRS"
-    caching                        = "None"
-    disk_size_gb                   = 10
-    lun                            = 10
-    ultra_ssd_disk_iops_read_write = 101
-    ultra_ssd_disk_mbps_read_write = 11
+    storage_account_type = "UltraSSD_LRS"
+    caching              = "None"
+    disk_size_gb         = 10
+    lun                  = 10
+    disk_iops_read_write = 101
+    disk_mbps_read_write = 11
   }
 
   additional_capabilities {

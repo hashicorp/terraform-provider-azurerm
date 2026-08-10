@@ -122,7 +122,7 @@ func (r NetworkSecurityPerimeterAssociationResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, id, param); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, param, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -165,7 +165,7 @@ func (r NetworkSecurityPerimeterAssociationResource) Update() sdk.ResourceFunc {
 				existing.Model.Properties.AccessMode = pointer.To(networksecurityperimeterassociations.AssociationAccessMode(config.AccessMode))
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 

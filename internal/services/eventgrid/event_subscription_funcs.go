@@ -20,21 +20,21 @@ func expandEventSubscriptionDestination(d *pluginsdk.ResourceData) eventsubscrip
 		return expandEventSubscriptionDestinationAzureFunction(d.Get("azure_function_endpoint").([]interface{}), deliveryMappings)
 	}
 
-	eventhubEndpointId, ok := d.GetOk("eventhub_endpoint_id")
+	eventhubEndpointId, ok := d.GetOk("eventhub_id")
 	if ok {
 		return expandEventSubscriptionDestinationEventHub(eventhubEndpointId.(string), deliveryMappings)
 	}
 
-	hybridConnectionEndpointId, ok := d.GetOk("hybrid_connection_endpoint_id")
+	hybridConnectionEndpointId, ok := d.GetOk("hybrid_connection_id")
 	if ok {
 		return expandEventSubscriptionDestinationHybridConnection(hybridConnectionEndpointId.(string), deliveryMappings)
 	}
 
-	if val, ok := d.GetOk("service_bus_queue_endpoint_id"); ok {
+	if val, ok := d.GetOk("service_bus_queue_id"); ok {
 		return expandEventSubscriptionDestinationServiceBusQueueEndpoint(val.(string), deliveryMappings)
 	}
 
-	if val, ok := d.GetOk("service_bus_topic_endpoint_id"); ok {
+	if val, ok := d.GetOk("service_bus_topic_id"); ok {
 		return expandEventSubscriptionDestinationServiceBusTopicEndpoint(val.(string), deliveryMappings)
 	}
 

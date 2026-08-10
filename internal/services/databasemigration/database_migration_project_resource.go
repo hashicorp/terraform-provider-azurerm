@@ -23,7 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name database_migration_project -service-package-name databasemigration -properties "name,resource_group_name,service_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basicForResourceIdentity
+//go:generate go run ../../tools/generator-tests resourceidentity -test-name basicForResourceIdentity
 
 func resourceDatabaseMigrationProject() *pluginsdk.Resource {
 	return &pluginsdk.Resource{

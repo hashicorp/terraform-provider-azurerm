@@ -4,10 +4,8 @@
 package storage
 
 import (
-	"context"
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -17,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
@@ -41,22 +38,13 @@ var containerAccessTypeConversionMap = map[string]string{
 }
 
 func resourceStorageContainer() *pluginsdk.Resource {
-	r := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceStorageContainerCreate,
 		Read:   resourceStorageContainerRead,
 		Delete: resourceStorageContainerDelete,
 		Update: resourceStorageContainerUpdate,
 
 		Importer: helpers.ImporterValidatingStorageResourceId(func(id, storageDomainSuffix string) error {
-			if !features.FivePointOh() {
-				if strings.HasPrefix(id, "/subscriptions/") {
-					_, err := commonids.ParseStorageContainerID(id)
-					return err
-				}
-				_, err := containers.ParseContainerID(id, storageDomainSuffix)
-				return err
-			}
-
 			_, err := commonids.ParseStorageContainerID(id)
 			return err
 		}),
@@ -133,55 +121,6 @@ func resourceStorageContainer() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		r.Schema["storage_account_name"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validate.StorageAccountName,
-			ExactlyOneOf: []string{"storage_account_id", "storage_account_name"},
-			Deprecated:   "the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider.",
-		}
-
-		r.Schema["storage_account_id"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: commonids.ValidateStorageAccountID,
-			ExactlyOneOf: []string{"storage_account_id", "storage_account_name"},
-		}
-
-		r.Schema["resource_manager_id"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Computed:   true,
-			Deprecated: "this property has been deprecated in favour of `id` and will be removed in version 5.0 of the Provider.",
-		}
-
-		r.CustomizeDiff = func(ctx context.Context, diff *pluginsdk.ResourceDiff, i interface{}) error {
-			// Resource Manager ID in use, but change to `storage_account_id` should recreate - won't trigger on create as diff.Id() will be ""
-			if strings.HasPrefix(diff.Id(), "/subscriptions/") && diff.HasChange("storage_account_id") {
-				return diff.ForceNew("storage_account_id")
-			}
-
-			// using legacy Data Plane ID but attempting to change the storage_account_name should recreate - won't trigger on create as diff.Id() will be ""
-			if diff.Id() != "" && !strings.HasPrefix(diff.Id(), "/subscriptions/") && diff.HasChange("storage_account_name") {
-				// converting from storage_account_id to the deprecated storage_account_name is not supported
-				oldAccountId, _ := diff.GetChange("storage_account_id")
-				oldName, newName := diff.GetChange("storage_account_name")
-
-				if oldAccountId.(string) != "" && newName.(string) != "" {
-					return diff.ForceNew("storage_account_name")
-				}
-
-				if oldName.(string) != "" && newName.(string) != "" {
-					return diff.ForceNew("storage_account_name")
-				}
-			}
-
-			return nil
-		}
-	}
-
-	return r
 }
 
 func resourceStorageContainerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -192,72 +131,8 @@ func resourceStorageContainerCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	containerName := d.Get("name").(string)
 	accessLevelRaw := d.Get("container_access_type").(string)
-	accessLevel := expandStorageContainerAccessLevel(accessLevelRaw)
 	metaDataRaw := d.Get("metadata").(map[string]interface{})
 	metaData := ExpandMetaData(metaDataRaw)
-
-	if !features.FivePointOh() {
-		storageClient := meta.(*clients.Client).Storage
-		if accountName := d.Get("storage_account_name").(string); accountName != "" {
-			account, err := storageClient.FindAccount(ctx, subscriptionId, accountName)
-			if err != nil {
-				return fmt.Errorf("retrieving Account %q for Container %q: %v", accountName, containerName, err)
-			}
-			if account == nil {
-				return fmt.Errorf("locating Storage Account %q", accountName)
-			}
-
-			containersDataPlaneClient, err := storageClient.ContainersDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
-			if err != nil {
-				return fmt.Errorf("building storage client: %v", err)
-			}
-
-			// Determine the blob endpoint, so we can build a data plane ID
-			endpoint, err := account.DataPlaneEndpoint(client.EndpointTypeBlob)
-			if err != nil {
-				return fmt.Errorf("determining Blob endpoint: %v", err)
-			}
-
-			// Parse the blob endpoint as a data plane account ID
-			accountId, err := accounts.ParseAccountID(*endpoint, storageClient.StorageDomainSuffix)
-			if err != nil {
-				return fmt.Errorf("parsing Account ID: %v", err)
-			}
-
-			id := containers.NewContainerID(*accountId, containerName)
-
-			exists, err := containersDataPlaneClient.Exists(ctx, containerName)
-			if err != nil {
-				return fmt.Errorf("checking for existing %s: %v", id, err)
-			}
-			if exists != nil && *exists {
-				if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-					return tf.ImportAsExistsError("azurerm_storage_container", id.ID())
-				}
-			}
-
-			input := containers.CreateInput{
-				AccessLevel: accessLevel,
-				MetaData:    metaData,
-			}
-
-			if encryptionScope := d.Get("default_encryption_scope"); encryptionScope.(string) != "" {
-				input.DefaultEncryptionScope = encryptionScope.(string)
-				input.EncryptionScopeOverrideDisabled = false
-
-				if encryptionScopeOverrideEnabled := d.Get("encryption_scope_override_enabled"); !encryptionScopeOverrideEnabled.(bool) {
-					input.EncryptionScopeOverrideDisabled = true
-				}
-			}
-
-			if err = containersDataPlaneClient.Create(ctx, containerName, input); err != nil {
-				return fmt.Errorf("creating %s: %v", id, err)
-			}
-			d.SetId(id.ID())
-
-			return resourceStorageContainerRead(d, meta)
-		}
-	}
 
 	accountId, err := commonids.ParseStorageAccountID(d.Get("storage_account_id").(string))
 	if err != nil {
@@ -312,56 +187,9 @@ func resourceStorageContainerCreate(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func resourceStorageContainerUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	containerClient := meta.(*clients.Client).Storage.ResourceManager.BlobContainers
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	if !features.FivePointOh() && !strings.HasPrefix(d.Id(), "/subscriptions/") {
-		storageClient := meta.(*clients.Client).Storage
-		id, err := containers.ParseContainerID(d.Id(), storageClient.StorageDomainSuffix)
-		if err != nil {
-			return err
-		}
-
-		account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
-		if err != nil {
-			return fmt.Errorf("retrieving Account %q for Container %q: %v", id.AccountId.AccountName, id.ContainerName, err)
-		}
-		if account == nil {
-			return fmt.Errorf("locating Storage Account %q", id.AccountId.AccountName)
-		}
-		if d.HasChange("container_access_type") {
-			// Updating metadata does not work with AAD authentication, returns a cryptic 404
-			client, err := storageClient.ContainersDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingOnlySharedKeyAuth())
-			if err != nil {
-				return fmt.Errorf("building Containers Client: %v", err)
-			}
-
-			accessLevelRaw := d.Get("container_access_type").(string)
-			accessLevel := expandStorageContainerAccessLevel(accessLevelRaw)
-
-			if err = client.UpdateAccessLevel(ctx, id.ContainerName, accessLevel); err != nil {
-				return fmt.Errorf("updating Access Level for %s: %v", id, err)
-			}
-		}
-
-		if d.HasChange("metadata") {
-			client, err := storageClient.ContainersDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
-			if err != nil {
-				return fmt.Errorf("building Containers Client: %v", err)
-			}
-
-			metaDataRaw := d.Get("metadata").(map[string]interface{})
-			metaData := ExpandMetaData(metaDataRaw)
-
-			if err = client.UpdateMetaData(ctx, id.ContainerName, metaData); err != nil {
-				return fmt.Errorf("updating Metadata for %s: %v", id, err)
-			}
-		}
-
-		return resourceStorageContainerRead(d, meta)
-	}
 
 	id, err := commonids.ParseStorageContainerID(d.Id())
 	if err != nil {
@@ -391,78 +219,8 @@ func resourceStorageContainerUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 func resourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	containerClient := meta.(*clients.Client).Storage.ResourceManager.BlobContainers
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	if !features.FivePointOh() && !strings.HasPrefix(d.Id(), "/subscriptions/") && d.Get("storage_account_id") == "" {
-		storageClient := meta.(*clients.Client).Storage
-		id, err := containers.ParseContainerID(d.Id(), storageClient.StorageDomainSuffix)
-		if err != nil {
-			return err
-		}
-
-		var account *client.AccountDetails
-		account, err = storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
-		if err != nil {
-			return fmt.Errorf("retrieving Account %q for Container %q: %v", id.AccountId.AccountName, id.ContainerName, err)
-		}
-
-		if account == nil {
-			log.Printf("[DEBUG] Unable to locate Account %q for Storage Container %q - assuming removed & removing from state", id.AccountId.AccountName, id.ContainerName)
-			d.SetId("")
-			return nil
-		}
-
-		client, err := storageClient.ContainersDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
-		if err != nil {
-			return fmt.Errorf("building Containers Client: %v", err)
-		}
-
-		props, err := client.Get(ctx, id.ContainerName)
-		if err != nil {
-			return fmt.Errorf("retrieving %s: %v", id, err)
-		}
-		if props == nil {
-			log.Printf("[DEBUG] Container %q was not found in %s - assuming removed & removing from state", id.ContainerName, id.AccountId)
-			d.SetId("")
-			return nil
-		}
-
-		d.Set("name", id.ContainerName)
-		d.Set("storage_account_name", id.AccountId.AccountName)
-
-		d.Set("container_access_type", flattenStorageContainerAccessLevel(props.AccessLevel))
-
-		d.Set("default_encryption_scope", props.DefaultEncryptionScope)
-		d.Set("encryption_scope_override_enabled", !props.EncryptionScopeOverrideDisabled)
-
-		if err = d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
-			return fmt.Errorf("setting `metadata`: %v", err)
-		}
-
-		d.Set("has_immutability_policy", props.HasImmutabilityPolicy)
-		d.Set("has_legal_hold", props.HasLegalHold)
-
-		resourceManagerId := commonids.NewStorageContainerID(account.StorageAccountId.SubscriptionId, account.StorageAccountId.ResourceGroupName, id.AccountId.AccountName, id.ContainerName)
-		d.Set("resource_manager_id", resourceManagerId.ID())
-		d.Set("url", id.ID())
-
-		return nil
-	}
-
-	if !features.FivePointOh() {
-		// Deal with the ID changing if the user changes from `storage_account_name` to `storage_account_id`
-		if !strings.HasPrefix(d.Id(), "/subscriptions/") {
-			accountId, err := commonids.ParseStorageAccountID(d.Get("storage_account_id").(string))
-			if err != nil {
-				return err
-			}
-
-			id := commonids.NewStorageContainerID(subscriptionId, accountId.ResourceGroupName, accountId.StorageAccountName, d.Get("name").(string))
-			d.SetId(id.ID())
-		}
-	}
 
 	id, err := commonids.ParseStorageContainerID(d.Id())
 	if err != nil {
@@ -490,10 +248,6 @@ func resourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 			d.Set("has_immutability_policy", props.HasImmutabilityPolicy)
 			d.Set("has_legal_hold", props.HasLegalHold)
-			if !features.FivePointOh() {
-				d.Set("storage_account_name", "")
-				d.Set("resource_manager_id", id.ID())
-			}
 		}
 	}
 
@@ -520,38 +274,9 @@ func resourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) e
 }
 
 func resourceStorageContainerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	containerClient := meta.(*clients.Client).Storage.ResourceManager.BlobContainers
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	if !features.FivePointOh() && !strings.HasPrefix(d.Id(), "/subscriptions/") {
-		storageClient := meta.(*clients.Client).Storage
-
-		id, err := containers.ParseContainerID(d.Id(), storageClient.StorageDomainSuffix)
-		if err != nil {
-			return err
-		}
-
-		account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
-		if err != nil {
-			return fmt.Errorf("retrieving Account %q for Container %q: %v", id.AccountId.AccountName, id.ContainerName, err)
-		}
-		if account == nil {
-			return fmt.Errorf("locating Storage Account %q", id.AccountId.AccountName)
-		}
-
-		client, err := storageClient.ContainersDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
-		if err != nil {
-			return fmt.Errorf("building Containers Client: %v", err)
-		}
-
-		if err = client.Delete(ctx, id.ContainerName); err != nil {
-			return fmt.Errorf("deleting %s: %v", id, err)
-		}
-
-		return nil
-	}
 
 	id, err := commonids.ParseStorageContainerID(d.Id())
 	if err != nil {
@@ -563,24 +288,4 @@ func resourceStorageContainerDelete(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	return nil
-}
-
-func expandStorageContainerAccessLevel(input string) containers.AccessLevel {
-	// for historical reasons, "private" above is an empty string in the API
-	// so the enum doesn't 1:1 match. You could argue the SDK should handle this
-	// but this is suitable for now
-	if input == "private" {
-		return containers.Private
-	}
-
-	return containers.AccessLevel(input)
-}
-
-func flattenStorageContainerAccessLevel(input containers.AccessLevel) string {
-	// for historical reasons, "private" above is an empty string in the API
-	if input == containers.Private {
-		return "private"
-	}
-
-	return string(input)
 }

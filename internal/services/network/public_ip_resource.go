@@ -31,7 +31,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name public_ip -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourcePublicIp() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -183,7 +183,19 @@ func resourcePublicIp() *pluginsdk.Resource {
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			pluginsdk.CustomizeDiffShim(func(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
 				sku := d.Get("sku").(string)
-				if strings.EqualFold(sku, string(publicipaddresses.PublicIPAddressSkuNameBasic)) && d.HasChanges("name", "resource_group_name", "location", "allocation_method", "edge_zone", "ip_version", "sku", "sku_tier", "public_ip_prefix_id", "ip_tags", "zones") {
+				if strings.EqualFold(sku, string(publicipaddresses.PublicIPAddressSkuNameBasic)) && d.HasChanges(
+					"name",
+					"resource_group_name",
+					"location",
+					"allocation_method",
+					"edge_zone",
+					"ip_version",
+					"sku",
+					"sku_tier",
+					"public_ip_prefix_id",
+					"ip_tags",
+					"zones",
+				) {
 					return errors.New(publicIPBasicSkuCreateDeprecationMessage)
 				}
 

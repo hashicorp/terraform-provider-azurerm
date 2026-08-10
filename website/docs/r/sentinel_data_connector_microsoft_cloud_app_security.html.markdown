@@ -79,3 +79,9 @@ Microsoft Cloud App Security Data Connectors can be imported using the `resource
 ```shell
 terraform import azurerm_sentinel_data_connector_microsoft_cloud_app_security.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.OperationalInsights/workspaces/workspace1/providers/Microsoft.SecurityInsights/dataConnectors/dc1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.OperationalInsights` - 2022-10-01-preview

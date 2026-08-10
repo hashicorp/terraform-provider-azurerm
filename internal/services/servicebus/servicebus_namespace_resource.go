@@ -33,7 +33,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name servicebus_namespace -service-package-name servicebus -properties "name,resource_group_name"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 // Default Authorization Rule/Policy created by Azure, used to populate the
 // default connection strings and keys
@@ -391,7 +391,7 @@ func resourceServiceBusNamespaceUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if existing.Model == nil {
-		return fmt.Errorf("retrieving  %s: `model` was nil", *id)
+		return fmt.Errorf("retrieving %s: `model` was nil", *id)
 	}
 	if existing.Model.Properties == nil {
 		return fmt.Errorf("retrieving %s: `model.Properties` was nil", *id)

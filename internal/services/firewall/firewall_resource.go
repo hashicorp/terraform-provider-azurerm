@@ -31,7 +31,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name firewall -service-package-name firewall -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 var AzureFirewallResourceName = "azurerm_firewall"
 
@@ -749,8 +749,8 @@ func expandFirewallVirtualHubSetting(existing *azurefirewalls.AzureFirewall, inp
 	// The "Addresses" means differently in different cases:
 	// - Create: only "Count" is needed, "Addresses" is not necessary
 	// - Update: both "Count" and "Addresses" are needed:
-	//     Scale up: "Addresses" should remain same as before scaling up
-	//     Scale down: "Addresses" should indicate the addresses to be retained (in this case we retain the first new "Count" ones)
+	//   Scale up: "Addresses" should remain same as before scaling up
+	//   Scale down: "Addresses" should indicate the addresses to be retained (in this case we retain the first new "Count" ones)
 	newCount := b["public_ip_count"].(int)
 	var addresses *[]azurefirewalls.AzureFirewallPublicIPAddress
 	if existing != nil {

@@ -11,13 +11,14 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afddomains"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/securitypolicies"
 	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2024-02-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -56,7 +57,7 @@ func resourceCdnFrontDoorSecurityPolicy() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FrontDoorProfileID,
+				ValidateFunc: profiles.ValidateProfileID,
 			},
 
 			"security_policies": {
@@ -77,7 +78,7 @@ func resourceCdnFrontDoorSecurityPolicy() *pluginsdk.Resource {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ForceNew:     true,
-										ValidateFunc: validate.FrontDoorFirewallPolicyID,
+										ValidateFunc: waf.ValidateFrontDoorWebApplicationFirewallPolicyID,
 									},
 
 									"association": {
@@ -96,9 +97,12 @@ func resourceCdnFrontDoorSecurityPolicy() *pluginsdk.Resource {
 													Elem: &pluginsdk.Resource{
 														Schema: map[string]*pluginsdk.Schema{
 															"cdn_frontdoor_domain_id": {
-																Type:         pluginsdk.TypeString,
-																Required:     true,
-																ValidateFunc: validate.FrontDoorSecurityPolicyDomainID,
+																Type:     pluginsdk.TypeString,
+																Required: true,
+																ValidateFunc: validation.Any(
+																	afddomains.ValidateCustomDomainID,
+																	afdendpoints.ValidateAfdEndpointID,
+																),
 															},
 
 															"active": {
@@ -388,9 +392,9 @@ func flattenSecurityPoliciesActivatedResourceReference(input *[]securitypolicies
 	for _, item := range *input {
 		frontDoorDomainId := ""
 		if item.Id != nil {
-			if parsedFrontDoorCustomDomainId, frontDoorCustomDomainIdErr := parse.FrontDoorCustomDomainIDInsensitively(*item.Id); frontDoorCustomDomainIdErr == nil {
+			if parsedFrontDoorCustomDomainId, frontDoorCustomDomainIdErr := afddomains.ParseCustomDomainIDInsensitively(*item.Id); frontDoorCustomDomainIdErr == nil {
 				frontDoorDomainId = parsedFrontDoorCustomDomainId.ID()
-			} else if parsedFrontDoorEndpointId, frontDoorEndpointIdErr := parse.FrontDoorEndpointIDInsensitively(*item.Id); frontDoorEndpointIdErr == nil {
+			} else if parsedFrontDoorEndpointId, frontDoorEndpointIdErr := afdendpoints.ParseAfdEndpointIDInsensitively(*item.Id); frontDoorEndpointIdErr == nil {
 				frontDoorDomainId = parsedFrontDoorEndpointId.ID()
 			} else {
 				return nil, fmt.Errorf("flattening `cdn_frontdoor_domain_id`: %+v; %+v", frontDoorCustomDomainIdErr, frontDoorEndpointIdErr)

@@ -34,7 +34,9 @@ resource "azurerm_subnet" "example" {
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
   address_prefixes     = ["10.0.2.0/24"]
-  service_endpoints    = ["Microsoft.Storage"]
+  service_endpoint {
+    service = "Microsoft.Storage"
+  }
   delegation {
     name = "fs"
     service_delegation {
@@ -51,11 +53,10 @@ resource "azurerm_private_dns_zone" "example" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "example" {
-  name                  = "exampleVnetZone.com"
-  private_dns_zone_name = azurerm_private_dns_zone.example.name
-  virtual_network_id    = azurerm_virtual_network.example.id
-  resource_group_name   = azurerm_resource_group.example.name
-  depends_on            = [azurerm_subnet.example]
+  name                = "exampleVnetZone.com"
+  private_dns_zone_id = azurerm_private_dns_zone.example.id
+  virtual_network_id  = azurerm_virtual_network.example.id
+  depends_on          = [azurerm_subnet.example]
 }
 
 resource "azurerm_postgresql_flexible_server" "example" {
