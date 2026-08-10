@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 )
 
+// lintignore:V011 // the length check is combined with character/format rules
 func PrivateLinkSubResourceName(i interface{}, k string) (_ []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
