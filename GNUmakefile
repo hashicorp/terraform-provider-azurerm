@@ -59,9 +59,9 @@ fmt: ## Fix Go formatting (gofmt, gofumpt, whitespace)
 	@golangci-lint run ./... --no-config --enable-only=whitespace --fix
 
 # goimports runs via `golangci-lint fmt` as the standalone binary is single-threaded and far slower
-goimports: ## Fix Go import ordering (slower than fmt, so kept separate)
-	@echo "==> Fixing imports with goimports..."
-	@golangci-lint fmt -E goimports
+goimports: ## Fix Go import ordering/grouping (slower than fmt, so kept separate)
+	@echo "==> Fixing imports with goimports and gci..."
+	@golangci-lint fmt -E goimports,gci
 
 quick-checks: ## Run the quick CI checks (formatting + provider policies)
 	@echo "==> Running the set of quick CI checks (formatting + provider policies)..."
