@@ -83,76 +83,57 @@ func ExpandSliceWithDelimiter[I any](input []interface{}, convert func(I) string
 
 // ExpandStringSlice converts a slice of interface{} to a pointer to a slice of strings.
 // Nil elements are converted to empty strings.
-//
-// Deprecated: Use ExpandSlice instead.
-func ExpandStringSlice(input []interface{}) *[]string {
+func ExpandStringSlice(input []any) *[]string {
 	return ExpandSlice(input, func(i string) string { return i }, true)
 }
 
 // ExpandFloatSlice converts a slice of interface{} to a pointer to a slice of float64s.
 // Nil elements are ignored.
-//
-// Deprecated: Use ExpandSlice instead.
 func ExpandFloatSlice(input []interface{}) *[]float64 {
 	return ExpandSlice(input, func(i float64) float64 { return i }, false)
 }
 
 // ExpandFloatRangeSlice converts a slice of interface{} to a pointer to a slice of float64 slices.
 // Nil elements are ignored.
-//
-// Deprecated: Use ExpandSlice instead.
 func ExpandFloatRangeSlice(input []interface{}) *[][]float64 {
 	return ExpandSlice(input, func(i []interface{}) []float64 { return *ExpandFloatSlice(i) }, false)
 }
 
 // ExpandPtrMapStringString converts a map of interface{} to a pointer to a map of strings.
-//
-// Deprecated: Use ExpandMap instead.
 func ExpandPtrMapStringString(input map[string]interface{}) *map[string]string {
 	res := ExpandMap(input, func(i string) string { return i })
 	return &res
 }
 
 // ExpandMapStringPtrString converts a map of interface{} to a map of string pointers.
-//
-// Deprecated: Use ExpandMap instead.
 func ExpandMapStringPtrString(input map[string]interface{}) map[string]*string {
+	//nolint:gocritic // unlambda
 	return ExpandMap(input, func(i string) *string { return pointer.To(i) })
 }
 
 // ExpandInt32Slice converts a slice of interface{} to a pointer to a slice of int32s.
 // Nil elements are converted to 0.
-//
-// Deprecated: Use ExpandSlice instead.
 func ExpandInt32Slice(input []interface{}) *[]int32 {
 	return ExpandSlice(input, func(i int) int32 { return int32(i) }, true)
 }
 
 // ExpandInt64Slice converts a slice of interface{} to a pointer to a slice of int64s.
 // Nil elements are converted to 0.
-//
-// Deprecated: Use ExpandSlice instead.
 func ExpandInt64Slice(input []interface{}) *[]int64 {
 	return ExpandSlice(input, func(i int) int64 { return int64(i) }, true)
 }
 
 // FlattenStringSlice converts a pointer to a slice of strings into a slice of interface{}.
-//
-// Deprecated: Use FlattenSlice instead.
 func FlattenStringSlice(input *[]string) []interface{} {
 	return FlattenSlice(input)
 }
 
 // FlattenFloatSlice converts a pointer to a slice of float64s into a slice of interface{}.
-//
-// Deprecated: Use FlattenSlice instead.
 func FlattenFloatSlice(input *[]float64) []interface{} {
 	return FlattenSlice(input)
 }
 
 // FlattenFloatRangeSlice converts a pointer to a slice of float64 slices into a slice of interface{} slices.
-//
-// Deprecated: Use FlattenSlice instead.
 func FlattenFloatRangeSlice(input *[][]float64) [][]interface{} {
 	result := make([][]interface{}, 0)
 	if input != nil {
@@ -165,8 +146,6 @@ func FlattenFloatRangeSlice(input *[][]float64) [][]interface{} {
 
 // FlattenMapStringPtrString converts a map of string pointers into a map of interface{}.
 // Nil pointers are converted to empty strings.
-//
-// Deprecated: Use FlattenSlice or custom flatten map logic instead.
 func FlattenMapStringPtrString(input map[string]*string) map[string]interface{} {
 	result := make(map[string]interface{})
 	for k, v := range input {
@@ -180,8 +159,6 @@ func FlattenMapStringPtrString(input map[string]*string) map[string]interface{} 
 }
 
 // FlattenPtrMapStringString converts a pointer to a map of strings into a map of interface{}.
-//
-// Deprecated: Use FlattenSlice or custom flatten map logic instead.
 func FlattenPtrMapStringString(input *map[string]string) map[string]interface{} {
 	result := make(map[string]interface{})
 	if input == nil {
@@ -194,36 +171,26 @@ func FlattenPtrMapStringString(input *map[string]string) map[string]interface{} 
 }
 
 // FlattenInt32Slice converts a pointer to a slice of int32s into a slice of interface{}.
-//
-// Deprecated: Use FlattenSlice instead.
 func FlattenInt32Slice(input *[]int32) []interface{} {
 	return FlattenSlice(input)
 }
 
 // FlattenInt64Slice converts a pointer to a slice of int64s into a slice of interface{}.
-//
-// Deprecated: Use FlattenSlice instead.
 func FlattenInt64Slice(input *[]int64) []interface{} {
 	return FlattenSlice(input)
 }
 
 // ExpandStringSliceWithDelimiter converts an interface slice to a delimited string pointer.
-//
-// Deprecated: Use ExpandSliceWithDelimiter instead.
 func ExpandStringSliceWithDelimiter(input []interface{}, delimiter string) *string {
 	return ExpandSliceWithDelimiter(input, func(i string) string { return i }, delimiter)
 }
 
 // ExpandIntSliceWithDelimiter converts an interface slice of ints to a delimited string pointer.
-//
-// Deprecated: Use ExpandSliceWithDelimiter instead.
 func ExpandIntSliceWithDelimiter(input []interface{}, delimiter string) *string {
 	return ExpandSliceWithDelimiter(input, strconv.Itoa, delimiter)
 }
 
 // FlattenStringSliceWithDelimiter splits a delimited string pointer into a slice of interface{}.
-//
-// Deprecated: Custom string splitting should be done inline.
 func FlattenStringSliceWithDelimiter(input *string, delimiter string) []interface{} {
 	result := make([]interface{}, 0)
 	if input != nil {
