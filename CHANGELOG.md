@@ -3,6 +3,7 @@
 FEATURES:
 
 ENHANCEMENTS:
+* `codesigning` - update to API version `2025-10-13` [GH-31714]
 * `azurerm_linux_virtual_machine_scale_set` - update to API version `2025-04-01` [GH-31586]
 * `azurerm_windows_virtual_machine_scale_set` - update to API version `2025-04-01` [GH-31586]
 * `azurerm_orchestrated_virtual_machine_scale_set` - update to API version `2025-04-01` [GH-31586]
