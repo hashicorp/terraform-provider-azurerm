@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/staticsites"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/sdkhacks"
@@ -52,7 +53,7 @@ type StaticWebAppResourceModel struct {
 }
 
 func (r StaticWebAppResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	resource := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -111,7 +112,7 @@ func (r StaticWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"basic_auth": helpers.BasicAuthSchema(),
 
-		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 		"repository_url": {
 			Type:         pluginsdk.TypeString,
@@ -137,6 +138,10 @@ func (r StaticWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+	if !features.FivePointOh() {
+		resource["identity"] = commonschema.SystemAssignedUserAssignedIdentityOptional()
+	}
+	return resource
 }
 
 func (r StaticWebAppResource) Attributes() map[string]*pluginsdk.Schema {
@@ -181,14 +186,16 @@ func (r StaticWebAppResource) Create() sdk.ResourceFunc {
 
 			id := staticsites.NewStaticSiteID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			existing, err := client.GetStaticSite(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetStaticSite(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			envelope := staticsites.StaticSiteARMResource{
@@ -237,7 +244,7 @@ func (r StaticWebAppResource) Create() sdk.ResourceFunc {
 
 			envelope.Properties = props
 
-			if err := client.CreateOrUpdateStaticSiteThenPoll(ctx, id, envelope); err != nil {
+			if err := client.CreateOrUpdateStaticSiteCallbackThenPoll(ctx, id, envelope, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -509,7 +516,8 @@ func (r StaticWebAppResource) Update() sdk.ResourceFunc {
 					authProps.Properties = &staticsites.StaticSiteBasicAuthPropertiesARMResourceProperties{
 						ApplicableEnvironmentsMode: "SpecifiedEnvironments",
 						Password:                   nil,
-						SecretState:                nil,
+						// To remove a password the backend validation requires 'secretState' to be in JSON, so we send an empty string
+						SecretState: pointer.To(""),
 					}
 				}
 

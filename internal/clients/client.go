@@ -7,6 +7,8 @@ import (
 	"context"
 	"fmt"
 
+	preflight "github.com/hashicorp/terraform-provider-azurerm/internal/preflight/client"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/validation"
 	aadb2c_v2021_04_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview"
@@ -93,6 +95,7 @@ import (
 	machinelearning "github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/client"
 	maintenance "github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/client"
 	managedapplication "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications/client"
+	manageddevopspools "github.com/hashicorp/terraform-provider-azurerm/internal/services/manageddevopspools/client"
 	managedhsm "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/client"
 	managedidentity "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedidentity/client"
 	managedredis "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/client"
@@ -146,7 +149,6 @@ import (
 	trafficManager "github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/client"
 	videoindexer "github.com/hashicorp/terraform-provider-azurerm/internal/services/videoindexer/client"
 	vmware "github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/client"
-	voiceServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/voiceservices/client"
 	web "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/client"
 	workloads "github.com/hashicorp/terraform-provider-azurerm/internal/services/workloads/client"
 )
@@ -159,6 +161,8 @@ type Client struct {
 
 	Account  *ResourceManagerAccount
 	Features features.UserFeatures
+
+	Preflight *preflight.Client
 
 	AadB2c                            *aadb2c_v2021_04_01_preview.Client
 	Advisor                           *advisor.Client
@@ -230,6 +234,7 @@ type Client struct {
 	MachineLearning                   *machinelearning.Client
 	Maintenance                       *maintenance.Client
 	ManagedApplication                *managedapplication.Client
+	ManagedDevOpsPools                *manageddevopspools.Client
 	ManagementGroups                  *managementgroup.Client
 	ManagedHSMs                       *managedhsm.Client
 	ManagedIdentity                   *managedidentity.Client
@@ -283,7 +288,6 @@ type Client struct {
 	TrafficManager                    *trafficManager.Client
 	VideoIndexer                      *videoindexer.Client
 	Vmware                            *vmware.Client
-	VoiceServices                     *voiceServices.Client
 	Web                               *web.Client
 	Workloads                         *workloads_v2024_09_01.Client
 }
@@ -303,6 +307,10 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.StopContext = ctx
 
 	var err error
+
+	if client.Preflight, err = preflight.NewClient(o); err != nil {
+		return fmt.Errorf("building client for preflight validator: %+v", err)
+	}
 
 	if client.AadB2c, err = aadb2c.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for AadB2c: %+v", err)
@@ -512,6 +520,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.ManagedApplication, err = managedapplication.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Managed Applications: %+v", err)
 	}
+	if client.ManagedDevOpsPools, err = manageddevopspools.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Managed DevOps Pools: %+v", err)
+	}
 	if client.ManagementGroups, err = managementgroup.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Management Groups: %+v", err)
 	}
@@ -657,7 +668,10 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 		return fmt.Errorf("building clients for Subscription: %+v", err)
 	}
 
-	client.Synapse = synapse.NewClient(o)
+	if client.Synapse, err = synapse.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Synapse: %w", err)
+	}
+
 	if client.SystemCenterVirtualMachineManager, err = systemCenterVirtualMachineManager.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for System Center Virtual Machine Manager: %+v", err)
 	}
@@ -672,10 +686,10 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Vmware, err = vmware.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for VMWare: %+v", err)
 	}
-	if client.VoiceServices, err = voiceServices.NewClient(o); err != nil {
-		return fmt.Errorf("building clients for Voice Services: %+v", err)
+
+	if client.Web, err = web.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Web: %+v", err)
 	}
-	client.Web = web.NewClient(o)
 
 	if client.Workloads, err = workloads.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Workloads: %+v", err)

@@ -12,14 +12,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/clusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/extensions"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVault "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -49,12 +49,13 @@ func SchemaHDInsightTier() *pluginsdk.Schema {
 func SchemaHDInsightTls() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeString,
-		Optional: true,
+		Required: true,
 		ForceNew: true,
 		ValidateFunc: validation.StringInSlice([]string{
 			"1.0",
 			"1.1",
 			"1.2",
+			"1.3",
 		}, false),
 	}
 }
@@ -865,14 +866,13 @@ func SchemaHDInsightsStorageAccounts() *pluginsdk.Schema {
 					Sensitive:    true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
-				"storage_container_id": {
+				"storage_container_url": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
+					ValidateFunc: storageValidate.StorageContainerDataPlaneID,
 				},
-				// TODO: this should become `storage_account_id` in 4.0
-				"storage_resource_id": {
+				"storage_account_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ForceNew:     true,
@@ -896,8 +896,7 @@ func SchemaHDInsightsGen2StorageAccounts() *pluginsdk.Schema {
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				// TODO: this should become `storage_account_id` in 4.0
-				"storage_resource_id": {
+				"storage_account_id": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
@@ -909,8 +908,7 @@ func SchemaHDInsightsGen2StorageAccounts() *pluginsdk.Schema {
 					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
-				// TODO: this should become `user_assigned_identity_id` in 4.0
-				"managed_identity_resource_id": {
+				"user_assigned_identity_id": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
@@ -952,7 +950,7 @@ func SchemaHDInsightsDiskEncryptionProperties() *pluginsdk.Schema {
 				"key_vault_key_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: keyVault.NestedItemId,
+					ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 				},
 			},
 		},
@@ -1038,13 +1036,13 @@ func ExpandHDInsightsDiskEncryptionProperties(input []interface{}) (*clusters.Di
 	}
 
 	if id, ok := v["key_vault_key_id"]; ok && id.(string) != "" {
-		keyVaultKeyId, err := parse.ParseNestedItemID(id.(string))
+		keyVaultKeyId, err := keyvault.ParseNestedItemID(id.(string), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 		if err != nil {
 			return nil, err
 		}
 		diskEncryptionProps.KeyName = &keyVaultKeyId.Name
 		diskEncryptionProps.KeyVersion = &keyVaultKeyId.Version
-		diskEncryptionProps.VaultUri = &keyVaultKeyId.KeyVaultBaseUrl
+		diskEncryptionProps.VaultUri = &keyVaultKeyId.KeyVaultBaseURL
 	}
 
 	return diskEncryptionProps, nil
@@ -1063,7 +1061,7 @@ func flattenHDInsightsDiskEncryptionProperties(input *clusters.DiskEncryptionPro
 	keyVersion := pointer.From(input.KeyVersion)
 	keyVaultKeyId := ""
 	if (keyName != "" || keyVersion != "") && input.VaultUri != nil {
-		keyVaultKeyIdRaw, err := parse.NewNestedItemID(*input.VaultUri, parse.NestedItemTypeKey, keyName, keyVersion)
+		keyVaultKeyIdRaw, err := keyvault.NewNestedItemID(*input.VaultUri, keyvault.NestedItemTypeKey, keyName, keyVersion)
 		if err != nil {
 			return nil, err
 		}
@@ -1091,13 +1089,13 @@ func ExpandHDInsightsStorageAccounts(storageAccounts []interface{}, gen2storageA
 		v := vs.(map[string]interface{})
 
 		storageAccountKey := v["storage_account_key"].(string)
-		storageContainerID := v["storage_container_id"].(string)
-		storageResourceID := v["storage_resource_id"].(string)
+		storageContainerURL := v["storage_container_url"].(string)
+		storageResourceID := v["storage_account_id"].(string)
 		isDefault := v["is_default"].(bool)
 
-		uri, err := url.Parse(storageContainerID)
+		uri, err := url.Parse(storageContainerURL)
 		if err != nil {
-			return nil, nil, fmt.Errorf("parsing %q: %s", storageContainerID, err)
+			return nil, nil, fmt.Errorf("parsing %q: %s", storageContainerURL, err)
 		}
 
 		result := clusters.StorageAccount{
@@ -1114,8 +1112,8 @@ func ExpandHDInsightsStorageAccounts(storageAccounts []interface{}, gen2storageA
 		v := vs.(map[string]interface{})
 
 		fileSystemID := v["filesystem_id"].(string)
-		storageResourceID := v["storage_resource_id"].(string)
-		managedIdentityResourceID := v["managed_identity_resource_id"].(string)
+		storageResourceID := v["storage_account_id"].(string)
+		managedIdentityResourceID := v["user_assigned_identity_id"].(string)
 
 		isDefault := v["is_default"].(bool)
 

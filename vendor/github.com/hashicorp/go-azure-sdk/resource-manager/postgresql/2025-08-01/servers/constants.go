@@ -614,20 +614,24 @@ func parseHighAvailabilityMode(input string) (*HighAvailabilityMode, error) {
 type HighAvailabilityState string
 
 const (
-	HighAvailabilityStateCreatingStandby HighAvailabilityState = "CreatingStandby"
-	HighAvailabilityStateFailingOver     HighAvailabilityState = "FailingOver"
-	HighAvailabilityStateHealthy         HighAvailabilityState = "Healthy"
-	HighAvailabilityStateNotEnabled      HighAvailabilityState = "NotEnabled"
-	HighAvailabilityStateRemovingStandby HighAvailabilityState = "RemovingStandby"
-	HighAvailabilityStateReplicatingData HighAvailabilityState = "ReplicatingData"
+	HighAvailabilityStateComputeUpdatingByFailover HighAvailabilityState = "ComputeUpdatingByFailover"
+	HighAvailabilityStateCreatingStandby           HighAvailabilityState = "CreatingStandby"
+	HighAvailabilityStateFailingOver               HighAvailabilityState = "FailingOver"
+	HighAvailabilityStateHealthy                   HighAvailabilityState = "Healthy"
+	HighAvailabilityStateNotEnabled                HighAvailabilityState = "NotEnabled"
+	HighAvailabilityStateRecreatingStandby         HighAvailabilityState = "RecreatingStandby"
+	HighAvailabilityStateRemovingStandby           HighAvailabilityState = "RemovingStandby"
+	HighAvailabilityStateReplicatingData           HighAvailabilityState = "ReplicatingData"
 )
 
 func PossibleValuesForHighAvailabilityState() []string {
 	return []string{
+		string(HighAvailabilityStateComputeUpdatingByFailover),
 		string(HighAvailabilityStateCreatingStandby),
 		string(HighAvailabilityStateFailingOver),
 		string(HighAvailabilityStateHealthy),
 		string(HighAvailabilityStateNotEnabled),
+		string(HighAvailabilityStateRecreatingStandby),
 		string(HighAvailabilityStateRemovingStandby),
 		string(HighAvailabilityStateReplicatingData),
 	}
@@ -648,12 +652,14 @@ func (s *HighAvailabilityState) UnmarshalJSON(bytes []byte) error {
 
 func parseHighAvailabilityState(input string) (*HighAvailabilityState, error) {
 	vals := map[string]HighAvailabilityState{
-		"creatingstandby": HighAvailabilityStateCreatingStandby,
-		"failingover":     HighAvailabilityStateFailingOver,
-		"healthy":         HighAvailabilityStateHealthy,
-		"notenabled":      HighAvailabilityStateNotEnabled,
-		"removingstandby": HighAvailabilityStateRemovingStandby,
-		"replicatingdata": HighAvailabilityStateReplicatingData,
+		"computeupdatingbyfailover": HighAvailabilityStateComputeUpdatingByFailover,
+		"creatingstandby":           HighAvailabilityStateCreatingStandby,
+		"failingover":               HighAvailabilityStateFailingOver,
+		"healthy":                   HighAvailabilityStateHealthy,
+		"notenabled":                HighAvailabilityStateNotEnabled,
+		"recreatingstandby":         HighAvailabilityStateRecreatingStandby,
+		"removingstandby":           HighAvailabilityStateRemovingStandby,
+		"replicatingdata":           HighAvailabilityStateReplicatingData,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil

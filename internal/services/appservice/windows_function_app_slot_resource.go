@@ -475,13 +475,15 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			// Only send for Dynamic and ElasticPremium
 			sendContentSettings := (helpers.PlanIsConsumption(planSKU) || helpers.PlanIsElastic(planSKU)) && !functionAppSlot.ForceDisableContentShare
 
-			existing, err := client.GetSlot(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing Windows %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetSlot(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing Windows %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			subscriptionID := commonids.NewSubscriptionID(subscriptionId)
@@ -586,9 +588,11 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				siteEnvelope.Properties.ClientCertExclusionPaths = pointer.To(functionAppSlot.ClientCertExclusionPaths)
 			}
 
-			if err = client.CreateOrUpdateSlotThenPoll(ctx, id, siteEnvelope); err != nil {
+			if err = client.CreateOrUpdateSlotCallbackThenPoll(ctx, id, siteEnvelope, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating Windows %s: %+v", id, err)
 			}
+
+			metadata.SetID(id)
 
 			if !functionAppSlot.PublishingDeployBasicAuthEnabled {
 				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
@@ -615,8 +619,6 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			if err = client.CreateOrUpdateSlotThenPoll(ctx, id, siteEnvelope); err != nil {
 				return fmt.Errorf("updating properties of Windows %s: %+v", id, err)
 			}
-
-			metadata.SetID(id)
 
 			backupConfig, err := helpers.ExpandBackupConfig(functionAppSlot.Backup)
 			if err != nil {
@@ -848,8 +850,6 @@ func (r WindowsFunctionAppSlotResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-
-			metadata.Logger.Infof("deleting Windows %s", *id)
 
 			delOpts := webapps.DeleteSlotOperationOptions{
 				DeleteEmptyServerFarm: pointer.To(false),
@@ -1093,6 +1093,10 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("auth_settings_v2") {
 				authV2Update := helpers.ExpandAuthV2Settings(state.AuthV2Settings)
+				// (@toddgiguere) - in the case of a removal of this block, we need to zero these settings
+				if authV2Update.Properties == nil {
+					authV2Update.Properties = helpers.DefaultAuthV2SettingsProperties()
+				}
 				if _, err := client.UpdateAuthSettingsV2Slot(ctx, *id, *authV2Update); err != nil {
 					return fmt.Errorf("updating AuthV2 Settings for Windows %s: %+v", id, err)
 				}
@@ -1246,7 +1250,7 @@ func (r WindowsFunctionAppSlotResource) CustomizeDiff() sdk.ResourceFunc {
 					return fmt.Errorf("retrieving %s: %+v", functionAppId, err)
 				}
 				if functionAppModel := functionApp.Model; functionAppModel != nil && functionAppModel.Properties != nil {
-					if ase := functionAppModel.Properties.HostingEnvironmentProfile; ase != nil && ase.Id != nil && *(ase.Id) != "" && !newValue.(bool) {
+					if ase := functionAppModel.Properties.HostingEnvironmentProfile; ase != nil && ase.Id != nil && *ase.Id != "" && !newValue.(bool) {
 						return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app slot running in an app service environment")
 					}
 				}

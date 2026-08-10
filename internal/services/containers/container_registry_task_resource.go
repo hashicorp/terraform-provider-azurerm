@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
@@ -555,10 +556,12 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 								"identity": {
-									// TODO - 4.0: this should be `user_assigned_identity_id`?
-									Type:         pluginsdk.TypeString,
-									Optional:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									ValidateFunc: validation.Any(
+										validation.StringInSlice([]string{"[system]"}, false),
+										commonids.ValidateUserAssignedIdentityID,
+									),
 								},
 							},
 						},
@@ -684,14 +687,17 @@ func (r ContainerRegistryTaskResource) Create() sdk.ResourceFunc {
 			}
 
 			id := tasks.NewTaskID(registryId.SubscriptionId, registryId.ResourceGroupName, registryId.RegistryName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			status := tasks.TaskStatusDisabled
@@ -729,7 +735,7 @@ func (r ContainerRegistryTaskResource) Create() sdk.ResourceFunc {
 				params.Properties.LogTemplate = &model.LogTemplate
 			}
 
-			if err := client.CreateThenPoll(ctx, id, params); err != nil {
+			if err := client.CreateCallbackThenPoll(ctx, id, params, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -899,11 +905,11 @@ func (r ContainerRegistryTaskResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("platform") {
 				existing.Model.Properties.Platform = expandRegistryTaskPlatform(model.Platform)
 			}
-			if metadata.ResourceData.HasChange("docker_step") || metadata.ResourceData.HasChange("file_step") || metadata.ResourceData.HasChange("encoded_step") {
+			if metadata.ResourceData.HasChanges("docker_step", "file_step", "encoded_step") {
 				existing.Model.Properties.Step = expandRegistryTaskStep(model)
 			}
 
-			if metadata.ResourceData.HasChange("base_image_trigger") || metadata.ResourceData.HasChange("source_trigger") || metadata.ResourceData.HasChange("timer_trigger") {
+			if metadata.ResourceData.HasChanges("base_image_trigger", "source_trigger", "timer_trigger") {
 				existing.Model.Properties.Trigger = expandRegistryTaskTrigger(model)
 			}
 
@@ -1578,7 +1584,7 @@ func patchRegistryTaskTriggerSourceTrigger(triggers []tasks.SourceTrigger, model
 
 	result := make([]tasks.SourceTrigger, len(triggers))
 	for i, trigger := range model.SourceTrigger {
-		t := (triggers)[i]
+		t := triggers[i]
 		if len(trigger.Auth) == 0 {
 			result[i] = t
 			continue

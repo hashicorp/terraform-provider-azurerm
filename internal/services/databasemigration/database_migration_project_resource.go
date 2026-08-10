@@ -23,7 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name database_migration_project -service-package-name databasemigration -properties "name,resource_group_name,service_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basicForResourceIdentity
+//go:generate go run ../../tools/generator-tests resourceidentity -test-name basicForResourceIdentity
 
 func resourceDatabaseMigrationProject() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -103,14 +103,16 @@ func resourceDatabaseMigrationProjectCreateUpdate(d *pluginsdk.ResourceData, met
 
 	id := projectresource.NewProjectID(subscriptionId, d.Get("resource_group_name").(string), d.Get("service_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.ProjectsGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.ProjectsGet(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_database_migration_project", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_database_migration_project", id.ID())
+			}
 		}
 	}
 

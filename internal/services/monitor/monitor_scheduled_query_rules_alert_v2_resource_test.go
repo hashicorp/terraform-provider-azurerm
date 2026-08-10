@@ -305,6 +305,7 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "test" {
     custom_properties = {
       key = "value"
     }
+    email_subject = "acctest subject v1"
   }
 
   tags = {
@@ -363,6 +364,7 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "test" {
       key  = "value"
       key2 = "value2"
     }
+    email_subject = "acctest subject v2"
   }
 
   tags = {

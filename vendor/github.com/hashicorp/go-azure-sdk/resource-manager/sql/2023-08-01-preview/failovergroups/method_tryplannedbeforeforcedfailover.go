@@ -58,9 +58,20 @@ func (c FailoverGroupsClient) TryPlannedBeforeForcedFailover(ctx context.Context
 
 // TryPlannedBeforeForcedFailoverThenPoll performs TryPlannedBeforeForcedFailover then polls until it's completed
 func (c FailoverGroupsClient) TryPlannedBeforeForcedFailoverThenPoll(ctx context.Context, id FailoverGroupId) error {
+	return c.TryPlannedBeforeForcedFailoverCallbackThenPoll(ctx, id, nil)
+}
+
+// TryPlannedBeforeForcedFailoverCallbackThenPoll performs TryPlannedBeforeForcedFailover, runs the optional callback function, then polls until it's completed
+func (c FailoverGroupsClient) TryPlannedBeforeForcedFailoverCallbackThenPoll(ctx context.Context, id FailoverGroupId, callback func() error) error {
 	result, err := c.TryPlannedBeforeForcedFailover(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing TryPlannedBeforeForcedFailover: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

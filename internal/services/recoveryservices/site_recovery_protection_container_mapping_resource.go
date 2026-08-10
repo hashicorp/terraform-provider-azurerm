@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -87,19 +88,11 @@ func resourceSiteRecoveryProtectionContainerMapping() *pluginsdk.Resource {
 				MinItems: 1,
 				MaxItems: 1,
 				Optional: true,
-				// TODO: remove `computed` and `enabled` in `4.0` and use the presence of the block to indicate that
-				Computed: true, // set it to computed because the service will return it no matter if we have passed it.
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*schema.Schema{
-						"enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-
 						"automation_account_id": {
 							Type:         pluginsdk.TypeString,
-							Optional:     true,
+							Required:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 
@@ -134,7 +127,7 @@ func resourceSiteRecoveryContainerMappingCreate(d *pluginsdk.ResourceData, meta 
 
 	id := replicationprotectioncontainermappings.NewReplicationProtectionContainerMappingID(subscriptionId, resGroup, vaultName, fabricName, protectionContainerName, name)
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -165,8 +158,7 @@ func resourceSiteRecoveryContainerMappingCreate(d *pluginsdk.ResourceData, meta 
 		}
 	}
 
-	err := client.CreateThenPoll(ctx, id, parameters)
-	if err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating site recovery protection container mapping %s (vault %s): %+v", name, vaultName, err)
 	}
 	d.SetId(id.ID())
@@ -298,34 +290,26 @@ func expandAutoUpdateSettings(input []interface{}) (enabled replicationprotectio
 	if len(input) == 0 {
 		return replicationprotectioncontainermappings.AgentAutoUpdateStatusDisabled, nil, nil
 	}
-	autoUpdateSettingMap := input[0].(map[string]interface{})
 
-	autoUpdateEnabledValue := replicationprotectioncontainermappings.AgentAutoUpdateStatusDisabled
-	if autoUpdateSettingMap["enabled"].(bool) {
-		autoUpdateEnabledValue = replicationprotectioncontainermappings.AgentAutoUpdateStatusEnabled
-	}
+	v := input[0].(map[string]interface{})
 
 	var accountIdOutput *string
-	accountId := autoUpdateSettingMap["automation_account_id"].(string)
-	if accountId == "" {
-		accountIdOutput = nil
-	} else {
+	if accountId := v["automation_account_id"].(string); accountId != "" {
 		accountIdOutput = &accountId
 	}
 
-	authType = pointer.To(replicationprotectioncontainermappings.AutomationAccountAuthenticationType(autoUpdateSettingMap["authentication_type"].(string)))
-
-	return autoUpdateEnabledValue, accountIdOutput, authType
+	return replicationprotectioncontainermappings.AgentAutoUpdateStatusEnabled, accountIdOutput, pointer.ToEnum[replicationprotectioncontainermappings.AutomationAccountAuthenticationType](v["authentication_type"].(string))
 }
 
 func flattenAutoUpdateSettings(input *replicationprotectioncontainermappings.A2AProtectionContainerMappingDetails) []interface{} {
-	output := map[string]interface{}{}
-	if input == nil {
-		output["enabled"] = false
-		return []interface{}{output}
+	if input == nil || pointer.From(input.AgentAutoUpdateStatus) == replicationprotectioncontainermappings.AgentAutoUpdateStatusDisabled {
+		return []interface{}{}
 	}
-	output["enabled"] = *input.AgentAutoUpdateStatus == replicationprotectioncontainermappings.AgentAutoUpdateStatusEnabled
-	output["automation_account_id"] = input.AutomationAccountArmId
-	output["authentication_type"] = string(pointer.From(input.AutomationAccountAuthenticationType))
+
+	output := map[string]interface{}{
+		"automation_account_id": input.AutomationAccountArmId,
+		"authentication_type":   pointer.FromEnum(input.AutomationAccountAuthenticationType),
+	}
+
 	return []interface{}{output}
 }

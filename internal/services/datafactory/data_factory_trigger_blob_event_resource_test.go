@@ -260,19 +260,19 @@ resource "azurerm_data_factory_pipeline" "test" {
   }
 
   activities_json = <<JSON
-[
-    {
-        "name": "Append variable",
-        "type": "AppendVariable",
-        "dependsOn": [],
-        "userProperties": [],
-        "typeProperties": {
-            "variableName": "test",
-            "value": "something"
-        }
-    }
-]
-  JSON
+	[
+	    {
+	        "name": "Append variable",
+	        "type": "AppendVariable",
+	        "dependsOn": [],
+	        "userProperties": [],
+	        "typeProperties": {
+	            "variableName": "test",
+	            "value": "something"
+	        }
+	    }
+	]
+	  JSON
 }
 
 resource "azurerm_storage_account" "test" {
@@ -285,7 +285,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "test-sc"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -296,5 +296,5 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "blob_link" {
 
   service_endpoint = azurerm_storage_account.test.primary_blob_endpoint
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString)
 }

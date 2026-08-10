@@ -68,15 +68,17 @@ func resourceAdvancedThreatProtectionCreateUpdate(d *pluginsdk.ResourceData, met
 
 	id := parse.NewAdvancedThreatProtectionId(d.Get("target_resource_id").(string))
 	if d.IsNewResource() {
-		server, err := client.Get(ctx, id.TargetResourceID)
-		if err != nil {
-			if !utils.ResponseWasNotFound(server.Response) {
-				return fmt.Errorf("checking for presence of existing Advanced Threat Protection for %q: %+v", id.TargetResourceID, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			server, err := client.Get(ctx, id.TargetResourceID)
+			if err != nil {
+				if !utils.ResponseWasNotFound(server.Response) {
+					return fmt.Errorf("checking for presence of existing Advanced Threat Protection for %q: %+v", id.TargetResourceID, err)
+				}
 			}
-		}
 
-		if server.ID != nil && *server.ID != "" && server.IsEnabled != nil && *server.IsEnabled {
-			return tf.ImportAsExistsError("azurerm_advanced_threat_protection", id.ID())
+			if server.ID != nil && *server.ID != "" && server.IsEnabled != nil && *server.IsEnabled {
+				return tf.ImportAsExistsError("azurerm_advanced_threat_protection", id.ID())
+			}
 		}
 	}
 

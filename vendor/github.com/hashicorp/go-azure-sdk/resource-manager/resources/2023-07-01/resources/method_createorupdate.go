@@ -64,9 +64,20 @@ func (c ResourcesClient) CreateOrUpdate(ctx context.Context, id commonids.ScopeI
 
 // CreateOrUpdateThenPoll performs CreateOrUpdate then polls until it's completed
 func (c ResourcesClient) CreateOrUpdateThenPoll(ctx context.Context, id commonids.ScopeId, input GenericResource) error {
+	return c.CreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CreateOrUpdateCallbackThenPoll performs CreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c ResourcesClient) CreateOrUpdateCallbackThenPoll(ctx context.Context, id commonids.ScopeId, input GenericResource, callback func() error) error {
 	result, err := c.CreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

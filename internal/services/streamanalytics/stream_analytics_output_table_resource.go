@@ -134,13 +134,15 @@ func (r OutputTableResource) Create() sdk.ResourceFunc {
 
 			id := outputs.NewOutputID(subscriptionId, model.ResourceGroup, model.StreamAnalyticsJob, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			tableOutputProps := &outputs.AzureTableOutputDataSourceProperties{
@@ -166,7 +168,7 @@ func (r OutputTableResource) Create() sdk.ResourceFunc {
 			}
 
 			var opts outputs.CreateOrReplaceOperationOptions
-			if _, err = client.CreateOrReplace(ctx, id, props, opts); err != nil {
+			if _, err := client.CreateOrReplace(ctx, id, props, opts); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -314,8 +316,6 @@ func (r OutputTableResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-
-			metadata.Logger.Infof("deleting %s", *id)
 
 			if resp, err := client.Delete(ctx, *id); err != nil {
 				if !response.WasNotFound(resp.HttpResponse) {

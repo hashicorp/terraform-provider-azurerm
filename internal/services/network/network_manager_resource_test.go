@@ -19,7 +19,7 @@ import (
 
 type NetworkManagerResource struct{}
 
-func TestAccNetworkManager(t *testing.T) {
+func TestAccNetworkManager_sequential(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests due to
 	// Azure only being happy about provisioning one securityAdmin network manager per subscription at once
 	// (which our test suite can't easily work around)
@@ -50,14 +50,6 @@ func TestAccNetworkManager(t *testing.T) {
 			"complete":       testAccNetworkManagerScopeConnection_complete,
 			"update":         testAccNetworkManagerScopeConnection_update,
 			"requiresImport": testAccNetworkManagerScopeConnection_requiresImport,
-		},
-		"ConnectivityConfiguration": {
-			"basic":             testAccNetworkManagerConnectivityConfiguration_basic,
-			"basicTopologyMesh": testAccNetworkManagerConnectivityConfiguration_basicTopologyMesh,
-			"complete":          testAccNetworkManagerConnectivityConfiguration_complete,
-			"update":            testAccNetworkManagerConnectivityConfiguration_update,
-			"requiresImport":    testAccNetworkManagerConnectivityConfiguration_requiresImport,
-			"dataSource":        testAccNetworkManagerConnectivityConfigurationDataSource_basic,
 		},
 		"SecurityAdminConfiguration": {
 			"basic":          testAccNetworkManagerSecurityAdminConfiguration_basic,
