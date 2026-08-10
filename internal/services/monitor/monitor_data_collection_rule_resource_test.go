@@ -98,8 +98,6 @@ func TestAccMonitorDataCollectionRule_kindDirect(t *testing.T) {
 	})
 }
 
-
-
 func TestAccMonitorDataCollectionRule_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_data_collection_rule", "test")
 	r := MonitorDataCollectionRuleResource{}
