@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -122,50 +121,6 @@ resource "azurerm_storage_sync_cloud_endpoint" "import" {
 }
 
 func (r StorageSyncCloudEndpointResource) template(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-StorageSync-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_storage_sync" "test" {
-  name                = "acctest-StorageSync-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
-resource "azurerm_storage_sync_group" "test" {
-  name            = "acctest-StorageSyncGroup-%[1]d"
-  storage_sync_id = azurerm_storage_sync.test.id
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "accstr%[3]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_share" "test" {
-  name                 = "acctest-share-%[1]d"
-  storage_account_name = azurerm_storage_account.test.name
-  quota                = 1
-
-  acl {
-    id = "GhostedRecall"
-    access_policy {
-      permissions = "r"
-    }
-  }
-}
-		`, data.RandomInteger, data.Locations.Primary, data.RandomString)
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-05-01-preview/roledefinitions"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -200,9 +199,6 @@ func (a RoleDefinitionDataSource) Read() sdk.ResourceFunc {
 						}
 						defId = *(*roleDefinitions.Model)[0].Name
 						id = roledefinitions.NewScopedRoleDefinitionID(config.Scope, defId)
-						if !features.FivePointOh() {
-							defId = *(*roleDefinitions.Model)[0].Id
-						}
 						return id, "success", nil
 					},
 				}

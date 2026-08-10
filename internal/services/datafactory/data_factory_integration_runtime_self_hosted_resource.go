@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"fmt"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -16,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/integrationruntimes"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -25,7 +23,7 @@ import (
 )
 
 func resourceDataFactoryIntegrationRuntimeSelfHosted() *pluginsdk.Resource {
-	r := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceDataFactoryIntegrationRuntimeSelfHostedCreateUpdate,
 		Read:   resourceDataFactoryIntegrationRuntimeSelfHostedRead,
 		Update: resourceDataFactoryIntegrationRuntimeSelfHostedCreateUpdate,
@@ -103,16 +101,6 @@ func resourceDataFactoryIntegrationRuntimeSelfHosted() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		r.Schema["rbac_authorization"].Elem.(*pluginsdk.Resource).Schema["resource_id"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		}
-	}
-
-	return r
 }
 
 func resourceDataFactoryIntegrationRuntimeSelfHostedCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -288,11 +276,7 @@ func resourceDataFactoryIntegrationRuntimeSelfHostedRbacAuthorizationHash(v inte
 
 	if m, ok := v.(map[string]interface{}); ok {
 		if v, ok := m["resource_id"]; ok {
-			if !features.FivePointOh() {
-				fmt.Fprintf(&buf, "%s-", strings.ToLower(v.(string)))
-			} else {
-				fmt.Fprintf(&buf, "%s-", v.(string))
-			}
+			fmt.Fprintf(&buf, "%s-", v.(string))
 		}
 	}
 
