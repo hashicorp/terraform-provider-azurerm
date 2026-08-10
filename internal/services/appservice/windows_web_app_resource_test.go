@@ -1710,7 +1710,7 @@ func TestAccWindowsWebApp_zipDeployAppRecycle(t *testing.T) {
 // ASE based tests - Deliberately have longer prefix to make it possible to exclude from testing unrelated changes in the app resource
 // as they take a significant amount of time to execute (anything up to 6h)
 
-func TestAccWindowsWebAppASEV3_basic(t *testing.T) {
+func TestAccWindowsWebApp_ASEv3Basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
 	r := WindowsWebAppResource{}
 
@@ -4193,9 +4193,9 @@ resource "azurerm_subnet" "test" {
     }
   }
 
-  service_endpoints = [
-    "Microsoft.Storage"
-  ]
+  service_endpoint {
+    service = "Microsoft.Storage"
+  }
 }
 
 resource "azurerm_storage_account" "test" {

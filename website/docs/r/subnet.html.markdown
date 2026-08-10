@@ -89,9 +89,7 @@ The following arguments are supported:
 
 !> **Note:** The `sharing_scope` property is only available to users who have been explicitly registered and granted access by the Azure Networking Product Group.
 
-* `service_endpoints` - (Optional) The list of Service endpoints to associate with the subnet. Possible values include: `Microsoft.AzureActiveDirectory`, `Microsoft.AzureCosmosDB`, `Microsoft.ContainerRegistry`, `Microsoft.EventHub`, `Microsoft.KeyVault`, `Microsoft.ServiceBus`, `Microsoft.Sql`, `Microsoft.Storage`, `Microsoft.Storage.Global` and `Microsoft.Web`.
-
--> **Note:** In order to use `Microsoft.Storage.Global` service endpoint (which allows access to virtual networks in other regions), you must enable the `AllowGlobalTagsForStorage` feature in your subscription. This is currently a preview feature, please see the [official documentation](https://learn.microsoft.com/en-us/azure/storage/common/storage-network-security?tabs=azure-cli#enabling-access-to-virtual-networks-in-other-regions-preview) for more information.
+* `service_endpoint` - (Optional) A `service_endpoint` block as defined below.
 
 * `service_endpoint_policy_ids` - (Optional) The list of IDs of Service Endpoint Policies to associate with the subnet.
 
@@ -106,6 +104,14 @@ The following arguments are supported:
 -> **Note:** This property is only meant for environments where Azure Policy requires Route Tables to be specified during Subnet creation/update. It is recommended to use the `azurerm_subnet_route_table_association` resource instead.
 
 * `route_table_id_wo_version` - (Optional) An integer that must be incremented whenever `route_table_id_wo` is updated. Required if `route_table_id_wo` is specified.
+
+---
+
+A `service_endpoint` block supports the following:
+
+* `service` - (Required) The name of the Service endpoint to associate with the subnet. Possible values are `Microsoft.AzureActiveDirectory`, `Microsoft.AzureCosmosDB`, `Microsoft.CognitiveService`, `Microsoft.ContainerRegistry`, `Microsoft.EventHub`, `Microsoft.KeyVault`, `Microsoft.ServiceBus`, `Microsoft.Sql`, `Microsoft.Storage`, `Microsoft.Storage.Global`, and `Microsoft.Web`.
+
+* `network_identifier` - (Optional) The ARM resource ID of the network identifier to associate with the service endpoint.
 
 ---
 

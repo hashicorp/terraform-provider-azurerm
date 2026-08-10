@@ -20,7 +20,7 @@ import (
 
 type AppServiceSourceControlTokenResource struct{}
 
-func TestAccAppServiceSourceControlToken(t *testing.T) {
+func TestAccAppServiceSourceControlToken_basic(t *testing.T) {
 	if features.FivePointOh() {
 		t.Skip("Skipping as this resource was removed in 5.0")
 	}

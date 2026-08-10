@@ -7,17 +7,13 @@ import (
 	"context"
 	"fmt"
 	"regexp"
-	"strings"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/fileshares"
-	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/file/shares"
 )
@@ -261,93 +257,7 @@ func TestAccStorageShare_protocolUpdate(t *testing.T) {
 	})
 }
 
-func TestAccStorageShare_migrateToStorageID(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip("skipping as test is not valid in 5.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
-	r := StorageShareResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.withAccountName(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("storage_account_name").IsSet(),
-				check.That(data.ResourceName).Key("storage_account_id").DoesNotExist(),
-				check.That(data.ResourceName).Key("id").MatchesRegex(regexp.MustCompile("https:*")),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("storage_account_name").IsEmpty(),
-				check.That(data.ResourceName).Key("storage_account_id").IsSet(),
-				check.That(data.ResourceName).Key("id").MatchesRegex(regexp.MustCompile("/subscriptions/*")),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccStorageShare_migrateFromStorageIDShouldFail(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip("skipping as test is not valid in 5.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
-	r := StorageShareResource{}
-
-	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("storage_account_id").IsSet(),
-				check.That(data.ResourceName).Key("storage_account_name").IsEmpty(),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.withAccountName(data),
-			ConfigPlanChecks: resource.ConfigPlanChecks{
-				PreApply: []plancheck.PlanCheck{
-					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
-				},
-			},
-		},
-	})
-}
-
 func (r StorageShareResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	if !features.FivePointOh() && !strings.HasPrefix(state.ID, "/subscriptions") {
-		id, err := shares.ParseShareID(state.ID, client.Storage.StorageDomainSuffix)
-		if err != nil {
-			return nil, err
-		}
-
-		account, err := client.Storage.FindAccount(ctx, client.Account.SubscriptionId, id.AccountId.AccountName)
-		if err != nil {
-			return nil, fmt.Errorf("retrieving Account %q for Share %q: %+v", id.AccountId.AccountName, id.ShareName, err)
-		}
-		if account == nil {
-			return nil, fmt.Errorf("unable to determine Account %q for Storage Share %q", id.AccountId.AccountName, id.ShareName)
-		}
-
-		sharesClient, err := client.Storage.FileSharesDataPlaneClient(ctx, *account, client.Storage.DataPlaneOperationSupportingAnyAuthMethod())
-		if err != nil {
-			return nil, fmt.Errorf("building File Share Client for %s: %+v", account.StorageAccountId, err)
-		}
-
-		props, err := sharesClient.Get(ctx, id.ShareName)
-		if err != nil {
-			return nil, fmt.Errorf("retrieving File Share %q in %s: %+v", id.ShareName, account.StorageAccountId, err)
-		}
-
-		return pointer.To(props != nil), nil
-	}
-
 	id, err := fileshares.ParseShareID(state.ID)
 	if err != nil {
 		return nil, err
@@ -428,21 +338,6 @@ resource "azurerm_storage_share" "test" {
 }
 
 func (r StorageShareResource) metaData(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-	%s
-
-resource "azurerm_storage_share" "test" {
-  name                 = "testshare%s"
-  storage_account_name = azurerm_storage_account.test.name
-  quota                = 5
-
-  metadata = {
-    hello = "world"
-  }
-}
-	`, r.template(data), data.RandomString)
-	}
 	return fmt.Sprintf(`
 %s
 
@@ -459,22 +354,6 @@ resource "azurerm_storage_share" "test" {
 }
 
 func (r StorageShareResource) metaDataUpdated(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-	%s
-
-resource "azurerm_storage_share" "test" {
-  name                 = "testshare%s"
-  storage_account_name = azurerm_storage_account.test.name
-  quota                = 5
-
-  metadata = {
-    hello = "world"
-    happy = "birthday"
-  }
-}
-	`, r.template(data), data.RandomString)
-	}
 	return fmt.Sprintf(`
 %s
 
@@ -492,27 +371,6 @@ resource "azurerm_storage_share" "test" {
 }
 
 func (r StorageShareResource) acl(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-	%s
-
-resource "azurerm_storage_share" "test" {
-  name                 = "testshare%s"
-  storage_account_name = azurerm_storage_account.test.name
-  quota                = 5
-
-  acl {
-    id = "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"
-
-    access_policy {
-      permissions = "rwd"
-      start       = "2019-07-02T09:38:21.0000000Z"
-      expiry      = "2019-07-02T10:38:21.0000000Z"
-    }
-  }
-}
-	`, r.template(data), data.RandomString)
-	}
 	return fmt.Sprintf(`
 %s
 
@@ -535,24 +393,6 @@ resource "azurerm_storage_share" "test" {
 }
 
 func (r StorageShareResource) aclGhostedRecall(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-	%s
-
-resource "azurerm_storage_share" "test" {
-  name                 = "testshare%s"
-  storage_account_name = azurerm_storage_account.test.name
-  quota                = 5
-
-  acl {
-    id = "GhostedRecall"
-    access_policy {
-      permissions = "r"
-    }
-  }
-}
-	`, r.template(data), data.RandomString)
-	}
 	return fmt.Sprintf(`
 %s
 
@@ -572,36 +412,6 @@ resource "azurerm_storage_share" "test" {
 }
 
 func (r StorageShareResource) aclUpdated(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-	%s
-
-resource "azurerm_storage_share" "test" {
-  name                 = "testshare%s"
-  storage_account_name = azurerm_storage_account.test.name
-  quota                = 5
-
-  acl {
-    id = "AAAANDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"
-
-    access_policy {
-      permissions = "rwd"
-      start       = "2019-07-02T09:38:21.0000000Z"
-      expiry      = "2019-07-02T10:38:21.0000000Z"
-    }
-  }
-  acl {
-    id = "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"
-
-    access_policy {
-      permissions = "rwd"
-      start       = "2019-07-02T09:38:21.0000000Z"
-      expiry      = "2019-07-02T10:38:21.0000000Z"
-    }
-  }
-}
-	`, r.template(data), data.RandomString)
-	}
 	return fmt.Sprintf(`
 %s
 
@@ -645,17 +455,6 @@ resource "azurerm_storage_share" "import" {
 }
 
 func (r StorageShareResource) updateQuota(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-	%s
-
-resource "azurerm_storage_share" "test" {
-  name                 = "testshare%s"
-  storage_account_name = azurerm_storage_account.test.name
-  quota                = 5
-}
-	`, r.template(data), data.RandomString)
-	}
 	return fmt.Sprintf(`
 %s
 
@@ -668,37 +467,6 @@ resource "azurerm_storage_share" "test" {
 }
 
 func (r StorageShareResource) largeQuota(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-storageshare-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestshare%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Premium"
-  account_replication_type = "LRS"
-  account_kind             = "FileStorage"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_share" "test" {
-  name                 = "testshare%s"
-  storage_account_name = azurerm_storage_account.test.name
-  quota                = 6000
-}
-	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -731,37 +499,6 @@ resource "azurerm_storage_share" "test" {
 }
 
 func (r StorageShareResource) largeQuotaUpdate(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-storageshare-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestshare%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Premium"
-  account_replication_type = "LRS"
-  account_kind             = "FileStorage"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_share" "test" {
-  name                 = "testshare%s"
-  storage_account_name = azurerm_storage_account.test.name
-  quota                = 10000
-}
-	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -794,36 +531,6 @@ resource "azurerm_storage_share" "test" {
 }
 
 func (r StorageShareResource) accessTierStandard(data acceptance.TestData, tier string) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-  storage_use_azuread = true
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-  account_kind             = "StorageV2"
-}
-
-resource "azurerm_storage_share" "test" {
-  name                 = "testshare%s"
-  storage_account_name = azurerm_storage_account.test.name
-  quota                = 100
-  enabled_protocol     = "SMB"
-  access_tier          = "%s"
-}
-	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, tier)
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -855,35 +562,6 @@ resource "azurerm_storage_share" "test" {
 }
 
 func (r StorageShareResource) accessTierPremium(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Premium"
-  account_replication_type = "LRS"
-  account_kind             = "FileStorage"
-}
-
-resource "azurerm_storage_share" "test" {
-  name                 = "testshare%s"
-  storage_account_name = azurerm_storage_account.test.name
-  quota                = 100
-  enabled_protocol     = "SMB"
-  access_tier          = "Premium"
-}
-	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -914,34 +592,6 @@ resource "azurerm_storage_share" "test" {
 }
 
 func (r StorageShareResource) protocol(data acceptance.TestData, protocol string) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_kind             = "FileStorage"
-  account_tier             = "Premium"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_share" "test" {
-  name                 = "testshare%s"
-  storage_account_name = azurerm_storage_account.test.name
-  enabled_protocol     = "%s"
-  quota                = 100
-}
-	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, protocol)
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -968,18 +618,6 @@ resource "azurerm_storage_share" "test" {
   quota              = 100
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, protocol)
-}
-
-func (r StorageShareResource) withAccountName(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_storage_share" "test" {
-  name                 = "testshare%s"
-  storage_account_name = azurerm_storage_account.test.name
-  quota                = 5
-}
-`, r.template(data), data.RandomString)
 }
 
 func (r StorageShareResource) template(data acceptance.TestData) string {
