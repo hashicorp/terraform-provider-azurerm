@@ -299,12 +299,77 @@ func TestAccCdnFrontDoorBatchRuleSet_honorOrigin_attachedRoute(t *testing.T) {
 }
 
 func TestAccCdnFrontDoorBatchRuleSet_honorOrigin_unattachedRoute(t *testing.T) {
+	// NOTE: Regression test case for issue #33035
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule_set", "test")
 	r := CdnFrontdoorBatchRuleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.honorOriginWithoutOrigin(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorBatchRuleSet_requestPathRootValue_unattachedRoute(t *testing.T) {
+	// NOTE: Regression test case for issue #21851
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule_set", "test")
+	r := CdnFrontdoorBatchRuleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.requestPathRootValue(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorBatchRuleSet_requestPathRootValue_attachedRoute(t *testing.T) {
+	// NOTE: Regression test case for issue #21851
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule_set", "test")
+	r := CdnFrontdoorBatchRuleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.requestPathRootValue(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorBatchRuleSet_requestPathLeadingSlashValue_unattachedRoute(t *testing.T) {
+	// NOTE: Regression test case for issue #21851
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule_set", "test")
+	r := CdnFrontdoorBatchRuleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.requestPathLeadingSlashValue(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorBatchRuleSet_requestPathLeadingSlashValue_attachedRoute(t *testing.T) {
+	// NOTE: Regression test case for issue #21851
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule_set", "test")
+	r := CdnFrontdoorBatchRuleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.requestPathLeadingSlashValue(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1421,6 +1486,58 @@ resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
   }
 }
 `, template, data.RandomInteger)
+}
+
+func (r CdnFrontdoorBatchRuleSetResource) requestPathRootValue(data acceptance.TestData, attachRoute bool) string {
+	return r.requestPathValueWithTemplate(data, attachRoute, "/")
+}
+
+func (r CdnFrontdoorBatchRuleSetResource) requestPathLeadingSlashValue(data acceptance.TestData, attachRoute bool) string {
+	return r.requestPathValueWithTemplate(data, attachRoute, "/legacy-login")
+}
+
+func (r CdnFrontdoorBatchRuleSetResource) requestPathValueWithTemplate(data acceptance.TestData, attachRoute bool, value string) string {
+	template := r.templateUnattachedRoute(data)
+	if attachRoute {
+		template = r.templateAttachedRoute(data)
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_cdn_frontdoor_batch_rule_set" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  name                     = "acctestBatchRuleSet%[2]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  rule {
+    name  = "acctestBatchRule%[2]d"
+    order = 0
+
+    actions {
+      route_configuration_override {
+        caching {
+          behaviour              = "HonorOrigin"
+          compression_enabled    = true
+          query_string_behaviour = "IgnoreQueryString"
+        }
+      }
+    }
+
+    conditions {
+      request_path {
+        values   = ["%[3]s"]
+        operator = "EndsWith"
+      }
+    }
+  }
+}
+`, template, data.RandomInteger, value)
 }
 
 func (r CdnFrontdoorBatchRuleSetResource) requiresImport(data acceptance.TestData) string {
