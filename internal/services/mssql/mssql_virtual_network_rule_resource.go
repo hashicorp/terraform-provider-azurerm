@@ -29,7 +29,7 @@ func resourceMsSqlVirtualNetworkRule() *pluginsdk.Resource {
 		Delete: resourceMsSqlVirtualNetworkRuleDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.VirtualNetworkRuleID(id)
+			_, err := virtualnetworkrules.ParseVirtualNetworkRuleID(id)
 			return err
 		}),
 
