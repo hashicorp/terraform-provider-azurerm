@@ -1060,6 +1060,26 @@ func ExpandHDInsightsDiskEncryptionProperties(input []interface{}) (*clusters.Di
 	return diskEncryptionProps, clusterIdentity, nil
 }
 
+func addHDInsightUserAssignedIdentity(clusterIdentity *identity.SystemAndUserAssignedMap, identityId string) *identity.SystemAndUserAssignedMap {
+	if clusterIdentity == nil {
+		clusterIdentity = &identity.SystemAndUserAssignedMap{}
+	}
+
+	switch clusterIdentity.Type {
+	case identity.TypeSystemAssigned:
+		clusterIdentity.Type = identity.TypeSystemAssignedUserAssigned
+	case identity.TypeNone, "":
+		clusterIdentity.Type = identity.TypeUserAssigned
+	}
+
+	if clusterIdentity.IdentityIds == nil {
+		clusterIdentity.IdentityIds = make(map[string]identity.UserAssignedIdentityDetails)
+	}
+	clusterIdentity.IdentityIds[identityId] = identity.UserAssignedIdentityDetails{}
+
+	return clusterIdentity
+}
+
 func flattenHDInsightsDiskEncryptionProperties(input *clusters.DiskEncryptionProperties) (*[]interface{}, error) {
 	if input == nil {
 		return pointer.To(make([]interface{}, 0)), nil

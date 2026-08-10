@@ -1707,7 +1707,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   }
 
   disk_encryption {
-    encryption_at_host            = true
+      encryption_at_host_enabled    = true
     encryption_algorithm          = "RSA-OAEP"
     key_vault_key_id              = azurerm_key_vault_key.test.id
     key_vault_managed_identity_id = azurerm_user_assigned_identity.test.id

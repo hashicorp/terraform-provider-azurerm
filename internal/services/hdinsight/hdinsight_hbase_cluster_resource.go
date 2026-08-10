@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/clusters"
@@ -241,16 +240,8 @@ func resourceHDInsightHBaseClusterCreate(d *pluginsdk.ResourceData, meta interfa
 
 	if v, ok := d.GetOk("security_profile"); ok {
 		params.Properties.SecurityProfile = ExpandHDInsightSecurityProfile(v.([]interface{}))
-
-		// @tombuildsstuff: this behaviour is likely wrong and wants reevaluating - users should need to explicitly define this in the config?
-		params.Identity = &identity.SystemAndUserAssignedMap{
-			Type:        identity.TypeUserAssigned,
-			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
-		}
 		if params.Properties.SecurityProfile != nil && params.Properties.SecurityProfile.MsiResourceId != nil {
-			params.Identity.IdentityIds[*params.Properties.SecurityProfile.MsiResourceId] = identity.UserAssignedIdentityDetails{
-				// intentionally empty
-			}
+			params.Identity = addHDInsightUserAssignedIdentity(params.Identity, *params.Properties.SecurityProfile.MsiResourceId)
 		}
 	}
 
@@ -261,12 +252,8 @@ func resourceHDInsightHBaseClusterCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 		params.Properties.DiskEncryptionProperties = diskEncryptionProperties
 		if diskEncryptionIdentity != nil {
-			if params.Identity == nil {
-				params.Identity = diskEncryptionIdentity
-			} else {
-				for k, v := range diskEncryptionIdentity.IdentityIds {
-					params.Identity.IdentityIds[k] = v
-				}
+			for identityId := range diskEncryptionIdentity.IdentityIds {
+				params.Identity = addHDInsightUserAssignedIdentity(params.Identity, identityId)
 			}
 		}
 	}
