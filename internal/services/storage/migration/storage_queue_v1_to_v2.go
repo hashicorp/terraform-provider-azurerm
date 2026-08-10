@@ -7,12 +7,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
-	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/storagequeues"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -57,50 +54,15 @@ func (StorageQueueV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 			return rawState, nil
 		}
 
-		findAccount := false
-		resourceManagerID, ok := rawState["resource_manager_id"].(string)
-		if !ok {
-			findAccount = true
-		}
-
-		storageAccountID := commonids.StorageAccountId{}
-		if !findAccount {
-			// The `resource_manager_id` can be malformed (see: #32950), in which case fallbacks to find account.
-			if parsed, err := parse.StorageQueueResourceManagerID(resourceManagerID); err != nil {
-				findAccount = true
-			} else {
-				storageAccountID = commonids.NewStorageAccountID(parsed.SubscriptionId, parsed.ResourceGroup, parsed.StorageAccountName)
+		storageAccountID, err := resolveStorageAccountIDForStateUpgrade(ctx, meta, rawState, func(idstr string) (*commonids.StorageAccountId, error) {
+			id, err := parse.StorageQueueResourceManagerID(idstr)
+			if err != nil {
+				return nil, err
 			}
-		}
-
-		if findAccount {
-			// `resource_manager_id` was introduced in v3.39.0
-			// The find account logic is only here for edge cases where users upgrade from < v3.39.0 directly to >= 5.0.0
-			client := meta.(*clients.Client).Storage
-			subscriptionID := meta.(*clients.Client).Account.SubscriptionId
-
-			storageAccountNameRaw, ok := rawState["storage_account_name"]
-			if !ok {
-				return rawState, errors.New("expected a `storage_account_name` attribute to be present in state")
-			}
-
-			storageAccountName, ok := storageAccountNameRaw.(string)
-			if !ok {
-				return rawState, fmt.Errorf("expected `storage_account_name` to be of type string, got %T", storageAccountNameRaw)
-			}
-
-			// This may seem like an excessive timeout, however, populating the accounts via the list API could take a significant amount of time
-			// when the subscription contains a large number of accounts and the account cache is not already populated.
-			findCtx, cancel := context.WithTimeout(ctx, 1*time.Hour)
-			defer cancel()
-
-			log.Printf("[DEBUG] searching for a storage account by name (`%s`) in subscription (`%s`)", storageAccountName, subscriptionID)
-			account, err := client.FindAccount(findCtx, subscriptionID, storageAccountName)
-			if err != nil || account == nil {
-				return rawState, fmt.Errorf("locating a storage account by name (`%s`) in subscription (`%s`): %w", storageAccountName, subscriptionID, err)
-			}
-
-			storageAccountID = account.StorageAccountId
+			return new(commonids.NewStorageAccountID(id.SubscriptionId, id.ResourceGroup, id.StorageAccountName)), nil
+		})
+		if err != nil {
+			return rawState, err
 		}
 
 		nameRaw, ok := rawState["name"]
