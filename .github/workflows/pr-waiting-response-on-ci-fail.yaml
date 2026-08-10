@@ -1,0 +1,54 @@
+---
+name: Add waiting-response on failures
+
+# Privileged half of the artifact relay (see README.md): when one of the listed
+# PR checks completes in failure, downloads its wr_actions artifact to identify
+# the PR and adds the waiting-response label.
+
+on:
+  # NOTE: these are workflow display names (not filenames), and every workflow listed
+  # here must upload the wr_actions artifact on failure (via pr-save-artifacts.yaml)
+  # so the job below can identify the PR to label.
+  workflow_run:
+    workflows:
+      - 'Combined PR Checks'
+      - 'Provider Tests'
+      - 'Check for new usages of deprecated functionality'
+      - 'Enforce List Resource for New Resources'
+      - 'Breaking Schema Changes'
+      - 'Static Analysis'
+      - 'Preview ARM API Version Linter'
+      - 'TeamCity Config Test'
+    types: [completed]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  add-waiting-response-on-fail:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    steps:
+      - name: Get Artifact
+        id: get_artifact
+        uses: dawidd6/action-download-artifact@b6e2e70617bc3265edd6dab6c906732b2f1ae151 # v21
+        with:
+          github_token: ${{secrets.GITHUB_TOKEN}}
+          run_id: ${{ github.event.workflow_run.id }}
+
+      - name: env_vars
+        id: env_vars
+        run: |
+          echo "ghrepo=$(cat artifact/ghrepo.txt)" >>${GITHUB_OUTPUT}
+          echo "ghowner=$(cat artifact/ghowner.txt)" >>${GITHUB_OUTPUT}
+          echo "prnumber=$(cat artifact/prnumber.txt)" >>${GITHUB_OUTPUT}
+      - name: Add waiting-response on fail
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        with:
+          script: |
+            github.rest.issues.addLabels({
+              issue_number: ${{ steps.env_vars.outputs.prnumber }},
+              owner: "${{ steps.env_vars.outputs.ghowner }}",
+              repo: "${{ steps.env_vars.outputs.ghrepo }}",
+              labels: ["waiting-response"]
+            })

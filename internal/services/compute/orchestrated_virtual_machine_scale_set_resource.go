@@ -986,11 +986,14 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 					windowsConfig.PatchSettings.EnableHotpatching = pointer.To(hotpatchingEnabled)
 				}
 
-				if d.HasChange("os_profile.0.windows_configuration.0.enable_automatic_updates") ||
-					d.HasChange("os_profile.0.windows_configuration.0.provision_vm_agent") ||
-					d.HasChange("os_profile.0.windows_configuration.0.timezone") ||
-					d.HasChange("os_profile.0.windows_configuration.0.secret") ||
-					d.HasChange("os_profile.0.windows_configuration.0.winrm_listener") {
+				// lintignore:R019 // deliberate subset: the windows_configuration fields that require rolling the instances to take effect
+				if d.HasChanges(
+					"os_profile.0.windows_configuration.0.enable_automatic_updates",
+					"os_profile.0.windows_configuration.0.provision_vm_agent",
+					"os_profile.0.windows_configuration.0.timezone",
+					"os_profile.0.windows_configuration.0.secret",
+					"os_profile.0.windows_configuration.0.winrm_listener",
+				) {
 					updateInstances = true
 				}
 
@@ -1052,9 +1055,11 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 				patchAssessmentMode := linConfig["patch_assessment_mode"].(string)
 				patchMode := linConfig["patch_mode"].(string)
 
-				if d.HasChange("os_profile.0.linux_configuration.0.provision_vm_agent") ||
-					d.HasChange("os_profile.0.linux_configuration.0.disable_password_authentication") ||
-					d.HasChange("os_profile.0.linux_configuration.0.admin_ssh_key") {
+				if d.HasChanges(
+					"os_profile.0.linux_configuration.0.provision_vm_agent",
+					"os_profile.0.linux_configuration.0.disable_password_authentication",
+					"os_profile.0.linux_configuration.0.admin_ssh_key",
+				) {
 					updateInstances = true
 				}
 
@@ -1106,7 +1111,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 			updateProps.VirtualMachineProfile.OsProfile = &vmssOsProfile
 		}
 
-		if d.HasChange("data_disk") || d.HasChange("os_disk") || d.HasChange("source_image_id") || d.HasChange("source_image_reference") {
+		if d.HasChanges("data_disk", "os_disk", "source_image_id", "source_image_reference") {
 			updateInstances = true
 
 			if updateProps.VirtualMachineProfile.StorageProfile == nil {
@@ -1127,7 +1132,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 				updateProps.VirtualMachineProfile.StorageProfile.OsDisk = ExpandOrchestratedVirtualMachineScaleSetOSDiskUpdate(osDiskRaw)
 			}
 
-			if d.HasChange("source_image_id") || d.HasChange("source_image_reference") {
+			if d.HasChanges("source_image_id", "source_image_reference") {
 				sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
 				sourceImageId := d.Get("source_image_id").(string)
 
@@ -1149,7 +1154,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 			}
 		}
 
-		if d.HasChange("network_api_version") || d.HasChange("network_interface") {
+		if d.HasChanges("network_api_version", "network_interface") {
 			if updateProps.VirtualMachineProfile.NetworkProfile == nil {
 				updateProps.VirtualMachineProfile.NetworkProfile = &virtualmachinescalesets.VirtualMachineScaleSetUpdateNetworkProfile{}
 			}
@@ -1231,7 +1236,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 			update.Plan = expandPlanVMSS(planRaw)
 		}
 
-		if d.HasChange("sku_name") || d.HasChange("instances") {
+		if d.HasChanges("sku_name", "instances") {
 			// in-case ignore_changes is being used, since both fields are required
 			// look up the current values and override them as needed
 			sku := existing.Model.Sku
