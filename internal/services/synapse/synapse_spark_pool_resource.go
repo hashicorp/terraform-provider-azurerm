@@ -239,6 +239,7 @@ func resourceSynapseSparkPool() *pluginsdk.Resource {
 					"3.4",
 					"3.5",
 				}, false),
+				// lintignore:V013 // false positive - this emits a deprecation warning for specific values, it does not reject values
 				func(v interface{}, k string) (warnings []string, errors []error) {
 					if val, ok := v.(string); ok && (val == "3.2" || val == "3.3") {
 						warnings = append(warnings, fmt.Sprintf("Spark version %s is deprecated and will be removed in a future version of the AzureRM provider. Please consider upgrading to version 3.4 or later.", val))
