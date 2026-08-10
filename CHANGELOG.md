@@ -3,6 +3,7 @@
 FEATURES:
 
 ENHANCEMENTS:
+* `azurerm_linux_virtual_machine` - `encryption_at_host_enabled` can now be set to `true` when `os_disk.security_encryption_type` is set to `DiskWithVMGuestState` [GH-32885]
 * `codesigning` - update to API version `2025-10-13` [GH-31714]
 * `azurerm_linux_virtual_machine_scale_set` - update to API version `2025-04-01` [GH-31586]
 * `azurerm_windows_virtual_machine_scale_set` - update to API version `2025-04-01` [GH-31586]
