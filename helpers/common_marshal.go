@@ -107,8 +107,7 @@ func ExpandPtrMapStringString(input map[string]interface{}) *map[string]string {
 
 // ExpandMapStringPtrString converts a map of interface{} to a map of string pointers.
 func ExpandMapStringPtrString(input map[string]interface{}) map[string]*string {
-	//nolint:gocritic // unlambda
-	return ExpandMap(input, func(i string) *string { return pointer.To(i) })
+	return ExpandMap(input, pointer.To[string])
 }
 
 // ExpandInt32Slice converts a slice of interface{} to a pointer to a slice of int32s.
