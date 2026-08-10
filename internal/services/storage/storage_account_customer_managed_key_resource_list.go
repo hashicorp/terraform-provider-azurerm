@@ -92,7 +92,7 @@ func (StorageAccountCustomerManagedKeyListResource) List(ctx context.Context, re
 			}
 			rd.SetId(id.ID())
 
-			if err := resourceStorageAccountCustomerManagedKeyFlatten(deadlineCtx, metadata.Client, rd, id, &storageAccount, request.IncludeResource); err != nil {
+			if err := resourceStorageAccountCustomerManagedKeyFlatten(rd, id, &storageAccount); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", storageAccountCustomerManagedKeyResourceName), err)
 				return
 			}

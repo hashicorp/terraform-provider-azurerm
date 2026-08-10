@@ -320,7 +320,7 @@ func resourceVpnSiteUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		payload.Properties.AddressSpace = expandVpnSiteAddressSpace(d.Get("address_cidrs").(*pluginsdk.Set).List())
 	}
 
-	if d.HasChange("device_vendor") || d.HasChange("device_model") {
+	if d.HasChanges("device_vendor", "device_model") {
 		payload.Properties.DeviceProperties = expandVpnSiteDeviceProperties(d.Get("device_vendor").(string), d.Get("device_model").(string))
 	}
 

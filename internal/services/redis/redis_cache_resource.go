@@ -38,7 +38,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name azurerm_redis_cache -service-package-name redis -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basicWithSSL
+//go:generate go run ../../tools/generator-tests resourceidentity -test-name basicWithSSL
 
 var redisCacheResourceName = "azurerm_redis_cache"
 

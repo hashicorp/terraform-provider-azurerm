@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/helpers"
@@ -80,7 +79,7 @@ func (r ContainerAppEnvironmentResource) IDValidationFunc() pluginsdk.SchemaVali
 }
 
 func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schema {
-	schema := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -183,21 +182,6 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 
 		"tags": commonschema.Tags(),
 	}
-
-	if !features.FivePointOh() {
-		schema["logs_destination"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true, // NOTE: O+C as the introduction of this property is a behavioural change where we previously set it behind the scenes if `log_analytics_workspace_id` was set.
-			ValidateFunc: validation.StringInSlice([]string{
-				LogsDestinationAzureMonitor,
-				LogsDestinationNone,
-				LogsDestinationLogAnalytics,
-			}, false),
-		}
-	}
-
-	return schema
 }
 
 func (r ContainerAppEnvironmentResource) Attributes() map[string]*pluginsdk.Schema {
@@ -518,11 +502,6 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChanges("logs_destination", "log_analytics_workspace_id") {
-				// For 4.x we need to compensate for the legacy behaviour of setting log destination based on the presence of log_analytics_workspace_id
-				if !features.FivePointOh() && metadata.ResourceData.GetRawConfig().AsValueMap()["logs_destination"].IsNull() && state.LogAnalyticsWorkspaceId == "" {
-					state.LogsDestination = LogsDestinationNone
-				}
-
 				switch state.LogsDestination {
 				case LogsDestinationAzureMonitor:
 					payload.Properties.AppLogsConfiguration = &azuresdkhacks.AppLogsConfiguration{
@@ -601,43 +580,20 @@ func (r ContainerAppEnvironmentResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 			}
 
-			if !features.FivePointOh() { // in 4.x `logs_destination` is Computed due to legacy code implying destination from presence of a valid id in `log_analytics_workspace_id` so we need to check explicit config values here
-				if metadata.ResourceDiff.HasChanges("logs_destination", "log_analytics_workspace_id") {
-					logsDestination := metadata.ResourceDiff.Get("logs_destination").(string)
-					logDestinationIsNull := metadata.ResourceDiff.GetRawConfig().AsValueMap()["logs_destination"].IsNull()
-					logAnalyticsWorkspaceID := metadata.ResourceDiff.Get("log_analytics_workspace_id").(string)
-					logAnalyticsWorkspaceIDIsNull := metadata.ResourceDiff.GetRawConfig().AsValueMap()["log_analytics_workspace_id"].IsNull()
+			if metadata.ResourceDiff.HasChanges("logs_destination", "log_analytics_workspace_id") {
+				logsDestination := metadata.ResourceDiff.Get("logs_destination").(string)
+				logAnalyticsWorkspaceID := metadata.ResourceDiff.Get("log_analytics_workspace_id").(string)
+				logAnalyticsWorkspaceIDUnknown := !metadata.ResourceDiff.GetRawConfig().AsValueMap()["log_analytics_workspace_id"].IsKnown()
 
-					if !logDestinationIsNull || !logAnalyticsWorkspaceIDIsNull {
-						switch logsDestination {
-						case LogsDestinationLogAnalytics:
-							if logAnalyticsWorkspaceIDIsNull {
-								return errors.New("`log_analytics_workspace_id` must be set when `logs_destination` is set to `log-analytics`")
-							}
-
-						case LogsDestinationAzureMonitor, LogsDestinationNone:
-							if (logAnalyticsWorkspaceID != "" || !logAnalyticsWorkspaceIDIsNull) && !logDestinationIsNull {
-								return errors.New("`log_analytics_workspace_id` can only be set when `logs_destination` is set to `log-analytics` or omitted")
-							}
-						}
+				switch logsDestination {
+				case LogsDestinationLogAnalytics:
+					if logAnalyticsWorkspaceID == "" && !logAnalyticsWorkspaceIDUnknown {
+						return errors.New("`log_analytics_workspace_id` must be set when `logs_destination` is set to `log-analytics`")
 					}
-				}
-			} else {
-				if metadata.ResourceDiff.HasChanges("logs_destination", "log_analytics_workspace_id") {
-					logsDestination := metadata.ResourceDiff.Get("logs_destination").(string)
-					logAnalyticsWorkspaceID := metadata.ResourceDiff.Get("log_analytics_workspace_id").(string)
-					logAnalyticsWorkspaceIDUnknown := !metadata.ResourceDiff.GetRawConfig().AsValueMap()["log_analytics_workspace_id"].IsKnown()
 
-					switch logsDestination {
-					case LogsDestinationLogAnalytics:
-						if logAnalyticsWorkspaceID == "" && !logAnalyticsWorkspaceIDUnknown {
-							return errors.New("`log_analytics_workspace_id` must be set when `logs_destination` is set to `log-analytics`")
-						}
-
-					case LogsDestinationAzureMonitor, LogsDestinationNone:
-						if logAnalyticsWorkspaceID != "" || logAnalyticsWorkspaceIDUnknown {
-							return errors.New("`log_analytics_workspace_id` can only be set when `logs_destination` is set to `log-analytics` or `\"\"`")
-						}
+				case LogsDestinationAzureMonitor, LogsDestinationNone:
+					if logAnalyticsWorkspaceID != "" || logAnalyticsWorkspaceIDUnknown {
+						return errors.New("`log_analytics_workspace_id` can only be set when `logs_destination` is set to `log-analytics` or `\"\"`")
 					}
 				}
 			}
@@ -666,11 +622,11 @@ func findWorkspaceResourceIDFromCustomerID(ctx context.Context, meta sdk.Resourc
 		return nil, fmt.Errorf("could not resolve Log Analytics Workspace ID for %s, list model was nil", customerID)
 	}
 
-	if model.Value == nil || len(*model.Value) == 0 {
+	if len(*model) == 0 {
 		return nil, fmt.Errorf("could not resolve Log Analytics Workspace ID for %s, no Log Analytics Workspaces found in %s", customerID, subscriptionId)
 	}
 
-	for _, v := range *list.Model.Value {
+	for _, v := range *model {
 		if v.Properties != nil && v.Properties.CustomerId != nil && strings.EqualFold(*v.Properties.CustomerId, customerID) {
 			result, err := workspaces.ParseWorkspaceIDInsensitively(pointer.From(v.Id))
 			if err != nil {

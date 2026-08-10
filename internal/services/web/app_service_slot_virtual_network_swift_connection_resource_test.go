@@ -91,7 +91,7 @@ func TestAccAppServiceSlotVirtualNetworkSwiftConnection_app_disappears(t *testin
 	})
 }
 
-func TestAccFunctionAppSlotVirtualNetworkSwiftConnection_function_basic(t *testing.T) {
+func TestAccAppServiceSlotVirtualNetworkSwiftConnection_function_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot_virtual_network_swift_connection", "test")
 	r := AppServiceSlotVirtualNetworkSwiftConnectionResource{}
 
@@ -106,7 +106,7 @@ func TestAccFunctionAppSlotVirtualNetworkSwiftConnection_function_basic(t *testi
 	})
 }
 
-func TestAccFunctionAppSlotVirtualNetworkSwiftConnection_function_requiresImport(t *testing.T) {
+func TestAccAppServiceSlotVirtualNetworkSwiftConnection_function_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot_virtual_network_swift_connection", "test")
 	r := AppServiceSlotVirtualNetworkSwiftConnectionResource{}
 
@@ -121,7 +121,7 @@ func TestAccFunctionAppSlotVirtualNetworkSwiftConnection_function_requiresImport
 	})
 }
 
-func TestAccFunctionAppSlotVirtualNetworkSwiftConnection_function_update(t *testing.T) {
+func TestAccAppServiceSlotVirtualNetworkSwiftConnection_function_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot_virtual_network_swift_connection", "test")
 	r := AppServiceSlotVirtualNetworkSwiftConnectionResource{}
 
@@ -141,7 +141,7 @@ func TestAccFunctionAppSlotVirtualNetworkSwiftConnection_function_update(t *test
 	})
 }
 
-func TestAccFunctionAppSlotVirtualNetworkSwiftConnection_function_disappears(t *testing.T) {
+func TestAccAppServiceSlotVirtualNetworkSwiftConnection_function_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot_virtual_network_swift_connection", "test")
 	r := AppServiceSlotVirtualNetworkSwiftConnectionResource{}
 

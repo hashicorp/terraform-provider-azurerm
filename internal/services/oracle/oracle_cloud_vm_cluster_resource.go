@@ -227,7 +227,7 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			Computed:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.DataStoragePercentage,
+			ValidateFunc: validation.IntInSlice([]int{35, 40, 60, 80}),
 		},
 
 		"domain": {

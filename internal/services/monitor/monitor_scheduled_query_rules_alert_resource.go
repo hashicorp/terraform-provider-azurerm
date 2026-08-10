@@ -27,7 +27,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name monitor_scheduled_query_rules_alert -service-package-name monitor -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name "AlertingActionConfigComplete"
+//go:generate go run ../../tools/generator-tests resourceidentity -test-name "AlertingActionConfigComplete"
 
 func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 	return &pluginsdk.Resource{

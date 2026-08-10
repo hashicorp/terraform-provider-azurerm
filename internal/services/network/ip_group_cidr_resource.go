@@ -167,7 +167,7 @@ func resourceIpGroupCidrDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	// TODO this resource should use a composite resource ID to remove this instance of d.Get() in the Delete
-	// this file can then be removed from the exceptions list in the run-gradually-deprecated.sh script
+	// this file can then be removed from the exceptions list in the gradually-deprecated.sh script
 	cidr := d.Get("cidr").(string)
 	ipGroupId := ipgroups.NewIPGroupID(id.SubscriptionId, id.ResourceGroup, id.IpGroupName)
 
