@@ -14,13 +14,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/basebackuppolicyresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	helperValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_policy_blob_storage -service-package-name dataprotection -properties "name" -compare-values "subscription_id:vault_id,resource_group_name:vault_id,backup_vault_name:vault_id"
@@ -430,7 +430,7 @@ func expandBackupPolicyBlobStorageCriteriaArray(input []interface{}) (*[]basebac
 
 		var scheduleTimes *[]string
 		if v["scheduled_backup_times"].(*pluginsdk.Set).Len() > 0 {
-			scheduleTimes = utils.ExpandStringSlice(v["scheduled_backup_times"].(*pluginsdk.Set).List())
+			scheduleTimes = helpers.ExpandStringSlice(v["scheduled_backup_times"].(*pluginsdk.Set).List())
 		}
 
 		var weeksOfMonth []basebackuppolicyresources.WeekNumber
@@ -466,7 +466,7 @@ func expandBackupPolicyBlobStorageAzureBackupRuleArray(input []interface{}, time
 		},
 		Trigger: basebackuppolicyresources.ScheduleBasedTriggerContext{
 			Schedule: basebackuppolicyresources.BackupSchedule{
-				RepeatingTimeIntervals: *utils.ExpandStringSlice(input),
+				RepeatingTimeIntervals: *helpers.ExpandStringSlice(input),
 				TimeZone:               pointer.To(timeZone),
 			},
 			TaggingCriteria: *taggingCriteria,
@@ -555,7 +555,7 @@ func flattenBackupPolicyBlobStorageVaultBackupRuleArray(input *[]basebackuppolic
 		if backupRule, ok := item.(basebackuppolicyresources.AzureBackupRule); ok {
 			if backupRule.Trigger != nil {
 				if scheduleBasedTrigger, ok := backupRule.Trigger.(basebackuppolicyresources.ScheduleBasedTriggerContext); ok {
-					return utils.FlattenStringSlice(&scheduleBasedTrigger.Schedule.RepeatingTimeIntervals)
+					return helpers.FlattenStringSlice(&scheduleBasedTrigger.Schedule.RepeatingTimeIntervals)
 				}
 			}
 		}
