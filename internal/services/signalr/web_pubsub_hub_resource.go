@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2024-03-01/webpubsub"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -21,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceWebPubSubHub() *pluginsdk.Resource {
@@ -320,7 +320,7 @@ func flattenEventHandler(input *[]webpubsub.EventHandler) []interface{} {
 
 		sysEvents := make([]interface{}, 0)
 		if item.SystemEvents != nil {
-			sysEvents = utils.FlattenStringSlice(item.SystemEvents)
+			sysEvents = helpers.FlattenStringSlice(item.SystemEvents)
 		}
 
 		authBlock := make([]interface{}, 0)
@@ -349,7 +349,7 @@ func expandEventListener(input []interface{}) (*[]webpubsub.EventListener, error
 		systemEvents := make([]string, 0)
 		userEventPattern := ""
 		if v, ok := block["user_event_name_filter"]; ok && len(v.([]interface{})) > 0 {
-			userEventPatternList := utils.ExpandStringSlice(v.([]interface{}))
+			userEventPatternList := helpers.ExpandStringSlice(v.([]interface{}))
 			userEventPattern = strings.Join(*userEventPatternList, ",")
 		}
 
@@ -395,7 +395,7 @@ func flattenEventListener(listener *[]webpubsub.EventListener) []interface{} {
 			eventNameFilter := item.Filter.(webpubsub.EventNameFilter)
 			userNameFilterList := make([]interface{}, 0)
 			if eventNameFilter.SystemEvents != nil {
-				listenerBlock["system_event_name_filter"] = utils.FlattenStringSlice(eventNameFilter.SystemEvents)
+				listenerBlock["system_event_name_filter"] = helpers.FlattenStringSlice(eventNameFilter.SystemEvents)
 			}
 			if eventNameFilter.UserEventPattern != nil && *eventNameFilter.UserEventPattern != "" {
 				v := strings.Split(*eventNameFilter.UserEventPattern, ",")

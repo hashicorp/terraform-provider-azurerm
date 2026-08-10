@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -21,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceCosmosDbMongoCollection() *pluginsdk.Resource {
@@ -420,7 +420,7 @@ func expandCosmosMongoCollectionIndex(indexes []interface{}, defaultTtl *int) (*
 
 			results = append(results, cosmosdb.MongoIndex{
 				Key: &cosmosdb.MongoIndexKeys{
-					Keys: utils.ExpandStringSlice(index["keys"].([]interface{})),
+					Keys: helpers.ExpandStringSlice(index["keys"].([]interface{})),
 				},
 				Options: &cosmosdb.MongoIndexOptions{
 					Unique: pointer.To(index["unique"].(bool)),
@@ -461,21 +461,21 @@ func flattenCosmosMongoCollectionIndex(input *[]cosmosdb.MongoIndex, accountIsVe
 			switch key {
 			// As `DocumentDBDefaultIndex` and `_id` cannot be updated, so they would be moved into `system_indexes`.
 			case "_id":
-				systemIndex["keys"] = utils.FlattenStringSlice(v.Key.Keys)
+				systemIndex["keys"] = helpers.FlattenStringSlice(v.Key.Keys)
 				// The system index `_id` is always unique but api returns nil and it would be converted to `false` by zero-value. So it has to be manually set as `true`.
 				systemIndex["unique"] = true
 
 				systemIndexes = append(systemIndexes, systemIndex)
 
 				if accountIsVersion36 {
-					index["keys"] = utils.FlattenStringSlice(v.Key.Keys)
+					index["keys"] = helpers.FlattenStringSlice(v.Key.Keys)
 					index["unique"] = true
 					indexes = append(indexes, index)
 				}
 
 			case "DocumentDBDefaultIndex":
 				// Updating system index `DocumentDBDefaultIndex` is not a supported scenario.
-				systemIndex["keys"] = utils.FlattenStringSlice(v.Key.Keys)
+				systemIndex["keys"] = helpers.FlattenStringSlice(v.Key.Keys)
 
 				isUnique := false
 				if v.Options != nil && v.Options.Unique != nil {
@@ -491,7 +491,7 @@ func flattenCosmosMongoCollectionIndex(input *[]cosmosdb.MongoIndex, accountIsVe
 				}
 			default:
 				// The other settable indexes would be set in `index`
-				index["keys"] = utils.FlattenStringSlice(v.Key.Keys)
+				index["keys"] = helpers.FlattenStringSlice(v.Key.Keys)
 
 				isUnique := false
 				if v.Options != nil && v.Options.Unique != nil {

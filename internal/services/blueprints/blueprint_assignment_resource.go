@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview/assignment"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview/publishedblueprint"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -23,7 +24,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceBlueprintAssignment() *pluginsdk.Resource {
@@ -178,12 +178,12 @@ func resourceBlueprintAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 		if lockMode != "None" {
 			excludedPrincipalsRaw := d.Get("lock_exclude_principals").([]interface{})
 			if len(excludedPrincipalsRaw) != 0 {
-				assignmentLockSettings.ExcludedPrincipals = utils.ExpandStringSlice(excludedPrincipalsRaw)
+				assignmentLockSettings.ExcludedPrincipals = helpers.ExpandStringSlice(excludedPrincipalsRaw)
 			}
 
 			excludedActionsRaw := d.Get("lock_exclude_actions").([]interface{})
 			if len(excludedActionsRaw) != 0 {
-				assignmentLockSettings.ExcludedActions = utils.ExpandStringSlice(excludedActionsRaw)
+				assignmentLockSettings.ExcludedActions = helpers.ExpandStringSlice(excludedActionsRaw)
 			}
 		}
 		payload.Properties.Locks = assignmentLockSettings

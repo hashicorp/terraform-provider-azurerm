@@ -1,24 +1,24 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package utils
+package helpers
+
+import (
+	"slices"
+)
 
 // RemoveFromStringArray removes all matching values from a string array
 func RemoveFromStringArray(elements []string, remove string) []string {
-	for i, v := range elements {
-		if v == remove {
-			return append(elements[:i], elements[i+1:]...)
-		}
+	if i := slices.Index(elements, remove); i != -1 {
+		return RemoveFromStringArray(slices.Delete(elements, i, i+1), remove)
 	}
+
 	return elements
 }
 
+// SliceContainsValue
+// Deprecated
+// use slices.Contains instead
 func SliceContainsValue(input []string, value string) bool {
-	for _, v := range input {
-		if v == value {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(input, value)
 }
