@@ -12,13 +12,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceStreamAnalyticsOutputServiceBusTopic() *pluginsdk.Resource {
@@ -153,7 +153,7 @@ func resourceStreamAnalyticsOutputServiceBusTopicCreateUpdate(d *pluginsdk.Resou
 	dataSourceProperties := &outputs.ServiceBusTopicOutputDataSourceProperties{
 		TopicName:             pointer.To(d.Get("topic_name").(string)),
 		ServiceBusNamespace:   pointer.To(d.Get("servicebus_namespace").(string)),
-		PropertyColumns:       utils.ExpandStringSlice(d.Get("property_columns").([]interface{})),
+		PropertyColumns:       helpers.ExpandStringSlice(d.Get("property_columns").([]interface{})),
 		SystemPropertyColumns: expandSystemPropertyColumns(systemPropertyColumns),
 		AuthenticationMode:    pointer.To(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
 	}

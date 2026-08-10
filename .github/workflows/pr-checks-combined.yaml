@@ -6,6 +6,8 @@ name: Combined PR Checks
 # unless it *can't*: needing a special runner, OIDC auth, or its own trigger
 # moves it to a standalone pr-check-* workflow instead.
 # Display name is matched by the workflow_run list in pr-waiting-response-on-ci-fail.yaml.
+# The check jobs are mirrored in main-checks.yaml (which re-runs them on pushes
+# to main) — keep the two in sync when adding or changing a check.
 
 permissions:
   contents: read
@@ -51,7 +53,7 @@ jobs:
       vendor: ${{ steps.filter.outputs.vendor }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
-      - uses: dorny/paths-filter@d1c1ffe0248fe513906c8e24db8ea791d46f8590 # v3
+      - uses: dorny/paths-filter@0e4a8c6effa4802afeda77dc8d303f8176d7dfad # v3
         id: filter
         with:
           filters: |

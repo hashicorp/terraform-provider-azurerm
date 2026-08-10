@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2024-03-31/dicomservices"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2024-03-31/workspaces"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -26,7 +27,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceHealthcareApisDicomService() *pluginsdk.Resource {
@@ -586,15 +586,15 @@ func expandDicomServiceCorsConfiguration(inputList []interface{}) *dicomservices
 	output := dicomservices.CorsConfiguration{}
 
 	if v, ok := input["allowed_origins"]; ok {
-		output.Origins = utils.ExpandStringSlice(v.([]interface{}))
+		output.Origins = helpers.ExpandStringSlice(v.([]interface{}))
 	}
 
 	if v, ok := input["allowed_headers"]; ok {
-		output.Headers = utils.ExpandStringSlice(v.([]interface{}))
+		output.Headers = helpers.ExpandStringSlice(v.([]interface{}))
 	}
 
 	if v, ok := input["allowed_methods"]; ok {
-		output.Methods = utils.ExpandStringSlice(v.([]interface{}))
+		output.Methods = helpers.ExpandStringSlice(v.([]interface{}))
 	}
 
 	if v, ok := input["max_age_in_seconds"]; ok {
@@ -618,17 +618,17 @@ func flattenDicomServiceCorsConfiguration(input *dicomservices.CorsConfiguration
 	output["allow_credentials"] = pointer.From(input.AllowCredentials)
 
 	if input.Headers != nil {
-		output["allowed_headers"] = utils.FlattenStringSlice(input.Headers)
+		output["allowed_headers"] = helpers.FlattenStringSlice(input.Headers)
 	}
 
 	output["max_age_in_seconds"] = pointer.From(input.MaxAge)
 
 	if input.Methods != nil {
-		output["allowed_methods"] = utils.FlattenStringSlice(input.Methods)
+		output["allowed_methods"] = helpers.FlattenStringSlice(input.Methods)
 	}
 
 	if input.Origins != nil {
-		output["allowed_origins"] = utils.FlattenStringSlice(input.Origins)
+		output["allowed_origins"] = helpers.FlattenStringSlice(input.Origins)
 	}
 
 	return append(outputList, output)

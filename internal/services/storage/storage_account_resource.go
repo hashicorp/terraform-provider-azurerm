@@ -24,6 +24,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/fileservices"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/storageaccounts"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	providerhelpers "github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -37,7 +38,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity
@@ -2692,14 +2692,14 @@ func expandAccountBlobPropertiesCors(input []interface{}) *blobservices.CorsRule
 			item := raw.(map[string]interface{})
 
 			allowedMethods := make([]blobservices.AllowedMethods, 0)
-			for _, val := range *utils.ExpandStringSlice(item["allowed_methods"].([]interface{})) {
+			for _, val := range *providerhelpers.ExpandStringSlice(item["allowed_methods"].([]interface{})) {
 				allowedMethods = append(allowedMethods, blobservices.AllowedMethods(val))
 			}
 			corsRules = append(corsRules, blobservices.CorsRule{
-				AllowedHeaders:  *utils.ExpandStringSlice(item["allowed_headers"].([]interface{})),
-				AllowedOrigins:  *utils.ExpandStringSlice(item["allowed_origins"].([]interface{})),
+				AllowedHeaders:  *providerhelpers.ExpandStringSlice(item["allowed_headers"].([]interface{})),
+				AllowedOrigins:  *providerhelpers.ExpandStringSlice(item["allowed_origins"].([]interface{})),
 				AllowedMethods:  allowedMethods,
-				ExposedHeaders:  *utils.ExpandStringSlice(item["exposed_headers"].([]interface{})),
+				ExposedHeaders:  *providerhelpers.ExpandStringSlice(item["exposed_headers"].([]interface{})),
 				MaxAgeInSeconds: int64(item["max_age_in_seconds"].(int)),
 			})
 		}
@@ -2780,14 +2780,14 @@ func expandAccountSharePropertiesCorsRule(input []interface{}) *fileservices.Cor
 			item := raw.(map[string]interface{})
 
 			allowedMethods := make([]fileservices.AllowedMethods, 0)
-			for _, val := range *utils.ExpandStringSlice(item["allowed_methods"].([]interface{})) {
+			for _, val := range *providerhelpers.ExpandStringSlice(item["allowed_methods"].([]interface{})) {
 				allowedMethods = append(allowedMethods, fileservices.AllowedMethods(val))
 			}
 			corsRules = append(corsRules, fileservices.CorsRule{
-				AllowedHeaders:  *utils.ExpandStringSlice(item["allowed_headers"].([]interface{})),
+				AllowedHeaders:  *providerhelpers.ExpandStringSlice(item["allowed_headers"].([]interface{})),
 				AllowedMethods:  allowedMethods,
-				AllowedOrigins:  *utils.ExpandStringSlice(item["allowed_origins"].([]interface{})),
-				ExposedHeaders:  *utils.ExpandStringSlice(item["exposed_headers"].([]interface{})),
+				AllowedOrigins:  *providerhelpers.ExpandStringSlice(item["allowed_origins"].([]interface{})),
+				ExposedHeaders:  *providerhelpers.ExpandStringSlice(item["exposed_headers"].([]interface{})),
 				MaxAgeInSeconds: int64(item["max_age_in_seconds"].(int)),
 			})
 		}
@@ -2865,10 +2865,10 @@ func expandAccountSharePropertiesSMB(input []interface{}) *fileservices.SmbSetti
 	v := input[0].(map[string]interface{})
 
 	return &fileservices.SmbSetting{
-		AuthenticationMethods:    utils.ExpandStringSliceWithDelimiter(v["authentication_types"].(*pluginsdk.Set).List(), ";"),
-		ChannelEncryption:        utils.ExpandStringSliceWithDelimiter(v["channel_encryption_type"].(*pluginsdk.Set).List(), ";"),
-		KerberosTicketEncryption: utils.ExpandStringSliceWithDelimiter(v["kerberos_ticket_encryption_type"].(*pluginsdk.Set).List(), ";"),
-		Versions:                 utils.ExpandStringSliceWithDelimiter(v["versions"].(*pluginsdk.Set).List(), ";"),
+		AuthenticationMethods:    providerhelpers.ExpandStringSliceWithDelimiter(v["authentication_types"].(*pluginsdk.Set).List(), ";"),
+		ChannelEncryption:        providerhelpers.ExpandStringSliceWithDelimiter(v["channel_encryption_type"].(*pluginsdk.Set).List(), ";"),
+		KerberosTicketEncryption: providerhelpers.ExpandStringSliceWithDelimiter(v["kerberos_ticket_encryption_type"].(*pluginsdk.Set).List(), ";"),
+		Versions:                 providerhelpers.ExpandStringSliceWithDelimiter(v["versions"].(*pluginsdk.Set).List(), ";"),
 		Multichannel: &fileservices.Multichannel{
 			Enabled: pointer.To(v["multichannel_enabled"].(bool)),
 		},
@@ -2882,22 +2882,22 @@ func flattenAccountSharePropertiesSMB(input *fileservices.ProtocolSettings) []in
 
 	versions := make([]interface{}, 0)
 	if input.Smb.Versions != nil {
-		versions = utils.FlattenStringSliceWithDelimiter(input.Smb.Versions, ";")
+		versions = providerhelpers.FlattenStringSliceWithDelimiter(input.Smb.Versions, ";")
 	}
 
 	authenticationMethods := make([]interface{}, 0)
 	if input.Smb.AuthenticationMethods != nil {
-		authenticationMethods = utils.FlattenStringSliceWithDelimiter(input.Smb.AuthenticationMethods, ";")
+		authenticationMethods = providerhelpers.FlattenStringSliceWithDelimiter(input.Smb.AuthenticationMethods, ";")
 	}
 
 	kerberosTicketEncryption := make([]interface{}, 0)
 	if input.Smb.KerberosTicketEncryption != nil {
-		kerberosTicketEncryption = utils.FlattenStringSliceWithDelimiter(input.Smb.KerberosTicketEncryption, ";")
+		kerberosTicketEncryption = providerhelpers.FlattenStringSliceWithDelimiter(input.Smb.KerberosTicketEncryption, ";")
 	}
 
 	channelEncryption := make([]interface{}, 0)
 	if input.Smb.ChannelEncryption != nil {
-		channelEncryption = utils.FlattenStringSliceWithDelimiter(input.Smb.ChannelEncryption, ";")
+		channelEncryption = providerhelpers.FlattenStringSliceWithDelimiter(input.Smb.ChannelEncryption, ";")
 	}
 
 	multichannelEnabled := false
