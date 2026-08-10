@@ -72,9 +72,17 @@ issues:
   max-same-issues: 0
 formatters:
   enable:
+    - gci
     - gofmt
     - gofumpt
     - goimports
+  settings:
+    # gci merges blank-line-separated import groups into the two canonical sections
+    # (stdlib, then everything else) - goimports alone preserves existing groups
+    gci:
+      sections:
+        - standard
+        - default
   exclusions:
     generated: lax
     paths:
