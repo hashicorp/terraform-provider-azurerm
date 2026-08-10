@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"strings"
 	"time"
-
 	// import time/tzdata to embed timezone information in the program
 	// add this to resolve https://github.com/hashicorp/terraform-provider-azurerm/issues/20690
 	_ "time/tzdata"
