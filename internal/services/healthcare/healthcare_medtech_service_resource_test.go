@@ -304,14 +304,14 @@ resource "azurerm_eventhub_namespace" "test" {
 
 resource "azurerm_eventhub" "test" {
   name              = "acctest-eh-%d"
-  namespace_id      =  azurerm_eventhub_namespace.test.id
+  namespace_id      = azurerm_eventhub_namespace.test.id
   partition_count   = 1
   message_retention = 1
 }
 
 resource "azurerm_eventhub" "test1" {
   name              = "acctest-eh1-%d"
-  namespace_id      =  azurerm_eventhub_namespace.test.id
+  namespace_id      = azurerm_eventhub_namespace.test.id
   partition_count   = 1
   message_retention = 1
 }
