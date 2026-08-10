@@ -7,6 +7,12 @@ name: Main Branch Checks
 # break main when combined (semantic merge conflicts, a renamed helper another
 # PR started using, etc.).
 #
+# Every job runs on every push - deliberately no path filtering. A per-push
+# paths filter makes the branch tip's green check meaningless: a docs-only or
+# workflow-only push would skip the Go checks and show green even when the
+# previous (code) push failed or had its run cancelled. Since every run covers
+# the complete tree state, cancelling a superseded run loses nothing.
+#
 # This intentionally duplicates the check jobs in pr-checks-combined.yaml (and
 # the tree-based standalone pr-check-* workflows) rather than adding a push
 # trigger to them: those workflows feed the PR comment/labeling machinery
@@ -33,7 +39,8 @@ on:
       - release/**
 
 concurrency:
-  # Only the newest push per branch matters — the tip includes earlier merges.
+  # Only the newest push per branch matters - the tip includes earlier merges,
+  # and since every run executes all checks the newest run supersedes any it cancels.
   group: 'main-checks-${{ github.ref }}'
   cancel-in-progress: true
 
@@ -41,47 +48,7 @@ jobs:
 
   # Unlike the PR workflow there is no fail-fast phasing here: on main we want
   # the complete picture of everything broken in one run, not saved runner time.
-  paths-filter:
-    runs-on: ubuntu-latest
-    outputs:
-      website: ${{ github.event_name == 'workflow_dispatch' && 'true' || steps.filter.outputs.website }}
-      go: ${{ github.event_name == 'workflow_dispatch' && 'true' || steps.filter.outputs.go }}
-      scripts: ${{ github.event_name == 'workflow_dispatch' && 'true' || steps.filter.outputs.scripts }}
-      examples: ${{ github.event_name == 'workflow_dispatch' && 'true' || steps.filter.outputs.examples }}
-      vendor: ${{ github.event_name == 'workflow_dispatch' && 'true' || steps.filter.outputs.vendor }}
-      teamcity: ${{ github.event_name == 'workflow_dispatch' && 'true' || steps.filter.outputs.teamcity }}
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
-      - uses: dorny/paths-filter@0e4a8c6effa4802afeda77dc8d303f8176d7dfad # v3
-        id: filter
-        if: github.event_name == 'push'
-        with:
-          # base == the pushed branch, so changes are detected against the
-          # commit range of the push itself (event.before..event.after).
-          base: ${{ github.ref_name }}
-          filters: |
-            website:
-              - 'website/**'
-            go:
-              - '**/*.go'
-              - 'go.mod'
-              - 'go.sum'
-              - '.go-version'
-            scripts:
-              - 'scripts/**'
-              - '**/*.sh'
-            examples:
-              - 'examples/**'
-            vendor:
-              - 'vendor/**'
-              - 'go.mod'
-              - 'go.sum'
-            teamcity:
-              - '.teamcity/**'
-
   build:
-    needs: paths-filter
-    if: needs.paths-filter.outputs.go == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
@@ -92,8 +59,6 @@ jobs:
         run: go build -v -o /dev/null main.go
 
   depscheck:
-    needs: paths-filter
-    if: needs.paths-filter.outputs.vendor == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
@@ -103,8 +68,6 @@ jobs:
       - run: make depscheck
 
   golangci-lint:
-    needs: paths-filter
-    if: needs.paths-filter.outputs.go == 'true'
     runs-on: custom-linux-large
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
@@ -117,8 +80,6 @@ jobs:
           args: ./...
 
   gencheck:
-    needs: paths-filter
-    if: needs.paths-filter.outputs.go == 'true'
     runs-on: custom-linux-large
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
@@ -128,8 +89,6 @@ jobs:
       - run: make gencheck
 
   unit-tests:
-    needs: paths-filter
-    if: needs.paths-filter.outputs.go == 'true'
     runs-on: custom-linux-xl
     timeout-minutes: 30
     steps:
@@ -151,8 +110,6 @@ jobs:
            ./...
 
   preview-api-version-linter:
-    needs: paths-filter
-    if: needs.paths-filter.outputs.vendor == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
@@ -162,8 +119,6 @@ jobs:
       - run: go run internal/tools/preview-api-version-linter/main.go
 
   shellcheck:
-    needs: paths-filter
-    if: needs.paths-filter.outputs.scripts == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
@@ -171,8 +126,6 @@ jobs:
         run: make shellcheck
 
   website-lint:
-    needs: paths-filter
-    if: needs.paths-filter.outputs.website == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
@@ -183,8 +136,6 @@ jobs:
       - run: make website-lint
 
   document-validate:
-    needs: paths-filter
-    if: needs.paths-filter.outputs.go == 'true' || needs.paths-filter.outputs.website == 'true'
     runs-on: custom-linux-large
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
@@ -194,8 +145,6 @@ jobs:
       - run: make document-validate
 
   validate-examples:
-    needs: paths-filter
-    if: needs.paths-filter.outputs.examples == 'true'
     runs-on: custom-linux-small
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
@@ -206,8 +155,6 @@ jobs:
       - run: make validate-examples
 
   teamcity-test:
-    needs: paths-filter
-    if: needs.paths-filter.outputs.teamcity == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
