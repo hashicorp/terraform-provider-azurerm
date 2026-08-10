@@ -1658,6 +1658,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_DS2_v2"
   node_count            = 1
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 
   kubelet_config {
     cpu_manager_policy    = "static"
