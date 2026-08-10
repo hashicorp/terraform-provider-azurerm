@@ -14,7 +14,7 @@ fi
 echo "==> Checking that code complies with formatting requirements (gofmt, gofumpt, goimports, gci)..."
 
 if ! golangci-lint fmt --diff; then
-    echo "You can use the commands: \`make fmt\` and \`make goimports\` to reformat code."
+    echo "You can use the command: \`make lint-fix\` to reformat code."
     exit 1
 fi
 
@@ -22,7 +22,7 @@ fi
 echo "==> Checking that code complies with the whitespace linter..."
 
 if ! golangci-lint run ./... --no-config --enable-only=whitespace; then
-    echo "You can use the command: \`make fmt\` to reformat code."
+    echo "You can use the command: \`make lint-fix\` to reformat code."
     exit 1
 fi
 
