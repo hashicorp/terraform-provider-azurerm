@@ -62,9 +62,20 @@ func (c NetworkManagersClient) NetworkManagerCommitsPost(ctx context.Context, id
 
 // NetworkManagerCommitsPostThenPoll performs NetworkManagerCommitsPost then polls until it's completed
 func (c NetworkManagersClient) NetworkManagerCommitsPostThenPoll(ctx context.Context, id NetworkManagerId, input NetworkManagerCommit) error {
+	return c.NetworkManagerCommitsPostCallbackThenPoll(ctx, id, input, nil)
+}
+
+// NetworkManagerCommitsPostCallbackThenPoll performs NetworkManagerCommitsPost, runs the optional callback function, then polls until it's completed
+func (c NetworkManagersClient) NetworkManagerCommitsPostCallbackThenPoll(ctx context.Context, id NetworkManagerId, input NetworkManagerCommit, callback func() error) error {
 	result, err := c.NetworkManagerCommitsPost(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing NetworkManagerCommitsPost: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

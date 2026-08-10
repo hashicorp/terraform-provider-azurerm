@@ -62,9 +62,20 @@ func (c CosmosDBClient) GremlinResourcesUpdateGremlinDatabaseThroughput(ctx cont
 
 // GremlinResourcesUpdateGremlinDatabaseThroughputThenPoll performs GremlinResourcesUpdateGremlinDatabaseThroughput then polls until it's completed
 func (c CosmosDBClient) GremlinResourcesUpdateGremlinDatabaseThroughputThenPoll(ctx context.Context, id GremlinDatabaseId, input ThroughputSettingsUpdateParameters) error {
+	return c.GremlinResourcesUpdateGremlinDatabaseThroughputCallbackThenPoll(ctx, id, input, nil)
+}
+
+// GremlinResourcesUpdateGremlinDatabaseThroughputCallbackThenPoll performs GremlinResourcesUpdateGremlinDatabaseThroughput, runs the optional callback function, then polls until it's completed
+func (c CosmosDBClient) GremlinResourcesUpdateGremlinDatabaseThroughputCallbackThenPoll(ctx context.Context, id GremlinDatabaseId, input ThroughputSettingsUpdateParameters, callback func() error) error {
 	result, err := c.GremlinResourcesUpdateGremlinDatabaseThroughput(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing GremlinResourcesUpdateGremlinDatabaseThroughput: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

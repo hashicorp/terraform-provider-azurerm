@@ -23,20 +23,13 @@ import (
 type EventSubscriptionEndpointType string
 
 const (
-	// AzureFunctionEndpoint ...
 	AzureFunctionEndpoint EventSubscriptionEndpointType = "azure_function_endpoint"
-	// EventHubEndpointID ...
-	EventHubEndpointID EventSubscriptionEndpointType = "eventhub_endpoint_id"
-	// HybridConnectionEndpointID ...
-	HybridConnectionEndpointID EventSubscriptionEndpointType = "hybrid_connection_endpoint_id"
-	// ServiceBusQueueEndpointID ...
-	ServiceBusQueueEndpointID EventSubscriptionEndpointType = "service_bus_queue_endpoint_id"
-	// ServiceBusTopicEndpointID ...
-	ServiceBusTopicEndpointID EventSubscriptionEndpointType = "service_bus_topic_endpoint_id"
-	// StorageQueueEndpoint ...
-	StorageQueueEndpoint EventSubscriptionEndpointType = "storage_queue_endpoint"
-	// WebHookEndpoint ...
-	WebHookEndpoint EventSubscriptionEndpointType = "webhook_endpoint"
+	EventHubID            EventSubscriptionEndpointType = "eventhub_id"
+	HybridConnectionID    EventSubscriptionEndpointType = "hybrid_connection_id"
+	ServiceBusQueueID     EventSubscriptionEndpointType = "service_bus_queue_id"
+	ServiceBusTopicID     EventSubscriptionEndpointType = "service_bus_topic_id"
+	StorageQueueEndpoint  EventSubscriptionEndpointType = "storage_queue_endpoint"
+	WebHookEndpoint       EventSubscriptionEndpointType = "webhook_endpoint"
 )
 
 func eventSubscriptionSchemaEventSubscriptionName() *pluginsdk.Schema {

@@ -1,0 +1,23 @@
+---
+name: PR Label Type
+
+# Labels new/edited PRs by type using the title regexes in
+# .github/labeler-pull-request-triage-type.yml.
+
+permissions:
+  pull-requests: write
+
+on: 
+  pull_request_target:
+    types: [opened, edited]
+
+jobs:
+  pr_triage_label_type:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: github/issue-labeler@99b4c5dda477c65f4ef08486b73c5787e1e33601 # v2
+      continue-on-error: true
+      with:
+        repo-token: "${{ secrets.GITHUB_TOKEN }}"
+        configuration-path: .github/labeler-pull-request-triage-type.yml
+        enable-versioned-regex: 0

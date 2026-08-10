@@ -95,8 +95,10 @@ func (r ResourceProviderFeatureRegistrationResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: `registrationState` was nil", featureId)
 			}
 
-			if strings.EqualFold(registrationState, Registered) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), featureId)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				if strings.EqualFold(registrationState, Registered) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), featureId)
+				}
 			}
 
 			if strings.EqualFold(registrationState, Pending) {
@@ -114,14 +116,18 @@ func (r ResourceProviderFeatureRegistrationResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			metadata.SetID(featureId)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &featureId); err != nil {
+				return err
+			}
+
 			pollerType := custompollers.NewResourceProviderFeatureRegistrationPoller(client, featureId, Registered)
 			poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 			if err := poller.PollUntilDone(ctx); err != nil {
 				return fmt.Errorf("waiting for registration of %s: %+v", featureId, err)
 			}
 
-			metadata.SetID(featureId)
-			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, &featureId)
+			return nil
 		},
 
 		Timeout: 30 * time.Minute,

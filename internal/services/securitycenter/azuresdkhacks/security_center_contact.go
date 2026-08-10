@@ -57,7 +57,8 @@ func createResponder(resp *http.Response) (result security.Contact, err error) {
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
+		autorest.ByClosing(),
+	)
 	if err != nil {
 		return result, err
 	}

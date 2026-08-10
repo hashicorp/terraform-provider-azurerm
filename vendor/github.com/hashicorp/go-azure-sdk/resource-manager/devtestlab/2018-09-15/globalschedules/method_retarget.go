@@ -61,9 +61,20 @@ func (c GlobalSchedulesClient) Retarget(ctx context.Context, id ScheduleId, inpu
 
 // RetargetThenPoll performs Retarget then polls until it's completed
 func (c GlobalSchedulesClient) RetargetThenPoll(ctx context.Context, id ScheduleId, input RetargetScheduleProperties) error {
+	return c.RetargetCallbackThenPoll(ctx, id, input, nil)
+}
+
+// RetargetCallbackThenPoll performs Retarget, runs the optional callback function, then polls until it's completed
+func (c GlobalSchedulesClient) RetargetCallbackThenPoll(ctx context.Context, id ScheduleId, input RetargetScheduleProperties, callback func() error) error {
 	result, err := c.Retarget(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Retarget: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

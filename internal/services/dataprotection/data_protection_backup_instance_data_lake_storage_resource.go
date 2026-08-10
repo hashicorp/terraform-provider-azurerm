@@ -81,7 +81,7 @@ func (r DataProtectionBackupInstanceDataLakeStorageResource) Arguments() map[str
 			Type:     pluginsdk.TypeSet,
 			Required: true,
 			MinItems: 1,
-			MaxItems: 100,
+			MaxItems: 1000,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 				ValidateFunc: validation.All(
@@ -120,15 +120,17 @@ func (r DataProtectionBackupInstanceDataLakeStorageResource) Create() sdk.Resour
 
 			id := backupinstanceresources.NewBackupInstanceID(vaultId.SubscriptionId, vaultId.ResourceGroupName, vaultId.BackupVaultName, model.Name)
 
-			existing, err := client.BackupInstancesGet(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.BackupInstancesGet(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for existing %s: %+v", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			storageAccountId, err := commonids.ParseStorageAccountID(model.StorageAccountId)
@@ -163,6 +165,7 @@ func (r DataProtectionBackupInstanceDataLakeStorageResource) Create() sdk.Resour
 						ResourceType:     pointer.To("Microsoft.Storage/storageAccounts"),
 						ResourceUri:      pointer.To(storageAccountId.ID()),
 					},
+					FriendlyName: pointer.To(id.BackupInstanceName),
 					PolicyInfo: backupinstanceresources.PolicyInfo{
 						PolicyId: policyId.ID(),
 						PolicyParameters: &backupinstanceresources.PolicyParameters{
@@ -176,8 +179,13 @@ func (r DataProtectionBackupInstanceDataLakeStorageResource) Create() sdk.Resour
 				},
 			}
 
-			if err := client.BackupInstancesCreateOrUpdateThenPoll(ctx, id, parameters, backupinstanceresources.DefaultBackupInstancesCreateOrUpdateOperationOptions()); err != nil {
+			if err := client.BackupInstancesCreateOrUpdateCallbackThenPoll(ctx, id, parameters, backupinstanceresources.DefaultBackupInstancesCreateOrUpdateOperationOptions(), metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
 			}
 
 			// the built-in poller is for the LRO to be finished, but the service requires additional time to finish the configure for backup
@@ -190,10 +198,6 @@ func (r DataProtectionBackupInstanceDataLakeStorageResource) Create() sdk.Resour
 				return fmt.Errorf("waiting for %s to become available: %+v", id, err)
 			}
 
-			metadata.SetID(id)
-			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
-				return err
-			}
 			return nil
 		},
 	}

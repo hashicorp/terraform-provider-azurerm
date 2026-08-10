@@ -49,8 +49,8 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_table" "test" {
-  name                 = "tabletesttedsc%s"
-  storage_account_name = azurerm_storage_account.test.name
+  name               = "tabletesttedsc%s"
+  storage_account_id = azurerm_storage_account.test.id
 
   acl {
     id = "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"
@@ -62,7 +62,6 @@ resource "azurerm_storage_table" "test" {
     }
   }
 }
-
 `, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
@@ -72,8 +71,8 @@ func (d StorageTableDataSource) basicWithDataSource(data acceptance.TestData) st
 %s
 
 data "azurerm_storage_table" "test" {
-  name                 = azurerm_storage_table.test.name
-  storage_account_name = azurerm_storage_table.test.storage_account_name
+  name               = azurerm_storage_table.test.name
+  storage_account_id = azurerm_storage_table.test.storage_account_id
 }
 `, config)
 }

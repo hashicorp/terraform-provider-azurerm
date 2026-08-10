@@ -416,6 +416,21 @@ func altSubscriptionCheck() *containerAppEnvironmentAlternateSubscription {
 	}
 }
 
+func TestAccContainerAppEnvironment_infraResourceGroupWithConsumptionWorkloadProfile(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
+	r := ContainerAppEnvironmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.infraResourceGroupWithConsumptionWorkloadProfile(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("workload_profile"),
+	})
+}
+
 func (r ContainerAppEnvironmentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := managedenvironments.ParseManagedEnvironmentID(state.ID)
 	if err != nil {
@@ -591,9 +606,8 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     category_group = "allLogs"
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
-    enabled  = true
   }
 }
 `, r.templateVNet(data), data.RandomInteger)
@@ -642,9 +656,8 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     category_group = "allLogs"
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
-    enabled  = true
   }
 }
 `, r.templateVNet(data), data.RandomInteger)
@@ -690,9 +703,8 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     category_group = "allLogs"
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
-    enabled  = true
   }
 }
 `, r.templateVNet(data), data.RandomInteger)
@@ -739,9 +751,8 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     category_group = "allLogs"
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
-    enabled  = true
   }
 }
 `, r.templateVNet(data), data.RandomInteger)
@@ -789,9 +800,8 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     category_group = "allLogs"
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
-    enabled  = true
   }
 }
 `, r.templateVNet(data), data.RandomInteger)
@@ -810,6 +820,7 @@ resource "azurerm_container_app_environment" "test" {
   resource_group_name        = azurerm_resource_group.test.name
   location                   = azurerm_resource_group.test.location
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  logs_destination           = "log-analytics"
   infrastructure_subnet_id   = azurerm_subnet.control.id
 
   internal_load_balancer_enabled = true
@@ -1094,9 +1105,8 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     category_group = "allLogs"
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
-    enabled  = true
   }
 }
 `, r.templateVNet(data), data.RandomInteger)
@@ -1289,10 +1299,36 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     category_group = "allLogs"
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
-    enabled  = true
   }
 }
 `, r.template(data), data.RandomInteger, data.Locations.Primary, alt.tenantId, alt.subscriptionId)
+}
+
+func (r ContainerAppEnvironmentResource) infraResourceGroupWithConsumptionWorkloadProfile(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_container_app_environment" "test" {
+  name                     = "acctest-CAEnv%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  infrastructure_subnet_id = azurerm_subnet.control.id
+
+  workload_profile {
+    name                  = "Consumption"
+    workload_profile_type = "Consumption"
+  }
+
+  tags = {
+    Foo    = "Bar"
+    secret = "sauce"
+  }
+}
+`, r.templateVNet(data), data.RandomInteger)
 }

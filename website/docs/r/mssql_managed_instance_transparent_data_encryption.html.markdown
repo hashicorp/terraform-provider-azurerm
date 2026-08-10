@@ -128,6 +128,7 @@ resource "azurerm_key_vault" "example" {
   name                        = "example"
   location                    = azurerm_resource_group.example.location
   resource_group_name         = azurerm_resource_group.example.name
+  rbac_authorization_enabled  = false
   enabled_for_disk_encryption = true
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days  = 7
@@ -188,6 +189,8 @@ The following arguments are supported:
 * `key_vault_key_id` - (Optional) To use customer managed keys from Azure Key Vault, provide the AKV Key ID. To use service managed keys, omit this field.
 
 ~> **Note:** In order to use customer managed keys, the identity of the MSSQL Managed Instance must have the following permissions on the key vault: 'get', 'wrapKey' and 'unwrapKey'
+
+~> **Note:** When `auto_rotation_enabled` is `true`, `key_vault_key_id` can be either a versioned or versionless Key Vault Key ID. When using a versionless `key_vault_key_id`, the principal running Terraform must have permission to read the latest key version from Key Vault. When `auto_rotation_enabled` is `false`, `key_vault_key_id` must be a versioned Key Vault Key ID.
 
 ~> **Note:** If `managed_instance_id` denotes a secondary instance deployed for disaster recovery purposes, then the `key_vault_key_id` should be the same key used for the primary instance's transparent data encryption. Both primary and secondary instances should be encrypted with same key material.
 

@@ -13,9 +13,9 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/capacitypools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/volumegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/capacitypools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/volumegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -493,7 +493,7 @@ func flattenNetAppVolumeGroupSAPHanaVolumes(ctx context.Context, input *[]volume
 		}
 
 		if item.Zones != nil && len(pointer.From(item.Zones)) > 0 {
-			volumeGroupVolume.Zone = (pointer.From(item.Zones))[0]
+			volumeGroupVolume.Zone = pointer.From(item.Zones)[0]
 		}
 
 		if props.EncryptionKeySource != nil {
@@ -576,7 +576,7 @@ func flattenNetAppVolumeGroupOracleVolumes(ctx context.Context, input *[]volumeg
 		}
 
 		if item.Zones != nil && len(pointer.From(item.Zones)) > 0 {
-			volumeGroupVolume.Zone = (pointer.From(item.Zones))[0]
+			volumeGroupVolume.Zone = pointer.From(item.Zones)[0]
 		}
 
 		if props.EncryptionKeySource != nil {
@@ -1165,7 +1165,8 @@ func authorizeVolumeReplication(ctx context.Context, volumeList *[]volumegroups.
 				}
 
 				// This is a secondary volume, create its ID
-				secondaryId := volumes.NewVolumeID(subscriptionId,
+				secondaryId := volumes.NewVolumeID(
+					subscriptionId,
 					resourceGroupName,
 					accountName,
 					capacityPoolId.CapacityPoolName,
@@ -1199,7 +1200,8 @@ func authorizeVolumeReplication(ctx context.Context, volumeList *[]volumegroups.
 			}
 
 			// Create the destination volume ID for status checking
-			destinationReplId := volumes.NewVolumeID(subscriptionId,
+			destinationReplId := volumes.NewVolumeID(
+				subscriptionId,
 				resourceGroupName,
 				accountName,
 				capacityPoolId.CapacityPoolName,

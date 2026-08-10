@@ -226,18 +226,19 @@ func resourceCdnEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure ARM CDN EndPoint creation.")
-
 	id := parse.NewEndpointID(subscriptionId, d.Get("resource_group_name").(string), d.Get("profile_name").(string), d.Get("name").(string))
-	existing, err := endpointsClient.Get(ctx, id.ResourceGroup, id.ProfileName, id.Name)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-		}
-	}
 
-	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_cdn_endpoint", id.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := endpointsClient.Get(ctx, id.ResourceGroup, id.ProfileName, id.Name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+		}
+
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_cdn_endpoint", id.ID())
+		}
 	}
 
 	location := location.Normalize(d.Get("location").(string))
@@ -335,8 +336,6 @@ func resourceCdnEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure ARM CDN EndPoint update.")
-
 	id, err := parse.EndpointID(d.Id())
 	if err != nil {
 		return err
@@ -355,10 +354,7 @@ func resourceCdnEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	// call 'PATCH' if the only thing that has changed are the tags, else
 	// call the 'PUT' instead. https://learn.microsoft.com/rest/api/cdn/endpoints/update?tabs=HTTP
 	// see issue #22326 for more details.
-	updateTypePATCH := !d.HasChanges("is_http_allowed", "is_https_allowed", "querystring_caching_behaviour", "origin_path",
-		"probe_path", "optimization_type", "origin_host_header", "content_types_to_compress", "geo_filter",
-		"is_compression_enabled", "probe_path", "geo_filter", "optimization_type", "global_delivery_rule",
-		"delivery_rule")
+	updateTypePATCH := !d.HasChangesExcept("tags")
 
 	if updateTypePATCH {
 		log.Printf("[INFO] No changes detected using PATCH for Azure ARM CDN EndPoint update.")

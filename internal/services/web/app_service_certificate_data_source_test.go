@@ -31,7 +31,6 @@ func TestAccDataSourceAppServiceCertificate_basic(t *testing.T) {
 }
 
 func (d AppServiceCertificateDataSource) basic(data acceptance.TestData) string {
-	template := AppServiceCertificateResource{}.pfxNoPassword(data)
 	return fmt.Sprintf(`
 %s
 
@@ -39,5 +38,5 @@ data "azurerm_app_service_certificate" "test" {
   name                = azurerm_app_service_certificate.test.name
   resource_group_name = azurerm_app_service_certificate.test.resource_group_name
 }
-`, template)
+`, AppServiceCertificateResource{}.pfxNoPassword(data))
 }

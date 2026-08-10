@@ -124,7 +124,7 @@ A `network_injection` block supports the following:
 
 * `subnet_id` - (Required) The ID of the subnet which the Agent Client is injected into.
 
-~> **Note:** The agent subnet must use an address space in the 172.* or 192.* ranges.
+~> **Note:** The agent subnet must use only RFC 1918 private IPv4 address ranges. For more details, refer to the [Supported IP ranges](https://learn.microsoft.com/azure/foundry/agents/concepts/agents-networking-deep-dive#supported-ip-ranges).
 
 ---
 
@@ -209,6 +209,6 @@ terraform import azurerm_cognitive_account.account1 /subscriptions/00000000-0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.CognitiveServices` - 2025-06-01
+* `Microsoft.CognitiveServices` - 2026-03-01
 
 * `Microsoft.Network` - 2025-01-01

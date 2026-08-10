@@ -20,30 +20,28 @@ type LegacySystemAndUserAssignedList struct {
 	IdentityIds []string `json:"userAssignedIdentities" tfschema:"identity_ids"`
 }
 
-func (s *LegacySystemAndUserAssignedList) MarshalJSON() ([]byte, error) {
+func (s LegacySystemAndUserAssignedList) MarshalJSON() ([]byte, error) {
 	// we use a custom marshal function here since we can only send the Type / UserAssignedIdentities field
 	identityType := TypeNone
 	userAssignedIdentityIds := []string{}
 
-	if s != nil {
-		if s.Type == typeLegacySystemAssignedUserAssigned {
-			return nil, fmt.Errorf("internal error: the legacy `SystemAssigned,UserAssigned` identity type should be being converted to the schema type - this is a bug")
-		}
+	if s.Type == typeLegacySystemAssignedUserAssigned {
+		return nil, fmt.Errorf("internal error: the legacy `SystemAssigned,UserAssigned` identity type should be being converted to the schema type - this is a bug")
+	}
 
-		if s.Type == TypeSystemAssigned {
-			identityType = TypeSystemAssigned
-		}
-		if s.Type == TypeSystemAssignedUserAssigned {
-			// convert the Schema value (w/spaces) to the legacy API value (w/o spaces)
-			identityType = typeLegacySystemAssignedUserAssigned
-		}
-		if s.Type == TypeUserAssigned {
-			identityType = TypeUserAssigned
-		}
+	if s.Type == TypeSystemAssigned {
+		identityType = TypeSystemAssigned
+	}
+	if s.Type == TypeSystemAssignedUserAssigned {
+		// convert the Schema value (w/spaces) to the legacy API value (w/o spaces)
+		identityType = typeLegacySystemAssignedUserAssigned
+	}
+	if s.Type == TypeUserAssigned {
+		identityType = TypeUserAssigned
+	}
 
-		if identityType != TypeNone {
-			userAssignedIdentityIds = s.IdentityIds
-		}
+	if identityType != TypeNone {
+		userAssignedIdentityIds = s.IdentityIds
 	}
 
 	out := map[string]interface{}{
