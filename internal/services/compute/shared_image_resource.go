@@ -414,7 +414,12 @@ func resourceSharedImageUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		payload.Properties.ReleaseNoteUri = pointer.To(d.Get("release_note_uri").(string))
 	}
 
-	if d.HasChanges("max_recommended_vcpu_count", "min_recommended_vcpu_count", "max_recommended_memory_in_gb", "min_recommended_memory_in_gb") {
+	if d.HasChanges(
+		"max_recommended_vcpu_count",
+		"min_recommended_vcpu_count",
+		"max_recommended_memory_in_gb",
+		"min_recommended_memory_in_gb",
+	) {
 		recommended, err := expandGalleryImageRecommended(d)
 		if err != nil {
 			return err
