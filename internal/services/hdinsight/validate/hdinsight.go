@@ -8,6 +8,7 @@ import (
 	"regexp"
 )
 
+// lintignore:V001 // two regexes with fallback logic
 func HDInsightClusterVersion(i interface{}, k string) (warnings []string, errors []error) {
 	version := i.(string)
 
