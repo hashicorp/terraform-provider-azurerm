@@ -23,7 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name databox_edge_device -service-package-name databoxedge -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 type DevicePropertiesModel struct {
 	Capacity            int64    `tfschema:"capacity"`
