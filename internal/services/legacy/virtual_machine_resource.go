@@ -14,8 +14,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -27,9 +25,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkinterfaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/publicipaddresses"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	compute2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	intStor "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
@@ -37,7 +37,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/blobs"
 )
 
@@ -48,7 +47,7 @@ func userDataDiffSuppressFunc(_, old, new string, _ *pluginsdk.ResourceData) boo
 func userDataStateFunc(v interface{}) string {
 	switch s := v.(type) {
 	case string:
-		s = utils.Base64EncodeIfNot(s)
+		s = helpers.Base64EncodeIfNot(s)
 		hash := sha1.Sum([]byte(s))
 		return hex.EncodeToString(hash[:])
 	default:
@@ -1425,7 +1424,7 @@ func expandAzureRmVirtualMachineOsProfile(d *pluginsdk.ResourceData) (*virtualma
 	}
 
 	if v := osProfile["custom_data"].(string); v != "" {
-		v = utils.Base64EncodeIfNot(v)
+		v = helpers.Base64EncodeIfNot(v)
 		profile.CustomData = &v
 	}
 

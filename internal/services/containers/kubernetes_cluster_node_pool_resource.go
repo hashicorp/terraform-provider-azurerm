@@ -24,6 +24,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/snapshots"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -36,7 +37,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
@@ -612,7 +612,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	}
 
 	nodeTaintsRaw := d.Get("node_taints").([]interface{})
-	if nodeTaints := utils.ExpandStringSlice(nodeTaintsRaw); len(*nodeTaints) > 0 {
+	if nodeTaints := helpers.ExpandStringSlice(nodeTaintsRaw); len(*nodeTaints) > 0 {
 		profile.NodeTaints = nodeTaints
 	}
 
@@ -919,7 +919,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if d.HasChange("node_taints") {
-		props.NodeTaints = utils.ExpandStringSlice(d.Get("node_taints").([]interface{}))
+		props.NodeTaints = helpers.ExpandStringSlice(d.Get("node_taints").([]interface{}))
 	}
 
 	if d.HasChange("node_network_profile") {
@@ -1171,7 +1171,7 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 
 		d.Set("node_public_ip_prefix_id", props.NodePublicIPPrefixID)
 
-		if err := d.Set("node_taints", utils.FlattenStringSlice(props.NodeTaints)); err != nil {
+		if err := d.Set("node_taints", helpers.FlattenStringSlice(props.NodeTaints)); err != nil {
 			return fmt.Errorf("setting `node_taints`: %+v", err)
 		}
 
@@ -1338,7 +1338,7 @@ func expandAgentPoolKubeletConfig(input []interface{}) *agentpools.KubeletConfig
 		CpuCfsQuota: pointer.To(raw["cpu_cfs_quota_enabled"].(bool)),
 		// must be false, otherwise the backend will report error: CustomKubeletConfig.FailSwapOn must be set to false to enable swap file on nodes.
 		FailSwapOn:           pointer.To(false),
-		AllowedUnsafeSysctls: utils.ExpandStringSlice(raw["allowed_unsafe_sysctls"].(*pluginsdk.Set).List()),
+		AllowedUnsafeSysctls: helpers.ExpandStringSlice(raw["allowed_unsafe_sysctls"].(*pluginsdk.Set).List()),
 	}
 
 	if v := raw["cpu_manager_policy"].(string); v != "" {
@@ -1796,7 +1796,7 @@ func expandAgentPoolNetworkProfile(input []interface{}) *agentpools.AgentPoolNet
 	v := input[0].(map[string]interface{})
 	return &agentpools.AgentPoolNetworkProfile{
 		AllowedHostPorts:          expandAgentPoolNetworkProfileAllowedHostPorts(v["allowed_host_ports"].([]interface{})),
-		ApplicationSecurityGroups: utils.ExpandStringSlice(v["application_security_group_ids"].([]interface{})),
+		ApplicationSecurityGroups: helpers.ExpandStringSlice(v["application_security_group_ids"].([]interface{})),
 		NodePublicIPTags:          expandAgentPoolNetworkProfileNodePublicIPTags(v["node_public_ip_tags"].(map[string]interface{})),
 	}
 }
@@ -1852,7 +1852,7 @@ func flattenAgentPoolNetworkProfile(input *agentpools.AgentPoolNetworkProfile) [
 	return []interface{}{
 		map[string]interface{}{
 			"allowed_host_ports":             flattenAgentPoolNetworkProfileAllowedHostPorts(input.AllowedHostPorts),
-			"application_security_group_ids": utils.FlattenStringSlice(input.ApplicationSecurityGroups),
+			"application_security_group_ids": helpers.FlattenStringSlice(input.ApplicationSecurityGroups),
 			"node_public_ip_tags":            flattenAgentPoolNetworkProfileNodePublicIPTags(input.NodePublicIPTags),
 		},
 	}

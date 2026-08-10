@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/attacheddatabaseconfigurations"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -24,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceKustoAttachedDatabaseConfiguration() *pluginsdk.Resource {
@@ -371,14 +371,14 @@ func expandAttachedDatabaseConfigurationTableLevelSharingProperties(input []inte
 	}
 	v := input[0].(map[string]interface{})
 	return &attacheddatabaseconfigurations.TableLevelSharingProperties{
-		TablesToInclude:            utils.ExpandStringSlice(v["tables_to_include"].(*pluginsdk.Set).List()),
-		TablesToExclude:            utils.ExpandStringSlice(v["tables_to_exclude"].(*pluginsdk.Set).List()),
-		ExternalTablesToInclude:    utils.ExpandStringSlice(v["external_tables_to_include"].(*pluginsdk.Set).List()),
-		ExternalTablesToExclude:    utils.ExpandStringSlice(v["external_tables_to_exclude"].(*pluginsdk.Set).List()),
-		FunctionsToInclude:         utils.ExpandStringSlice(v["functions_to_include"].(*pluginsdk.Set).List()),
-		FunctionsToExclude:         utils.ExpandStringSlice(v["functions_to_exclude"].(*pluginsdk.Set).List()),
-		MaterializedViewsToInclude: utils.ExpandStringSlice(v["materialized_views_to_include"].(*pluginsdk.Set).List()),
-		MaterializedViewsToExclude: utils.ExpandStringSlice(v["materialized_views_to_exclude"].(*pluginsdk.Set).List()),
+		TablesToInclude:            helpers.ExpandStringSlice(v["tables_to_include"].(*pluginsdk.Set).List()),
+		TablesToExclude:            helpers.ExpandStringSlice(v["tables_to_exclude"].(*pluginsdk.Set).List()),
+		ExternalTablesToInclude:    helpers.ExpandStringSlice(v["external_tables_to_include"].(*pluginsdk.Set).List()),
+		ExternalTablesToExclude:    helpers.ExpandStringSlice(v["external_tables_to_exclude"].(*pluginsdk.Set).List()),
+		FunctionsToInclude:         helpers.ExpandStringSlice(v["functions_to_include"].(*pluginsdk.Set).List()),
+		FunctionsToExclude:         helpers.ExpandStringSlice(v["functions_to_exclude"].(*pluginsdk.Set).List()),
+		MaterializedViewsToInclude: helpers.ExpandStringSlice(v["materialized_views_to_include"].(*pluginsdk.Set).List()),
+		MaterializedViewsToExclude: helpers.ExpandStringSlice(v["materialized_views_to_exclude"].(*pluginsdk.Set).List()),
 	}
 }
 
@@ -389,14 +389,14 @@ func flattenAttachedDatabaseConfigurationTableLevelSharingProperties(input *atta
 
 	return []interface{}{
 		map[string]interface{}{
-			"external_tables_to_exclude":    utils.FlattenStringSlice(input.ExternalTablesToExclude),
-			"external_tables_to_include":    utils.FlattenStringSlice(input.ExternalTablesToInclude),
-			"functions_to_exclude":          utils.FlattenStringSlice(input.FunctionsToExclude),
-			"functions_to_include":          utils.FlattenStringSlice(input.FunctionsToInclude),
-			"materialized_views_to_exclude": utils.FlattenStringSlice(input.MaterializedViewsToExclude),
-			"materialized_views_to_include": utils.FlattenStringSlice(input.MaterializedViewsToInclude),
-			"tables_to_exclude":             utils.FlattenStringSlice(input.TablesToExclude),
-			"tables_to_include":             utils.FlattenStringSlice(input.TablesToInclude),
+			"external_tables_to_exclude":    helpers.FlattenStringSlice(input.ExternalTablesToExclude),
+			"external_tables_to_include":    helpers.FlattenStringSlice(input.ExternalTablesToInclude),
+			"functions_to_exclude":          helpers.FlattenStringSlice(input.FunctionsToExclude),
+			"functions_to_include":          helpers.FlattenStringSlice(input.FunctionsToInclude),
+			"materialized_views_to_exclude": helpers.FlattenStringSlice(input.MaterializedViewsToExclude),
+			"materialized_views_to_include": helpers.FlattenStringSlice(input.MaterializedViewsToInclude),
+			"tables_to_exclude":             helpers.FlattenStringSlice(input.TablesToExclude),
+			"tables_to_include":             helpers.FlattenStringSlice(input.TablesToInclude),
 		},
 	}
 }
