@@ -135,7 +135,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 
 	dataDisksRaw := d.Get("data_disk").([]interface{})
 	ultraSSDEnabled := d.Get("additional_capabilities.0.ultra_ssd_enabled").(bool)
-	dataDisks, err := ExpandVirtualMachineScaleSetDataDisk(d, dataDisksRaw, ultraSSDEnabled)
+	dataDisks, err := ExpandVirtualMachineScaleSetDataDisk(dataDisksRaw, ultraSSDEnabled)
 	if err != nil {
 		return fmt.Errorf("expanding `data_disk`: %+v", err)
 	}
@@ -174,8 +174,9 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 	healthProbeId := d.Get("health_probe_id").(string)
 	upgradeMode := virtualmachinescalesets.UpgradeMode(d.Get("upgrade_mode").(string))
 	automaticOSUpgradePolicyRaw := d.Get("automatic_os_upgrade_policy").([]interface{})
-	automaticOSUpgradePolicy := ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(automaticOSUpgradePolicyRaw)
 	rollingUpgradePolicyRaw := d.Get("rolling_upgrade_policy").([]interface{})
+	useRollingUpgradePolicy := len(rollingUpgradePolicyRaw) > 0
+	automaticOSUpgradePolicy := ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(automaticOSUpgradePolicyRaw, useRollingUpgradePolicy)
 	rollingUpgradePolicy, err := ExpandVirtualMachineScaleSetRollingUpgradePolicy(rollingUpgradePolicyRaw, len(zones) > 0, overProvision)
 	if err != nil {
 		return err
@@ -533,7 +534,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 		update.Zones = pointer.To(zones.ExpandUntyped(d.Get("zones").(*schema.Set).List()))
 	}
 
-	if d.HasChange("automatic_os_upgrade_policy") || d.HasChange("rolling_upgrade_policy") {
+	if d.HasChanges("automatic_os_upgrade_policy", "rolling_upgrade_policy") {
 		upgradePolicy := virtualmachinescalesets.UpgradePolicy{}
 		if existing.Model.Properties.UpgradePolicy == nil {
 			upgradePolicy = virtualmachinescalesets.UpgradePolicy{
@@ -546,7 +547,9 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 
 		if d.HasChange("automatic_os_upgrade_policy") {
 			automaticRaw := d.Get("automatic_os_upgrade_policy").([]interface{})
-			upgradePolicy.AutomaticOSUpgradePolicy = ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(automaticRaw)
+			rollingRaw := d.Get("rolling_upgrade_policy").([]interface{})
+			useRollingUpgradePolicy := len(rollingRaw) > 0
+			upgradePolicy.AutomaticOSUpgradePolicy = ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(automaticRaw, useRollingUpgradePolicy)
 
 			if upgradePolicy.AutomaticOSUpgradePolicy != nil {
 				automaticOSUpgradeIsEnabled = *upgradePolicy.AutomaticOSUpgradePolicy.EnableAutomaticOSUpgrade
@@ -585,10 +588,11 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 		updateProps.SinglePlacementGroup = pointer.To(singlePlacementGroup)
 	}
 
-	if d.HasChange("admin_ssh_key") || d.HasChange("custom_data") || d.HasChange("disable_password_authentication") || d.HasChange("provision_vm_agent") || d.HasChange("secret") {
+	// lintignore:R019 // deliberate subset: only the fields feeding the OSProfile update payload
+	if d.HasChanges("admin_ssh_key", "custom_data", "disable_password_authentication", "provision_vm_agent", "secret") {
 		osProfile := virtualmachinescalesets.VirtualMachineScaleSetUpdateOSProfile{}
 
-		if d.HasChange("admin_ssh_key") || d.HasChange("disable_password_authentication") || d.HasChange("provision_vm_agent") {
+		if d.HasChanges("admin_ssh_key", "disable_password_authentication", "provision_vm_agent") {
 			linuxConfig := virtualmachinescalesets.LinuxConfiguration{}
 
 			if d.HasChange("admin_ssh_key") {
@@ -628,7 +632,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 		updateProps.VirtualMachineProfile.OsProfile = &osProfile
 	}
 
-	if d.HasChange("data_disk") || d.HasChange("os_disk") || d.HasChange("source_image_id") || d.HasChange("source_image_reference") {
+	if d.HasChanges("data_disk", "os_disk", "source_image_id", "source_image_reference") {
 		updateInstances = true
 
 		if updateProps.VirtualMachineProfile.StorageProfile == nil {
@@ -637,7 +641,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 
 		if d.HasChange("data_disk") {
 			ultraSSDEnabled := d.Get("additional_capabilities.0.ultra_ssd_enabled").(bool)
-			dataDisks, err := ExpandVirtualMachineScaleSetDataDisk(d, d.Get("data_disk").([]interface{}), ultraSSDEnabled)
+			dataDisks, err := ExpandVirtualMachineScaleSetDataDisk(d.Get("data_disk").([]interface{}), ultraSSDEnabled)
 			if err != nil {
 				return fmt.Errorf("expanding `data_disk`: %+v", err)
 			}
@@ -649,7 +653,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 			updateProps.VirtualMachineProfile.StorageProfile.OsDisk = ExpandVirtualMachineScaleSetOSDiskUpdate(osDiskRaw)
 		}
 
-		if d.HasChange("source_image_id") || d.HasChange("source_image_reference") {
+		if d.HasChanges("source_image_id", "source_image_reference") {
 			sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
 			sourceImageId := d.Get("source_image_id").(string)
 			sourceImageReference := expandSourceImageReferenceVMSS(sourceImageReferenceRaw, sourceImageId)
@@ -668,7 +672,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 		}
 	}
 
-	if d.HasChange("network_interface") || d.HasChange("health_probe_id") {
+	if d.HasChanges("network_interface", "health_probe_id") {
 		networkInterfacesRaw := d.Get("network_interface").([]interface{})
 		networkInterfaces, err := ExpandVirtualMachineScaleSetNetworkInterfaceUpdate(networkInterfacesRaw)
 		if err != nil {
@@ -783,7 +787,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 		update.Plan = expandPlanVMSS(planRaw)
 	}
 
-	if d.HasChange("sku") || d.HasChange("instances") {
+	if d.HasChanges("sku", "instances") {
 		// in-case ignore_changes is being used, since both fields are required
 		// look up the current values and override them as needed
 		sku := existing.Model.Sku

@@ -18,8 +18,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networksecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -1132,7 +1130,7 @@ func flattenVirtualMachineScaleSetPublicIPAddress(input virtualmachinescalesets.
 }
 
 func VirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
-	s := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		// TODO: does this want to be a Set?
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -1222,31 +1220,12 @@ func VirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		s.Elem.(*pluginsdk.Resource).Schema["ultra_ssd_disk_iops_read_write"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
-			ValidateFunc: validation.IntAtLeast(1),
-			Computed:     true,
-			Deprecated:   "`data_disk.ultra_ssd_disk_iops_read_write` has been deprecated in favour of `data_disk.disk_iops_read_write` and will be removed in v5.0 of the Provider",
-		}
-		s.Elem.(*pluginsdk.Resource).Schema["ultra_ssd_disk_mbps_read_write"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
-			ValidateFunc: validation.IntAtLeast(1),
-			Computed:     true,
-			Deprecated:   "`data_disk.ultra_ssd_disk_mbps_read_write` has been deprecated in favour of `data_disk.disk_mbps_read_write` and will be removed in v5.0 of the Provider",
-		}
-	}
-
-	return s
 }
 
-func ExpandVirtualMachineScaleSetDataDisk(d *pluginsdk.ResourceData, input []interface{}, ultraSSDEnabled bool) (*[]virtualmachinescalesets.VirtualMachineScaleSetDataDisk, error) {
+func ExpandVirtualMachineScaleSetDataDisk(input []interface{}, ultraSSDEnabled bool) (*[]virtualmachinescalesets.VirtualMachineScaleSetDataDisk, error) {
 	disks := make([]virtualmachinescalesets.VirtualMachineScaleSetDataDisk, 0)
 
-	for i, v := range input {
+	for _, v := range input {
 		raw := v.(map[string]interface{})
 
 		storageAccountType := virtualmachinescalesets.StorageAccountTypes(raw["storage_account_type"].(string))
@@ -1272,21 +1251,6 @@ func ExpandVirtualMachineScaleSetDataDisk(d *pluginsdk.ResourceData, input []int
 		}
 
 		iops, mbps := raw["disk_iops_read_write"].(int), raw["disk_mbps_read_write"].(int)
-
-		if !features.FivePointOh() {
-			setInConfig := func(d *pluginsdk.ResourceData, path string) bool {
-				rawValue, diags := d.GetRawConfigAt(sdk.ConstructCtyPath(path))
-				return !diags.HasError() && !rawValue.IsNull()
-			}
-
-			if setInConfig(d, fmt.Sprintf("data_disk.%d.ultra_ssd_disk_iops_read_write", i)) {
-				iops = raw["ultra_ssd_disk_iops_read_write"].(int)
-			}
-
-			if setInConfig(d, fmt.Sprintf("data_disk.%d.ultra_ssd_disk_mbps_read_write", i)) {
-				mbps = raw["ultra_ssd_disk_mbps_read_write"].(int)
-			}
-		}
 
 		if !ultraSSDEnabled && storageAccountType != virtualmachinescalesets.StorageAccountTypesPremiumVTwoLRS {
 			if iops > 0 {
@@ -1367,11 +1331,6 @@ func FlattenVirtualMachineScaleSetDataDisk(input *[]virtualmachinescalesets.Virt
 			"disk_iops_read_write":      iops,
 			"disk_mbps_read_write":      mbps,
 			"write_accelerator_enabled": writeAcceleratorEnabled,
-		}
-
-		if !features.FivePointOh() {
-			dataDisk["ultra_ssd_disk_iops_read_write"] = iops
-			dataDisk["ultra_ssd_disk_mbps_read_write"] = mbps
 		}
 
 		output = append(output, dataDisk)
@@ -1642,7 +1601,7 @@ func VirtualMachineScaleSetAutomatedOSUpgradePolicySchema() *pluginsdk.Schema {
 	}
 }
 
-func ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(input []interface{}) *virtualmachinescalesets.AutomaticOSUpgradePolicy {
+func ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(input []interface{}, useRollingUpgradePolicy bool) *virtualmachinescalesets.AutomaticOSUpgradePolicy {
 	if len(input) == 0 {
 		return nil
 	}
@@ -1651,6 +1610,7 @@ func ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(input []interface{}) *vi
 	return &virtualmachinescalesets.AutomaticOSUpgradePolicy{
 		DisableAutomaticRollback: pointer.To(!raw["automatic_rollback_enabled"].(bool)),
 		EnableAutomaticOSUpgrade: pointer.To(raw["automatic_os_upgrade_enabled"].(bool)),
+		UseRollingUpgradePolicy:  pointer.To(useRollingUpgradePolicy),
 	}
 }
 

@@ -717,7 +717,7 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 
 	windowsSlotSiteConfig := siteConfig[0]
 
-	if metadata.ResourceData.HasChange("site_config.0.health_check_path") || metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
+	if metadata.ResourceData.HasChanges("site_config.0.health_check_path", "site_config.0.health_check_eviction_time_in_min") {
 		v := strconv.FormatInt(windowsSlotSiteConfig.HealthCheckEvictionTime, 10)
 		if v == "0" || windowsSlotSiteConfig.HealthCheckPath == "" {
 			appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, true)
@@ -1010,7 +1010,7 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 
 	linuxSlotSiteConfig := siteConfig[0]
 
-	if metadata.ResourceData.HasChange("site_config.0.health_check_path") || metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
+	if metadata.ResourceData.HasChanges("site_config.0.health_check_path", "site_config.0.health_check_eviction_time_in_min") {
 		v := strconv.FormatInt(linuxSlotSiteConfig.HealthCheckEvictionTime, 10)
 		if v == "0" || linuxSlotSiteConfig.HealthCheckPath == "" {
 			appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, true)

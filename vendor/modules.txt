@@ -285,7 +285,6 @@ github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configu
 github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configurationprofiles
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2015-10-31/webhook
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/agentregistrationinformation
-github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/softwareupdateconfiguration
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/watcher
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/automationaccount
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/module
@@ -428,10 +427,10 @@ github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/sshpublick
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachineextensions
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachineimages
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines
-github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetextensions
-github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetrollingupgrades
-github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetvms
+github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesetextensions
+github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesetrollingupgrades
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets
+github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesetvms
 github.com/hashicorp/go-azure-sdk/resource-manager/confidentialledger/2022-05-13/confidentialledger
 github.com/hashicorp/go-azure-sdk/resource-manager/consumption/2019-10-01/budgets
 github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/certificates
@@ -1027,15 +1026,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/p
 github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/remediations
 github.com/hashicorp/go-azure-sdk/resource-manager/portal/2019-01-01-preview/dashboard
 github.com/hashicorp/go-azure-sdk/resource-manager/portal/2019-01-01-preview/tenantconfiguration
-github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/configurations
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/databases
-github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/firewallrules
-github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/replicas
-github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/serveradministrators
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/servers
-github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/serversecurityalertpolicies
-github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/virtualnetworkrules
-github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2020-01-01/serverkeys
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/administratormicrosoftentras
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/backupautomaticandondemands
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/configurations
