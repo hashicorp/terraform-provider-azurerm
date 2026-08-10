@@ -66,6 +66,7 @@ jobs:
               - '**/*.go'
               - 'go.mod'
               - 'go.sum'
+              - '.go-version'
             scripts:
               - 'scripts/**'
               - '**/*.sh'
