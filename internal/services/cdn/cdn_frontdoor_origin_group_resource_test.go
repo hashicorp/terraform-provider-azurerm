@@ -9,12 +9,11 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdorigingroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CdnFrontDoorOriginGroupResource struct{}
@@ -138,20 +137,17 @@ func TestAccCdnFrontDoorOriginGroup_updateHealthProbe(t *testing.T) {
 }
 
 func (r CdnFrontDoorOriginGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FrontDoorOriginGroupID(state.ID)
+	id, err := afdorigingroups.ParseOriginGroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
 	client := clients.Cdn.FrontDoorOriginGroupsClient
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return pointer.To(false), nil
-		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return pointer.To(true), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r CdnFrontDoorOriginGroupResource) basic(data acceptance.TestData) string {

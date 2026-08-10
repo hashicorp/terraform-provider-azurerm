@@ -142,14 +142,16 @@ func resourceDataProtectionBackupPolicyDiskCreate(d *schema.ResourceData, meta i
 	vaultId, _ := basebackuppolicyresources.ParseBackupVaultID(d.Get("vault_id").(string))
 	id := basebackuppolicyresources.NewBackupPolicyID(subscriptionId, vaultId.ResourceGroupName, vaultId.BackupVaultName, name)
 
-	existing, err := client.BackupPoliciesGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing DataProtection BackupPolicy (%q): %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.BackupPoliciesGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing DataProtection BackupPolicy (%q): %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_data_protection_backup_policy_disk", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_data_protection_backup_policy_disk", id.ID())
+		}
 	}
 
 	taggingCriteria := expandBackupPolicyDiskTaggingCriteriaArray(d.Get("retention_rule").([]interface{}))
@@ -165,7 +167,7 @@ func resourceDataProtectionBackupPolicyDiskCreate(d *schema.ResourceData, meta i
 	}
 
 	if _, err := client.BackupPoliciesCreateOrUpdate(ctx, id, parameters); err != nil {
-		return fmt.Errorf("creating/updating DataProtection BackupPolicy (%q): %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -384,7 +386,7 @@ func flattenBackupPolicyDiskDefaultRetentionRuleDuration(input *[]basebackuppoli
 	for _, item := range *input {
 		if retentionRule, ok := item.(basebackuppolicyresources.AzureRetentionRule); ok && retentionRule.IsDefault != nil && *retentionRule.IsDefault {
 			if len(retentionRule.Lifecycles) > 0 {
-				if deleteOption, ok := (retentionRule.Lifecycles)[0].DeleteAfter.(basebackuppolicyresources.AbsoluteDeleteOption); ok {
+				if deleteOption, ok := retentionRule.Lifecycles[0].DeleteAfter.(basebackuppolicyresources.AbsoluteDeleteOption); ok {
 					return deleteOption.Duration
 				}
 			}
@@ -423,7 +425,7 @@ func flattenBackupPolicyDiskRetentionRuleArray(input *[]basebackuppolicyresource
 			}
 			var duration string
 			if len(retentionRule.Lifecycles) > 0 {
-				if deleteOption, ok := (retentionRule.Lifecycles)[0].DeleteAfter.(basebackuppolicyresources.AbsoluteDeleteOption); ok {
+				if deleteOption, ok := retentionRule.Lifecycles[0].DeleteAfter.(basebackuppolicyresources.AbsoluteDeleteOption); ok {
 					duration = deleteOption.Duration
 				}
 			}

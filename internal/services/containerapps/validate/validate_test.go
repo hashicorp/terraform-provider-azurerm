@@ -201,6 +201,14 @@ func TestValidateManagedEnvironmentName(t *testing.T) {
 			Input: "TooLonghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghija",
 		},
 		{
+			Input: "98",
+			Valid: true,
+		},
+		{
+			Input: "42canhavenumbersatstart01",
+			Valid: true,
+		},
+		{
 			Input: "a--a",
 			Valid: true,
 		},

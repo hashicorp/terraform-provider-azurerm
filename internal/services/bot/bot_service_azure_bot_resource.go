@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/validate"
@@ -69,7 +68,7 @@ func (r AzureBotServiceResource) ResourceType() string {
 }
 
 func (r AzureBotServiceResource) Arguments() map[string]*pluginsdk.Schema {
-	output := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -152,7 +151,7 @@ func (r AzureBotServiceResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"microsoft_app_type": {
 			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Required: true,
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(botservice.MsaAppTypeMultiTenant),
@@ -204,12 +203,6 @@ func (r AzureBotServiceResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
-
-	if !features.FivePointOh() {
-		output["cmk_key_vault_key_url"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
-	}
-
-	return output
 }
 
 func (r AzureBotServiceResource) Attributes() map[string]*pluginsdk.Schema {
@@ -230,14 +223,16 @@ func (r AzureBotServiceResource) Create() sdk.ResourceFunc {
 
 			id := parse.NewBotServiceID(subscriptionId, config.ResourceGroupName, config.Name)
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
-			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+				if err != nil {
+					if !utils.ResponseWasNotFound(existing.Response) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				}
 			}
 
 			displayName := config.DisplayName

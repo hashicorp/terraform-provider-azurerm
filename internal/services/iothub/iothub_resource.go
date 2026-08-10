@@ -655,7 +655,7 @@ func resourceIotHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	locks.ByName(id.Name, IothubResourceName)
 	defer locks.UnlockByName(id.Name, IothubResourceName)
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -666,15 +666,16 @@ func resourceIotHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_iothub", id.ID())
 		}
-		res, err := client.CheckNameAvailability(ctx, devices.OperationInputs{Name: &id.Name})
-		if err != nil {
-			return fmt.Errorf("an error occurred checking if the IoTHub name was unique: %+v", err)
-		}
+	}
 
-		if !*res.NameAvailable {
-			if _, err = client.Get(ctx, id.ResourceGroup, id.Name); err == nil {
-				return fmt.Errorf("an IoTHub already exists with the name %q - please choose an alternate name: %s", id.Name, string(res.Reason))
-			}
+	res, err := client.CheckNameAvailability(ctx, devices.OperationInputs{Name: &id.Name})
+	if err != nil {
+		return fmt.Errorf("an error occurred checking if the IoTHub name was unique: %+v", err)
+	}
+
+	if !*res.NameAvailable {
+		if _, err = client.Get(ctx, id.ResourceGroup, id.Name); err == nil {
+			return fmt.Errorf("an IoTHub already exists with the name %q - please choose an alternate name: %s", id.Name, string(res.Reason))
 		}
 	}
 
@@ -777,11 +778,11 @@ func resourceIotHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation of %q: %+v", id, err)
 	}
-
-	d.SetId(id.ID())
 
 	return resourceIotHubRead(d, meta)
 }

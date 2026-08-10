@@ -1211,7 +1211,6 @@ resource "azurerm_batch_pool" "test" {
 }
 
 func (BatchPoolResource) startTask_complete(data acceptance.TestData) string {
-	template := BatchPoolResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1368,7 +1367,7 @@ resource "azurerm_batch_pool" "test" {
     }
   }
 }
-`, template, data.RandomString, data.RandomString)
+`, BatchPoolResource{}.template(data), data.RandomString, data.RandomString)
 }
 
 func (BatchPoolResource) startTask_userIdentity(data acceptance.TestData) string {
@@ -1893,7 +1892,7 @@ resource "azurerm_public_ip" "test" {
   name                = "acctestpip%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
   domain_name_label   = "acctestpip%d"
 }
 
@@ -1926,7 +1925,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "blob"
 }
 
@@ -2137,19 +2136,19 @@ resource "azurerm_batch_pool" "test" {
 }
 
 func (BatchPoolResource) mountConfigurationAzureBlobFileSystem(data acceptance.TestData) string {
-	template := BatchPoolResource{}.template(data)
 	return fmt.Sprintf(`
-%s
+	%s
 resource "azurerm_storage_account" "test" {
-  name                     = "accbatchsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "accbatchsa%s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 }
 resource "azurerm_storage_container" "test" {
   name                  = "accbatchsc%s"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "blob"
 }
 resource "azurerm_batch_account" "test" {
@@ -2181,24 +2180,24 @@ resource "azurerm_batch_pool" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
+`, BatchPoolResource{}.template(data), data.RandomString, data.RandomString, data.RandomString, data.RandomString)
 }
 
 func (BatchPoolResource) mountConfigurationAzureBlobFileSystemWithUserAssignedIdentity(data acceptance.TestData) string {
-	template := BatchPoolResource{}.template(data)
 	return fmt.Sprintf(`
-%s
+	%s
 resource "azurerm_storage_account" "test" {
-  name                     = "accbatchsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "accbatchsa%s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 }
 
 resource "azurerm_storage_container" "test" {
   name                  = "accbatchsc%s"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "blob"
 }
 
@@ -2249,23 +2248,23 @@ resource "azurerm_batch_pool" "test" {
     }
   }
 }
-`, template, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
+`, BatchPoolResource{}.template(data), data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
 }
 
 func (BatchPoolResource) mountConfigurationAzureFileShare(data acceptance.TestData) string {
-	template := BatchPoolResource{}.template(data)
 	return fmt.Sprintf(`
-%s
+	%s
 resource "azurerm_storage_account" "test" {
-  name                     = "accbatchsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "accbatchsa%s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 }
 resource "azurerm_storage_container" "test" {
   name                  = "accbatchsc%s"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "blob"
 }
 resource "azurerm_batch_account" "test" {
@@ -2297,11 +2296,10 @@ resource "azurerm_batch_pool" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
+`, BatchPoolResource{}.template(data), data.RandomString, data.RandomString, data.RandomString, data.RandomString)
 }
 
 func (BatchPoolResource) mountConfigurationCIFS(data acceptance.TestData) string {
-	template := BatchPoolResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 resource "azurerm_batch_account" "test" {
@@ -2334,11 +2332,10 @@ resource "azurerm_batch_pool" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomString, data.RandomString)
+`, BatchPoolResource{}.template(data), data.RandomString, data.RandomString)
 }
 
 func (BatchPoolResource) mountConfigurationNFS(data acceptance.TestData) string {
-	template := BatchPoolResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 resource "azurerm_batch_account" "test" {
@@ -2369,7 +2366,7 @@ resource "azurerm_batch_pool" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomString, data.RandomString)
+`, BatchPoolResource{}.template(data), data.RandomString, data.RandomString)
 }
 
 func (BatchPoolResource) targetNodeCommunicationMode(data acceptance.TestData, targetNodeCommunicationMode string) string {
@@ -2413,7 +2410,6 @@ resource "azurerm_batch_pool" "test" {
 }
 
 func (BatchPoolResource) extensions(data acceptance.TestData) string {
-	template := BatchPoolResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 resource "azurerm_batch_account" "test" {
@@ -2456,11 +2452,10 @@ resource "azurerm_batch_pool" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomString, data.RandomString, data.RandomString)
+`, BatchPoolResource{}.template(data), data.RandomString, data.RandomString, data.RandomString)
 }
 
 func (BatchPoolResource) extensionsWithEmptySettings(data acceptance.TestData) string {
-	template := BatchPoolResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 resource "azurerm_batch_account" "test" {
@@ -2503,11 +2498,10 @@ resource "azurerm_batch_pool" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomString, data.RandomString, data.RandomString)
+`, BatchPoolResource{}.template(data), data.RandomString, data.RandomString, data.RandomString)
 }
 
 func (BatchPoolResource) diskSettings(data acceptance.TestData) string {
-	template := BatchPoolResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 resource "azurerm_batch_account" "test" {
@@ -2538,7 +2532,7 @@ resource "azurerm_batch_pool" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomString, data.RandomString)
+`, BatchPoolResource{}.template(data), data.RandomString, data.RandomString)
 }
 
 func (BatchPoolResource) updateDiskSettings(data acceptance.TestData) string {
@@ -2620,7 +2614,6 @@ resource "azurerm_batch_pool" "test" {
 }
 
 func (BatchPoolResource) linuxUserAccounts(data acceptance.TestData) string {
-	template := BatchPoolResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 resource "azurerm_batch_account" "test" {
@@ -2654,11 +2647,10 @@ resource "azurerm_batch_pool" "test" {
     }
   }
 }
-`, template, data.RandomString, data.RandomString)
+`, BatchPoolResource{}.template(data), data.RandomString, data.RandomString)
 }
 
 func (BatchPoolResource) windowsUserAccountsWithConfig(data acceptance.TestData) string {
-	template := BatchPoolResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 resource "azurerm_batch_account" "test" {
@@ -2700,7 +2692,7 @@ resource "azurerm_batch_pool" "test" {
     }
   }
 }
-`, template, data.RandomString, data.RandomString)
+`, BatchPoolResource{}.template(data), data.RandomString, data.RandomString)
 }
 
 func (BatchPoolResource) template(data acceptance.TestData) string {
@@ -2738,7 +2730,6 @@ resource "azurerm_subnet_network_security_group_association" "test" {
 }
 
 func (BatchPoolResource) securityProfileWithUEFISettings(data acceptance.TestData) string {
-	template := BatchPoolResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 resource "azurerm_batch_account" "test" {
@@ -2768,5 +2759,5 @@ resource "azurerm_batch_pool" "test" {
     version   = "latest"
   }
 }
-`, template, data.RandomString, data.RandomString)
+`, BatchPoolResource{}.template(data), data.RandomString, data.RandomString)
 }

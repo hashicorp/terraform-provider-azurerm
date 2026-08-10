@@ -62,9 +62,20 @@ func (c ServicelinkerClient) ConnectorCreateOrUpdate(ctx context.Context, id Con
 
 // ConnectorCreateOrUpdateThenPoll performs ConnectorCreateOrUpdate then polls until it's completed
 func (c ServicelinkerClient) ConnectorCreateOrUpdateThenPoll(ctx context.Context, id ConnectorId, input LinkerResource) error {
+	return c.ConnectorCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ConnectorCreateOrUpdateCallbackThenPoll performs ConnectorCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c ServicelinkerClient) ConnectorCreateOrUpdateCallbackThenPoll(ctx context.Context, id ConnectorId, input LinkerResource, callback func() error) error {
 	result, err := c.ConnectorCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ConnectorCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

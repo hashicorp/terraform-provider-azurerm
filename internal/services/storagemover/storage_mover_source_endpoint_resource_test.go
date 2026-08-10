@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type StorageMoverSourceEndpointTestResource struct{}
+type StorageMoverSourceEndpointResource struct{}
 
 func TestAccStorageMoverSourceEndpoint_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_mover_source_endpoint", "test")
-	r := StorageMoverSourceEndpointTestResource{}
+	r := StorageMoverSourceEndpointResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -35,7 +35,7 @@ func TestAccStorageMoverSourceEndpoint_basic(t *testing.T) {
 
 func TestAccStorageMoverSourceEndpoint_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_mover_source_endpoint", "test")
-	r := StorageMoverSourceEndpointTestResource{}
+	r := StorageMoverSourceEndpointResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -49,7 +49,7 @@ func TestAccStorageMoverSourceEndpoint_requiresImport(t *testing.T) {
 
 func TestAccStorageMoverSourceEndpoint_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_mover_source_endpoint", "test")
-	r := StorageMoverSourceEndpointTestResource{}
+	r := StorageMoverSourceEndpointResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -63,7 +63,7 @@ func TestAccStorageMoverSourceEndpoint_complete(t *testing.T) {
 
 func TestAccStorageMoverSourceEndpoint_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_mover_source_endpoint", "test")
-	r := StorageMoverSourceEndpointTestResource{}
+	r := StorageMoverSourceEndpointResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -82,7 +82,7 @@ func TestAccStorageMoverSourceEndpoint_update(t *testing.T) {
 	})
 }
 
-func (r StorageMoverSourceEndpointTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r StorageMoverSourceEndpointResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := endpoints.ParseEndpointID(state.ID)
 	if err != nil {
 		return nil, err
@@ -99,7 +99,7 @@ func (r StorageMoverSourceEndpointTestResource) Exists(ctx context.Context, clie
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r StorageMoverSourceEndpointTestResource) template(data acceptance.TestData) string {
+func (r StorageMoverSourceEndpointResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctest-rg-%d"
@@ -113,7 +113,7 @@ resource "azurerm_storage_mover" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r StorageMoverSourceEndpointTestResource) basic(data acceptance.TestData) string {
+func (r StorageMoverSourceEndpointResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 
@@ -131,7 +131,7 @@ resource "azurerm_storage_mover_source_endpoint" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r StorageMoverSourceEndpointTestResource) requiresImport(data acceptance.TestData) string {
+func (r StorageMoverSourceEndpointResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 
@@ -145,7 +145,7 @@ resource "azurerm_storage_mover_source_endpoint" "import" {
 `, config)
 }
 
-func (r StorageMoverSourceEndpointTestResource) complete(data acceptance.TestData) string {
+func (r StorageMoverSourceEndpointResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -165,7 +165,7 @@ resource "azurerm_storage_mover_source_endpoint" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r StorageMoverSourceEndpointTestResource) update(data acceptance.TestData) string {
+func (r StorageMoverSourceEndpointResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {

@@ -5,7 +5,6 @@ package batch
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -218,35 +217,6 @@ func flattenBatchPoolStartTask(oldConfig *pluginsdk.ResourceData, startTask *poo
 	result["resource_file"] = resourceFiles
 
 	return append(results, result)
-}
-
-// flattenBatchPoolCertificateReferences flattens a Batch pool certificate reference
-func flattenBatchPoolCertificateReferences(armCertificates *[]pool.CertificateReference) []interface{} {
-	if armCertificates == nil {
-		return []interface{}{}
-	}
-	output := make([]interface{}, 0)
-
-	for _, armCertificate := range *armCertificates {
-		certificate := map[string]interface{}{}
-
-		certificate["id"] = armCertificate.Id
-		if armCertificate.StoreLocation != nil {
-			certificate["store_location"] = string(*armCertificate.StoreLocation)
-		}
-		if armCertificate.StoreName != nil {
-			certificate["store_name"] = *armCertificate.StoreName
-		}
-		visibility := &pluginsdk.Set{F: pluginsdk.HashString}
-		if armCertificate.Visibility != nil {
-			for _, armVisibility := range *armCertificate.Visibility {
-				visibility.Add(string(armVisibility))
-			}
-		}
-		certificate["visibility"] = visibility
-		output = append(output, certificate)
-	}
-	return output
 }
 
 // flattenBatchPoolContainerConfiguration flattens a Batch pool container configuration
@@ -601,45 +571,6 @@ func expandBatchPoolContainerBindMounts(list []interface{}) *[]pool.ContainerHos
 	}
 
 	return &result
-}
-
-// ExpandBatchPoolCertificateReferences expands Batch pool certificate references
-func ExpandBatchPoolCertificateReferences(list []interface{}) (*[]pool.CertificateReference, error) {
-	result := make([]pool.CertificateReference, 0, len(list))
-	for _, tempItem := range list {
-		item := tempItem.(map[string]interface{})
-		certificateReference, err := expandBatchPoolCertificateReference(item)
-		if err != nil {
-			return nil, err
-		}
-		result = append(result, *certificateReference)
-	}
-	return &result, nil
-}
-
-func expandBatchPoolCertificateReference(ref map[string]interface{}) (*pool.CertificateReference, error) {
-	if len(ref) == 0 {
-		return nil, errors.New("storage image reference should be defined")
-	}
-
-	id := ref["id"].(string)
-	storeLocation := ref["store_location"].(string)
-	storeName := ref["store_name"].(string)
-	visibilityRefs := ref["visibility"].(*pluginsdk.Set)
-	var visibility []pool.CertificateVisibility
-	if visibilityRefs != nil {
-		for _, visibilityRef := range visibilityRefs.List() {
-			visibility = append(visibility, pool.CertificateVisibility(visibilityRef.(string)))
-		}
-	}
-
-	certificateReference := &pool.CertificateReference{
-		Id:            id,
-		StoreLocation: pointer.To(pool.CertificateStoreLocation(storeLocation)),
-		StoreName:     &storeName,
-		Visibility:    &visibility,
-	}
-	return certificateReference, nil
 }
 
 // ExpandBatchPoolStartTask expands Batch pool start task

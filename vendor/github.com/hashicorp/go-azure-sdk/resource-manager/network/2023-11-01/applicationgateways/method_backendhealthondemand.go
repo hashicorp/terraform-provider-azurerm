@@ -91,9 +91,20 @@ func (c ApplicationGatewaysClient) BackendHealthOnDemand(ctx context.Context, id
 
 // BackendHealthOnDemandThenPoll performs BackendHealthOnDemand then polls until it's completed
 func (c ApplicationGatewaysClient) BackendHealthOnDemandThenPoll(ctx context.Context, id ApplicationGatewayId, input ApplicationGatewayOnDemandProbe, options BackendHealthOnDemandOperationOptions) error {
+	return c.BackendHealthOnDemandCallbackThenPoll(ctx, id, input, options, nil)
+}
+
+// BackendHealthOnDemandCallbackThenPoll performs BackendHealthOnDemand, runs the optional callback function, then polls until it's completed
+func (c ApplicationGatewaysClient) BackendHealthOnDemandCallbackThenPoll(ctx context.Context, id ApplicationGatewayId, input ApplicationGatewayOnDemandProbe, options BackendHealthOnDemandOperationOptions, callback func() error) error {
 	result, err := c.BackendHealthOnDemand(ctx, id, input, options)
 	if err != nil {
 		return fmt.Errorf("performing BackendHealthOnDemand: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

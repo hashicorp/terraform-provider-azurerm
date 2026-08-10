@@ -156,10 +156,12 @@ func (r IotHubFileUploadResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %q: %+v", id, err)
 			}
 
-			if iotHub.Properties != nil && iotHub.Properties.MessagingEndpoints != nil {
-				if storageEndpoint, ok := iotHub.Properties.StorageEndpoints["$default"]; ok {
-					if storageEndpoint.ConnectionString != nil && *storageEndpoint.ConnectionString != "" && storageEndpoint.ContainerName != nil && *storageEndpoint.ContainerName != "" {
-						return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				if iotHub.Properties != nil && iotHub.Properties.MessagingEndpoints != nil {
+					if storageEndpoint, ok := iotHub.Properties.StorageEndpoints["$default"]; ok {
+						if storageEndpoint.ConnectionString != nil && *storageEndpoint.ConnectionString != "" && storageEndpoint.ContainerName != nil && *storageEndpoint.ContainerName != "" {
+							return metadata.ResourceRequiresImport(r.ResourceType(), id)
+						}
 					}
 				}
 			}
@@ -202,11 +204,12 @@ func (r IotHubFileUploadResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %q: %+v", id, err)
 			}
 
+			metadata.SetID(id)
+
 			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 				return fmt.Errorf("waiting for the completion of the creation of %q: %+v", id, err)
 			}
 
-			metadata.SetID(id)
 			return nil
 		},
 		Timeout: 30 * time.Minute,

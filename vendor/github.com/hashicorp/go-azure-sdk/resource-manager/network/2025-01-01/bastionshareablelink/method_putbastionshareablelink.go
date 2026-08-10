@@ -80,9 +80,20 @@ func (c BastionShareableLinkClient) PutBastionShareableLink(ctx context.Context,
 
 // PutBastionShareableLinkThenPoll performs PutBastionShareableLink then polls until it's completed
 func (c BastionShareableLinkClient) PutBastionShareableLinkThenPoll(ctx context.Context, id BastionHostId, input BastionShareableLinkListRequest) error {
+	return c.PutBastionShareableLinkCallbackThenPoll(ctx, id, input, nil)
+}
+
+// PutBastionShareableLinkCallbackThenPoll performs PutBastionShareableLink, runs the optional callback function, then polls until it's completed
+func (c BastionShareableLinkClient) PutBastionShareableLinkCallbackThenPoll(ctx context.Context, id BastionHostId, input BastionShareableLinkListRequest, callback func() error) error {
 	result, err := c.PutBastionShareableLink(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing PutBastionShareableLink: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

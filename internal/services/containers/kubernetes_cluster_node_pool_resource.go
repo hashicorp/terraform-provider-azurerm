@@ -26,8 +26,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
@@ -40,7 +40,7 @@ import (
 )
 
 func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceKubernetesClusterNodePoolCreate,
 		Read:   resourceKubernetesClusterNodePoolRead,
 		Update: resourceKubernetesClusterNodePoolUpdate,
@@ -116,34 +116,6 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 			},
 		),
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["linux_os_config"].Elem.(*pluginsdk.Resource).Schema["transparent_huge_page"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"linux_os_config.0.transparent_huge_page_enabled"},
-			ValidateFunc: validation.StringInSlice([]string{
-				"always",
-				"madvise",
-				"never",
-			}, false),
-		}
-		resource.Schema["linux_os_config"].Elem.(*pluginsdk.Resource).Schema["transparent_huge_page_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"linux_os_config.0.transparent_huge_page"},
-			Deprecated:    "this property has been deprecated in favour of `transparent_huge_page` and will be removed in version 5.0 of the Provider.",
-			ValidateFunc: validation.StringInSlice([]string{
-				"always",
-				"madvise",
-				"never",
-			}, false),
-		}
-	}
-
-	return resource
 }
 
 func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
@@ -300,6 +272,11 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"node_image_version": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"orchestrator_version": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -439,6 +416,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ValidateFunc: validation.StringInSlice([]string{
+				string(agentpools.WorkloadRuntimeKataVMIsolation),
 				string(agentpools.WorkloadRuntimeOCIContainer),
 				string(agentpools.WorkloadRuntimeWasmWasi),
 			}, false),
@@ -499,7 +477,6 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 
 	id := agentpools.NewAgentPoolID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.ManagedClusterName, d.Get("name").(string))
 
-	log.Printf("[DEBUG] Retrieving %s...", *clusterId)
 	cluster, err := clustersClient.Get(ctx, *clusterId)
 	if err != nil {
 		if response.WasNotFound(cluster.HttpResponse) {
@@ -526,15 +503,17 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("multiple node pools are only supported when the Default Node Pool uses a VMScaleSet (but %s doesn't)", *clusterId)
 	}
 
-	existing, err := poolsClient.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := poolsClient.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_kubernetes_cluster_node_pool", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_kubernetes_cluster_node_pool", id.ID())
+		}
 	}
 
 	count := d.Get("node_count").(int)
@@ -730,10 +709,10 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		Properties: &profile,
 	}
 
-	err = poolsClient.CreateOrUpdateThenPoll(ctx, id, parameters, agentpools.DefaultCreateOrUpdateOperationOptions())
-	if err != nil {
+	if err := poolsClient.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, agentpools.DefaultCreateOrUpdateOperationOptions(), sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
+	d.SetId(id.ID())
 
 	// Wait for vnet and node subnet to come back to Succeeded before releasing any locks
 	timeout, ok := ctx.Deadline()
@@ -756,7 +735,6 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	d.SetId(id.ID())
 	return resourceKubernetesClusterNodePoolRead(d, meta)
 }
 
@@ -771,9 +749,6 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	d.Partial(true)
-
-	log.Printf("[DEBUG] Retrieving existing %s..", *id)
 	existing, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(existing.HttpResponse) {
@@ -1071,14 +1046,11 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 
 		log.Printf("[DEBUG] Cycled Node Pool..")
 	} else {
-		log.Printf("[DEBUG] Updating existing %s..", *id)
 		err = client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, agentpools.DefaultCreateOrUpdateOperationOptions())
 		if err != nil {
 			return fmt.Errorf("updating Node Pool %s: %+v", *id, err)
 		}
 	}
-
-	d.Partial(false)
 
 	return resourceKubernetesClusterNodePoolRead(d, meta)
 }
@@ -1202,6 +1174,8 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 		if err := d.Set("node_taints", utils.FlattenStringSlice(props.NodeTaints)); err != nil {
 			return fmt.Errorf("setting `node_taints`: %+v", err)
 		}
+
+		d.Set("node_image_version", props.NodeImageVersion)
 
 		// NOTE: workaround for migration from 2022-01-02-preview (<3.12.0) to 2022-03-02-preview (>=3.12.0). Before terraform apply is run against the new API, Azure will respond only with currentOrchestratorVersion, orchestratorVersion will be absent. More details: https://github.com/hashicorp/terraform-provider-azurerm/issues/17833#issuecomment-1227583353
 		if props.OrchestratorVersion != nil {
@@ -1385,7 +1359,7 @@ func expandAgentPoolKubeletConfig(input []interface{}) *agentpools.KubeletConfig
 	if v := raw["container_log_max_size_mb"].(int); v != 0 {
 		result.ContainerLogMaxSizeMB = pointer.To(int64(v))
 	}
-	if v := raw["container_log_max_line"].(int); v != 0 {
+	if v := raw["container_log_max_files"].(int); v != 0 {
 		result.ContainerLogMaxFiles = pointer.To(int64(v))
 	}
 	if v := raw["pod_max_pid"].(int); v != 0 {
@@ -1479,11 +1453,6 @@ func expandAgentPoolLinuxOSConfig(input []interface{}) (*agentpools.LinuxOSConfi
 	}
 	if v := raw["transparent_huge_page"].(string); v != "" {
 		result.TransparentHugePageEnabled = pointer.To(v)
-	}
-	if !features.FivePointOh() {
-		if v := raw["transparent_huge_page_enabled"].(string); v != "" {
-			result.TransparentHugePageEnabled = pointer.To(v)
-		}
 	}
 	if v := raw["transparent_huge_page_defrag"].(string); v != "" {
 		result.TransparentHugePageDefrag = pointer.To(v)
@@ -1622,10 +1591,6 @@ func flattenAgentPoolLinuxOSConfig(input *agentpools.LinuxOSConfig) ([]interface
 			"transparent_huge_page_defrag": transparentHugePageDefrag,
 			"transparent_huge_page":        transparentHugePageEnabled,
 		},
-	}
-
-	if !features.FivePointOh() {
-		config[0].(map[string]interface{})["transparent_huge_page_enabled"] = transparentHugePageEnabled
 	}
 
 	return config, nil

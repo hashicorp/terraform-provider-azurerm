@@ -2,6 +2,7 @@ package containerinstance
 
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/systemdata"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 )
 
@@ -14,6 +15,7 @@ type ContainerGroup struct {
 	Location   *string                            `json:"location,omitempty"`
 	Name       *string                            `json:"name,omitempty"`
 	Properties ContainerGroupPropertiesProperties `json:"properties"`
+	SystemData *systemdata.SystemData             `json:"systemData,omitempty"`
 	Tags       *map[string]string                 `json:"tags,omitempty"`
 	Type       *string                            `json:"type,omitempty"`
 	Zones      *zones.Schema                      `json:"zones,omitempty"`

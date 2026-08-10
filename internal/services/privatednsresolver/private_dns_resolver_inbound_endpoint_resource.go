@@ -124,13 +124,16 @@ func (r PrivateDNSResolverInboundEndpointResource) Create() sdk.ResourceFunc {
 			}
 
 			id := inboundendpoints.NewInboundEndpointID(dnsResolverId.SubscriptionId, dnsResolverId.ResourceGroupName, dnsResolverId.DnsResolverName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			properties := &inboundendpoints.InboundEndpoint{
@@ -148,11 +151,11 @@ func (r PrivateDNSResolverInboundEndpointResource) Create() sdk.ResourceFunc {
 				properties.Properties.IPConfigurations = *iPConfigurationsValue
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties, inboundendpoints.CreateOrUpdateOperationOptions{}); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, *properties, inboundendpoints.CreateOrUpdateOperationOptions{}, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}

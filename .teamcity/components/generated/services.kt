@@ -131,7 +131,6 @@ var services = mapOf(
         "codesigning" to "Trusted Signing",
         "vmware" to "VMware",
         "videoindexer" to "VideoIndexer",
-        "voiceservices" to "Voice Services",
         "web" to "Web",
         "workloads" to "Workloads"
 )
