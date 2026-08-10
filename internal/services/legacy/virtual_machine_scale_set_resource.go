@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -31,7 +32,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // NOTE: the `azurerm_virtual_machine_scale_set` resource has been superseded by the
@@ -1378,7 +1378,7 @@ func flattenAzureRMVirtualMachineScaleSetOsProfile(d *pluginsdk.ResourceData, pr
 		result["custom_data"] = *profile.CustomData
 	} else {
 		// look up the current custom data
-		result["custom_data"] = utils.Base64EncodeIfNot(d.Get("os_profile.0.custom_data").(string))
+		result["custom_data"] = helpers.Base64EncodeIfNot(d.Get("os_profile.0.custom_data").(string))
 	}
 
 	return []interface{}{result}
@@ -1879,7 +1879,7 @@ func expandAzureRMVirtualMachineScaleSetsOsProfile(d *pluginsdk.ResourceData) *v
 	}
 
 	if customData != "" {
-		customData = utils.Base64EncodeIfNot(customData)
+		customData = helpers.Base64EncodeIfNot(customData)
 		osProfile.CustomData = &customData
 	}
 

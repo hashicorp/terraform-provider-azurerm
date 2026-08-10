@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -23,7 +24,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourcePointToSiteVPNGateway() *pluginsdk.Resource {
@@ -225,7 +225,7 @@ func resourcePointToSiteVPNGatewayCreate(d *pluginsdk.ResourceData, meta interfa
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
-	customDNSServers := utils.ExpandStringSlice(d.Get("dns_servers").([]interface{}))
+	customDNSServers := helpers.ExpandStringSlice(d.Get("dns_servers").([]interface{}))
 	if len(*customDNSServers) != 0 {
 		parameters.Properties.CustomDnsServers = customDNSServers
 	}
@@ -271,7 +271,7 @@ func resourcePointToSiteVPNGatewayUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if d.HasChange("dns_servers") {
-		customDNSServers := utils.ExpandStringSlice(d.Get("dns_servers").([]interface{}))
+		customDNSServers := helpers.ExpandStringSlice(d.Get("dns_servers").([]interface{}))
 		if len(*customDNSServers) != 0 {
 			props.CustomDnsServers = customDNSServers
 		}
@@ -319,7 +319,7 @@ func resourcePointToSiteVPNGatewayRead(d *pluginsdk.ResourceData, meta interface
 		d.Set("location", location.NormalizeNilable(model.Location))
 
 		if props := model.Properties; props != nil {
-			d.Set("dns_servers", utils.FlattenStringSlice(props.CustomDnsServers))
+			d.Set("dns_servers", helpers.FlattenStringSlice(props.CustomDnsServers))
 			flattenedConfigurations := flattenPointToSiteVPNGatewayConnectionConfiguration(props.P2SConnectionConfigurations)
 			if err := d.Set("connection_configuration", flattenedConfigurations); err != nil {
 				return fmt.Errorf("setting `connection_configuration`: %+v", err)
@@ -441,7 +441,7 @@ func expandPointToSiteVPNGatewayConnectionRouteConfigurationPropagatedRouteTable
 		return nil
 	}
 	v := input[0].(map[string]interface{})
-	idRaws := utils.ExpandStringSlice(v["ids"].([]interface{}))
+	idRaws := helpers.ExpandStringSlice(v["ids"].([]interface{}))
 	ids := make([]virtualwans.SubResource, len(*idRaws))
 	for i, item := range *idRaws {
 		ids[i] = virtualwans.SubResource{
@@ -449,7 +449,7 @@ func expandPointToSiteVPNGatewayConnectionRouteConfigurationPropagatedRouteTable
 		}
 	}
 	return &virtualwans.PropagatedRouteTable{
-		Labels: utils.ExpandStringSlice(v["labels"].(*pluginsdk.Set).List()),
+		Labels: helpers.ExpandStringSlice(v["labels"].(*pluginsdk.Set).List()),
 		Ids:    &ids,
 	}
 }
@@ -550,7 +550,7 @@ func flattenPointToSiteVPNGatewayConnectionRouteConfigurationPropagatedRouteTabl
 	return []interface{}{
 		map[string]interface{}{
 			"ids":    ids,
-			"labels": utils.FlattenStringSlice(input.Labels),
+			"labels": helpers.FlattenStringSlice(input.Labels),
 		},
 	}
 }

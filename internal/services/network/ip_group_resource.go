@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -26,7 +27,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity
@@ -141,7 +141,7 @@ func resourceIpGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		Name:     &id.IpGroupName,
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &ipgroups.IPGroupPropertiesFormat{
-			IPAddresses: utils.ExpandStringSlice(ipAddresses),
+			IPAddresses: helpers.ExpandStringSlice(ipAddresses),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -272,7 +272,7 @@ func resourceIpGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	payload := existing.Model
 
 	if d.HasChange("cidrs") {
-		payload.Properties.IPAddresses = utils.ExpandStringSlice(d.Get("cidrs").(*pluginsdk.Set).List())
+		payload.Properties.IPAddresses = helpers.ExpandStringSlice(d.Get("cidrs").(*pluginsdk.Set).List())
 	}
 
 	if d.HasChange("tags") {

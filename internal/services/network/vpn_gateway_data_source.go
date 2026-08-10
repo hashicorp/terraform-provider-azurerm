@@ -13,10 +13,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceVPNGateway() *pluginsdk.Resource {
@@ -274,9 +274,9 @@ func dataSourceFlattenVPNGatewayIPConfigurationBgpPeeringAddress(input virtualwa
 	return []interface{}{
 		map[string]interface{}{
 			"ip_configuration_id": ipConfigurationID,
-			"custom_ips":          utils.FlattenStringSlice(input.CustomBgpIPAddresses),
-			"default_ips":         utils.FlattenStringSlice(input.DefaultBgpIPAddresses),
-			"tunnel_ips":          utils.FlattenStringSlice(input.TunnelIPAddresses),
+			"custom_ips":          helpers.FlattenStringSlice(input.CustomBgpIPAddresses),
+			"default_ips":         helpers.FlattenStringSlice(input.DefaultBgpIPAddresses),
+			"tunnel_ips":          helpers.FlattenStringSlice(input.TunnelIPAddresses),
 		},
 	}
 }

@@ -14,13 +14,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesetextensions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // NOTE (also in the docs): this is not intended to be used with the `azurerm_virtual_machine_scale_set` resource
@@ -167,7 +167,7 @@ func resourceVirtualMachineScaleSetExtensionCreate(d *pluginsdk.ResourceData, me
 	}
 
 	provisionAfterExtensionsRaw := d.Get("provision_after_extensions").([]interface{})
-	provisionAfterExtensions := utils.ExpandStringSlice(provisionAfterExtensionsRaw)
+	provisionAfterExtensions := helpers.ExpandStringSlice(provisionAfterExtensionsRaw)
 
 	props := virtualmachinescalesetextensions.VirtualMachineScaleSetExtension{
 		Name: pointer.To(id.ExtensionName),
@@ -249,7 +249,7 @@ func resourceVirtualMachineScaleSetExtensionUpdate(d *pluginsdk.ResourceData, me
 
 	if d.HasChange("provision_after_extensions") {
 		provisionAfterExtensionsRaw := d.Get("provision_after_extensions").([]interface{})
-		props.ProvisionAfterExtensions = utils.ExpandStringSlice(provisionAfterExtensionsRaw)
+		props.ProvisionAfterExtensions = helpers.ExpandStringSlice(provisionAfterExtensionsRaw)
 	}
 
 	if d.HasChange("publisher") {
@@ -333,7 +333,7 @@ func resourceVirtualMachineScaleSetExtensionRead(d *pluginsdk.ResourceData, meta
 			d.Set("automatic_upgrade_enabled", props.EnableAutomaticUpgrade)
 			d.Set("force_update_tag", props.ForceUpdateTag)
 			d.Set("protected_settings_from_key_vault", flattenProtectedSettingsFromKeyVaultOldVMSSExtension(props.ProtectedSettingsFromKeyVault))
-			d.Set("provision_after_extensions", utils.FlattenStringSlice(props.ProvisionAfterExtensions))
+			d.Set("provision_after_extensions", helpers.FlattenStringSlice(props.ProvisionAfterExtensions))
 			d.Set("publisher", props.Publisher)
 			d.Set("type", props.Type)
 			d.Set("type_handler_version", props.TypeHandlerVersion)

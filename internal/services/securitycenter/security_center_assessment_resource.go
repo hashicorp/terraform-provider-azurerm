@@ -10,6 +10,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -125,7 +126,7 @@ func resourceSecurityCenterAssessmentCreateUpdate(d *pluginsdk.ResourceData, met
 
 	assessment := security.Assessment{
 		AssessmentProperties: &security.AssessmentProperties{
-			AdditionalData: utils.ExpandMapStringPtrString(d.Get("additional_data").(map[string]interface{})),
+			AdditionalData: helpers.ExpandMapStringPtrString(d.Get("additional_data").(map[string]interface{})),
 			ResourceDetails: &security.AzureResourceDetails{
 				Source: security.SourceAzure,
 			},
@@ -166,7 +167,7 @@ func resourceSecurityCenterAssessmentRead(d *pluginsdk.ResourceData, meta interf
 	d.Set("assessment_policy_id", parse.NewAssessmentMetadataID(subscriptionID, id.Name).ID())
 	d.Set("target_resource_id", id.TargetResourceID)
 	if props := resp.AssessmentProperties; props != nil {
-		d.Set("additional_data", utils.FlattenMapStringPtrString(props.AdditionalData))
+		d.Set("additional_data", helpers.FlattenMapStringPtrString(props.AdditionalData))
 		if err := d.Set("status", flattenSecurityCenterAssessmentStatus(props.Status)); err != nil {
 			return fmt.Errorf("setting `status`: %s", err)
 		}
