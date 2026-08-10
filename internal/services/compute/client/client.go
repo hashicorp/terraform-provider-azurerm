@@ -328,7 +328,7 @@ func (c *Client) CancelRollingUpgradesBeforeDeletion(ctx context.Context, id vir
 	}
 
 	rollingId := virtualmachinescalesetrollingupgrades.NewVirtualMachineScaleSetID(id.SubscriptionId, id.ResourceGroupName, id.VirtualMachineScaleSetName)
-	if err := c.VirtualMachineScaleSetRollingUpgradesClient.CancelCallbackThenPoll(ctx, rollingId, nil); err != nil {
+	if err := c.VirtualMachineScaleSetRollingUpgradesClient.CancelThenPoll(ctx, rollingId); err != nil {
 		return fmt.Errorf("cancelling rolling upgrades for %s: %+v", id, err)
 	}
 
