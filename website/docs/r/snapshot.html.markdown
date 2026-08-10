@@ -80,7 +80,6 @@ resource "azurerm_snapshot" "target" {
 
 ```
 
-
 ## Arguments Reference
 
 The following arguments are supported:
@@ -95,7 +94,7 @@ The following arguments are supported:
 
 ~> **Note:** One of `source_uri`, `source_resource_id` or `storage_account_id` must be specified.
 
-~> **Note:** When `create_option` is set to `CopyStart` the snapshot is created using a background copy operation (for example when copying an incremental snapshot across regions). Terraform waits for the copy to reach 100% completion before finishing the create.
+-> **Note:** When `create_option` is set to `CopyStart` the snapshot is created using a background copy operation (for example when copying an incremental snapshot across regions). Terraform waits for the copy to reach 100% completion before finishing the create.
 
 * `source_uri` - (Optional) Specifies the URI to a Managed or Unmanaged Disk. Changing this forces a new resource to be created.
 
