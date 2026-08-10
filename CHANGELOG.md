@@ -4,6 +4,10 @@ FEATURES:
 
 ENHANCEMENTS:
 * `azurerm_linux_virtual_machine_scale_set` - update to API version `2025-04-01` [GH-31586]
+* `azurerm_windows_virtual_machine_scale_set` - update to API version `2025-04-01` [GH-31586]
+* `azurerm_orchestrated_virtual_machine_scale_set` - update to API version `2025-04-01` [GH-31586]
+* `azurerm_virtual_machine_scale_set` - update to API version `2025-04-01` [GH-31586]
+* `azurerm_virtual_machine_scale_set_extension` - update to API version `2025-04-01` [GH-31586]
 * `azurerm_managed_devops_pool` - add support for the `CreatorOnly` value to `azure_devops_organization.permission.kind` property [GH-32753]
 
 BUG FIXES:
