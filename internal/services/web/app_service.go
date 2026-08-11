@@ -12,10 +12,10 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func schemaAppServiceAadAuthSettings() *pluginsdk.Schema {
@@ -2098,16 +2098,16 @@ func expandHeaders(input interface{}) map[string][]string {
 
 		val := r.(map[string]interface{})
 		if raw := val["x_forwarded_host"].(*pluginsdk.Set).List(); len(raw) > 0 {
-			output["x-forwarded-host"] = *utils.ExpandStringSlice(raw)
+			output["x-forwarded-host"] = *helpers.ExpandStringSlice(raw)
 		}
 		if raw := val["x_forwarded_for"].(*pluginsdk.Set).List(); len(raw) > 0 {
-			output["x-forwarded-for"] = *utils.ExpandStringSlice(raw)
+			output["x-forwarded-for"] = *helpers.ExpandStringSlice(raw)
 		}
 		if raw := val["x_azure_fdid"].(*pluginsdk.Set).List(); len(raw) > 0 {
-			output["x-azure-fdid"] = *utils.ExpandStringSlice(raw)
+			output["x-azure-fdid"] = *helpers.ExpandStringSlice(raw)
 		}
 		if raw := val["x_fd_health_probe"].(*pluginsdk.Set).List(); len(raw) > 0 {
-			output["x-fd-healthprobe"] = *utils.ExpandStringSlice(raw)
+			output["x-fd-healthprobe"] = *helpers.ExpandStringSlice(raw)
 		}
 	}
 

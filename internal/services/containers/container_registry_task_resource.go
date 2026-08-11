@@ -18,11 +18,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/tasks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ContainerRegistryTaskResource struct{}
@@ -145,7 +145,7 @@ type ContainerRegistryTaskModel struct {
 func userDataStateFunc(v interface{}) string {
 	switch s := v.(type) {
 	case string:
-		return utils.Base64EncodeIfNot(s)
+		return helpers.Base64EncodeIfNot(s)
 	default:
 		return ""
 	}
@@ -905,11 +905,11 @@ func (r ContainerRegistryTaskResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("platform") {
 				existing.Model.Properties.Platform = expandRegistryTaskPlatform(model.Platform)
 			}
-			if metadata.ResourceData.HasChange("docker_step") || metadata.ResourceData.HasChange("file_step") || metadata.ResourceData.HasChange("encoded_step") {
+			if metadata.ResourceData.HasChanges("docker_step", "file_step", "encoded_step") {
 				existing.Model.Properties.Step = expandRegistryTaskStep(model)
 			}
 
-			if metadata.ResourceData.HasChange("base_image_trigger") || metadata.ResourceData.HasChange("source_trigger") || metadata.ResourceData.HasChange("timer_trigger") {
+			if metadata.ResourceData.HasChanges("base_image_trigger", "source_trigger", "timer_trigger") {
 				existing.Model.Properties.Trigger = expandRegistryTaskTrigger(model)
 			}
 
@@ -1283,7 +1283,7 @@ func flattenRegistryTaskFileTaskStep(step tasks.TaskStepProperties, model Contai
 
 func expandRegistryTaskEncodedTaskStep(step EncodedTaskStep) tasks.EncodedTaskStep {
 	out := tasks.EncodedTaskStep{
-		EncodedTaskContent: utils.Base64EncodeIfNot(step.TaskContent),
+		EncodedTaskContent: helpers.Base64EncodeIfNot(step.TaskContent),
 		Values:             expandRegistryTaskValues(step.Values, step.SecretValues),
 	}
 	if step.ContextPath != "" {
@@ -1293,7 +1293,7 @@ func expandRegistryTaskEncodedTaskStep(step EncodedTaskStep) tasks.EncodedTaskSt
 		out.ContextAccessToken = &step.ContextAccessToken
 	}
 	if step.ValueContent != "" {
-		out.EncodedValuesContent = pointer.To(utils.Base64EncodeIfNot(step.ValueContent))
+		out.EncodedValuesContent = pointer.To(helpers.Base64EncodeIfNot(step.ValueContent))
 	}
 	return out
 }

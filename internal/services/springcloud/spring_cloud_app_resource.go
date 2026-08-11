@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -479,7 +480,7 @@ func expandAppCustomPersistentDiskResourceArray(input []interface{}, id parse.Sp
 				ShareName:    pointer.To(v["share_name"].(string)),
 				MountPath:    pointer.To(v["mount_path"].(string)),
 				ReadOnly:     pointer.To(v["read_only_enabled"].(bool)),
-				MountOptions: utils.ExpandStringSlice(v["mount_options"].(*pluginsdk.Set).List()),
+				MountOptions: helpers.ExpandStringSlice(v["mount_options"].(*pluginsdk.Set).List()),
 			},
 		})
 	}
