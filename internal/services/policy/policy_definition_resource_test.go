@@ -22,7 +22,7 @@ import (
 
 type PolicyDefinitionResource struct{}
 
-func TestAccAzureRMPolicyDefinition_basic(t *testing.T) {
+func TestAccPolicyDefinition_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
 	r := PolicyDefinitionResource{}
 
@@ -37,7 +37,7 @@ func TestAccAzureRMPolicyDefinition_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPolicyDefinition_basicWithDetail(t *testing.T) {
+func TestAccPolicyDefinition_basicWithDetail(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
 	r := PolicyDefinitionResource{}
 
@@ -53,7 +53,7 @@ func TestAccAzureRMPolicyDefinition_basicWithDetail(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPolicyDefinition_requiresImport(t *testing.T) {
+func TestAccPolicyDefinition_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
 	r := PolicyDefinitionResource{}
 
@@ -68,7 +68,7 @@ func TestAccAzureRMPolicyDefinition_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPolicyDefinition_computedMetadata(t *testing.T) {
+func TestAccPolicyDefinition_computedMetadata(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
 	r := PolicyDefinitionResource{}
 
@@ -83,7 +83,7 @@ func TestAccAzureRMPolicyDefinition_computedMetadata(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPolicyDefinitionAtMgmtGroup_basic(t *testing.T) {
+func TestAccPolicyDefinition_atMgmtGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
 	r := PolicyDefinitionResource{}
 
@@ -98,7 +98,7 @@ func TestAccAzureRMPolicyDefinitionAtMgmtGroup_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPolicyDefinition_metadata(t *testing.T) {
+func TestAccPolicyDefinition_metadata(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
 	r := PolicyDefinitionResource{}
 
@@ -113,7 +113,7 @@ func TestAccAzureRMPolicyDefinition_metadata(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPolicyDefinition_modeUpdate(t *testing.T) {
+func TestAccPolicyDefinition_modeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
 	r := PolicyDefinitionResource{}
 
@@ -142,7 +142,7 @@ func TestAccAzureRMPolicyDefinition_modeUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPolicyDefinition_removeParameter(t *testing.T) {
+func TestAccPolicyDefinition_removeParameter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
 	r := PolicyDefinitionResource{}
 

@@ -639,7 +639,7 @@ func TestAccMsSqlDatabase_threatDetectionPolicy(t *testing.T) {
 				check.That(data.ResourceName).Key("threat_detection_policy.0.state").HasValue("Enabled"),
 				check.That(data.ResourceName).Key("threat_detection_policy.0.retention_days").HasValue("15"),
 				check.That(data.ResourceName).Key("threat_detection_policy.0.disabled_alerts.#").HasValue("1"),
-				check.That(data.ResourceName).Key("threat_detection_policy.0.email_account_admins").HasValue("Enabled"),
+				check.That(data.ResourceName).Key("threat_detection_policy.0.email_account_admins_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep("sample_name", "threat_detection_policy.0.storage_account_access_key"),
@@ -1211,6 +1211,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acctestkv-%[3]s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
@@ -2142,7 +2143,8 @@ resource "azurerm_mssql_database" "test" {
 }
 
 func (r MssqlDatabaseResource) threatDetectionPolicy(data acceptance.TestData, state string) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 %[1]s
 
 resource "azurerm_storage_account" "test" {
@@ -2176,6 +2178,42 @@ resource "azurerm_mssql_database" "test" {
   }
 }
 `, r.template(data), data.RandomInteger, state)
+	}
+
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "test%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+}
+
+resource "azurerm_mssql_database" "test" {
+  name         = "acctest-db-%[2]d"
+  server_id    = azurerm_mssql_server.test.id
+  collation    = "SQL_AltDiction_CP850_CI_AI"
+  license_type = "BasePrice"
+  max_size_gb  = 1
+  sample_name  = "AdventureWorksLT"
+  sku_name     = "GP_Gen5_2"
+
+  threat_detection_policy {
+    retention_days               = 15
+    state                        = "%[3]s"
+    disabled_alerts              = ["Sql_Injection"]
+    email_account_admins_enabled = true
+    storage_account_access_key   = azurerm_storage_account.test.primary_access_key
+    storage_endpoint             = azurerm_storage_account.test.primary_blob_endpoint
+  }
+
+  tags = {
+    ENV = "Test"
+  }
+}
+`, r.template(data), data.RandomInteger, state)
 }
 
 func (r MssqlDatabaseResource) threatDetectionPolicyNoStorage(data acceptance.TestData) string {
@@ -2192,10 +2230,10 @@ resource "azurerm_mssql_database" "test" {
   sku_name     = "GP_Gen5_2"
 
   threat_detection_policy {
-    retention_days       = 15
-    state                = "Enabled"
-    disabled_alerts      = ["Sql_Injection"]
-    email_account_admins = "Enabled"
+    retention_days               = 15
+    state                        = "Enabled"
+    disabled_alerts              = ["Sql_Injection"]
+    email_account_admins_enabled = true
   }
 
   tags = {
@@ -2595,6 +2633,7 @@ resource "azurerm_key_vault" "test" {
   name                        = "acctest%[3]s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
+  rbac_authorization_enabled  = false
   enabled_for_disk_encryption = true
   tenant_id                   = azurerm_user_assigned_identity.test.tenant_id
   soft_delete_retention_days  = 7
