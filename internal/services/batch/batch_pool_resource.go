@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -625,7 +624,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 							Optional:     true,
 							ValidateFunc: validation.StringIsJSON,
 						},
-						"protected_settings": { // todo 4.0 - should this actually be a map of key value pairs?
+						"protected_settings": {
 							Type:      pluginsdk.TypeString,
 							Optional:  true,
 							Sensitive: true,
@@ -820,53 +819,6 @@ func resourceBatchPool() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FivePointOh() {
-		resource.Schema["certificate"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			Deprecated: "the `certificate` property has been deprecated and will be removed in v5.0 of the AzureRM provider.",
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: azure.ValidateResourceID,
-						// The ID returned for the certificate in the batch account and the certificate applied to the pool
-						// are not consistent in their casing which causes issues when referencing IDs across resources
-						// (as Terraform still sees differences to apply due to the casing)
-						// Handling by ignoring casing for now. Raised as an issue: https://github.com/Azure/azure-rest-api-specs/issues/5574
-						DiffSuppressFunc: suppress.CaseDifference,
-					},
-					"store_location": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							"CurrentUser",
-							"LocalMachine",
-						}, false),
-					},
-					"store_name": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"visibility": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-							ValidateFunc: validation.StringInSlice([]string{
-								"StartTask",
-								"Task",
-								"RemoteUser",
-							}, false),
-						},
-					},
-				},
-			},
-		}
-	}
-
 	resource.Identity = &schema.ResourceIdentity{
 		SchemaFunc: pluginsdk.GenerateIdentitySchema(&pool.PoolId{}),
 	}
@@ -952,16 +904,6 @@ func resourceBatchCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 	} else {
 		return deploymentErr
-	}
-
-	if !features.FivePointOh() {
-		if v, ok := d.GetOk("certificate"); ok {
-			certificateReferences, err := ExpandBatchPoolCertificateReferences(v.([]interface{}))
-			if err != nil {
-				return fmt.Errorf("expanding `certificate`: %+v", err)
-			}
-			parameters.Properties.Certificates = certificateReferences
-		}
 	}
 
 	if err := validateBatchPoolCrossFieldRules(parameters.Properties); err != nil {
@@ -1101,15 +1043,6 @@ func resourceBatchUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 				parameters.Properties.DeploymentConfiguration.VirtualMachineConfiguration.DataDisks = expandBatchPoolDataDisks(d.Get("data_disks").([]interface{}))
 			}
 		}
-	}
-
-	if !features.FivePointOh() {
-		certificates := d.Get("certificate").([]interface{})
-		certificateReferences, err := ExpandBatchPoolCertificateReferences(certificates)
-		if err != nil {
-			return fmt.Errorf("expanding `certificate`: %+v", err)
-		}
-		parameters.Properties.Certificates = certificateReferences
 	}
 
 	if err := validateBatchPoolCrossFieldRules(parameters.Properties); err != nil {
@@ -1324,12 +1257,6 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 						}
 						d.Set("windows", windowsConfig)
 					}
-				}
-			}
-
-			if !features.FivePointOh() {
-				if err := d.Set("certificate", flattenBatchPoolCertificateReferences(props.Certificates)); err != nil {
-					return fmt.Errorf("flattening `certificate`: %+v", err)
 				}
 			}
 

@@ -599,9 +599,6 @@ func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta interface{})
 
 	meta.(*clients.Client).KeyVault.AddToCache(*keyVaultId, id.KeyVaultBaseURL)
 
-	// Because certificate content is not returned from the api, we need to set partial as true in case
-	// the update fails and state is updated incorrectly causing subsequent refreshes to not update `certificate`.
-	d.Partial(true)
 	if d.HasChange("certificate") {
 		if v, ok := d.GetOk("certificate"); ok {
 			// Import new version of certificate
@@ -677,7 +674,6 @@ func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta interface{})
 			return err
 		}
 	}
-	d.Partial(false)
 	return resourceKeyVaultCertificateRead(d, meta)
 }
 
@@ -841,7 +837,6 @@ func resourceKeyVaultCertificateDelete(d *pluginsdk.ResourceData, meta interface
 	if err != nil {
 		if response.WasNotFound(kv.HttpResponse) {
 			log.Printf("[DEBUG] Certificate %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseURL)
-			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("checking if key vault %q for Certificate %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseURL, err)

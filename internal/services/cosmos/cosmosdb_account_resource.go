@@ -1084,6 +1084,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	// 'DatabaseAccountCreateUpdateParameters' below or
 	// are included in the 'DatabaseAccountCreateUpdateParameters'
 	// later, however we need to know if they changed or not...
+	// lintignore:R019 // deliberate subset: geo_location, identity, default_identity and multi-write settings must be updated in separate atomic calls (see NOTE below)
 	updateRequired := d.HasChanges("consistency_policy", "virtual_network_rule", "cors_rule", "access_key_metadata_writes_enabled",
 		"network_acl_bypass_for_azure_services", "network_acl_bypass_ids", "analytical_storage",
 		"capacity", "restore", "mongo_server_version",
@@ -1866,7 +1867,7 @@ func resourceAzureRMCosmosDBAccountGeoLocationHash(v interface{}) int {
 		priority := int32(m["failover_priority"].(int))
 		zone_redundant := m["zone_redundant"].(bool)
 
-		buf.WriteString(fmt.Sprintf("%s-%d-%t", location, priority, zone_redundant))
+		fmt.Fprintf(&buf, "%s-%d-%t", location, priority, zone_redundant)
 	}
 
 	return pluginsdk.HashString(buf.String())
@@ -1876,7 +1877,7 @@ func resourceAzureRMCosmosDBAccountCapabilitiesHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
+		fmt.Fprintf(&buf, "%s-", m["name"].(string))
 	}
 
 	return pluginsdk.HashString(buf.String())

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package basetypes
@@ -171,6 +171,23 @@ func (s SetValue) Elements() []attr.Value {
 	result = append(result, s.elements...)
 
 	return result
+}
+
+// Length returns the number of elements in the Set.
+//
+// If the Set is null or unknown, the behavior depends on the options:
+//   - If UnhandledNullAsZero or UnhandledUnknownAsZero is true, zero is returned.
+//   - If false, a panic occurs.
+func (s SetValue) Length(opts CollectionLengthOptions) int {
+	if s.IsNull() && !opts.UnhandledNullAsZero {
+		panic("cannot call Length on a null Set")
+	}
+
+	if s.IsUnknown() && !opts.UnhandledUnknownAsZero {
+		panic("cannot call Length on an unknown Set")
+	}
+
+	return len(s.elements)
 }
 
 // ElementsAs populates `target` with the elements of the SetValue, throwing an
