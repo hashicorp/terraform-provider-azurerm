@@ -569,7 +569,81 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 
 	// We are not allowed to configure the NIC on the initial setup, and the VM has to be replicated before
 	// we can reconfigure. Hence this call to update when we create.
-	return resourceSiteRecoveryReplicatedItemUpdateInternal(ctx, d, meta)
+	state, err := waitForReplicationToBeHealthy(ctx, d, meta)
+	if err != nil {
+		return err
+	}
+
+	targetNetworkId := d.Get("target_network_id").(string)
+	testNetworkId := d.Get("test_network_id").(string)
+
+	if targetNetworkId == "" {
+		if a2aDetails, isA2a := state.Properties.ProviderSpecificDetails.(replicationprotecteditems.A2AReplicationDetails); isA2a {
+			if a2aDetails.SelectedRecoveryAzureNetworkId != nil {
+				targetNetworkId = *a2aDetails.SelectedRecoveryAzureNetworkId
+			} else {
+				return fmt.Errorf("target_network_id must be set when a network_interface is configured")
+			}
+		} else {
+			return fmt.Errorf("target_network_id must be set when a network_interface is configured")
+		}
+	}
+
+	if testNetworkId == "" {
+		if a2aDetails, isA2a := state.Properties.ProviderSpecificDetails.(replicationprotecteditems.A2AReplicationDetails); isA2a {
+			if a2aDetails.SelectedTfoAzureNetworkId != nil {
+				testNetworkId = *a2aDetails.SelectedTfoAzureNetworkId
+			}
+		}
+	}
+
+	nicList := d.Get("network_interface").([]interface{})
+	vmNics := make([]replicationprotecteditems.VMNicInputDetails, 0, len(nicList))
+	for _, raw := range nicList {
+		vmNicInput := raw.(map[string]interface{})
+		sourceNicId := vmNicInput["source_network_interface_id"].(string)
+		nicId := findNicId(state, sourceNicId)
+		if nicId == nil {
+			return fmt.Errorf("updating replicated vm %s (vault %s): Trying to update NIC that is not known by Azure %s", name, vaultName, sourceNicId)
+		}
+		ipConfig := expandSiteRecoveryReplicatedVMIPConfig(vmNicInput)
+		vmNics = append(vmNics, replicationprotecteditems.VMNicInputDetails{
+			NicId:     nicId,
+			IPConfigs: &ipConfig,
+		})
+	}
+
+	updateParameters := replicationprotecteditems.UpdateReplicationProtectedItemInput{
+		Properties: &replicationprotecteditems.UpdateReplicationProtectedItemInputProperties{
+			RecoveryAzureVMName:            &name,
+			SelectedRecoveryAzureNetworkId: &targetNetworkId,
+			SelectedTfoAzureNetworkId:      &testNetworkId,
+			VMNics:                         &vmNics,
+			RecoveryAvailabilitySetId:      targetAvailabilitySetID,
+			RecoveryAzureVMSize:            pointer.To(d.Get("target_virtual_machine_size").(string)),
+			ProviderSpecificDetails: replicationprotecteditems.A2AUpdateReplicationProtectedItemInput{
+				RecoveryProximityPlacementGroupId:  pointer.To(d.Get("target_proximity_placement_group_id").(string)),
+				RecoveryBootDiagStorageAccountId:   pointer.To(d.Get("target_boot_diagnostic_storage_account_id").(string)),
+				RecoveryCapacityReservationGroupId: pointer.To(d.Get("target_capacity_reservation_group_id").(string)),
+				RecoveryVirtualMachineScaleSetId:   pointer.To(d.Get("target_virtual_machine_scale_set_id").(string)),
+			},
+		},
+	}
+
+	err = client.UpdateThenPoll(ctx, id, updateParameters)
+	if err != nil {
+		return fmt.Errorf("updating replicated vm %s (vault %s): %+v", name, vaultName, err)
+	}
+
+	resp, err := client.Get(ctx, id)
+	if err != nil {
+		return fmt.Errorf("fetching updated replicated vm %s (vault %s): %+v", name, vaultName, err)
+	}
+	if resp.Model == nil {
+		return fmt.Errorf("fetching updated replicated vm %s: model is nil", name)
+	}
+
+	return flattenSiteRecoveryReplicatedItem(d, resp.Model)
 }
 
 func resourceSiteRecoveryReplicatedItemUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -750,7 +824,15 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 		return fmt.Errorf("updating replicated vm %s (vault %s): %+v", name, vaultName, err)
 	}
 
-	return resourceSiteRecoveryReplicatedItemRead(d, meta)
+	resp, err := client.Get(ctx, id)
+	if err != nil {
+		return fmt.Errorf("fetching updated replicated vm %s (vault %s): %+v", name, vaultName, err)
+	}
+	if resp.Model == nil {
+		return fmt.Errorf("fetching updated replicated vm %s: model is nil", name)
+	}
+
+	return flattenSiteRecoveryReplicatedItem(d, resp.Model)
 }
 
 func findNicId(state *replicationprotecteditems.ReplicationProtectedItem, sourceNicId string) *string {
@@ -791,6 +873,14 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("making Read request on site recovery replicated vm %s: model is nil", id.String())
 	}
 
+	return flattenSiteRecoveryReplicatedItem(d, model)
+}
+
+func flattenSiteRecoveryReplicatedItem(d *pluginsdk.ResourceData, model *replicationprotecteditems.ReplicationProtectedItem) error {
+	id, err := replicationprotecteditems.ParseReplicationProtectedItemID(d.Id())
+	if err != nil {
+		return err
+	}
 	d.Set("name", id.ReplicationProtectedItemName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("recovery_vault_name", id.VaultName)
