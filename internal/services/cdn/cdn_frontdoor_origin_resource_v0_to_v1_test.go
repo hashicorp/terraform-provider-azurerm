@@ -20,7 +20,7 @@ func TestAccCdnFrontDoorOrigin_V0ToV1_4810(t *testing.T) {
 
 	importedResourceName := data.ResourceName + "-import"
 
-	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+	data.ResourceRegressionAdditionalStepsTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
