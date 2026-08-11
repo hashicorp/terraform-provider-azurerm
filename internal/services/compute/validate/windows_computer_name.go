@@ -4,9 +4,9 @@
 package validate
 
 import (
-	"fmt"
 	"regexp"
-	"strings"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 func WindowsComputerNameFull(i interface{}, k string) (warnings []string, errors []error) {
@@ -19,37 +19,18 @@ func WindowsComputerNamePrefix(i interface{}, k string) (warnings []string, erro
 	return windowsComputerName(i, k, 9, true)
 }
 
-// lintignore:V012,V011 // false positive - this validates a string, not an int; the int comparison here checks the string length
 func windowsComputerName(i interface{}, k string, maxLength int, allowDashSuffix bool) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected %q to be a string but it wasn't", k))
-		return
+	validator := validation.All(
+		validation.StringIsNotWhiteSpace,
+		validation.StringLenBetween(1, maxLength),
+		// A windows computer name can only contain alphanumeric characters and hyphens
+		validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9-]+$`), "may only contain alphanumeric characters and dashes"),
+		// Windows computer name cannot contain only numbers
+		validation.StringDoesNotMatch(regexp.MustCompile(`^\d+$`), "cannot contain only numbers"),
+	)
+	if !allowDashSuffix {
+		validator = validation.All(validator, validation.StringDoesNotMatch(regexp.MustCompile(`-$`), "cannot end with a dash"))
 	}
 
-	// The value must not be empty.
-	if strings.TrimSpace(v) == "" {
-		errors = append(errors, fmt.Errorf("%q must not be empty", k))
-		return
-	}
-
-	if len(v) > maxLength {
-		errors = append(errors, fmt.Errorf("%q can be at most %d characters, got %d", k, maxLength, len(v)))
-	}
-
-	if !allowDashSuffix && strings.HasSuffix(v, "-") {
-		errors = append(errors, fmt.Errorf("%q cannot end with dash", k))
-	}
-
-	// A windows computer name can only contain alphanumeric characters and hyphens
-	if matched := regexp.MustCompile(`^[a-zA-Z0-9-]+$`).Match([]byte(v)); !matched {
-		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters and dashes", k))
-	}
-
-	// Windows computer name cannot contain only numbers
-	if matched := regexp.MustCompile(`^\d+$`).Match([]byte(v)); matched {
-		errors = append(errors, fmt.Errorf("%q cannot contain only numbers", k))
-	}
-
-	return warnings, errors
+	return validator(i, k)
 }

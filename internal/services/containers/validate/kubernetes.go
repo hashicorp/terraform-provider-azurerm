@@ -24,28 +24,11 @@ func KubernetesClusterName(i interface{}, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9]$|^[a-zA-Z0-9][-_a-zA-Z0-9]{0,61}[a-zA-Z0-9]$`), "name must start and end with a letter or number, and can only contain letters, numbers, hyphens, and underscores, and be between 1 and 63 characters in length")(i, k)
 }
 
-// lintignore:V011,V001 // the length check is combined with character/format rules
 func KubernetesDNSPrefix(i interface{}, k string) (warnings []string, errors []error) {
-	dnsPrefix, ok := i.(string)
-	if !ok {
-		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
-	}
-
-	errMsg := fmt.Sprintf("the %q must begin and end with a letter or number, contain only letters, numbers, and hyphens and be between 1 and 54 characters in length, got", k)
-
-	if len(dnsPrefix) < 2 {
-		re := regexp.MustCompile(`^[a-zA-Z\d]`)
-		if re != nil && !re.MatchString(dnsPrefix) {
-			errors = append(errors, fmt.Errorf("%s %q", errMsg, dnsPrefix))
-		}
-	} else {
-		re := regexp.MustCompile(`^[a-zA-Z\d][-a-zA-Z\d]{0,52}[a-zA-Z\d]$`)
-		if re != nil && !re.MatchString(dnsPrefix) {
-			errors = append(errors, fmt.Errorf("%s %q", errMsg, dnsPrefix))
-		}
-	}
-
-	return warnings, errors
+	return validation.StringMatch(
+		regexp.MustCompile(`^[a-zA-Z\d]$|^[a-zA-Z\d][-a-zA-Z\d]{0,52}[a-zA-Z\d]$`),
+		"must begin and end with a letter or number, contain only letters, numbers, and hyphens and be between 1 and 54 characters in length",
+	)(i, k)
 }
 
 func KubernetesGitRepositoryUrl() pluginsdk.SchemaValidateFunc {

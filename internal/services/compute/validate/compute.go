@@ -4,106 +4,57 @@
 package validate
 
 import (
-	"fmt"
 	"regexp"
-	"strings"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-// lintignore:V012,V001 // false positive - this validates a string, not an int; the int comparison here checks the string length
 func SharedImageGalleryName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
 	// Image gallery name accepts only alphanumeric, dots and underscores in the name (no dashes)
-	r := regexp.MustCompile(`^[A-Za-z0-9._]+$`)
-	if !r.MatchString(value) {
-		errors = append(errors, fmt.Errorf("%s can only contain alphanumeric, full stops and underscores. Got %q", k, value))
-	}
-
-	length := len(value)
-	if length > 80 {
-		errors = append(errors, fmt.Errorf("%s can be up to 80 characters, currently %d", k, length))
-	}
-
-	return warnings, errors
+	return validation.All(
+		validation.StringMatch(regexp.MustCompile(`^[A-Za-z0-9._]+$`), "can only contain alphanumeric, full stops and underscores"),
+		validation.StringLenBetween(1, 80),
+	)(v, k)
 }
 
-// lintignore:V012,V001 // false positive - this validates a string, not an int; the int comparison here checks the string length
 func SharedImageName(v interface{}, k string) (warnings []string, errors []error) {
 	// different from the shared image gallery name
-	value := v.(string)
-
-	if !regexp.MustCompile(`^[A-Za-z0-9._-]+$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf("%s can only contain alphanumeric, full stops, dashes and underscores. Got %q", k, value))
-	}
-
-	length := len(value)
-	if length > 80 {
-		errors = append(errors, fmt.Errorf("%s can be up to 80 characters, currently %d", k, length))
-	}
-
-	return warnings, errors
+	return validation.All(
+		validation.StringMatch(regexp.MustCompile(`^[A-Za-z0-9._-]+$`), "can only contain alphanumeric, full stops, dashes and underscores"),
+		validation.StringLenBetween(1, 80),
+	)(v, k)
 }
 
 func SharedImageIdentifierAttribute(maxLength int) func(interface{}, string) ([]string, []error) {
-	// lintignore:V012,V001 // false positive - this validates a string, not an int; the int comparison here checks the string length
-	return func(v interface{}, k string) (warnings []string, errors []error) {
-		value := v.(string)
-
-		length := len(value)
-		if length > maxLength {
-			errors = append(errors, fmt.Errorf("%s can be up to %d characters, currently %d", k, maxLength, length))
-		}
-
-		if strings.HasSuffix(value, ".") {
-			errors = append(errors, fmt.Errorf("%q can not end with a '.', got %q", k, value))
-		}
-
-		if !regexp.MustCompile(`^[A-Za-z0-9._-]+$`).MatchString(value) {
-			errors = append(errors, fmt.Errorf("%s can only contain alphanumeric, full stops, dashes and underscores. Got %q", k, value))
-		}
-
-		return warnings, errors
-	}
+	return validation.All(
+		validation.StringMatch(regexp.MustCompile(`^[A-Za-z0-9._-]+$`), "can only contain alphanumeric, full stops, dashes and underscores"),
+		validation.StringDoesNotMatch(regexp.MustCompile(`\.$`), "cannot end with a full stop"),
+		validation.StringLenBetween(1, maxLength),
+	)
 }
 
-// lintignore:V013,V001 // "latest" and "recent" are valid in addition to the version number format
 func SharedImageVersionName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	if !regexp.MustCompile(`^([0-9]{1,10}\.[0-9]{1,10}\.[0-9]{1,10})$`).MatchString(value) && value != "latest" && value != "recent" {
-		errors = append(errors, fmt.Errorf("expected %s to be in the format `1.2.3`, `latest`, or `recent` but got %q", k, value))
-	}
-
-	return warnings, errors
+	// "latest" and "recent" are valid in addition to the version number format
+	return validation.Any(
+		validation.StringInSlice([]string{"latest", "recent"}, false),
+		validation.StringMatch(regexp.MustCompile(`^([0-9]{1,10}\.[0-9]{1,10}\.[0-9]{1,10})$`), "expected to be in the format `1.2.3`, `latest`, or `recent`"),
+	)(v, k)
 }
 
-// lintignore:V012,V001 // false positive - this validates a string, not an int; the int comparison here checks the string length
 func GalleryApplicationName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	if !regexp.MustCompile(`^[A-Za-z0-9._-]+$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf("%s can only contain alphanumeric, full stops, dashes and underscores. Got %q", k, value))
-	}
-
-	length := len(value)
-	if length > 80 {
-		errors = append(errors, fmt.Errorf("%s can be up to 80 characters, currently %d", k, length))
-	}
-
-	return warnings, errors
+	return validation.All(
+		validation.StringMatch(regexp.MustCompile(`^[A-Za-z0-9._-]+$`), "can only contain alphanumeric, full stops, dashes and underscores"),
+		validation.StringLenBetween(1, 80),
+	)(v, k)
 }
 
-// lintignore:V013,V001 // "latest" and "recent" are valid in addition to the version number format
 func GalleryApplicationVersionName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	if !regexp.MustCompile(`^([0-9]{1,10}\.[0-9]{1,10}\.[0-9]{1,10})$`).MatchString(value) && value != "latest" && value != "recent" {
-		errors = append(errors, fmt.Errorf("expected %s to be in the format `1.2.3`, `latest`, or `recent` but got %q", k, value))
-	}
-
-	return warnings, errors
+	// "latest" and "recent" are valid in addition to the version number format
+	return validation.Any(
+		validation.StringInSlice([]string{"latest", "recent"}, false),
+		validation.StringMatch(regexp.MustCompile(`^([0-9]{1,10}\.[0-9]{1,10}\.[0-9]{1,10})$`), "expected to be in the format `1.2.3`, `latest`, or `recent`"),
+	)(v, k)
 }
 
 // VirtualMachineTimeZone returns a case-sensitive validation function for the Time Zones for a Virtual Machine
