@@ -22,11 +22,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -37,7 +35,7 @@ import (
 )
 
 func resourceWindowsVirtualMachine() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceWindowsVirtualMachineCreate,
 		Read:   resourceWindowsVirtualMachineRead,
 		Update: resourceWindowsVirtualMachineUpdate,
@@ -496,42 +494,6 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["vm_agent_platform_updates_enabled"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "this property has been deprecated due to a breaking change introduced by the Service team, which redefined it as a read-only field within the API",
-		}
-
-		resource.Schema["enable_automatic_updates"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Computed: true,
-			ForceNew: true, // updating this is not allowed "Changing property 'windowsConfiguration.enableAutomaticUpdates' is not allowed." Target="windowsConfiguration.enableAutomaticUpdates"
-			DiffSuppressFunc: func(k, _, _ string, d *schema.ResourceData) bool {
-				// Suppress diff if replacement property is used and the values are the same
-				oldVal := d.Get("enable_automatic_updates").(bool)
-				newVal := d.Get("automatic_updates_enabled").(bool)
-
-				return oldVal == newVal
-			},
-			DiffSuppressOnRefresh: true,
-			Deprecated:            "this property has been deprecated in favour of automatic_updates_enabled and will be removed in 5.0 of the provider.",
-			ConflictsWith: []string{
-				"automatic_updates_enabled",
-				"os_managed_disk_id",
-			},
-		}
-
-		resource.Schema["automatic_updates_enabled"].ConflictsWith = []string{
-			"enable_automatic_updates",
-			"os_managed_disk_id",
-		}
-	}
-
-	return resource
 }
 
 func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -660,13 +622,6 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 
 		if !d.GetRawConfig().AsValueMap()["automatic_updates_enabled"].IsNull() {
 			autoUpdatesEnabled = d.Get("automatic_updates_enabled").(bool)
-		}
-
-		if !features.FivePointOh() {
-			// reconcile the 2 bools...
-			if !d.GetRawConfig().AsValueMap()["enable_automatic_updates"].IsNull() {
-				autoUpdatesEnabled = d.Get("enable_automatic_updates").(bool)
-			}
 		}
 
 		params.Properties.OsProfile = &virtualmachines.OSProfile{
@@ -808,12 +763,6 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
-		if encryptionAtHostEnabled.(bool) {
-			if virtualmachines.SecurityEncryptionTypesDiskWithVMGuestState == virtualmachines.SecurityEncryptionTypes(securityEncryptionType) {
-				return fmt.Errorf("`encryption_at_host_enabled` cannot be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
-			}
-		}
-
 		if params.Properties.SecurityProfile == nil {
 			params.Properties.SecurityProfile = &virtualmachines.SecurityProfile{}
 		}
@@ -1079,9 +1028,6 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 					}
 
 					d.Set("automatic_updates_enabled", config.EnableAutomaticUpdates)
-					if !features.FivePointOh() {
-						d.Set("enable_automatic_updates", config.EnableAutomaticUpdates)
-					}
 					d.Set("provision_vm_agent", config.ProvisionVMAgent)
 					d.Set("vm_agent_platform_updates_enabled", config.EnableVMAgentPlatformUpdates)
 
@@ -1666,14 +1612,6 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if d.HasChange("encryption_at_host_enabled") {
-		if d.Get("encryption_at_host_enabled").(bool) {
-			osDiskRaw := d.Get("os_disk").([]interface{})
-			securityEncryptionType := osDiskRaw[0].(map[string]interface{})["security_encryption_type"].(string)
-			if virtualmachines.SecurityEncryptionTypesDiskWithVMGuestState == virtualmachines.SecurityEncryptionTypes(securityEncryptionType) {
-				return fmt.Errorf("`encryption_at_host_enabled` cannot be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
-			}
-		}
-
 		shouldUpdate = true
 		shouldDeallocate = true // API returns the following error if not deallocate: 'securityProfile.encryptionAtHost' can be updated only when VM is in deallocated state
 		if update.Properties.SecurityProfile == nil {

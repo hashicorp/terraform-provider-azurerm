@@ -4,7 +4,6 @@ dario.cat/mergo
 # github.com/Azure/azure-sdk-for-go v66.0.0+incompatible
 ## explicit
 github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn
-github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn
 github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy
 github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security
 github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql
@@ -286,7 +285,6 @@ github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configu
 github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configurationprofiles
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2015-10-31/webhook
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/agentregistrationinformation
-github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/softwareupdateconfiguration
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/watcher
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/automationaccount
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/module
@@ -377,8 +375,10 @@ github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdorigingroup
 github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdorigins
 github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/endpoints
 github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles
+github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/routes
 github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rules
 github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rulesets
+github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/secrets
 github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/securitypolicies
 github.com/hashicorp/go-azure-sdk/resource-manager/certificateregistration/2023-12-01/appservicecertificateorders
 github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01
@@ -387,9 +387,9 @@ github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01/capabi
 github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01/experiments
 github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01/targets
 github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01/targettypes
-github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2024-09-30-preview
-github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2024-09-30-preview/certificateprofiles
-github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2024-09-30-preview/codesigningaccounts
+github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2025-10-13
+github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2025-10-13/certificateprofiles
+github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2025-10-13/codesigningaccounts
 github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesaccounts
 github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/accountcapabilityhost
 github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/accountconnectionresource
@@ -428,10 +428,10 @@ github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/sshpublick
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachineextensions
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachineimages
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines
-github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetextensions
-github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetrollingupgrades
-github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetvms
+github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesetextensions
+github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesetrollingupgrades
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets
+github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesetvms
 github.com/hashicorp/go-azure-sdk/resource-manager/confidentialledger/2022-05-13/confidentialledger
 github.com/hashicorp/go-azure-sdk/resource-manager/consumption/2019-10-01/budgets
 github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/certificates
@@ -971,8 +971,9 @@ github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-0
 github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/clusters
 github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/tables
 github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces
-github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2023-09-01/deletedworkspaces
 github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2023-09-01/workspaces
+github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2025-07-01/deletedworkspaces
+github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2025-07-01/workspaces
 github.com/hashicorp/go-azure-sdk/resource-manager/operationsmanagement/2015-11-01-preview/solution
 github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01
 github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/autonomousdatabasebackups
@@ -1023,15 +1024,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/p
 github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/remediations
 github.com/hashicorp/go-azure-sdk/resource-manager/portal/2019-01-01-preview/dashboard
 github.com/hashicorp/go-azure-sdk/resource-manager/portal/2019-01-01-preview/tenantconfiguration
-github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/configurations
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/databases
-github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/firewallrules
-github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/replicas
-github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/serveradministrators
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/servers
-github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/serversecurityalertpolicies
-github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/virtualnetworkrules
-github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2020-01-01/serverkeys
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/administratormicrosoftentras
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/backupautomaticandondemands
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/configurations
@@ -1432,8 +1426,10 @@ github.com/hashicorp/terraform-plugin-framework-timeouts/internal/validators
 github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts
 # github.com/hashicorp/terraform-plugin-framework-validators v0.19.0
 ## explicit; go 1.24.0
+github.com/hashicorp/terraform-plugin-framework-validators/float64validator
 github.com/hashicorp/terraform-plugin-framework-validators/helpers/validatordiag
 github.com/hashicorp/terraform-plugin-framework-validators/helpers/validatorfuncerr
+github.com/hashicorp/terraform-plugin-framework-validators/int64validator
 github.com/hashicorp/terraform-plugin-framework-validators/internal/schemavalidator
 github.com/hashicorp/terraform-plugin-framework-validators/listvalidator
 github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator
@@ -1696,8 +1692,8 @@ golang.org/x/net/internal/httpcommon
 golang.org/x/net/internal/httpsfv
 golang.org/x/net/internal/timeseries
 golang.org/x/net/trace
-# golang.org/x/oauth2 v0.34.0
-## explicit; go 1.24.0
+# golang.org/x/oauth2 v0.36.0
+## explicit; go 1.25.0
 golang.org/x/oauth2
 golang.org/x/oauth2/internal
 # golang.org/x/sync v0.22.0
@@ -1765,11 +1761,11 @@ google.golang.org/appengine/internal/datastore
 google.golang.org/appengine/internal/log
 google.golang.org/appengine/internal/modules
 google.golang.org/appengine/internal/remote_api
-# google.golang.org/genproto/googleapis/rpc v0.0.0-20251202230838-ff82c1b0f217
-## explicit; go 1.24.0
+# google.golang.org/genproto/googleapis/rpc v0.0.0-20260414002931-afd174a4e478
+## explicit; go 1.25.0
 google.golang.org/genproto/googleapis/rpc/status
-# google.golang.org/grpc v1.79.3
-## explicit; go 1.24.0
+# google.golang.org/grpc v1.82.1
+## explicit; go 1.25.0
 google.golang.org/grpc
 google.golang.org/grpc/attributes
 google.golang.org/grpc/backoff
@@ -1789,6 +1785,7 @@ google.golang.org/grpc/credentials/insecure
 google.golang.org/grpc/encoding
 google.golang.org/grpc/encoding/internal
 google.golang.org/grpc/encoding/proto
+google.golang.org/grpc/experimental/balancer/weight
 google.golang.org/grpc/experimental/stats
 google.golang.org/grpc/grpclog
 google.golang.org/grpc/grpclog/internal
@@ -1797,7 +1794,6 @@ google.golang.org/grpc/health/grpc_health_v1
 google.golang.org/grpc/internal
 google.golang.org/grpc/internal/backoff
 google.golang.org/grpc/internal/balancer/gracefulswitch
-google.golang.org/grpc/internal/balancer/weight
 google.golang.org/grpc/internal/balancerload
 google.golang.org/grpc/internal/binarylog
 google.golang.org/grpc/internal/buffer
@@ -1808,6 +1804,7 @@ google.golang.org/grpc/internal/grpclog
 google.golang.org/grpc/internal/grpcsync
 google.golang.org/grpc/internal/grpcutil
 google.golang.org/grpc/internal/idle
+google.golang.org/grpc/internal/mem
 google.golang.org/grpc/internal/metadata
 google.golang.org/grpc/internal/pretty
 google.golang.org/grpc/internal/proxyattributes
@@ -1822,7 +1819,9 @@ google.golang.org/grpc/internal/stats
 google.golang.org/grpc/internal/status
 google.golang.org/grpc/internal/syscall
 google.golang.org/grpc/internal/transport
+google.golang.org/grpc/internal/transport/internal
 google.golang.org/grpc/internal/transport/networktype
+google.golang.org/grpc/internal/transport/readyreader
 google.golang.org/grpc/keepalive
 google.golang.org/grpc/mem
 google.golang.org/grpc/metadata

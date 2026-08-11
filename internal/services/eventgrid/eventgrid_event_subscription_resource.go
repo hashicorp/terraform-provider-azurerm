@@ -12,31 +12,29 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/eventsubscriptions"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func possibleEventSubscriptionEndpointTypes() []string {
 	return []string{
 		string(AzureFunctionEndpoint),
-		string(EventHubEndpointID),
-		string(HybridConnectionEndpointID),
-		string(ServiceBusQueueEndpointID),
-		string(ServiceBusTopicEndpointID),
+		string(EventHubID),
+		string(HybridConnectionID),
+		string(ServiceBusQueueID),
+		string(ServiceBusTopicID),
 		string(StorageQueueEndpoint),
 		string(WebHookEndpoint),
 	}
 }
 
 func resourceEventGridEventSubscription() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceEventGridEventSubscriptionCreateUpdate,
 		Read:   resourceEventGridEventSubscriptionRead,
 		Update: resourceEventGridEventSubscriptionCreateUpdate,
@@ -90,51 +88,49 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 			"expiration_time_utc": eventSubscriptionSchemaExpirationTimeUTC(),
 
 			"azure_function_endpoint": eventSubscriptionSchemaAzureFunctionEndpoint(
-				utils.RemoveFromStringArray(
+				helpers.RemoveFromStringArray(
 					possibleEventSubscriptionEndpointTypes(),
 					string(AzureFunctionEndpoint),
 				),
 			),
 
-			"eventhub_endpoint_id": eventSubscriptionSchemaEventHubEndpointID(
-				utils.RemoveFromStringArray(
+			"eventhub_id": eventSubscriptionSchemaEventHubEndpointID(
+				helpers.RemoveFromStringArray(
 					possibleEventSubscriptionEndpointTypes(),
-					string(EventHubEndpointID),
+					string(EventHubID),
 				),
 			),
 
-			"hybrid_connection_endpoint_id": eventSubscriptionSchemaHybridConnectionEndpointID(
-				utils.RemoveFromStringArray(
+			"hybrid_connection_id": eventSubscriptionSchemaHybridConnectionEndpointID(
+				helpers.RemoveFromStringArray(
 					possibleEventSubscriptionEndpointTypes(),
-					string(HybridConnectionEndpointID),
+					string(HybridConnectionID),
 				),
 			),
 
-			// TODO: this can become `service_bus_queue_id` in 4.0
-			"service_bus_queue_endpoint_id": eventSubscriptionSchemaServiceBusQueueEndpointID(
-				utils.RemoveFromStringArray(
+			"service_bus_queue_id": eventSubscriptionSchemaServiceBusQueueEndpointID(
+				helpers.RemoveFromStringArray(
 					possibleEventSubscriptionEndpointTypes(),
-					string(ServiceBusQueueEndpointID),
+					string(ServiceBusQueueID),
 				),
 			),
 
-			// TODO: this can become `service_bus_topic_id` in 4.0
-			"service_bus_topic_endpoint_id": eventSubscriptionSchemaServiceBusTopicEndpointID(
-				utils.RemoveFromStringArray(
+			"service_bus_topic_id": eventSubscriptionSchemaServiceBusTopicEndpointID(
+				helpers.RemoveFromStringArray(
 					possibleEventSubscriptionEndpointTypes(),
-					string(ServiceBusTopicEndpointID),
+					string(ServiceBusTopicID),
 				),
 			),
 
 			"storage_queue_endpoint": eventSubscriptionSchemaStorageQueueEndpoint(
-				utils.RemoveFromStringArray(
+				helpers.RemoveFromStringArray(
 					possibleEventSubscriptionEndpointTypes(),
 					string(StorageQueueEndpoint),
 				),
 			),
 
 			"webhook_endpoint": eventSubscriptionSchemaWebHookEndpoint(
-				utils.RemoveFromStringArray(
+				helpers.RemoveFromStringArray(
 					possibleEventSubscriptionEndpointTypes(),
 					string(WebHookEndpoint),
 				),
@@ -161,12 +157,6 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 			"delivery_property": eventSubscriptionSchemaDeliveryProperty(),
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["azure_function_endpoint"].Elem.(*pluginsdk.Resource).Schema["function_id"].ValidateFunc = azure.ValidateResourceID
-	}
-
-	return resource
 }
 
 func resourceEventGridEventSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -206,7 +196,7 @@ func resourceEventGridEventSubscriptionCreateUpdate(d *pluginsdk.ResourceData, m
 		ExpirationTimeUtc:   pointer.To(d.Get("expiration_time_utc").(string)),
 		EventDeliverySchema: pointer.To(eventsubscriptions.EventDeliverySchema(d.Get("event_delivery_schema").(string))),
 		Filter:              filter,
-		Labels:              utils.ExpandStringSlice(d.Get("labels").([]interface{})),
+		Labels:              helpers.ExpandStringSlice(d.Get("labels").([]interface{})),
 		RetryPolicy:         expandEventSubscriptionRetryPolicy(d),
 	}
 
@@ -331,10 +321,10 @@ func resourceEventGridEventSubscriptionRead(d *pluginsdk.ResourceData, meta inte
 				return fmt.Errorf("setting `azure_function_endpoint` for %s: %+v", *id, err)
 			}
 
-			d.Set("eventhub_endpoint_id", flattenEventSubscriptionDestinationEventHub(destination))
-			d.Set("hybrid_connection_endpoint_id", flattenEventSubscriptionDestinationHybridConnection(destination))
-			d.Set("service_bus_queue_endpoint_id", flattenEventSubscriptionDestinationServiceBusQueueEndpoint(destination))
-			d.Set("service_bus_topic_endpoint_id", flattenEventSubscriptionDestinationServiceBusTopicEndpoint(destination))
+			d.Set("eventhub_id", flattenEventSubscriptionDestinationEventHub(destination))
+			d.Set("hybrid_connection_id", flattenEventSubscriptionDestinationHybridConnection(destination))
+			d.Set("service_bus_queue_id", flattenEventSubscriptionDestinationServiceBusQueueEndpoint(destination))
+			d.Set("service_bus_topic_id", flattenEventSubscriptionDestinationServiceBusTopicEndpoint(destination))
 			if err := d.Set("storage_queue_endpoint", flattenEventSubscriptionDestinationStorageQueueEndpoint(destination)); err != nil {
 				return fmt.Errorf("setting `storage_queue_endpoint` for %s: %+v", *id, err)
 			}
