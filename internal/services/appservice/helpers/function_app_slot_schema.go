@@ -75,7 +75,7 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 				"api_management_api_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: api.ValidateApiID,
+					ValidateFunc: validation.AsGeneratedID(api.ParseApiIDInsensitively),
 					Description:  "The ID of the API Management API for this Windows Function App.",
 				},
 
@@ -403,7 +403,7 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 				"api_management_api_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: api.ValidateApiID,
+					ValidateFunc: validation.AsGeneratedID(api.ParseApiIDInsensitively),
 					Description:  "The ID of the API Management API for this Linux Function App.",
 				},
 

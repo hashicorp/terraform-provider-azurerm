@@ -142,7 +142,7 @@ func resourceImage() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
-							ValidateFunc: commonids.ValidateDiskEncryptionSetID,
+							ValidateFunc: validation.AsGeneratedID(commonids.ParseDiskEncryptionSetIDInsensitively),
 						},
 
 						"storage_type": {
@@ -203,7 +203,7 @@ func resourceImage() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
-							ValidateFunc: commonids.ValidateDiskEncryptionSetID,
+							ValidateFunc: validation.AsGeneratedID(commonids.ParseDiskEncryptionSetIDInsensitively),
 						},
 
 						"storage_type": {

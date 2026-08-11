@@ -1376,8 +1376,8 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 			ValidateFunc: validation.Any(
 				images.ValidateImageID,
-				galleryimages.ValidateGalleryImageID,
-				galleryimageversions.ValidateImageVersionID,
+				validation.AsGeneratedID(galleryimages.ParseGalleryImageIDInsensitively),
+				validation.AsGeneratedID(galleryimageversions.ParseImageVersionIDInsensitively),
 				validate.CommunityGalleryImageID,
 				validate.CommunityGalleryImageVersionID,
 				validate.SharedGalleryImageID,

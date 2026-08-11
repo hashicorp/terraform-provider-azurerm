@@ -34,6 +34,9 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 		Update: resourceSecurityCenterAutomationCreateUpdate,
 		Delete: resourceSecurityCenterAutomationDelete,
 
+		// import validation is deliberately case-sensitive: it only applies to new imports, so requiring the
+		// canonical casing here prevents more non-canonically cased IDs from entering state. Read/Delete parse
+		// insensitively to cover the IDs already in state from imports prior to the SDK parsers being used.
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := automations.ParseAutomationID(id)
 			return err
@@ -277,7 +280,9 @@ func resourceSecurityCenterAutomationRead(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := automations.ParseAutomationID(d.Id())
+	// todo 6.0 - IDs with non-canonical casing exist in state from imports made while this resource used the
+	// legacy resourceids.ParseAzureResourceID; parse insensitively until a state migration normalises them
+	id, err := automations.ParseAutomationIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
@@ -334,7 +339,9 @@ func resourceSecurityCenterAutomationDelete(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := automations.ParseAutomationID(d.Id())
+	// todo 6.0 - IDs with non-canonical casing exist in state from imports made while this resource used the
+	// legacy resourceids.ParseAzureResourceID; parse insensitively until a state migration normalises them
+	id, err := automations.ParseAutomationIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}

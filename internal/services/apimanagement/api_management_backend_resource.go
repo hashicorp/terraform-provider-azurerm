@@ -257,7 +257,7 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: certificate.ValidateCertificateID,
+							ValidateFunc: validation.AsGeneratedID(certificate.ParseCertificateIDInsensitively),
 						},
 
 						"client_certificate_thumbprint": {

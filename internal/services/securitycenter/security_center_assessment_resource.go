@@ -46,7 +46,7 @@ func resourceSecurityCenterAssessment() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: assessmentsmetadata.ValidateProviderAssessmentMetadataID,
+				ValidateFunc: validation.AsGeneratedID(assessmentsmetadata.ParseProviderAssessmentMetadataIDInsensitively),
 			},
 
 			"target_resource_id": {
@@ -103,7 +103,9 @@ func resourceSecurityCenterAssessmentCreateUpdate(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	metadataID, err := assessmentsmetadata.ParseProviderAssessmentMetadataID(d.Get("assessment_policy_id").(string))
+	// todo 6.0 - this was migrated from the legacy resourceids.ParseAzureResourceID which treated casing of static
+	// segments insensitively; referenced IDs with non-canonical casing can exist in configs/state from older imports
+	metadataID, err := assessmentsmetadata.ParseProviderAssessmentMetadataIDInsensitively(d.Get("assessment_policy_id").(string))
 	if err != nil {
 		return err
 	}

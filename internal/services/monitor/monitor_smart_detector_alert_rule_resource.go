@@ -115,7 +115,7 @@ func resourceMonitorSmartDetectorAlertRule() *pluginsdk.Resource {
 							Required: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
-								ValidateFunc: actiongroupsapis.ValidateActionGroupID,
+								ValidateFunc: validation.AsGeneratedID(actiongroupsapis.ParseActionGroupIDInsensitively),
 							},
 							Set: set.HashStringIgnoreCase,
 						},

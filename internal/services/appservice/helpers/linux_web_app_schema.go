@@ -72,7 +72,7 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 				"api_management_api_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: api.ValidateApiID,
+					ValidateFunc: validation.AsGeneratedID(api.ParseApiIDInsensitively),
 				},
 
 				"api_definition_url": {

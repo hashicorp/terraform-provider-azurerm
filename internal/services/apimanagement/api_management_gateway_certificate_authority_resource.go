@@ -63,7 +63,9 @@ func resourceApiManagementGatewayCertificateAuthorityCreateUpdate(d *pluginsdk.R
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	apimId, err := apimanagementservice.ParseServiceID(d.Get("api_management_id").(string))
+	// todo 6.0 - this was migrated from the legacy resourceids.ParseAzureResourceID which treated casing of static
+	// segments insensitively; referenced IDs with non-canonical casing can exist in configs/state from older imports
+	apimId, err := apimanagementservice.ParseServiceIDInsensitively(d.Get("api_management_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing `api_management_id`: %v", err)
 	}
