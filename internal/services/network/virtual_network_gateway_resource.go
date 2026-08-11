@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/localnetworkgateways"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworkgateways"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -28,7 +29,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceVirtualNetworkGateway() *pluginsdk.Resource {
@@ -1187,7 +1187,7 @@ func expandVirtualNetworkGatewayBgpPeeringAddresses(id virtualnetworkgateways.Vi
 		ipConfigId := parse.NewVirtualNetworkGatewayIpConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.VirtualNetworkGatewayName, ipConfigName)
 		result = append(result, virtualnetworkgateways.IPConfigurationBgpPeeringAddress{
 			IPconfigurationId:    pointer.To(ipConfigId.ID()),
-			CustomBgpIPAddresses: utils.ExpandStringSlice(b["apipa_addresses"].([]interface{})),
+			CustomBgpIPAddresses: helpers.ExpandStringSlice(b["apipa_addresses"].([]interface{})),
 		})
 	}
 
@@ -1319,7 +1319,7 @@ func expandVirtualNetworkGatewayAddressSpace(input []interface{}) *virtualnetwor
 	}
 	v := input[0].(map[string]interface{})
 	return &virtualnetworkgateways.AddressSpace{
-		AddressPrefixes: utils.ExpandStringSlice(v["address_prefixes"].(*pluginsdk.Set).List()),
+		AddressPrefixes: helpers.ExpandStringSlice(v["address_prefixes"].(*pluginsdk.Set).List()),
 	}
 }
 
@@ -1504,9 +1504,9 @@ func flattenVirtualNetworkGatewayBgpPeeringAddresses(input *[]virtualnetworkgate
 
 		output = append(output, map[string]interface{}{
 			"ip_configuration_name": ipConfigName,
-			"apipa_addresses":       utils.FlattenStringSlice(e.CustomBgpIPAddresses),
-			"default_addresses":     utils.FlattenStringSlice(e.DefaultBgpIPAddresses),
-			"tunnel_ip_addresses":   utils.FlattenStringSlice(e.TunnelIPAddresses),
+			"apipa_addresses":       helpers.FlattenStringSlice(e.CustomBgpIPAddresses),
+			"default_addresses":     helpers.FlattenStringSlice(e.DefaultBgpIPAddresses),
+			"tunnel_ip_addresses":   helpers.FlattenStringSlice(e.TunnelIPAddresses),
 		})
 	}
 
@@ -1564,7 +1564,7 @@ func flattenVirtualNetworkGatewayVpnClientConfig(cfg *virtualnetworkgateways.Vpn
 	flat["virtual_network_gateway_client_connection"] = connection
 
 	if pool := cfg.VpnClientAddressPool; pool != nil {
-		flat["address_space"] = utils.FlattenStringSlice(pool.AddressPrefixes)
+		flat["address_space"] = helpers.FlattenStringSlice(pool.AddressPrefixes)
 	} else {
 		flat["address_space"] = []interface{}{}
 	}
@@ -1704,7 +1704,7 @@ func flattenVirtualNetworkGatewayAddressSpace(input *virtualnetworkgateways.Addr
 
 	return []interface{}{
 		map[string]interface{}{
-			"address_prefixes": utils.FlattenStringSlice(input.AddressPrefixes),
+			"address_prefixes": helpers.FlattenStringSlice(input.AddressPrefixes),
 		},
 	}
 }

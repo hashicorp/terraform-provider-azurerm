@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/migration"
@@ -129,7 +130,7 @@ func resourceIotHubFallbackRouteCreateUpdate(d *pluginsdk.ResourceData, meta int
 	routing.FallbackRoute = &devices.FallbackRouteProperties{
 		Source:        pointer.To(d.Get("source").(string)),
 		Condition:     pointer.To(d.Get("condition").(string)),
-		EndpointNames: utils.ExpandStringSlice(d.Get("endpoint_names").([]interface{})),
+		EndpointNames: helpers.ExpandStringSlice(d.Get("endpoint_names").([]interface{})),
 		IsEnabled:     pointer.To(d.Get("enabled").(bool)),
 	}
 

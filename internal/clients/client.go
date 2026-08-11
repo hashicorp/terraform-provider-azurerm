@@ -7,8 +7,6 @@ import (
 	"context"
 	"fmt"
 
-	preflight "github.com/hashicorp/terraform-provider-azurerm/internal/preflight/client"
-
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/validation"
 	aadb2c_v2021_04_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview"
@@ -26,6 +24,7 @@ import (
 	workloads_v2024_09_01 "github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	preflight "github.com/hashicorp/terraform-provider-azurerm/internal/preflight/client"
 	aadb2c "github.com/hashicorp/terraform-provider-azurerm/internal/services/aadb2c/client"
 	advisor "github.com/hashicorp/terraform-provider-azurerm/internal/services/advisor/client"
 	analysisServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/analysisservices/client"
@@ -126,7 +125,6 @@ import (
 	recoveryServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/client"
 	redhatopenshift "github.com/hashicorp/terraform-provider-azurerm/internal/services/redhatopenshift/client"
 	redis "github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/client"
-	redisenterprise "github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/client"
 	relay "github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/client"
 	resource "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	search "github.com/hashicorp/terraform-provider-azurerm/internal/services/search/client"
@@ -265,7 +263,6 @@ type Client struct {
 	RecoveryServices                  *recoveryServices.Client
 	RedHatOpenShift                   *redhatopenshift.Client
 	Redis                             *redis.Client
-	RedisEnterprise                   *redisenterprise.Client
 	Relay                             *relay.Client
 	Resource                          *resource.Client
 	Search                            *search.Client
@@ -612,9 +609,6 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.Redis, err = redis.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Redis: %+v", err)
-	}
-	if client.RedisEnterprise, err = redisenterprise.NewClient(o); err != nil {
-		return fmt.Errorf("building clients for RedisEnterprise: %+v", err)
 	}
 	if client.Relay, err = relay.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Relay: %+v", err)

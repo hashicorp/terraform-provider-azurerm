@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationvaultsetting"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -208,7 +207,7 @@ func (s VMWareReplicationPolicyAssociationResource) Delete() sdk.ResourceFunc {
 }
 
 func (s VMWareReplicationPolicyAssociationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ReplicationProtectionContainerMappingsID
+	return replicationprotectioncontainermappings.ValidateReplicationProtectionContainerMappingID
 }
 
 func validateReplicationPolicyAssociationVaultConfig(ctx context.Context, settingsClient *replicationvaultsetting.ReplicationVaultSettingClient, vaultId string) error {

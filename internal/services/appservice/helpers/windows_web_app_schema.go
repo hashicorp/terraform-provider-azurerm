@@ -9,11 +9,9 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/api"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -61,7 +59,7 @@ type SiteConfigWindows struct {
 }
 
 func SiteConfigSchemaWindows() *pluginsdk.Schema {
-	s := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
 		MaxItems: 1,
@@ -76,7 +74,7 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 				"api_management_api_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: validate.ApiID,
+					ValidateFunc: api.ValidateApiID,
 				},
 
 				"api_definition_url": {
@@ -290,16 +288,6 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		s.Elem.(*pluginsdk.Resource).Schema["remote_debugging_version"].ValidateFunc = validation.StringInSlice([]string{
-			"VS2017",
-			"VS2019",
-			"VS2022",
-		}, false)
-	}
-
-	return s
 }
 
 func SiteConfigSchemaWindowsComputed() *pluginsdk.Schema {
@@ -851,7 +839,7 @@ func (s *SiteConfigWindows) Flatten(appSiteConfig *webapps.SiteConfig, currentSt
 	}
 
 	if appSiteConfig.ApiManagementConfig != nil && appSiteConfig.ApiManagementConfig.Id != nil {
-		apiId, err := parse.ApiIDInsensitively(pointer.From(appSiteConfig.ApiManagementConfig.Id))
+		apiId, err := api.ParseApiIDInsensitively(pointer.From(appSiteConfig.ApiManagementConfig.Id))
 		if err != nil {
 			return fmt.Errorf("could not parse API Management ID: %+v", err)
 		}
