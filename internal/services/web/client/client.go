@@ -6,7 +6,6 @@ package client
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/certificateregistration/2023-12-01/appservicecertificateorders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/certificates"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
@@ -17,9 +16,6 @@ type Client struct {
 	AppServiceCertificateOrdersClient *appservicecertificateorders.AppServiceCertificateOrdersClient
 	CertificatesClient                *certificates.CertificatesClient
 	WebAppsClient                     *webapps.WebAppsClient
-
-	// azure-sdk-for-go
-	AppServicesClientV1 *web.AppsClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -41,15 +37,9 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(webAppsClient.Client, o.Authorizers.ResourceManager)
 
-	// Track 1
-	appServicesClient := web.NewAppsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&appServicesClient.Client, o.ResourceManagerAuthorizer)
-
 	return &Client{
 		AppServiceCertificateOrdersClient: appServiceCertificateOrdersClient,
 		CertificatesClient:                certificatesClient,
 		WebAppsClient:                     webAppsClient,
-
-		AppServicesClientV1: &appServicesClient,
 	}, nil
 }
