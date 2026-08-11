@@ -19,7 +19,8 @@ type resourceId interface {
 // namespace. Every other segment must match the canonical casing, exactly as the legacy parser
 // required.
 //
-// todo 6.0 - remove this and move the call sites to the strict SDK `Validate<Type>ID` functions.
+// todo 6.0 - remove this and move the call if we should mvoe to the sites to the stricter SDK `Validate<Type>ID` functions or go insensitive.
+//
 // The call sites were migrated from locally generated validators built on the legacy
 // resourceids.ParseAzureResourceID, which treated the casing of the `resourceGroups` segment and
 // the resource provider namespace insensitively, unlike the SDK validation functions. IDs with that
