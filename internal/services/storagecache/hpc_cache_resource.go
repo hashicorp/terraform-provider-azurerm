@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01/caches"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -27,7 +28,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceHPCCache() *pluginsdk.Resource {
@@ -295,7 +295,7 @@ func resourceHPCCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.Set("location", location.Normalize(pointer.From(m.Location)))
 			d.Set("cache_size_in_gb", props.CacheSizeGB)
 			d.Set("subnet_id", props.Subnet)
-			d.Set("mount_addresses", utils.FlattenStringSlice(props.MountAddresses))
+			d.Set("mount_addresses", helpers.FlattenStringSlice(props.MountAddresses))
 
 			mtu, ntpServer, dnsSetting := flattenStorageCacheNetworkSettings(props.NetworkSettings)
 			d.Set("mtu", mtu)
@@ -470,7 +470,7 @@ func expandStorageCacheNetworkSettings(d *pluginsdk.ResourceData) *caches.CacheN
 
 	if dnsSetting, ok := d.GetOk("dns"); ok {
 		dnsSetting := dnsSetting.([]interface{})[0].(map[string]interface{})
-		out.DnsServers = utils.ExpandStringSlice(dnsSetting["servers"].([]interface{}))
+		out.DnsServers = helpers.ExpandStringSlice(dnsSetting["servers"].([]interface{}))
 		searchDomain := dnsSetting["search_domain"].(string)
 		if searchDomain != "" {
 			out.DnsSearchDomain = &searchDomain
@@ -490,7 +490,7 @@ func flattenStorageCacheNetworkSettings(settings *caches.CacheNetworkSettings) (
 	if settings.DnsServers != nil {
 		dnsSetting = []interface{}{
 			map[string]interface{}{
-				"servers":       utils.FlattenStringSlice(settings.DnsServers),
+				"servers":       helpers.FlattenStringSlice(settings.DnsServers),
 				"search_domain": pointer.From(settings.DnsSearchDomain),
 			},
 		}

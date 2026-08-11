@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -481,9 +482,9 @@ func flattenKeyVaultCertificatePolicyForDataSource(input *kv.CertificatePolicy) 
 		sanOutputs := make([]interface{}, 0)
 		if san := props.SubjectAlternativeNames; san != nil {
 			sanOutputs = append(sanOutputs, map[string]interface{}{
-				"emails":    utils.FlattenStringSlice(san.Emails),
-				"dns_names": utils.FlattenStringSlice(san.DNSNames),
-				"upns":      utils.FlattenStringSlice(san.Upns),
+				"emails":    helpers.FlattenStringSlice(san.Emails),
+				"dns_names": helpers.FlattenStringSlice(san.DNSNames),
+				"upns":      helpers.FlattenStringSlice(san.Upns),
 			})
 		}
 
@@ -492,7 +493,7 @@ func flattenKeyVaultCertificatePolicyForDataSource(input *kv.CertificatePolicy) 
 				"key_usage":                 usages,
 				"subject":                   subject,
 				"validity_in_months":        validityInMonths,
-				"extended_key_usage":        utils.FlattenStringSlice(props.Ekus),
+				"extended_key_usage":        helpers.FlattenStringSlice(props.Ekus),
 				"subject_alternative_names": sanOutputs,
 			},
 		}
