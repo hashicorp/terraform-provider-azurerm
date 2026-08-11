@@ -24,31 +24,29 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/snapshots"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceKubernetesClusterNodePoolCreate,
 		Read:   resourceKubernetesClusterNodePoolRead,
 		Update: resourceKubernetesClusterNodePoolUpdate,
 		Delete: resourceKubernetesClusterNodePoolDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.NodePoolID(id)
+			_, err := agentpools.ParseAgentPoolID(id)
 			return err
 		}),
 
@@ -117,50 +115,6 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 			},
 		),
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["linux_os_config"].Elem.(*pluginsdk.Resource).Schema["transparent_huge_page"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"linux_os_config.0.transparent_huge_page_enabled"},
-			ValidateFunc: validation.StringInSlice([]string{
-				"always",
-				"madvise",
-				"never",
-			}, false),
-		}
-		resource.Schema["linux_os_config"].Elem.(*pluginsdk.Resource).Schema["transparent_huge_page_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"linux_os_config.0.transparent_huge_page"},
-			Deprecated:    "this property has been deprecated in favour of `transparent_huge_page` and will be removed in version 5.0 of the Provider.",
-			ValidateFunc: validation.StringInSlice([]string{
-				"always",
-				"madvise",
-				"never",
-			}, false),
-		}
-
-		resource.Schema["kubelet_config"].Elem.(*pluginsdk.Resource).Schema["container_log_max_line"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeInt,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"kubelet_config.0.container_log_max_files"},
-			Deprecated:    "`container_log_max_line` has been renamed to `container_log_max_files` to align with the API property name and will be removed in v5.0 of the AzureRM Provider",
-			ValidateFunc:  validation.IntAtLeast(2),
-		}
-		resource.Schema["kubelet_config"].Elem.(*pluginsdk.Resource).Schema["container_log_max_files"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeInt,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"kubelet_config.0.container_log_max_line"},
-			ValidateFunc:  validation.IntAtLeast(2),
-		}
-	}
-
-	return resource
 }
 
 func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
@@ -176,7 +130,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: containerValidate.ClusterID,
+			ValidateFunc: commonids.ValidateKubernetesClusterID,
 		},
 
 		"node_count": {
@@ -657,7 +611,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	}
 
 	nodeTaintsRaw := d.Get("node_taints").([]interface{})
-	if nodeTaints := utils.ExpandStringSlice(nodeTaintsRaw); len(*nodeTaints) > 0 {
+	if nodeTaints := helpers.ExpandStringSlice(nodeTaintsRaw); len(*nodeTaints) > 0 {
 		profile.NodeTaints = nodeTaints
 	}
 
@@ -793,8 +747,6 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	if err != nil {
 		return err
 	}
-
-	d.Partial(true)
 
 	existing, err := client.Get(ctx, *id)
 	if err != nil {
@@ -966,7 +918,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if d.HasChange("node_taints") {
-		props.NodeTaints = utils.ExpandStringSlice(d.Get("node_taints").([]interface{}))
+		props.NodeTaints = helpers.ExpandStringSlice(d.Get("node_taints").([]interface{}))
 	}
 
 	if d.HasChange("node_network_profile") {
@@ -1099,8 +1051,6 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	d.Partial(false)
-
 	return resourceKubernetesClusterNodePoolRead(d, meta)
 }
 
@@ -1220,7 +1170,7 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 
 		d.Set("node_public_ip_prefix_id", props.NodePublicIPPrefixID)
 
-		if err := d.Set("node_taints", utils.FlattenStringSlice(props.NodeTaints)); err != nil {
+		if err := d.Set("node_taints", helpers.FlattenStringSlice(props.NodeTaints)); err != nil {
 			return fmt.Errorf("setting `node_taints`: %+v", err)
 		}
 
@@ -1387,7 +1337,7 @@ func expandAgentPoolKubeletConfig(input []interface{}) *agentpools.KubeletConfig
 		CpuCfsQuota: pointer.To(raw["cpu_cfs_quota_enabled"].(bool)),
 		// must be false, otherwise the backend will report error: CustomKubeletConfig.FailSwapOn must be set to false to enable swap file on nodes.
 		FailSwapOn:           pointer.To(false),
-		AllowedUnsafeSysctls: utils.ExpandStringSlice(raw["allowed_unsafe_sysctls"].(*pluginsdk.Set).List()),
+		AllowedUnsafeSysctls: helpers.ExpandStringSlice(raw["allowed_unsafe_sysctls"].(*pluginsdk.Set).List()),
 	}
 
 	if v := raw["cpu_manager_policy"].(string); v != "" {
@@ -1410,11 +1360,6 @@ func expandAgentPoolKubeletConfig(input []interface{}) *agentpools.KubeletConfig
 	}
 	if v := raw["container_log_max_files"].(int); v != 0 {
 		result.ContainerLogMaxFiles = pointer.To(int64(v))
-	}
-	if !features.FivePointOh() {
-		if v := raw["container_log_max_line"].(int); v != 0 {
-			result.ContainerLogMaxFiles = pointer.To(int64(v))
-		}
 	}
 	if v := raw["pod_max_pid"].(int); v != 0 {
 		result.PodMaxPids = pointer.To(int64(v))
@@ -1507,11 +1452,6 @@ func expandAgentPoolLinuxOSConfig(input []interface{}) (*agentpools.LinuxOSConfi
 	}
 	if v := raw["transparent_huge_page"].(string); v != "" {
 		result.TransparentHugePageEnabled = pointer.To(v)
-	}
-	if !features.FivePointOh() {
-		if v := raw["transparent_huge_page_enabled"].(string); v != "" {
-			result.TransparentHugePageEnabled = pointer.To(v)
-		}
 	}
 	if v := raw["transparent_huge_page_defrag"].(string); v != "" {
 		result.TransparentHugePageDefrag = pointer.To(v)
@@ -1650,10 +1590,6 @@ func flattenAgentPoolLinuxOSConfig(input *agentpools.LinuxOSConfig) ([]interface
 			"transparent_huge_page_defrag": transparentHugePageDefrag,
 			"transparent_huge_page":        transparentHugePageEnabled,
 		},
-	}
-
-	if !features.FivePointOh() {
-		config[0].(map[string]interface{})["transparent_huge_page_enabled"] = transparentHugePageEnabled
 	}
 
 	return config, nil
@@ -1859,7 +1795,7 @@ func expandAgentPoolNetworkProfile(input []interface{}) *agentpools.AgentPoolNet
 	v := input[0].(map[string]interface{})
 	return &agentpools.AgentPoolNetworkProfile{
 		AllowedHostPorts:          expandAgentPoolNetworkProfileAllowedHostPorts(v["allowed_host_ports"].([]interface{})),
-		ApplicationSecurityGroups: utils.ExpandStringSlice(v["application_security_group_ids"].([]interface{})),
+		ApplicationSecurityGroups: helpers.ExpandStringSlice(v["application_security_group_ids"].([]interface{})),
 		NodePublicIPTags:          expandAgentPoolNetworkProfileNodePublicIPTags(v["node_public_ip_tags"].(map[string]interface{})),
 	}
 }
@@ -1915,7 +1851,7 @@ func flattenAgentPoolNetworkProfile(input *agentpools.AgentPoolNetworkProfile) [
 	return []interface{}{
 		map[string]interface{}{
 			"allowed_host_ports":             flattenAgentPoolNetworkProfileAllowedHostPorts(input.AllowedHostPorts),
-			"application_security_group_ids": utils.FlattenStringSlice(input.ApplicationSecurityGroups),
+			"application_security_group_ids": helpers.FlattenStringSlice(input.ApplicationSecurityGroups),
 			"node_public_ip_tags":            flattenAgentPoolNetworkProfileNodePublicIPTags(input.NodePublicIPTags),
 		},
 	}

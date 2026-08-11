@@ -472,9 +472,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Update() sdk.ResourceFunc {
 
 			groupValue = *resp.Model.Properties.Groups
 
-			if metadata.ResourceData.HasChange("boot_recovery_group") ||
-				metadata.ResourceData.HasChange("failover_recovery_group") ||
-				metadata.ResourceData.HasChange("shutdown_recovery_group") {
+			if metadata.ResourceData.HasChanges("boot_recovery_group", "failover_recovery_group", "shutdown_recovery_group") {
 				groupValue, err = expandRecoveryGroup(model.ShutdownRecoveryGroup, model.FailoverRecoveryGroup, model.BootRecoveryGroup)
 			}
 

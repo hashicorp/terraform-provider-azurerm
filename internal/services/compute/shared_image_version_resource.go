@@ -98,7 +98,7 @@ func resourceSharedImageVersion() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
-							ValidateFunc: validate.DiskEncryptionSetID,
+							ValidateFunc: commonids.ValidateDiskEncryptionSetID,
 						},
 
 						"exclude_from_latest_enabled": {

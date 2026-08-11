@@ -26,7 +26,7 @@ func resourceMsSqlOutboundFirewallRule() *pluginsdk.Resource {
 		Delete: resourceMsSqlOutboundFirewallRuleDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.OutboundFirewallRuleID(id)
+			_, err := outboundfirewallrules.ParseOutboundFirewallRuleID(id)
 			return err
 		}),
 

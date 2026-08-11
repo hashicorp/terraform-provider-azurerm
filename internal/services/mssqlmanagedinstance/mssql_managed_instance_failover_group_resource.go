@@ -61,7 +61,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) ModelObject() interface{} {
 }
 
 func (r MsSqlManagedInstanceFailoverGroupResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ManagedInstanceFailoverGroupID
+	return instancefailovergroups.ValidateInstanceFailoverGroupID
 }
 
 func (r MsSqlManagedInstanceFailoverGroupResource) Arguments() map[string]*pluginsdk.Schema {

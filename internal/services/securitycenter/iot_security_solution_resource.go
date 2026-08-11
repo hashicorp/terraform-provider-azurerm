@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	iothubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
@@ -314,7 +315,7 @@ func resourceIotSecuritySolutionCreateUpdate(d *pluginsdk.ResourceData, meta int
 			DisplayName:                  pointer.To(d.Get("display_name").(string)),
 			Status:                       status,
 			Export:                       expandIotSecuritySolutionExport(d.Get("events_to_export").(*pluginsdk.Set).List()),
-			IotHubs:                      utils.ExpandStringSlice(d.Get("iothub_ids").(*pluginsdk.Set).List()),
+			IotHubs:                      helpers.ExpandStringSlice(d.Get("iothub_ids").(*pluginsdk.Set).List()),
 			RecommendationsConfiguration: expandIotSecuritySolutionRecommendation(d.Get("recommendations").([]interface{})),
 			UnmaskedIPLoggingStatus:      unmaskedIPLoggingStatus,
 		},
@@ -340,7 +341,7 @@ func resourceIotSecuritySolutionCreateUpdate(d *pluginsdk.ResourceData, meta int
 		if query != "" && len(querySubscriptions) > 0 {
 			solution.UserDefinedResources = &security.UserDefinedResourcesProperties{
 				Query:              pointer.To(query),
-				QuerySubscriptions: utils.ExpandStringSlice(querySubscriptions),
+				QuerySubscriptions: helpers.ExpandStringSlice(querySubscriptions),
 			}
 		} else {
 			return fmt.Errorf("`query_for_resources` and `query_subscription_ids` must be set togetther")
@@ -381,7 +382,7 @@ func resourceIotSecuritySolutionRead(d *pluginsdk.ResourceData, meta interface{}
 	if prop := resp.IoTSecuritySolutionProperties; prop != nil {
 		d.Set("enabled", prop.Status == security.SolutionStatusEnabled)
 		d.Set("display_name", prop.DisplayName)
-		d.Set("iothub_ids", utils.FlattenStringSlice(prop.IotHubs))
+		d.Set("iothub_ids", helpers.FlattenStringSlice(prop.IotHubs))
 		d.Set("log_analytics_workspace_id", prop.Workspace)
 		d.Set("log_unmasked_ips_enabled", prop.UnmaskedIPLoggingStatus == security.UnmaskedIPLoggingStatusEnabled)
 		if err := d.Set("events_to_export", flattenIotSecuritySolutionExport(prop.Export)); err != nil {
@@ -392,7 +393,7 @@ func resourceIotSecuritySolutionRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 		if prop.UserDefinedResources != nil {
 			d.Set("query_for_resources", prop.UserDefinedResources.Query)
-			d.Set("query_subscription_ids", utils.FlattenStringSlice(prop.UserDefinedResources.QuerySubscriptions))
+			d.Set("query_subscription_ids", helpers.FlattenStringSlice(prop.UserDefinedResources.QuerySubscriptions))
 		}
 		if err := d.Set("additional_workspace", flattenIotSecuritySolutionAdditionalWorkspace(prop.AdditionalWorkspaces)); err != nil {
 			return fmt.Errorf("setting `additional_workspace`: %+v", err)
@@ -459,7 +460,7 @@ func expandIotSecuritySolutionAdditionalWorkspace(input []interface{}) *[]securi
 		v := item.(map[string]interface{})
 
 		dataTypes := make([]security.AdditionalWorkspaceDataType, 0)
-		for _, item := range *utils.ExpandStringSlice(v["data_types"].(*pluginsdk.Set).List()) {
+		for _, item := range *helpers.ExpandStringSlice(v["data_types"].(*pluginsdk.Set).List()) {
 			dataTypes = append(dataTypes, security.AdditionalWorkspaceDataType(item))
 		}
 
@@ -479,7 +480,7 @@ func expandIotSecuritySolutionDisabledDataSources(input []interface{}) *[]securi
 	}
 
 	disabledDataSources := make([]security.DataSource, 0)
-	for _, item := range *utils.ExpandStringSlice(input) {
+	for _, item := range *helpers.ExpandStringSlice(input) {
 		disabledDataSources = append(disabledDataSources, security.DataSource(item))
 	}
 
@@ -521,7 +522,7 @@ func flattenIotSecuritySolutionAdditionalWorkspace(input *[]security.AdditionalW
 		for _, item := range *item.DataTypes {
 			rawDataTypes = append(rawDataTypes, string(item))
 		}
-		dataTypes := utils.FlattenStringSlice(&rawDataTypes)
+		dataTypes := helpers.FlattenStringSlice(&rawDataTypes)
 
 		var workspaceId string
 		if item.Workspace != nil {
@@ -547,7 +548,7 @@ func flattenIotSecuritySolutionDisabledDataSources(input *[]security.DataSource)
 		results = append(results, string(v))
 	}
 
-	return utils.FlattenStringSlice(&results)
+	return helpers.FlattenStringSlice(&results)
 }
 
 func getRecommendationSchemaMap() map[security.RecommendationType]string {
