@@ -149,5 +149,5 @@ func (m ServerDNSAliasResource) Delete() sdk.ResourceFunc {
 }
 
 func (m ServerDNSAliasResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ServerDNSAliasID
+	return serverdnsaliases.ValidateDnsAliasID
 }

@@ -8,8 +8,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -18,12 +16,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/ddosprotectionplans"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity -test-name basicConfigIdentity
@@ -261,7 +260,7 @@ func expandNetworkDDoSProtectionPlanVnetIDs(input []interface{}) (*[]string, err
 			return nil, err
 		}
 
-		if !utils.SliceContainsValue(vnetIDs, vnetResourceID.ID()) {
+		if !helpers.SliceContainsValue(vnetIDs, vnetResourceID.ID()) {
 			vnetIDs = append(vnetIDs, vnetResourceID.ID())
 		}
 	}
@@ -299,7 +298,7 @@ func extractVnetIDs(input *[]ddosprotectionplans.SubResource) (*[]string, error)
 				return nil, err
 			}
 
-			if !utils.SliceContainsValue(vnetIDs, id.ID()) {
+			if !helpers.SliceContainsValue(vnetIDs, id.ID()) {
 				vnetIDs = append(vnetIDs, id.ID())
 			}
 		}

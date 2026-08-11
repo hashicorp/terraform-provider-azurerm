@@ -12,8 +12,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/pool"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // flattenBatchPoolAutoScaleSettings flattens the auto scale settings for a Batch pool
@@ -501,7 +501,7 @@ func ExpandBatchPoolContainerConfiguration(list []interface{}) (*pool.ContainerC
 	obj := &pool.ContainerConfiguration{
 		Type:                pool.ContainerType(block["type"].(string)),
 		ContainerRegistries: containerRegistries,
-		ContainerImageNames: utils.ExpandStringSlice(block["container_image_names"].(*pluginsdk.Set).List()),
+		ContainerImageNames: helpers.ExpandStringSlice(block["container_image_names"].(*pluginsdk.Set).List()),
 	}
 
 	return obj, nil
@@ -869,7 +869,7 @@ func expandBatchPoolExtension(ref map[string]interface{}) (*pool.VmExtension, er
 	}
 
 	if tmpItem, ok := ref["provision_after_extensions"]; ok {
-		result.ProvisionAfterExtensions = utils.ExpandStringSlice(tmpItem.(*pluginsdk.Set).List())
+		result.ProvisionAfterExtensions = helpers.ExpandStringSlice(tmpItem.(*pluginsdk.Set).List())
 	}
 
 	return &result, nil
@@ -1123,7 +1123,7 @@ func ExpandBatchPoolNetworkConfiguration(list []interface{}) (*pool.NetworkConfi
 		}
 
 		publicIPsRaw := v.(*pluginsdk.Set).List()
-		networkConfiguration.PublicIPAddressConfiguration.IPAddressIds = utils.ExpandStringSlice(publicIPsRaw)
+		networkConfiguration.PublicIPAddressConfiguration.IPAddressIds = helpers.ExpandStringSlice(publicIPsRaw)
 	}
 
 	if v, ok := networkConfigValue["endpoint_configuration"]; ok {
@@ -1253,7 +1253,7 @@ func flattenBatchPoolNetworkConfiguration(input *pool.NetworkConfiguration) []in
 	publicIPAddressIds := make([]interface{}, 0)
 	publicAddressProvisioningType := ""
 	if config := input.PublicIPAddressConfiguration; config != nil {
-		publicIPAddressIds = utils.FlattenStringSlice(config.IPAddressIds)
+		publicIPAddressIds = helpers.FlattenStringSlice(config.IPAddressIds)
 		if config.Provision != nil {
 			publicAddressProvisioningType = string(*config.Provision)
 		}
