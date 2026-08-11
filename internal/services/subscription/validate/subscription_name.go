@@ -4,26 +4,12 @@
 package validate
 
 import (
-	"errors"
-	"fmt"
-	"regexp"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-// lintignore:V013,V011,V001 // false positive - this validates a name; the string comparison checks for empty values
 func SubscriptionName(i interface{}, k string) (warnings []string, errs []error) {
-	v, ok := i.(string)
-	if !ok {
-		errs = append(errs, fmt.Errorf("expected type of %q to be string", k))
-		return
-	}
-
-	if len(v) > 64 || v == "" {
-		errs = append(errs, errors.New("subscription Name must be between 1 and 64 characters in length"))
-	}
-
-	if regexp.MustCompile("[<>;|]").MatchString(v) {
-		errs = append(errs, errors.New("subscription Name cannot contain the characters `<`, `>`, `;`, or `|`"))
-	}
-
-	return
+	return validation.All(
+		validation.StringLenBetween(1, 64),
+		validation.StringDoesNotContainAny("<>;|"),
+	)(i, k)
 }

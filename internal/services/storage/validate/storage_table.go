@@ -30,21 +30,9 @@ func StorageTableDataPlaneID(input interface{}, key string) (warnings []string, 
 	return
 }
 
-// lintignore:V013,V001 // the reserved word check is combined with a regex validation
 func StorageTableName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-	if value == "table" {
-		errors = append(errors, fmt.Errorf(
-			"table storage %q cannot use the word `table`: %q",
-			k, value,
-		))
-	}
-	if !regexp.MustCompile(`^[A-Za-z][A-Za-z0-9]{2,62}$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"table storage %q cannot begin with a numeric character, only alphanumeric characters are allowed and must be between 3 and 63 characters long: %q",
-			k, value,
-		))
-	}
-
-	return warnings, errors
+	return validation.All(
+		validation.StringNotInSlice([]string{"table"}, false),
+		validation.StringMatch(regexp.MustCompile(`^[A-Za-z][A-Za-z0-9]{2,62}$`), "cannot begin with a numeric character, only alphanumeric characters are allowed and must be between 3 and 63 characters long"),
+	)(v, k)
 }
