@@ -40,10 +40,11 @@ func resourceStorageShare() *pluginsdk.Resource {
 			return err
 		}),
 
-		SchemaVersion: 2,
+		SchemaVersion: 3,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.ShareV0ToV1{},
 			1: migration.ShareV1ToV2{},
+			2: migration.StorageShareV2ToV3{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
