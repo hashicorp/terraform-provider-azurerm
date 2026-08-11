@@ -3195,10 +3195,6 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 }
 
 func kubernetesClusterNodeProvisioningProfileTestBlock() string {
-	if !features.FivePointOh() {
-		return ""
-	}
-
 	return `
   node_provisioning_profile {
     mode               = "Manual"
