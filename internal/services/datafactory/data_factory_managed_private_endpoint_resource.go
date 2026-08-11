@@ -14,16 +14,15 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/managedprivateendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/privatelinkservices"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDataFactoryManagedPrivateEndpoint() *pluginsdk.Resource {
@@ -33,7 +32,7 @@ func resourceDataFactoryManagedPrivateEndpoint() *pluginsdk.Resource {
 		Delete: resourceDataFactoryManagedPrivateEndpointDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ManagedPrivateEndpointID(id)
+			_, err := managedprivateendpoints.ParseManagedPrivateEndpointID(id)
 			return err
 		}),
 
@@ -151,7 +150,7 @@ func resourceDataFactoryManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, 
 	}
 
 	if len(fqdns) > 0 {
-		payload.Properties.Fqdns = utils.ExpandStringSlice(fqdns)
+		payload.Properties.Fqdns = helpers.ExpandStringSlice(fqdns)
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, payload, managedprivateendpoints.DefaultCreateOrUpdateOperationOptions()); err != nil {
@@ -202,7 +201,7 @@ func resourceDataFactoryManagedPrivateEndpointRead(d *pluginsdk.ResourceData, me
 		props := model.Properties
 		d.Set("target_resource_id", props.PrivateLinkResourceId)
 		d.Set("subresource_name", props.GroupId)
-		d.Set("fqdns", utils.FlattenStringSlice(props.Fqdns))
+		d.Set("fqdns", helpers.FlattenStringSlice(props.Fqdns))
 	}
 
 	return nil

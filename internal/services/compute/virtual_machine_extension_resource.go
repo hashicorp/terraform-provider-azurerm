@@ -16,13 +16,13 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachineextensions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name virtual_machine_extension -service-package-name compute -properties "name" -compare-values "virtual_machine_name:virtual_machine_id,resource_group_name:virtual_machine_id,subscription_id:virtual_machine_id"
@@ -211,7 +211,7 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	if provisionAfterExtensionsValue, exists := d.GetOk("provision_after_extensions"); exists {
-		extension.Properties.ProvisionAfterExtensions = utils.ExpandStringSlice(provisionAfterExtensionsValue.([]interface{}))
+		extension.Properties.ProvisionAfterExtensions = helpers.ExpandStringSlice(provisionAfterExtensionsValue.([]interface{}))
 	}
 
 	if d.IsNewResource() {

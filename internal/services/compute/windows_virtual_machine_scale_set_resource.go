@@ -174,8 +174,9 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 	healthProbeId := d.Get("health_probe_id").(string)
 	upgradeMode := virtualmachinescalesets.UpgradeMode(d.Get("upgrade_mode").(string))
 	automaticOSUpgradePolicyRaw := d.Get("automatic_os_upgrade_policy").([]interface{})
-	automaticOSUpgradePolicy := ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(automaticOSUpgradePolicyRaw)
 	rollingUpgradePolicyRaw := d.Get("rolling_upgrade_policy").([]interface{})
+	useRollingUpgradePolicy := len(rollingUpgradePolicyRaw) > 0
+	automaticOSUpgradePolicy := ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(automaticOSUpgradePolicyRaw, useRollingUpgradePolicy)
 	rollingUpgradePolicy, err := ExpandVirtualMachineScaleSetRollingUpgradePolicy(rollingUpgradePolicyRaw, len(zones) > 0, overProvision)
 	if err != nil {
 		return err
@@ -313,12 +314,6 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 	}
 
 	if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
-		if encryptionAtHostEnabled.(bool) {
-			if virtualmachinescalesets.SecurityEncryptionTypesDiskWithVMGuestState == virtualmachinescalesets.SecurityEncryptionTypes(securityEncryptionType) {
-				return fmt.Errorf("`encryption_at_host_enabled` cannot be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
-			}
-		}
-
 		if virtualMachineProfile.SecurityProfile == nil {
 			virtualMachineProfile.SecurityProfile = &virtualmachinescalesets.SecurityProfile{}
 		}
@@ -557,7 +552,9 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 
 		if d.HasChange("automatic_os_upgrade_policy") {
 			automaticRaw := d.Get("automatic_os_upgrade_policy").([]interface{})
-			upgradePolicy.AutomaticOSUpgradePolicy = ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(automaticRaw)
+			rollingRaw := d.Get("rolling_upgrade_policy").([]interface{})
+			useRollingUpgradePolicy := len(rollingRaw) > 0
+			upgradePolicy.AutomaticOSUpgradePolicy = ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(automaticRaw, useRollingUpgradePolicy)
 
 			// however if this block has been changed then we need to pull it
 			if upgradePolicy.AutomaticOSUpgradePolicy != nil && upgradePolicy.AutomaticOSUpgradePolicy.EnableAutomaticOSUpgrade != nil {
@@ -735,14 +732,6 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	if d.HasChange("encryption_at_host_enabled") {
-		if d.Get("encryption_at_host_enabled").(bool) {
-			osDiskRaw := d.Get("os_disk").([]interface{})
-			securityEncryptionType := osDiskRaw[0].(map[string]interface{})["security_encryption_type"].(string)
-			if virtualmachinescalesets.SecurityEncryptionTypesDiskWithVMGuestState == virtualmachinescalesets.SecurityEncryptionTypes(securityEncryptionType) {
-				return fmt.Errorf("`encryption_at_host_enabled` cannot be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
-			}
-		}
-
 		if updateProps.VirtualMachineProfile.SecurityProfile == nil {
 			updateProps.VirtualMachineProfile.SecurityProfile = &virtualmachinescalesets.SecurityProfile{}
 		}
