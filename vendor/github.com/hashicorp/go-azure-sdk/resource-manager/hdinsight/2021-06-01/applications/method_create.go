@@ -61,9 +61,20 @@ func (c ApplicationsClient) Create(ctx context.Context, id ApplicationId, input 
 
 // CreateThenPoll performs Create then polls until it's completed
 func (c ApplicationsClient) CreateThenPoll(ctx context.Context, id ApplicationId, input Application) error {
+	return c.CreateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CreateCallbackThenPoll performs Create, runs the optional callback function, then polls until it's completed
+func (c ApplicationsClient) CreateCallbackThenPoll(ctx context.Context, id ApplicationId, input Application, callback func() error) error {
 	result, err := c.Create(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Create: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

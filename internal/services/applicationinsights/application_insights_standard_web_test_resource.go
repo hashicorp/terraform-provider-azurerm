@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name application_insights_standard_web_test -test-name basicConfig -properties "name,resource_group_name" -service-package-name applicationinsights -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity -test-name basicConfig
 
 package applicationinsights
 
@@ -225,9 +225,9 @@ func (ApplicationInsightsStandardWebTestResource) Arguments() map[string]*plugin
 
 					// Typo in API spec, issue: https://github.com/Azure/azure-rest-api-specs/issues/22136
 					// "ignore_status_code": {
-					// 	Type:     pluginsdk.TypeBool,
+					// 	Type:   pluginsdk.TypeBool,
 					// 	Optional: true,
-					// 	Default:  false,
+					// 	Default: false,
 					// },
 
 					"ssl_cert_remaining_lifetime": {
@@ -328,12 +328,14 @@ func (r ApplicationInsightsStandardWebTestResource) Create() sdk.ResourceFunc {
 
 			id := webtests.NewWebTestID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			existing, err := client.WebTestsGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.WebTestsGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			validations := expandApplicationInsightsStandardWebTestValidations(model.ValidationRules)

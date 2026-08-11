@@ -61,9 +61,20 @@ func (c DatabasesClient) Flush(ctx context.Context, id DatabaseId, input FlushPa
 
 // FlushThenPoll performs Flush then polls until it's completed
 func (c DatabasesClient) FlushThenPoll(ctx context.Context, id DatabaseId, input FlushParameters) error {
+	return c.FlushCallbackThenPoll(ctx, id, input, nil)
+}
+
+// FlushCallbackThenPoll performs Flush, runs the optional callback function, then polls until it's completed
+func (c DatabasesClient) FlushCallbackThenPoll(ctx context.Context, id DatabaseId, input FlushParameters, callback func() error) error {
 	result, err := c.Flush(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Flush: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

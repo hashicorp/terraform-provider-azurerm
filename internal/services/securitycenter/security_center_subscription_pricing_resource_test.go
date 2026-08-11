@@ -19,33 +19,6 @@ import (
 
 type SecurityCenterSubscriptionPricingResource struct{}
 
-func TestAccServerVulnerabilityAssessment(t *testing.T) {
-	// these tests need to change `azurerm_security_center_subscription_pricing` of `VirtualMachines` in their test configs, so we need to run them serially.
-	// `securityCenterAssessmentPolicy` is included because it's using same `azurerm_security_center_assessment_policy` with other tests
-	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
-		"securityCenterAssessment": {
-			"basic":          testAccSecurityCenterAssessment_basic,
-			"complete":       testAccSecurityCenterAssessment_complete,
-			"update":         testAccSecurityCenterAssessment_update,
-			"requiresImport": testAccSecurityCenterAssessment_requiresImport,
-		},
-		"securityCenterAssessmentPolicy": {
-			"basic":    testAccSecurityCenterAssessmentPolicy_basic,
-			"complete": testAccSecurityCenterAssessmentPolicy_complete,
-			"update":   testAccSecurityCenterAssessmentPolicy_update,
-		},
-		"serverVulnerabilityAssessmentVirtualMachine": {
-			"basic":          testAccServerVulnerabilityAssessmentVirtualMachine_basic,
-			"requiresImport": testAccServerVulnerabilityAssessmentVirtualMachine_requiresImport,
-		},
-		"workSpace": {
-			"basic":          testAccSecurityCenterWorkspace_basic,
-			"update":         testAccSecurityCenterWorkspace_update,
-			"requiresImport": testAccSecurityCenterWorkspace_requiresImport,
-		},
-	})
-}
-
 func TestAccSecurityCenterSubscriptionPricing_cloudPosture(t *testing.T) {
 	// These tests will change pricing tier of cloud posture
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
@@ -79,6 +52,24 @@ func TestAccSecurityCenterSubscriptionPricing_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccSecurityCenterSubscriptionPricing_multiplePricingResources(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test_storage_accounts")
+	r := SecurityCenterSubscriptionPricingResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multiplePricingResources(),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tier").HasValue("Standard"),
+				check.That(data.ResourceName).Key("resource_type").HasValue("StorageAccounts"),
+				acceptance.TestCheckResourceAttr("azurerm_security_center_subscription_pricing.test_key_vaults", "tier", "Standard"),
+				acceptance.TestCheckResourceAttr("azurerm_security_center_subscription_pricing.test_key_vaults", "resource_type", "KeyVaults"),
+			),
+		},
 	})
 }
 
@@ -380,6 +371,55 @@ provider "azurerm" {
 resource "azurerm_security_center_subscription_pricing" "test" {
   tier          = "Free"
   resource_type = "CloudPosture"
+}
+`
+}
+
+func (SecurityCenterSubscriptionPricingResource) multiplePricingResources() string {
+	return `
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_security_center_subscription_pricing" "test" {
+  tier          = "Standard"
+  resource_type = "CloudPosture"
+
+  extension {
+    name = "SensitiveDataDiscovery"
+  }
+
+  extension {
+    name = "AgentlessVmScanning"
+    additional_extension_properties = {
+      ExclusionTags = "[]"
+    }
+  }
+}
+
+resource "azurerm_security_center_subscription_pricing" "test_storage_accounts" {
+  tier          = "Standard"
+  resource_type = "StorageAccounts"
+  subplan       = "DefenderForStorageV2"
+
+  extension {
+    additional_extension_properties = {
+      CapGBPerMonthPerStorageAccount = "5000"
+      AutomatedResponse              = "None"
+      BlobScanResultsOptions         = "BlobIndexTags"
+    }
+    name = "OnUploadMalwareScanning"
+  }
+
+  extension {
+    name = "SensitiveDataDiscovery"
+  }
+}
+
+resource "azurerm_security_center_subscription_pricing" "test_key_vaults" {
+  tier          = "Standard"
+  resource_type = "KeyVaults"
+  subplan       = "PerKeyVault"
 }
 `
 }

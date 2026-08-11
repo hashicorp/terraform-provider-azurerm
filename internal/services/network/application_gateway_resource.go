@@ -28,7 +28,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -38,7 +37,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name application_gateway -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func base64EncodedStateFunc(v interface{}) string {
 	switch s := v.(type) {
@@ -111,7 +110,7 @@ func sslProfileSchema(computed bool) *pluginsdk.Schema {
 }
 
 func resourceApplicationGateway() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create:   resourceApplicationGatewayCreate,
 		Read:     resourceApplicationGatewayRead,
 		Update:   resourceApplicationGatewayUpdate,
@@ -220,24 +219,6 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"authentication_certificate": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"name": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-									},
-
-									"id": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-								},
-							},
 						},
 
 						"certificate_chain_validation_enabled": {
@@ -1089,33 +1070,6 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 				},
 			},
 
-			// Optional
-			"authentication_certificate": {
-				Type:     pluginsdk.TypeList, // todo this should probably be a map
-				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"data": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-							Sensitive:    true,
-						},
-
-						"id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
-
 			"trusted_root_certificate": {
 				Type:     pluginsdk.TypeList, // todo this should probably be a map
 				Optional: true,
@@ -1802,36 +1756,6 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(applicationGatewayCustomizeDiff),
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["http2_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"enable_http2"},
-		}
-		resource.Schema["enable_http2"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "the `enable_http2` property has been deprecated in favour of the `http2_enabled` property and will be removed in v5.0 of the AzureRM Provider",
-		}
-		resource.Schema["ssl_profile"].Elem.(*pluginsdk.Resource).Schema["verify_client_certificate_issuer_dn"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Computed: true,
-		}
-		resource.Schema["ssl_profile"].Elem.(*pluginsdk.Resource).Schema["verify_client_cert_issuer_dn"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "the `ssl_profile.verify_client_cert_issuer_dn` property has been deprecated in favour of the `ssl_profile.verify_client_certificate_issuer_dn` property and will be removed in v5.0 of the AzureRM provider",
-		}
-		resource.Schema["trusted_root_certificate"].Elem.(*pluginsdk.Resource).Schema["key_vault_secret_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
-		resource.Schema["ssl_certificate"].Elem.(*pluginsdk.Resource).Schema["key_vault_secret_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
-	}
-
-	return resource
 }
 
 func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -1842,22 +1766,20 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 
 	id := applicationgateways.NewApplicationGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+		}
+
 		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			return tf.ImportAsExistsError("azurerm_application_gateway", id.ID())
 		}
 	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_application_gateway", id.ID())
-	}
-
 	http2Enabled := d.Get("http2_enabled").(bool)
-	if !features.FivePointOh() && !d.GetRawConfig().AsValueMap()["enable_http2"].IsNull() {
-		http2Enabled = d.Get("enable_http2").(bool)
-	}
-
 	t := d.Get("tags").(map[string]interface{})
 
 	// Gateway ID is needed to link sub-resources together in expand functions
@@ -1912,7 +1834,6 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 		Tags:     tags.Expand(t),
 		Properties: &applicationgateways.ApplicationGatewayPropertiesFormat{
 			AutoscaleConfiguration:        expandApplicationGatewayAutoscaleConfiguration(d),
-			AuthenticationCertificates:    expandApplicationGatewayAuthenticationCertificates(d.Get("authentication_certificate").([]interface{})),
 			TrustedRootCertificates:       trustedRootCertificates,
 			CustomErrorConfigurations:     expandApplicationGatewayCustomErrorConfigurations(d.Get("custom_error_configuration").([]interface{})),
 			BackendAddressPools:           expandApplicationGatewayBackendAddressPools(d),
@@ -1981,7 +1902,7 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, gateway); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, gateway, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -2022,16 +1943,7 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 		payload.Properties = &applicationgateways.ApplicationGatewayPropertiesFormat{}
 	}
 
-	if !features.FivePointOh() && d.HasChanges("enable_http2", "http2_enabled") {
-		enableHttp2 := false
-		if d.HasChange("enable_http2") && !d.GetRawConfig().AsValueMap()["enable_http2"].IsNull() {
-			enableHttp2 = d.Get("enable_http2").(bool)
-		}
-		if d.HasChange("http2_enabled") && !d.GetRawConfig().AsValueMap()["http2_enabled"].IsNull() {
-			enableHttp2 = d.Get("http2_enabled").(bool)
-		}
-		payload.Properties.EnableHTTP2 = pointer.To(enableHttp2)
-	} else if d.HasChange("http2_enabled") {
+	if d.HasChange("http2_enabled") {
 		payload.Properties.EnableHTTP2 = pointer.To(d.Get("http2_enabled").(bool))
 	}
 
@@ -2129,10 +2041,6 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	if d.HasChange("autoscale_configuration") {
 		payload.Properties.AutoscaleConfiguration = expandApplicationGatewayAutoscaleConfiguration(d)
-	}
-
-	if d.HasChange("authentication_certificate") {
-		payload.Properties.AuthenticationCertificates = expandApplicationGatewayAuthenticationCertificates(d.Get("authentication_certificate").([]interface{}))
 	}
 
 	if d.HasChange("custom_error_configuration") {
@@ -2282,10 +2190,6 @@ func resourceApplicationGatewaySetFlatten(d *pluginsdk.ResourceData, id *applica
 		}
 
 		if props := model.Properties; props != nil {
-			if err = d.Set("authentication_certificate", flattenApplicationGatewayAuthenticationCertificates(props.AuthenticationCertificates, d)); err != nil {
-				return fmt.Errorf("setting `authentication_certificate`: %+v", err)
-			}
-
 			if err = d.Set("trusted_root_certificate", flattenApplicationGatewayTrustedRootCertificates(props.TrustedRootCertificates, d)); err != nil {
 				return fmt.Errorf("setting `trusted_root_certificate`: %+v", err)
 			}
@@ -2315,9 +2219,6 @@ func resourceApplicationGatewaySetFlatten(d *pluginsdk.ResourceData, id *applica
 			}
 
 			d.Set("http2_enabled", props.EnableHTTP2)
-			if !features.FivePointOh() {
-				d.Set("enable_http2", props.EnableHTTP2)
-			}
 			d.Set("fips_enabled", props.EnableFips)
 			d.Set("force_firewall_policy_association", props.ForceFirewallPolicyAssociation)
 
@@ -2473,31 +2374,6 @@ func resourceApplicationGatewayDelete(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func expandApplicationGatewayAuthenticationCertificates(certs []interface{}) *[]applicationgateways.ApplicationGatewayAuthenticationCertificate {
-	results := make([]applicationgateways.ApplicationGatewayAuthenticationCertificate, 0)
-
-	for _, raw := range certs {
-		v := raw.(map[string]interface{})
-
-		name := v["name"].(string)
-		data := v["data"].(string)
-
-		// data must be base64 encoded
-		encodedData := utils.Base64EncodeIfNot(data)
-
-		output := applicationgateways.ApplicationGatewayAuthenticationCertificate{
-			Name: pointer.To(name),
-			Properties: &applicationgateways.ApplicationGatewayAuthenticationCertificatePropertiesFormat{
-				Data: pointer.To(encodedData),
-			},
-		}
-
-		results = append(results, output)
-	}
-
-	return &results
-}
-
 func expandApplicationGatewayTrustedRootCertificates(certs []interface{}) (*[]applicationgateways.ApplicationGatewayTrustedRootCertificate, error) {
 	results := make([]applicationgateways.ApplicationGatewayTrustedRootCertificate, 0)
 
@@ -2528,43 +2404,6 @@ func expandApplicationGatewayTrustedRootCertificates(certs []interface{}) (*[]ap
 	}
 
 	return &results, nil
-}
-
-func flattenApplicationGatewayAuthenticationCertificates(certs *[]applicationgateways.ApplicationGatewayAuthenticationCertificate, d *pluginsdk.ResourceData) []interface{} {
-	results := make([]interface{}, 0)
-	if certs == nil {
-		return results
-	}
-
-	// since the certificate data isn't returned lets load any existing data
-	nameToDataMap := map[string]string{}
-	if existing, ok := d.GetOk("authentication_certificate"); ok && existing != nil {
-		for _, c := range existing.([]interface{}) {
-			b := c.(map[string]interface{})
-			nameToDataMap[b["name"].(string)] = b["data"].(string)
-		}
-	}
-
-	for _, cert := range *certs {
-		output := map[string]interface{}{}
-
-		if v := cert.Id; v != nil {
-			output["id"] = *v
-		}
-
-		if v := cert.Name; v != nil {
-			output["name"] = *v
-
-			// we have a name, so try and look up the old data to pass it along
-			if data, ok := nameToDataMap[*v]; ok && data != "" {
-				output["data"] = data
-			}
-		}
-
-		results = append(results, output)
-	}
-
-	return results
 }
 
 func flattenApplicationGatewayTrustedRootCertificates(certs *[]applicationgateways.ApplicationGatewayTrustedRootCertificate, d *pluginsdk.ResourceData) []interface{} {
@@ -2735,24 +2574,6 @@ func expandApplicationGatewayBackendHTTPSettings(input []interface{}, gatewayID 
 			setting.Properties.AffinityCookieName = pointer.To(affinityCookieName)
 		}
 
-		if v["authentication_certificate"] != nil {
-			authCerts := v["authentication_certificate"].([]interface{})
-			authCertSubResources := make([]applicationgateways.SubResource, 0)
-
-			for _, rawAuthCert := range authCerts {
-				authCert := rawAuthCert.(map[string]interface{})
-				authCertName := authCert["name"].(string)
-				authCertID := fmt.Sprintf("%s/authenticationCertificates/%s", gatewayID, authCertName)
-				authCertSubResource := applicationgateways.SubResource{
-					Id: pointer.To(authCertID),
-				}
-
-				authCertSubResources = append(authCertSubResources, authCertSubResource)
-			}
-
-			setting.Properties.AuthenticationCertificates = &authCertSubResources
-		}
-
 		if v["trusted_root_certificate_names"] != nil {
 			trustedRootCertNames := v["trusted_root_certificate_names"].([]interface{})
 			trustedRootCertSubResources := make([]applicationgateways.SubResource, 0)
@@ -2846,27 +2667,6 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]applicationgateways.A
 				sniValidationEnabled = *props.ValidateSNI
 			}
 			output["sni_validation_enabled"] = sniValidationEnabled
-
-			authenticationCertificates := make([]interface{}, 0)
-			if certs := props.AuthenticationCertificates; certs != nil {
-				for _, cert := range *certs {
-					if cert.Id == nil {
-						continue
-					}
-
-					certId, err := parse.AuthenticationCertificateIDInsensitively(*cert.Id)
-					if err != nil {
-						return nil, err
-					}
-
-					certificate := map[string]interface{}{
-						"id":   certId.ID(),
-						"name": certId.Name,
-					}
-					authenticationCertificates = append(authenticationCertificates, certificate)
-				}
-			}
-			output["authentication_certificate"] = authenticationCertificates
 
 			trustedRootCertificateNames := make([]interface{}, 0)
 			if certs := props.TrustedRootCertificates; certs != nil {
@@ -4739,25 +4539,11 @@ func expandApplicationGatewaySslProfiles(d *pluginsdk.ResourceData, gatewayID st
 	vs := d.Get("ssl_profile").([]interface{})
 	results := make([]applicationgateways.ApplicationGatewaySslProfile, 0)
 
-	for i, raw := range vs {
+	for _, raw := range vs {
 		v := raw.(map[string]interface{})
 
 		name := v["name"].(string)
 
-		verifyClientCertIssuerDn := false
-		if !features.FivePointOh() {
-			rawVerifyClientCertIssuerDn, _ := d.GetRawConfigAt(sdk.ConstructCtyPath(fmt.Sprintf("ssl_profile.%d.verify_client_cert_issuer_dn", i)))
-			if !rawVerifyClientCertIssuerDn.IsNull() {
-				verifyClientCertIssuerDn = v["verify_client_cert_issuer_dn"].(bool)
-			} else {
-				rawVerifyClientCertIssuerDn, _ := d.GetRawConfigAt(sdk.ConstructCtyPath(fmt.Sprintf("ssl_profile.%d.verify_client_certificate_issuer_dn", i)))
-				if !rawVerifyClientCertIssuerDn.IsNull() {
-					verifyClientCertIssuerDn = v["verify_client_certificate_issuer_dn"].(bool)
-				}
-			}
-		} else {
-			verifyClientCertIssuerDn = v["verify_client_certificate_issuer_dn"].(bool)
-		}
 		verifyClientCertificateRevocation := applicationgateways.ApplicationGatewayClientRevocationOptionsNone
 		if v["verify_client_certificate_revocation"].(string) != "" {
 			verifyClientCertificateRevocation = applicationgateways.ApplicationGatewayClientRevocationOptions(v["verify_client_certificate_revocation"].(string))
@@ -4767,7 +4553,7 @@ func expandApplicationGatewaySslProfiles(d *pluginsdk.ResourceData, gatewayID st
 			Name: pointer.To(name),
 			Properties: &applicationgateways.ApplicationGatewaySslProfilePropertiesFormat{
 				ClientAuthConfiguration: &applicationgateways.ApplicationGatewayClientAuthConfiguration{
-					VerifyClientCertIssuerDN: pointer.To(verifyClientCertIssuerDn),
+					VerifyClientCertIssuerDN: pointer.To(v["verify_client_certificate_issuer_dn"].(bool)),
 					VerifyClientRevocation:   pointer.To(verifyClientCertificateRevocation),
 				},
 			},
@@ -4849,9 +4635,6 @@ func flattenApplicationGatewaySslProfiles(input *[]applicationgateways.Applicati
 			}
 			output["trusted_client_certificate_names"] = trustedClientCertificateNames
 			output["verify_client_certificate_issuer_dn"] = verifyClientCertIssuerDn
-			if !features.FivePointOh() {
-				output["verify_client_cert_issuer_dn"] = verifyClientCertIssuerDn
-			}
 			output["verify_client_certificate_revocation"] = verifyClientCertificateRevocation
 		}
 
@@ -5508,13 +5291,13 @@ func applicationGatewayHttpListnerHash(v interface{}) int {
 			buf.WriteString(v.(string))
 		}
 		if hostNames, ok := m["host_names"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", hostNames.(*pluginsdk.Set).List()))
+			fmt.Fprintf(&buf, "%s-", hostNames.(*pluginsdk.Set).List())
 		}
 		if v, ok := m["ssl_certificate_name"]; ok {
 			buf.WriteString(v.(string))
 		}
 		if v, ok := m["require_sni"]; ok {
-			buf.WriteString(fmt.Sprintf("%t", v.(bool)))
+			fmt.Fprintf(&buf, "%t", v.(bool))
 		}
 		if v, ok := m["firewall_policy_id"]; ok {
 			buf.WriteString(strings.ToLower(v.(string)))
@@ -5546,10 +5329,10 @@ func applicationGatewayBackendSettingsHash(v interface{}) int {
 
 	if m, ok := v.(map[string]interface{}); ok {
 		buf.WriteString(m["name"].(string))
-		buf.WriteString(fmt.Sprintf("%d", m["port"].(int)))
+		fmt.Fprintf(&buf, "%d", m["port"].(int))
 		buf.WriteString(m["protocol"].(string))
 		buf.WriteString(m["cookie_based_affinity"].(string))
-		buf.WriteString(fmt.Sprintf("%t", m["dedicated_backend_connection_enabled"].(bool)))
+		fmt.Fprintf(&buf, "%t", m["dedicated_backend_connection_enabled"].(bool))
 
 		if v, ok := m["path"]; ok {
 			buf.WriteString(v.(string))
@@ -5564,19 +5347,10 @@ func applicationGatewayBackendSettingsHash(v interface{}) int {
 			buf.WriteString(v.(string))
 		}
 		if v, ok := m["pick_host_name_from_backend_address"]; ok {
-			buf.WriteString(fmt.Sprintf("%t", v.(bool)))
+			fmt.Fprintf(&buf, "%t", v.(bool))
 		}
 		if v, ok := m["request_timeout"]; ok {
-			buf.WriteString(fmt.Sprintf("%d", v.(int)))
-		}
-		if authCert, ok := m["authentication_certificate"].([]interface{}); ok {
-			for _, ac := range authCert {
-				if ac == nil {
-					continue
-				}
-				config := ac.(map[string]interface{})
-				buf.WriteString(config["name"].(string))
-			}
+			fmt.Fprintf(&buf, "%d", v.(int))
 		}
 		if connectionDraining, ok := m["connection_draining"].([]interface{}); ok {
 			for _, ac := range connectionDraining {
@@ -5584,18 +5358,18 @@ func applicationGatewayBackendSettingsHash(v interface{}) int {
 					continue
 				}
 				config := ac.(map[string]interface{})
-				buf.WriteString(fmt.Sprintf("%t", config["enabled"].(bool)))
-				buf.WriteString(fmt.Sprintf("%d", config["drain_timeout_sec"].(int)))
+				fmt.Fprintf(&buf, "%t", config["enabled"].(bool))
+				fmt.Fprintf(&buf, "%d", config["drain_timeout_sec"].(int))
 			}
 		}
 		if trustedRootCertificateNames, ok := m["trusted_root_certificate_names"]; ok {
-			buf.WriteString(fmt.Sprintf("%s", trustedRootCertificateNames.([]interface{})))
+			fmt.Fprintf(&buf, "%s", trustedRootCertificateNames.([]interface{}))
 		}
 		if v, ok := m["certificate_chain_validation_enabled"]; ok {
-			buf.WriteString(fmt.Sprintf("%t", v.(bool)))
+			fmt.Fprintf(&buf, "%t", v.(bool))
 		}
 		if v, ok := m["sni_validation_enabled"]; ok {
-			buf.WriteString(fmt.Sprintf("%t", v.(bool)))
+			fmt.Fprintf(&buf, "%t", v.(bool))
 		}
 		if v, ok := m["sni_name"]; ok {
 			buf.WriteString(v.(string))
@@ -5630,10 +5404,10 @@ func applicationGatewayBackendAddressPool(v interface{}) int {
 		buf.WriteString(m["name"].(string))
 
 		if fqdns, ok := m["fqdns"]; ok {
-			buf.WriteString(fmt.Sprintf("%s", fqdns.(*pluginsdk.Set).List()))
+			fmt.Fprintf(&buf, "%s", fqdns.(*pluginsdk.Set).List())
 		}
 		if ips, ok := m["ip_addresses"]; ok {
-			buf.WriteString(fmt.Sprintf("%s", ips.(*pluginsdk.Set).List()))
+			fmt.Fprintf(&buf, "%s", ips.(*pluginsdk.Set).List())
 		}
 	}
 
@@ -5646,24 +5420,24 @@ func applicationGatewayProbeHash(v interface{}) int {
 		buf.WriteString(m["name"].(string))
 		buf.WriteString(m["protocol"].(string))
 		buf.WriteString(m["path"].(string))
-		buf.WriteString(fmt.Sprintf("%d", m["interval"].(int)))
-		buf.WriteString(fmt.Sprintf("%d", m["timeout"].(int)))
-		buf.WriteString(fmt.Sprintf("%d", m["unhealthy_threshold"].(int)))
+		fmt.Fprintf(&buf, "%d", m["interval"].(int))
+		fmt.Fprintf(&buf, "%d", m["timeout"].(int))
+		fmt.Fprintf(&buf, "%d", m["unhealthy_threshold"].(int))
 
 		if v, ok := m["host"]; ok {
 			buf.WriteString(v.(string))
 		}
 		if v, ok := m["port"]; ok {
-			buf.WriteString(fmt.Sprintf("%d", v.(int)))
+			fmt.Fprintf(&buf, "%d", v.(int))
 		}
 		if v, ok := m["pick_host_name_from_backend_http_settings"]; ok {
-			buf.WriteString(fmt.Sprintf("%t", v.(bool)))
+			fmt.Fprintf(&buf, "%t", v.(bool))
 		}
 		if v, ok := m["minimum_servers"]; ok {
-			buf.WriteString(fmt.Sprintf("%d", v.(int)))
+			fmt.Fprintf(&buf, "%d", v.(int))
 		}
 		if v, ok := m["proxy_protocol_header_enabled"]; ok {
-			buf.WriteString(fmt.Sprintf("%t", v.(bool)))
+			fmt.Fprintf(&buf, "%t", v.(bool))
 		}
 		if match, ok := m["match"]; ok {
 			if attrs := match.([]interface{}); len(attrs) == 1 && attrs[0] != nil {
@@ -5674,7 +5448,7 @@ func applicationGatewayProbeHash(v interface{}) int {
 				// Only include in hash if it's not the default
 				defaultMatch := body == "" && len(statusCodes) == 1 && statusCodes[0].(string) == "200-399"
 				if !defaultMatch {
-					buf.WriteString(fmt.Sprintf("%s-%+v", body, statusCodes))
+					fmt.Fprintf(&buf, "%s-%+v", body, statusCodes)
 				}
 			}
 		}
@@ -5701,7 +5475,7 @@ func applicationGatewayListenerHash(v interface{}) int {
 		}
 
 		if hostNames, ok := m["host_names"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", hostNames.(*pluginsdk.Set).List()))
+			fmt.Fprintf(&buf, "%s-", hostNames.(*pluginsdk.Set).List())
 		}
 	}
 
@@ -5716,7 +5490,7 @@ func applicationGatewayRoutingRuleHash(v interface{}) int {
 		buf.WriteString(m["backend_address_pool_name"].(string))
 		buf.WriteString(m["backend_name"].(string))
 		buf.WriteString(m["listener_name"].(string))
-		buf.WriteString(fmt.Sprintf("%d", m["priority"].(int)))
+		fmt.Fprintf(&buf, "%d", m["priority"].(int))
 	}
 
 	return pluginsdk.HashString(buf.String())

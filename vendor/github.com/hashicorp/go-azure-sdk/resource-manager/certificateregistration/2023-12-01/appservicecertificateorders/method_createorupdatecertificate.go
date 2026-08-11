@@ -62,9 +62,20 @@ func (c AppServiceCertificateOrdersClient) CreateOrUpdateCertificate(ctx context
 
 // CreateOrUpdateCertificateThenPoll performs CreateOrUpdateCertificate then polls until it's completed
 func (c AppServiceCertificateOrdersClient) CreateOrUpdateCertificateThenPoll(ctx context.Context, id CertificateId, input AppServiceCertificateResource) error {
+	return c.CreateOrUpdateCertificateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CreateOrUpdateCertificateCallbackThenPoll performs CreateOrUpdateCertificate, runs the optional callback function, then polls until it's completed
+func (c AppServiceCertificateOrdersClient) CreateOrUpdateCertificateCallbackThenPoll(ctx context.Context, id CertificateId, input AppServiceCertificateResource, callback func() error) error {
 	result, err := c.CreateOrUpdateCertificate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrUpdateCertificate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

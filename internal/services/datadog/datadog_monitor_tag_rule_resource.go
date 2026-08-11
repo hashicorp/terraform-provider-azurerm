@@ -19,9 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-// @tombuildsstuff: in 4.0 consider inlining this within the `azurerm_datadog_monitors` resource
-// since this appears to be a 1:1 with it (given the name defaults to `default`)
-
 func resourceDatadogTagRules() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceDatadogTagRulesCreate,
@@ -144,14 +141,17 @@ func resourceDatadogTagRulesCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	id := rules.NewTagRuleID(monitorId.SubscriptionId, monitorId.ResourceGroupName, monitorId.MonitorName, d.Get("name").(string))
-	existing, err := client.TagRulesGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for an existing %s: %+v", id, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.TagRulesGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for an existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) && !isDefaultSettings(existing.Model) {
-		return tf.ImportAsExistsError("azurerm_datadog_monitor_tag_rule", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) && !isDefaultSettings(existing.Model) {
+			return tf.ImportAsExistsError("azurerm_datadog_monitor_tag_rule", id.ID())
+		}
 	}
 
 	payload := rules.MonitoringTagRules{

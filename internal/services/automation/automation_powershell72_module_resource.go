@@ -125,15 +125,17 @@ func (r PowerShell72ModuleResource) Create() sdk.ResourceFunc {
 
 			id := module.NewPowerShell72ModuleID(subscriptionId, accountID.ResourceGroupName, accountID.AutomationAccountName, name)
 
-			existing, err := client.PowerShell72ModuleGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.PowerShell72ModuleGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 
-			// for existing global module do update instead of raising ImportAsExistsError
-			isGlobal := existing.Model != nil && existing.Model.Properties != nil && pointer.From(existing.Model.Properties.IsGlobal)
-			if !response.WasNotFound(existing.HttpResponse) && !isGlobal {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				// for existing global module do update instead of raising ImportAsExistsError
+				isGlobal := existing.Model != nil && existing.Model.Properties != nil && pointer.From(existing.Model.Properties.IsGlobal)
+				if !response.WasNotFound(existing.HttpResponse) && !isGlobal {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := module.ModuleCreateOrUpdateParameters{
@@ -146,6 +148,8 @@ func (r PowerShell72ModuleResource) Create() sdk.ResourceFunc {
 			if _, err := client.PowerShell72ModuleCreateOrUpdate(ctx, id, parameters); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
+
+			metadata.SetID(id)
 
 			deadline, ok := ctx.Deadline()
 			if !ok {
@@ -200,8 +204,6 @@ func (r PowerShell72ModuleResource) Create() sdk.ResourceFunc {
 			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 				return fmt.Errorf("waiting for %s to finish provisioning: %+v", id, err)
 			}
-
-			metadata.SetID(id)
 
 			return nil
 		},

@@ -126,7 +126,7 @@ func TestAccLinuxVirtualMachineScaleSet_authDisablePasswordAuthUpdate(t *testing
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	steps := []acceptance.TestStep{
 		{
 			// disable it
 			Config: r.authSSHKey(data),
@@ -151,7 +151,9 @@ func TestAccLinuxVirtualMachineScaleSet_authDisablePasswordAuthUpdate(t *testing
 			),
 		},
 		data.ImportStep("admin_password"),
-	})
+	}
+
+	data.ResourceTestIgnoreRecreate(t, r, steps) // We added a ForceNew to the admin_password field in 5.0, so for now we can ignore the recreate step
 }
 
 func (r LinuxVirtualMachineScaleSetResource) authPassword(data acceptance.TestData) string {

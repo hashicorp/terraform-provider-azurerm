@@ -56,9 +56,20 @@ func (c NetworkConnectionClient) RunHealthChecks(ctx context.Context, id Network
 
 // RunHealthChecksThenPoll performs RunHealthChecks then polls until it's completed
 func (c NetworkConnectionClient) RunHealthChecksThenPoll(ctx context.Context, id NetworkConnectionId) error {
+	return c.RunHealthChecksCallbackThenPoll(ctx, id, nil)
+}
+
+// RunHealthChecksCallbackThenPoll performs RunHealthChecks, runs the optional callback function, then polls until it's completed
+func (c NetworkConnectionClient) RunHealthChecksCallbackThenPoll(ctx context.Context, id NetworkConnectionId, callback func() error) error {
 	result, err := c.RunHealthChecks(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing RunHealthChecks: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

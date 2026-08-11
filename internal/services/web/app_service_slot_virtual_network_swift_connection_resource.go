@@ -82,13 +82,15 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnectionCreate(d *pluginsdk.Reso
 
 	appSlotID := webapps.NewSlotID(appID.SubscriptionId, appID.ResourceGroupName, appID.SiteName, d.Get("slot_name").(string))
 
-	existing, err := client.GetSwiftVirtualNetworkConnectionSlot(ctx, appSlotID)
-	if err != nil {
-		return fmt.Errorf("checking for presence of Swift Network Connection for %s: %w", appSlotID, err)
-	}
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.GetSwiftVirtualNetworkConnectionSlot(ctx, appSlotID)
+		if err != nil {
+			return fmt.Errorf("checking for presence of Swift Network Connection for %s: %w", appSlotID, err)
+		}
 
-	if existing.Model != nil && existing.Model.Properties != nil && pointer.From(existing.Model.Properties.SubnetResourceId) != "" {
-		return tf.ImportAsExistsError("azurerm_app_service_slot_virtual_network_swift_connection", pointer.From(existing.Model.Id))
+		if existing.Model != nil && existing.Model.Properties != nil && pointer.From(existing.Model.Properties.SubnetResourceId) != "" {
+			return tf.ImportAsExistsError("azurerm_app_service_slot_virtual_network_swift_connection", pointer.From(existing.Model.Id))
+		}
 	}
 
 	if _, err := client.Get(ctx, *appID); err != nil {
@@ -135,6 +137,7 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnectionCreate(d *pluginsdk.Reso
 		return err
 	}
 
+	// TODO: migrate to a typed resource ID
 	d.SetId(slotSwiftVirtualNetworkId.ID())
 
 	return resourceAppServiceSlotVirtualNetworkSwiftConnectionRead(d, meta)

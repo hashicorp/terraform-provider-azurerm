@@ -126,12 +126,14 @@ func (r CosmosDBDataConnectionResource) Create() sdk.ResourceFunc {
 
 			id := dataconnections.NewDataConnectionID(kustoDatabaseId.SubscriptionId, kustoDatabaseId.ResourceGroupName, kustoDatabaseId.KustoClusterName, kustoDatabaseId.KustoDatabaseName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			properties := dataconnections.CosmosDbDataConnectionProperties{
@@ -156,7 +158,7 @@ func (r CosmosDBDataConnectionResource) Create() sdk.ResourceFunc {
 				Properties: &properties,
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, dataConnection); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, dataConnection, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

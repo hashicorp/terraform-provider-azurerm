@@ -50,7 +50,7 @@ var (
 	_ sdk.ResourceWithIdentity = ManagerResource{}
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name network_manager -service-package-name network -properties "resource_group_name,name" -known-values "subscription_id:data.Subscriptions.Primary" -test-sequential
+//go:generate go run ../../tools/generator-tests resourceidentity -test-sequential
 
 type ManagerResource struct{}
 
@@ -180,12 +180,14 @@ func (r ManagerResource) Create() sdk.ResourceFunc {
 
 			id := networkmanagers.NewNetworkManagerID(subscriptionId, state.ResourceGroupName, state.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			input := networkmanagers.NetworkManager{

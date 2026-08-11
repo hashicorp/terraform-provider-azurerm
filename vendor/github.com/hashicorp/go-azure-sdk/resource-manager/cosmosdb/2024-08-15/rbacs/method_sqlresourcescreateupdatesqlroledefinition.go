@@ -62,9 +62,20 @@ func (c RbacsClient) SqlResourcesCreateUpdateSqlRoleDefinition(ctx context.Conte
 
 // SqlResourcesCreateUpdateSqlRoleDefinitionThenPoll performs SqlResourcesCreateUpdateSqlRoleDefinition then polls until it's completed
 func (c RbacsClient) SqlResourcesCreateUpdateSqlRoleDefinitionThenPoll(ctx context.Context, id SqlRoleDefinitionId, input SqlRoleDefinitionCreateUpdateParameters) error {
+	return c.SqlResourcesCreateUpdateSqlRoleDefinitionCallbackThenPoll(ctx, id, input, nil)
+}
+
+// SqlResourcesCreateUpdateSqlRoleDefinitionCallbackThenPoll performs SqlResourcesCreateUpdateSqlRoleDefinition, runs the optional callback function, then polls until it's completed
+func (c RbacsClient) SqlResourcesCreateUpdateSqlRoleDefinitionCallbackThenPoll(ctx context.Context, id SqlRoleDefinitionId, input SqlRoleDefinitionCreateUpdateParameters, callback func() error) error {
 	result, err := c.SqlResourcesCreateUpdateSqlRoleDefinition(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing SqlResourcesCreateUpdateSqlRoleDefinition: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

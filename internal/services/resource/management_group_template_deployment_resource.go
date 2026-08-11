@@ -124,14 +124,16 @@ func managementGroupTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, 
 
 	id := parse.NewManagementGroupTemplateDeploymentID(managementGroupId.Name, d.Get("name").(string))
 
-	existing, err := client.GetAtManagementGroupScope(ctx, id.ManagementGroupName, id.DeploymentName)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Management Group Template Deployment %q: %+v", id.DeploymentName, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.GetAtManagementGroupScope(ctx, id.ManagementGroupName, id.DeploymentName)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for presence of existing Management Group Template Deployment %q: %+v", id.DeploymentName, err)
+			}
 		}
-	}
-	if existing.Properties != nil {
-		return tf.ImportAsExistsError("azurerm_management_group_template_deployment", id.ID())
+		if existing.Properties != nil {
+			return tf.ImportAsExistsError("azurerm_management_group_template_deployment", id.ID())
+		}
 	}
 
 	deployment := resources.ScopedDeployment{
@@ -177,12 +179,13 @@ func managementGroupTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("creating Management Group Template Deployment %q: %+v", id.DeploymentName, err)
 	}
 
+	d.SetId(id.ID())
+
 	log.Printf("[DEBUG] Waiting for deployment of Management Group Template Deployment %q..", id.DeploymentName)
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation of Management Group Template Deployment %q: %+v", id.DeploymentName, err)
 	}
 
-	d.SetId(id.ID())
 	return managementGroupTemplateDeploymentResourceRead(d, meta)
 }
 

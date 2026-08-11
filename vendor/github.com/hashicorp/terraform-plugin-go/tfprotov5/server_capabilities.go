@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2020, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package tfprotov5
@@ -23,4 +23,8 @@ type ServerCapabilities struct {
 	// opt-in to prevent unexpected errors or panics since the
 	// ProposedNewState in PlanResourceChangeRequest will be a null value.
 	PlanDestroy bool
+
+	// GenerateResourceConfig signals that a provider supports the GenerateResourceConfig
+	// RPC.
+	GenerateResourceConfig bool
 }

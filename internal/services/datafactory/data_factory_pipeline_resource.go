@@ -23,7 +23,7 @@ import (
 )
 
 func resourceDataFactoryPipeline() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceDataFactoryPipelineCreateUpdate,
 		Read:   resourceDataFactoryPipelineRead,
 		Update: resourceDataFactoryPipelineCreateUpdate,
@@ -104,12 +104,15 @@ func resourceDataFactoryPipeline() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"moniter_metrics_after_duration": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
+			"monitor_metrics_after_duration": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
 	}
+
+	return resource
 }
 
 func resourceDataFactoryPipelineCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -126,15 +129,17 @@ func resourceDataFactoryPipelineCreateUpdate(d *pluginsdk.ResourceData, meta int
 	id := pipelines.NewPipelineID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, pipelines.DefaultGetOperationOptions())
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id, pipelines.DefaultGetOperationOptions())
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_data_factory_pipeline", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_data_factory_pipeline", id.ID())
+			}
 		}
 	}
 
@@ -187,7 +192,7 @@ func resourceDataFactoryPipelineCreateUpdate(d *pluginsdk.ResourceData, meta int
 		payload.Properties.Concurrency = pointer.To(int64(v.(int)))
 	}
 
-	if v, ok := d.GetOk("moniter_metrics_after_duration"); ok {
+	if v, ok := d.GetOk("monitor_metrics_after_duration"); ok {
 		payload.Properties.Policy = &pipelines.PipelinePolicy{
 			ElapsedTimeMetric: &pipelines.PipelineElapsedTimeMetricPolicy{
 				Duration: pointer.To(v),
@@ -258,7 +263,8 @@ func resourceDataFactoryPipelineRead(d *pluginsdk.ResourceData, meta interface{}
 				elapsedTimeMetricDuration = v
 			}
 		}
-		d.Set("moniter_metrics_after_duration", elapsedTimeMetricDuration)
+
+		d.Set("monitor_metrics_after_duration", elapsedTimeMetricDuration)
 
 		if folder := props.Folder; folder != nil {
 			d.Set("folder", pointer.From(folder.Name))

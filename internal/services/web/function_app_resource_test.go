@@ -834,7 +834,7 @@ func TestAccFunctionApp_preWarmedInstanceCount(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionApp_computedPreWarmedInstanceCount(t *testing.T) {
+func TestAccFunctionApp_computedPreWarmedInstanceCount(t *testing.T) {
 	if features.FivePointOh() {
 		t.Skip("Skipping as this resource was removed in 5.0")
 	}

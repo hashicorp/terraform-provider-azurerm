@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -72,12 +73,14 @@ func resourceCosmosDbSQLFunctionCreate(d *pluginsdk.ResourceData, meta interface
 
 	id := cosmosdb.NewUserDefinedFunctionID(meta.(*clients.Client).Account.SubscriptionId, containerId.ResourceGroupName, containerId.DatabaseAccountName, containerId.SqlDatabaseName, containerId.ContainerName, d.Get("name").(string))
 
-	existing, err := client.SqlResourcesGetSqlUserDefinedFunction(ctx, id)
-	if !response.WasNotFound(existing.HttpResponse) {
-		if err != nil {
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.SqlResourcesGetSqlUserDefinedFunction(ctx, id)
+		if !response.WasNotFound(existing.HttpResponse) {
+			if err != nil {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
+			return tf.ImportAsExistsError("azurerm_cosmosdb_sql_function", id.ID())
 		}
-		return tf.ImportAsExistsError("azurerm_cosmosdb_sql_function", id.ID())
 	}
 
 	payload := cosmosdb.SqlUserDefinedFunctionCreateUpdateParameters{
@@ -90,7 +93,7 @@ func resourceCosmosDbSQLFunctionCreate(d *pluginsdk.ResourceData, meta interface
 		},
 	}
 
-	if err := client.SqlResourcesCreateUpdateSqlUserDefinedFunctionThenPoll(ctx, id, payload); err != nil {
+	if err := client.SqlResourcesCreateUpdateSqlUserDefinedFunctionCallbackThenPoll(ctx, id, payload, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 

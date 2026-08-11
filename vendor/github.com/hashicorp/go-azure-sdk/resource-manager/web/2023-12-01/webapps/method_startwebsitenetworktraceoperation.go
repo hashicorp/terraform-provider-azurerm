@@ -96,9 +96,20 @@ func (c WebAppsClient) StartWebSiteNetworkTraceOperation(ctx context.Context, id
 
 // StartWebSiteNetworkTraceOperationThenPoll performs StartWebSiteNetworkTraceOperation then polls until it's completed
 func (c WebAppsClient) StartWebSiteNetworkTraceOperationThenPoll(ctx context.Context, id commonids.AppServiceId, options StartWebSiteNetworkTraceOperationOperationOptions) error {
+	return c.StartWebSiteNetworkTraceOperationCallbackThenPoll(ctx, id, options, nil)
+}
+
+// StartWebSiteNetworkTraceOperationCallbackThenPoll performs StartWebSiteNetworkTraceOperation, runs the optional callback function, then polls until it's completed
+func (c WebAppsClient) StartWebSiteNetworkTraceOperationCallbackThenPoll(ctx context.Context, id commonids.AppServiceId, options StartWebSiteNetworkTraceOperationOperationOptions, callback func() error) error {
 	result, err := c.StartWebSiteNetworkTraceOperation(ctx, id, options)
 	if err != nil {
 		return fmt.Errorf("performing StartWebSiteNetworkTraceOperation: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
