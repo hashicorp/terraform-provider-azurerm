@@ -97,6 +97,7 @@ func TestAccNetworkInterfaceApplicationSecurityGroupAssociation_updateNIC(t *tes
 			Config: r.updateNIC(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(r.associationExistsOnIPv6Config),
 			),
 		},
 		data.ImportStep(),
@@ -135,6 +136,54 @@ func (t NetworkInterfaceApplicationSecurityGroupAssociationResource) Exists(ctx 
 	}
 
 	return pointer.To(found), nil
+}
+
+func (NetworkInterfaceApplicationSecurityGroupAssociationResource) associationExistsOnIPv6Config(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+	id, err := commonids.ParseCompositeResourceID(state.ID, &commonids.NetworkInterfaceId{}, &applicationsecuritygroups.ApplicationSecurityGroupId{})
+	if err != nil {
+		return err
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+	defer cancel()
+
+	read, err := client.Network.NetworkInterfaces.Get(ctx, *id.First, networkinterfaces.DefaultGetOperationOptions())
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id.First, err)
+	}
+	if read.Model == nil || read.Model.Properties == nil || read.Model.Properties.IPConfigurations == nil {
+		return fmt.Errorf("retrieving %s: `properties.ipConfigurations` was nil", id.First)
+	}
+
+	foundIPv6Config := false
+	for _, config := range *read.Model.Properties.IPConfigurations {
+		props := config.Properties
+		if props == nil || props.PrivateIPAddressVersion == nil || *props.PrivateIPAddressVersion != networkinterfaces.IPVersionIPvSix {
+			continue
+		}
+
+		foundIPv6Config = true
+
+		associated := false
+		if props.ApplicationSecurityGroups != nil {
+			for _, group := range *props.ApplicationSecurityGroups {
+				if group.Id != nil && *group.Id == id.Second.ID() {
+					associated = true
+					break
+				}
+			}
+		}
+
+		if !associated {
+			return fmt.Errorf("expected Application Security Group %q to be associated with the IPv6 IP configuration %q but it was not", id.Second.ID(), pointer.From(config.Name))
+		}
+	}
+
+	if !foundIPv6Config {
+		return fmt.Errorf("expected an IPv6 IP configuration on %s but none was found", id.First)
+	}
+
+	return nil
 }
 
 func (NetworkInterfaceApplicationSecurityGroupAssociationResource) destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
@@ -263,6 +312,7 @@ resource "azurerm_network_interface" "test" {
 
   ip_configuration {
     name                          = "testconfiguration2"
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_version    = "IPv6"
     private_ip_address_allocation = "Dynamic"
   }
@@ -288,7 +338,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvn-%d"
-  address_space       = ["10.0.0.0/16"]
+  address_space       = ["10.0.0.0/16", "ace:cab:deca::/48"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
@@ -297,7 +347,7 @@ resource "azurerm_subnet" "test" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.0/24"]
+  address_prefixes     = ["10.0.1.0/24", "ace:cab:deca:deed::/64"]
 }
 
 resource "azurerm_application_security_group" "test" {

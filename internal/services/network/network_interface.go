@@ -112,7 +112,7 @@ func mapFieldsToNetworkInterface(input *[]networkinterfaces.NetworkInterfaceIPCo
 	}
 
 	for _, config := range *output {
-		if config.Properties == nil || config.Properties.PrivateIPAddressVersion == nil || *config.Properties.PrivateIPAddressVersion != networkinterfaces.IPVersionIPvFour {
+		if config.Properties == nil {
 			continue
 		}
 
