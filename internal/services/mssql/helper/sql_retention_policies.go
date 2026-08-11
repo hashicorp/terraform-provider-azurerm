@@ -71,9 +71,7 @@ func LongTermRetentionPolicySchema() *pluginsdk.Schema {
 					Optional:     true,
 					Computed:     true,
 					ValidateFunc: validation.StringInSlice(longtermretentionpolicies.PossibleValuesForTimeBasedImmutabilityMode(), false),
-					DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
-						return !d.Get("long_term_retention_policy.0.immutable_backups_enabled").(bool)
-					},
+					RequiredWith: []string{"long_term_retention_policy.0.immutable_backups_enabled"},
 				},
 			},
 		},
