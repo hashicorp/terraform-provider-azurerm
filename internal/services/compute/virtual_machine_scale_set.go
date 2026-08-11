@@ -17,11 +17,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networksecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func VirtualMachineScaleSetAdditionalCapabilitiesSchema() *pluginsdk.Schema {
@@ -724,7 +723,7 @@ func ExpandVirtualMachineScaleSetNetworkInterface(input []interface{}) (*[]virtu
 	for _, v := range input {
 		raw := v.(map[string]interface{})
 
-		dnsServers := utils.ExpandStringSlice(raw["dns_servers"].([]interface{}))
+		dnsServers := helpers.ExpandStringSlice(raw["dns_servers"].([]interface{}))
 
 		ipConfigurations := make([]virtualmachinescalesets.VirtualMachineScaleSetIPConfiguration, 0)
 		ipConfigurationsRaw := raw["ip_configuration"].([]interface{})
@@ -863,7 +862,7 @@ func ExpandVirtualMachineScaleSetNetworkInterfaceUpdate(input []interface{}) (*[
 	for _, v := range input {
 		raw := v.(map[string]interface{})
 
-		dnsServers := utils.ExpandStringSlice(raw["dns_servers"].([]interface{}))
+		dnsServers := helpers.ExpandStringSlice(raw["dns_servers"].([]interface{}))
 
 		ipConfigurations := make([]virtualmachinescalesets.VirtualMachineScaleSetUpdateIPConfiguration, 0)
 		ipConfigurationsRaw := raw["ip_configuration"].([]interface{})
@@ -1015,7 +1014,7 @@ func FlattenVirtualMachineScaleSetNetworkInterface(input *[]virtualmachinescales
 			}
 
 			if settings := props.DnsSettings; settings != nil {
-				dnsServers = utils.FlattenStringSlice(props.DnsSettings.DnsServers)
+				dnsServers = helpers.FlattenStringSlice(props.DnsSettings.DnsServers)
 			}
 
 			for _, configRaw := range props.IPConfigurations {
@@ -1169,7 +1168,7 @@ func VirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 					// presumably this'll take effect once key rotation is supported a few months post-GA?
 					// however for now let's make this ForceNew since it can't be (successfully) updated
 					ForceNew:     true,
-					ValidateFunc: validate.DiskEncryptionSetID,
+					ValidateFunc: commonids.ValidateDiskEncryptionSetID,
 				},
 
 				"disk_size_gb": {
@@ -1407,7 +1406,7 @@ func VirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 					// presumably this'll take effect once key rotation is supported a few months post-GA?
 					// however for now let's make this ForceNew since it can't be (successfully) updated
 					ForceNew:      true,
-					ValidateFunc:  validate.DiskEncryptionSetID,
+					ValidateFunc:  commonids.ValidateDiskEncryptionSetID,
 					ConflictsWith: []string{"os_disk.0.secure_vm_disk_encryption_set_id"},
 				},
 
@@ -1422,7 +1421,7 @@ func VirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 					Type:          pluginsdk.TypeString,
 					Optional:      true,
 					ForceNew:      true,
-					ValidateFunc:  validate.DiskEncryptionSetID,
+					ValidateFunc:  commonids.ValidateDiskEncryptionSetID,
 					ConflictsWith: []string{"os_disk.0.disk_encryption_set_id"},
 				},
 
@@ -2036,7 +2035,7 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (extensionProfi
 			TypeHandlerVersion:       pointer.To(extensionRaw["type_handler_version"].(string)),
 			AutoUpgradeMinorVersion:  pointer.To(extensionRaw["auto_upgrade_minor_version"].(bool)),
 			EnableAutomaticUpgrade:   pointer.To(extensionRaw["automatic_upgrade_enabled"].(bool)),
-			ProvisionAfterExtensions: utils.ExpandStringSlice(extensionRaw["provision_after_extensions"].([]interface{})),
+			ProvisionAfterExtensions: helpers.ExpandStringSlice(extensionRaw["provision_after_extensions"].([]interface{})),
 		}
 
 		if extensionType == "ApplicationHealthLinux" || extensionType == "ApplicationHealthWindows" {
@@ -2143,7 +2142,7 @@ func flattenVirtualMachineScaleSetExtensions(input *virtualmachinescalesets.Virt
 			}
 
 			if props.ProvisionAfterExtensions != nil {
-				provisionAfterExtension = utils.FlattenStringSlice(props.ProvisionAfterExtensions)
+				provisionAfterExtension = helpers.FlattenStringSlice(props.ProvisionAfterExtensions)
 			}
 
 			if props.Settings != nil {
