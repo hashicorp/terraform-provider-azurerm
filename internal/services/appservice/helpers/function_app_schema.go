@@ -9,11 +9,11 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/api"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -82,7 +82,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 				"api_management_api_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: apimValidate.ApiID,
+					ValidateFunc: api.ValidateApiID,
 					Description:  "The ID of the API Management API for this Linux Function App.",
 				},
 
@@ -595,7 +595,7 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 				"api_management_api_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: apimValidate.ApiID,
+					ValidateFunc: api.ValidateApiID,
 					Description:  "The ID of the API Management API for this Linux Function App.",
 				},
 
@@ -880,7 +880,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 				"api_management_api_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: apimValidate.ApiID,
+					ValidateFunc: api.ValidateApiID,
 					Description:  "The ID of the API Management API for this Windows Function App.",
 				},
 

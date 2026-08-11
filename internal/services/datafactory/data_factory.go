@@ -10,8 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
@@ -228,7 +228,7 @@ func flattenDataFactorySnowflakeSchemaColumns(input interface{}) []interface{} {
 }
 
 func suppressJsonOrderingDifference(_, old, new string, _ *pluginsdk.ResourceData) bool {
-	return utils.NormalizeJson(old) == utils.NormalizeJson(new)
+	return helpers.NormalizeJson(old) == helpers.NormalizeJson(new)
 }
 
 func expandAzureKeyVaultSecretReference(input []interface{}) *datafactory.AzureKeyVaultSecretReference {

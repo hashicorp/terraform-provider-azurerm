@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/deletedmanagedhsms"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/managedhsms"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -30,7 +31,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	kv74 "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
@@ -203,7 +203,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.Resourc
 	hsm := managedhsms.ManagedHsm{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &managedhsms.ManagedHsmProperties{
-			InitialAdminObjectIds:     utils.ExpandStringSlice(d.Get("admin_object_ids").(*pluginsdk.Set).List()),
+			InitialAdminObjectIds:     helpers.ExpandStringSlice(d.Get("admin_object_ids").(*pluginsdk.Set).List()),
 			CreateMode:                pointer.To(managedhsms.CreateModeDefault),
 			EnableSoftDelete:          pointer.To(true),
 			SoftDeleteRetentionInDays: pointer.To(int64(d.Get("soft_delete_retention_days").(int))),
@@ -351,7 +351,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleRead(d *pluginsdk.ResourceD
 				tenantId = *props.TenantId
 			}
 			d.Set("tenant_id", tenantId)
-			d.Set("admin_object_ids", utils.FlattenStringSlice(props.InitialAdminObjectIds))
+			d.Set("admin_object_ids", helpers.FlattenStringSlice(props.InitialAdminObjectIds))
 			d.Set("hsm_uri", props.HsmUri)
 			d.Set("soft_delete_retention_days", props.SoftDeleteRetentionInDays)
 			d.Set("purge_protection_enabled", props.EnablePurgeProtection)

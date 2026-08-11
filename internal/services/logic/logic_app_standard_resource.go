@@ -785,7 +785,15 @@ func (r LogicAppResource) Update() sdk.ResourceFunc {
 			}
 			existingSiteConfig.AppSettings = pointer.To(currentAppSettings)
 
-			if metadata.ResourceData.HasChanges("site_config", "app_settings", "version", "storage_account_name", "storage_account_access_key", "storage_key_vault_secret_id") {
+			// lintignore:R019 // deliberate subset: only the fields that require rebuilding site_config; the remaining attributes are applied elsewhere in the update
+			if metadata.ResourceData.HasChanges(
+				"site_config",
+				"app_settings",
+				"version",
+				"storage_account_name",
+				"storage_account_access_key",
+				"storage_key_vault_secret_id",
+			) {
 				existingSiteConfig, err = expandLogicAppStandardSiteConfigForUpdate(data.SiteConfig, metadata, existingSiteConfig)
 				if err != nil {
 					return fmt.Errorf("expanding site_config update for %s: %v", *id, err)
@@ -1222,7 +1230,15 @@ func expandLogicAppStandardSiteConfigForUpdate(d []helpers.LogicAppSiteConfig, m
 		siteConfig.NetFrameworkVersion = pointer.To(config.DotnetFrameworkVersion)
 	}
 
-	if metadata.ResourceData.HasChanges("app_settings", "storage_account_name", "storage_account_share_name", "storage_account_access_key", "version", "storage_key_vault_secret_id") {
+	// lintignore:R019 // deliberate subset: only the fields that feed the app_settings merge; the remaining attributes do not affect it
+	if metadata.ResourceData.HasChanges(
+		"app_settings",
+		"storage_account_name",
+		"storage_account_share_name",
+		"storage_account_access_key",
+		"version",
+		"storage_key_vault_secret_id",
+	) {
 		o, n := metadata.ResourceData.GetChange("app_settings")
 
 		appSettings := make([]webapps.NameValuePair, 0)

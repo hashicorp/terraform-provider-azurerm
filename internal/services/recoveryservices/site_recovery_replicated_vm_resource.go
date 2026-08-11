@@ -27,19 +27,18 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationprotecteditems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationprotectioncontainers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
@@ -49,7 +48,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 		Update: resourceSiteRecoveryReplicatedItemUpdate,
 		Delete: resourceSiteRecoveryReplicatedItemDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ReplicationProtectedItemID(id)
+			_, err := replicationprotecteditems.ParseReplicationProtectedItemID(id)
 			return err
 		}),
 		CustomizeDiff: resourceSiteRecoveryReplicatedVMCustomizeDiff,
@@ -1097,7 +1096,7 @@ func expandSiteRecoveryReplicatedVMIPConfig(nicInput map[string]interface{}) []r
 			}
 			var recoveryLoadBalancerBackendPoolIds *[]string
 			if ids, ok := ipConfig["recovery_load_balancer_backend_address_pool_ids"].(*schema.Set); ok && ids.Len() > 0 {
-				recoveryLoadBalancerBackendPoolIds = utils.ExpandStringSlice(ids.List())
+				recoveryLoadBalancerBackendPoolIds = helpers.ExpandStringSlice(ids.List())
 			}
 			output = append(output, replicationprotecteditems.IPConfigInputDetails{
 				IPConfigName:                    ipConfigName,
@@ -1133,7 +1132,7 @@ func flattenSiteRecoveryReplicatedVMIPConfig(ipConfigs *[]replicationprotectedit
 				"failover_test_public_ip_address_id": pointer.From(ipConfig.TfoPublicIPAddressId),
 			}
 			if ipConfig.RecoveryLBBackendAddressPoolIds != nil {
-				output["recovery_load_balancer_backend_address_pool_ids"] = utils.FlattenStringSlice(ipConfig.RecoveryLBBackendAddressPoolIds)
+				output["recovery_load_balancer_backend_address_pool_ids"] = helpers.FlattenStringSlice(ipConfig.RecoveryLBBackendAddressPoolIds)
 			}
 			outputs = append(outputs, output)
 		}
