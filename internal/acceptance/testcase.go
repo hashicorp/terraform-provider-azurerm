@@ -150,31 +150,30 @@ func (td TestData) ResourceSequentialTest(t *testing.T, testResource types.TestR
 }
 
 // ResourceRegressionTest runs an acceptance test for resource regression.
-// It expects one or two steps. If only one step is supplied it will be duplicated for the 2nd verification step resulting in an identical config being set for the locally built resource.
-// The first step uses a specified previous provider version constraint. If an empty string is supplied, the test will use the version in ./version/VERSION from the root of the project
+// It expects one or multiple steps. If only one step is supplied it will be duplicated for the 2nd verification step resulting in an identical config being set for the locally built resource.
+// All steps except the final step use a specified previous provider version constraint. If an empty string is supplied, the test will use the version in ./version/VERSION from the root of the project
 // For StateMigration testing, this should be the last version that has the previous `SchemaVersion` value.
-// The second step uses the locally built provider code.
+// The final step uses the locally built provider code.
 func (td TestData) ResourceRegressionTest(t *testing.T, testResource types.TestResource, steps []TestStep, previousVersion string) {
-	if len(steps) != 2 {
-		if len(steps) == 1 {
-			// duplicate step[0] for second stage - this is all that _should_ be required for breaking change testing
-			steps = append(steps, steps[0])
-		} else {
-			t.Fatal("expected exactly 2 steps for Regression test. Setup and Check")
-		}
+	l := len(steps)
+	if l == 1 {
+		// duplicate step[0] for second stage - this is all that _should_ be required for breaking change testing
+		steps = append(steps, steps[0])
 	}
 
 	os.Setenv("TF_ACC_REFRESH_AFTER_APPLY", "true")
 
-	steps[0].ExternalProviders = td.externalProviders()
-	steps[0].ExternalProviders["azurerm"] = resource.ExternalProvider{
-		VersionConstraint: providerRelease([]string{previousVersion}...),
-		Source:            "hashicorp/azurerm",
+	for i := range steps[:l-1] {
+		steps[i].ExternalProviders = td.externalProviders()
+		steps[i].ExternalProviders["azurerm"] = resource.ExternalProvider{
+			VersionConstraint: providerRelease([]string{previousVersion}...),
+			Source:            "hashicorp/azurerm",
+		}
 	}
 
-	steps[1].ExternalProviders = td.externalProviders()
-	steps[1].ProtoV5ProviderFactories = framework.ProtoV5ProviderFactoriesInitWithTestName(context.Background(), t.Name(), "azurerm", "azurerm-alt")
-	steps[1].ConfigPlanChecks = resource.ConfigPlanChecks{
+	steps[l-1].ExternalProviders = td.externalProviders()
+	steps[l-1].ProtoV5ProviderFactories = framework.ProtoV5ProviderFactoriesInitWithTestName(context.Background(), t.Name(), "azurerm", "azurerm-alt")
+	steps[l-1].ConfigPlanChecks = resource.ConfigPlanChecks{
 		PreApply: []plancheck.PlanCheck{
 			helpers.IsNotResourceAction(td.ResourceName, plancheck.ResourceActionReplace),
 		},
