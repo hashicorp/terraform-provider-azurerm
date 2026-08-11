@@ -259,7 +259,7 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 			"source_api_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.ApiID,
+				ValidateFunc: api.ValidateApiID,
 			},
 
 			"oauth2_authorization": {

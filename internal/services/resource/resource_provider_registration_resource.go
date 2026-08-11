@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -340,7 +339,7 @@ func (r ResourceProviderRegistrationResource) Delete() sdk.ResourceFunc {
 }
 
 func (r ResourceProviderRegistrationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ResourceProviderID
+	return providers.ValidateSubscriptionProviderID
 }
 
 func (r ResourceProviderRegistrationResource) CustomImporter() sdk.ResourceRunFunc {

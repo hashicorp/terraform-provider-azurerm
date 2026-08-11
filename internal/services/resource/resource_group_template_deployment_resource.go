@@ -13,6 +13,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-02-01/templatespecversions"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
@@ -72,7 +74,7 @@ func resourceGroupTemplateDeploymentResource() *pluginsdk.Resource {
 					"template_content",
 					"template_spec_version_id",
 				},
-				StateFunc: utils.NormalizeJson,
+				StateFunc: helpers.NormalizeJson,
 			},
 
 			"template_spec_version_id": {
@@ -82,7 +84,7 @@ func resourceGroupTemplateDeploymentResource() *pluginsdk.Resource {
 					"template_content",
 					"template_spec_version_id",
 				},
-				ValidateFunc: validate.TemplateSpecVersionID,
+				ValidateFunc: templatespecversions.ValidateTemplateSpecVersionID,
 			},
 
 			// Optional
@@ -96,7 +98,7 @@ func resourceGroupTemplateDeploymentResource() *pluginsdk.Resource {
 				Type:      pluginsdk.TypeString,
 				Optional:  true,
 				Computed:  true,
-				StateFunc: utils.NormalizeJson,
+				StateFunc: helpers.NormalizeJson,
 			},
 
 			"tags": commonschema.Tags(),
@@ -118,7 +120,7 @@ func resourceGroupTemplateDeploymentResource() *pluginsdk.Resource {
 				o, n := d.GetChange("template_content")
 
 				// the json has to be normalized and then compared against to see if a change has occurred
-				if !strings.EqualFold(o.(string), utils.NormalizeJson(n)) {
+				if !strings.EqualFold(o.(string), helpers.NormalizeJson(n)) {
 					return d.SetNewComputed("output_content")
 				}
 			}
@@ -127,7 +129,7 @@ func resourceGroupTemplateDeploymentResource() *pluginsdk.Resource {
 				o, n := d.GetChange("parameters_content")
 
 				// the json has to be normalized and then compared against to see if a change has occurred
-				if !strings.EqualFold(o.(string), utils.NormalizeJson(n)) {
+				if !strings.EqualFold(o.(string), helpers.NormalizeJson(n)) {
 					return d.SetNewComputed("output_content")
 				}
 			}
