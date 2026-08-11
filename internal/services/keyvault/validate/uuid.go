@@ -4,27 +4,13 @@
 package validate
 
 import (
-	"fmt"
-
-	"github.com/hashicorp/go-uuid"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 // IsUUIDOrEmpty is a ValidateFunc that ensures a string can be parsed as UUID or is empty
-// lintignore:V013 // false positive - empty is valid in addition to any UUID
 func IsUUIDOrEmpty(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return
-	}
-
-	if v == "" {
-		return
-	}
-
-	if _, err := uuid.ParseUUID(v); err != nil {
-		errors = append(errors, fmt.Errorf("expected %q to be a valid UUID, got %v", k, v))
-	}
-
-	return warnings, errors
+	return validation.Any(
+		validation.StringIsEmpty,
+		validation.IsUUID,
+	)(i, k)
 }
