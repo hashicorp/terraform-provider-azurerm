@@ -11,8 +11,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2021-08-08/alertprocessingrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-01-01/actiongroupsapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -51,7 +51,7 @@ func (r AlertProcessingRuleActionGroupResource) Arguments() map[string]*pluginsd
 		Required: true,
 		Elem: &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
-			ValidateFunc: validate.ActionGroupID,
+			ValidateFunc: actiongroupsapis.ValidateActionGroupID,
 		},
 	}
 	return arguments

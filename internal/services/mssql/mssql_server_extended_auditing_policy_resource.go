@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/blobauditing"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
@@ -18,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceMsSqlServerExtendedAuditingPolicy() *pluginsdk.Resource {
@@ -168,7 +168,7 @@ func resourceMsSqlServerExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resource
 	}
 
 	if v, ok := d.GetOk("audit_actions_and_groups"); ok && len(v.([]interface{})) > 0 {
-		params.Properties.AuditActionsAndGroups = utils.ExpandStringSlice(v.([]interface{}))
+		params.Properties.AuditActionsAndGroups = helpers.ExpandStringSlice(v.([]interface{}))
 	}
 
 	err = client.ExtendedServerBlobAuditingPoliciesCreateOrUpdateThenPoll(ctx, *serverId, params)
@@ -214,7 +214,7 @@ func resourceMsSqlServerExtendedAuditingPolicyRead(d *pluginsdk.ResourceData, me
 			d.Set("log_monitoring_enabled", props.IsAzureMonitorTargetEnabled)
 			d.Set("enabled", props.State == blobauditing.BlobAuditingPolicyStateEnabled)
 			d.Set("predicate_expression", props.PredicateExpression)
-			d.Set("audit_actions_and_groups", utils.FlattenStringSlice(props.AuditActionsAndGroups))
+			d.Set("audit_actions_and_groups", helpers.FlattenStringSlice(props.AuditActionsAndGroups))
 
 			if pointer.From(props.StorageAccountSubscriptionId) != "00000000-0000-0000-0000-000000000000" {
 				d.Set("storage_account_subscription_id", props.StorageAccountSubscriptionId)

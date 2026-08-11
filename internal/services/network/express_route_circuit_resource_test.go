@@ -18,7 +18,7 @@ import (
 
 type ExpressRouteCircuitResource struct{}
 
-func TestAccExpressRouteCircuit(t *testing.T) {
+func TestAccExpressRouteCircuit_sequential(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests due to
 	// Azure only being happy about provisioning a couple at a time
 	testCases := map[string]map[string]func(t *testing.T){

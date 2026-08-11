@@ -107,7 +107,6 @@ var services = mapOf(
         "recoveryservices" to "Recovery Services",
         "redhatopenshift" to "Red Hat OpenShift",
         "redis" to "Redis",
-        "redisenterprise" to "Redis Enterprise",
         "relay" to "Relay",
         "resource" to "Resources",
         "search" to "Search",

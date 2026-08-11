@@ -174,8 +174,9 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 	healthProbeId := d.Get("health_probe_id").(string)
 	upgradeMode := virtualmachinescalesets.UpgradeMode(d.Get("upgrade_mode").(string))
 	automaticOSUpgradePolicyRaw := d.Get("automatic_os_upgrade_policy").([]interface{})
-	automaticOSUpgradePolicy := ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(automaticOSUpgradePolicyRaw)
 	rollingUpgradePolicyRaw := d.Get("rolling_upgrade_policy").([]interface{})
+	useRollingUpgradePolicy := len(rollingUpgradePolicyRaw) > 0
+	automaticOSUpgradePolicy := ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(automaticOSUpgradePolicyRaw, useRollingUpgradePolicy)
 	rollingUpgradePolicy, err := ExpandVirtualMachineScaleSetRollingUpgradePolicy(rollingUpgradePolicyRaw, len(zones) > 0, overProvision)
 	if err != nil {
 		return err
@@ -313,12 +314,6 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 	}
 
 	if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
-		if encryptionAtHostEnabled.(bool) {
-			if virtualmachinescalesets.SecurityEncryptionTypesDiskWithVMGuestState == virtualmachinescalesets.SecurityEncryptionTypes(securityEncryptionType) {
-				return fmt.Errorf("`encryption_at_host_enabled` cannot be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
-			}
-		}
-
 		if virtualMachineProfile.SecurityProfile == nil {
 			virtualMachineProfile.SecurityProfile = &virtualmachinescalesets.SecurityProfile{}
 		}
@@ -544,7 +539,7 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		update.Zones = pointer.To(zones.ExpandUntyped(d.Get("zones").(*schema.Set).List()))
 	}
 
-	if d.HasChange("automatic_os_upgrade_policy") || d.HasChange("rolling_upgrade_policy") {
+	if d.HasChanges("automatic_os_upgrade_policy", "rolling_upgrade_policy") {
 		upgradePolicy := virtualmachinescalesets.UpgradePolicy{}
 		if existing.Model.Properties.UpgradePolicy == nil {
 			upgradePolicy = virtualmachinescalesets.UpgradePolicy{
@@ -557,7 +552,9 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 
 		if d.HasChange("automatic_os_upgrade_policy") {
 			automaticRaw := d.Get("automatic_os_upgrade_policy").([]interface{})
-			upgradePolicy.AutomaticOSUpgradePolicy = ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(automaticRaw)
+			rollingRaw := d.Get("rolling_upgrade_policy").([]interface{})
+			useRollingUpgradePolicy := len(rollingRaw) > 0
+			upgradePolicy.AutomaticOSUpgradePolicy = ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(automaticRaw, useRollingUpgradePolicy)
 
 			// however if this block has been changed then we need to pull it
 			if upgradePolicy.AutomaticOSUpgradePolicy != nil && upgradePolicy.AutomaticOSUpgradePolicy.EnableAutomaticOSUpgrade != nil {
@@ -597,14 +594,11 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		updateProps.SinglePlacementGroup = pointer.To(singlePlacementGroup)
 	}
 
-	if d.HasChange("automatic_updates_enabled") ||
-		d.HasChange("custom_data") ||
-		d.HasChange("provision_vm_agent") ||
-		d.HasChange("secret") ||
-		d.HasChange("timezone") {
+	// lintignore:R019 // deliberate subset: only the fields feeding the OSProfile update payload
+	if d.HasChanges("automatic_updates_enabled", "custom_data", "provision_vm_agent", "secret", "timezone") {
 		osProfile := virtualmachinescalesets.VirtualMachineScaleSetUpdateOSProfile{}
 
-		if d.HasChange("automatic_updates_enabled") || d.HasChange("provision_vm_agent") || d.HasChange("timezone") {
+		if d.HasChanges("automatic_updates_enabled", "provision_vm_agent", "timezone") {
 			windowsConfig := virtualmachinescalesets.WindowsConfiguration{}
 
 			if d.HasChange("automatic_updates_enabled") {
@@ -644,7 +638,7 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		updateProps.VirtualMachineProfile.OsProfile = &osProfile
 	}
 
-	if d.HasChange("data_disk") || d.HasChange("os_disk") || d.HasChange("source_image_id") || d.HasChange("source_image_reference") {
+	if d.HasChanges("data_disk", "os_disk", "source_image_id", "source_image_reference") {
 		updateInstances = true
 
 		if updateProps.VirtualMachineProfile.StorageProfile == nil {
@@ -665,7 +659,7 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 			updateProps.VirtualMachineProfile.StorageProfile.OsDisk = ExpandVirtualMachineScaleSetOSDiskUpdate(osDiskRaw)
 		}
 
-		if d.HasChange("source_image_id") || d.HasChange("source_image_reference") {
+		if d.HasChanges("source_image_id", "source_image_reference") {
 			sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
 			sourceImageId := d.Get("source_image_id").(string)
 			sourceImageReference := expandSourceImageReferenceVMSS(sourceImageReferenceRaw, sourceImageId)
@@ -684,7 +678,7 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		}
 	}
 
-	if d.HasChange("network_interface") || d.HasChange("health_probe_id") {
+	if d.HasChanges("network_interface", "health_probe_id") {
 		networkInterfacesRaw := d.Get("network_interface").([]interface{})
 		networkInterfaces, err := ExpandVirtualMachineScaleSetNetworkInterfaceUpdate(networkInterfacesRaw)
 		if err != nil {
@@ -738,14 +732,6 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	if d.HasChange("encryption_at_host_enabled") {
-		if d.Get("encryption_at_host_enabled").(bool) {
-			osDiskRaw := d.Get("os_disk").([]interface{})
-			securityEncryptionType := osDiskRaw[0].(map[string]interface{})["security_encryption_type"].(string)
-			if virtualmachinescalesets.SecurityEncryptionTypesDiskWithVMGuestState == virtualmachinescalesets.SecurityEncryptionTypes(securityEncryptionType) {
-				return fmt.Errorf("`encryption_at_host_enabled` cannot be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
-			}
-		}
-
 		if updateProps.VirtualMachineProfile.SecurityProfile == nil {
 			updateProps.VirtualMachineProfile.SecurityProfile = &virtualmachinescalesets.SecurityProfile{}
 		}
@@ -803,7 +789,7 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		update.Plan = expandPlanVMSS(planRaw)
 	}
 
-	if d.HasChange("sku") || d.HasChange("instances") {
+	if d.HasChanges("sku", "instances") {
 		// in-case ignore_changes is being used, since both fields are required
 		// look up the current values and override them as needed
 		sku := existing.Model.Sku
