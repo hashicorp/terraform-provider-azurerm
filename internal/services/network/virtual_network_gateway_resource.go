@@ -5,6 +5,7 @@ package network
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"math"
 	"time"
@@ -47,6 +48,7 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(120 * time.Minute),
 		},
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(resourceVirtualNetworkGatewayCustomizeDiff),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
