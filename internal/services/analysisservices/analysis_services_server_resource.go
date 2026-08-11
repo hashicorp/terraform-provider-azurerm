@@ -26,7 +26,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name analysis_services_server -service-package-name analysisservices -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceAnalysisServicesServer() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
@@ -422,8 +422,8 @@ func hashAnalysisServicesServerIPv4FirewallRule(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
 
-	buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(m["name"].(string))))
-	buf.WriteString(fmt.Sprintf("%s-", m["range_start"].(string)))
+	fmt.Fprintf(&buf, "%s-", strings.ToLower(m["name"].(string)))
+	fmt.Fprintf(&buf, "%s-", m["range_start"].(string))
 	buf.WriteString(m["range_end"].(string))
 
 	return pluginsdk.HashString(buf.String())

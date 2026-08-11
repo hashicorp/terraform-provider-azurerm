@@ -12,15 +12,12 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-06-01/tables"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	storageAccountHelper "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
-	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/table/entities"
-	legacyTables "github.com/jackofallops/giovanni/storage/2023-11-03/table/tables"
 )
 
 type storageTableEntitiesDataSource struct{}
@@ -41,7 +38,7 @@ type TableEntityDataSourceModel struct {
 }
 
 func (k storageTableEntitiesDataSource) Arguments() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"storage_table_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -62,12 +59,6 @@ func (k storageTableEntitiesDataSource) Arguments() map[string]*pluginsdk.Schema
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		s["storage_table_id"].ValidateFunc = validation.Any(tables.ValidateTableID, storageValidate.StorageTableDataPlaneID)
-	}
-
-	return s
 }
 
 func (k storageTableEntitiesDataSource) Attributes() map[string]*pluginsdk.Schema {
@@ -118,51 +109,22 @@ func (k storageTableEntitiesDataSource) Read() sdk.ResourceFunc {
 			}
 
 			storageClient := metadata.Client.Storage
-			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var tableName string
 			var accountName string
 			var account *storageAccountHelper.AccountDetails
 			var err error
 
-			if !features.FivePointOh() {
-				if strings.HasPrefix(strings.ToLower(model.StorageTableId), "/subscriptions/") {
-					storageTableId, err := tables.ParseTableID(model.StorageTableId)
-					if err != nil {
-						return err
-					}
-					tableName = storageTableId.TableName
-					accountName = storageTableId.StorageAccountName
-					storageAccountId := commonids.NewStorageAccountID(storageTableId.SubscriptionId, storageTableId.ResourceGroupName, storageTableId.StorageAccountName)
-					account, err = storageClient.GetAccount(ctx, storageAccountId)
-					if err != nil {
-						return fmt.Errorf("retrieving Account %q for Table %q: %v", accountName, tableName, err)
-					}
-				} else {
-					log.Printf("[WARN] `storage_table_id` is currently configured as a Data Plane URL. This legacy behavior has been deprecated and will be removed in version 5.0 of the AzureRM Provider. Please migrate to the Resource Manager ID format.")
-					storageTableId, err := legacyTables.ParseTableID(model.StorageTableId, storageClient.StorageDomainSuffix)
-					if err != nil {
-						return err
-					}
-					tableName = storageTableId.TableName
-					accountName = storageTableId.AccountId.AccountName
-					account, err = storageClient.FindAccount(ctx, subscriptionId, accountName)
-					if err != nil {
-						return fmt.Errorf("retrieving Account %q for Table %q: %v", accountName, tableName, err)
-					}
-				}
-			} else {
-				storageTableId, err := tables.ParseTableID(model.StorageTableId)
-				if err != nil {
-					return err
-				}
-				tableName = storageTableId.TableName
-				accountName = storageTableId.StorageAccountName
-				storageAccountId := commonids.NewStorageAccountID(storageTableId.SubscriptionId, storageTableId.ResourceGroupName, storageTableId.StorageAccountName)
-				account, err = storageClient.GetAccount(ctx, storageAccountId)
-				if err != nil {
-					return fmt.Errorf("retrieving Account %q for Table %q: %v", accountName, tableName, err)
-				}
+			storageTableId, err := tables.ParseTableID(model.StorageTableId)
+			if err != nil {
+				return err
+			}
+			tableName = storageTableId.TableName
+			accountName = storageTableId.StorageAccountName
+			storageAccountId := commonids.NewStorageAccountID(storageTableId.SubscriptionId, storageTableId.ResourceGroupName, storageTableId.StorageAccountName)
+			account, err = storageClient.GetAccount(ctx, storageAccountId)
+			if err != nil {
+				return fmt.Errorf("retrieving Account %q for Table %q: %v", accountName, tableName, err)
 			}
 
 			if account == nil {

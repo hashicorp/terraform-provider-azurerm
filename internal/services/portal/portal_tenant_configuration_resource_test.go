@@ -19,7 +19,7 @@ import (
 
 type PortalTenantConfigurationResource struct{}
 
-func TestAccPortalTenantConfiguration(t *testing.T) {
+func TestAccPortalTenantConfiguration_sequential(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests due to
 	// Azure only being able provision one default Tenant Configuration at a time
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){

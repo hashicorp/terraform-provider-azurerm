@@ -33,7 +33,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name mysql_flexible_server -service-package-name mysql -properties "name:name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-expect-non-empty
+//go:generate go run ../../tools/generator-tests resourceidentity -test-expect-non-empty
 
 const (
 	ServerMaintenanceWindowEnabled  = "Enabled"
@@ -829,7 +829,7 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	if d.HasChange("backup_retention_days") || d.HasChange("geo_redundant_backup_enabled") {
+	if d.HasChanges("backup_retention_days", "geo_redundant_backup_enabled") {
 		parameters.Properties.Backup = expandArmServerBackup(d)
 	}
 

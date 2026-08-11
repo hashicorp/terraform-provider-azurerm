@@ -3,7 +3,7 @@
 
 package communication
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name communication_service -service-package-name communication -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 import (
 	"context"
@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/communicationservices"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/validate"
@@ -59,7 +58,7 @@ func (CommunicationServiceResource) StateUpgraders() sdk.StateUpgradeData {
 }
 
 func (CommunicationServiceResource) Arguments() map[string]*pluginsdk.Schema {
-	args := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -96,36 +95,6 @@ func (CommunicationServiceResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
-
-	if !features.FivePointOh() {
-		args["data_location"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  "United States",
-			ValidateFunc: validation.StringInSlice([]string{
-				"Africa",
-				"Asia Pacific",
-				"Australia",
-				"Brazil",
-				"Canada",
-				"Europe",
-				"France",
-				"Germany",
-				"India",
-				"Japan",
-				"Korea",
-				"Norway",
-				"Switzerland",
-				"UAE",
-				"UK",
-				"United States",
-				"usgov",
-			}, false),
-		}
-	}
-
-	return args
 }
 
 func (CommunicationServiceResource) Attributes() map[string]*pluginsdk.Schema {
