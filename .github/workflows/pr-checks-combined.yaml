@@ -79,7 +79,7 @@ jobs:
 
   depscheck:
     needs: paths-filter
-    if: needs.paths-filter.outputs.vendor == 'true'
+    if: needs.paths-filter.outputs.vendor == 'true' || needs.paths-filter.outputs.go == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
