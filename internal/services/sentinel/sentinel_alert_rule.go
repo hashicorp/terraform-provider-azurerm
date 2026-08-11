@@ -9,10 +9,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2023-12-01-preview/alertrules"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func importSentinelAlertRule(expectKind alertrules.AlertRuleKind) pluginsdk.ImporterFunc {
@@ -199,7 +199,7 @@ func expandAlertRuleGrouping(input []interface{}, withGroupPrefix bool) *alertru
 	if withGroupPrefix {
 		key = "group_" + key
 	}
-	output.GroupByCustomDetails = utils.ExpandStringSlice(raw[key].([]interface{}))
+	output.GroupByCustomDetails = helpers.ExpandStringSlice(raw[key].([]interface{}))
 
 	return output
 }

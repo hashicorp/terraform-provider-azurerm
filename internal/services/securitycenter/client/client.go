@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2019-01-01-preview/automations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2021-06-01/assessmentsmetadata"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2022-05-01/settings"
-	pricings_v2023_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/security/2023-01-01/pricings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2023-01-01/pricings"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2023-05-01/servervulnerabilityassessmentssettings"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2025-06-01/defenderforstorage"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -22,7 +22,7 @@ type Client struct {
 	ContactsClient                             *security.ContactsClient
 	DeviceSecurityGroupsClient                 *security.DeviceSecurityGroupsClient
 	IotSecuritySolutionClient                  *security.IotSecuritySolutionClient
-	PricingClient                              *pricings_v2023_01_01.PricingsClient
+	PricingClient                              *pricings.PricingsClient
 	WorkspaceClient                            *security.WorkspaceSettingsClient
 	AdvancedThreatProtectionClient             *security.AdvancedThreatProtectionClient
 	SettingClient                              *settings.SettingsClient
@@ -53,7 +53,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	IotSecuritySolutionClient := security.NewIotSecuritySolutionClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
 	o.ConfigureClient(&IotSecuritySolutionClient.Client, o.ResourceManagerAuthorizer)
 
-	PricingClient, err := pricings_v2023_01_01.NewPricingsClientWithBaseURI(o.Environment.ResourceManager)
+	PricingClient, err := pricings.NewPricingsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Pricing client : %+v", err)
 	}

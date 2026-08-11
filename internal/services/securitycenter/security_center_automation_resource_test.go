@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -214,13 +213,12 @@ func TestAccSecurityCenterAutomation_sourceMulti(t *testing.T) {
 }
 
 func (t SecurityCenterAutomationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.AutomationID(state.ID)
+	id, err := automations.ParseAutomationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	automationId := automations.NewAutomationID(id.SubscriptionId, id.ResourceGroup, id.Name)
 
-	resp, err := clients.SecurityCenter.AutomationsClient.Get(ctx, automationId)
+	resp, err := clients.SecurityCenter.AutomationsClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}

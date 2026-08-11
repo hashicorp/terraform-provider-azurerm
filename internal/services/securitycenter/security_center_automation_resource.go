@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -33,7 +32,7 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 		Delete: resourceSecurityCenterAutomationDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.AutomationID(id)
+			_, err := automations.ParseAutomationID(id)
 			return err
 		}),
 
@@ -206,11 +205,10 @@ func resourceSecurityCenterAutomationCreateUpdate(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewAutomationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	automationId := automations.NewAutomationID(id.SubscriptionId, id.ResourceGroup, id.Name)
+	id := automations.NewAutomationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-			existing, err := client.Get(ctx, automationId)
+			existing, err := client.Get(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -249,7 +247,7 @@ func resourceSecurityCenterAutomationCreateUpdate(d *pluginsdk.ResourceData, met
 		return err
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, automationId, automation); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, automation); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -262,13 +260,12 @@ func resourceSecurityCenterAutomationRead(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AutomationID(d.Id())
+	id, err := automations.ParseAutomationID(d.Id())
 	if err != nil {
 		return err
 	}
-	automationId := automations.NewAutomationID(id.SubscriptionId, id.ResourceGroup, id.Name)
 
-	resp, err := client.Get(ctx, automationId)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s was not found - removing from state", *id)
@@ -279,8 +276,8 @@ func resourceSecurityCenterAutomationRead(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.AutomationName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("location", location.NormalizeNilable(resp.Model.Location))
 
 	if properties := resp.Model.Properties; properties != nil {
@@ -320,13 +317,12 @@ func resourceSecurityCenterAutomationDelete(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AutomationID(d.Id())
+	id, err := automations.ParseAutomationID(d.Id())
 	if err != nil {
 		return err
 	}
-	automationId := automations.NewAutomationID(id.SubscriptionId, id.ResourceGroup, id.Name)
 
-	if _, err := client.Delete(ctx, automationId); err != nil {
+	if _, err := client.Delete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

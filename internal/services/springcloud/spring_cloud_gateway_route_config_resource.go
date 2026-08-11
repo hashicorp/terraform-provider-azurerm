@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
@@ -223,12 +224,12 @@ func resourceSpringCloudGatewayRouteConfigCreateUpdate(d *pluginsdk.ResourceData
 
 	filters := d.Get("filters").(*pluginsdk.Set).List()
 	if len(filters) > 0 {
-		gatewayRouteConfigResource.Properties.Filters = utils.ExpandStringSlice(filters)
+		gatewayRouteConfigResource.Properties.Filters = helpers.ExpandStringSlice(filters)
 	}
 
 	predicates := d.Get("predicates").(*pluginsdk.Set).List()
 	if len(predicates) > 0 {
-		gatewayRouteConfigResource.Properties.Predicates = utils.ExpandStringSlice(predicates)
+		gatewayRouteConfigResource.Properties.Predicates = helpers.ExpandStringSlice(predicates)
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.GatewayName, id.RouteConfigName, gatewayRouteConfigResource)
@@ -289,10 +290,10 @@ func resourceSpringCloudGatewayRouteConfigRead(d *pluginsdk.ResourceData, meta i
 		}
 
 		if props.Filters != nil {
-			d.Set("filters", utils.FlattenStringSlice(props.Filters))
+			d.Set("filters", helpers.FlattenStringSlice(props.Filters))
 		}
 		if props.Predicates != nil {
-			d.Set("predicates", utils.FlattenStringSlice(props.Predicates))
+			d.Set("predicates", helpers.FlattenStringSlice(props.Predicates))
 		}
 		d.Set("sso_validation_enabled", props.SsoEnabled)
 	}
@@ -330,10 +331,10 @@ func expandGatewayRouteConfigGatewayAPIRouteArray(input []interface{}) *[]apppla
 			URI:         pointer.To(v["uri"].(string)),
 			SsoEnabled:  pointer.To(v["sso_validation_enabled"].(bool)),
 			TokenRelay:  pointer.To(v["token_relay"].(bool)),
-			Predicates:  utils.ExpandStringSlice(v["predicates"].(*pluginsdk.Set).List()),
-			Filters:     utils.ExpandStringSlice(v["filters"].(*pluginsdk.Set).List()),
+			Predicates:  helpers.ExpandStringSlice(v["predicates"].(*pluginsdk.Set).List()),
+			Filters:     helpers.ExpandStringSlice(v["filters"].(*pluginsdk.Set).List()),
 			Order:       pointer.To(int32(v["order"].(int))),
-			Tags:        utils.ExpandStringSlice(v["classification_tags"].(*pluginsdk.Set).List()),
+			Tags:        helpers.ExpandStringSlice(v["classification_tags"].(*pluginsdk.Set).List()),
 		})
 	}
 	return &results
@@ -372,14 +373,14 @@ func flattenGatewayRouteConfigGatewayAPIRouteArray(input *[]appplatform.GatewayA
 		}
 		results = append(results, map[string]interface{}{
 			"description":            description,
-			"filters":                utils.FlattenStringSlice(item.Filters),
+			"filters":                helpers.FlattenStringSlice(item.Filters),
 			"order":                  order,
-			"predicates":             utils.FlattenStringSlice(item.Predicates),
+			"predicates":             helpers.FlattenStringSlice(item.Predicates),
 			"sso_validation_enabled": ssoEnabled,
 			"title":                  title,
 			"token_relay":            tokenRelay,
 			"uri":                    uri,
-			"classification_tags":    utils.FlattenStringSlice(item.Tags),
+			"classification_tags":    helpers.FlattenStringSlice(item.Tags),
 		})
 	}
 	return results

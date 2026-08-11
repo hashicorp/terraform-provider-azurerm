@@ -190,7 +190,7 @@ func (s SpringCloudConfigurationServiceResource) ModelObject() interface{} {
 }
 
 func (s SpringCloudConfigurationServiceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.SpringCloudConfigurationServiceID
+	return appplatform.ValidateConfigurationServiceID
 }
 
 func (s SpringCloudConfigurationServiceResource) StateUpgraders() sdk.StateUpgradeData {

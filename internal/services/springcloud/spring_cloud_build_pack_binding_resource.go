@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
@@ -207,10 +208,10 @@ func expandBuildPackBindingBuildPackBindingLaunchProperties(input []interface{})
 	v := input[0].(map[string]interface{})
 	var properties, secrets map[string]*string
 	if valueRaw, ok := v["properties"]; ok && valueRaw != nil {
-		properties = utils.ExpandMapStringPtrString(valueRaw.(map[string]interface{}))
+		properties = helpers.ExpandMapStringPtrString(valueRaw.(map[string]interface{}))
 	}
 	if valueRaw, ok := v["secrets"]; ok && valueRaw != nil {
-		secrets = utils.ExpandMapStringPtrString(valueRaw.(map[string]interface{}))
+		secrets = helpers.ExpandMapStringPtrString(valueRaw.(map[string]interface{}))
 	}
 	return &appplatform.BuildpackBindingLaunchProperties{
 		Properties: properties,
@@ -225,7 +226,7 @@ func flattenBuildPackBindingBuildPackBindingLaunchProperties(input *appplatform.
 
 	props := make(map[string]interface{})
 	if input.Properties != nil {
-		props = utils.FlattenMapStringPtrString(input.Properties)
+		props = helpers.FlattenMapStringPtrString(input.Properties)
 	}
 	secrets := make(map[string]interface{})
 	if len(old) != 0 {
