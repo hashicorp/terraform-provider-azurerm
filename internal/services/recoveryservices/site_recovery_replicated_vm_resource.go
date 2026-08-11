@@ -210,14 +210,12 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 						"staging_storage_account_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ForceNew:     true,
 							ValidateFunc: commonids.ValidateStorageAccountID,
 						},
 
 						"target_resource_group_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ForceNew:     true,
 							ValidateFunc: commonids.ValidateResourceGroupID,
 						},
 
@@ -236,7 +234,6 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 						"target_disk_encryption_set_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ForceNew:     true,
 							ValidateFunc: commonids.ValidateDiskEncryptionSetID,
 						},
 
@@ -340,6 +337,45 @@ func resourceSiteRecoveryReplicatedVMCustomizeDiff(_ context.Context, diff *plug
 
 		if primaryCount != 1 {
 			return fmt.Errorf("`network_interface.ip_configuration` must contain exactly one block with `primary` set to `true` when multiple blocks are configured")
+		}
+	}
+
+	if diff.HasChange("managed_disk") {
+		oldDisks, newDisks := diff.GetChange("managed_disk")
+		oldSet := oldDisks.(*pluginsdk.Set).List()
+		newSet := newDisks.(*pluginsdk.Set).List()
+
+		oldMap := make(map[string]map[string]interface{})
+		for _, raw := range oldSet {
+			diskInput := raw.(map[string]interface{})
+			diskId := diskInput["disk_id"].(string)
+			oldMap[diskId] = diskInput
+		}
+
+		for _, raw := range newSet {
+			diskInput := raw.(map[string]interface{})
+			diskId := diskInput["disk_id"].(string)
+
+			if oldDiskInput, exists := oldMap[diskId]; exists {
+				if diskInput["staging_storage_account_id"] != oldDiskInput["staging_storage_account_id"] {
+					if err := diff.ForceNew("managed_disk"); err != nil {
+						return err
+					}
+					break
+				}
+				if diskInput["target_resource_group_id"] != oldDiskInput["target_resource_group_id"] {
+					if err := diff.ForceNew("managed_disk"); err != nil {
+						return err
+					}
+					break
+				}
+				if diskInput["target_disk_encryption_set_id"] != oldDiskInput["target_disk_encryption_set_id"] {
+					if err := diff.ForceNew("managed_disk"); err != nil {
+						return err
+					}
+					break
+				}
+			}
 		}
 	}
 
