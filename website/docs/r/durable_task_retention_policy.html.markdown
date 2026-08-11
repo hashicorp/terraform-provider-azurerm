@@ -74,7 +74,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 A Durable Task Retention Policy can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_durable_task_retention_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.DurableTask/schedulers/scheduler1/retentionPolicies/default
+terraform import azurerm_durable_task_retention_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.DurableTask/schedulers/scheduler1
 ```
 
 ## API Providers

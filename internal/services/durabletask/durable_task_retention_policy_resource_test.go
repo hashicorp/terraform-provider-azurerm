@@ -100,7 +100,7 @@ func (r DurableTaskRetentionPolicyResource) Exists(ctx context.Context, client *
 
 	resp, err := client.DurableTask.RetentionPoliciesClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving retention policy for %s: %v", id, err)
+		return nil, fmt.Errorf("retrieving retention policy for %s: %+v", id, err)
 	}
 
 	return pointer.To(resp.Model != nil), nil
