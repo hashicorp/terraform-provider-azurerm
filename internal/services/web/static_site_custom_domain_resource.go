@@ -91,15 +91,17 @@ func resourceStaticSiteCustomDomainCreate(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("retrieving %s: %+v", *staticSiteId, err)
 	}
 
-	existing, err := client.GetStaticSiteCustomDomain(ctx, staticSiteId.ResourceGroup, id.StaticSiteName, id.CustomDomainName)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.GetStaticSiteCustomDomain(ctx, staticSiteId.ResourceGroup, id.StaticSiteName, id.CustomDomainName)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_static_site_custom_domain", staticSiteId.ID())
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_static_site_custom_domain", staticSiteId.ID())
+		}
 	}
 
 	validationMethod := d.Get("validation_type").(string)
@@ -117,6 +119,7 @@ func resourceStaticSiteCustomDomainCreate(d *pluginsdk.ResourceData, meta interf
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
+	d.SetId(id.ID())
 
 	// we can't wait for the future to be complete for txt validation as we need to give the user the validation token
 	if validationMethod == cnameValidationType {
@@ -167,8 +170,6 @@ func resourceStaticSiteCustomDomainCreate(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 	d.Set("validation_token", pointer.From(resp.ValidationToken))
-
-	d.SetId(id.ID())
 
 	return resourceStaticSiteCustomDomainRead(d, meta)
 }

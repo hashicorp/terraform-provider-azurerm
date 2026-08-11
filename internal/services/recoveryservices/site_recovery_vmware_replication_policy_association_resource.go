@@ -103,15 +103,17 @@ func (s VMWareReplicationPolicyAssociationResource) Create() sdk.ResourceFunc {
 
 			id := replicationprotectioncontainermappings.NewReplicationProtectionContainerMappingID(parsedContainerId.SubscriptionId, parsedContainerId.ResourceGroupName, parsedContainerId.VaultName, parsedContainerId.ReplicationFabricName, parsedContainerId.ReplicationProtectionContainerName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing site recovery protection container mapping (%s): %+v", parsedContainerId, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing site recovery protection container mapping (%s): %+v", parsedContainerId, err)
+					}
 				}
-			}
 
-			if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
-				return tf.ImportAsExistsError("azurerm_site_recovery_replication_policy_vmware_association", *existing.Model.Id)
+				if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
+					return tf.ImportAsExistsError("azurerm_site_recovery_replication_policy_vmware_association", *existing.Model.Id)
+				}
 			}
 
 			parameters := replicationprotectioncontainermappings.CreateProtectionContainerMappingInput{
@@ -122,11 +124,9 @@ func (s VMWareReplicationPolicyAssociationResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			err = client.CreateThenPoll(ctx, id, parameters)
-			if err != nil {
+			if err := client.CreateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
 
 			return nil

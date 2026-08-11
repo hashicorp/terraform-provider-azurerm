@@ -76,9 +76,20 @@ func (c ExpressRouteCrossConnectionArpTableClient) ExpressRouteCrossConnectionsL
 
 // ExpressRouteCrossConnectionsListArpTableThenPoll performs ExpressRouteCrossConnectionsListArpTable then polls until it's completed
 func (c ExpressRouteCrossConnectionArpTableClient) ExpressRouteCrossConnectionsListArpTableThenPoll(ctx context.Context, id PeeringArpTableId) error {
+	return c.ExpressRouteCrossConnectionsListArpTableCallbackThenPoll(ctx, id, nil)
+}
+
+// ExpressRouteCrossConnectionsListArpTableCallbackThenPoll performs ExpressRouteCrossConnectionsListArpTable, runs the optional callback function, then polls until it's completed
+func (c ExpressRouteCrossConnectionArpTableClient) ExpressRouteCrossConnectionsListArpTableCallbackThenPoll(ctx context.Context, id PeeringArpTableId, callback func() error) error {
 	result, err := c.ExpressRouteCrossConnectionsListArpTable(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ExpressRouteCrossConnectionsListArpTable: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

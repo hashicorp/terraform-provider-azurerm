@@ -198,14 +198,16 @@ func resourceStorageDataLakeGen2PathCreate(d *pluginsdk.ResourceData, meta inter
 
 	id := paths.NewPathID(*accountId, filesystemName, path)
 
-	resp, err := dataPlanePathsClient.GetProperties(ctx, filesystemName, path, paths.GetPropertiesInput{Action: paths.GetPropertiesActionGetStatus})
-	if err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("checking for existence of existing Path %q in File System %q in %s: %v", path, filesystemName, accountResourceManagerId, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		resp, err := dataPlanePathsClient.GetProperties(ctx, filesystemName, path, paths.GetPropertiesInput{Action: paths.GetPropertiesActionGetStatus})
+		if err != nil {
+			if !response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("checking for existence of existing Path %q in File System %q in %s: %v", path, filesystemName, accountResourceManagerId, err)
+			}
 		}
-	}
-	if !response.WasNotFound(resp.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_storage_data_lake_gen2_path", id.ID())
+		if !response.WasNotFound(resp.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_storage_data_lake_gen2_path", id.ID())
+		}
 	}
 
 	resourceString := d.Get("resource").(string)
@@ -240,6 +242,7 @@ func resourceStorageDataLakeGen2PathCreate(d *pluginsdk.ResourceData, meta inter
 	if _, err = dataPlanePathsClient.Create(ctx, filesystemName, path, input); err != nil {
 		return fmt.Errorf("creating %s: %v", id, err)
 	}
+	d.SetId(id.ID())
 
 	if acl != nil || owner != nil || group != nil {
 		var aclString *string
@@ -256,8 +259,6 @@ func resourceStorageDataLakeGen2PathCreate(d *pluginsdk.ResourceData, meta inter
 			return fmt.Errorf("setting access control for %s: %+v", id, err)
 		}
 	}
-
-	d.SetId(id.ID())
 
 	return resourceStorageDataLakeGen2PathRead(d, meta)
 }

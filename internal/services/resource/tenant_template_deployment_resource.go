@@ -110,14 +110,16 @@ func tenantTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, meta inte
 
 	id := parse.NewTenantTemplateDeploymentID(d.Get("name").(string))
 
-	existing, err := client.GetAtTenantScope(ctx, id.DeploymentName)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Tenant Template Deployment %q: %+v", id.DeploymentName, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.GetAtTenantScope(ctx, id.DeploymentName)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for presence of existing Tenant Template Deployment %q: %+v", id.DeploymentName, err)
+			}
 		}
-	}
-	if existing.Properties != nil {
-		return tf.ImportAsExistsError("azurerm_tenant_template_deployment", id.ID())
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_tenant_template_deployment", id.ID())
+		}
 	}
 
 	deployment := resources.ScopedDeployment{
@@ -163,12 +165,13 @@ func tenantTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("creating Tenant Template Deployment %q: %+v", id.DeploymentName, err)
 	}
 
+	d.SetId(id.ID())
+
 	log.Printf("[DEBUG] Waiting for deployment of Tenant Template Deployment %q..", id.DeploymentName)
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation of Tenant Template Deployment %q: %+v", id.DeploymentName, err)
 	}
 
-	d.SetId(id.ID())
 	return tenantTemplateDeploymentResourceRead(d, meta)
 }
 

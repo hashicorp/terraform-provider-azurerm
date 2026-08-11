@@ -337,13 +337,15 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 				servicePlanId = newServicePlanId
 			}
 
-			existing, err := client.GetSlot(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing Windows %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetSlot(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing Windows %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			sc := webAppSlot.SiteConfig[0]
@@ -414,9 +416,11 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 				siteEnvelope.Properties.ServerFarmId = pointer.To(servicePlanId.ID())
 			}
 
-			if err := client.CreateOrUpdateSlotThenPoll(ctx, id, siteEnvelope); err != nil {
+			if err := client.CreateOrUpdateSlotCallbackThenPoll(ctx, id, siteEnvelope, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating Windows %s: %+v", id, err)
 			}
+
+			metadata.SetID(id)
 
 			// (@jackofallops) - Windows Web App Slots need the siteConfig sending individually to actually accept the `windowsFxVersion` value or it's set as `DOCKER|` only.
 			siteConfigUpdate := webapps.SiteConfigResource{
@@ -425,8 +429,6 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 			if _, err = client.UpdateConfigurationSlot(ctx, id, siteConfigUpdate); err != nil {
 				return fmt.Errorf("updating %s site config: %+v", id, err)
 			}
-
-			metadata.SetID(id)
 
 			if currentStack != "" {
 				siteMetadata := webapps.StringDictionary{Properties: &map[string]string{

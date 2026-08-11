@@ -8,6 +8,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -118,11 +120,15 @@ func resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationCrea
 	id := commonids.NewCompositeResourceID(&ipConfigId, backendAddressPoolId)
 
 	// first double-check it doesn't exist
+	exists := false
 	if ipConfigProps.ApplicationGatewayBackendAddressPools != nil {
 		for _, existingPool := range *ipConfigProps.ApplicationGatewayBackendAddressPools {
 			if poolId := existingPool.Id; poolId != nil {
 				if *poolId == backendAddressPoolId.ID() {
-					return tf.ImportAsExistsError("azurerm_network_interface_application_gateway_backend_address_pool_association", id.ID())
+					exists = true
+					if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+						return tf.ImportAsExistsError("azurerm_network_interface_application_gateway_backend_address_pool_association", id.ID())
+					}
 				}
 
 				pools = append(pools, existingPool)
@@ -133,12 +139,14 @@ func resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationCrea
 	pool := networkinterfaces.ApplicationGatewayBackendAddressPool{
 		Id: pointer.To(backendAddressPoolId.ID()),
 	}
-	pools = append(pools, pool)
+	if !exists {
+		pools = append(pools, pool)
+	}
 	ipConfigProps.ApplicationGatewayBackendAddressPools = &pools
 
 	props.IPConfigurations = updateNetworkInterfaceIPConfiguration(*config, props.IPConfigurations)
 
-	if err := client.CreateOrUpdateThenPoll(ctx, *networkInterfaceId, *resp.Model); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, *networkInterfaceId, *resp.Model, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("updating Application Gateway Backend Address Pool Association for %s: %+v", *networkInterfaceId, err)
 	}
 

@@ -101,6 +101,12 @@ func resourceStorageObjectReplication() *pluginsdk.Resource {
 				},
 			},
 
+			"metrics_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"source_object_replication_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -131,23 +137,25 @@ func resourceStorageObjectReplicationCreate(d *pluginsdk.ResourceData, meta inte
 	srcId := objectreplicationpolicyoperationgroup.NewObjectReplicationPolicyID(srcAccount.SubscriptionId, srcAccount.ResourceGroupName, srcAccount.StorageAccountName, "default")
 	dstId := objectreplicationpolicyoperationgroup.NewObjectReplicationPolicyID(dstAccount.SubscriptionId, dstAccount.ResourceGroupName, dstAccount.StorageAccountName, "default")
 
-	resp, err := client.ObjectReplicationPoliciesList(ctx, *dstAccount)
-	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("checking for present of existing Storage Object Replication for destination %q): %+v", dstAccount, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		resp, err := client.ObjectReplicationPoliciesList(ctx, *dstAccount)
+		if err != nil {
+			if response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("checking for present of existing Storage Object Replication for destination %q): %+v", dstAccount, err)
+			}
 		}
-	}
-	if resp.Model != nil {
-		for _, existing := range *resp.Model {
-			if existing.Name != nil && *existing.Name != "" {
-				if prop := existing.Properties; prop != nil && (
-				// Storage allows either a storage account name (only when allowCrossTenantReplication of the SA is false) or a full resource id (both cases).
-				// We should check for both cases.
-				(prop.SourceAccount == srcAccount.StorageAccountName && prop.DestinationAccount == dstAccount.StorageAccountName) ||
-					(strings.EqualFold(prop.SourceAccount, srcAccount.ID()) && strings.EqualFold(prop.DestinationAccount, dstAccount.ID()))) {
-					srcId.ObjectReplicationPolicyId = *existing.Name
-					dstId.ObjectReplicationPolicyId = *existing.Name
-					return tf.ImportAsExistsError("azurerm_storage_object_replication", parse.NewObjectReplicationID(srcId, dstId).ID())
+		if resp.Model != nil {
+			for _, existing := range *resp.Model {
+				if existing.Name != nil && *existing.Name != "" {
+					if prop := existing.Properties; prop != nil && (
+					// Storage allows either a storage account name (only when allowCrossTenantReplication of the SA is false) or a full resource id (both cases).
+					// We should check for both cases.
+					(prop.SourceAccount == srcAccount.StorageAccountName && prop.DestinationAccount == dstAccount.StorageAccountName) ||
+						(strings.EqualFold(prop.SourceAccount, srcAccount.ID()) && strings.EqualFold(prop.DestinationAccount, dstAccount.ID()))) {
+						srcId.ObjectReplicationPolicyId = *existing.Name
+						dstId.ObjectReplicationPolicyId = *existing.Name
+						return tf.ImportAsExistsError("azurerm_storage_object_replication", parse.NewObjectReplicationID(srcId, dstId).ID())
+					}
 				}
 			}
 		}
@@ -158,6 +166,9 @@ func resourceStorageObjectReplicationCreate(d *pluginsdk.ResourceData, meta inte
 			SourceAccount:      srcAccount.ID(),
 			DestinationAccount: dstAccount.ID(),
 			Rules:              expandArmObjectReplicationRuleArray(d.Get("rules").(*pluginsdk.Set).List()),
+			Metrics: &objectreplicationpolicyoperationgroup.ObjectReplicationPolicyPropertiesMetrics{
+				Enabled: pointer.To(d.Get("metrics_enabled").(bool)),
+			},
 		},
 	}
 
@@ -213,6 +224,9 @@ func resourceStorageObjectReplicationUpdate(d *pluginsdk.ResourceData, meta inte
 			SourceAccount:      srcAccount.ID(),
 			DestinationAccount: dstAccount.ID(),
 			Rules:              expandArmObjectReplicationRuleArray(d.Get("rules").(*pluginsdk.Set).List()),
+			Metrics: &objectreplicationpolicyoperationgroup.ObjectReplicationPolicyPropertiesMetrics{
+				Enabled: pointer.To(d.Get("metrics_enabled").(bool)),
+			},
 		},
 	}
 
@@ -278,6 +292,13 @@ func resourceStorageObjectReplicationRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("destination_object_replication_id", id.Dst.ID())
 		}
 	}
+
+	if model := srcResp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("metrics_enabled", props.Metrics != nil && pointer.From(props.Metrics.Enabled))
+		}
+	}
+
 	return nil
 }
 

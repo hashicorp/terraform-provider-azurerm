@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
@@ -183,13 +183,15 @@ func (r BackendAddressPoolAddressResource) Create() sdk.ResourceFunc {
 					addresses = *pool.Model.Properties.LoadBalancerBackendAddresses
 				}
 
-				for _, address := range addresses {
-					if address.Name == nil {
-						continue
-					}
+				if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+					for _, address := range addresses {
+						if address.Name == nil {
+							continue
+						}
 
-					if *address.Name == model.Name {
-						return metadata.ResourceRequiresImport(r.ResourceType(), id)
+						if *address.Name == model.Name {
+							return metadata.ResourceRequiresImport(r.ResourceType(), id)
+						}
 					}
 				}
 
@@ -220,8 +222,8 @@ func (r BackendAddressPoolAddressResource) Create() sdk.ResourceFunc {
 
 				pool.Model.Properties.LoadBalancerBackendAddresses = &addresses
 
-				err = lbClient.LoadBalancerBackendAddressPoolsCreateOrUpdateThenPoll(ctx, *poolId, *pool.Model)
-				if err != nil {
+				// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
+				if err := lbClient.LoadBalancerBackendAddressPoolsCreateOrUpdateThenPoll(ctx, *poolId, *pool.Model); err != nil {
 					return fmt.Errorf("updating %s: %+v", id, err)
 				}
 

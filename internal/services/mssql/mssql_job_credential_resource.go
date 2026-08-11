@@ -92,13 +92,15 @@ func resourceMsSqlJobCredentialCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 	jobCredentialId := jobcredentials.NewCredentialID(jaId.SubscriptionId, jaId.ResourceGroupName, jaId.ServerName, jaId.JobAgentName, d.Get("name").(string))
 
-	existing, err := client.Get(ctx, jobCredentialId)
-	if err != nil && !response.WasNotFound(existing.HttpResponse) {
-		return fmt.Errorf("checking for presence of existing %s: %+v", jobCredentialId, err)
-	}
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, jobCredentialId)
+		if err != nil && !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %+v", jobCredentialId, err)
+		}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_mssql_job_credential", jobCredentialId.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_mssql_job_credential", jobCredentialId.ID())
+		}
 	}
 
 	woPassword, err := pluginsdk.GetWriteOnly(d, "password_wo", cty.String)

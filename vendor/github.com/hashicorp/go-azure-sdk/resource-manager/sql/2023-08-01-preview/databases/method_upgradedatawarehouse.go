@@ -58,9 +58,20 @@ func (c DatabasesClient) UpgradeDataWarehouse(ctx context.Context, id commonids.
 
 // UpgradeDataWarehouseThenPoll performs UpgradeDataWarehouse then polls until it's completed
 func (c DatabasesClient) UpgradeDataWarehouseThenPoll(ctx context.Context, id commonids.SqlDatabaseId) error {
+	return c.UpgradeDataWarehouseCallbackThenPoll(ctx, id, nil)
+}
+
+// UpgradeDataWarehouseCallbackThenPoll performs UpgradeDataWarehouse, runs the optional callback function, then polls until it's completed
+func (c DatabasesClient) UpgradeDataWarehouseCallbackThenPoll(ctx context.Context, id commonids.SqlDatabaseId, callback func() error) error {
 	result, err := c.UpgradeDataWarehouse(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing UpgradeDataWarehouse: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -233,7 +233,7 @@ func resourceFunctionAppSlotCreate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	id := parse.NewFunctionAppSlotID(subscriptionId, d.Get("resource_group_name").(string), d.Get("function_app_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -300,12 +300,12 @@ func resourceFunctionAppSlotCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		return err
 	}
 
+	d.SetId(id.ID())
+
 	err = createFuture.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return err
 	}
-
-	d.SetId(id.ID())
 
 	authSettingsRaw := d.Get("auth_settings").([]interface{})
 	authSettings := expandAppServiceAuthSettings(authSettingsRaw)

@@ -20,12 +20,13 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -110,15 +111,18 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 	defer cancel()
 
 	id := virtualmachinescalesets.NewVirtualMachineScaleSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	exists, err := client.Get(ctx, id, virtualmachinescalesets.DefaultGetOperationOptions())
-	if err != nil {
-		if !response.WasNotFound(exists.HttpResponse) {
-			return fmt.Errorf("checking for existing Windows %s: %+v", id, err)
-		}
-	}
 
-	if !response.WasNotFound(exists.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_windows_virtual_machine_scale_set", id.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		exists, err := client.Get(ctx, id, virtualmachinescalesets.DefaultGetOperationOptions())
+		if err != nil {
+			if !response.WasNotFound(exists.HttpResponse) {
+				return fmt.Errorf("checking for existing Windows %s: %+v", id, err)
+			}
+		}
+
+		if !response.WasNotFound(exists.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_windows_virtual_machine_scale_set", id.ID())
+		}
 	}
 
 	t := d.Get("tags").(map[string]interface{})
@@ -291,7 +295,7 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("`health_probe_id` must be set or a health extension must be specified when `upgrade_mode` is set to %q", string(upgradeMode))
 	}
 
-	enableAutomaticUpdates := d.Get("enable_automatic_updates").(bool)
+	enableAutomaticUpdates := d.Get("automatic_updates_enabled").(bool)
 	virtualMachineProfile.OsProfile.WindowsConfiguration.EnableAutomaticUpdates = pointer.To(enableAutomaticUpdates)
 
 	if v, ok := d.Get("max_bid_price").(float64); ok && v > 0 {
@@ -471,7 +475,7 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 		props.Properties.ZoneBalance = pointer.To(v.(bool))
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, props, virtualmachinescalesets.DefaultCreateOrUpdateOperationOptions()); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, props, virtualmachinescalesets.DefaultCreateOrUpdateOperationOptions(), sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating Windows %s: %+v", id, err)
 	}
 	log.Printf("[DEBUG] Windows %s was created", id)
@@ -540,7 +544,7 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		update.Zones = pointer.To(zones.ExpandUntyped(d.Get("zones").(*schema.Set).List()))
 	}
 
-	if d.HasChange("automatic_os_upgrade_policy") || d.HasChange("rolling_upgrade_policy") {
+	if d.HasChanges("automatic_os_upgrade_policy", "rolling_upgrade_policy") {
 		upgradePolicy := virtualmachinescalesets.UpgradePolicy{}
 		if existing.Model.Properties.UpgradePolicy == nil {
 			upgradePolicy = virtualmachinescalesets.UpgradePolicy{
@@ -593,22 +597,19 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		updateProps.SinglePlacementGroup = pointer.To(singlePlacementGroup)
 	}
 
-	if d.HasChange("enable_automatic_updates") ||
-		d.HasChange("custom_data") ||
-		d.HasChange("provision_vm_agent") ||
-		d.HasChange("secret") ||
-		d.HasChange("timezone") {
+	// lintignore:R019 // deliberate subset: only the fields feeding the OSProfile update payload
+	if d.HasChanges("automatic_updates_enabled", "custom_data", "provision_vm_agent", "secret", "timezone") {
 		osProfile := virtualmachinescalesets.VirtualMachineScaleSetUpdateOSProfile{}
 
-		if d.HasChange("enable_automatic_updates") || d.HasChange("provision_vm_agent") || d.HasChange("timezone") {
+		if d.HasChanges("automatic_updates_enabled", "provision_vm_agent", "timezone") {
 			windowsConfig := virtualmachinescalesets.WindowsConfiguration{}
 
-			if d.HasChange("enable_automatic_updates") {
+			if d.HasChange("automatic_updates_enabled") {
 				if upgradeMode == virtualmachinescalesets.UpgradeModeAutomatic {
-					return fmt.Errorf("`enable_automatic_updates` cannot be changed for when `upgrade_mode` is `Automatic`")
+					return fmt.Errorf("`automatic_updates_enabled` cannot be changed for when `upgrade_mode` is `Automatic`")
 				}
 
-				windowsConfig.EnableAutomaticUpdates = pointer.To(d.Get("enable_automatic_updates").(bool))
+				windowsConfig.EnableAutomaticUpdates = pointer.To(d.Get("automatic_updates_enabled").(bool))
 			}
 
 			if d.HasChange("provision_vm_agent") {
@@ -640,7 +641,7 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		updateProps.VirtualMachineProfile.OsProfile = &osProfile
 	}
 
-	if d.HasChange("data_disk") || d.HasChange("os_disk") || d.HasChange("source_image_id") || d.HasChange("source_image_reference") {
+	if d.HasChanges("data_disk", "os_disk", "source_image_id", "source_image_reference") {
 		updateInstances = true
 
 		if updateProps.VirtualMachineProfile.StorageProfile == nil {
@@ -661,7 +662,7 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 			updateProps.VirtualMachineProfile.StorageProfile.OsDisk = ExpandVirtualMachineScaleSetOSDiskUpdate(osDiskRaw)
 		}
 
-		if d.HasChange("source_image_id") || d.HasChange("source_image_reference") {
+		if d.HasChanges("source_image_id", "source_image_reference") {
 			sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
 			sourceImageId := d.Get("source_image_id").(string)
 			sourceImageReference := expandSourceImageReferenceVMSS(sourceImageReferenceRaw, sourceImageId)
@@ -680,7 +681,7 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		}
 	}
 
-	if d.HasChange("network_interface") || d.HasChange("health_probe_id") {
+	if d.HasChanges("network_interface", "health_probe_id") {
 		networkInterfacesRaw := d.Get("network_interface").([]interface{})
 		networkInterfaces, err := ExpandVirtualMachineScaleSetNetworkInterfaceUpdate(networkInterfacesRaw)
 		if err != nil {
@@ -799,7 +800,7 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		update.Plan = expandPlanVMSS(planRaw)
 	}
 
-	if d.HasChange("sku") || d.HasChange("instances") {
+	if d.HasChanges("sku", "instances") {
 		// in-case ignore_changes is being used, since both fields are required
 		// look up the current values and override them as needed
 		sku := existing.Model.Sku
@@ -1047,7 +1048,7 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 						// an Automatic Upgrade Mode configured) however it actually returns false from the API..
 						// after a bunch of testing the least bad option appears to be not to set this if it's an Automatic Upgrade Mode
 						if upgradeMode != virtualmachinescalesets.UpgradeModeAutomatic {
-							d.Set("enable_automatic_updates", enableAutomaticUpdates)
+							d.Set("automatic_updates_enabled", enableAutomaticUpdates)
 						}
 
 						d.Set("provision_vm_agent", windows.ProvisionVMAgent)
@@ -1266,8 +1267,7 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 
 		"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
-		// TODO 4.0: change this from enable_* to *_enabled
-		"enable_automatic_updates": {
+		"automatic_updates_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  true,

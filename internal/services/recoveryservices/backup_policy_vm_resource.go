@@ -25,6 +25,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name backup_policy_vm -properties "name,resource_group_name,vault_name:recovery_vault_name" -test-name policyTypeDefault
+
 func resourceBackupProtectionPolicyVM() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceBackupProtectionPolicyVMCreate,
@@ -32,10 +34,11 @@ func resourceBackupProtectionPolicyVM() *pluginsdk.Resource {
 		Update: resourceBackupProtectionPolicyVMUpdate,
 		Delete: resourceBackupProtectionPolicyVMDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := protectionpolicies.ParseBackupPolicyID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&protectionpolicies.BackupPolicyId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&protectionpolicies.BackupPolicyId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -121,15 +124,17 @@ func resourceBackupProtectionPolicyVMCreate(d *pluginsdk.ResourceData, meta inte
 	timeOfDay := fmt.Sprintf("%s:00Z", d.Get("backup.0.time").(string))
 	times := append(make([]string, 0), timeOfDay)
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_backup_policy_vm", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_backup_policy_vm", id.ID())
+		}
 	}
 
 	// Less than 7 daily backups is no longer supported for create/update
@@ -181,6 +186,10 @@ func resourceBackupProtectionPolicyVMCreate(d *pluginsdk.ResourceData, meta inte
 
 	d.SetId(id.ID())
 
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceBackupProtectionPolicyVMRead(d, meta)
 }
 
@@ -204,11 +213,15 @@ func resourceBackupProtectionPolicyVMRead(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("making Read request on %s: %+v", id, err)
 	}
 
+	return resourceBackupProtectionPolicyVMFlatten(d, id, resp.Model)
+}
+
+func resourceBackupProtectionPolicyVMFlatten(d *pluginsdk.ResourceData, id *protectionpolicies.BackupPolicyId, model *protectionpolicies.ProtectionPolicyResource) error {
 	d.Set("name", id.BackupPolicyName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("recovery_vault_name", id.VaultName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if properties, ok := model.Properties.(protectionpolicies.AzureIaaSVMProtectionPolicy); ok {
 			d.Set("timezone", properties.TimeZone)
 			d.Set("instant_restore_retention_days", properties.InstantRpRetentionRangeInDays)
@@ -274,7 +287,7 @@ func resourceBackupProtectionPolicyVMRead(d *pluginsdk.ResourceData, meta interf
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceBackupProtectionPolicyVMUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -343,6 +356,7 @@ func resourceBackupProtectionPolicyVMUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	// If anything changes inside any of the `retention_*` fields, update the `schedulePolicy` object as the API requires all timestamps match
+	// lintignore:R019 // deliberate subset: only the fields feeding schedulePolicy; the remaining attributes are applied in separate branches
 	if d.HasChanges("backup", "retention_daily", "retention_weekly", "retention_monthly", "retention_yearly") {
 		schedulePolicy, err := expandBackupProtectionPolicyVMSchedule(d, times)
 		if err != nil {

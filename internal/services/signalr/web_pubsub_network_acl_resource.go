@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -140,17 +141,21 @@ func resourceWebPubsubNetworkACLCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("checking for present of existing %q: %+v", id, err)
 	}
 
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving existing %s: `model` was nil", *id)
+	}
+
 	locks.ByName(id.WebPubSubName, "azurerm_web_pubsub")
 	defer locks.UnlockByName(id.WebPubSubName, "azurerm_web_pubsub")
 
 	if d.IsNewResource() {
-		if !isNewNetworkACL(*existing.Model) {
-			return tf.ImportAsExistsError("azurerm_web_pubsub_network_acl", id.ID())
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if !isNewNetworkACL(*existing.Model) {
+				return tf.ImportAsExistsError("azurerm_web_pubsub_network_acl", id.ID())
+			}
 		}
 	}
-	if existing.Model == nil {
-		return fmt.Errorf("retrieving existing %s: `model` was nil", *id)
-	}
+
 	if existing.Model.Properties == nil {
 		return fmt.Errorf("retrieving existing %s: `model.Properties` was nil", *id)
 	}
@@ -184,11 +189,11 @@ func resourceWebPubsubNetworkACLCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 	payload.Properties.NetworkACLs = &networkACL
 
-	if err := client.UpdateThenPoll(ctx, *id, payload); err != nil {
+	if err := client.UpdateCallbackThenPoll(ctx, *id, payload, sdk.SetIDCallback(meta, id, d)); err != nil {
 		return fmt.Errorf("updating Network ACL configuration for %q: %+v", id, err)
 	}
-
 	d.SetId(id.ID())
+
 	return resourceWebPubsubNetworkACLRead(d, meta)
 }
 

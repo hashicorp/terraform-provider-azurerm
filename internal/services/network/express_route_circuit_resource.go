@@ -9,6 +9,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -178,15 +180,17 @@ func resourceExpressRouteCircuitCreate(d *pluginsdk.ResourceData, meta interface
 	locks.ByName(id.ExpressRouteCircuitName, expressRouteCircuitResourceName)
 	defer locks.UnlockByName(id.ExpressRouteCircuitName, expressRouteCircuitResourceName)
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s : %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s : %s", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_express_route_circuit", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_express_route_circuit", id.ID())
+		}
 	}
 
 	erc := expressroutecircuits.ExpressRouteCircuit{
@@ -224,9 +228,10 @@ func resourceExpressRouteCircuitCreate(d *pluginsdk.ResourceData, meta interface
 		erc.Properties.BandwidthInGbps = pointer.To(d.Get("bandwidth_in_gbps").(float64))
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, erc); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, erc, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
+	d.SetId(id.ID())
 
 	// API has bug, which appears to be eventually consistent on creation. Tracked by this issue: https://github.com/Azure/azure-rest-api-specs/issues/10148
 	log.Printf("[DEBUG] Waiting for %s to be able to be queried", id)
@@ -249,8 +254,6 @@ func resourceExpressRouteCircuitCreate(d *pluginsdk.ResourceData, meta interface
 			return fmt.Errorf("creating %s: %+v", id, err)
 		}
 	}
-
-	d.SetId(id.ID())
 
 	return resourceExpressRouteCircuitRead(d, meta)
 }

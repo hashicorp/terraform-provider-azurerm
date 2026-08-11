@@ -109,15 +109,17 @@ func resourceSecurityCenterAssessmentCreateUpdate(d *pluginsdk.ResourceData, met
 
 	id := parse.NewAssessmentID(d.Get("target_resource_id").(string), metadataID.AssessmentMetadataName)
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.TargetResourceID, id.Name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for present of existing Security Center Assessments %q : %+v", id.ID(), err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id.TargetResourceID, id.Name, "")
+			if err != nil {
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("checking for present of existing Security Center Assessments %q : %+v", id.ID(), err)
+				}
 			}
-		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_security_center_assessment", id.ID())
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return tf.ImportAsExistsError("azurerm_security_center_assessment", id.ID())
+			}
 		}
 	}
 

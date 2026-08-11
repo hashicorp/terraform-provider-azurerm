@@ -61,9 +61,20 @@ func (c RedisEnterpriseClient) DatabasesExport(ctx context.Context, id DatabaseI
 
 // DatabasesExportThenPoll performs DatabasesExport then polls until it's completed
 func (c RedisEnterpriseClient) DatabasesExportThenPoll(ctx context.Context, id DatabaseId, input ExportClusterParameters) error {
+	return c.DatabasesExportCallbackThenPoll(ctx, id, input, nil)
+}
+
+// DatabasesExportCallbackThenPoll performs DatabasesExport, runs the optional callback function, then polls until it's completed
+func (c RedisEnterpriseClient) DatabasesExportCallbackThenPoll(ctx context.Context, id DatabaseId, input ExportClusterParameters, callback func() error) error {
 	result, err := c.DatabasesExport(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing DatabasesExport: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

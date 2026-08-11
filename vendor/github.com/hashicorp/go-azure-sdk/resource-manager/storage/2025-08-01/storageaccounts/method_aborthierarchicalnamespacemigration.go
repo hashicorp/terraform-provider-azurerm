@@ -58,9 +58,20 @@ func (c StorageAccountsClient) AbortHierarchicalNamespaceMigration(ctx context.C
 
 // AbortHierarchicalNamespaceMigrationThenPoll performs AbortHierarchicalNamespaceMigration then polls until it's completed
 func (c StorageAccountsClient) AbortHierarchicalNamespaceMigrationThenPoll(ctx context.Context, id commonids.StorageAccountId) error {
+	return c.AbortHierarchicalNamespaceMigrationCallbackThenPoll(ctx, id, nil)
+}
+
+// AbortHierarchicalNamespaceMigrationCallbackThenPoll performs AbortHierarchicalNamespaceMigration, runs the optional callback function, then polls until it's completed
+func (c StorageAccountsClient) AbortHierarchicalNamespaceMigrationCallbackThenPoll(ctx context.Context, id commonids.StorageAccountId, callback func() error) error {
 	result, err := c.AbortHierarchicalNamespaceMigration(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing AbortHierarchicalNamespaceMigration: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

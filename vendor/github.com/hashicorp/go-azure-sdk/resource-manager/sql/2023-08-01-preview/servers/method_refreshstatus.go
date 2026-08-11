@@ -59,9 +59,20 @@ func (c ServersClient) RefreshStatus(ctx context.Context, id commonids.SqlServer
 
 // RefreshStatusThenPoll performs RefreshStatus then polls until it's completed
 func (c ServersClient) RefreshStatusThenPoll(ctx context.Context, id commonids.SqlServerId) error {
+	return c.RefreshStatusCallbackThenPoll(ctx, id, nil)
+}
+
+// RefreshStatusCallbackThenPoll performs RefreshStatus, runs the optional callback function, then polls until it's completed
+func (c ServersClient) RefreshStatusCallbackThenPoll(ctx context.Context, id commonids.SqlServerId, callback func() error) error {
 	result, err := c.RefreshStatus(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing RefreshStatus: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

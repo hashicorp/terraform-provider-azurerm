@@ -116,13 +116,12 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								// "CreatorOnly" is excluded because it silently behaves as "Inherit" when authenticated via Service Principal.
-								// Ref: https://github.com/Azure/azure-rest-api-specs/issues/41786
 								"kind": {
 									Type:     pluginsdk.TypeString,
 									Required: true,
 									ForceNew: true,
 									ValidateFunc: validation.StringInSlice([]string{
+										string(pools.AzureDevOpsPermissionTypeCreatorOnly),
 										string(pools.AzureDevOpsPermissionTypeInherit),
 										string(pools.AzureDevOpsPermissionTypeSpecificAccounts),
 									}, false),
@@ -412,12 +411,14 @@ func (r ManagedDevOpsPoolResource) Create() sdk.ResourceFunc {
 
 			id := pools.NewPoolID(subscriptionId, config.ResourceGroupName, config.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			expandedIdentity, err := identity.ExpandUserAssignedMapFromModel(config.Identity)
@@ -449,7 +450,7 @@ func (r ManagedDevOpsPoolResource) Create() sdk.ResourceFunc {
 				Tags: pointer.To(config.Tags),
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

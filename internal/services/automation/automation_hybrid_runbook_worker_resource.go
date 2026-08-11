@@ -109,23 +109,26 @@ func (m HybridRunbookWorkerResource) ResourceType() string {
 func (m HybridRunbookWorkerResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.Automation.HybridRunbookWorker
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Automation.HybridRunbookWorker
 
 			var model HybridRunbookWorkerModel
-			if err := meta.Decode(&model); err != nil {
+			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
 
-			subscriptionID := meta.Client.Account.SubscriptionId
+			subscriptionID := metadata.Client.Account.SubscriptionId
 			id := hybridrunbookworker.NewHybridRunbookWorkerID(subscriptionID, model.ResourceGroupName,
 				model.AutomationAccountName, model.WorkerGroupName, model.WorkerId)
-			existing, err := client.Get(ctx, id)
-			if !response.WasNotFound(existing.HttpResponse) {
-				if err != nil {
-					return fmt.Errorf("retreiving %s: %v", id, err)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					if err != nil {
+						return fmt.Errorf("retreiving %s: %v", id, err)
+					}
+					return metadata.ResourceRequiresImport(m.ResourceType(), id)
 				}
-				return meta.ResourceRequiresImport(m.ResourceType(), id)
 			}
 
 			req := hybridrunbookworker.HybridRunbookWorkerCreateParameters{
@@ -144,7 +147,7 @@ func (m HybridRunbookWorkerResource) Create() sdk.ResourceFunc {
 			}
 			_ = future
 
-			meta.SetID(id)
+			metadata.SetID(id)
 			return nil
 		},
 	}

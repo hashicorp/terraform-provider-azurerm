@@ -160,13 +160,15 @@ func (r ApiManagementWorkspaceNamedValueResource) Create() sdk.ResourceFunc {
 
 			id := namedvalue.NewWorkspaceNamedValueID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.ServiceName, workspaceId.WorkspaceId, model.Name)
 
-			existing, err := client.WorkspaceNamedValueGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.WorkspaceNamedValueGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := namedvalue.NamedValueCreateContract{
@@ -182,7 +184,7 @@ func (r ApiManagementWorkspaceNamedValueResource) Create() sdk.ResourceFunc {
 				parameters.Properties.Value = pointer.To(model.Value)
 			}
 
-			if err := client.WorkspaceNamedValueCreateOrUpdateThenPoll(ctx, id, parameters, namedvalue.DefaultWorkspaceNamedValueCreateOrUpdateOperationOptions()); err != nil {
+			if err := client.WorkspaceNamedValueCreateOrUpdateCallbackThenPoll(ctx, id, parameters, namedvalue.DefaultWorkspaceNamedValueCreateOrUpdateOperationOptions(), metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

@@ -220,15 +220,17 @@ func resourceAutomationScheduleCreate(d *pluginsdk.ResourceData, meta interface{
 
 	id := schedule.NewScheduleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_automation_schedule", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_automation_schedule", id.ID())
+		}
 	}
 
 	frequency := d.Get("frequency").(string)
@@ -359,7 +361,7 @@ func resourceAutomationScheduleUpdate(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
-	if d.HasChange("week_days") || d.HasChange("month_days") || d.HasChange("monthly_occurrence") {
+	if d.HasChanges("week_days", "month_days", "monthly_occurrence") {
 		// only pay attention to the advanced schedule fields if frequency is either Week or Month
 		if parameters.Properties.Frequency == schedule.ScheduleFrequencyWeek || parameters.Properties.Frequency == schedule.ScheduleFrequencyMonth {
 			parameters.Properties.AdvancedSchedule = expandArmAutomationScheduleAdvanced(d, d.Id() != "")

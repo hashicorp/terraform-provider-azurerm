@@ -62,9 +62,20 @@ func (c EndpointsClient) DigitalTwinsEndpointCreateOrUpdate(ctx context.Context,
 
 // DigitalTwinsEndpointCreateOrUpdateThenPoll performs DigitalTwinsEndpointCreateOrUpdate then polls until it's completed
 func (c EndpointsClient) DigitalTwinsEndpointCreateOrUpdateThenPoll(ctx context.Context, id EndpointId, input DigitalTwinsEndpointResource) error {
+	return c.DigitalTwinsEndpointCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// DigitalTwinsEndpointCreateOrUpdateCallbackThenPoll performs DigitalTwinsEndpointCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c EndpointsClient) DigitalTwinsEndpointCreateOrUpdateCallbackThenPoll(ctx context.Context, id EndpointId, input DigitalTwinsEndpointResource, callback func() error) error {
 	result, err := c.DigitalTwinsEndpointCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing DigitalTwinsEndpointCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

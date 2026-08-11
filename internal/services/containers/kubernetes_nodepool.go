@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -260,6 +259,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Optional: true,
 						Computed: true,
 						ValidateFunc: validation.StringInSlice([]string{
+							string(managedclusters.WorkloadRuntimeKataVMIsolation),
 							string(managedclusters.WorkloadRuntimeOCIContainer),
 						}, false),
 					},
@@ -367,7 +367,7 @@ func schemaNodePoolKubeletConfig() *pluginsdk.Schema {
 }
 
 func schemaNodePoolLinuxOSConfig() *pluginsdk.Schema {
-	s := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
@@ -404,32 +404,6 @@ func schemaNodePoolLinuxOSConfig() *pluginsdk.Schema {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		s.Elem.(*pluginsdk.Resource).Schema["transparent_huge_page_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				"always",
-				"madvise",
-				"never",
-			}, false),
-		}
-		s.Elem.(*pluginsdk.Resource).Schema["transparent_huge_page"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "This field is deprecated in favour of `transparent_huge_page` and will be removed in version 5.0 of the provider",
-			ValidateFunc: validation.StringInSlice([]string{
-				"always",
-				"madvise",
-				"never",
-			}, false),
-		}
-	}
-
-	return s
 }
 
 func schemaNodePoolSysctlConfig() *pluginsdk.Schema {
@@ -1081,11 +1055,6 @@ func expandClusterNodePoolKubeletConfig(input []interface{}) *managedclusters.Ku
 	if v := raw["container_log_max_files"].(int); v != 0 {
 		result.ContainerLogMaxFiles = pointer.To(int64(v))
 	}
-	if !features.FivePointOh() {
-		if v := raw["container_log_max_line"].(int); v != 0 {
-			result.ContainerLogMaxFiles = pointer.To(int64(v))
-		}
-	}
 	if v := raw["pod_max_pid"].(int); v != 0 {
 		result.PodMaxPids = pointer.To(int64(v))
 	}
@@ -1111,11 +1080,6 @@ func expandClusterNodePoolLinuxOSConfig(input []interface{}) (*managedclusters.L
 		result.TransparentHugePageEnabled = pointer.To(v)
 	}
 
-	if !features.FivePointOh() {
-		if v := raw["transparent_huge_page_enabled"].(string); v != "" {
-			result.TransparentHugePageEnabled = pointer.To(v)
-		}
-	}
 	if v := raw["transparent_huge_page_defrag"].(string); v != "" {
 		result.TransparentHugePageDefrag = pointer.To(v)
 	}
@@ -1529,10 +1493,6 @@ func flattenClusterNodePoolKubeletConfig(input *managedclusters.KubeletConfig) [
 		},
 	}
 
-	if !features.FivePointOh() {
-		result[0].(map[string]interface{})["container_log_max_line"] = containerLogMaxFiles
-	}
-
 	return result
 }
 
@@ -1588,10 +1548,6 @@ func flattenAgentPoolKubeletConfig(input *agentpools.KubeletConfig) []interface{
 		},
 	}
 
-	if !features.FivePointOh() {
-		result[0].(map[string]interface{})["container_log_max_line"] = containerLogMaxFiles
-	}
-
 	return result
 }
 
@@ -1624,10 +1580,6 @@ func flattenClusterNodePoolLinuxOSConfig(input *managedclusters.LinuxOSConfig) (
 			"transparent_huge_page_defrag": transparentHugePageDefrag,
 			"transparent_huge_page":        transparentHugePageEnabled,
 		},
-	}
-
-	if !features.FivePointOh() {
-		config[0].(map[string]interface{})["transparent_huge_page_enabled"] = transparentHugePageEnabled
 	}
 
 	return config, nil

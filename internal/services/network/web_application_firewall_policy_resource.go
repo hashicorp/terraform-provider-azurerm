@@ -27,7 +27,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name web_application_firewall_policy -properties "name,resource_group_name"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -394,10 +394,10 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 								NOTE: O+C: This value defaults to true but is only available under certain conditions (i.e. when version is 3.2)
 									managed_rules {
 										managed_rule_set {
-										  type    = "OWASP"
-										  version = "3.2"
+										 type  = "OWASP"
+										 version = "3.2"
 										}
-									  }
+									 }
 							*/
 							Optional: true,
 							// We'll remove computed in 5.0 so we don't break existing configurations
@@ -507,14 +507,16 @@ func resourceWebApplicationFirewallPolicyCreate(d *pluginsdk.ResourceData, meta 
 
 	id := webapplicationfirewallpolicies.NewApplicationGatewayWebApplicationFirewallPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("checking for present of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		resp, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("checking for present of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(resp.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_web_application_firewall_policy", id.ID())
+		if !response.WasNotFound(resp.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_web_application_firewall_policy", id.ID())
+		}
 	}
 
 	location := location.Normalize(d.Get("location").(string))
