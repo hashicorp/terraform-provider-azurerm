@@ -156,23 +156,21 @@ The following arguments are supported:
 
 * `cognitive_account_id` - (Required) The ID of the Cognitive Account. Changing this forces a new resource to be created.
 
----
-
 * `ai_services_connections` - (Optional) A list of AI Services connection names. Changing this forces a new resource to be created.
 
-~> **Note:** A maximum of 1 AI Services connection can be specified.
+~> **Note:** A maximum of one AI Services connection can be specified.
 
 * `storage_connections` - (Optional) A list of Storage connection names. Changing this forces a new resource to be created.
 
-~> **Note:** A maximum of 1 Storage connection can be specified.
+~> **Note:** A maximum of one Storage connection can be specified.
 
 * `thread_storage_connections` - (Optional) A list of Thread Storage connection names. Changing this forces a new resource to be created.
 
-~> **Note:** A maximum of 1 Thread Storage connection can be specified.
+~> **Note:** A maximum of one Thread Storage connection can be specified.
 
 * `vector_store_connections` - (Optional) A list of Vector Store connection names. Changing this forces a new resource to be created.
 
-~> **Note:** A maximum of 1 Vector Store connection can be specified.
+~> **Note:** A maximum of one Vector Store connection can be specified.
 
 ## Attributes Reference
 
@@ -190,10 +188,10 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 ## Import
 
-Cognitive Account Capability Hosts can be imported using the `resource id`, e.g.
+A Cognitive Account Capability Host can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_cognitive_account_capability_host.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.CognitiveServices/accounts/account1/capabilityHosts/capabilityHost1
+terraform import azurerm_cognitive_account_capability_host.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.CognitiveServices/accounts/account1/capabilityHosts/capabilityHost1
 ```
 
 ## API Providers

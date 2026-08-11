@@ -16,8 +16,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/cognitiveservicesaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name cognitive_account_capability_host -properties "name" -compare-values "subscription_id:cognitive_account_id,resource_group_name:cognitive_account_id,account_name:cognitive_account_id" -test-name "basic" -test-expect-non-empty
@@ -60,7 +60,7 @@ func (r CognitiveAccountCapabilityHostResource) Arguments() map[string]*pluginsd
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validate.CapabilityHostName(),
 		},
 
 		"cognitive_account_id": commonschema.ResourceIDReferenceRequiredForceNew(&cognitiveservicesaccounts.AccountId{}),
@@ -77,7 +77,7 @@ func (r CognitiveAccountCapabilityHostResource) Arguments() map[string]*pluginsd
 			MaxItems: 1,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validate.AccountConnectionName(),
 			},
 		},
 
@@ -88,7 +88,7 @@ func (r CognitiveAccountCapabilityHostResource) Arguments() map[string]*pluginsd
 			MaxItems: 1,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validate.AccountConnectionName(),
 			},
 		},
 
@@ -99,7 +99,7 @@ func (r CognitiveAccountCapabilityHostResource) Arguments() map[string]*pluginsd
 			MaxItems: 1,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validate.AccountConnectionName(),
 			},
 		},
 
@@ -110,7 +110,7 @@ func (r CognitiveAccountCapabilityHostResource) Arguments() map[string]*pluginsd
 			MaxItems: 1,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validate.AccountConnectionName(),
 			},
 		},
 	}
@@ -140,13 +140,15 @@ func (r CognitiveAccountCapabilityHostResource) Create() sdk.ResourceFunc {
 
 			id := accountcapabilityhost.NewCapabilityHostID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.AccountName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			resource := accountcapabilityhost.CapabilityHost{
@@ -171,7 +173,7 @@ func (r CognitiveAccountCapabilityHostResource) Create() sdk.ResourceFunc {
 				resource.Properties.VectorStoreConnections = pointer.To(model.VectorStoreConnections)
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, resource); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, resource, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
