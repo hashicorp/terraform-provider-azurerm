@@ -737,6 +737,62 @@ func TestAccStorageAccount_replicationTypeGZRS(t *testing.T) {
 	})
 }
 
+func TestAccStorageAccount_zonalMigration(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.zonalMigration(data, "LRS", false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("account_replication_type").HasValue("LRS"),
+				check.That(data.ResourceName).Key("account_replication_type_migration_in_progress").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.zonalMigration(data, "ZRS", false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("account_replication_type_migration_in_progress").HasValue("true"),
+			),
+		},
+		{
+			Config: r.zonalMigration(data, "ZRS", true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("account_replication_type_migration_in_progress").HasValue("true"),
+			),
+		},
+	})
+}
+
+func TestAccStorageAccount_zonalMigrationInProgressBlocksReplicationTypeChange(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.zonalMigration(data, "LRS", false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.zonalMigration(data, "ZRS", false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("account_replication_type_migration_in_progress").HasValue("true"),
+			),
+		},
+		{
+			Config:      r.zonalMigration(data, "GRS", false),
+			ExpectError: regexp.MustCompile("a migration from `LRS` to `ZRS` is in progress"),
+		},
+	})
+}
+
 func TestAccStorageAccount_largeFileShare(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
@@ -2989,6 +3045,39 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "RAGZRS"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) zonalMigration(data acceptance.TestData, replicationType string, includeTags bool) string {
+	tags := ""
+	if includeTags {
+		tags = `
+tags = {
+  hello = "world"
+}
+`
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "%s"
+
+  %s
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, replicationType, tags)
 }
 
 func (r StorageAccountResource) largeFileShareDisabled(data acceptance.TestData) string {
