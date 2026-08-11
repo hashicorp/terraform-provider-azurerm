@@ -136,6 +136,12 @@ func dataSourceLogicAppStandard() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 
+			"storage_key_vault_secret_id": {
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Description: "The Key Vault Secret ID, optionally including version, that contains the connection string to the backend storage account for the Logic App.",
+			},
+
 			"storage_account_share_name": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -206,7 +212,8 @@ func dataSourceLogicAppStandard() *pluginsdk.Resource {
 
 func dataSourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppService.WebAppsClient
-	subscriptionId := meta.(*clients.Client).Web.AppServicesClient.SubscriptionID
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -269,21 +276,12 @@ func dataSourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{})
 
 		connectionString := appSettings["AzureWebJobsStorage"]
 
-		// This teases out the necessary attributes from the storage connection string
-		connectionStringParts := strings.Split(connectionString, ";")
-		for _, part := range connectionStringParts {
-			if strings.HasPrefix(part, "AccountName") {
-				accountNameParts := strings.Split(part, "AccountName=")
-				if len(accountNameParts) > 1 {
-					d.Set("storage_account_name", accountNameParts[1])
-				}
-			}
-			if strings.HasPrefix(part, "AccountKey") {
-				accountKeyParts := strings.Split(part, "AccountKey=")
-				if len(accountKeyParts) > 1 {
-					d.Set("storage_account_access_key", accountKeyParts[1])
-				}
-			}
+		if strings.HasPrefix(connectionString, "@Microsoft.KeyVault") {
+			d.Set("storage_key_vault_secret_id", strings.TrimPrefix(strings.TrimSuffix(connectionString, ")"), "@Microsoft.KeyVault(SecretUri="))
+		} else {
+			name, key := helpers.ParseWebJobsStorageString(connectionString)
+			d.Set("storage_account_name", name)
+			d.Set("storage_account_access_key", key)
 		}
 
 		d.Set("version", appSettings["FUNCTIONS_EXTENSION_VERSION"])
@@ -408,7 +406,7 @@ func flattenLogicAppStandardDataSourceSiteConfig(input *webapps.SiteConfig) []in
 	result["scm_type"] = string(pointer.From(input.ScmType))
 	result["scm_min_tls_version"] = string(pointer.From(input.ScmMinTlsVersion))
 	result["scm_ip_restriction"] = flattenLogicAppStandardIpRestriction(input.ScmIPSecurityRestrictions)
-
+	result["scm_ip_restriction_default_action"] = pointer.FromEnum(input.ScmIPSecurityRestrictionsDefaultAction)
 	result["scm_use_main_ip_restriction"] = pointer.From(input.ScmIPSecurityRestrictionsUseMain)
 
 	result["min_tls_version"] = string(pointer.From(input.MinTlsVersion))
@@ -425,6 +423,8 @@ func flattenLogicAppStandardDataSourceSiteConfig(input *webapps.SiteConfig) []in
 	result["dotnet_framework_version"] = pointer.From(input.NetFrameworkVersion)
 
 	result["vnet_route_all_enabled"] = pointer.From(input.VnetRouteAllEnabled)
+
+	result["ip_restriction_default_action"] = string(pointer.From(input.IPSecurityRestrictionsDefaultAction))
 
 	results = append(results, result)
 	return results
@@ -534,6 +534,11 @@ func schemaLogicAppStandardSiteConfigDataSource() *pluginsdk.Schema {
 
 				"scm_ip_restriction": schemaLogicAppStandardIpRestrictionDataSource(),
 
+				"scm_ip_restriction_default_action": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
 				"scm_use_main_ip_restriction": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
@@ -590,6 +595,11 @@ func schemaLogicAppStandardSiteConfigDataSource() *pluginsdk.Schema {
 				},
 
 				"auto_swap_slot_name": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"ip_restriction_default_action": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},

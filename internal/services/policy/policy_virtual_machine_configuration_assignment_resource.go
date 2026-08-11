@@ -137,14 +137,16 @@ func resourcePolicyVirtualMachineConfigurationAssignmentCreateUpdate(d *pluginsd
 	id := guestconfigurationassignments.NewVirtualMachineProviders2GuestConfigurationAssignmentID(subscriptionId, vmId.ResourceGroupName, vmId.VirtualMachineName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for present of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for present of existing %s: %+v", id, err)
+				}
 			}
-		}
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_policy_virtual_machine_configuration_assignment", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_policy_virtual_machine_configuration_assignment", id.ID())
+			}
 		}
 	}
 	guestConfiguration := expandGuestConfigurationAssignment(d.Get("configuration").([]interface{}), id.GuestConfigurationAssignmentName)
@@ -172,7 +174,9 @@ func resourcePolicyVirtualMachineConfigurationAssignmentCreateUpdate(d *pluginsd
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
 
 	return resourcePolicyVirtualMachineConfigurationAssignmentRead(d, meta)
 }

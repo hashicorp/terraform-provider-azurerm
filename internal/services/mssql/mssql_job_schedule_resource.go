@@ -151,8 +151,10 @@ func (r MsSqlJobScheduleResource) Create() sdk.ResourceFunc {
 			// Default schedule is disabled when created using the API
 			// if schedule is enabled we can reasonably assume the schedule was modified outside of Terraform and should be imported.
 			schedule := existing.Model.Properties.Schedule
-			if pointer.From(schedule.Enabled) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), jobId)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				if pointer.From(schedule.Enabled) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), jobId)
+				}
 			}
 
 			schedule.Enabled = pointer.To(config.Enabled)

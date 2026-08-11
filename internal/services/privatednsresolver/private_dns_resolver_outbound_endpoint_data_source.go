@@ -90,7 +90,8 @@ func (r PrivateDNSResolverOutboundEndpointDataSource) Read() sdk.ResourceFunc {
 				privateDnsResolverId.SubscriptionId,
 				privateDnsResolverId.ResourceGroupName,
 				privateDnsResolverId.DnsResolverName,
-				state.Name)
+				state.Name,
+			)
 			resp, err := client.Get(ctx, id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", id, err)

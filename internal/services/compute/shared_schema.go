@@ -11,8 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -307,7 +306,7 @@ func flattenBootDiagnosticsVMSS(input *virtualmachinescalesets.DiagnosticsProfil
 }
 
 func linuxSecretSchema() *pluginsdk.Schema {
-	s := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Elem: &pluginsdk.Resource{
@@ -334,12 +333,6 @@ func linuxSecretSchema() *pluginsdk.Schema {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		s.Elem.(*pluginsdk.Resource).Schema["certificate"].Elem.(*pluginsdk.Resource).Schema["url"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny)
-	}
-
-	return s
 }
 
 func expandLinuxSecrets(input []interface{}) *[]virtualmachines.VaultSecretGroup {
@@ -649,13 +642,13 @@ func sourceImageReferenceSchema(isVirtualMachine bool) *pluginsdk.Schema {
 				"publisher": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ForceNew:     true,
+					ForceNew:     isVirtualMachine,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"offer": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ForceNew:     true,
+					ForceNew:     isVirtualMachine,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"sku": {
@@ -871,7 +864,7 @@ func flattenSourceImageReferenceVMSS(input *virtualmachinescalesets.ImageReferen
 }
 
 func winRmListenerSchema() *pluginsdk.Schema {
-	s := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
 		Optional: true,
 		// Whilst the SDK allows you to modify this, the API does not:
@@ -900,16 +893,10 @@ func winRmListenerSchema() *pluginsdk.Schema {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		s.Elem.(*pluginsdk.Resource).Schema["certificate_url"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny)
-	}
-
-	return s
 }
 
 func winRmListenerSchemaVM() *pluginsdk.Schema {
-	s := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
 		Optional: true,
 		// Whilst the SDK allows you to modify this, the API does not:
@@ -941,12 +928,6 @@ func winRmListenerSchemaVM() *pluginsdk.Schema {
 			"os_managed_disk_id",
 		},
 	}
-
-	if !features.FivePointOh() {
-		s.Elem.(*pluginsdk.Resource).Schema["certificate_url"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny)
-	}
-
-	return s
 }
 
 func expandWinRMListener(input []interface{}) *virtualmachines.WinRMConfiguration {
@@ -1040,7 +1021,7 @@ func flattenWinRMListenerVMSS(input *virtualmachinescalesets.WinRMConfiguration)
 }
 
 func windowsSecretSchema() *pluginsdk.Schema {
-	s := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Elem: &pluginsdk.Resource{
@@ -1069,16 +1050,10 @@ func windowsSecretSchema() *pluginsdk.Schema {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		s.Elem.(*pluginsdk.Resource).Schema["certificate"].Elem.(*pluginsdk.Resource).Schema["url"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny)
-	}
-
-	return s
 }
 
 func windowsSecretSchemaVM() *pluginsdk.Schema {
-	s := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Elem: &pluginsdk.Resource{
@@ -1110,12 +1085,6 @@ func windowsSecretSchemaVM() *pluginsdk.Schema {
 			"os_managed_disk_id",
 		},
 	}
-
-	if !features.FivePointOh() {
-		s.Elem.(*pluginsdk.Resource).Schema["certificate"].Elem.(*pluginsdk.Resource).Schema["url"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny)
-	}
-
-	return s
 }
 
 func expandWindowsSecrets(input []interface{}) *[]virtualmachines.VaultSecretGroup {

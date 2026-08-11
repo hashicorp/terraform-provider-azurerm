@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -548,7 +548,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherUpgradeMode(t *testing.T) {
 		},
 		data.ImportStep(
 			"admin_password",
-			"enable_automatic_updates",
+			"automatic_updates_enabled",
 		),
 	})
 }
@@ -796,7 +796,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherHealthProbeUpdate(t *testing.T) {
 		},
 		data.ImportStep(
 			"admin_password",
-			"enable_automatic_updates",
+			"automatic_updates_enabled",
 		),
 		{
 			Config: r.otherHealthProbeUpdated(data),
@@ -806,7 +806,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherHealthProbeUpdate(t *testing.T) {
 		},
 		data.ImportStep(
 			"admin_password",
-			"enable_automatic_updates",
+			"automatic_updates_enabled",
 		),
 	})
 }
@@ -983,11 +983,12 @@ func (r WindowsVirtualMachineScaleSetResource) otherBootDiagnostics(data accepta
 %s
 
 resource "azurerm_storage_account" "test" {
-  name                     = "accsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "accsa%s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 }
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
@@ -1034,11 +1035,12 @@ func (r WindowsVirtualMachineScaleSetResource) otherBootDiagnosticsManaged(data 
 %s
 
 resource "azurerm_storage_account" "test" {
-  name                     = "accsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "accsa%s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 }
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
@@ -1083,11 +1085,12 @@ func (r WindowsVirtualMachineScaleSetResource) otherBootDiagnosticsDisabled(data
 %s
 
 resource "azurerm_storage_account" "test" {
-  name                     = "accsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "accsa%s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 }
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
@@ -1477,14 +1480,14 @@ func (r WindowsVirtualMachineScaleSetResource) otherEnableAutomaticUpdatesDisabl
 %s
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                     = local.vm_name
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  sku                      = "Standard_F2"
-  instances                = 1
-  admin_username           = "adminuser"
-  admin_password           = "P@ssword1234!"
-  enable_automatic_updates = false
+  name                      = local.vm_name
+  resource_group_name       = azurerm_resource_group.test.name
+  location                  = azurerm_resource_group.test.location
+  sku                       = "Standard_F2"
+  instances                 = 1
+  admin_username            = "adminuser"
+  admin_password            = "P@ssword1234!"
+  automatic_updates_enabled = false
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
@@ -1821,10 +1824,11 @@ func (r WindowsVirtualMachineScaleSetResource) otherSecretTemplate(data acceptan
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestkeyvault%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
+  name                       = "acctestkeyvault%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
 
   sku_name                        = "standard"
   enabled_for_template_deployment = true
@@ -2304,11 +2308,12 @@ func (r WindowsVirtualMachineScaleSetResource) otherWinRMHTTPS(data acceptance.T
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestkv%s"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku_name            = "standard"
-  tenant_id           = data.azurerm_client_config.current.tenant_id
+  name                       = "acctestkv%s"
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  location                   = azurerm_resource_group.test.location
+  sku_name                   = "standard"
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
@@ -2602,8 +2607,8 @@ resource "azurerm_public_ip" "test" {
   name                    = "acctestpip-%[2]d"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
-  allocation_method       = "Dynamic"
-  sku                     = "Basic"
+  allocation_method       = "Static"
+  sku                     = "Standard"
   idle_timeout_in_minutes = 4
 }
 
@@ -2611,7 +2616,7 @@ resource "azurerm_lb" "test" {
   name                = "acctestlb-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
+  sku                 = "Standard"
 
   frontend_ip_configuration {
     name                 = "internal"
@@ -2711,8 +2716,8 @@ resource "azurerm_public_ip" "test" {
   name                    = "acctestpip-%[2]d"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
-  allocation_method       = "Dynamic"
-  sku                     = "Basic"
+  allocation_method       = "Static"
+  sku                     = "Standard"
   idle_timeout_in_minutes = 4
 }
 
@@ -2720,7 +2725,7 @@ resource "azurerm_lb" "test" {
   name                = "acctestlb-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
+  sku                 = "Standard"
 
   frontend_ip_configuration {
     name                 = "internal"
@@ -2822,8 +2827,8 @@ resource "azurerm_public_ip" "test" {
   name                    = "acctestpip-%[2]d"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
-  allocation_method       = "Dynamic"
-  sku                     = "Basic"
+  allocation_method       = "Static"
+  sku                     = "Standard"
   idle_timeout_in_minutes = 4
 }
 
@@ -2831,7 +2836,7 @@ resource "azurerm_lb" "test" {
   name                = "acctestlb-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
+  sku                 = "Standard"
   frontend_ip_configuration {
     name                 = "internal"
     public_ip_address_id = azurerm_public_ip.test.id
@@ -3642,33 +3647,32 @@ func (r WindowsVirtualMachineScaleSetResource) otherGalleryApplicationTemplate(d
 %[1]s
 
 resource "azurerm_storage_account" "test" {
-  name                     = "accteststr%[2]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "accteststr%[2]s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 }
 
 resource "azurerm_storage_container" "test" {
   name                  = "test"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "blob"
 }
 
 resource "azurerm_storage_blob" "test" {
-  name                   = "script"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Page"
-  size                   = 512
+  name                 = "script"
+  storage_container_id = azurerm_storage_container.test.id
+  type                 = "Page"
+  size                 = 512
 }
 
 resource "azurerm_storage_blob" "test2" {
-  name                   = "script2"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Page"
-  size                   = 512
+  name                 = "script2"
+  storage_container_id = azurerm_storage_container.test.id
+  type                 = "Page"
+  size                 = 512
 }
 
 resource "azurerm_shared_image_gallery" "test" {
@@ -3705,6 +3709,5 @@ resource "azurerm_gallery_application_version" "test" {
     storage_account_type   = "Premium_LRS"
   }
 }
-
 `, r.template(data), data.RandomString, data.RandomInteger)
 }

@@ -18,6 +18,7 @@ import (
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -229,15 +230,18 @@ func resourceVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	defer cancel()
 
 	id := virtualwans.NewVpnGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.VpnGatewaysGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_vpn_gateway", id.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.VpnGatewaysGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+		}
+
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_vpn_gateway", id.ID())
+		}
 	}
 
 	bgpSettingsRaw := d.Get("bgp_settings").([]interface{})
@@ -256,7 +260,7 @@ func resourceVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if err := client.VpnGatewaysCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+	if err := client.VpnGatewaysCreateOrUpdateCallbackThenPoll(ctx, id, payload, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 	d.SetId(id.ID())

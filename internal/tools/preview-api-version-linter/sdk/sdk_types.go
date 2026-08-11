@@ -18,9 +18,15 @@ type SdkType struct {
 
 var (
 	// Example: vendor/github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/tokens
-	GO_AZURE_SDK = SdkType{
+	GO_AZURE_SDK_RESOURCE_MANAGER = SdkType{
 		Module:                 "github.com/hashicorp/go-azure-sdk/resource-manager",
 		ServiceAndVersionRegex: regexp.MustCompile(`(?i)resource-manager/([^/]+)/([^/]+-preview)`),
+	}
+
+	// Example: vendor/github.com/hashicorp/go-azure-sdk/data-plane/synapse/2021-06-01-preview/managedprivateendpoints
+	GO_AZURE_SDK_DATA_PLANE = SdkType{
+		Module:                 "github.com/hashicorp/go-azure-sdk/data-plane",
+		ServiceAndVersionRegex: regexp.MustCompile(`(?i)data-plane/([^/]+)/([^/]+-preview)`),
 	}
 
 	// Example: vendor/github.com/jackofallops/kermit/sdk/synapse/2020-08-01-preview
@@ -43,7 +49,8 @@ var (
 )
 
 var SdkTypes = []SdkType{
-	GO_AZURE_SDK,
+	GO_AZURE_SDK_RESOURCE_MANAGER,
+	GO_AZURE_SDK_DATA_PLANE,
 	KERMIT_SDK,
 	GIOVANNI_SDK,
 	AZURE_SDK_FOR_GO_TRACK_1,

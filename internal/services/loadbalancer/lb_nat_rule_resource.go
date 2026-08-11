@@ -11,12 +11,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -218,7 +219,9 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *pluginsdk.ResourceData, meta 
 			if exists {
 				if id.InboundNatRuleName == *existingNatRule.Name {
 					if d.IsNewResource() {
-						return tf.ImportAsExistsError("azurerm_lb_nat_rule", *existingNatRule.Id)
+						if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+							return tf.ImportAsExistsError("azurerm_lb_nat_rule", *existingNatRule.Id)
+						}
 					}
 
 					// this nat rule is being updated/reapplied remove old copy from the slice
@@ -228,13 +231,18 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *pluginsdk.ResourceData, meta 
 
 			props.InboundNatRules = &natRules
 
-			err := client.CreateOrUpdateThenPoll(ctx, plbId, *model)
-			if err != nil {
-				return fmt.Errorf("updating %s: %+v", id, err)
+			if d.IsNewResource() {
+				if err := client.CreateOrUpdateCallbackThenPoll(ctx, plbId, *model, sdk.SetIDCallback(meta, &id, d)); err != nil {
+					return fmt.Errorf("creating %s: %+v", id, err)
+				}
+				d.SetId(id.ID())
+			} else {
+				if err := client.CreateOrUpdateThenPoll(ctx, plbId, *model); err != nil {
+					return fmt.Errorf("updating %s: %+v", id, err)
+				}
 			}
 		}
 	}
-	d.SetId(id.ID())
 
 	return resourceArmLoadBalancerNatRuleRead(d, meta)
 }

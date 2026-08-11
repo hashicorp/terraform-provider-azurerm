@@ -63,8 +63,7 @@ output "virtual_network_gateway_connection_id" {
 
 * `shared_key` - The shared IPSec key.
 
-* `enable_bgp` - If `true`, BGP (Border Gateway Protocol) is enabled
-    for this connection.
+* `bgp_enabled` - If `true`, BGP (Border Gateway Protocol) is enabled for this connection.
 
 * `custom_bgp_addresses` - (Optional) A `custom_bgp_addresses` (Border Gateway Protocol custom IP Addresses) block which is documented below.
     The block can only be used on `IPSec` / `activeactive` connections,

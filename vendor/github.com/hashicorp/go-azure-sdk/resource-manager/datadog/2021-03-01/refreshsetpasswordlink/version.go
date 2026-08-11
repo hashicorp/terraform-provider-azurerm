@@ -8,3 +8,7 @@ const defaultApiVersion = "2021-03-01"
 func userAgent() string {
 	return "hashicorp/go-azure-sdk/refreshsetpasswordlink/2021-03-01"
 }
+
+func AzureAPIVersion() string {
+	return defaultApiVersion
+}

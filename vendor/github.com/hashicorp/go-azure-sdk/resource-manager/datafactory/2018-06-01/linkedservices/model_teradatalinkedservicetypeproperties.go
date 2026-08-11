@@ -13,13 +13,13 @@ type TeradataLinkedServiceTypeProperties struct {
 	CharacterSet        *interface{}                `json:"characterSet,omitempty"`
 	ConnectionString    *interface{}                `json:"connectionString,omitempty"`
 	EncryptedCredential *string                     `json:"encryptedCredential,omitempty"`
-	HTTPSPortNumber     *int64                      `json:"httpsPortNumber,omitempty"`
-	MaxRespSize         *int64                      `json:"maxRespSize,omitempty"`
+	HTTPSPortNumber     *interface{}                `json:"httpsPortNumber,omitempty"`
+	MaxRespSize         *interface{}                `json:"maxRespSize,omitempty"`
 	Password            SecretBase                  `json:"password"`
-	PortNumber          *int64                      `json:"portNumber,omitempty"`
+	PortNumber          *interface{}                `json:"portNumber,omitempty"`
 	Server              *interface{}                `json:"server,omitempty"`
 	SslMode             *interface{}                `json:"sslMode,omitempty"`
-	UseDataEncryption   *int64                      `json:"useDataEncryption,omitempty"`
+	UseDataEncryption   *interface{}                `json:"useDataEncryption,omitempty"`
 	Username            *interface{}                `json:"username,omitempty"`
 }
 
@@ -31,12 +31,12 @@ func (s *TeradataLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error 
 		CharacterSet        *interface{}                `json:"characterSet,omitempty"`
 		ConnectionString    *interface{}                `json:"connectionString,omitempty"`
 		EncryptedCredential *string                     `json:"encryptedCredential,omitempty"`
-		HTTPSPortNumber     *int64                      `json:"httpsPortNumber,omitempty"`
-		MaxRespSize         *int64                      `json:"maxRespSize,omitempty"`
-		PortNumber          *int64                      `json:"portNumber,omitempty"`
+		HTTPSPortNumber     *interface{}                `json:"httpsPortNumber,omitempty"`
+		MaxRespSize         *interface{}                `json:"maxRespSize,omitempty"`
+		PortNumber          *interface{}                `json:"portNumber,omitempty"`
 		Server              *interface{}                `json:"server,omitempty"`
 		SslMode             *interface{}                `json:"sslMode,omitempty"`
-		UseDataEncryption   *int64                      `json:"useDataEncryption,omitempty"`
+		UseDataEncryption   *interface{}                `json:"useDataEncryption,omitempty"`
 		Username            *interface{}                `json:"username,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {

@@ -45,7 +45,7 @@ The following attributes are exported:
   
 * `zone` - The Availability Zone in which the Volume is located.
 
-* `mount_ip_addresses` - A list of IPv4 Addresses which should be used to mount the volume.
+* `mount_target` - One or more `mount_target` blocks as defined below.
 
 * `protocols` - A list of protocol types enabled on volume.
 
@@ -62,6 +62,8 @@ The following attributes are exported:
 * `data_protection_replication` - Volume data protection replication block
 
 * `data_protection_backup_policy` - A data protecion backup policy block
+
+* `data_protection_advanced_ransomware` - An Advanced Ransomware Protection (ARP) data protection block.
 
 * `volume_path` - The unique file path of the volume.
 
@@ -97,6 +99,20 @@ A `data_protection_backup_policy` block supports the following:
 
 ---
 
+A `data_protection_advanced_ransomware` block exports the following:
+
+* `protection_enabled` - Whether the Advanced Ransomware Protection feature is enabled.
+
+~> **Note:** For performance considerations and supported regions, please refer to the [Azure documentation](https://learn.microsoft.com/en-us/azure/azure-netapp-files/ransomware-configure).
+
+---
+
+A `mount_target` block exports the following:
+
+* `ip_address` - The IP address of the mount target.
+
+* `smb_server_fqdn` - The SMB server's Fully Qualified Domain Name (FQDN). This value is populated when the volume's `protocols` include `CIFS`; otherwise, it is empty.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
@@ -107,4 +123,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.NetApp` - 2025-06-01
+* `Microsoft.NetApp` - 2026-01-01

@@ -62,9 +62,20 @@ func (c ClustersClient) UpdateGatewaySettings(ctx context.Context, id commonids.
 
 // UpdateGatewaySettingsThenPoll performs UpdateGatewaySettings then polls until it's completed
 func (c ClustersClient) UpdateGatewaySettingsThenPoll(ctx context.Context, id commonids.HDInsightClusterId, input UpdateGatewaySettingsParameters) error {
+	return c.UpdateGatewaySettingsCallbackThenPoll(ctx, id, input, nil)
+}
+
+// UpdateGatewaySettingsCallbackThenPoll performs UpdateGatewaySettings, runs the optional callback function, then polls until it's completed
+func (c ClustersClient) UpdateGatewaySettingsCallbackThenPoll(ctx context.Context, id commonids.HDInsightClusterId, input UpdateGatewaySettingsParameters, callback func() error) error {
 	result, err := c.UpdateGatewaySettings(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing UpdateGatewaySettings: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -28,7 +27,7 @@ import (
 )
 
 func resourceMonitorAADDiagnosticSetting() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceMonitorAADDiagnosticSettingCreate,
 		Read:   resourceMonitorAADDiagnosticSettingRead,
 		Update: resourceMonitorAADDiagnosticSettingUpdate,
@@ -101,33 +100,6 @@ func resourceMonitorAADDiagnosticSetting() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["enabled_log"].Elem.(*pluginsdk.Resource).Schema["retention_policy"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			Deprecated: "Azure does not support retention for new Azure Active Directory Diagnostic Settings",
-			MaxItems:   1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
-					},
-
-					"days": {
-						Type:         pluginsdk.TypeInt,
-						Optional:     true,
-						ValidateFunc: validation.IntAtLeast(0),
-						Default:      0,
-					},
-				},
-			},
-		}
-	}
-
-	return resource
 }
 
 func resourceMonitorAADDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -136,15 +108,18 @@ func resourceMonitorAADDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta i
 	defer cancel()
 
 	id := diagnosticsettings.NewDiagnosticSettingID(d.Get("name").(string))
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_monitor_aad_diagnostic_setting", id.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
+		}
+
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_monitor_aad_diagnostic_setting", id.ID())
+		}
 	}
 
 	// If there is no `enabled` log entry, the PUT will succeed while the next GET will return a 404.
@@ -187,14 +162,14 @@ func resourceMonitorAADDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	// custom poller is required until https://github.com/Azure/azure-rest-api-specs/issues/38858 is resolved
 	pollerType := NewAadDiagnosticSettingCreatePoller(client, id)
 	poller := pollers.NewPoller(pollerType, 15*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 	if err := poller.PollUntilDone(ctx); err != nil {
 		return err
 	}
-
-	d.SetId(id.ID())
 
 	return resourceMonitorAADDiagnosticSettingRead(d, meta)
 }
@@ -381,18 +356,6 @@ func expandMonitorAADDiagnosticsSettingsEnabledLogs(input []interface{}) []diagn
 			Enabled:  true,
 		}
 
-		if !features.FivePointOh() {
-			if len(v["retention_policy"].([]interface{})) != 0 && v["retention_policy"].([]interface{})[0] != nil {
-				policyRaw := v["retention_policy"].([]interface{})[0].(map[string]interface{})
-				retentionDays := policyRaw["days"].(int)
-				retentionEnabled := policyRaw["enabled"].(bool)
-				logSettings.RetentionPolicy = &diagnosticsettings.RetentionPolicy{
-					Days:    int64(retentionDays),
-					Enabled: retentionEnabled,
-				}
-			}
-		}
-
 		results = append(results, logSettings)
 	}
 
@@ -417,20 +380,6 @@ func flattenMonitorAADDiagnosticEnabledLogs(input *[]diagnosticsettings.LogSetti
 
 		result := map[string]interface{}{
 			"category": category,
-		}
-
-		if !features.FivePointOh() {
-			policies := make([]interface{}, 0)
-			if inputPolicy := v.RetentionPolicy; inputPolicy != nil {
-				if inputPolicy.Days != 0 || inputPolicy.Enabled {
-					policies = append(policies, map[string]interface{}{
-						"days":    int(inputPolicy.Days),
-						"enabled": inputPolicy.Enabled,
-					})
-				}
-			}
-
-			result["retention_policy"] = policies
 		}
 
 		results = append(results, result)
