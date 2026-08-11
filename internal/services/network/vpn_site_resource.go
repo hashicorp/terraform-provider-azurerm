@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -21,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceVpnSite() *pluginsdk.Resource {
@@ -320,7 +320,7 @@ func resourceVpnSiteUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		payload.Properties.AddressSpace = expandVpnSiteAddressSpace(d.Get("address_cidrs").(*pluginsdk.Set).List())
 	}
 
-	if d.HasChange("device_vendor") || d.HasChange("device_model") {
+	if d.HasChanges("device_vendor", "device_model") {
 		payload.Properties.DeviceProperties = expandVpnSiteDeviceProperties(d.Get("device_vendor").(string), d.Get("device_model").(string))
 	}
 
@@ -395,7 +395,7 @@ func flattenVpnSiteAddressSpace(input *virtualwans.AddressSpace) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
-	return utils.FlattenStringSlice(input.AddressPrefixes)
+	return helpers.FlattenStringSlice(input.AddressPrefixes)
 }
 
 func expandVpnSiteLinks(input []interface{}) *[]virtualwans.VpnSiteLink {

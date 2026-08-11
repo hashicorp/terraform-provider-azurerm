@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -1155,7 +1156,7 @@ func expandIoTHubRoutes(d *pluginsdk.ResourceData) *[]devices.RouteProperties {
 			Name:          &name,
 			Source:        source,
 			Condition:     &condition,
-			EndpointNames: utils.ExpandStringSlice(endpointNamesRaw),
+			EndpointNames: helpers.ExpandStringSlice(endpointNamesRaw),
 			IsEnabled:     &isEnabled,
 		})
 	}
@@ -1179,7 +1180,7 @@ func expandIoTHubEnrichments(d *pluginsdk.ResourceData) *[]devices.EnrichmentPro
 		enrichmentProperties = append(enrichmentProperties, devices.EnrichmentProperties{
 			Key:           &key,
 			Value:         &value,
-			EndpointNames: utils.ExpandStringSlice(endpointNamesRaw),
+			EndpointNames: helpers.ExpandStringSlice(endpointNamesRaw),
 		})
 	}
 
@@ -1393,7 +1394,7 @@ func expandIoTHubFallbackRoute(d *pluginsdk.ResourceData) *devices.FallbackRoute
 	return &devices.FallbackRouteProperties{
 		Source:        &source,
 		Condition:     &condition,
-		EndpointNames: utils.ExpandStringSlice(fallbackRouteMap["endpoint_names"].([]interface{})),
+		EndpointNames: helpers.ExpandStringSlice(fallbackRouteMap["endpoint_names"].([]interface{})),
 		IsEnabled:     &isEnabled,
 	}
 }
@@ -1802,7 +1803,7 @@ func flattenIoTHubFallbackRoute(input *devices.RoutingProperties) []interface{} 
 		output["source"] = *source
 	}
 
-	output["endpoint_names"] = utils.FlattenStringSlice(route.EndpointNames)
+	output["endpoint_names"] = helpers.FlattenStringSlice(route.EndpointNames)
 
 	return []interface{}{output}
 }
