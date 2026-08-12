@@ -33,7 +33,7 @@ func TestAccResourceProviderFeatureRegistration_regressionTest(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, "azurerm_resource_provider_feature_registration", "test")
 	r := ResourceProviderFeatureRegistrationResource{}
-	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialRegressionTest(t, r, []acceptance.TestStep{
 		{
 			PreConfig: func() {
 				// Ensure the feature is not currently registered

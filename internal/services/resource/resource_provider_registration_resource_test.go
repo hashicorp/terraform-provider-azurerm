@@ -29,7 +29,7 @@ type ResourceProviderRegistrationResource struct{}
 func TestAccResourceProviderRegistration_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_provider_registration", "test")
 	r := ResourceProviderRegistrationResource{}
-	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialRegressionTest(t, r, []acceptance.TestStep{
 		{
 			PreConfig: func() {
 				// Last error may cause resource provider still in `Registered` status.Need to unregister it before a new test.
