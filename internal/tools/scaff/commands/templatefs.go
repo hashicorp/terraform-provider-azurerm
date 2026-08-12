@@ -3,9 +3,11 @@
 
 package commands
 
-import (
-	"embed"
-)
+import "embed"
 
-//go:embed templates/*
+// Templatedir previously embedded the text/template assets used by the legacy
+// template-based commands (config, document, servicepackage). Those templates
+// have been removed as part of the move to the gen/ir packages; this empty FS
+// keeps the remaining references compiling until those commands are ported or
+// removed. The generate command does not use it.
 var Templatedir embed.FS

@@ -1,0 +1,540 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
+package list_upgrade
+
+import (
+	"fmt"
+	"go/ast"
+	"go/parser"
+	"go/token"
+	"os"
+	"strings"
+)
+
+// Kind classifies how a resource is implemented.
+type Kind int
+
+const (
+	KindUnknown Kind = iota
+	// KindTyped is a resource built on the internal/sdk typed wrapper
+	// (type XResource struct{} with ResourceType/ModelObject/Create/Read/...).
+	KindTyped
+	// KindUntyped is a native Plugin SDK resource (func resourceX() *pluginsdk.Resource).
+	KindUntyped
+)
+
+func (k Kind) String() string {
+	switch k {
+	case KindTyped:
+		return "typed"
+	case KindUntyped:
+		return "untyped"
+	default:
+		return "unknown"
+	}
+}
+
+// Resource is a parsed resource source file together with the metadata and AST
+// handles needed to analyse and rewrite it.
+type Resource struct {
+	Path    string
+	Package string
+	Kind    Kind
+
+	// Typed resource identity.
+	StructName    string // e.g. "WorkspaceResource"
+	ModelStruct   string // e.g. "WorkspaceResourceModel"
+	TerraformType string // e.g. "azurerm_monitor_workspace"
+	HasUpdate     bool
+
+	// SDK + resource ID.
+	SDKPackage     string // e.g. "azuremonitorworkspaces"
+	SDKImportPath  string // full import path
+	IDPackage      string // package of the ID type; may differ from SDKPackage (e.g. "commonids")
+	IDImportPath   string // full import path of the ID package
+	IDTypeName     string // e.g. "AccountId"
+	IDBase         string // e.g. "Account"
+	IDParseFunc    string // e.g. "ParseAccountID"
+	IDValidateFunc string // e.g. "ValidateAccountID"
+
+	// Client accessor, parsed from metadata.Client.<Service>.<Field>.
+	ServiceName string // e.g. "Monitor"
+	ClientField string // e.g. "WorkspacesClient"
+
+	// Untyped resource (native *pluginsdk.Resource).
+	ConstructorFunc string // e.g. "resourceSubnetServiceEndpointStoragePolicy"
+	BaseName        string // e.g. "SubnetServiceEndpointStoragePolicy"
+	CreateFunc      string // e.g. "resourceSubnetServiceEndpointStoragePolicyCreate"
+	ReadFunc        string
+	UpdateFunc      string
+	DeleteFunc      string
+	FlattenFunc     string // e.g. "resourceSubnetServiceEndpointStoragePolicyFlatten"
+	GetMethod       string // client Get method name, e.g. "Get" or "VirtualHubIPConfigurationGet"
+	ReadModel       string // SDK read-model type (type of resp.Model), derived from the vendored SDK
+
+	// Top-level (subscription/resource-group) list methods, derived from the
+	// vendored SDK by the id parameter type. Empty for parent-scoped resources.
+	ListSubscriptionMethod  string // e.g. "VirtualHubsList" (takes commonids.SubscriptionId)
+	ListResourceGroupMethod string // e.g. "VirtualHubsListByResourceGroup" (takes commonids.ResourceGroupId)
+
+	// Parent scope (child resources listed under a parent, e.g. virtual_hub_id).
+	ParentIDBase       string // e.g. "VirtualHub"
+	ParentIDType       string // e.g. "VirtualHubId"
+	ParentPackage      string // package of the parent ID funcs, e.g. "virtualwans"
+	ParentImportPath   string // full import path of the parent ID package
+	ParentParseFunc    string // e.g. "ParseVirtualHubID"
+	ParentValidateFunc string // e.g. "ValidateVirtualHubID"
+	ParentAttr         string // config attribute, e.g. "virtual_hub_id"
+	ListMethod         string // client parent-scoped list method, e.g. "VirtualHubIPConfigurationList"
+
+	// Feature detection.
+	HasIdentity bool
+	HasFlatten  bool
+	// FlattenIDValue is true when an existing flatten function takes its id
+	// parameter by value (e.g. `id commonids.SubnetId`) rather than by pointer;
+	// the list generator dereferences the parsed (pointer) id accordingly.
+	FlattenIDValue      bool
+	FlattenNeedsContext bool
+	ClientTypeName      string
+
+	// AST handles.
+	fset *token.FileSet
+	file *ast.File
+	src  []byte
+
+	// Located declarations (typed).
+	assertDecl *ast.GenDecl               // var (…) block or single var holding sdk.Resource* assertions
+	methods    map[string]*ast.FuncDecl   // resource methods keyed by name
+	imports    map[string]*ast.ImportSpec // package name -> import spec
+
+	// Located declarations (untyped).
+	funcs       map[string]*ast.FuncDecl // top-level funcs keyed by name
+	resourceLit *ast.CompositeLit        // the &pluginsdk.Resource{...} literal
+}
+
+// Analyze parses the file at path and derives everything the upgrader needs to
+// reason about it. It never mutates the file.
+func Analyze(path string) (*Resource, error) {
+	src, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("reading %q: %w", path, err)
+	}
+
+	fset := token.NewFileSet()
+	file, err := parser.ParseFile(fset, path, src, parser.ParseComments)
+	if err != nil {
+		return nil, fmt.Errorf("parsing %q: %w", path, err)
+	}
+
+	r := &Resource{
+		Path:    path,
+		Package: file.Name.Name,
+		Kind:    KindUnknown,
+		fset:    fset,
+		file:    file,
+		src:     src,
+		methods: map[string]*ast.FuncDecl{},
+		imports: map[string]*ast.ImportSpec{},
+		funcs:   map[string]*ast.FuncDecl{},
+	}
+
+	r.collectImports()
+	r.collectFuncs()
+
+	if structName := r.findTypedResourceStruct(); structName != "" {
+		r.Kind = KindTyped
+		r.StructName = structName
+		r.collectMethods(structName)
+		r.analyzeTyped()
+		return r, nil
+	}
+
+	if ctor := r.findUntypedConstructor(); ctor != nil {
+		r.Kind = KindUntyped
+		r.analyzeUntyped(ctor)
+		return r, nil
+	}
+
+	return r, nil
+}
+
+// collectImports indexes imports by their effective package name so ID/SDK
+// references can be resolved back to an import path.
+func (r *Resource) collectImports() {
+	for _, imp := range r.file.Imports {
+		path := strings.Trim(imp.Path.Value, `"`)
+		name := ""
+		if imp.Name != nil {
+			name = imp.Name.Name
+		} else {
+			seg := path
+			if i := strings.LastIndex(seg, "/"); i >= 0 {
+				seg = seg[i+1:]
+			}
+			name = seg
+		}
+		r.imports[name] = imp
+	}
+}
+
+// findTypedResourceStruct returns the name of the resource struct backing a
+// typed resource, identified by an `var _ sdk.Resource... = XResource{}`
+// interface assertion. The GenDecl holding the assertion is retained for later
+// identity-assertion edits.
+func (r *Resource) findTypedResourceStruct() string {
+	for _, decl := range r.file.Decls {
+		gd, ok := decl.(*ast.GenDecl)
+		if !ok || gd.Tok != token.VAR {
+			continue
+		}
+		for _, spec := range gd.Specs {
+			vs, ok := spec.(*ast.ValueSpec)
+			if !ok || len(vs.Names) != 1 || vs.Names[0].Name != "_" {
+				continue
+			}
+			if !isSDKResourceInterface(vs.Type) {
+				continue
+			}
+			if len(vs.Values) == 1 {
+				if name := compositeTypeName(vs.Values[0]); name != "" {
+					r.assertDecl = gd
+					return name
+				}
+			}
+		}
+	}
+	return ""
+}
+
+// isSDKResourceInterface reports whether expr is a selector of the form
+// sdk.Resource or sdk.ResourceWith*.
+func isSDKResourceInterface(expr ast.Expr) bool {
+	sel, ok := expr.(*ast.SelectorExpr)
+	if !ok {
+		return false
+	}
+	pkg, ok := sel.X.(*ast.Ident)
+	if !ok || pkg.Name != "sdk" {
+		return false
+	}
+	return sel.Sel.Name == "Resource" || strings.HasPrefix(sel.Sel.Name, "ResourceWith")
+}
+
+// compositeTypeName returns the type name of a composite literal like
+// XResource{}, dereferencing a leading &.
+func compositeTypeName(expr ast.Expr) string {
+	if u, ok := expr.(*ast.UnaryExpr); ok {
+		expr = u.X
+	}
+	cl, ok := expr.(*ast.CompositeLit)
+	if !ok {
+		return ""
+	}
+	if id, ok := cl.Type.(*ast.Ident); ok {
+		return id.Name
+	}
+	return ""
+}
+
+// collectMethods indexes all methods whose receiver base type matches struct.
+func (r *Resource) collectMethods(structName string) {
+	for _, decl := range r.file.Decls {
+		fd, ok := decl.(*ast.FuncDecl)
+		if !ok || fd.Recv == nil || len(fd.Recv.List) != 1 {
+			continue
+		}
+		if receiverTypeName(fd.Recv.List[0].Type) == structName {
+			r.methods[fd.Name.Name] = fd
+		}
+	}
+}
+
+// receiverTypeName returns the base type name of a receiver, dereferencing a
+// pointer receiver.
+func receiverTypeName(expr ast.Expr) string {
+	if star, ok := expr.(*ast.StarExpr); ok {
+		expr = star.X
+	}
+	if id, ok := expr.(*ast.Ident); ok {
+		return id.Name
+	}
+	return ""
+}
+
+// analyzeTyped fills in the typed-resource metadata from the located methods and
+// interface assertions.
+func (r *Resource) analyzeTyped() {
+	r.HasUpdate = r.hasAssertion("ResourceWithUpdate") || r.methods["Update"] != nil
+	r.HasIdentity = r.hasAssertion("ResourceWithIdentity") || r.methods["Identity"] != nil
+	r.HasFlatten = r.methods["flatten"] != nil
+
+	if fd := r.methods["ResourceType"]; fd != nil {
+		r.TerraformType = stringReturnValue(fd)
+	}
+	if fd := r.methods["ModelObject"]; fd != nil {
+		r.ModelStruct = modelObjectType(fd)
+	}
+	if fd := r.methods["IDValidationFunc"]; fd != nil {
+		if pkg, fn := selectorReturnValue(fd); fn != "" {
+			r.IDValidateFunc = fn
+			if r.SDKPackage == "" {
+				r.setSDKPackage(pkg)
+			}
+			r.IDBase = strings.TrimSuffix(strings.TrimPrefix(fn, "Validate"), "ID")
+		}
+	}
+
+	// The parse call inside Read is the most reliable source of the ID type and
+	// SDK package actually used by the resource.
+	if fd := r.methods["Read"]; fd != nil {
+		if pkg, base := parseIDCall(fd); base != "" {
+			r.IDBase = base
+			r.setSDKPackage(pkg)
+		}
+		if svc, field := clientAccessor(fd); field != "" {
+			r.ServiceName = svc
+			r.ClientField = field
+		}
+	}
+	if r.IDBase != "" {
+		r.IDTypeName = r.IDBase + "Id"
+		r.IDParseFunc = "Parse" + r.IDBase + "ID"
+		if r.IDValidateFunc == "" {
+			r.IDValidateFunc = "Validate" + r.IDBase + "ID"
+		}
+	}
+
+	// The Get method (from the Read closure) drives the read model (from the
+	// vendored SDK) and the parent-scoped list method for child resources.
+	if fd := r.methods["Read"]; fd != nil {
+		if body := resourceFuncBody(fd); body != nil {
+			if _, method, _ := findGetAssignment(body.Body.List, body); method != "" {
+				r.GetMethod = method
+			}
+		}
+	}
+	r.deriveReadModel()
+	r.detectTypedParent()
+	r.deriveListMethods()
+}
+
+// hasAssertion reports whether the resource declares an `sdk.<name>` interface
+// assertion (e.g. ResourceWithUpdate, ResourceWithIdentity).
+func (r *Resource) hasAssertion(name string) bool {
+	for _, decl := range r.file.Decls {
+		gd, ok := decl.(*ast.GenDecl)
+		if !ok || gd.Tok != token.VAR {
+			continue
+		}
+		for _, spec := range gd.Specs {
+			vs, ok := spec.(*ast.ValueSpec)
+			if !ok || len(vs.Names) != 1 || vs.Names[0].Name != "_" {
+				continue
+			}
+			if sel, ok := vs.Type.(*ast.SelectorExpr); ok {
+				if pkg, ok := sel.X.(*ast.Ident); ok && pkg.Name == "sdk" && sel.Sel.Name == name {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
+// setSDKPackage records the SDK package name and resolves its import path.
+func (r *Resource) setSDKPackage(pkg string) {
+	if pkg == "" {
+		return
+	}
+	r.SDKPackage = pkg
+	if imp, ok := r.imports[pkg]; ok {
+		r.SDKImportPath = strings.Trim(imp.Path.Value, `"`)
+	}
+}
+
+// isUntyped reports whether the file declares a native Plugin SDK resource via a
+// func returning *pluginsdk.Resource.
+func (r *Resource) isUntyped() bool {
+	return r.findUntypedConstructor() != nil
+}
+
+// collectFuncs indexes all top-level (non-method) function declarations by name.
+func (r *Resource) collectFuncs() {
+	for _, decl := range r.file.Decls {
+		if fd, ok := decl.(*ast.FuncDecl); ok && fd.Recv == nil {
+			r.funcs[fd.Name.Name] = fd
+		}
+	}
+}
+
+// findUntypedConstructor returns the `func resourceX() *pluginsdk.Resource`
+// constructor of a native Plugin SDK resource, if present.
+func (r *Resource) findUntypedConstructor() *ast.FuncDecl {
+	for _, decl := range r.file.Decls {
+		fd, ok := decl.(*ast.FuncDecl)
+		if !ok || fd.Recv != nil || !strings.HasPrefix(fd.Name.Name, "resource") {
+			continue
+		}
+		if fd.Type.Results == nil || len(fd.Type.Results.List) != 1 {
+			continue
+		}
+		if star, ok := fd.Type.Results.List[0].Type.(*ast.StarExpr); ok {
+			if sel, ok := star.X.(*ast.SelectorExpr); ok {
+				if pkg, ok := sel.X.(*ast.Ident); ok && pkg.Name == "pluginsdk" && sel.Sel.Name == "Resource" {
+					return fd
+				}
+			}
+		}
+	}
+	return nil
+}
+
+// ----- small AST readers -----
+
+// stringReturnValue returns the string literal from a `return "..."` function.
+func stringReturnValue(fd *ast.FuncDecl) string {
+	var out string
+	ast.Inspect(fd, func(n ast.Node) bool {
+		ret, ok := n.(*ast.ReturnStmt)
+		if !ok || len(ret.Results) != 1 {
+			return true
+		}
+		if lit, ok := ret.Results[0].(*ast.BasicLit); ok && lit.Kind == token.STRING {
+			out = strings.Trim(lit.Value, "\"")
+			return false
+		}
+		return true
+	})
+	return out
+}
+
+// modelObjectType returns the type name from a `return &XModel{}` function.
+func modelObjectType(fd *ast.FuncDecl) string {
+	var out string
+	ast.Inspect(fd, func(n ast.Node) bool {
+		ret, ok := n.(*ast.ReturnStmt)
+		if !ok || len(ret.Results) != 1 {
+			return true
+		}
+		if name := compositeTypeName(ret.Results[0]); name != "" {
+			out = name
+			return false
+		}
+		return true
+	})
+	return out
+}
+
+// selectorReturnValue returns the package and selector from a
+// `return pkg.Selector` function (no call), e.g. return pkg.ValidateXID.
+func selectorReturnValue(fd *ast.FuncDecl) (pkg, sel string) {
+	ast.Inspect(fd, func(n ast.Node) bool {
+		ret, ok := n.(*ast.ReturnStmt)
+		if !ok || len(ret.Results) != 1 {
+			return true
+		}
+		if s, ok := ret.Results[0].(*ast.SelectorExpr); ok {
+			if id, ok := s.X.(*ast.Ident); ok {
+				pkg, sel = id.Name, s.Sel.Name
+				return false
+			}
+		}
+		return true
+	})
+	return pkg, sel
+}
+
+// parseIDCall finds a `pkg.Parse<Base>ID(...)` call within fd and returns the
+// package and Base.
+func parseIDCall(fd *ast.FuncDecl) (pkg, base string) {
+	// A Read may parse several IDs — the resource's own (from d.Id()) and nested
+	// references (e.g. a virtual network id from a sub-block). Prefer the parse
+	// of the resource's own ID, falling back to the first Parse<X>ID seen. Note
+	// that returning false from ast.Inspect only prunes children, so a `done`
+	// flag is used to stop once the resource ID is found.
+	var firstPkg, firstBase string
+	done := false
+	ast.Inspect(fd, func(n ast.Node) bool {
+		if done {
+			return false
+		}
+		call, ok := n.(*ast.CallExpr)
+		if !ok {
+			return true
+		}
+		sel, ok := call.Fun.(*ast.SelectorExpr)
+		if !ok {
+			return true
+		}
+		id, ok := sel.X.(*ast.Ident)
+		if !ok {
+			return true
+		}
+		fn := sel.Sel.Name
+		if !strings.HasPrefix(fn, "Parse") || !strings.HasSuffix(fn, "ID") {
+			return true
+		}
+		p := id.Name
+		b := strings.TrimSuffix(strings.TrimPrefix(fn, "Parse"), "ID")
+		if firstBase == "" {
+			firstPkg, firstBase = p, b
+		}
+		if callArgIsResourceID(call) {
+			pkg, base = p, b
+			done = true
+			return false
+		}
+		return true
+	})
+	if base == "" {
+		pkg, base = firstPkg, firstBase
+	}
+	return pkg, base
+}
+
+// callArgIsResourceID reports whether the call's sole argument is `d.Id()`, i.e.
+// the call parses the resource's own ID rather than a nested reference.
+func callArgIsResourceID(call *ast.CallExpr) bool {
+	if len(call.Args) != 1 {
+		return false
+	}
+	inner, ok := call.Args[0].(*ast.CallExpr)
+	if !ok || len(inner.Args) != 0 {
+		return false
+	}
+	sel, ok := inner.Fun.(*ast.SelectorExpr)
+	if !ok || sel.Sel.Name != "Id" {
+		return false
+	}
+	x, ok := sel.X.(*ast.Ident)
+	return ok && x.Name == "d"
+}
+
+// clientAccessor finds a `metadata.Client.<Service>.<Field>` selector and
+// returns the service and field names.
+func clientAccessor(fd *ast.FuncDecl) (service, field string) {
+	ast.Inspect(fd, func(n ast.Node) bool {
+		// Match the outer selector X.Field where X is metadata.Client.Service.
+		outer, ok := n.(*ast.SelectorExpr)
+		if !ok {
+			return true
+		}
+		mid, ok := outer.X.(*ast.SelectorExpr) // metadata.Client.Service
+		if !ok {
+			return true
+		}
+		inner, ok := mid.X.(*ast.SelectorExpr) // metadata.Client
+		if !ok {
+			return true
+		}
+		base, ok := inner.X.(*ast.Ident) // metadata
+		if !ok || base.Name != "metadata" || inner.Sel.Name != "Client" {
+			return true
+		}
+		service = mid.Sel.Name
+		field = outer.Sel.Name
+		return false
+	})
+	return service, field
+}
