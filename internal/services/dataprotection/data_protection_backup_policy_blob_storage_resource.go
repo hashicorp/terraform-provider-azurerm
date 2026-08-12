@@ -14,13 +14,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/basebackuppolicyresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	helperValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_policy_blob_storage -service-package-name dataprotection -properties "name" -compare-values "subscription_id:vault_id,resource_group_name:vault_id,backup_vault_name:vault_id"
@@ -119,7 +119,8 @@ func resourceDataProtectionBackupPolicyBlobStorage() *schema.Resource {
 										Optional: true,
 										ForceNew: true,
 										ValidateFunc: validation.StringInSlice(
-											basebackuppolicyresources.PossibleValuesForAbsoluteMarker(), false),
+											basebackuppolicyresources.PossibleValuesForAbsoluteMarker(), false,
+										),
 									},
 
 									"days_of_month": {
@@ -234,14 +235,16 @@ func resourceDataProtectionBackupPolicyBlobStorageCreate(d *schema.ResourceData,
 	vaultId, _ := basebackuppolicyresources.ParseBackupVaultID(d.Get("vault_id").(string))
 	id := basebackuppolicyresources.NewBackupPolicyID(subscriptionId, vaultId.ResourceGroupName, vaultId.BackupVaultName, name)
 
-	existing, err := client.BackupPoliciesGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing DataProtection BackupPolicy (%q): %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.BackupPoliciesGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing DataProtection BackupPolicy (%q): %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_data_protection_backup_policy_blob_storage", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_data_protection_backup_policy_blob_storage", id.ID())
+		}
 	}
 
 	policyRules := make([]basebackuppolicyresources.BasePolicyRule, 0)
@@ -274,7 +277,7 @@ func resourceDataProtectionBackupPolicyBlobStorageCreate(d *schema.ResourceData,
 	}
 
 	if _, err := client.BackupPoliciesCreateOrUpdate(ctx, id, parameters); err != nil {
-		return fmt.Errorf("creating/updating DataProtection BackupPolicy (%q): %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -427,7 +430,7 @@ func expandBackupPolicyBlobStorageCriteriaArray(input []interface{}) (*[]basebac
 
 		var scheduleTimes *[]string
 		if v["scheduled_backup_times"].(*pluginsdk.Set).Len() > 0 {
-			scheduleTimes = utils.ExpandStringSlice(v["scheduled_backup_times"].(*pluginsdk.Set).List())
+			scheduleTimes = helpers.ExpandStringSlice(v["scheduled_backup_times"].(*pluginsdk.Set).List())
 		}
 
 		var weeksOfMonth []basebackuppolicyresources.WeekNumber
@@ -463,7 +466,7 @@ func expandBackupPolicyBlobStorageAzureBackupRuleArray(input []interface{}, time
 		},
 		Trigger: basebackuppolicyresources.ScheduleBasedTriggerContext{
 			Schedule: basebackuppolicyresources.BackupSchedule{
-				RepeatingTimeIntervals: *utils.ExpandStringSlice(input),
+				RepeatingTimeIntervals: *helpers.ExpandStringSlice(input),
 				TimeZone:               pointer.To(timeZone),
 			},
 			TaggingCriteria: *taggingCriteria,
@@ -533,8 +536,8 @@ func flattenBackupPolicyBlobStorageDefaultRetentionRuleDuration(input []baseback
 	for _, item := range input {
 		if retentionRule, ok := item.(basebackuppolicyresources.AzureRetentionRule); ok && retentionRule.IsDefault != nil && *retentionRule.IsDefault {
 			if len(retentionRule.Lifecycles) > 0 {
-				if deleteOption, ok := (retentionRule.Lifecycles)[0].DeleteAfter.(basebackuppolicyresources.AbsoluteDeleteOption); ok {
-					if (retentionRule.Lifecycles)[0].SourceDataStore.DataStoreType == dsType {
+				if deleteOption, ok := retentionRule.Lifecycles[0].DeleteAfter.(basebackuppolicyresources.AbsoluteDeleteOption); ok {
+					if retentionRule.Lifecycles[0].SourceDataStore.DataStoreType == dsType {
 						return deleteOption.Duration
 					}
 				}
@@ -552,7 +555,7 @@ func flattenBackupPolicyBlobStorageVaultBackupRuleArray(input *[]basebackuppolic
 		if backupRule, ok := item.(basebackuppolicyresources.AzureBackupRule); ok {
 			if backupRule.Trigger != nil {
 				if scheduleBasedTrigger, ok := backupRule.Trigger.(basebackuppolicyresources.ScheduleBasedTriggerContext); ok {
-					return utils.FlattenStringSlice(&scheduleBasedTrigger.Schedule.RepeatingTimeIntervals)
+					return helpers.FlattenStringSlice(&scheduleBasedTrigger.Schedule.RepeatingTimeIntervals)
 				}
 			}
 		}
@@ -662,28 +665,28 @@ func flattenBackupPolicyBlobStorageBackupCriteriaArray(input *[]basebackuppolicy
 			if criteria.DaysOfTheWeek != nil {
 				daysOfWeek = make([]string, 0)
 				for _, item := range *criteria.DaysOfTheWeek {
-					daysOfWeek = append(daysOfWeek, (string)(item))
+					daysOfWeek = append(daysOfWeek, string(item))
 				}
 			}
 			var daysOfMonth []int
 			if criteria.DaysOfMonth != nil {
 				daysOfMonth = make([]int, 0)
 				for _, item := range *criteria.DaysOfMonth {
-					daysOfMonth = append(daysOfMonth, (int)(pointer.From(item.Date)))
+					daysOfMonth = append(daysOfMonth, int(pointer.From(item.Date)))
 				}
 			}
 			var monthsOfYear []string
 			if criteria.MonthsOfYear != nil {
 				monthsOfYear = make([]string, 0)
 				for _, item := range *criteria.MonthsOfYear {
-					monthsOfYear = append(monthsOfYear, (string)(item))
+					monthsOfYear = append(monthsOfYear, string(item))
 				}
 			}
 			var weeksOfMonth []string
 			if criteria.WeeksOfTheMonth != nil {
 				weeksOfMonth = make([]string, 0)
 				for _, item := range *criteria.WeeksOfTheMonth {
-					weeksOfMonth = append(weeksOfMonth, (string)(item))
+					weeksOfMonth = append(weeksOfMonth, string(item))
 				}
 			}
 			var scheduleTimes []string

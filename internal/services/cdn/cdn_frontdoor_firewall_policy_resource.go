@@ -16,13 +16,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
@@ -38,10 +39,10 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(4 * time.Hour),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(4 * time.Hour),
+			Delete: pluginsdk.DefaultTimeout(6 * time.Hour),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -125,6 +126,16 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 					405,
 					406,
 					429,
+					990,
+					991,
+					992,
+					993,
+					994,
+					995,
+					996,
+					997,
+					998,
+					999,
 				}),
 			},
 
@@ -627,15 +638,17 @@ func resourceCdnFrontDoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 
 	id := waf.NewFrontDoorWebApplicationFirewallPolicyID(subscriptionId, resourceGroup, name)
 
-	result, err := client.PoliciesGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(result.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		result, err := client.PoliciesGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(result.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(result.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_cdn_frontdoor_firewall_policy", id.ID())
+		if !response.WasNotFound(result.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_cdn_frontdoor_firewall_policy", id.ID())
+		}
 	}
 
 	enabled := waf.PolicyEnabledStateDisabled
@@ -727,8 +740,7 @@ func resourceCdnFrontDoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 		payload.Properties.PolicySettings.LogScrubbing = logScrubbingRules
 	}
 
-	err = client.PoliciesCreateOrUpdateThenPoll(ctx, id, payload)
-	if err != nil {
+	if err := client.PoliciesCreateOrUpdateCallbackThenPoll(ctx, id, payload, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -763,7 +775,18 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 
 	props := *model.Properties
 
-	if d.HasChanges("custom_block_response_body", "custom_block_response_status_code", "enabled", "mode", "redirect_url", "request_body_check_enabled", "js_challenge_cookie_expiration_in_minutes", "captcha_cookie_expiration_in_minutes", "log_scrubbing") {
+	// lintignore:R019 // deliberate subset: only the fields feeding PolicySettings; custom_rule, managed_rule and tags are applied in separate branches below
+	if d.HasChanges(
+		"custom_block_response_body",
+		"custom_block_response_status_code",
+		"enabled",
+		"mode",
+		"redirect_url",
+		"request_body_check_enabled",
+		"js_challenge_cookie_expiration_in_minutes",
+		"captcha_cookie_expiration_in_minutes",
+		"log_scrubbing",
+	) {
 		enabled := waf.PolicyEnabledStateDisabled
 		if d.Get("enabled").(bool) {
 			enabled = waf.PolicyEnabledStateEnabled
@@ -1004,7 +1027,7 @@ func expandCdnFrontDoorFirewallMatchConditions(input []interface{}) []waf.MatchC
 		selector := match["selector"].(string)
 		operator := match["operator"].(string)
 		negateCondition := match["negation_condition"].(bool)
-		matchValues := utils.ExpandStringSlice(match["match_values"].([]interface{}))
+		matchValues := helpers.ExpandStringSlice(match["match_values"].([]interface{}))
 		transforms := match["transforms"].([]interface{})
 
 		matchCondition := waf.MatchCondition{

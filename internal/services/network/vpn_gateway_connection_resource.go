@@ -13,13 +13,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceVPNGatewayConnection() *pluginsdk.Resource {
@@ -349,15 +350,18 @@ func resourceVpnGatewayConnectionResourceCreate(d *pluginsdk.ResourceData, meta 
 	}
 
 	id := commonids.NewVPNConnectionID(gatewayId.SubscriptionId, gatewayId.ResourceGroupName, gatewayId.VpnGatewayName, name)
-	resp, err := client.VpnConnectionsGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
-		}
-	}
 
-	if !response.WasNotFound(resp.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_vpn_gateway_connection", id.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		resp, err := client.VpnConnectionsGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
+		}
+
+		if !response.WasNotFound(resp.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_vpn_gateway_connection", id.ID())
+		}
 	}
 
 	locks.ByName(gatewayId.VpnGatewayName, VPNGatewayResourceName)
@@ -378,7 +382,7 @@ func resourceVpnGatewayConnectionResourceCreate(d *pluginsdk.ResourceData, meta 
 		payload.Properties.TrafficSelectorPolicies = expandVpnGatewayConnectionTrafficSelectorPolicy(v.(*pluginsdk.Set).List())
 	}
 
-	if err := client.VpnConnectionsCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+	if err := client.VpnConnectionsCreateOrUpdateCallbackThenPoll(ctx, id, payload, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -733,7 +737,7 @@ func flattenVpnGatewayConnectionPropagatedRouteTable(input *virtualwans.Propagat
 
 	labels := make([]interface{}, 0)
 	if input.Labels != nil {
-		labels = utils.FlattenStringSlice(input.Labels)
+		labels = helpers.FlattenStringSlice(input.Labels)
 	}
 
 	routeTableIds := make([]interface{}, 0)
@@ -761,8 +765,8 @@ func expandVpnGatewayConnectionTrafficSelectorPolicy(input []interface{}) *[]vir
 		v := item.(map[string]interface{})
 
 		results = append(results, virtualwans.TrafficSelectorPolicy{
-			LocalAddressRanges:  pointer.From(utils.ExpandStringSlice(v["local_address_ranges"].(*pluginsdk.Set).List())),
-			RemoteAddressRanges: pointer.From(utils.ExpandStringSlice(v["remote_address_ranges"].(*pluginsdk.Set).List())),
+			LocalAddressRanges:  pointer.From(helpers.ExpandStringSlice(v["local_address_ranges"].(*pluginsdk.Set).List())),
+			RemoteAddressRanges: pointer.From(helpers.ExpandStringSlice(v["remote_address_ranges"].(*pluginsdk.Set).List())),
 		})
 	}
 
@@ -777,8 +781,8 @@ func flattenVpnGatewayConnectionTrafficSelectorPolicy(input *[]virtualwans.Traff
 
 	for _, item := range *input {
 		results = append(results, map[string]interface{}{
-			"local_address_ranges":  utils.FlattenStringSlice(&item.LocalAddressRanges),
-			"remote_address_ranges": utils.FlattenStringSlice(&item.RemoteAddressRanges),
+			"local_address_ranges":  helpers.FlattenStringSlice(&item.LocalAddressRanges),
+			"remote_address_ranges": helpers.FlattenStringSlice(&item.RemoteAddressRanges),
 		})
 	}
 
@@ -803,7 +807,7 @@ func expandVpnGatewayConnectionPropagatedRouteTable(input []interface{}) *virtua
 		Ids: pointer.To(routeTableIds),
 	}
 	if labels := v["labels"].(*pluginsdk.Set).List(); len(labels) != 0 {
-		result.Labels = utils.ExpandStringSlice(labels)
+		result.Labels = helpers.ExpandStringSlice(labels)
 	}
 	return &result
 }

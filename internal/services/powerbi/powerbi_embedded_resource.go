@@ -13,14 +13,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/powerbidedicated/2021-01-01/capacities"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/powerbi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourcePowerBIEmbedded() *pluginsdk.Resource {
@@ -107,14 +108,17 @@ func resourcePowerBIEmbeddedCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	defer cancel()
 
 	id := capacities.NewCapacityID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.GetDetails(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.GetDetails(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_powerbi_embedded", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_powerbi_embedded", id.ID())
+		}
 	}
 
 	administrators := d.Get("administrators").(*pluginsdk.Set).List()
@@ -124,7 +128,7 @@ func resourcePowerBIEmbeddedCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &capacities.DedicatedCapacityProperties{
 			Administration: &capacities.DedicatedCapacityAdministrators{
-				Members: utils.ExpandStringSlice(administrators),
+				Members: helpers.ExpandStringSlice(administrators),
 			},
 			Mode: &mode,
 		},
@@ -134,11 +138,11 @@ func resourcePowerBIEmbeddedCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if err := client.CreateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-
 	d.SetId(id.ID())
+
 	return resourcePowerBIEmbeddedRead(d, meta)
 }
 
@@ -173,7 +177,7 @@ func resourcePowerBIEmbeddedRead(d *pluginsdk.ResourceData, meta interface{}) er
 			if props.Administration != nil {
 				adminMembers = props.Administration.Members
 			}
-			if err := d.Set("administrators", utils.FlattenStringSlice(adminMembers)); err != nil {
+			if err := d.Set("administrators", helpers.FlattenStringSlice(adminMembers)); err != nil {
 				return fmt.Errorf("setting `administration`: %+v", err)
 			}
 
@@ -206,13 +210,13 @@ func resourcePowerBIEmbeddedUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	parameters := capacities.DedicatedCapacityUpdateParameters{}
 
-	if d.HasChange("administrators") || d.HasChange("mode") {
+	if d.HasChanges("administrators", "mode") {
 		administrators := d.Get("administrators").(*pluginsdk.Set).List()
 		mode := capacities.Mode(d.Get("mode").(string))
 
 		parameters.Properties = &capacities.DedicatedCapacityMutableProperties{
 			Administration: &capacities.DedicatedCapacityAdministrators{
-				Members: utils.ExpandStringSlice(administrators),
+				Members: helpers.ExpandStringSlice(administrators),
 			},
 			Mode: &mode,
 		}

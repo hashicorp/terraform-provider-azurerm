@@ -18,18 +18,19 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	validate2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/legacy/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // NOTE: the `azurerm_virtual_machine_scale_set` resource has been superseded by the
@@ -784,20 +785,20 @@ func resourceVirtualMachineScaleSetCreateUpdate(d *pluginsdk.ResourceData, meta 
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure ARM Virtual Machine Scale Set creation.")
-
 	id := virtualmachinescalesets.NewVirtualMachineScaleSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, virtualmachinescalesets.DefaultGetOperationOptions())
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id, virtualmachinescalesets.DefaultGetOperationOptions())
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_virtual_machine_scale_set", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_virtual_machine_scale_set", id.ID())
+			}
 		}
 	}
 
@@ -906,11 +907,16 @@ func resourceVirtualMachineScaleSetCreateUpdate(d *pluginsdk.ResourceData, meta 
 		payload.Plan = expandAzureRmVirtualMachineScaleSetPlan(d)
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, payload, virtualmachinescalesets.DefaultCreateOrUpdateOperationOptions()); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, virtualmachinescalesets.DefaultCreateOrUpdateOperationOptions(), sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, payload, virtualmachinescalesets.DefaultCreateOrUpdateOperationOptions()); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
-
-	d.SetId(id.ID())
 
 	return resourceVirtualMachineScaleSetRead(d, meta)
 }
@@ -1371,7 +1377,7 @@ func flattenAzureRMVirtualMachineScaleSetOsProfile(d *pluginsdk.ResourceData, pr
 		result["custom_data"] = *profile.CustomData
 	} else {
 		// look up the current custom data
-		result["custom_data"] = utils.Base64EncodeIfNot(d.Get("os_profile.0.custom_data").(string))
+		result["custom_data"] = helpers.Base64EncodeIfNot(d.Get("os_profile.0.custom_data").(string))
 	}
 
 	return []interface{}{result}
@@ -1507,19 +1513,19 @@ func resourceVirtualMachineScaleSetStorageProfileImageReferenceHash(v interface{
 
 	if m, ok := v.(map[string]interface{}); ok {
 		if v, ok := m["publisher"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+			fmt.Fprintf(&buf, "%s-", v.(string))
 		}
 		if v, ok := m["offer"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+			fmt.Fprintf(&buf, "%s-", v.(string))
 		}
 		if v, ok := m["sku"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+			fmt.Fprintf(&buf, "%s-", v.(string))
 		}
 		if v, ok := m["version"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+			fmt.Fprintf(&buf, "%s-", v.(string))
 		}
 		if v, ok := m["id"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+			fmt.Fprintf(&buf, "%s-", v.(string))
 		}
 	}
 
@@ -1530,10 +1536,10 @@ func resourceVirtualMachineScaleSetStorageProfileOsDiskHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
+		fmt.Fprintf(&buf, "%s-", m["name"].(string))
 
 		if v, ok := m["vhd_containers"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(*pluginsdk.Set).List()))
+			fmt.Fprintf(&buf, "%s-", v.(*pluginsdk.Set).List())
 		}
 	}
 
@@ -1544,58 +1550,58 @@ func resourceVirtualMachineScaleSetNetworkConfigurationHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
-		buf.WriteString(fmt.Sprintf("%t-", m["primary"].(bool)))
+		fmt.Fprintf(&buf, "%s-", m["name"].(string))
+		fmt.Fprintf(&buf, "%t-", m["primary"].(bool))
 
 		if v, ok := m["accelerated_networking"]; ok {
-			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+			fmt.Fprintf(&buf, "%t-", v.(bool))
 		}
 		if v, ok := m["ip_forwarding"]; ok {
-			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+			fmt.Fprintf(&buf, "%t-", v.(bool))
 		}
 		if v, ok := m["network_security_group_id"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+			fmt.Fprintf(&buf, "%s-", v.(string))
 		}
 		if v, ok := m["dns_settings"].(map[string]interface{}); ok {
 			if k, ok := v["dns_servers"]; ok {
-				buf.WriteString(fmt.Sprintf("%s-", k))
+				fmt.Fprintf(&buf, "%s-", k)
 			}
 		}
 		if ipConfig, ok := m["ip_configuration"].([]interface{}); ok {
 			for _, it := range ipConfig {
 				config := it.(map[string]interface{})
 				if name, ok := config["name"]; ok {
-					buf.WriteString(fmt.Sprintf("%s-", name.(string)))
+					fmt.Fprintf(&buf, "%s-", name.(string))
 				}
 				if subnetid, ok := config["subnet_id"]; ok {
-					buf.WriteString(fmt.Sprintf("%s-", subnetid.(string)))
+					fmt.Fprintf(&buf, "%s-", subnetid.(string))
 				}
 				if appPoolId, ok := config["application_gateway_backend_address_pool_ids"]; ok {
-					buf.WriteString(fmt.Sprintf("%s-", appPoolId.(*pluginsdk.Set).List()))
+					fmt.Fprintf(&buf, "%s-", appPoolId.(*pluginsdk.Set).List())
 				}
 				if appSecGroup, ok := config["application_security_group_ids"]; ok {
-					buf.WriteString(fmt.Sprintf("%s-", appSecGroup.(*pluginsdk.Set).List()))
+					fmt.Fprintf(&buf, "%s-", appSecGroup.(*pluginsdk.Set).List())
 				}
 				if lbPoolIds, ok := config["load_balancer_backend_address_pool_ids"]; ok {
-					buf.WriteString(fmt.Sprintf("%s-", lbPoolIds.(*pluginsdk.Set).List()))
+					fmt.Fprintf(&buf, "%s-", lbPoolIds.(*pluginsdk.Set).List())
 				}
 				if lbInNatRules, ok := config["load_balancer_inbound_nat_rules_ids"]; ok {
-					buf.WriteString(fmt.Sprintf("%s-", lbInNatRules.(*pluginsdk.Set).List()))
+					fmt.Fprintf(&buf, "%s-", lbInNatRules.(*pluginsdk.Set).List())
 				}
 				if primary, ok := config["primary"]; ok {
-					buf.WriteString(fmt.Sprintf("%t-", primary.(bool)))
+					fmt.Fprintf(&buf, "%t-", primary.(bool))
 				}
 				if publicIPConfig, ok := config["public_ip_address_configuration"].([]interface{}); ok {
 					for _, publicIPIt := range publicIPConfig {
 						publicip := publicIPIt.(map[string]interface{})
 						if publicIPConfigName, ok := publicip["name"]; ok {
-							buf.WriteString(fmt.Sprintf("%s-", publicIPConfigName.(string)))
+							fmt.Fprintf(&buf, "%s-", publicIPConfigName.(string))
 						}
 						if idle_timeout, ok := publicip["idle_timeout"]; ok {
-							buf.WriteString(fmt.Sprintf("%d-", idle_timeout.(int)))
+							fmt.Fprintf(&buf, "%d-", idle_timeout.(int))
 						}
 						if dnsLabel, ok := publicip["domain_name_label"]; ok {
-							buf.WriteString(fmt.Sprintf("%s-", dnsLabel.(string)))
+							fmt.Fprintf(&buf, "%s-", dnsLabel.(string))
 						}
 					}
 				}
@@ -1610,16 +1616,16 @@ func resourceVirtualMachineScaleSetOsProfileLinuxConfigHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%t-", m["disable_password_authentication"].(bool)))
+		fmt.Fprintf(&buf, "%t-", m["disable_password_authentication"].(bool))
 
 		if sshKeys, ok := m["ssh_keys"].([]interface{}); ok {
 			for _, item := range sshKeys {
 				k := item.(map[string]interface{})
 				if path, ok := k["path"]; ok {
-					buf.WriteString(fmt.Sprintf("%s-", path.(string)))
+					fmt.Fprintf(&buf, "%s-", path.(string))
 				}
 				if data, ok := k["key_data"]; ok {
-					buf.WriteString(fmt.Sprintf("%s-", data.(string)))
+					fmt.Fprintf(&buf, "%s-", data.(string))
 				}
 			}
 		}
@@ -1633,10 +1639,10 @@ func resourceVirtualMachineScaleSetOsProfileWindowsConfigHash(v interface{}) int
 
 	if m, ok := v.(map[string]interface{}); ok {
 		if v, ok := m["provision_vm_agent"]; ok {
-			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+			fmt.Fprintf(&buf, "%t-", v.(bool))
 		}
 		if v, ok := m["enable_automatic_upgrades"]; ok {
-			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+			fmt.Fprintf(&buf, "%t-", v.(bool))
 		}
 	}
 
@@ -1647,17 +1653,17 @@ func resourceVirtualMachineScaleSetExtensionHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["publisher"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["type"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["type_handler_version"].(string)))
+		fmt.Fprintf(&buf, "%s-", m["name"].(string))
+		fmt.Fprintf(&buf, "%s-", m["publisher"].(string))
+		fmt.Fprintf(&buf, "%s-", m["type"].(string))
+		fmt.Fprintf(&buf, "%s-", m["type_handler_version"].(string))
 
 		if v, ok := m["auto_upgrade_minor_version"]; ok {
-			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+			fmt.Fprintf(&buf, "%t-", v.(bool))
 		}
 
 		if v, ok := m["provision_after_extensions"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(*pluginsdk.Set).List()))
+			fmt.Fprintf(&buf, "%s-", v.(*pluginsdk.Set).List())
 		}
 
 		// we need to ensure the whitespace is consistent
@@ -1667,7 +1673,7 @@ func resourceVirtualMachineScaleSetExtensionHash(v interface{}) int {
 			if err == nil {
 				serializedSettings, err := pluginsdk.FlattenJsonToString(expandedSettings)
 				if err == nil {
-					buf.WriteString(fmt.Sprintf("%s-", serializedSettings))
+					fmt.Fprintf(&buf, "%s-", serializedSettings)
 				}
 			}
 		}
@@ -1872,7 +1878,7 @@ func expandAzureRMVirtualMachineScaleSetsOsProfile(d *pluginsdk.ResourceData) *v
 	}
 
 	if customData != "" {
-		customData = utils.Base64EncodeIfNot(customData)
+		customData = helpers.Base64EncodeIfNot(customData)
 		osProfile.CustomData = &customData
 	}
 

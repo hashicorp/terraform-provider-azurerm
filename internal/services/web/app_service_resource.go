@@ -33,7 +33,7 @@ func resourceAppService() *pluginsdk.Resource {
 		Update: resourceAppServiceUpdate,
 		Delete: resourceAppServiceDelete,
 
-		DeprecationMessage: "The `azurerm_app_service` resource has been superseded by the `azurerm_linux_web_app` and `azurerm_windows_web_app` resources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider.",
+		DeprecationMessage: "The `azurerm_app_service` resource has been superseded by the `azurerm_linux_web_app` and `azurerm_windows_web_app` resources. This resource will be removed in v5.0 of the AzureRM Provider.",
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.AppServiceID(id)
@@ -228,24 +228,25 @@ func resourceAppService() *pluginsdk.Resource {
 }
 
 func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
-	aspClient := meta.(*clients.Client).Web.AppServicePlansClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
+	aspClient := meta.(*clients.Client).Web.AppServicePlansClientV1
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM App Service creation.")
 	id := parse.NewAppServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
 		}
-	}
 
-	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_app_service", id.ID())
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_app_service", id.ID())
+		}
 	}
 
 	availabilityRequest := web.ResourceNameAvailabilityRequest{
@@ -325,6 +326,8 @@ func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("creating %s: %s", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	err = createFuture.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("waiting for %s to be created: %s", id, err)
@@ -348,8 +351,6 @@ func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error
 			return fmt.Errorf("failed waiting for App Service Source Control configuration")
 		}
 	}
-
-	d.SetId(id.ID())
 
 	authSettingsRaw := d.Get("auth_settings").([]interface{})
 	authSettings := expandAppServiceAuthSettings(authSettingsRaw)
@@ -385,7 +386,7 @@ func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error
 }
 
 func resourceAppServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -617,7 +618,7 @@ func resourceAppServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 }
 
 func resourceAppServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -795,7 +796,7 @@ func resourceAppServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 }
 
 func resourceAppServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -803,8 +804,6 @@ func resourceAppServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error
 	if err != nil {
 		return err
 	}
-
-	log.Printf("[DEBUG] Deleting App Service %q (resource group %q)", id.SiteName, id.ResourceGroup)
 
 	deleteMetrics := true
 	deleteEmptyServerFarm := false

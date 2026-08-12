@@ -10,16 +10,16 @@
   version: v3.0
 
 - module: github.com/Azure/azure-sdk-for-go
-  service: securityinsight
-  version: 2021-09-01-preview
-
-- module: github.com/Azure/azure-sdk-for-go
   service: sql
   version: v5.0
 
 - module: github.com/Azure/azure-sdk-for-go
   service: synapse
   version: v2.0
+
+- module: github.com/hashicorp/go-azure-sdk/data-plane
+  service: synapse
+  version: 2021-06-01-preview
 
 - module: github.com/hashicorp/go-azure-sdk/resource-manager
   service: aadb2c
@@ -40,10 +40,6 @@
 - module: github.com/hashicorp/go-azure-sdk/resource-manager
   service: blueprints
   version: 2018-11-01-preview
-
-- module: github.com/hashicorp/go-azure-sdk/resource-manager
-  service: codesigning
-  version: 2024-09-30-preview
 
 - module: github.com/hashicorp/go-azure-sdk/resource-manager
   service: containerregistry
@@ -128,14 +124,6 @@
 - module: github.com/jackofallops/kermit/sdk
   service: iothub
   version: 2022-04-30-preview
-
-- module: github.com/jackofallops/kermit/sdk
-  service: securityinsights
-  version: 2022-10-01-preview
-
-- module: github.com/jackofallops/kermit/sdk
-  service: synapse
-  version: 2019-06-01-preview
 
 - module: github.com/jackofallops/kermit/sdk
   service: synapse

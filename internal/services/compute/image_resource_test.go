@@ -12,15 +12,11 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkinterfaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/publicipaddresses"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/ssh"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -34,10 +30,10 @@ func TestAccImage_standaloneImage(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
-			Config: r.setupUnmanagedDisks(data),
+			Config: r.setupManagedDisks(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(r.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_linux_virtual_machine.testsource"),
+				data.CheckWithClientForResource(r.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -57,10 +53,10 @@ func TestAccImage_standaloneImage_hyperVGeneration_V2(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
-			Config: r.setupUnmanagedDisks(data),
+			Config: r.setupManagedDisks(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(r.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_linux_virtual_machine.testsource"),
+				data.CheckWithClientForResource(r.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -80,10 +76,10 @@ func TestAccImage_requiresImport(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
-			Config: r.setupUnmanagedDisks(data),
+			Config: r.setupManagedDisks(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(r.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_linux_virtual_machine.testsource"),
+				data.CheckWithClientForResource(r.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -96,23 +92,23 @@ func TestAccImage_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccImage_customImageFromVMWithUnmanagedDisks(t *testing.T) {
+func TestAccImage_customImageFromVMWithExplicitOsDisk(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_image", "test")
 	r := ImageResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
-			Config: r.setupUnmanagedDisks(data),
+			Config: r.setupManagedDisks(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(r.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_linux_virtual_machine.testsource"),
+				data.CheckWithClientForResource(r.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.testsource"),
 			),
 		},
 		{
-			Config: r.customImageFromVMWithUnmanagedDisksProvision(data),
+			Config: r.customImageFromVMWithManagedDisksProvision(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_virtual_machine.testdestination"),
+				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_linux_virtual_machine.testdestination"),
 			),
 		},
 	})
@@ -128,37 +124,37 @@ func TestAccImage_customImageFromVMWithManagedDisks(t *testing.T) {
 			Config:  r.setupManagedDisks(data),
 			Destroy: false,
 			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(r.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_linux_virtual_machine.testsource"),
+				data.CheckWithClientForResource(r.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.testsource"),
 			),
 		},
 		{
 			Config: r.customImageFromManagedDiskVMProvision(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_virtual_machine.testdestination"),
+				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_linux_virtual_machine.testdestination"),
 			),
 		},
 	})
 }
 
-func TestAccImage_customImageFromVMSSWithUnmanagedDisks(t *testing.T) {
+func TestAccImage_customImageFromVMSSWithExplicitOsDisk(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_image", "test")
 	r := ImageResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
-			Config:  r.setupUnmanagedDisks(data),
+			Config:  r.setupManagedDisks(data),
 			Destroy: false,
 			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(r.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_linux_virtual_machine.testsource"),
+				data.CheckWithClientForResource(r.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.testsource"),
 			),
 		},
 		{
 			Config: r.customImageFromVMSSWithUnmanagedDisksProvision(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClientForResource(r.virtualMachineScaleSetExists, "azurerm_virtual_machine_scale_set.testdestination"),
+				data.CheckWithClientForResource(r.virtualMachineScaleSetExists, "azurerm_linux_virtual_machine_scale_set.testdestination"),
 			),
 		},
 	})
@@ -171,10 +167,10 @@ func TestAccImage_standaloneImageEncrypt(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
-			Config: r.setupUnmanagedDisks(data),
+			Config: r.setupManagedDisksWithKV(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(r.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_linux_virtual_machine.testsource"),
+				data.CheckWithClientForResource(r.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -204,7 +200,7 @@ func (ImageResource) Exists(ctx context.Context, clients *clients.Client, state 
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (ImageResource) generalizeVirtualMachine(data acceptance.TestData) func(context.Context, *clients.Client, *pluginsdk.InstanceState) error {
+func (ImageResource) generalizeVirtualMachine() func(context.Context, *clients.Client, *pluginsdk.InstanceState) error {
 	return func(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
 		id, err := virtualmachines.ParseVirtualMachineID(state.ID)
 		if err != nil {
@@ -215,87 +211,6 @@ func (ImageResource) generalizeVirtualMachine(data acceptance.TestData) func(con
 			var cancel context.CancelFunc
 			ctx, cancel = context.WithTimeout(ctx, 15*time.Minute)
 			defer cancel()
-		}
-
-		// these are nested in a Set in the Legacy VM resource, simpler to compute them
-		userName := fmt.Sprintf("testadmin%d", data.RandomInteger)
-		password := fmt.Sprintf("Password1234!%d", data.RandomInteger)
-
-		// first retrieve the Virtual Machine, since we need to find
-		nicIdRaw := state.Attributes["network_interface_ids.0"]
-		nicId, err := commonids.ParseNetworkInterfaceID(nicIdRaw)
-		if err != nil {
-			return err
-		}
-
-		log.Printf("[DEBUG] Retrieving Network Interface..")
-		nic, err := client.Network.NetworkInterfaces.Get(ctx, *nicId, networkinterfaces.DefaultGetOperationOptions())
-		if err != nil {
-			return fmt.Errorf("retrieving %s: %+v", *nicId, err)
-		}
-
-		publicIpRaw := ""
-		if model := nic.Model; model != nil {
-			if props := model.Properties; props != nil {
-				if configs := props.IPConfigurations; configs != nil {
-					for _, config := range *props.IPConfigurations {
-						if configProps := config.Properties; configProps != nil {
-							if configProps.PublicIPAddress == nil {
-								continue
-							}
-
-							if configProps.PublicIPAddress.Id == nil {
-								continue
-							}
-
-							publicIpRaw = *configProps.PublicIPAddress.Id
-							break
-						}
-					}
-				}
-			}
-		}
-		if publicIpRaw == "" {
-			return fmt.Errorf("retrieving %s: could not determine Public IP Address ID", *nicId)
-		}
-
-		log.Printf("[DEBUG] Retrieving Public IP Address %q..", publicIpRaw)
-		publicIpId, err := commonids.ParsePublicIPAddressID(publicIpRaw)
-		if err != nil {
-			return err
-		}
-
-		publicIpAddress, err := client.Network.PublicIPAddresses.Get(ctx, *publicIpId, publicipaddresses.DefaultGetOperationOptions())
-		if err != nil {
-			return fmt.Errorf("retrieving %s: %+v", *publicIpId, err)
-		}
-		fqdn := ""
-
-		if model := publicIpAddress.Model; model != nil {
-			if props := model.Properties; props != nil {
-				if dns := props.DnsSettings; dns != nil {
-					if dns.Fqdn != nil {
-						fqdn = *dns.Fqdn
-					}
-				}
-			}
-		}
-		if fqdn == "" {
-			return fmt.Errorf("unable to determine FQDN for %q", *publicIpId)
-		}
-
-		log.Printf("[DEBUG] Running Generalization Command..")
-		sshGeneralizationCommand := ssh.Runner{
-			Hostname: fqdn,
-			Port:     22,
-			Username: userName,
-			Password: password,
-			CommandsToRun: []string{
-				ssh.LinuxAgentDeprovisionCommand,
-			},
-		}
-		if err := sshGeneralizationCommand.Run(ctx); err != nil {
-			return fmt.Errorf("Bad: running generalization command: %+v", err)
 		}
 
 		log.Printf("[DEBUG] Deallocating VM..")
@@ -358,7 +273,6 @@ func (ImageResource) virtualMachineScaleSetExists(ctx context.Context, client *c
 }
 
 func (r ImageResource) setupManagedDisks(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -379,47 +293,45 @@ resource "azurerm_network_interface" "testsource" {
   }
 }
 
-resource "azurerm_virtual_machine" "testsource" {
+resource "azurerm_linux_virtual_machine" "testsource" {
   name                  = "testsource"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   network_interface_ids = [azurerm_network_interface.testsource.id]
-  vm_size               = "Standard_D1_v2"
+  size                  = "Standard_D1_v2"
 
-  delete_os_disk_on_termination = true
-
-  storage_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-server-jammy"
     sku       = "22_04-lts"
     version   = "latest"
   }
 
-  storage_os_disk {
-    name          = "myosdisk1"
-    caching       = "ReadWrite"
-    create_option = "FromImage"
+  os_disk {
+    name                 = "myosdisk1${local.number}"
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
   }
 
-  os_profile {
-    computer_name  = "mdimagetestsource"
-    admin_username = local.admin_username
-    admin_password = local.admin_password
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
-  }
+  computer_name                   = "mdimagetestsource"
+  admin_username                  = local.admin_username
+  admin_password                  = local.admin_password
+  disable_password_authentication = false
 
   tags = {
     environment = "Dev"
     cost-center = "Ops"
   }
 }
-`, template)
+
+data "azurerm_managed_disk" "testsource" {
+  name                = azurerm_linux_virtual_machine.testsource.os_disk.0.name
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, r.template(data))
 }
 
-func (r ImageResource) setupUnmanagedDisks(data acceptance.TestData) string {
+func (r ImageResource) setupManagedDisksWithKV(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -448,61 +360,49 @@ resource "azurerm_network_interface" "testsource" {
   }
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa${local.random_string}"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  allow_nested_items_to_be_public = true
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "blob"
-}
-
-# NOTE: using the legacy vm resource since this test requires an unmanaged disk
-resource "azurerm_virtual_machine" "testsource" {
+resource "azurerm_linux_virtual_machine" "testsource" {
   name                  = "testsource"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   network_interface_ids = [azurerm_network_interface.testsource.id]
-  vm_size               = "Standard_D1_v2"
+  size                  = "Standard_D1_v2"
 
-  delete_os_disk_on_termination = true
-
-  storage_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-server-jammy"
     sku       = "22_04-lts"
     version   = "latest"
   }
 
-  storage_os_disk {
-    name          = "myosdisk1"
-    vhd_uri       = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-    caching       = "ReadWrite"
-    create_option = "FromImage"
-    disk_size_gb  = "30"
+  os_disk {
+    name                 = "myosdisk1${local.number}"
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
   }
 
-  os_profile {
-    computer_name  = "mdimagetestsource"
-    admin_username = local.admin_username
-    admin_password = local.admin_password
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
-  }
+  computer_name                   = "mdimagetestsource"
+  admin_username                  = local.admin_username
+  admin_password                  = local.admin_password
+  disable_password_authentication = false
 
   tags = {
     environment = "Dev"
     cost-center = "Ops"
   }
+}
+
+data "azurerm_managed_disk" "testsource" {
+  name                = azurerm_linux_virtual_machine.testsource.os_disk.0.name
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_managed_disk" "test" {
+  name                 = "acctdatadisk-${local.number}"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 10
 }
 `, template)
 }
@@ -515,15 +415,15 @@ func (r ImageResource) standaloneImageProvision(data acceptance.TestData, hyperV
 
 	osDisk := `
   os_disk {
-    os_type      = "Linux"
-    os_state     = "Generalized"
-    blob_uri     = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-    size_gb      = 30
-    caching      = "None"
-    storage_type = "StandardSSD_LRS"
+    os_type         = "Linux"
+    os_state        = "Generalized"
+    managed_disk_id = data.azurerm_managed_disk.testsource.id
+    size_gb         = 30
+    caching         = "None"
+    storage_type    = "Standard_LRS"
   }`
 
-	template := r.setupUnmanagedDisks(data)
+	template := r.setupManagedDisks(data)
 
 	return fmt.Sprintf(`
 %[1]s
@@ -550,12 +450,12 @@ func (r ImageResource) standaloneImageRequiresImport(data acceptance.TestData) s
 
 	osDisk := `
   os_disk {
-    os_type      = "Linux"
-    os_state     = "Generalized"
-    blob_uri     = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-    size_gb      = 30
-    caching      = "None"
-    storage_type = "StandardSSD_LRS"
+	os_type         = "Linux"
+	os_state        = "Generalized"
+	managed_disk_id = data.azurerm_managed_disk.testsource.id
+	size_gb         = 30
+	caching         = "None"
+	storage_type    = "Standard_LRS"
   }`
 
 	return fmt.Sprintf(`
@@ -576,17 +476,15 @@ resource "azurerm_image" "import" {
 `, template, osDisk)
 }
 
-func (r ImageResource) customImageFromVMWithUnmanagedDisksProvision(data acceptance.TestData) string {
-	template := r.setupUnmanagedDisks(data)
-
+func (r ImageResource) customImageFromVMWithManagedDisksProvision(data acceptance.TestData) string {
 	osDisk := `
   os_disk {
-    os_type      = "Linux"
-    os_state     = "Generalized"
-    blob_uri     = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-    size_gb      = 30
-    caching      = "None"
-    storage_type = "StandardSSD_LRS"
+	os_type         = "Linux"
+	os_state        = "Generalized"
+	managed_disk_id = data.azurerm_managed_disk.testsource.id
+	size_gb         = 30
+	caching         = "None"
+	storage_type    = "Standard_LRS"
   }`
 
 	return fmt.Sprintf(`
@@ -617,45 +515,35 @@ resource "azurerm_network_interface" "testdestination" {
   }
 }
 
-resource "azurerm_virtual_machine" "testdestination" {
+resource "azurerm_linux_virtual_machine" "testdestination" {
   name                  = "acctvm"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   network_interface_ids = [azurerm_network_interface.testdestination.id]
-  vm_size               = "Standard_D1_v2"
+  size                  = "Standard_D1_v2"
 
-  delete_os_disk_on_termination = true
+  source_image_id = azurerm_image.testdestination.id
 
-  storage_image_reference {
-    id = azurerm_image.testdestination.id
+  os_disk {
+    name                 = "myosdisk2"
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
   }
 
-  storage_os_disk {
-    name          = "myosdisk1"
-    caching       = "ReadWrite"
-    create_option = "FromImage"
-  }
-
-  os_profile {
-    computer_name  = "mdimagetestsource"
-    admin_username = local.admin_username
-    admin_password = local.admin_password
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
-  }
+  computer_name                   = "mdimagetestsource"
+  admin_username                  = local.admin_username
+  admin_password                  = local.admin_password
+  disable_password_authentication = false
 
   tags = {
     environment = "Dev"
     cost-center = "Ops"
   }
 }
-`, template, osDisk)
+`, r.setupManagedDisks(data), osDisk)
 }
 
 func (r ImageResource) customImageFromManagedDiskVMProvision(data acceptance.TestData) string {
-	template := r.setupManagedDisks(data)
 	return fmt.Sprintf(`
 %s
 
@@ -663,7 +551,7 @@ resource "azurerm_image" "testdestination" {
   name                      = "acctestdest-${local.number}"
   location                  = azurerm_resource_group.test.location
   resource_group_name       = azurerm_resource_group.test.name
-  source_virtual_machine_id = azurerm_virtual_machine.testsource.id
+  source_virtual_machine_id = azurerm_linux_virtual_machine.testsource.id
 
   tags = {
     environment = "acctest"
@@ -683,54 +571,43 @@ resource "azurerm_network_interface" "testdestination" {
   }
 }
 
-resource "azurerm_virtual_machine" "testdestination" {
+resource "azurerm_linux_virtual_machine" "testdestination" {
   name                  = "testdestination"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   network_interface_ids = [azurerm_network_interface.testdestination.id]
-  vm_size               = "Standard_D1_v2"
+  size                  = "Standard_D1_v2"
 
-  delete_os_disk_on_termination = true
+  source_image_id = azurerm_image.testdestination.id
 
-  storage_image_reference {
-    id = azurerm_image.testdestination.id
+  os_disk {
+    name                 = "myosdisk2${local.number}"
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
   }
 
-  storage_os_disk {
-    name          = "myosdisk2"
-    caching       = "ReadWrite"
-    create_option = "FromImage"
-  }
-
-  os_profile {
-    computer_name  = "mdimagetestdest"
-    admin_username = local.admin_username
-    admin_password = local.admin_password
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
-  }
+  computer_name                   = "mdimagetestdest"
+  admin_username                  = local.admin_username
+  admin_password                  = local.admin_password
+  disable_password_authentication = false
 
   tags = {
     environment = "Dev"
     cost-center = "Ops"
   }
 }
-`, template)
+`, r.setupManagedDisks(data))
 }
 
 func (r ImageResource) customImageFromVMSSWithUnmanagedDisksProvision(data acceptance.TestData) string {
-	template := r.setupUnmanagedDisks(data)
-
 	osDisk := `
   os_disk {
-    os_type      = "Linux"
-    os_state     = "Generalized"
-    blob_uri     = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-    size_gb      = 30
-    caching      = "None"
-    storage_type = "StandardSSD_LRS"
+	os_type         = "Linux"
+	os_state        = "Generalized"
+	managed_disk_id = data.azurerm_managed_disk.testsource.id
+	size_gb         = 30
+	caching         = "None"
+	storage_type    = "Standard_LRS"
   }`
 
 	return fmt.Sprintf(`
@@ -749,25 +626,24 @@ resource "azurerm_image" "testdestination" {
   }
 }
 
-resource "azurerm_virtual_machine_scale_set" "testdestination" {
-  name                = "testdestination"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  upgrade_policy_mode = "Manual"
+resource "azurerm_linux_virtual_machine_scale_set" "testdestination" {
+  name                            = "testdestination"
+  location                        = azurerm_resource_group.test.location
+  resource_group_name             = azurerm_resource_group.test.name
+  sku                             = "Standard_D1_v2"
+  instances                       = 2
+  admin_username                  = local.admin_username
+  admin_password                  = local.admin_password
+  disable_password_authentication = false
 
-  sku {
-    name     = "Standard_D1_v2"
-    tier     = "Standard"
-    capacity = 2
+  source_image_id = azurerm_image.testdestination.id
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
   }
 
-  os_profile {
-    computer_name_prefix = "testvm${local.number}"
-    admin_username       = local.admin_username
-    admin_password       = local.admin_password
-  }
-
-  network_profile {
+  network_interface {
     name    = "TestNetworkProfile"
     primary = true
 
@@ -777,41 +653,29 @@ resource "azurerm_virtual_machine_scale_set" "testdestination" {
       primary   = true
     }
   }
-
-  storage_profile_os_disk {
-    caching           = "ReadWrite"
-    create_option     = "FromImage"
-    managed_disk_type = "Standard_LRS"
-  }
-
-  storage_profile_image_reference {
-    id = azurerm_image.testdestination.id
-  }
 }
-`, template, osDisk)
+`, r.setupManagedDisks(data), osDisk)
 }
 
 func (r ImageResource) standaloneImageEncrypt(data acceptance.TestData) string {
-	template := r.setupUnmanagedDisks(data)
-
 	osDisk := `
   os_disk {
     os_type                = "Linux"
     os_state               = "Generalized"
-    blob_uri               = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
+    managed_disk_id        = data.azurerm_managed_disk.testsource.id
     size_gb                = 30
     caching                = "None"
     disk_encryption_set_id = azurerm_disk_encryption_set.test.id
-    storage_type           = "StandardSSD_LRS"
+    storage_type           = "Standard_LRS"
     }`
 
 	dataDisk := `
   data_disk {
-    blob_uri               = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-    size_gb                = 30
+    managed_disk_id        = azurerm_managed_disk.test.id
+    size_gb                = 10
     caching                = "None"
     disk_encryption_set_id = azurerm_disk_encryption_set.test.id
-    storage_type           = "StandardSSD_LRS"
+    storage_type           = "Standard_LRS"
     }`
 
 	return fmt.Sprintf(`
@@ -823,6 +687,7 @@ resource "azurerm_key_vault" "test" {
   name                        = "acctest%[3]s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
+  rbac_authorization_enabled  = false
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "standard"
   purge_protection_enabled    = true
@@ -914,7 +779,7 @@ resource "azurerm_image" "test" {
     cost-center = "Ops"
   }
 }
-`, template, data.RandomInteger, data.RandomString, osDisk, dataDisk)
+`, r.setupManagedDisksWithKV(data), data.RandomInteger, data.RandomString, osDisk, dataDisk)
 }
 
 func (ImageResource) template(data acceptance.TestData) string {
@@ -953,7 +818,6 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   domain_name_label   = local.domain_name_label
-  sku                 = "Basic"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, data.RandomInteger)
 }

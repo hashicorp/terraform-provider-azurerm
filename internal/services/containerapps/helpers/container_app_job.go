@@ -44,10 +44,11 @@ type ScaleModel struct {
 }
 
 type ScaleRule struct {
-	Auth     []ScaleRuleAuth        `tfschema:"authentication"`
-	Metadata map[string]interface{} `tfschema:"metadata"`
-	Name     string                 `tfschema:"name"`
-	Type     string                 `tfschema:"custom_rule_type"`
+	Auth       []ScaleRuleAuth        `tfschema:"authentication"`
+	IdentityID string                 `tfschema:"identity_id"`
+	Metadata   map[string]interface{} `tfschema:"metadata"`
+	Name       string                 `tfschema:"name"`
+	Type       string                 `tfschema:"custom_rule_type"`
 }
 
 type ScaleRuleAuth struct {
@@ -250,6 +251,10 @@ func ExpandContainerAppJobScaleRules(input []ScaleRule) *[]jobs.JobScaleRule {
 
 		if v.Type != "" {
 			rule.Type = pointer.To(v.Type)
+		}
+
+		if v.IdentityID != "" {
+			rule.Identity = pointer.To(v.IdentityID)
 		}
 
 		rules = append(rules, rule)
@@ -969,8 +974,9 @@ func flattenContainerAppJobScaleRules(input *[]jobs.JobScaleRule) []ScaleRule {
 
 	for _, v := range *input {
 		rule := ScaleRule{
-			Name: pointer.From(v.Name),
-			Type: pointer.From(v.Type),
+			IdentityID: pointer.From(v.Identity),
+			Name:       pointer.From(v.Name),
+			Type:       pointer.From(v.Type),
 		}
 
 		if v.Metadata != nil {

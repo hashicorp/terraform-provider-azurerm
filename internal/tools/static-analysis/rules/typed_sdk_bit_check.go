@@ -41,7 +41,7 @@ func checkModelObject(resourceType string, modelObj interface{}) (errors []error
 		return nil
 	}
 
-	if modelType.Kind() != reflect.Ptr {
+	if modelType.Kind() != reflect.Pointer {
 		return []error{fmt.Errorf("%q cannot be bit checked, ModelObject did not return a pointer", resourceType)}
 	}
 

@@ -12,14 +12,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetextensions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesetextensions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // NOTE (also in the docs): this is not intended to be used with the `azurerm_virtual_machine_scale_set` resource
@@ -142,15 +143,17 @@ func resourceVirtualMachineScaleSetExtensionCreate(d *pluginsdk.ResourceData, me
 	}
 	id := virtualmachinescalesetextensions.NewVirtualMachineScaleSetExtensionID(virtualMachineScaleSetId.SubscriptionId, virtualMachineScaleSetId.ResourceGroupName, virtualMachineScaleSetId.VirtualMachineScaleSetName, d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id, virtualmachinescalesetextensions.DefaultGetOperationOptions())
-	if err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		resp, err := client.Get(ctx, id, virtualmachinescalesetextensions.DefaultGetOperationOptions())
+		if err != nil {
+			if !response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(resp.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_virtual_machine_scale_set_extension", id.ID())
+		if !response.WasNotFound(resp.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_virtual_machine_scale_set_extension", id.ID())
+		}
 	}
 
 	var settings *interface{}
@@ -164,7 +167,7 @@ func resourceVirtualMachineScaleSetExtensionCreate(d *pluginsdk.ResourceData, me
 	}
 
 	provisionAfterExtensionsRaw := d.Get("provision_after_extensions").([]interface{})
-	provisionAfterExtensions := utils.ExpandStringSlice(provisionAfterExtensionsRaw)
+	provisionAfterExtensions := helpers.ExpandStringSlice(provisionAfterExtensionsRaw)
 
 	props := virtualmachinescalesetextensions.VirtualMachineScaleSetExtension{
 		Name: pointer.To(id.ExtensionName),
@@ -193,7 +196,7 @@ func resourceVirtualMachineScaleSetExtensionCreate(d *pluginsdk.ResourceData, me
 		props.Properties.ProtectedSettings = pointer.To(result)
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, props); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, props, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -246,7 +249,7 @@ func resourceVirtualMachineScaleSetExtensionUpdate(d *pluginsdk.ResourceData, me
 
 	if d.HasChange("provision_after_extensions") {
 		provisionAfterExtensionsRaw := d.Get("provision_after_extensions").([]interface{})
-		props.ProvisionAfterExtensions = utils.ExpandStringSlice(provisionAfterExtensionsRaw)
+		props.ProvisionAfterExtensions = helpers.ExpandStringSlice(provisionAfterExtensionsRaw)
 	}
 
 	if d.HasChange("publisher") {
@@ -330,7 +333,7 @@ func resourceVirtualMachineScaleSetExtensionRead(d *pluginsdk.ResourceData, meta
 			d.Set("automatic_upgrade_enabled", props.EnableAutomaticUpgrade)
 			d.Set("force_update_tag", props.ForceUpdateTag)
 			d.Set("protected_settings_from_key_vault", flattenProtectedSettingsFromKeyVaultOldVMSSExtension(props.ProtectedSettingsFromKeyVault))
-			d.Set("provision_after_extensions", utils.FlattenStringSlice(props.ProvisionAfterExtensions))
+			d.Set("provision_after_extensions", helpers.FlattenStringSlice(props.ProvisionAfterExtensions))
 			d.Set("publisher", props.Publisher)
 			d.Set("type", props.Type)
 			d.Set("type_handler_version", props.TypeHandlerVersion)

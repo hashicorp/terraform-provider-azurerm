@@ -15,18 +15,19 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/serviceendpointpolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	mgValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name subnet_service_endpoint_storage_policy -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceSubnetServiceEndpointStoragePolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -126,15 +127,17 @@ func resourceSubnetServiceEndpointStoragePolicyCreate(d *pluginsdk.ResourceData,
 
 	id := serviceendpointpolicies.NewServiceEndpointPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id, serviceendpointpolicies.DefaultGetOperationOptions())
-	if err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		resp, err := client.Get(ctx, id, serviceendpointpolicies.DefaultGetOperationOptions())
+		if err != nil {
+			if !response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(resp.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_subnet_service_endpoint_storage_policy", id.ID())
+		if !response.WasNotFound(resp.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_subnet_service_endpoint_storage_policy", id.ID())
+		}
 	}
 
 	param := serviceendpointpolicies.ServiceEndpointPolicy{
@@ -145,7 +148,7 @@ func resourceSubnetServiceEndpointStoragePolicyCreate(d *pluginsdk.ResourceData,
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, param, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -268,7 +271,7 @@ func expandServiceEndpointPolicyDefinitions(input []interface{}) *[]serviceendpo
 			Properties: &serviceendpointpolicies.ServiceEndpointPolicyDefinitionPropertiesFormat{
 				Description:      pointer.To(e["description"].(string)),
 				Service:          pointer.To(e["service"].(string)),
-				ServiceResources: utils.ExpandStringSlice(e["service_resources"].(*pluginsdk.Set).List()),
+				ServiceResources: helpers.ExpandStringSlice(e["service_resources"].(*pluginsdk.Set).List()),
 			},
 		})
 	}
@@ -297,7 +300,7 @@ func flattenServiceEndpointPolicyDefinitions(input *[]serviceendpointpolicies.Se
 			if b.Description != nil {
 				description = *b.Description
 			}
-			serviceResource = utils.FlattenStringSlice(b.ServiceResources)
+			serviceResource = helpers.FlattenStringSlice(b.ServiceResources)
 			if b.Service != nil {
 				service = *b.Service
 			}

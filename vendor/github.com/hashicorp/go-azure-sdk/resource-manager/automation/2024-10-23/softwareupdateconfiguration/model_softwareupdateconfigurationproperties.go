@@ -12,7 +12,7 @@ import (
 type SoftwareUpdateConfigurationProperties struct {
 	CreatedBy           *string                           `json:"createdBy,omitempty"`
 	CreationTime        *string                           `json:"creationTime,omitempty"`
-	Error               *ErrorResponse                    `json:"error,omitempty"`
+	Error               *AutomationErrorResponse          `json:"error,omitempty"`
 	LastModifiedBy      *string                           `json:"lastModifiedBy,omitempty"`
 	LastModifiedTime    *string                           `json:"lastModifiedTime,omitempty"`
 	ProvisioningState   *string                           `json:"provisioningState,omitempty"`

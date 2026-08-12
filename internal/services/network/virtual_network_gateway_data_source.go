@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworkgateways"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceVirtualNetworkGateway() *pluginsdk.Resource {
@@ -284,10 +284,14 @@ func dataSourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interfa
 
 		props := model.Properties
 		d.Set("type", string(pointer.From(props.GatewayType)))
-		d.Set("enable_bgp", props.EnableBgp)
+		d.Set("bgp_enabled", props.EnableBgp)
 		d.Set("private_ip_address_enabled", props.EnablePrivateIPAddress)
 		d.Set("active_active", props.ActiveActive)
 		d.Set("generation", string(pointer.From(props.VpnGatewayGeneration)))
+
+		if !features.FivePointOh() {
+			d.Set("enable_bgp", props.EnableBgp)
+		}
 
 		if props.VpnType != nil {
 			d.Set("vpn_type", string(pointer.From(props.VpnType)))
@@ -369,7 +373,7 @@ func flattenVirtualNetworkGatewayDataSourceVpnClientConfig(cfg *virtualnetworkga
 	flat := make(map[string]interface{})
 
 	if pool := cfg.VpnClientAddressPool; pool != nil {
-		flat["address_space"] = utils.FlattenStringSlice(pool.AddressPrefixes)
+		flat["address_space"] = helpers.FlattenStringSlice(pool.AddressPrefixes)
 	} else {
 		flat["address_space"] = []interface{}{}
 	}

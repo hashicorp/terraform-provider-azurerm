@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview/assignment"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview/publishedblueprint"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -23,7 +24,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceBlueprintAssignment() *pluginsdk.Resource {
@@ -150,14 +150,16 @@ func resourceBlueprintAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 	blueprintId := d.Get("version_id").(string)
 
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("checking for an existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			resp, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(resp.HttpResponse) {
+					return fmt.Errorf("checking for an existing %s: %+v", id, err)
+				}
 			}
-		}
-		if !response.WasNotFound(resp.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_blueprint_assignment", id.ID())
+			if !response.WasNotFound(resp.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_blueprint_assignment", id.ID())
+			}
 		}
 	}
 
@@ -176,12 +178,12 @@ func resourceBlueprintAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 		if lockMode != "None" {
 			excludedPrincipalsRaw := d.Get("lock_exclude_principals").([]interface{})
 			if len(excludedPrincipalsRaw) != 0 {
-				assignmentLockSettings.ExcludedPrincipals = utils.ExpandStringSlice(excludedPrincipalsRaw)
+				assignmentLockSettings.ExcludedPrincipals = helpers.ExpandStringSlice(excludedPrincipalsRaw)
 			}
 
 			excludedActionsRaw := d.Get("lock_exclude_actions").([]interface{})
 			if len(excludedActionsRaw) != 0 {
-				assignmentLockSettings.ExcludedActions = utils.ExpandStringSlice(excludedActionsRaw)
+				assignmentLockSettings.ExcludedActions = helpers.ExpandStringSlice(excludedActionsRaw)
 			}
 		}
 		payload.Properties.Locks = assignmentLockSettings
@@ -209,6 +211,8 @@ func resourceBlueprintAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
+	d.SetId(id.ID())
+
 	deadline, ok := ctx.Deadline()
 	if !ok {
 		return fmt.Errorf("internal-error: context had no deadline")
@@ -228,8 +232,6 @@ func resourceBlueprintAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("failed waiting for Blueprint Assignment %s: %+v", id.String(), err)
 	}
-
-	d.SetId(id.ID())
 
 	return resourceBlueprintAssignmentRead(d, meta)
 }

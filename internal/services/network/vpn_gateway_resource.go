@@ -14,14 +14,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var VPNGatewayResourceName = "azurerm_vpn_gateway"
@@ -229,15 +230,18 @@ func resourceVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	defer cancel()
 
 	id := virtualwans.NewVpnGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.VpnGatewaysGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_vpn_gateway", id.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.VpnGatewaysGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+		}
+
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_vpn_gateway", id.ID())
+		}
 	}
 
 	bgpSettingsRaw := d.Get("bgp_settings").([]interface{})
@@ -256,7 +260,7 @@ func resourceVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if err := client.VpnGatewaysCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+	if err := client.VpnGatewaysCreateOrUpdateCallbackThenPoll(ctx, id, payload, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 	d.SetId(id.ID())
@@ -281,11 +285,11 @@ func resourceVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 			if len(input0) > 0 || len(input1) > 0 {
 				if len(input0) > 0 && input0[0] != nil {
 					val := input0[0].(map[string]interface{})
-					(*props.BgpSettings.BgpPeeringAddresses)[0].CustomBgpIPAddresses = utils.ExpandStringSlice(val["custom_ips"].(*pluginsdk.Set).List())
+					(*props.BgpSettings.BgpPeeringAddresses)[0].CustomBgpIPAddresses = helpers.ExpandStringSlice(val["custom_ips"].(*pluginsdk.Set).List())
 				}
 				if len(input1) > 0 && input1[0] != nil {
 					val := input1[0].(map[string]interface{})
-					(*props.BgpSettings.BgpPeeringAddresses)[1].CustomBgpIPAddresses = utils.ExpandStringSlice(val["custom_ips"].(*pluginsdk.Set).List())
+					(*props.BgpSettings.BgpPeeringAddresses)[1].CustomBgpIPAddresses = helpers.ExpandStringSlice(val["custom_ips"].(*pluginsdk.Set).List())
 				}
 
 				resp.Model.Properties = props
@@ -339,13 +343,13 @@ func resourceVPNGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		if d.HasChange("bgp_settings.0.instance_0_bgp_peering_address") {
 			if input := val["instance_0_bgp_peering_address"].([]interface{}); len(input) > 0 {
 				val := input[0].(map[string]interface{})
-				(*model.Properties.BgpSettings.BgpPeeringAddresses)[0].CustomBgpIPAddresses = utils.ExpandStringSlice(val["custom_ips"].(*pluginsdk.Set).List())
+				(*model.Properties.BgpSettings.BgpPeeringAddresses)[0].CustomBgpIPAddresses = helpers.ExpandStringSlice(val["custom_ips"].(*pluginsdk.Set).List())
 			}
 		}
 		if d.HasChange("bgp_settings.0.instance_1_bgp_peering_address") {
 			if input := val["instance_1_bgp_peering_address"].([]interface{}); len(input) > 0 {
 				val := input[0].(map[string]interface{})
-				(*model.Properties.BgpSettings.BgpPeeringAddresses)[1].CustomBgpIPAddresses = utils.ExpandStringSlice(val["custom_ips"].(*pluginsdk.Set).List())
+				(*model.Properties.BgpSettings.BgpPeeringAddresses)[1].CustomBgpIPAddresses = helpers.ExpandStringSlice(val["custom_ips"].(*pluginsdk.Set).List())
 			}
 		}
 	}
@@ -503,9 +507,9 @@ func flattenVPNGatewayIPConfigurationBgpPeeringAddress(input virtualwans.IPConfi
 	return []interface{}{
 		map[string]interface{}{
 			"ip_configuration_id": ipConfigurationID,
-			"custom_ips":          utils.FlattenStringSlice(input.CustomBgpIPAddresses),
-			"default_ips":         utils.FlattenStringSlice(input.DefaultBgpIPAddresses),
-			"tunnel_ips":          utils.FlattenStringSlice(input.TunnelIPAddresses),
+			"custom_ips":          helpers.FlattenStringSlice(input.CustomBgpIPAddresses),
+			"default_ips":         helpers.FlattenStringSlice(input.DefaultBgpIPAddresses),
+			"tunnel_ips":          helpers.FlattenStringSlice(input.TunnelIPAddresses),
 		},
 	}
 }

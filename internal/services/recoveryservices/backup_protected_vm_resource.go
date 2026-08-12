@@ -15,19 +15,20 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2024-01-01/vaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2025-08-01/vaults"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protecteditems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2024-10-01/protectionpolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceRecoveryServicesBackupProtectedVM() *pluginsdk.Resource {
@@ -90,8 +91,6 @@ func resourceRecoveryServicesBackupProtectedVMCreate(d *pluginsdk.ResourceData, 
 	protectedItemName := fmt.Sprintf("VM;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroupName, parsedVmId.VirtualMachineName)
 	containerName := fmt.Sprintf("iaasvmcontainer;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroupName, parsedVmId.VirtualMachineName)
 
-	log.Printf("[DEBUG] Creating Azure Backup Protected VM %s (resource group %q)", protectedItemName, resourceGroup)
-
 	id := protecteditems.NewProtectedItemID(subscriptionId, resourceGroup, vaultName, "Azure", containerName, protectedItemName)
 
 	existing, err := client.Get(ctx, id, protecteditems.GetOperationOptions{})
@@ -121,7 +120,9 @@ func resourceRecoveryServicesBackupProtectedVMCreate(d *pluginsdk.ResourceData, 
 		}
 
 		if !isSoftDeleted {
-			return tf.ImportAsExistsError("azurerm_backup_protected_vm", id.ID())
+			if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				return tf.ImportAsExistsError("azurerm_backup_protected_vm", id.ID())
+			}
 		}
 	}
 
@@ -136,10 +137,9 @@ func resourceRecoveryServicesBackupProtectedVMCreate(d *pluginsdk.ResourceData, 
 		},
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, item); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, item, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-
 	d.SetId(id.ID())
 
 	// the protection state cannot be set during initial creation.
@@ -181,8 +181,6 @@ func resourceRecoveryServicesBackupProtectedVMRead(d *pluginsdk.ResourceData, me
 		return err
 	}
 
-	log.Printf("[DEBUG] Reading %s", id)
-
 	resp, err := client.Get(ctx, *id, protecteditems.GetOperationOptions{})
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
@@ -216,11 +214,11 @@ func resourceRecoveryServicesBackupProtectedVMRead(d *pluginsdk.ResourceData, me
 
 				if v := vm.ExtendedProperties; v != nil && v.DiskExclusionProperties != nil {
 					if *v.DiskExclusionProperties.IsInclusionList {
-						if err := d.Set("include_disk_luns", utils.FlattenInt64Slice(v.DiskExclusionProperties.DiskLunList)); err != nil {
+						if err := d.Set("include_disk_luns", helpers.FlattenInt64Slice(v.DiskExclusionProperties.DiskLunList)); err != nil {
 							return fmt.Errorf("setting include_disk_luns: %+v", err)
 						}
 					} else {
-						if err := d.Set("exclude_disk_luns", utils.FlattenInt64Slice(v.DiskExclusionProperties.DiskLunList)); err != nil {
+						if err := d.Set("exclude_disk_luns", helpers.FlattenInt64Slice(v.DiskExclusionProperties.DiskLunList)); err != nil {
 							return fmt.Errorf("setting exclude_disk_luns: %+v", err)
 						}
 					}
@@ -270,7 +268,7 @@ func resourceRecoveryServicesBackupProtectedVMUpdate(d *pluginsdk.ResourceData, 
 		properties.PolicyId = pointer.To(d.Get("backup_policy_id").(string))
 	}
 
-	if d.HasChange("exclude_disk_luns") || d.HasChange("include_disk_luns") {
+	if d.HasChanges("exclude_disk_luns", "include_disk_luns") {
 		properties.ExtendedProperties = expandDiskExclusion(d)
 	}
 
@@ -342,8 +340,6 @@ func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, 
 		}
 	}
 
-	log.Printf("[DEBUG] Deleting %s", *id)
-
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
@@ -357,7 +353,7 @@ func expandDiskExclusion(d *pluginsdk.ResourceData) *protecteditems.ExtendedProp
 
 		return &protecteditems.ExtendedProperties{
 			DiskExclusionProperties: &protecteditems.DiskExclusionProperties{
-				DiskLunList:     utils.ExpandInt64Slice(diskLun),
+				DiskLunList:     helpers.ExpandInt64Slice(diskLun),
 				IsInclusionList: pointer.To(true),
 			},
 		}
@@ -368,7 +364,7 @@ func expandDiskExclusion(d *pluginsdk.ResourceData) *protecteditems.ExtendedProp
 
 		return &protecteditems.ExtendedProperties{
 			DiskExclusionProperties: &protecteditems.DiskExclusionProperties{
-				DiskLunList:     utils.ExpandInt64Slice(diskLun),
+				DiskLunList:     helpers.ExpandInt64Slice(diskLun),
 				IsInclusionList: pointer.To(false),
 			},
 		}

@@ -519,7 +519,7 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 					statusCodeTrigger.SubStatus = pointer.To(s.SubStatus)
 				}
 				if s.Win32Status != 0 {
-					statusCodeTrigger.Win32Status = pointer.To((s.Win32Status))
+					statusCodeTrigger.Win32Status = pointer.To(s.Win32Status)
 				}
 				statusCodeTriggers = append(statusCodeTriggers, statusCodeTrigger)
 			}

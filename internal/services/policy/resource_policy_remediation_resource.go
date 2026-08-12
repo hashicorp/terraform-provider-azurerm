@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/remediations"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -22,7 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceArmResourcePolicyRemediation() *pluginsdk.Resource {
@@ -128,14 +128,16 @@ func resourceArmResourcePolicyRemediationCreateUpdate(d *pluginsdk.ResourceData,
 	id := remediations.NewScopedRemediationID(resourceId, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.GetAtResource(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id.ID(), err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.GetAtResource(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id.ID(), err)
+				}
 			}
-		}
-		if existing.Model != nil {
-			return tf.ImportAsExistsError("azurerm_resource_policy_remediation", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_resource_policy_remediation", id.ID())
+			}
 		}
 	}
 
@@ -147,7 +149,9 @@ func resourceArmResourcePolicyRemediationCreateUpdate(d *pluginsdk.ResourceData,
 		return fmt.Errorf("creating/updating %s: %+v", id.ID(), err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
 
 	return resourceArmResourcePolicyRemediationRead(d, meta)
 }
@@ -197,7 +201,8 @@ func resourceArmResourcePolicyRemediationDelete(d *pluginsdk.ResourceData, meta 
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if err := waitForRemediationToDelete(ctx,
+	if err := waitForRemediationToDelete(
+		ctx,
 		existing.Model.Properties,
 		id.ID(),
 		d.Timeout(pluginsdk.TimeoutDelete),
@@ -274,7 +279,7 @@ func waitForRemediationToDelete(ctx context.Context,
 func readRemediationProperties(d *pluginsdk.ResourceData) (prop *remediations.RemediationProperties) {
 	prop = &remediations.RemediationProperties{
 		Filters: &remediations.RemediationFilters{
-			Locations: utils.ExpandStringSlice(d.Get("location_filters").([]interface{})),
+			Locations: helpers.ExpandStringSlice(d.Get("location_filters").([]interface{})),
 		},
 		PolicyAssignmentId:          pointer.To(d.Get("policy_assignment_id").(string)),
 		PolicyDefinitionReferenceId: pointer.To(d.Get("policy_definition_reference_id").(string)),
@@ -302,7 +307,7 @@ func setRemediationProperties(d *pluginsdk.ResourceData, prop *remediations.Reme
 	}
 	locations := []interface{}{}
 	if filters := prop.Filters; filters != nil {
-		locations = utils.FlattenStringSlice(filters.Locations)
+		locations = helpers.FlattenStringSlice(filters.Locations)
 	}
 	if err := d.Set("location_filters", locations); err != nil {
 		return fmt.Errorf("setting `location_filters`: %+v", err)

@@ -8,8 +8,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/suppress"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -18,13 +16,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	service "github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/resource"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceHealthcareService() *pluginsdk.Resource {
@@ -238,15 +238,17 @@ func resourceHealthcareServiceCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 	id := service.NewServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.ServicesGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.ServicesGet(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_healthcare_service", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_healthcare_service", id.ID())
+			}
 		}
 	}
 
@@ -286,12 +288,17 @@ func resourceHealthcareServiceCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	}
 	payload.Identity = expandedIdentity
 
-	err = client.ServicesCreateOrUpdateThenPoll(ctx, id, payload)
-	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.ServicesCreateOrUpdateCallbackThenPoll(ctx, id, payload, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.ServicesCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
-	d.SetId(id.ID())
 	return resourceHealthcareServiceRead(d, meta)
 }
 
@@ -414,9 +421,9 @@ func expandCorsConfiguration(d *pluginsdk.ResourceData) *service.ServiceCorsConf
 
 	corsConfigAttr := corsConfigRaw[0].(map[string]interface{})
 
-	allowedOrigins := *utils.ExpandStringSlice(corsConfigAttr["allowed_origins"].(*pluginsdk.Set).List())
-	allowedHeaders := *utils.ExpandStringSlice(corsConfigAttr["allowed_headers"].(*pluginsdk.Set).List())
-	allowedMethods := *utils.ExpandStringSlice(corsConfigAttr["allowed_methods"].([]interface{}))
+	allowedOrigins := *helpers.ExpandStringSlice(corsConfigAttr["allowed_origins"].(*pluginsdk.Set).List())
+	allowedHeaders := *helpers.ExpandStringSlice(corsConfigAttr["allowed_headers"].(*pluginsdk.Set).List())
+	allowedMethods := *helpers.ExpandStringSlice(corsConfigAttr["allowed_methods"].([]interface{}))
 	maxAgeInSeconds := int64(corsConfigAttr["max_age_in_seconds"].(int))
 	allowCredentials := corsConfigAttr["allow_credentials"].(bool)
 
@@ -528,9 +535,9 @@ func flattenCorsConfig(input *service.ServiceCorsConfigurationInfo) []interface{
 	return []interface{}{
 		map[string]interface{}{
 			"allow_credentials":  allowCredentials,
-			"allowed_headers":    utils.FlattenStringSlice(input.Headers),
-			"allowed_methods":    utils.FlattenStringSlice(input.Methods),
-			"allowed_origins":    utils.FlattenStringSlice(input.Origins),
+			"allowed_headers":    helpers.FlattenStringSlice(input.Headers),
+			"allowed_methods":    helpers.FlattenStringSlice(input.Methods),
+			"allowed_origins":    helpers.FlattenStringSlice(input.Origins),
 			"max_age_in_seconds": maxAge,
 		},
 	}

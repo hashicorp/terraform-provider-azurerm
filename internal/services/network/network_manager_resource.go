@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkmanagers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	managementGroupValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ManagerModel struct {
@@ -50,7 +50,7 @@ var (
 	_ sdk.ResourceWithIdentity = ManagerResource{}
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name network_manager -service-package-name network -properties "resource_group_name,name" -known-values "subscription_id:data.Subscriptions.Primary" -test-sequential
+//go:generate go run ../../tools/generator-tests resourceidentity -test-sequential
 
 type ManagerResource struct{}
 
@@ -170,7 +170,6 @@ func (r ManagerResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			metadata.Logger.Info("Decoding state..")
 			var state ManagerModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
@@ -180,14 +179,15 @@ func (r ManagerResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := networkmanagers.NewNetworkManagerID(subscriptionId, state.ResourceGroupName, state.Name)
-			metadata.Logger.Infof("creating %s", id)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			input := networkmanagers.NetworkManager{
@@ -198,7 +198,7 @@ func (r ManagerResource) Create() sdk.ResourceFunc {
 					NetworkManagerScopes:        expandNetworkManagerScope(state.Scope),
 					NetworkManagerScopeAccesses: expandNetworkManagerScopeAccesses(state.ScopeAccesses),
 				},
-				Tags: utils.ExpandPtrMapStringString(state.Tags),
+				Tags: helpers.ExpandPtrMapStringString(state.Tags),
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, id, input); err != nil {
@@ -225,11 +225,9 @@ func (r ManagerResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("retrieving %s", *id)
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
-					metadata.Logger.Infof("%s was not found - removing from state!", *id)
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
@@ -263,7 +261,7 @@ func (r ManagerResource) Read() sdk.ResourceFunc {
 				ResourceGroupName: id.ResourceGroupName,
 				ScopeAccesses:     scopeAccesses,
 				Scope:             scope,
-				Tags:              utils.FlattenPtrMapStringString(resp.Model.Tags),
+				Tags:              helpers.FlattenPtrMapStringString(resp.Model.Tags),
 			})
 		},
 	}
@@ -278,7 +276,6 @@ func (r ManagerResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("updating %s..", *id)
 			client := metadata.Client.Network.NetworkManagers
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
@@ -309,7 +306,7 @@ func (r ManagerResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
-				existing.Model.Tags = utils.ExpandPtrMapStringString(state.Tags)
+				existing.Model.Tags = helpers.ExpandPtrMapStringString(state.Tags)
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil {
@@ -330,7 +327,6 @@ func (r ManagerResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("deleting %s..", *id)
 			err = client.DeleteThenPoll(ctx, *id, networkmanagers.DeleteOperationOptions{
 				Force: pointer.To(true),
 			})

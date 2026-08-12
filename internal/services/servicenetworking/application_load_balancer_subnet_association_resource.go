@@ -82,13 +82,16 @@ func (t ApplicationLoadBalancerSubnetAssociationResource) Create() sdk.ResourceF
 			}
 
 			id := associationsinterface.NewAssociationID(albId.SubscriptionId, albId.ResourceGroupName, albId.TrafficControllerName, config.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of exisiting %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(t.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of exisiting %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(t.ResourceType(), id)
+				}
 			}
 
 			controller, err := trafficControllerClient.Get(ctx, *albId)
@@ -111,11 +114,11 @@ func (t ApplicationLoadBalancerSubnetAssociationResource) Create() sdk.ResourceF
 				Tags: tags.Expand(config.Tags),
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, association); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, association, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}

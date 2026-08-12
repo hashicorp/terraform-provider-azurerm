@@ -12,15 +12,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2024-03-01/webpubsub"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceWebPubSubHub() *pluginsdk.Resource {
@@ -168,15 +169,18 @@ func resourceWebPubSubHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	id := webpubsub.NewHubID(subscriptionId, webPubSubId.ResourceGroupName, webPubSubId.WebPubSubName, d.Get("name").(string))
+
 	if d.IsNewResource() {
-		existing, err := client.HubsGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %q: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.HubsGet(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %q: %+v", id, err)
+				}
 			}
-		}
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_web_pubsub_hub", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_web_pubsub_hub", id.ID())
+			}
 		}
 	}
 
@@ -199,11 +203,16 @@ func resourceWebPubSubHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	parameters.Properties.EventListeners = eventListener
 
-	if err := client.HubsCreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.HubsCreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.HubsCreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
-
-	d.SetId(id.ID())
 
 	return resourceWebPubSubHubRead(d, meta)
 }
@@ -311,7 +320,7 @@ func flattenEventHandler(input *[]webpubsub.EventHandler) []interface{} {
 
 		sysEvents := make([]interface{}, 0)
 		if item.SystemEvents != nil {
-			sysEvents = utils.FlattenStringSlice(item.SystemEvents)
+			sysEvents = helpers.FlattenStringSlice(item.SystemEvents)
 		}
 
 		authBlock := make([]interface{}, 0)
@@ -340,7 +349,7 @@ func expandEventListener(input []interface{}) (*[]webpubsub.EventListener, error
 		systemEvents := make([]string, 0)
 		userEventPattern := ""
 		if v, ok := block["user_event_name_filter"]; ok && len(v.([]interface{})) > 0 {
-			userEventPatternList := utils.ExpandStringSlice(v.([]interface{}))
+			userEventPatternList := helpers.ExpandStringSlice(v.([]interface{}))
 			userEventPattern = strings.Join(*userEventPatternList, ",")
 		}
 
@@ -386,7 +395,7 @@ func flattenEventListener(listener *[]webpubsub.EventListener) []interface{} {
 			eventNameFilter := item.Filter.(webpubsub.EventNameFilter)
 			userNameFilterList := make([]interface{}, 0)
 			if eventNameFilter.SystemEvents != nil {
-				listenerBlock["system_event_name_filter"] = utils.FlattenStringSlice(eventNameFilter.SystemEvents)
+				listenerBlock["system_event_name_filter"] = helpers.FlattenStringSlice(eventNameFilter.SystemEvents)
 			}
 			if eventNameFilter.UserEventPattern != nil && *eventNameFilter.UserEventPattern != "" {
 				v := strings.Split(*eventNameFilter.UserEventPattern, ",")

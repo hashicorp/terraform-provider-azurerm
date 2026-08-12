@@ -17,19 +17,20 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/privatelinkservices"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name private_link_service -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourcePrivateLinkService() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
@@ -203,14 +204,16 @@ func resourcePrivateLinkServiceCreate(d *pluginsdk.ResourceData, meta interface{
 
 	id := privatelinkservices.NewPrivateLinkServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id, privatelinkservices.DefaultGetOperationOptions())
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id, privatelinkservices.DefaultGetOperationOptions())
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_private_link_service", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_private_link_service", id.ID())
+		}
 	}
 
 	enableProxyProtocol := d.Get("proxy_protocol_enabled").(bool)
@@ -222,15 +225,15 @@ func resourcePrivateLinkServiceCreate(d *pluginsdk.ResourceData, meta interface{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &privatelinkservices.PrivateLinkServiceProperties{
 			AutoApproval: &privatelinkservices.ResourceSet{
-				Subscriptions: utils.ExpandStringSlice(d.Get("auto_approval_subscription_ids").(*pluginsdk.Set).List()),
+				Subscriptions: helpers.ExpandStringSlice(d.Get("auto_approval_subscription_ids").(*pluginsdk.Set).List()),
 			},
 			EnableProxyProtocol: pointer.To(enableProxyProtocol),
 			Visibility: &privatelinkservices.ResourceSet{
-				Subscriptions: utils.ExpandStringSlice(d.Get("visibility_subscription_ids").(*pluginsdk.Set).List()),
+				Subscriptions: helpers.ExpandStringSlice(d.Get("visibility_subscription_ids").(*pluginsdk.Set).List()),
 			},
 			IPConfigurations:                     expandPrivateLinkServiceIPConfiguration(d.Get("nat_ip_configuration").([]interface{})),
 			LoadBalancerFrontendIPConfigurations: expandPrivateLinkServiceFrontendIPConfiguration(d.Get("load_balancer_frontend_ip_configuration_ids").(*pluginsdk.Set).List()),
-			Fqdns:                                utils.ExpandStringSlice(d.Get("fqdns").([]interface{})),
+			Fqdns:                                helpers.ExpandStringSlice(d.Get("fqdns").([]interface{})),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -239,10 +242,16 @@ func resourcePrivateLinkServiceCreate(d *pluginsdk.ResourceData, meta interface{
 		parameters.Properties.DestinationIPAddress = pointer.To(v.(string))
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
+	// TODO: confirm whether this can be removed
 	// we can't rely on the use of the Future here due to the resource being successfully completed but now the service is applying those values.
 	// currently being tracked with issue #6466: https://github.com/Azure/azure-sdk-for-go/issues/6466
 	log.Printf("[DEBUG] Waiting for %s to finish applying", id)
@@ -257,11 +266,6 @@ func resourcePrivateLinkServiceCreate(d *pluginsdk.ResourceData, meta interface{
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to become available: %s", id, err)
-	}
-
-	d.SetId(id.ID())
-	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
-		return err
 	}
 
 	return resourcePrivateLinkServiceRead(d, meta)
@@ -293,7 +297,7 @@ func resourcePrivateLinkServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	if d.HasChange("auto_approval_subscription_ids") {
 		payload.Properties.AutoApproval = &privatelinkservices.ResourceSet{
-			Subscriptions: utils.ExpandStringSlice(d.Get("auto_approval_subscription_ids").(*pluginsdk.Set).List()),
+			Subscriptions: helpers.ExpandStringSlice(d.Get("auto_approval_subscription_ids").(*pluginsdk.Set).List()),
 		}
 	}
 
@@ -312,12 +316,12 @@ func resourcePrivateLinkServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	if d.HasChange("visibility_subscription_ids") {
 		payload.Properties.Visibility = &privatelinkservices.ResourceSet{
-			Subscriptions: utils.ExpandStringSlice(d.Get("visibility_subscription_ids").(*pluginsdk.Set).List()),
+			Subscriptions: helpers.ExpandStringSlice(d.Get("visibility_subscription_ids").(*pluginsdk.Set).List()),
 		}
 	}
 
 	if d.HasChange("fqdns") {
-		payload.Properties.Fqdns = utils.ExpandStringSlice(d.Get("fqdns").([]interface{}))
+		payload.Properties.Fqdns = helpers.ExpandStringSlice(d.Get("fqdns").([]interface{}))
 	}
 
 	if d.HasChange("nat_ip_configuration") {
@@ -394,7 +398,7 @@ func resourcePrivateLinkServiceRead(d *pluginsdk.ResourceData, meta interface{})
 
 			var autoApprovalSub []interface{}
 			if autoApproval := props.AutoApproval; autoApproval != nil {
-				autoApprovalSub = utils.FlattenStringSlice(autoApproval.Subscriptions)
+				autoApprovalSub = helpers.FlattenStringSlice(autoApproval.Subscriptions)
 			}
 			if err := d.Set("auto_approval_subscription_ids", autoApprovalSub); err != nil {
 				return fmt.Errorf("setting `auto_approval_subscription_ids`: %+v", err)
@@ -402,13 +406,13 @@ func resourcePrivateLinkServiceRead(d *pluginsdk.ResourceData, meta interface{})
 
 			var subscriptions []interface{}
 			if visibility := props.Visibility; visibility != nil {
-				subscriptions = utils.FlattenStringSlice(visibility.Subscriptions)
+				subscriptions = helpers.FlattenStringSlice(visibility.Subscriptions)
 			}
 			if err := d.Set("visibility_subscription_ids", subscriptions); err != nil {
 				return fmt.Errorf("setting `visibility_subscription_ids`: %+v", err)
 			}
 
-			if err := d.Set("fqdns", utils.FlattenStringSlice(props.Fqdns)); err != nil {
+			if err := d.Set("fqdns", helpers.FlattenStringSlice(props.Fqdns)); err != nil {
 				return fmt.Errorf("setting `fqdns`: %+v", err)
 			}
 

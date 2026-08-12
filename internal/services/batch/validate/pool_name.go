@@ -13,7 +13,8 @@ func PoolName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 	if !regexp.MustCompile(`^[a-zA-Z0-9_-]+$`).MatchString(value) {
 		errors = append(errors, fmt.Errorf(
-			"any combination of alphanumeric characters including hyphens and underscores are allowed in %q: %q", k, value))
+			"any combination of alphanumeric characters including hyphens and underscores are allowed in %q: %q", k, value,
+		))
 	}
 
 	if 1 > len(value) {

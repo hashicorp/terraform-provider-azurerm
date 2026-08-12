@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/azurefirewalls"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -20,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceFirewallNetworkRuleCollection() *pluginsdk.Resource {
@@ -210,16 +210,23 @@ func resourceFirewallNetworkRuleCollectionCreateUpdate(d *pluginsdk.ResourceData
 
 		ruleCollections[index] = newRuleCollection
 	} else {
+		exists := false
 		if d.IsNewResource() && index != -1 {
-			return tf.ImportAsExistsError("azurerm_firewall_network_rule_collection", id)
+			exists = true
+			if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				return tf.ImportAsExistsError("azurerm_firewall_network_rule_collection", id)
+			}
 		}
 
 		// first double check it doesn't already exist
-		ruleCollections = append(ruleCollections, newRuleCollection)
+		if !exists {
+			ruleCollections = append(ruleCollections, newRuleCollection)
+		}
 	}
 
 	firewall.Model.Properties.NetworkRuleCollections = &ruleCollections
 
+	// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
 	if err := client.CreateOrUpdateThenPoll(ctx, firewallId, *firewall.Model); err != nil {
 		return fmt.Errorf("creating/updating Network Rule Collection %q in Firewall %q (Resource Group %q): %+v", name, firewallName, resourceGroup, err)
 	}
@@ -483,22 +490,22 @@ func flattenFirewallNetworkRuleCollectionRules(rules *[]azurefirewalls.AzureFire
 			description = *rule.Description
 		}
 		if rule.SourceAddresses != nil {
-			sourceAddresses = utils.FlattenStringSlice(rule.SourceAddresses)
+			sourceAddresses = helpers.FlattenStringSlice(rule.SourceAddresses)
 		}
 		if rule.SourceIPGroups != nil {
-			sourceIPGroups = utils.FlattenStringSlice(rule.SourceIPGroups)
+			sourceIPGroups = helpers.FlattenStringSlice(rule.SourceIPGroups)
 		}
 		if rule.DestinationAddresses != nil {
-			destAddresses = utils.FlattenStringSlice(rule.DestinationAddresses)
+			destAddresses = helpers.FlattenStringSlice(rule.DestinationAddresses)
 		}
 		if rule.DestinationIPGroups != nil {
-			destIPGroups = utils.FlattenStringSlice(rule.DestinationIPGroups)
+			destIPGroups = helpers.FlattenStringSlice(rule.DestinationIPGroups)
 		}
 		if rule.DestinationPorts != nil {
-			destPorts = utils.FlattenStringSlice(rule.DestinationPorts)
+			destPorts = helpers.FlattenStringSlice(rule.DestinationPorts)
 		}
 		if rule.DestinationFqdns != nil {
-			destFqdns = utils.FlattenStringSlice(rule.DestinationFqdns)
+			destFqdns = helpers.FlattenStringSlice(rule.DestinationFqdns)
 		}
 		protocols := make([]string, 0)
 		if rule.Protocols != nil {
@@ -515,7 +522,7 @@ func flattenFirewallNetworkRuleCollectionRules(rules *[]azurefirewalls.AzureFire
 			"destination_ip_groups": destIPGroups,
 			"destination_ports":     destPorts,
 			"destination_fqdns":     destFqdns,
-			"protocols":             utils.FlattenStringSlice(&protocols),
+			"protocols":             helpers.FlattenStringSlice(&protocols),
 		})
 	}
 	return outputs

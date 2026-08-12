@@ -20,13 +20,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01/caches"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceHPCCache() *pluginsdk.Resource {
@@ -60,22 +61,23 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure HPC Cache creation.")
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	id := caches.NewCacheID(subscriptionId, resourceGroup, name)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing HPC Cache %q: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing HPC Cache %q: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_hpc_cache", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_hpc_cache", id.ID())
+			}
 		}
 	}
 
@@ -192,8 +194,14 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	if err = client.CreateOrUpdateThenPoll(ctx, id, cache); err != nil {
-		return fmt.Errorf("creating/updating HPC Cache %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if d.IsNewResource() {
+		if err = client.CreateOrUpdateCallbackThenPoll(ctx, id, cache, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating HPC Cache %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+	} else {
+		if err = client.CreateOrUpdateThenPoll(ctx, id, cache); err != nil {
+			return fmt.Errorf("updating HPC Cache %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
 	}
 
 	if requireAdditionalUpdate {
@@ -287,7 +295,7 @@ func resourceHPCCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.Set("location", location.Normalize(pointer.From(m.Location)))
 			d.Set("cache_size_in_gb", props.CacheSizeGB)
 			d.Set("subnet_id", props.Subnet)
-			d.Set("mount_addresses", utils.FlattenStringSlice(props.MountAddresses))
+			d.Set("mount_addresses", helpers.FlattenStringSlice(props.MountAddresses))
 
 			mtu, ntpServer, dnsSetting := flattenStorageCacheNetworkSettings(props.NetworkSettings)
 			d.Set("mtu", mtu)
@@ -462,7 +470,7 @@ func expandStorageCacheNetworkSettings(d *pluginsdk.ResourceData) *caches.CacheN
 
 	if dnsSetting, ok := d.GetOk("dns"); ok {
 		dnsSetting := dnsSetting.([]interface{})[0].(map[string]interface{})
-		out.DnsServers = utils.ExpandStringSlice(dnsSetting["servers"].([]interface{}))
+		out.DnsServers = helpers.ExpandStringSlice(dnsSetting["servers"].([]interface{}))
 		searchDomain := dnsSetting["search_domain"].(string)
 		if searchDomain != "" {
 			out.DnsSearchDomain = &searchDomain
@@ -482,7 +490,7 @@ func flattenStorageCacheNetworkSettings(settings *caches.CacheNetworkSettings) (
 	if settings.DnsServers != nil {
 		dnsSetting = []interface{}{
 			map[string]interface{}{
-				"servers":       utils.FlattenStringSlice(settings.DnsServers),
+				"servers":       helpers.FlattenStringSlice(settings.DnsServers),
 				"search_domain": pointer.From(settings.DnsSearchDomain),
 			},
 		}

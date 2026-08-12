@@ -6,7 +6,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/storageaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/storageaccounts"
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -92,7 +92,7 @@ func (StorageAccountCustomerManagedKeyListResource) List(ctx context.Context, re
 			}
 			rd.SetId(id.ID())
 
-			if err := resourceStorageAccountCustomerManagedKeyFlatten(deadlineCtx, metadata.Client, rd, id, &storageAccount, request.IncludeResource); err != nil {
+			if err := resourceStorageAccountCustomerManagedKeyFlatten(rd, id, &storageAccount); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", storageAccountCustomerManagedKeyResourceName), err)
 				return
 			}

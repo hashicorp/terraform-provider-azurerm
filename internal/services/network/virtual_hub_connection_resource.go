@@ -14,14 +14,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name virtual_hub_connection -service-package-name network -properties "name" -compare-values "subscription_id:virtual_hub_id,resource_group_name:virtual_hub_id,virtual_hub_name:virtual_hub_id"
@@ -208,18 +209,20 @@ func resourceVirtualHubConnectionCreateOrUpdate(d *pluginsdk.ResourceData, meta 
 		return err
 	}
 
-	locks.ByName(remoteVirtualNetworkId.VirtualNetworkName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(remoteVirtualNetworkId.VirtualNetworkName, VirtualNetworkResourceName)
+	locks.ByID(remoteVirtualNetworkId.ID())
+	defer locks.UnlockByID(remoteVirtualNetworkId.ID())
 
 	if d.IsNewResource() {
-		existing, err := client.HubVirtualNetworkConnectionsGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.HubVirtualNetworkConnectionsGet(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of %s: %+v", id, err)
+				}
 			}
-		}
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_virtual_hub_connection", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_virtual_hub_connection", id.ID())
+			}
 		}
 	}
 
@@ -237,8 +240,12 @@ func resourceVirtualHubConnectionCreateOrUpdate(d *pluginsdk.ResourceData, meta 
 		connection.Properties.RoutingConfiguration = expandVirtualHubConnectionRouting(v.([]interface{}))
 	}
 
-	if err := client.HubVirtualNetworkConnectionsCreateOrUpdateThenPoll(ctx, id, connection); err != nil {
+	if err := client.HubVirtualNetworkConnectionsCreateOrUpdateCallbackThenPoll(ctx, id, connection, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
 	}
 
 	timeout, _ := ctx.Deadline()
@@ -252,11 +259,6 @@ func resourceVirtualHubConnectionCreateOrUpdate(d *pluginsdk.ResourceData, meta 
 	}
 	if _, err = vnetStateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for provisioning state of %s: %+v", id, err)
-	}
-
-	d.SetId(id.ID())
-	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
-		return err
 	}
 
 	return resourceVirtualHubConnectionRead(d, meta)
@@ -290,7 +292,11 @@ func resourceVirtualHubConnectionRead(d *pluginsdk.ResourceData, meta interface{
 			d.Set("internet_security_enabled", props.EnableInternetSecurity)
 			remoteVirtualNetworkId := ""
 			if props.RemoteVirtualNetwork != nil && props.RemoteVirtualNetwork.Id != nil {
-				remoteVirtualNetworkId = *props.RemoteVirtualNetwork.Id
+				parsedRemoteVirtualNetworkId, err := commonids.ParseVirtualNetworkIDInsensitively(*props.RemoteVirtualNetwork.Id)
+				if err != nil {
+					return err
+				}
+				remoteVirtualNetworkId = parsedRemoteVirtualNetworkId.ID()
 			}
 			d.Set("remote_virtual_network_id", remoteVirtualNetworkId)
 
@@ -375,7 +381,7 @@ func expandVirtualHubConnectionPropagatedRouteTable(input []interface{}) *virtua
 	result := virtualwans.PropagatedRouteTable{}
 
 	if labels := v["labels"].(*pluginsdk.Set).List(); len(labels) != 0 {
-		result.Labels = utils.ExpandStringSlice(labels)
+		result.Labels = helpers.ExpandStringSlice(labels)
 	}
 
 	if routeTableIds := v["route_table_ids"].([]interface{}); len(routeTableIds) != 0 {
@@ -406,7 +412,7 @@ func expandVirtualHubConnectionVnetStaticRoute(input []interface{}) *[]virtualwa
 		}
 
 		if addressPrefixes := v["address_prefixes"].(*pluginsdk.Set).List(); len(addressPrefixes) != 0 {
-			result.AddressPrefixes = utils.ExpandStringSlice(addressPrefixes)
+			result.AddressPrefixes = helpers.ExpandStringSlice(addressPrefixes)
 		}
 
 		if nextHopIPAddress := v["next_hop_ip_address"].(string); nextHopIPAddress != "" {
@@ -481,7 +487,7 @@ func flattenVirtualHubConnectionPropagatedRouteTable(input *virtualwans.Propagat
 
 	labels := make([]interface{}, 0)
 	if input.Labels != nil {
-		labels = utils.FlattenStringSlice(input.Labels)
+		labels = helpers.FlattenStringSlice(input.Labels)
 	}
 
 	routeTableIds := make([]interface{}, 0)
@@ -516,7 +522,7 @@ func flattenVirtualHubConnectionVnetStaticRoute(input *virtualwans.VnetRoute) []
 
 		addressPrefixes := make([]interface{}, 0)
 		if item.AddressPrefixes != nil {
-			addressPrefixes = utils.FlattenStringSlice(item.AddressPrefixes)
+			addressPrefixes = helpers.FlattenStringSlice(item.AddressPrefixes)
 		}
 
 		v := map[string]interface{}{

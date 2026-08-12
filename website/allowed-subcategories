@@ -71,6 +71,7 @@ Logic App
 Machine Learning
 Maintenance
 Managed Applications
+Managed DevOps Pools
 Managed Redis
 Management
 Maps
@@ -95,7 +96,6 @@ Qumulo
 Recovery Services
 Red Hat OpenShift
 Redis
-Redis Enterprise
 Search
 Security Center
 Sentinel
@@ -111,6 +111,5 @@ System Center Virtual Machine Manager
 Template
 Trusted Signing
 Video Indexer
-Voice Services
 Web PubSub
 Workloads

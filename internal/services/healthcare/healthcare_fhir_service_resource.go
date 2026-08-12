@@ -17,14 +17,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/fhirservices"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2024-03-31/workspaces"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceHealthcareApisFhirService() *pluginsdk.Resource {
@@ -233,7 +234,6 @@ func resourceHealthcareApisFhirServiceCreate(d *pluginsdk.ResourceData, meta int
 	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceFhirServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for AzureRM Healthcare Fhir Service creation.")
 
 	workspaceId, err := workspaces.ParseWorkspaceID(d.Get("workspace_id").(string))
 	if err != nil {
@@ -241,7 +241,7 @@ func resourceHealthcareApisFhirServiceCreate(d *pluginsdk.ResourceData, meta int
 	}
 	id := fhirservices.NewFhirServiceID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, d.Get("name").(string))
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -295,22 +295,8 @@ func resourceHealthcareApisFhirServiceCreate(d *pluginsdk.ResourceData, meta int
 	}
 	parameters.Properties.AcrConfiguration = &acrConfig
 
-	err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
-	if err != nil {
+	if err = client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-
-	stateConf := &pluginsdk.StateChangeConf{
-		ContinuousTargetOccurence: 12,
-		Delay:                     60 * time.Second,
-		MinTimeout:                10 * time.Second,
-		Pending:                   []string{"Creating", "Updating", "Verifying"},
-		Target:                    []string{"Succeeded"},
-		Refresh:                   fhirServiceCreateStateRefreshFunc(ctx, client, id),
-		Timeout:                   d.Timeout(pluginsdk.TimeoutUpdate),
-	}
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for Fhir Service %s to settle down: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -549,9 +535,9 @@ func expandFhirCorsConfiguration(input []interface{}) *fhirservices.FhirServiceC
 
 	block := input[0].(map[string]interface{})
 
-	allowedOrigins := *utils.ExpandStringSlice(block["allowed_origins"].(*pluginsdk.Set).List())
-	allowedHeaders := *utils.ExpandStringSlice(block["allowed_headers"].(*pluginsdk.Set).List())
-	allowedMethods := *utils.ExpandStringSlice(block["allowed_methods"].(*pluginsdk.Set).List())
+	allowedOrigins := *helpers.ExpandStringSlice(block["allowed_origins"].(*pluginsdk.Set).List())
+	allowedHeaders := *helpers.ExpandStringSlice(block["allowed_headers"].(*pluginsdk.Set).List())
+	allowedMethods := *helpers.ExpandStringSlice(block["allowed_methods"].(*pluginsdk.Set).List())
 	allowCredentials := block["credentials_allowed"].(bool)
 
 	cors := &fhirservices.FhirServiceCorsConfiguration{
@@ -655,9 +641,9 @@ func flattenFhirCorsConfiguration(corsConfig *fhirservices.FhirServiceCorsConfig
 	return []interface{}{
 		map[string]interface{}{
 			"credentials_allowed": allowCredentials,
-			"allowed_headers":     utils.FlattenStringSlice(corsConfig.Headers),
-			"allowed_methods":     utils.FlattenStringSlice(corsConfig.Methods),
-			"allowed_origins":     utils.FlattenStringSlice(corsConfig.Origins),
+			"allowed_headers":     helpers.FlattenStringSlice(corsConfig.Headers),
+			"allowed_methods":     helpers.FlattenStringSlice(corsConfig.Methods),
+			"allowed_origins":     helpers.FlattenStringSlice(corsConfig.Origins),
 			"max_age_in_seconds":  maxAge,
 		},
 	}
@@ -689,23 +675,5 @@ func flattenFhirAuthentication(authConfig *fhirservices.FhirServiceAuthenticatio
 			"authority":           authority,
 			"smart_proxy_enabled": smartProxyEnabled,
 		},
-	}
-}
-
-func fhirServiceCreateStateRefreshFunc(ctx context.Context, client *fhirservices.FhirServicesClient, fhirServiceId fhirservices.FhirServiceId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		resp, err := client.Get(ctx, fhirServiceId)
-		if err != nil {
-			if response.WasNotFound(resp.HttpResponse) {
-				return nil, "", fmt.Errorf("unable to retrieve iot connector %q: %+v", fhirServiceId, err)
-			}
-			return nil, "Error", fmt.Errorf("polling for the status of %s: %+v", fhirServiceId, err)
-		}
-
-		if resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.ProvisioningState == nil {
-			return resp, "Error", fmt.Errorf("model or properties or ProvisioningState is nil")
-		}
-
-		return resp, string(*resp.Model.Properties.ProvisioningState), nil
 	}
 }

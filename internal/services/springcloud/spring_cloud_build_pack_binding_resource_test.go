@@ -135,7 +135,7 @@ resource "azurerm_spring_cloud_builder" "test" {
     version = "base"
   }
 }
-`, data.Locations.Primary, data.RandomInteger, data.RandomStringOfLength(5))
+`, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
 
 func (r SpringCloudBuildPackBindingResource) basic(data acceptance.TestData) string {
@@ -185,5 +185,5 @@ resource "azurerm_spring_cloud_build_pack_binding" "test" {
     }
   }
 }
-`, template, data.RandomStringOfLength(5))
+`, template, data.RandomString)
 }

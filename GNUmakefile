@@ -1,167 +1,181 @@
 TEST?=$$(go list ./... |grep -v 'vendor'|grep -v 'examples')
-WEBSITE_REPO=github.com/hashicorp/terraform-website
 TESTTIMEOUT=180m
+TF_SCHEMA_PANIC_ON_ERROR=1
 
 .EXPORT_ALL_VARIABLES:
-  TF_SCHEMA_PANIC_ON_ERROR=1
 
 default: build
 
-tools:
+help: ## Show this help
+	@awk 'BEGIN {FS = ":.*##"; printf "Usage: make \033[36m<target>\033[0m\n"} /^[a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-18s\033[0m%s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) }' $(MAKEFILE_LIST)
+
+##@ Deprecated (remove at the end of 2026)
+fmtcheck: ## renamed to quick-checks
+	@echo "NOTE: 'make fmtcheck' has been renamed to 'make quick-checks' to reflect what it actually runs and will be removed in the future."
+	@$(MAKE) quick-checks
+
+tflint: ## renamed to tfproviderlint
+	@echo "NOTE: 'make tflint' has been renamed to 'make tfproviderlint' to reflect what it actually runs and will be removed in the future."
+	@$(MAKE) tfproviderlint
+
+golangci-fix: ## renamed to lint-fix
+	@echo "NOTE: 'make golangci-fix' has been renamed to 'make lint-fix' and will be removed in the future."
+	@$(MAKE) lint-fix
+
+##@ Build & Generate
+tools: ## Install the tools required to develop the provider
 	@echo "==> installing required tooling..."
-	@sh "$(CURDIR)/scripts/gogetcookie.sh"
 	go install github.com/client9/misspell/cmd/misspell@latest
-	go install github.com/bflad/tfproviderlint/cmd/tfproviderlint@latest
+	go install github.com/bflad/tfproviderlint/cmd/tfproviderlintx@latest
 	go install github.com/YakDriver/tfproviderdocs@latest
 	go install github.com/katbyte/terrafmt@latest
 	go install golang.org/x/tools/cmd/goimports@latest
 	go install mvdan.cc/gofumpt@latest
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin v2.4.0
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin v2.12.2
 
-build: fmtcheck generate
+build: quick-checks generate ## Run the quick checks, generate code, and compile the provider
 	go install
 
-fmt:
-	@echo "==> Fixing source code with gofmt..."
-	# This logic should match the search logic in scripts/gofmtcheck.sh
-	find . -name '*.go' | grep -v vendor | xargs gofmt -s -w
-
-fumpt:
-	@echo "==> Fixing source code with Gofumpt..."
-	# This logic should match the search logic in scripts/gofmtcheck.sh
-	find . -name '*.go' | grep -v vendor | xargs gofumpt -s -w
-
-# Currently required by tf-deploy compile, duplicated by linters
-fmtcheck:
-	@sh "$(CURDIR)/scripts/gofmtcheck.sh"
-	@sh "$(CURDIR)/scripts/timeouts.sh"
-	@sh "$(CURDIR)/scripts/check-test-package.sh"
-
-terrafmt:
-	@echo "==> Fixing acceptance test terraform blocks code with terrafmt..."
-	@find internal | egrep "_test.go" | sort | while read f; do terrafmt fmt -f $$f; done
-	@echo "==> Fixing website terraform blocks code with terrafmt..."
-	@find . | egrep html.markdown | sort | while read f; do terrafmt fmt $$f; done
-
-generate: tools
+generate: tools ## Regenerate auto-generated code
 	go generate ./internal/services/...
 	go generate ./internal/provider/
 
-goimports:
-	@echo "==> Fixing imports code with goimports..."
-	@find . -name '*.go' | grep -v vendor | grep -v generator-resource-id | while read f; do ./scripts/goimport-file.sh "$$f"; done
+gencheck: generate ## Check that generated code matches what is committed
+	@echo "==> Comparing generated code to committed code..."
+	@git diff --compact-summary --exit-code -- ./ || \
+		(echo; echo "Unexpected difference in generated code. Run 'make generate' to update the generated code and commit."; echo "If you added or modified a resource, ensure 'go generate' directives are up to date."; exit 1)
 
-lint:
+##@ Formatting & Quick Checks
+# All top-level locations containing Go source, excluding vendor.
+GOPATHS=main.go helpers internal utils version
+
+# The fixers here (plus goimports below) should match the checks in scripts/checks/fmt-check.sh
+fmt: ## Fix Go formatting (gofmt, gofumpt, whitespace)
+	@echo "==> Fixing source code with gofmt..."
+	@gofmt -s -w $(GOPATHS)
+	@echo "==> Fixing source code with gofumpt..."
+	@gofumpt -w $(GOPATHS)
+	@echo "==> Fixing source code with whitespace linter..."
+	@golangci-lint run ./... --no-config --enable-only=whitespace --fix
+
+# goimports runs via `golangci-lint fmt` as the standalone binary is single-threaded and far slower
+goimports: ## Fix Go import ordering/grouping (slower than fmt, so kept separate)
+	@echo "==> Fixing imports with goimports and gci..."
+	@golangci-lint fmt -E goimports,gci
+
+quick-checks: ## Run the quick CI checks (formatting + provider policies)
+	@echo "==> Running the set of quick CI checks (formatting + provider policies)..."
+	@sh "$(CURDIR)/scripts/checks/fmt-check.sh"
+	@sh "$(CURDIR)/scripts/checks/timeouts-check.sh"
+	@sh "$(CURDIR)/scripts/checks/test-package-check.sh"
+
+terrafmt: ## Fix terraform blocks in acceptance tests and website docs
+	@echo "==> Fixing acceptance test terraform blocks code with terrafmt..."
+	@terrafmt fmt -f -p "*_test.go" ./internal
+	@echo "==> Fixing website terraform blocks code with terrafmt..."
+	@terrafmt fmt -p "*.html.markdown" .
+
+##@ Linting & Dependencies
+lint: ## Check source code with the golangci linters
+	@echo "==> Checking source code with golangci-lint..."
 	@golangci-lint run -v ./...
 
-shellcheck:
+lint-fix: ## Fix source code with all golangci linters
+	@echo "==> Fixing source code with all golangci linters..."
+	@golangci-lint run ./... --fix
+
+tfproviderlint: ## Check terraform schema definitions with tfproviderlint
+	@echo "==> Checking terraform schemas with tfproviderlint..."
+	@./scripts/checks/tfproviderlint.sh
+
+shellcheck: ## Check shell scripts with shellcheck
 	@command -v shellcheck >/dev/null || (echo "shellcheck not installed. Install via: brew install shellcheck (macOS) or apt install shellcheck (Linux)" && exit 1)
 	@echo "==> Checking shell scripts with shellcheck..."
-	@shellcheck scripts/*.sh
+	@shellcheck scripts/*.sh scripts/checks/*.sh scripts/automation/*.sh || \
+		(echo; echo "ShellCheck found issues in shell scripts."; echo "Review the errors above and fix them. See https://www.shellcheck.net/ for detailed explanations of each rule."; exit 1)
 
-depscheck:
+depscheck: ## Check that go.mod/go.sum and vendor/ are in sync
 	@echo "==> Checking dependencies.."
-	@./scripts/track2-check.sh
+	@./scripts/checks/track2-check.sh
 	@echo "==> Checking source code with go mod tidy..."
 	@go mod tidy
 	@git diff --exit-code -- go.mod go.sum || \
-		(echo; echo "Unexpected difference in go.mod/go.sum files. Run 'go mod tidy' command or revert any go.mod/go.sum changes and commit."; exit 1)
+		(echo; echo "Unexpected difference in go.mod/go.sum files. Run 'go mod tidy' command or revert any go.mod/go.sum changes and commit."; echo "Do not modify files in the vendor/ directory directly."; exit 1)
 	@echo "==> Checking source code with go mod vendor..."
 	@go mod vendor
 	@git diff --compact-summary --exit-code -- vendor || \
-		(echo; echo "Unexpected difference in vendor/ directory. Run 'go mod vendor' command or revert any go.mod/go.sum/vendor changes and commit."; exit 1)
+		(echo; echo "Unexpected difference in vendor/ directory. Run 'go mod vendor' command or revert any go.mod/go.sum/vendor changes and commit."; echo "Do not modify files in the vendor/ directory directly."; exit 1)
 
-gencheck: generate
-	@echo "==> Comparing generated code to committed code..."
-	@git diff --compact-summary --exit-code -- ./ || \
-    		(echo; echo "Unexpected difference in generated code. Run 'make generate' to update the generated code and commit."; exit 1)
+##@ Testing
+test: ## Run the unit tests
+	@TEST=$(TEST) ./scripts/checks/gradually-deprecated.sh
+	@TEST=$(TEST) ./scripts/checks/test.sh
 
-tflint:
-	./scripts/run-tflint.sh
-
-whitespace:
-	@echo "==> Fixing source code with whitespace linter..."
-	golangci-lint run ./... --no-config --disable-all --enable=whitespace --fix
-
-golangci-fix:
-	@echo "==> Fixing source code with all golangci linters..."
-	golangci-lint run ./... --fix
-
-test: fmtcheck
-	@TEST=$(TEST) ./scripts/run-gradually-deprecated.sh
-	@TEST=$(TEST) ./scripts/run-test.sh
-
-test-compile:
-	@if [ "$(TEST)" = "./..." ]; then \
-		echo "ERROR: Set TEST to a specific package. For example,"; \
-		echo "  make test-compile TEST=./internal"; \
-		exit 1; \
-	fi
-	go test -c $(TEST) $(TESTARGS)
-
-testacc: fmtcheck
+testacc: ## Run acceptance tests for a package (TEST=./internal/services/<service>)
 	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout $(TESTTIMEOUT) -ldflags="-X=github.com/hashicorp/terraform-provider-azurerm/version.ProviderVersion=acc"
 
-acctests: fmtcheck
+acctests: ## Run acceptance tests for a service (SERVICE=<service>)
 	TF_ACC=1 go test -v ./internal/services/$(SERVICE) $(TESTARGS) -timeout $(TESTTIMEOUT) -ldflags="-X=github.com/hashicorp/terraform-provider-azurerm/version.ProviderVersion=acc"
 
-debugacc: fmtcheck
+debugacc: ## Run acceptance tests under the delve debugger (TEST=./internal/services/<service>)
 	TF_ACC=1 dlv test $(TEST) --headless --listen=:2345 --api-version=2 -- -test.v $(TESTARGS)
 
-prepare:
+##@ Generated Code
+prepare: ## Remove all generated files ahead of a full regeneration
 	@echo "==> Preparing the repository (removing all '*_gen.go' files)..."
 	@find . -iname \*_gen.go -type f -delete
 	@echo "==> Preparing the repository (removing all '*_gen_test.go' files)..."
 	@find . -iname \*_gen_test.go -type f -delete
 
-website-lint:
+##@ Website & Documentation
+website-lint: ## Check website documentation for issues
 	@echo "==> Checking documentation for .html.markdown extension present"
 	@if ! find website/docs -type f -not -name "*.html.markdown" -print -exec false {} +; then \
 		echo "ERROR: file extension should be .html.markdown"; \
+		echo "All documentation files must use the .html.markdown extension."; \
 		exit 1; \
 	fi
 	@echo "==> Checking documentation spelling..."
-	@misspell -error -source=text -i hdinsight,exportfs website/
+	@misspell -error -source=text -i hdinsight,exportfs website/ || \
+		(echo; echo "Spelling errors found in documentation. Install misspell: go install github.com/client9/misspell/cmd/misspell@latest"; exit 1)
 	@echo "==> Checking documentation for errors..."
 	@tfproviderdocs check -provider-name=azurerm -require-resource-subcategory \
-		-allowed-resource-subcategories-file website/allowed-subcategories
-	@sh -c "'$(CURDIR)/scripts/terrafmt-website.sh'"
+		-allowed-resource-subcategories-file website/allowed-subcategories || \
+		(echo; echo "Documentation validation failed. Check that your docs follow the provider documentation format."; echo "See: contributing/topics/guide-new-resource.md for documentation requirements."; exit 1)
+	@sh -c "'$(CURDIR)/scripts/checks/terrafmt-website.sh'"
 
-website:
-ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
-	echo "$(WEBSITE_REPO) not found in your GOPATH (necessary for layouts and assets), get-ting..."
-	git clone https://$(WEBSITE_REPO) $(GOPATH)/src/$(WEBSITE_REPO)
-endif
-	@$(MAKE) -C $(GOPATH)/src/$(WEBSITE_REPO) website-provider PROVIDER_PATH=$(shell pwd) PROVIDER_NAME=azurerm
+document-validate: ## Check website documentation against resource schemas
+	@./scripts/checks/document-validate.sh
 
-document-validate:
-	@./scripts/documentfmt-validate.sh
+document-fix: ## Fix website documentation issues against resource schemas
+	@./scripts/checks/document-fix.sh
 
-document-fix:
-	@./scripts/documentfmt-fix.sh
+document-lint: ## Check website documentation with document-lint
+	@echo "==> Checking documentation with document-lint..."
+	@go run $(CURDIR)/internal/tools/document-lint/main.go check
 
-document-lint:
-	go run $(CURDIR)/internal/tools/document-lint/main.go check
+scaffold-website: ## Scaffold website documentation for a new resource or data source
+	@./scripts/website-scaffold.sh
 
-scaffold-website:
-	./scripts/scaffold-website.sh
-
-teamcity-test:
+##@ Other
+teamcity-test: ## Test the TeamCity configuration
 	@$(MAKE) -C .teamcity tools
 	@$(MAKE) -C .teamcity test
 
-validate-examples: build
-	./scripts/validate-examples.sh
+validate-examples: build ## Check that the terraform examples are valid
+	@echo "==> Validating examples..."
+	@./scripts/checks/examples-validate.sh
 
-schemagen:
-	go run ./internal/tools/generator-schema-snapshot $(RESOURCE_TYPE)
+schemagen: ## Generate a schema snapshot (RESOURCE_TYPE=<resource>)
+	@go run ./internal/tools/generator-schema-snapshot $(RESOURCE_TYPE)
 
-resource-counts:
-	go test -v ./internal/provider -run=TestProvider_counts
+resource-counts: ## Print the number of resources and data sources in the provider
+	@go test -v ./internal/provider -run=TestProvider_counts
 
-static-analysis:
-	./scripts/run-static-analysis.sh
+static-analysis: ## Run the static analysis checks
+	@echo "==> Running static analysis..."
+	@./scripts/checks/static-analysis.sh
 
-pr-check: generate build test lint tflint website-lint
+pr-check: generate build test lint tfproviderlint website-lint ## Run the same set of checks CI runs against a PR
 
-.PHONY: build test testacc vet fmt fmtcheck errcheck pr-check scaffold-website test-compile website website-test validate-examples resource-counts static-analysis
+.PHONY: default help tools build fmt goimports quick-checks fmtcheck terrafmt generate lint shellcheck depscheck gencheck tfproviderlint tflint lint-fix golangci-fix test testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts static-analysis pr-check
