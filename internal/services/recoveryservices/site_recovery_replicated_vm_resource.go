@@ -345,6 +345,13 @@ func resourceSiteRecoveryReplicatedVMCustomizeDiff(_ context.Context, diff *plug
 		oldSet := oldDisks.(*pluginsdk.Set).List()
 		newSet := newDisks.(*pluginsdk.Set).List()
 
+		// forceNewNeeded := false
+		// if len(newSet) < len(oldSet) {
+		// 	diff.ForceNew("managed_disk")
+		// 	forceNewNeeded = true
+		// }
+		//
+		// if !forceNewNeeded {}
 		oldMap := make(map[string]map[string]interface{})
 		for _, raw := range oldSet {
 			diskInput := raw.(map[string]interface{})
@@ -388,19 +395,11 @@ func resourceSiteRecoveryReplicatedVMCustomizeDiff(_ context.Context, diff *plug
 			newMap[strings.ToLower(diskInput["disk_id"].(string))] = true
 		}
 
-		forceNewNeeded := false
 		for diskId := range oldMap {
 			if !newMap[strings.ToLower(diskId)] {
-				forceNewNeeded = true
+				// Because of SDKv2 limitations with TypeSet and ForceNew on removed elements, we force new on the entire set. In case that fails to bubble up, we also force new on the Set itself.
+				diff.ForceNew("managed_disk")
 				break
-			}
-		}
-
-		if forceNewNeeded {
-			for _, key := range diff.GetChangedKeysPrefix("managed_disk") {
-				if err := diff.ForceNew(key); err != nil {
-					return err
-				}
 			}
 		}
 	}
