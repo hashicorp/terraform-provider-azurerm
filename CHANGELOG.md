@@ -16,6 +16,7 @@ ENHANCEMENTS:
 * `azurerm_managed_devops_pool` - add support for the `CreatorOnly` value to `azure_devops_organization.permission.kind` property [GH-32753]
 
 BUG FIXES:
+* `azurerm_storage_share` - add a state migration for the `id` field, fixing the upgrade path from 4.x to 5.x [GH-33075]
 `azurerm_eventhub` - now prevents the `status` property from being set to `SendDisabled` on create  [GH-33071]
 * `azurerm_storage_container` - add a state migration for the `id` field, fixing the upgrade path from 4.x to 5.x [GH-32978]
 * `azurerm_dev_center_project` - parse `dev_center_id` case-insensitively and normalize the resulting value to prevent diffs [GH-32798]
