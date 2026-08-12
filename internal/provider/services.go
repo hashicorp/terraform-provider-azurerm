@@ -174,6 +174,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		dns.Registration{},
 		domainservices.Registration{},
 		dynatrace.Registration{},
+		elastic.Registration{},
 		elasticsan.Registration{},
 		eventgrid.Registration{},
 		eventhub.Registration{},
