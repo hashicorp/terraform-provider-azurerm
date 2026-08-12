@@ -33,11 +33,13 @@ func TestAccResourceProviderRegistration_regressionTest(t *testing.T) {
 		{
 			PreConfig: func() {
 				// Last error may cause resource provider still in `Registered` status.Need to unregister it before a new test.
-				if err := r.unRegisterProviders(data.Subscriptions.Primary, "Microsoft.BlockchainTokens"); err != nil {
+				// Microsoft.PowerPlatform is deliberately not shared with the other tests in this file so that
+				// this test cannot collide with them over the same subscription-level singleton.
+				if err := r.unRegisterProviders(data.Subscriptions.Primary, "Microsoft.PowerPlatform"); err != nil {
 					t.Fatalf("Failed to reset feature registration with error: %+v", err)
 				}
 			},
-			Config: r.basic("Microsoft.BlockchainTokens"),
+			Config: r.basic("Microsoft.PowerPlatform"),
 		},
 	}, "")
 }

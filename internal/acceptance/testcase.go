@@ -159,6 +159,10 @@ func (td TestData) ResourceRegressionTest(t *testing.T, testResource types.TestR
 		if len(steps) == 1 {
 			// duplicate step[0] for second stage - this is all that _should_ be required for breaking change testing
 			steps = append(steps, steps[0])
+			// the duplicated verification step must not re-run step[0]'s PreConfig - that is setup
+			// (e.g. unregistering a leftover provider/feature registration) which would tear down
+			// the resource the first step just created out from under the verification step
+			steps[1].PreConfig = nil
 		} else {
 			t.Fatal("expected exactly 2 steps for Regression test. Setup and Check")
 		}
@@ -203,6 +207,10 @@ func (td TestData) ResourceSequentialRegressionTest(t *testing.T, testResource t
 		if len(steps) == 1 {
 			// duplicate step[0] for second stage - this is all that _should_ be required for breaking change testing
 			steps = append(steps, steps[0])
+			// the duplicated verification step must not re-run step[0]'s PreConfig - that is setup
+			// (e.g. unregistering a leftover provider/feature registration) which would tear down
+			// the resource the first step just created out from under the verification step
+			steps[1].PreConfig = nil
 		} else {
 			t.Fatal("expected exactly 2 steps for Regression test. Setup and Check")
 		}
@@ -248,6 +256,10 @@ func (td TestData) DataSourceRegressionTest(t *testing.T, steps []TestStep, prev
 		if len(steps) == 1 {
 			// duplicate step[0] for second stage - this is all that _should_ be required for breaking change testing
 			steps = append(steps, steps[0])
+			// the duplicated verification step must not re-run step[0]'s PreConfig - that is setup
+			// (e.g. unregistering a leftover provider/feature registration) which would tear down
+			// the resource the first step just created out from under the verification step
+			steps[1].PreConfig = nil
 		} else {
 			t.Fatal("expected exactly 2 steps for Regression test. Setup and Check")
 		}
