@@ -377,6 +377,22 @@ func resourceSiteRecoveryReplicatedVMCustomizeDiff(_ context.Context, diff *plug
 				}
 			}
 		}
+
+		// Detect if a disk was removed
+		newMap := make(map[string]bool)
+		for _, raw := range newSet {
+			diskInput := raw.(map[string]interface{})
+			newMap[diskInput["disk_id"].(string)] = true
+		}
+
+		for diskId := range oldMap {
+			if !newMap[diskId] {
+				if err := diff.ForceNew("managed_disk"); err != nil {
+					return err
+				}
+				break
+			}
+		}
 	}
 
 	return nil
@@ -733,26 +749,7 @@ func resourceSiteRecoveryReplicatedItemUpdate(d *pluginsdk.ResourceData, meta in
 	newSet := newManagedDisks.(*pluginsdk.Set)
 
 	addedDisks := newSet.Difference(oldSet).List()
-	removedDisks := oldSet.Difference(newSet).List()
-	keptDisks := newSet.Intersection(oldSet).List()
-
-	if len(removedDisks) > 0 {
-		var vmManagedDisksIds []string
-		for _, raw := range removedDisks {
-			diskInput := raw.(map[string]interface{})
-			vmManagedDisksIds = append(vmManagedDisksIds, diskInput["disk_id"].(string))
-		}
-		err = client.RemoveDisksThenPoll(ctx, id, replicationprotecteditems.RemoveDisksInput{
-			Properties: &replicationprotecteditems.RemoveDisksInputProperties{
-				ProviderSpecificDetails: replicationprotecteditems.A2ARemoveDisksInput{
-					VMManagedDisksIds: &vmManagedDisksIds,
-				},
-			},
-		})
-		if err != nil {
-			return fmt.Errorf("removing disks from replicated vm %s (vault %s): %+v", name, vaultName, err)
-		}
-	}
+	existingDisks := newSet.Intersection(oldSet).List()
 
 	if len(addedDisks) > 0 {
 		var vmManagedDisks []replicationprotecteditems.A2AVMManagedDiskInputDetails
@@ -797,8 +794,8 @@ func resourceSiteRecoveryReplicatedItemUpdate(d *pluginsdk.ResourceData, meta in
 		}
 	}
 
-	managedDisks := make([]replicationprotecteditems.A2AVMManagedDiskUpdateDetails, 0, len(keptDisks))
-	for _, raw := range keptDisks {
+	managedDisks := make([]replicationprotecteditems.A2AVMManagedDiskUpdateDetails, 0, len(existingDisks))
+	for _, raw := range existingDisks {
 		diskInput := raw.(map[string]interface{})
 		diskId := diskInput["disk_id"].(string)
 		targetReplicaDiskType := diskInput["target_replica_disk_type"].(string)
