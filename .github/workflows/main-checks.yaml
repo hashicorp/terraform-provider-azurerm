@@ -75,19 +75,16 @@ jobs:
         with:
           go-version-file: ./.go-version
       # The azproviderlint/tfproviderlint module plugins require a custom-built golangci-lint
-      # binary (see scripts/.custom-gcl.yml); cache it so it is only rebuilt when the config changes.
+      # binary (see scripts/.custom-gcl.yml); cache it so it is only rebuilt when the plugin
+      # config (which pins the golangci-lint version) changes. The make target verifies the
+      # pinned version matches the golangci-lint-version marker in .golangci.yml and rebuilds
+      # the binary when it is missing or stale.
       - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
           path: scripts/golangci-with-modules
           key: golangci-with-modules-${{ hashFiles('scripts/.custom-gcl.yml') }}
       - name: Build golangci-lint with plugins
-        run: |
-          if [ ! -x scripts/golangci-with-modules ]; then
-            # golangci-lint version is sourced from scripts/.custom-gcl.yml - the single source of truth
-            GOLANGCI_LINT_VERSION="$(sed -n 's/^version: *//p' scripts/.custom-gcl.yml)"
-            curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b "$(go env GOPATH)/bin" "$GOLANGCI_LINT_VERSION"
-            (cd scripts && "$(go env GOPATH)/bin/golangci-lint" custom)
-          fi
+        run: make golangci-with-modules
       - name: Run golangci-lint
         run: ./scripts/golangci-with-modules run -v ./...
 

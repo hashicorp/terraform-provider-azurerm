@@ -2,10 +2,10 @@ TEST?=$$(go list ./... |grep -v 'vendor'|grep -v 'examples')
 TESTTIMEOUT=180m
 TF_SCHEMA_PANIC_ON_ERROR=1
 
-# The single source of truth for the golangci-lint version is the `version:` field in
-# scripts/.custom-gcl.yml (it has to live there for the plugin build); everything else,
-# including the CI workflows, derives it from that file.
-GOLANGCI_LINT_VERSION := $(shell sed -n 's/^version: *//p' scripts/.custom-gcl.yml)
+# The single source of truth for the golangci-lint version is the 'golangci-lint-version'
+# marker comment in the root .golangci.yml; everything else, including the CI workflows,
+# derives it from that file.
+GOLANGCI_LINT_VERSION := $(shell sed -n 's/^\# golangci-lint-version: *//p' .golangci.yml)
 
 .EXPORT_ALL_VARIABLES:
 
@@ -81,29 +81,43 @@ terrafmt: ## Fix terraform blocks in acceptance tests and website docs
 
 ##@ Linting & Dependencies
 # golangci-lint module plugins (azproviderlint) only exist in a custom-built binary, so lint
-# targets use scripts/golangci-with-modules, rebuilt automatically whenever the config changes.
-# The config filename and its living in the build cwd are both fixed by golangci-lint,
+# targets use scripts/golangci-with-modules, rebuilt automatically whenever the config or the
+# pinned golangci-lint version changes. The pinned version is installed before building so the
+# result matches the pin regardless of whatever golangci-lint is already on PATH ('golangci-lint
+# custom' builds the version of the binary running it - scripts/.custom-gcl.yml has no version
+# field). The config filename and its living in the build cwd are both fixed by golangci-lint,
 # hence the cd into scripts/.
 scripts/golangci-with-modules: scripts/.custom-gcl.yml
+	@gclv="$$(sed -n 's/^version: *//p' scripts/.custom-gcl.yml)"; \
+	if [ "$$gclv" != "$(GOLANGCI_LINT_VERSION)" ]; then \
+		echo "ERROR: scripts/.custom-gcl.yml pins golangci-lint $$gclv but the golangci-lint-version marker in .golangci.yml says $(GOLANGCI_LINT_VERSION) - update both together"; \
+		exit 1; \
+	fi
 	@echo "==> Building golangci-lint with plugins (scripts/golangci-with-modules)..."
-	@cd scripts && golangci-lint custom
+	@curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $$(go env GOPATH)/bin $(GOLANGCI_LINT_VERSION)
+	@cd scripts && $$(go env GOPATH)/bin/golangci-lint custom
 
-golangci-with-modules: scripts/golangci-with-modules ## Build golangci-lint with plugins (automatic when scripts/.custom-gcl.yml changes)
+golangci-with-modules: ## Build golangci-lint with plugins (automatic when the config or pinned version changes)
+	@if [ -x scripts/golangci-with-modules ] && ! ./scripts/golangci-with-modules version 2>/dev/null | grep -qF -- "$(GOLANGCI_LINT_VERSION:v%=%)"; then \
+		echo "==> scripts/golangci-with-modules is not $(GOLANGCI_LINT_VERSION), rebuilding..."; \
+		rm -f scripts/golangci-with-modules; \
+	fi
+	@$(MAKE) scripts/golangci-with-modules
 
-lint: scripts/golangci-with-modules ## Check source code with the golangci linters
+lint: golangci-with-modules ## Check source code with the golangci linters
 	@echo "==> Checking source code with golangci-lint..."
 	@./scripts/golangci-with-modules run -v ./...
 
-lint-fix: scripts/golangci-with-modules ## Fix source code with all golangci linters
+lint-fix: golangci-with-modules ## Fix source code with all golangci linters
 	@echo "==> Fixing source code with all golangci linters..."
 	@./scripts/golangci-with-modules run ./... --fix
 
 # tfproviderlint and azproviderlint run as part of lint; these targets run just their checks
-tfproviderlint: scripts/golangci-with-modules ## Check terraform schema definitions with only the tfproviderlint checks
+tfproviderlint: golangci-with-modules ## Check terraform schema definitions with only the tfproviderlint checks
 	@echo "==> Checking terraform schemas with tfproviderlint (via golangci-lint)..."
 	@./scripts/golangci-with-modules run -v --enable-only tfproviderlint ./...
 
-azproviderlint: scripts/golangci-with-modules ## Check source code with only the azproviderlint checks
+azproviderlint: golangci-with-modules ## Check source code with only the azproviderlint checks
 	@echo "==> Checking source code with azproviderlint (via golangci-lint)..."
 	@./scripts/golangci-with-modules run -v --enable-only azproviderlint ./...
 
