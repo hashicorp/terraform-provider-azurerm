@@ -103,8 +103,9 @@ func resourceSecurityCenterAssessmentCreateUpdate(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	// todo 6.0 - this was migrated from the legacy resourceids.ParseAzureResourceID which treated casing of static
-	// segments insensitively; referenced IDs with non-canonical casing can exist in configs/state from older imports
+	// todo 6.0 - move to the case-sensitive parser when validation.AsGeneratedID is removed: this parses a config
+	// value which the paired AsGeneratedID validator accepts with legacy casing, and configs cannot be migrated.
+	// The stored attribute needs no state migration as Read rewrites it with the canonical casing.
 	metadataID, err := assessmentsmetadata.ParseProviderAssessmentMetadataIDInsensitively(d.Get("assessment_policy_id").(string))
 	if err != nil {
 		return err
