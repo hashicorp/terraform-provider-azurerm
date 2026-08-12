@@ -128,7 +128,9 @@ jobs:
           go-version-file: ./.go-version
       - name: Install tooling
         run: |
-          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b "$(go env GOPATH)/bin" v2.12.2
+          # golangci-lint version is sourced from scripts/.custom-gcl.yml - the single source of truth
+          GOLANGCI_LINT_VERSION="$(sed -n 's/^version: *//p' scripts/.custom-gcl.yml)"
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b "$(go env GOPATH)/bin" "$GOLANGCI_LINT_VERSION"
           go install github.com/katbyte/terrafmt@latest
       - run: make quick-checks
       - name: Guidance on failure
@@ -349,7 +351,9 @@ jobs:
       - name: Build golangci-lint with plugins
         run: |
           if [ ! -x scripts/golangci-with-modules ]; then
-            curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b "$(go env GOPATH)/bin" v2.12.2
+            # golangci-lint version is sourced from scripts/.custom-gcl.yml - the single source of truth
+            GOLANGCI_LINT_VERSION="$(sed -n 's/^version: *//p' scripts/.custom-gcl.yml)"
+            curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b "$(go env GOPATH)/bin" "$GOLANGCI_LINT_VERSION"
             (cd scripts && "$(go env GOPATH)/bin/golangci-lint" custom)
           fi
       - name: Run golangci-lint

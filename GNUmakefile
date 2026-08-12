@@ -2,6 +2,11 @@ TEST?=$$(go list ./... |grep -v 'vendor'|grep -v 'examples')
 TESTTIMEOUT=180m
 TF_SCHEMA_PANIC_ON_ERROR=1
 
+# The single source of truth for the golangci-lint version is the `version:` field in
+# scripts/.custom-gcl.yml (it has to live there for the plugin build); everything else,
+# including the CI workflows, derives it from that file.
+GOLANGCI_LINT_VERSION := $(shell sed -n 's/^version: *//p' scripts/.custom-gcl.yml)
+
 .EXPORT_ALL_VARIABLES:
 
 default: build
@@ -30,7 +35,7 @@ tools: ## Install the tools required to develop the provider
 	go install github.com/katbyte/terrafmt@latest
 	go install golang.org/x/tools/cmd/goimports@latest
 	go install mvdan.cc/gofumpt@latest
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin v2.12.2
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin $(GOLANGCI_LINT_VERSION)
 	@$(MAKE) golangci-with-modules
 
 build: quick-checks generate ## Run the quick checks, generate code, and compile the provider
