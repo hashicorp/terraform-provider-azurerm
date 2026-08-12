@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -34,12 +35,16 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 		Update: resourceSecurityCenterAutomationCreateUpdate,
 		Delete: resourceSecurityCenterAutomationDelete,
 
-		// import validation is deliberately case-sensitive: it only applies to new imports, so requiring the
-		// canonical casing here prevents more non-canonically cased IDs from entering state. Read/Delete parse
-		// insensitively to cover the IDs already in state from imports prior to the SDK parsers being used.
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := automations.ParseAutomationID(id)
 			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			// v0 -> v1 normalises the casing of IDs imported while this resource parsed them with the
+			// case-insensitive legacy parser, so they can be parsed with the case-sensitive SDK parser
+			0: migration.SecurityCenterAutomationV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -280,9 +285,7 @@ func resourceSecurityCenterAutomationRead(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	// todo 6.0 - IDs with non-canonical casing exist in state from imports made while this resource used the
-	// legacy resourceids.ParseAzureResourceID; parse insensitively until a state migration normalises them
-	id, err := automations.ParseAutomationIDInsensitively(d.Id())
+	id, err := automations.ParseAutomationID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -339,9 +342,7 @@ func resourceSecurityCenterAutomationDelete(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	// todo 6.0 - IDs with non-canonical casing exist in state from imports made while this resource used the
-	// legacy resourceids.ParseAzureResourceID; parse insensitively until a state migration normalises them
-	id, err := automations.ParseAutomationIDInsensitively(d.Id())
+	id, err := automations.ParseAutomationID(d.Id())
 	if err != nil {
 		return err
 	}
