@@ -48,21 +48,21 @@ The following arguments are supported:
 
 ~> **Note:** Downgrading to a `trial sku` from a `standard` or `premium sku` will force a new resource to be created.
 
-* `managed_services_cmk_key_vault_id` - (Optional) Resource ID of the Key Vault which contains the `managed_services_cmk_key_vault_key_id` key.
+* `managed_services_cmk_key_vault_id` - (Optional) Resource ID of the Key Vault or Managed HSM which contains the `managed_services_cmk_key_vault_key_id` key.
 
--> **Note:** The `managed_services_cmk_key_vault_id` field is only required if the Key Vault exists in a different subscription than the Databricks Workspace. If the `managed_services_cmk_key_vault_id` field is not specified it is assumed that the `managed_services_cmk_key_vault_key_id` is hosted in the same subscriptioin as the Databricks Workspace.
+-> **Note:** The `managed_services_cmk_key_vault_id` field is only required if the Key Vault or Managed HSM exists in a different subscription than the Databricks Workspace. If the `managed_services_cmk_key_vault_id` field is not specified it is assumed that the `managed_services_cmk_key_vault_key_id` is hosted in the same subscription as the Databricks Workspace.
 
--> **Note:** If you are using multiple service principals to execute Terraform across subscriptions you will need to add an additional `azurerm_key_vault_access_policy` resource granting the service principal access to the key vault in that subscription.
+-> **Note:** If you are using multiple service principals to execute Terraform across subscriptions you will need to add an additional `azurerm_key_vault_access_policy` resource granting the service principal access to the Key Vault in that subscription. When the key is hosted in a Managed HSM, grant access using an `azurerm_key_vault_managed_hardware_security_module_role_assignment` resource instead.
 
-* `managed_disk_cmk_key_vault_id` - (Optional) Resource ID of the Key Vault which contains the `managed_disk_cmk_key_vault_key_id` key.
+* `managed_disk_cmk_key_vault_id` - (Optional) Resource ID of the Key Vault or Managed HSM which contains the `managed_disk_cmk_key_vault_key_id` key.
 
--> **Note:** The `managed_disk_cmk_key_vault_id` field is only required if the Key Vault exists in a different subscription than the Databricks Workspace. If the `managed_disk_cmk_key_vault_id` field is not specified it is assumed that the `managed_disk_cmk_key_vault_key_id` is hosted in the same subscriptioin as the Databricks Workspace.
+-> **Note:** The `managed_disk_cmk_key_vault_id` field is only required if the Key Vault or Managed HSM exists in a different subscription than the Databricks Workspace. If the `managed_disk_cmk_key_vault_id` field is not specified it is assumed that the `managed_disk_cmk_key_vault_key_id` is hosted in the same subscription as the Databricks Workspace.
 
--> **Note:** If you are using multiple service principals to execute Terraform across subscriptions you will need to add an additional `azurerm_key_vault_access_policy` resource granting the service principal access to the key vault in that subscription.
+-> **Note:** If you are using multiple service principals to execute Terraform across subscriptions you will need to add an additional `azurerm_key_vault_access_policy` resource granting the service principal access to the Key Vault in that subscription. When the key is hosted in a Managed HSM, grant access using an `azurerm_key_vault_managed_hardware_security_module_role_assignment` resource instead.
 
-* `managed_services_cmk_key_vault_key_id` - (Optional) Customer managed encryption properties for the Databricks Workspace managed resources(e.g. Notebooks and Artifacts).
+* `managed_services_cmk_key_vault_key_id` - (Optional) The Key Vault or Managed HSM key ID used to encrypt the Databricks Workspace managed resources (e.g. Notebooks and Artifacts).
 
-* `managed_disk_cmk_key_vault_key_id` - (Optional) Customer managed encryption properties for the Databricks Workspace managed disks.
+* `managed_disk_cmk_key_vault_key_id` - (Optional) The Key Vault or Managed HSM key ID used to encrypt the Databricks Workspace managed disks.
 
 * `managed_disk_cmk_rotation_to_latest_version_enabled` - (Optional) Whether customer managed keys for disk encryption will automatically be rotated to the latest version.
 
