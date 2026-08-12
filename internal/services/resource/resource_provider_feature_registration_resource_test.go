@@ -26,6 +26,26 @@ import (
 
 type ResourceProviderFeatureRegistrationResource struct{}
 
+func TestAccResourceProviderFeatureRegistration_regressionTest(t *testing.T) {
+	if os.Getenv("ARM_SUBSCRIPTION_ID_ALT") == "" {
+		t.Skip("Skipping as `ARM_SUBSCRIPTION_ID_ALT` was not specified")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_resource_provider_feature_registration", "test")
+	r := ResourceProviderFeatureRegistrationResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			PreConfig: func() {
+				// Ensure the feature is not currently registered
+				if err := r.unRegisterFeature(data, "EncryptionAtHost", "Microsoft.Compute"); err != nil {
+					t.Fatalf("unregistering feature: %+v", err)
+				}
+			},
+			Config: r.basic(data, "EncryptionAtHost", "Microsoft.Compute"),
+		},
+	}, "")
+}
+
 func TestAccResourceProviderFeatureRegistration_basic(t *testing.T) {
 	if os.Getenv("ARM_SUBSCRIPTION_ID_ALT") == "" {
 		t.Skip("Skipping as `ARM_SUBSCRIPTION_ID_ALT` was not specified")

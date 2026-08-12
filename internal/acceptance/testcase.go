@@ -195,6 +195,44 @@ func (td TestData) ResourceRegressionTest(t *testing.T, testResource types.TestR
 	resource.ParallelTest(t, testCase)
 }
 
+// DataSourceRegressionTest runs an acceptance test for data source regression - the data source equivalent of ResourceRegressionTest.
+// It expects one or two steps. If only one step is supplied it will be duplicated for the 2nd verification step resulting in an identical config being set for the locally built provider.
+// The first step uses a specified previous provider version constraint. If an empty string is supplied, the test will use the version in ./version/VERSION from the root of the project
+// The second step uses the locally built provider code. As data sources create nothing there is no destroy check.
+func (td TestData) DataSourceRegressionTest(t *testing.T, steps []TestStep, previousVersion string) {
+	if len(steps) != 2 {
+		if len(steps) == 1 {
+			// duplicate step[0] for second stage - this is all that _should_ be required for breaking change testing
+			steps = append(steps, steps[0])
+		} else {
+			t.Fatal("expected exactly 2 steps for Regression test. Setup and Check")
+		}
+	}
+
+	os.Setenv("TF_ACC_REFRESH_AFTER_APPLY", "true")
+
+	steps[0].ExternalProviders = td.externalProviders()
+	steps[0].ExternalProviders["azurerm"] = resource.ExternalProvider{
+		VersionConstraint: providerRelease([]string{previousVersion}...),
+		Source:            "hashicorp/azurerm",
+	}
+
+	steps[1].ExternalProviders = td.externalProviders()
+	steps[1].ProtoV5ProviderFactories = framework.ProtoV5ProviderFactoriesInitWithTestName(context.Background(), t.Name(), "azurerm", "azurerm-alt")
+	steps[1].ConfigPlanChecks = resource.ConfigPlanChecks{
+		PreApply: []plancheck.PlanCheck{
+			helpers.IsNotResourceAction(td.ResourceName, plancheck.ResourceActionReplace),
+		},
+	}
+
+	testCase := resource.TestCase{
+		PreCheck: func() { PreCheck(t) },
+		Steps:    steps,
+	}
+
+	resource.ParallelTest(t, testCase)
+}
+
 // ResourceRegressionAdditionalStepsTest runs an acceptance test for resource regression scenarios that require multiple steps to set up.
 // It expects multiple steps (3 or more), for regression testing with 1 or 2 steps, use ResourceRegressionTest.
 // All steps except the final step use a specified previous provider version constraint. If an empty string is supplied, the test will use the version in ./version/VERSION from the root of the project
