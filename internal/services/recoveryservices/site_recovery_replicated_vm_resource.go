@@ -357,19 +357,19 @@ func resourceSiteRecoveryReplicatedVMCustomizeDiff(_ context.Context, diff *plug
 			diskId := diskInput["disk_id"].(string)
 
 			if oldDiskInput, exists := oldMap[diskId]; exists {
-				if diskInput["staging_storage_account_id"] != oldDiskInput["staging_storage_account_id"] {
+				if !strings.EqualFold(diskInput["staging_storage_account_id"].(string), oldDiskInput["staging_storage_account_id"].(string)) {
 					if err := diff.ForceNew("managed_disk"); err != nil {
 						return err
 					}
 					break
 				}
-				if diskInput["target_resource_group_id"] != oldDiskInput["target_resource_group_id"] {
+				if !strings.EqualFold(diskInput["target_resource_group_id"].(string), oldDiskInput["target_resource_group_id"].(string)) {
 					if err := diff.ForceNew("managed_disk"); err != nil {
 						return err
 					}
 					break
 				}
-				if diskInput["target_disk_encryption_set_id"] != oldDiskInput["target_disk_encryption_set_id"] {
+				if !strings.EqualFold(diskInput["target_disk_encryption_set_id"].(string), oldDiskInput["target_disk_encryption_set_id"].(string)) {
 					if err := diff.ForceNew("managed_disk"); err != nil {
 						return err
 					}
