@@ -1047,7 +1047,6 @@ github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2024-04-01/v
 github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2025-08-01/vaults
 github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/backupprotectableitems
 github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/backupprotecteditems
-github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/backupresourcevaultconfigs
 github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protecteditems
 github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protectioncontainers
 github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/resourceguardproxy
@@ -1073,8 +1072,6 @@ github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/rediscacheac
 github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/redisfirewallrules
 github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/redispatchschedules
 github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/redisresources
-github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2024-10-01/databases
-github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2024-10-01/redisenterprise
 github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/databases
 github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/redisenterprise
 github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/hybridconnections

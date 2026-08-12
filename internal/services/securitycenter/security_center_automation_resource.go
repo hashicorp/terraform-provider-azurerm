@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -17,11 +16,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2019-01-01-preview/automations"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -29,7 +26,7 @@ import (
 )
 
 func resourceSecurityCenterAutomation() *pluginsdk.Resource {
-	r := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceSecurityCenterAutomationCreateUpdate,
 		Read:   resourceSecurityCenterAutomationRead,
 		Update: resourceSecurityCenterAutomationCreateUpdate,
@@ -208,20 +205,6 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	if !features.FivePointOh() {
-		r.Schema["action"].Elem.(*pluginsdk.Resource).Schema["type"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
-				return strings.EqualFold(oldValue, newValue) || (oldValue == "loganalytics" && newValue == "Workspace") || (oldValue == "Workspace" && newValue == "loganalytics")
-			},
-			ValidateFunc: validation.StringInSlice(append(automations.PossibleValuesForActionType(), "loganalytics", "logicapp", "eventhub"), false),
-		}
-	}
-
-	return r
 }
 
 func resourceSecurityCenterAutomationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -451,18 +434,6 @@ func expandSecurityCenterAutomationActions(actionsRaw []interface{}) (*[]automat
 		// No checking, as fields are enforced by resource schema
 		resourceID = actionMap["resource_id"].(string)
 		actionType := automations.ActionType(actionMap["type"].(string))
-
-		if !features.FivePointOh() {
-			// Action types may either be Title Case or lowercase at this point
-			switch actionMap["type"].(string) {
-			case "logicapp":
-				actionType = automations.ActionTypeLogicApp
-			case "loganalytics":
-				actionType = automations.ActionTypeWorkspace
-			case "eventhub":
-				actionType = automations.ActionTypeEventHub
-			}
-		}
 
 		switch actionType {
 		// Handle LogicApp action type
