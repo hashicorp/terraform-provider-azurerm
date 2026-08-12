@@ -24,10 +24,7 @@ import (
 
 type ElasticCloudServerlessResource struct{}
 
-var (
-	_ sdk.ResourceWithIdentity = ElasticCloudServerlessResource{}
-	_ sdk.ResourceWithUpdate   = ElasticCloudServerlessResource{}
-)
+var _ sdk.ResourceWithIdentity = ElasticCloudServerlessResource{}
 
 type ElasticCloudServerlessResourceModel struct {
 	Name                     string            `tfschema:"name"`
@@ -147,7 +144,7 @@ func (r ElasticCloudServerlessResource) Arguments() map[string]*pluginsdk.Schema
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"tags": commonschema.Tags(),
+		"tags": commonschema.TagsForceNew(),
 	}
 }
 
@@ -262,41 +259,6 @@ func (r ElasticCloudServerlessResource) Read() sdk.ResourceFunc {
 			}
 
 			return r.flatten(metadata, id, resp.Model)
-		},
-	}
-}
-
-func (r ElasticCloudServerlessResource) Update() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 60 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model ElasticCloudServerlessResourceModel
-			if err := metadata.Decode(&model); err != nil {
-				return fmt.Errorf("decoding: %+v", err)
-			}
-
-			client := metadata.Client.Elastic.ServerlessMonitorClient
-			id, err := elasticmonitorresources.ParseMonitorID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
-			}
-
-			existing, err := client.MonitorsGet(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", id, err)
-			}
-			if err := validateElasticCloudServerlessMonitor(id, existing.Model); err != nil {
-				return err
-			}
-
-			payload := elasticmonitorresources.ElasticMonitorResourceUpdateParameters{
-				Tags: pointer.To(model.Tags),
-			}
-			if err := client.MonitorsUpdateThenPoll(ctx, *id, payload); err != nil {
-				return fmt.Errorf("updating %s: %+v", id, err)
-			}
-
-			return nil
 		},
 	}
 }

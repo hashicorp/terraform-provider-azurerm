@@ -11,8 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/elastic/2025-06-01/elasticmonitorresources"
-	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -60,36 +58,6 @@ func TestAccElasticCloudServerless_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccElasticCloudServerless_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_elastic_cloud_serverless", "test")
-	r := ElasticCloudServerlessResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("tags.Environment").HasValue("LiveTest"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.completeUpdated(data),
-			ConfigPlanChecks: resource.ConfigPlanChecks{
-				PreApply: []plancheck.PlanCheck{
-					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionUpdate),
-				},
-			},
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("tags.Environment").HasValue("LiveTest"),
-				check.That(data.ResourceName).Key("tags.TagRevision").HasValue("after"),
-				check.That(data.ResourceName).Key("tags.UpdateMode").HasValue("InPlace"),
 			),
 		},
 		data.ImportStep(),
@@ -145,20 +113,6 @@ func (r ElasticCloudServerlessResource) complete(data acceptance.TestData) strin
   tags = {
     Environment = "LiveTest"
     TagRevision = "before"
-  }`)
-}
-
-func (r ElasticCloudServerlessResource) completeUpdated(data acceptance.TestData) string {
-	return r.config(data, "ess-consumption-2024_Monthly", "elastic-serverless-search", "Elasticsearch", "GeneralPurpose", "ec-azure-pp", "n7ja87drquhy", `
-	generate_api_key    = false
-	monitoring_enabled = true
-	plan_id             = "ess-consumption-2024"
-	publisher_id        = "elastic"
-
-  tags = {
-    Environment = "LiveTest"
-    TagRevision = "after"
-    UpdateMode   = "InPlace"
   }`)
 }
 

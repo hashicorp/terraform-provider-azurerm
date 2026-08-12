@@ -69,7 +69,7 @@ The following arguments are supported:
 
 * `publisher_id` - (Optional) Specifies the Elastic Marketplace publisher ID. Defaults to `elastic`. Changing this forces a new resource to be created.
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the Elastic Cloud Serverless project.
+* `tags` - (Optional) A mapping of tags which should be assigned to the Elastic Cloud Serverless project. Changing this forces a new resource to be created.
 
 ~> **Note:** `kind`, `sku_name`, `project_type`, `configuration_type`, `offer_id`, `plan_id`, `publisher_id`, and `term_id` describe one Elastic Marketplace plan and must be supplied as a compatible combination.
 
@@ -93,7 +93,6 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 * `create` - (Defaults to 1 hour) Used when creating the Elastic Cloud Serverless project.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Elastic Cloud Serverless project.
-* `update` - (Defaults to 1 hour) Used when updating the Elastic Cloud Serverless project.
 * `delete` - (Defaults to 1 hour) Used when deleting the Elastic Cloud Serverless project.
 
 ## Import
