@@ -19,12 +19,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/publicmaintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstanceadministrators"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstanceazureadonlyauthentications"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstanceadministrators"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstanceazureadonlyauthentications"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstances"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -542,6 +544,14 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 
 			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			// The SQL Managed Instance LRO can complete before the resource is consistently readable.
+			// Wait for consecutive successful GETs so follow-up operations do not hit transient ResourceNotFound responses.
+			createPoller := custompollers.NewManagedInstanceCreatePoller(client, id)
+			poller := pollers.NewPoller(createPoller, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err = poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
