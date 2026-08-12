@@ -1,6 +1,5 @@
-# 'golangci-lint custom' requires 'version:' inline here; it MUST match the
-# 'golangci-lint-version' marker in the root .golangci.yml (the source of truth all other
-# places derive from) - 'make golangci-with-modules' fails the build on a mismatch.
+# The single source of truth for the golangci-lint version - the GNUmakefile (and via
+# 'make golangci-with-modules', the CI workflows) derive it from this field.
 version: v2.12.2
 name: golangci-with-modules
 plugins:

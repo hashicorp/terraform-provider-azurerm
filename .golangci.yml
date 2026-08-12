@@ -5,11 +5,6 @@
 # exist in the custom-built binary produced by 'make golangci-with-modules' (see
 # scripts/.custom-gcl.yml) — run lints via 'make lint' / './scripts/golangci-with-modules run',
 # not stock golangci-lint.
-
-# The single source of truth for the golangci-lint version - the GNUmakefile and the CI
-# workflows parse it out of the marker comment on the next line ('version:' below is the
-# config schema version, not the binary version).
-# golangci-lint-version: v2.12.2
 version: "2"
 run:
   modules-download-mode: vendor
