@@ -356,22 +356,25 @@ func resourceSiteRecoveryReplicatedVMCustomizeDiff(_ context.Context, diff *plug
 			diskInput := raw.(map[string]interface{})
 			diskId := diskInput["disk_id"].(string)
 
-			if oldDiskInput, exists := oldMap[diskId]; exists {
-				if !strings.EqualFold(diskInput["staging_storage_account_id"].(string), oldDiskInput["staging_storage_account_id"].(string)) {
-					if err := diff.ForceNew("managed_disk"); err != nil {
-						return err
-					}
+			// Find matching disk ignoring case
+			var oldDiskInput map[string]interface{}
+			var exists bool
+			for oldId, oldInput := range oldMap {
+				if strings.EqualFold(oldId, diskId) {
+					oldDiskInput = oldInput
+					exists = true
 					break
 				}
-				if !strings.EqualFold(diskInput["target_resource_group_id"].(string), oldDiskInput["target_resource_group_id"].(string)) {
-					if err := diff.ForceNew("managed_disk"); err != nil {
-						return err
-					}
-					break
-				}
-				if !strings.EqualFold(diskInput["target_disk_encryption_set_id"].(string), oldDiskInput["target_disk_encryption_set_id"].(string)) {
-					if err := diff.ForceNew("managed_disk"); err != nil {
-						return err
+			}
+
+			if exists {
+				if !strings.EqualFold(diskInput["staging_storage_account_id"].(string), oldDiskInput["staging_storage_account_id"].(string)) ||
+					!strings.EqualFold(diskInput["target_resource_group_id"].(string), oldDiskInput["target_resource_group_id"].(string)) ||
+					!strings.EqualFold(diskInput["target_disk_encryption_set_id"].(string), oldDiskInput["target_disk_encryption_set_id"].(string)) {
+					for _, key := range diff.GetChangedKeysPrefix("managed_disk") {
+						if err := diff.ForceNew(key); err != nil {
+							return err
+						}
 					}
 					break
 				}
@@ -382,15 +385,22 @@ func resourceSiteRecoveryReplicatedVMCustomizeDiff(_ context.Context, diff *plug
 		newMap := make(map[string]bool)
 		for _, raw := range newSet {
 			diskInput := raw.(map[string]interface{})
-			newMap[diskInput["disk_id"].(string)] = true
+			newMap[strings.ToLower(diskInput["disk_id"].(string))] = true
 		}
 
+		forceNewNeeded := false
 		for diskId := range oldMap {
-			if !newMap[diskId] {
-				if err := diff.ForceNew("managed_disk"); err != nil {
+			if !newMap[strings.ToLower(diskId)] {
+				forceNewNeeded = true
+				break
+			}
+		}
+
+		if forceNewNeeded {
+			for _, key := range diff.GetChangedKeysPrefix("managed_disk") {
+				if err := diff.ForceNew(key); err != nil {
 					return err
 				}
-				break
 			}
 		}
 	}
