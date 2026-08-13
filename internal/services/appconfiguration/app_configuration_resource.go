@@ -348,7 +348,7 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 		},
 		Properties: &configurationstores.ConfigurationStoreProperties{
 			DataPlaneProxy: &configurationstores.DataPlaneProxyProperties{
-				AuthenticationMode:    pointer.To(configurationstores.AuthenticationMode(d.Get("data_plane_proxy_authentication_mode").(string))),
+				AuthenticationMode:    pointer.ToEnum[configurationstores.AuthenticationMode](d.Get("data_plane_proxy_authentication_mode").(string)),
 				PrivateLinkDelegation: &privLinkDelegation,
 			},
 			EnablePurgeProtection: pointer.To(d.Get("purge_protection_enabled").(bool)),
@@ -462,7 +462,7 @@ func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{})
 		if props.DataPlaneProxy == nil {
 			props.DataPlaneProxy = &configurationstores.DataPlaneProxyProperties{}
 		}
-		props.DataPlaneProxy.AuthenticationMode = pointer.To(configurationstores.AuthenticationMode(d.Get("data_plane_proxy_authentication_mode").(string)))
+		props.DataPlaneProxy.AuthenticationMode = pointer.ToEnum[configurationstores.AuthenticationMode](d.Get("data_plane_proxy_authentication_mode").(string))
 	}
 
 	if d.HasChange("data_plane_proxy_private_link_delegation_enabled") {

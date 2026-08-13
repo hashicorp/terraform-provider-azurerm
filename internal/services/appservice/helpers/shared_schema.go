@@ -1303,7 +1303,7 @@ func ExpandAuthSettings(auth []AuthSettings) *webapps.SiteAuthSettings {
 
 	props.AllowedExternalRedirectURLs = &v.AllowedExternalRedirectURLs
 
-	props.DefaultProvider = pointer.To(webapps.BuiltInAuthenticationProvider(v.DefaultProvider))
+	props.DefaultProvider = pointer.ToEnum[webapps.BuiltInAuthenticationProvider](v.DefaultProvider)
 
 	props.Issuer = pointer.To(v.Issuer)
 
@@ -1313,7 +1313,7 @@ func ExpandAuthSettings(auth []AuthSettings) *webapps.SiteAuthSettings {
 
 	props.TokenRefreshExtensionHours = pointer.To(v.TokenRefreshExtensionHours)
 
-	props.UnauthenticatedClientAction = pointer.To(webapps.UnauthenticatedClientAction(v.UnauthenticatedClientAction))
+	props.UnauthenticatedClientAction = pointer.ToEnum[webapps.UnauthenticatedClientAction](v.UnauthenticatedClientAction)
 
 	a := AadAuthSettings{}
 	if len(v.AzureActiveDirectoryAuth) > 0 {
