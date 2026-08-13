@@ -25,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -34,7 +33,7 @@ import (
 )
 
 func resourceArmLoadBalancer() *pluginsdk.Resource {
-	r := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceArmLoadBalancerCreate,
 		Read:   resourceArmLoadBalancerRead,
 		Update: resourceArmLoadBalancerUpdate,
@@ -244,25 +243,6 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 			}),
 		),
 	}
-
-	if !features.FivePointOh() {
-		r.Schema["subnet_id"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			// Removing O+C did not seem to cause drift
-			Computed:     true,
-			ValidateFunc: commonids.ValidateSubnetID,
-		}
-		r.Schema["public_ip_address_id"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			// Removing O+C did not seem to cause drift
-			Computed:     true,
-			ValidateFunc: commonids.ValidatePublicIPAddressID,
-		}
-	}
-
-	return r
 }
 
 func resourceArmLoadBalancerCreate(d *pluginsdk.ResourceData, meta interface{}) error {

@@ -23,7 +23,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
@@ -36,7 +35,7 @@ import (
 //go:generate go run ../../tools/generator-tests resourceidentity -parent-id "virtual_machine_id"
 
 func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceMsSqlVirtualMachineCreateUpdate,
 		Read:   resourceMsSqlVirtualMachineRead,
 		Update: resourceMsSqlVirtualMachineCreateUpdate,
@@ -468,17 +467,6 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["auto_backup"].Elem.(*pluginsdk.Resource).Schema["encryption_enabled"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "`encryption_enabled` has been deprecated and will be removed in v5.0 of the AzureRM Provider. Encryption is enabled when `encryption_password` is set; otherwise disabled.",
-		}
-	}
-
-	return resource
 }
 
 func resourceMsSqlVirtualMachineCustomDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
@@ -833,14 +821,6 @@ func resourceMsSqlVirtualMachineAutoBackupSettingsRefreshFunc(ctx context.Contex
 							return resp, "Pending", nil
 						}
 					default:
-						// To be removed in 5.0:
-						// When `encryption_enabled` is not set in config, but `encryption_password` is, `v != val` will always be `true`.
-						// This causes an infinite loop until the resource creation times out. To avoid this, continue to the next iteration of the loop if
-						// `prop` is `encryption_enabled`.
-						if !features.FivePointOh() && prop == "encryption_enabled" {
-							continue
-						}
-
 						if v != val {
 							return resp, "Pending", nil
 						}
@@ -970,7 +950,7 @@ func flattenSqlVirtualMachineAutoBackup(autoBackup *sqlvirtualmachines.AutoBacku
 		encryptionPassword = d.Get("auto_backup.0.encryption_password").(string)
 	}
 
-	ret := []interface{}{
+	return []interface{}{
 		map[string]interface{}{
 			"encryption_password":             encryptionPassword,
 			"manual_schedule":                 manualSchedule,
@@ -980,12 +960,6 @@ func flattenSqlVirtualMachineAutoBackup(autoBackup *sqlvirtualmachines.AutoBacku
 			"system_databases_backup_enabled": autoBackup.BackupSystemDbs != nil && *autoBackup.BackupSystemDbs,
 		},
 	}
-
-	if !features.FivePointOh() {
-		ret[0].(map[string]interface{})["encryption_enabled"] = pointer.From(autoBackup.EnableEncryption)
-	}
-
-	return ret
 }
 
 func expandSqlVirtualMachineAutoBackupSettingsDaysOfWeek(input []interface{}) *[]sqlvirtualmachines.AutoBackupDaysOfWeek {

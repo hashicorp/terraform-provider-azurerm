@@ -31,7 +31,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
@@ -433,7 +432,7 @@ func networkInterfaceResource() *pluginsdk.Resource {
 }
 
 func diskEncryptionResource() *pluginsdk.Resource {
-	args := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"disk_encryption_key": {
 				Type:       pluginsdk.TypeList,
@@ -474,13 +473,6 @@ func diskEncryptionResource() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		args.Schema["disk_encryption_key"].Elem.(*pluginsdk.Resource).Schema["secret_url"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny)
-		args.Schema["key_encryption_key"].Elem.(*pluginsdk.Resource).Schema["key_url"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny)
-	}
-
-	return args
 }
 
 func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta interface{}) error {

@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -24,7 +23,7 @@ import (
 )
 
 func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceArmLoadBalancerNatRuleCreateUpdate,
 		Read:   resourceArmLoadBalancerNatRuleRead,
 		Update: resourceArmLoadBalancerNatRuleCreateUpdate,
@@ -146,36 +145,6 @@ func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["enable_floating_ip"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"floating_ip_enabled"},
-			Deprecated:    "This field is deprecated in favour of `floating_ip_enabled` and will be removed in version 5.0 of the provider.",
-		}
-		resource.Schema["floating_ip_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Computed: true,
-		}
-
-		resource.Schema["enable_tcp_reset"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"tcp_reset_enabled"},
-			Deprecated:    "This field is deprecated in favour of `tcp_reset_enabled` and will be removed in version 5.0 of the provider.",
-		}
-		resource.Schema["tcp_reset_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Computed: true,
-		}
-	}
-
-	return resource
 }
 
 func resourceArmLoadBalancerNatRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -289,11 +258,6 @@ func resourceArmLoadBalancerNatRuleRead(d *pluginsdk.ResourceData, meta interfac
 			d.Set("floating_ip_enabled", pointer.From(props.EnableFloatingIP))
 			d.Set("tcp_reset_enabled", pointer.From(props.EnableTcpReset))
 
-			if !features.FivePointOh() {
-				d.Set("enable_floating_ip", pointer.From(props.EnableFloatingIP))
-				d.Set("enable_tcp_reset", pointer.From(props.EnableTcpReset))
-			}
-
 			frontendIPConfigName := ""
 			frontendIPConfigID := ""
 			if props.FrontendIPConfiguration != nil && props.FrontendIPConfiguration.Id != nil {
@@ -371,16 +335,6 @@ func expandAzureRmLoadBalancerNatRule(d *pluginsdk.ResourceData, lb *loadbalance
 		BackendPort:      pointer.To(int64(d.Get("backend_port").(int))),
 		EnableFloatingIP: pointer.To(d.Get("floating_ip_enabled").(bool)),
 		EnableTcpReset:   pointer.To(d.Get("tcp_reset_enabled").(bool)),
-	}
-
-	if !features.FivePointOh() {
-		if !pluginsdk.IsExplicitlyNullInConfig(d, "enable_floating_ip") {
-			properties.EnableFloatingIP = pointer.To(d.Get("enable_floating_ip").(bool))
-		}
-
-		if !pluginsdk.IsExplicitlyNullInConfig(d, "enable_tcp_reset") {
-			properties.EnableTcpReset = pointer.To(d.Get("enable_tcp_reset").(bool))
-		}
 	}
 
 	backendAddressPoolSet, frontendPort := false, false

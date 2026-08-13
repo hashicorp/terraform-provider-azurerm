@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
@@ -33,7 +32,7 @@ import (
 //go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceMsSqlElasticPool() *pluginsdk.Resource {
-	r := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceMsSqlElasticPoolCreateUpdate,
 		Read:   resourceMsSqlElasticPoolRead,
 		Update: resourceMsSqlElasticPoolCreateUpdate,
@@ -246,20 +245,6 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 			}),
 		),
 	}
-
-	if !features.FivePointOh() {
-		r.Schema["enclave_type"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(databases.AlwaysEncryptedEnclaveTypeVBS),
-				string(databases.AlwaysEncryptedEnclaveTypeDefault),
-			}, false),
-		}
-	}
-
-	return r
 }
 
 func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

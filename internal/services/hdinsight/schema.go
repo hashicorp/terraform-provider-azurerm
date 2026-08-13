@@ -415,7 +415,7 @@ func SchemaHDInsightsHttpsEndpoints() *pluginsdk.Schema {
 
 type HttpEndpointModel struct {
 	AccessModes        []string `tfschema:"access_modes"`
-	DestinationPort    int32    `tfschema:"destination_port"`
+	DestinationPort    int64    `tfschema:"destination_port"`
 	DisableGatewayAuth bool     `tfschema:"disable_gateway_auth"`
 	PrivateIpAddress   string   `tfschema:"private_ip_address"`
 	SubDomainSuffix    string   `tfschema:"sub_domain_suffix"`
