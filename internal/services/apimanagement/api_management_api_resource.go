@@ -818,7 +818,7 @@ func expandApiManagementApiImport(importVs []interface{}, apiType api.ApiType, s
 		Properties: &api.ApiCreateOrUpdateProperties{
 			Type:    pointer.To(apiType),
 			ApiType: pointer.To(soapApiType),
-			Format:  pointer.To(api.ContentFormat(contentFormat)),
+			Format:  pointer.ToEnum[api.ContentFormat](contentFormat),
 			Value:   pointer.To(contentValue),
 			Path:    path,
 		},
