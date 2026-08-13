@@ -36,12 +36,15 @@ func TestAccResourceProviderFeatureRegistration_regressionTest(t *testing.T) {
 	data.ResourceSequentialRegressionTest(t, r, []acceptance.TestStep{
 		{
 			PreConfig: func() {
-				// Ensure the feature is not currently registered
-				if err := r.unRegisterFeature(data, "EncryptionAtHost", "Microsoft.Compute"); err != nil {
+				// Ensure the feature is not currently registered.
+				// Microsoft.ContainerService/AKSWindowsAnnualPreview is an auto-approving feature deliberately
+				// not shared with the other tests in this file so that this test cannot collide with them over
+				// the same subscription-level singleton.
+				if err := r.unRegisterFeature(data, "AKSWindowsAnnualPreview", "Microsoft.ContainerService"); err != nil {
 					t.Fatalf("unregistering feature: %+v", err)
 				}
 			},
-			Config: r.basic(data, "EncryptionAtHost", "Microsoft.Compute"),
+			Config: r.basic(data, "AKSWindowsAnnualPreview", "Microsoft.ContainerService"),
 		},
 	}, "")
 }
