@@ -158,7 +158,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				ForceNew:      true,
-				ValidateFunc:  galleryimageversions.ValidateImageVersionID,
+				ValidateFunc:  validation.AsGeneratedID(galleryimageversions.ParseImageVersionIDInsensitively),
 				ConflictsWith: []string{"image_reference_id"},
 			},
 
@@ -219,7 +219,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				// TODO: make this case-sensitive once this bug in the Azure API has been fixed:
 				//    https://github.com/Azure/azure-rest-api-specs/issues/8132
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     commonids.ValidateDiskEncryptionSetID,
+				ValidateFunc:     validation.AsGeneratedID(commonids.ParseDiskEncryptionSetIDInsensitively),
 				ConflictsWith:    []string{"secure_vm_disk_encryption_set_id"},
 			},
 
@@ -273,7 +273,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				ForceNew:      true,
-				ValidateFunc:  commonids.ValidateDiskEncryptionSetID,
+				ValidateFunc:  validation.AsGeneratedID(commonids.ParseDiskEncryptionSetIDInsensitively),
 				ConflictsWith: []string{"disk_encryption_set_id"},
 			},
 

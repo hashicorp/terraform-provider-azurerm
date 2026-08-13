@@ -122,7 +122,7 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: loadbalancers.ValidateFrontendIPConfigurationID,
+							ValidateFunc: validation.AsGeneratedID(loadbalancers.ParseFrontendIPConfigurationIDInsensitively),
 						},
 					},
 				},
