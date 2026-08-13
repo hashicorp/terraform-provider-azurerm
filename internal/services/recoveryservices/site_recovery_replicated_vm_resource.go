@@ -298,60 +298,51 @@ func resourceSiteRecoveryReplicatedVMCustomizeDiff(_ context.Context, diff *plug
 	}
 
 	networkInterfaces := rawConfig.GetAttr("network_interface")
-	if !networkInterfaces.IsKnown() || networkInterfaces.IsNull() {
-		return nil
+	if networkInterfaces.IsKnown() && !networkInterfaces.IsNull() {
+		for _, networkInterface := range networkInterfaces.AsValueSlice() {
+			if !networkInterface.IsKnown() || networkInterface.IsNull() {
+				return nil
+			}
+
+			ipConfigurations := networkInterface.GetAttr("ip_configuration")
+			if !ipConfigurations.IsKnown() || ipConfigurations.IsNull() || ipConfigurations.LengthInt() <= 1 {
+				continue
+			}
+
+			primaryCount := 0
+			for _, ipConfiguration := range ipConfigurations.AsValueSlice() {
+				if !ipConfiguration.IsKnown() || ipConfiguration.IsNull() {
+					return nil
+				}
+
+				name := ipConfiguration.GetAttr("name")
+				if !name.IsKnown() {
+					return nil
+				}
+				if name.IsNull() || name.AsString() == "" {
+					return fmt.Errorf("each `network_interface.ip_configuration` block must specify `name` when multiple blocks are configured")
+				}
+
+				primary := ipConfiguration.GetAttr("primary")
+				if !primary.IsKnown() {
+					return nil
+				}
+				if !primary.IsNull() && primary.True() {
+					primaryCount++
+				}
+			}
+
+			if primaryCount != 1 {
+				return fmt.Errorf("`network_interface.ip_configuration` must contain exactly one block with `primary` set to `true` when multiple blocks are configured")
+			}
+		}
 	}
 
-	for _, networkInterface := range networkInterfaces.AsValueSlice() {
-		if !networkInterface.IsKnown() || networkInterface.IsNull() {
-			return nil
-		}
-
-		ipConfigurations := networkInterface.GetAttr("ip_configuration")
-		if !ipConfigurations.IsKnown() || ipConfigurations.IsNull() || ipConfigurations.LengthInt() <= 1 {
-			continue
-		}
-
-		primaryCount := 0
-		for _, ipConfiguration := range ipConfigurations.AsValueSlice() {
-			if !ipConfiguration.IsKnown() || ipConfiguration.IsNull() {
-				return nil
-			}
-
-			name := ipConfiguration.GetAttr("name")
-			if !name.IsKnown() {
-				return nil
-			}
-			if name.IsNull() || name.AsString() == "" {
-				return fmt.Errorf("each `network_interface.ip_configuration` block must specify `name` when multiple blocks are configured")
-			}
-
-			primary := ipConfiguration.GetAttr("primary")
-			if !primary.IsKnown() {
-				return nil
-			}
-			if !primary.IsNull() && primary.True() {
-				primaryCount++
-			}
-		}
-
-		if primaryCount != 1 {
-			return fmt.Errorf("`network_interface.ip_configuration` must contain exactly one block with `primary` set to `true` when multiple blocks are configured")
-		}
-	}
-
-	if diff.HasChange("managed_disk") {
+	if diff.Id() != "" && diff.HasChange("managed_disk") {
 		oldDisks, newDisks := diff.GetChange("managed_disk")
 		oldSet := oldDisks.(*pluginsdk.Set).List()
 		newSet := newDisks.(*pluginsdk.Set).List()
 
-		// forceNewNeeded := false
-		// if len(newSet) < len(oldSet) {
-		// 	diff.ForceNew("managed_disk")
-		// 	forceNewNeeded = true
-		// }
-		//
-		// if !forceNewNeeded {}
 		oldMap := make(map[string]map[string]interface{})
 		for _, raw := range oldSet {
 			diskInput := raw.(map[string]interface{})
@@ -397,8 +388,9 @@ func resourceSiteRecoveryReplicatedVMCustomizeDiff(_ context.Context, diff *plug
 
 		for diskId := range oldMap {
 			if !newMap[strings.ToLower(diskId)] {
-				// Because of SDKv2 limitations with TypeSet and ForceNew on removed elements, we force new on the entire set. In case that fails to bubble up, we also force new on the Set itself.
-				diff.ForceNew("managed_disk")
+				if err := diff.ForceNew("managed_disk"); err != nil {
+					return err
+				}
 				break
 			}
 		}

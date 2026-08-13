@@ -14,11 +14,12 @@ import (
 
 // Combined test to check expected behaviour patterns. Since this test takes a long time to run, we're collecting all the
 // expected failure cases into non-destructive "expect replace" checks for the conditional ForceNew scenarios.
+// Note: we use the ResourceTestIgnoreRecreate helper as we're looking to validate the ForceNew plans occur.
 func TestAccSiteRecoveryReplicatedVm_managedDiskMembership(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replicated_vm", "test")
 	r := SiteRecoveryReplicatedVmResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.managedDiskMembership(data),
 			Check: acceptance.ComposeTestCheckFunc(
