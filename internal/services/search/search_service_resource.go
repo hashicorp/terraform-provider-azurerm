@@ -306,7 +306,7 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		// API & RBAC Mode..
 		authenticationOptions = pointer.To(services.DataPlaneAuthOptions{
 			AadOrApiKey: pointer.To(services.DataPlaneAadOrApiKeyAuthOption{
-				AadAuthFailureMode: pointer.To(services.AadAuthFailureMode(authenticationFailureMode)),
+				AadAuthFailureMode: pointer.ToEnum[services.AadAuthFailureMode](authenticationFailureMode),
 			}),
 		})
 	}

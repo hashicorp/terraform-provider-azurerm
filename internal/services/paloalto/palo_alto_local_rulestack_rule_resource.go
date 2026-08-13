@@ -248,7 +248,7 @@ func (r LocalRuleStackRule) Create() sdk.ResourceFunc {
 			}
 
 			if model.Action != "" {
-				props.ActionType = pointer.To(localrules.ActionEnum(model.Action))
+				props.ActionType = pointer.ToEnum[localrules.ActionEnum](model.Action)
 			}
 
 			if len(model.Applications) != 0 {
@@ -260,7 +260,7 @@ func (r LocalRuleStackRule) Create() sdk.ResourceFunc {
 			}
 
 			if model.DecryptionRuleType != "" {
-				props.DecryptionRuleType = pointer.To(localrules.DecryptionRuleTypeEnum(model.DecryptionRuleType))
+				props.DecryptionRuleType = pointer.ToEnum[localrules.DecryptionRuleTypeEnum](model.DecryptionRuleType)
 			}
 
 			if model.Description != "" {
@@ -416,7 +416,7 @@ func (r LocalRuleStackRule) Update() sdk.ResourceFunc {
 			ruleEntry := *existing.Model
 
 			if metadata.ResourceData.HasChange("action") {
-				ruleEntry.Properties.ActionType = pointer.To(localrules.ActionEnum(model.Action))
+				ruleEntry.Properties.ActionType = pointer.ToEnum[localrules.ActionEnum](model.Action)
 			}
 
 			if metadata.ResourceData.HasChange("applications") {
@@ -432,7 +432,7 @@ func (r LocalRuleStackRule) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("decryption_rule_type") {
-				ruleEntry.Properties.DecryptionRuleType = pointer.To(localrules.DecryptionRuleTypeEnum(model.DecryptionRuleType))
+				ruleEntry.Properties.DecryptionRuleType = pointer.ToEnum[localrules.DecryptionRuleTypeEnum](model.DecryptionRuleType)
 			}
 
 			if metadata.ResourceData.HasChange("description") {

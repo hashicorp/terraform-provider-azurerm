@@ -248,7 +248,7 @@ func expandGuestConfigurationAssignment(input []interface{}, name string) *guest
 	}
 
 	if v, ok := v["assignment_type"]; ok {
-		result.AssignmentType = pointer.To(guestconfigurationassignments.AssignmentType(v.(string)))
+		result.AssignmentType = pointer.ToEnum[guestconfigurationassignments.AssignmentType](v.(string))
 	}
 
 	if v, ok := v["content_hash"]; ok {

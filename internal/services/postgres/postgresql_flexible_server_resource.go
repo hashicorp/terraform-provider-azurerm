@@ -1183,7 +1183,7 @@ func expandArmServerStorage(d *pluginsdk.ResourceData) *servers.Storage {
 	}
 
 	if v, ok := d.GetOk("storage_tier"); ok {
-		storage.Tier = pointer.To(servers.AzureManagedDiskPerformanceTier(v.(string)))
+		storage.Tier = pointer.ToEnum[servers.AzureManagedDiskPerformanceTier](v.(string))
 	}
 
 	return &storage

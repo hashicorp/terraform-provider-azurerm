@@ -137,8 +137,8 @@ func (r OutputPowerBIResource) Create() sdk.ResourceFunc {
 				Table:              pointer.To(model.Table),
 				GroupId:            pointer.To(model.GroupID),
 				GroupName:          pointer.To(model.GroupName),
-				RefreshToken:       pointer.To("someRefreshToken"),                // A valid refresh token is currently only obtainable via the Azure Portal. Put a dummy string value here when creating the data source and then going to the Azure Portal to authenticate the data source which will update this property with a valid refresh token.
-				AuthenticationMode: pointer.To(outputs.AuthenticationMode("Msi")), // Set authentication mode as "Msi" here since other modes requires params obtainable from portal only.
+				RefreshToken:       pointer.To("someRefreshToken"),                    // A valid refresh token is currently only obtainable via the Azure Portal. Put a dummy string value here when creating the data source and then going to the Azure Portal to authenticate the data source which will update this property with a valid refresh token.
+				AuthenticationMode: pointer.ToEnum[outputs.AuthenticationMode]("Msi"), // Set authentication mode as "Msi" here since other modes requires params obtainable from portal only.
 			}
 
 			if model.TokenUserDisplayName != "" {

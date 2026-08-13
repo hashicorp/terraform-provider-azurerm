@@ -252,7 +252,7 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 			MonitoringSettings:  expandRecoveryServicesVaultMonitorSettings(d.Get("monitoring").([]interface{})),
 			RedundancySettings: &vaults.VaultPropertiesRedundancySettings{
 				CrossRegionRestore:            &crossRegionRestoreEnabled,
-				StandardTierStorageRedundancy: pointer.To(vaults.StandardTierStorageRedundancy(d.Get("storage_mode_type").(string))),
+				StandardTierStorageRedundancy: pointer.ToEnum[vaults.StandardTierStorageRedundancy](d.Get("storage_mode_type").(string)),
 			},
 		},
 	}
@@ -460,7 +460,7 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 	if d.HasChanges("storage_mode_type", "cross_region_restore_enabled") {
 		vault.Properties.RedundancySettings = &vaults.VaultPropertiesRedundancySettings{
 			CrossRegionRestore:            &crossRegionRestoreEnabled,
-			StandardTierStorageRedundancy: pointer.To(vaults.StandardTierStorageRedundancy(storageMode)),
+			StandardTierStorageRedundancy: pointer.ToEnum[vaults.StandardTierStorageRedundancy](storageMode),
 		}
 	}
 

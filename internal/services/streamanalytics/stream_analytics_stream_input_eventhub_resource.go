@@ -145,7 +145,7 @@ func resourceStreamAnalyticsStreamInputEventHubCreateUpdate(d *pluginsdk.Resourc
 		EventHubName:        pointer.To(d.Get("eventhub_name").(string)),
 		ServiceBusNamespace: pointer.To(d.Get("servicebus_namespace").(string)),
 		ConsumerGroupName:   pointer.To(d.Get("eventhub_consumer_group_name").(string)),
-		AuthenticationMode:  pointer.To(inputs.AuthenticationMode(d.Get("authentication_mode").(string))),
+		AuthenticationMode:  pointer.ToEnum[inputs.AuthenticationMode](d.Get("authentication_mode").(string)),
 	}
 
 	if v, ok := d.GetOk("shared_access_policy_key"); ok {
