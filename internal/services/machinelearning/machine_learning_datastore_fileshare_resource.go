@@ -183,7 +183,7 @@ func (r MachineLearningDataStoreFileShare) Create() sdk.ResourceFunc {
 				Endpoint:                      pointer.To(metadata.Client.Storage.StorageDomainSuffix),
 				FileShareName:                 shareId.ShareName,
 				Description:                   pointer.To(model.Description),
-				ServiceDataAccessAuthIdentity: pointer.To(datastore.ServiceDataAccessAuthIdentity(model.ServiceDataIdentity)),
+				ServiceDataAccessAuthIdentity: pointer.ToEnum[datastore.ServiceDataAccessAuthIdentity](model.ServiceDataIdentity),
 				Tags:                          pointer.To(model.Tags),
 			}
 
@@ -246,7 +246,7 @@ func (r MachineLearningDataStoreFileShare) Update() sdk.ResourceFunc {
 				AccountName:                   shareId.StorageAccountName,
 				FileShareName:                 shareId.ShareName,
 				Description:                   pointer.To(state.Description),
-				ServiceDataAccessAuthIdentity: pointer.To(datastore.ServiceDataAccessAuthIdentity(state.ServiceDataIdentity)),
+				ServiceDataAccessAuthIdentity: pointer.ToEnum[datastore.ServiceDataAccessAuthIdentity](state.ServiceDataIdentity),
 				Tags:                          pointer.To(state.Tags),
 			}
 

@@ -442,8 +442,8 @@ func expandMHSMNetworkAcls(input []interface{}) *managedhsms.MHSMNetworkRuleSet 
 	}
 	v := input[0].(map[string]interface{})
 	res := &managedhsms.MHSMNetworkRuleSet{
-		Bypass:        pointer.To(managedhsms.NetworkRuleBypassOptions(v["bypass"].(string))),
-		DefaultAction: pointer.To(managedhsms.NetworkRuleAction(v["default_action"].(string))),
+		Bypass:        pointer.ToEnum[managedhsms.NetworkRuleBypassOptions](v["bypass"].(string)),
+		DefaultAction: pointer.ToEnum[managedhsms.NetworkRuleAction](v["default_action"].(string)),
 	}
 
 	return res

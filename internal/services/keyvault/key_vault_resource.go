@@ -963,8 +963,8 @@ func expandKeyVaultNetworkAcls(input []interface{}) (*vaults.NetworkRuleSet, []s
 	}
 
 	ruleSet := vaults.NetworkRuleSet{
-		Bypass:              pointer.To(vaults.NetworkRuleBypassOptions(bypass)),
-		DefaultAction:       pointer.To(vaults.NetworkRuleAction(defaultAction)),
+		Bypass:              pointer.ToEnum[vaults.NetworkRuleBypassOptions](bypass),
+		DefaultAction:       pointer.ToEnum[vaults.NetworkRuleAction](defaultAction),
 		IPRules:             &ipRules,
 		VirtualNetworkRules: &networkRules,
 	}

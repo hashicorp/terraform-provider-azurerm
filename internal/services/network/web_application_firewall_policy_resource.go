@@ -686,7 +686,7 @@ func expandWebApplicationFirewallPolicyWebApplicationFirewallCustomRule(input []
 		}
 
 		if rateLimitDuration, ok := v["rate_limit_duration"]; ok && rateLimitDuration.(string) != "" {
-			result.RateLimitDuration = pointer.To(webapplicationfirewallpolicies.ApplicationGatewayFirewallRateLimitDuration(rateLimitDuration.(string)))
+			result.RateLimitDuration = pointer.ToEnum[webapplicationfirewallpolicies.ApplicationGatewayFirewallRateLimitDuration](rateLimitDuration.(string))
 		}
 
 		if rateLimitThreshHold, ok := v["rate_limit_threshold"]; ok && rateLimitThreshHold.(int) > 0 {
@@ -730,7 +730,7 @@ func expandWebApplicationFirewallPolicyPolicySettings(input []interface{}) *weba
 
 	result := webapplicationfirewallpolicies.PolicySettings{
 		State:                             pointer.To(enabled),
-		Mode:                              pointer.To(webapplicationfirewallpolicies.WebApplicationFirewallMode(mode)),
+		Mode:                              pointer.ToEnum[webapplicationfirewallpolicies.WebApplicationFirewallMode](mode),
 		FileUploadEnforcement:             pointer.To(fileUploadEnforcement),
 		RequestBodyCheck:                  pointer.To(requestBodyCheck),
 		RequestBodyEnforcement:            pointer.To(requestBodyEnforcement),
@@ -944,7 +944,7 @@ func expandWebApplicationFirewallPolicyOverrideRules(input []interface{}) *[]web
 
 		action := v["action"].(string)
 		if action != "" {
-			result.Action = pointer.To(webapplicationfirewallpolicies.ActionType(action))
+			result.Action = pointer.ToEnum[webapplicationfirewallpolicies.ActionType](action)
 		}
 
 		results = append(results, result)

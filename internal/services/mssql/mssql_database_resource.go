@@ -337,14 +337,14 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			AutoPauseDelay:                   pointer.To(int64(d.Get("auto_pause_delay_in_minutes").(int))),
 			Collation:                        pointer.To(d.Get("collation").(string)),
 			ElasticPoolId:                    pointer.To(elasticPoolId),
-			LicenseType:                      pointer.To(databases.DatabaseLicenseType(d.Get("license_type").(string))),
+			LicenseType:                      pointer.ToEnum[databases.DatabaseLicenseType](d.Get("license_type").(string)),
 			MinCapacity:                      pointer.To(d.Get("min_capacity").(float64)),
 			HighAvailabilityReplicaCount:     pointer.To(int64(d.Get("read_replica_count").(int))),
-			SampleName:                       pointer.To(databases.SampleName(d.Get("sample_name").(string))),
-			RequestedBackupStorageRedundancy: pointer.To(databases.BackupStorageRedundancy(d.Get("storage_account_type").(string))),
+			SampleName:                       pointer.ToEnum[databases.SampleName](d.Get("sample_name").(string)),
+			RequestedBackupStorageRedundancy: pointer.ToEnum[databases.BackupStorageRedundancy](d.Get("storage_account_type").(string)),
 			ZoneRedundant:                    pointer.To(d.Get("zone_redundant").(bool)),
 			IsLedgerOn:                       pointer.To(ledgerEnabled),
-			SecondaryType:                    pointer.To(databases.SecondaryType(d.Get("secondary_type").(string))),
+			SecondaryType:                    pointer.ToEnum[databases.SecondaryType](d.Get("secondary_type").(string)),
 		},
 
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -408,7 +408,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		input.Properties.MaintenanceConfigurationId = pointer.To(maintenanceConfigId.ID())
 	}
 
-	input.Properties.CreateMode = pointer.To(databases.CreateMode(createMode))
+	input.Properties.CreateMode = pointer.ToEnum[databases.CreateMode](createMode)
 
 	if v, ok := d.GetOk("max_size_gb"); ok {
 		// `max_size_gb` is Computed, so has a value after the first run
@@ -736,7 +736,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("license_type") {
-		props.LicenseType = pointer.To(databases.DatabaseLicenseType(d.Get("license_type").(string)))
+		props.LicenseType = pointer.ToEnum[databases.DatabaseLicenseType](d.Get("license_type").(string))
 	}
 
 	if d.HasChange("min_capacity") {
@@ -748,11 +748,11 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("sample_name") {
-		props.SampleName = pointer.To(databases.SampleName(d.Get("sample_name").(string)))
+		props.SampleName = pointer.ToEnum[databases.SampleName](d.Get("sample_name").(string))
 	}
 
 	if d.HasChange("storage_account_type") {
-		props.RequestedBackupStorageRedundancy = pointer.To(databases.BackupStorageRedundancy(d.Get("storage_account_type").(string)))
+		props.RequestedBackupStorageRedundancy = pointer.ToEnum[databases.BackupStorageRedundancy](d.Get("storage_account_type").(string))
 	}
 
 	if d.HasChange("zone_redundant") {

@@ -606,7 +606,7 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	if d.HasChange("private_endpoint_network_policies") {
 		v := d.Get("private_endpoint_network_policies").(string)
-		props.PrivateEndpointNetworkPolicies = pointer.To(subnets.VirtualNetworkPrivateEndpointNetworkPolicies(v))
+		props.PrivateEndpointNetworkPolicies = pointer.ToEnum[subnets.VirtualNetworkPrivateEndpointNetworkPolicies](v)
 	}
 
 	if d.HasChange("private_link_service_network_policies_enabled") {

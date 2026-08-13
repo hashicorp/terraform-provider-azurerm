@@ -742,9 +742,9 @@ func createDb(ctx context.Context, dbClient *databases.DatabasesClient, dbId dat
 	dbParams := databases.Database{
 		Properties: &databases.DatabaseCreateProperties{
 			AccessKeysAuthentication: expandAccessKeysAuth(dbModel.AccessKeysAuthenticationEnabled),
-			ClientProtocol:           pointer.To(databases.Protocol(dbModel.ClientProtocol)),
-			ClusteringPolicy:         pointer.To(databases.ClusteringPolicy(dbModel.ClusteringPolicy)),
-			EvictionPolicy:           pointer.To(databases.EvictionPolicy(dbModel.EvictionPolicy)),
+			ClientProtocol:           pointer.ToEnum[databases.Protocol](dbModel.ClientProtocol),
+			ClusteringPolicy:         pointer.ToEnum[databases.ClusteringPolicy](dbModel.ClusteringPolicy),
+			EvictionPolicy:           pointer.ToEnum[databases.EvictionPolicy](dbModel.EvictionPolicy),
 			GeoReplication:           expandGeoReplication(dbModel.GeoReplicationGroupName, dbId.ID()),
 			Modules:                  expandModules(dbModel.Module),
 			Persistence:              expandPersistence(dbModel.PersistenceAppendOnlyFileBackupFrequency, dbModel.PersistenceRedisDatabaseBackupFrequency),

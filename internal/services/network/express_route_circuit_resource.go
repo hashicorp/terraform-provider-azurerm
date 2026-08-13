@@ -434,8 +434,8 @@ func expandExpressRouteCircuitSku(input []interface{}) *expressroutecircuits.Exp
 
 	return &expressroutecircuits.ExpressRouteCircuitSku{
 		Name:   pointer.To(fmt.Sprintf("%s_%s", tier, family)),
-		Tier:   pointer.To(expressroutecircuits.ExpressRouteCircuitSkuTier(tier)),
-		Family: pointer.To(expressroutecircuits.ExpressRouteCircuitSkuFamily(family)),
+		Tier:   pointer.ToEnum[expressroutecircuits.ExpressRouteCircuitSkuTier](tier),
+		Family: pointer.ToEnum[expressroutecircuits.ExpressRouteCircuitSkuFamily](family),
 	}
 }
 
