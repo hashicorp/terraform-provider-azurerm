@@ -79,23 +79,25 @@ The following arguments are supported:
 
 * `national_character_set` - (Required) The national character set for the autonomous database. Changing this forces a new Autonomous Database to be created. The default is AL16UTF16. Allowed values are: AL16UTF16 or UTF8.
 
-* `subnet_id` - (Optional) The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the subnet the resource is associated with. Changing this forces a new Autonomous Database to be created.
-
-* `virtual_network_id` - (Optional) The ID of the vnet associated with the cloud VM cluster. Changing this forces a new Autonomous Database to be created.
-
 * `allowed_ips` - (Optional) (Optional) Defines the network access type for the Autonomous Database. If the property is explicitly set to an empty list, it allows secure public access to the database from any IP address. If specific ACL (Access Control List) values are provided, access will be restricted to only the specified IP addresses.
 
 ~> **Note:** `allowed_ips`  cannot be updated after provisioning the resource with an empty list (i.e., a publicly accessible Autonomous Database)
               size: the maximum number of Ips provided shouldn't exceed 1024. At this time we only support IpV4.
 ---
 
-* `customer_contacts` - (Optional) Specifies a list of customer contacts as email addresses. Changing this forces a new Autonomous Database to be created.
+* `autonomous_maintenance_schedule_type` - (Optional) The maintenance schedule type for the Autonomous Database. Possible values are `Early` and `Regular`.
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the Autonomous Database.
+* `customer_contacts` - (Optional) Specifies a list of customer contacts as email addresses. Changing this forces a new Autonomous Database to be created.
 
 * `long_term_backup_schedule` - (Optional) A `long_term_backup_schedule` block as defined below.
 
 -> **Note:** for more information see [Create Long-Term Backups on Autonomous Database](https://docs.oracle.com/en/cloud/paas/autonomous-database/serverless/adbsb/backup-long-term.html#GUID-BD76E02E-AEB0-4450-A6AB-5C9EB1F4EAD0)
+
+* `subnet_id` - (Optional) The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the subnet the resource is associated with. Changing this forces a new Autonomous Database to be created.
+
+* `virtual_network_id` - (Optional) The ID of the vnet associated with the cloud VM cluster. Changing this forces a new Autonomous Database to be created.
+
+* `tags` - (Optional) A mapping of tags which should be assigned to the Autonomous Database.
 
 ---
 

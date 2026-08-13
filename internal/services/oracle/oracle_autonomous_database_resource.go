@@ -51,7 +51,8 @@ type AutonomousDatabaseRegularResourceModel struct {
 	AllowedIps                   []string                        `tfschema:"allowed_ips"`
 
 	// Optional
-	CustomerContacts []string `tfschema:"customer_contacts"`
+	AutonomousMaintenanceScheduleType string   `tfschema:"autonomous_maintenance_schedule_type"`
+	CustomerContacts                  []string `tfschema:"customer_contacts"`
 }
 
 func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schema {
@@ -185,6 +186,13 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 		},
 
 		// Optional
+		"autonomous_maintenance_schedule_type": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.StringInSlice(autonomousdatabases.PossibleValuesForAutonomousMaintenanceScheduleType(), false),
+		},
+
 		"customer_contacts": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -290,6 +298,10 @@ func (r AutonomousDatabaseRegularResource) Create() sdk.ResourceFunc {
 				properties.CustomerContacts = pointer.To(expandAdbsCustomerContacts(model.CustomerContacts))
 			}
 
+			if model.AutonomousMaintenanceScheduleType != "" {
+				properties.AutonomousMaintenanceScheduleType = pointer.To(autonomousdatabases.AutonomousMaintenanceScheduleType(model.AutonomousMaintenanceScheduleType))
+			}
+
 			if model.SubnetId != "" {
 				properties.SubnetId = pointer.To(model.SubnetId)
 			}
@@ -374,6 +386,9 @@ func (r AutonomousDatabaseRegularResource) Update() sdk.ResourceFunc {
 				if metadata.ResourceData.HasChange("allowed_ips") {
 					generalUpdate.Properties.WhitelistedIPs = pointer.To(model.AllowedIps)
 				}
+				if metadata.ResourceData.HasChange("autonomous_maintenance_schedule_type") {
+					generalUpdate.Properties.AutonomousMaintenanceScheduleType = pointer.To(autonomousdatabases.AutonomousMaintenanceScheduleType(model.AutonomousMaintenanceScheduleType))
+				}
 
 				if err := client.UpdateThenPoll(ctx, *id, generalUpdate); err != nil {
 					return fmt.Errorf("updating general properties for %s: %+v", *id, err)
@@ -452,6 +467,7 @@ func (AutonomousDatabaseRegularResource) Read() sdk.ResourceFunc {
 				}
 				state.AdminPassword = metadata.ResourceData.Get("admin_password").(string)
 				state.AutoScalingEnabled = pointer.From(props.IsAutoScalingEnabled)
+				state.AutonomousMaintenanceScheduleType = pointer.FromEnum(props.AutonomousMaintenanceScheduleType)
 				state.BackupRetentionPeriodInDays = pointer.From(props.BackupRetentionPeriodInDays)
 				state.AutoScalingForStorageEnabled = pointer.From(props.IsAutoScalingForStorageEnabled)
 				state.CharacterSet = pointer.From(props.CharacterSet)
@@ -537,6 +553,7 @@ func expandLongTermBackupSchedule(input []LongTermBackUpScheduleDetails) *autono
 
 func (r AutonomousDatabaseRegularResource) hasGeneralUpdates(metadata sdk.ResourceMetaData) bool {
 	return metadata.ResourceData.HasChange("tags") ||
+		metadata.ResourceData.HasChange("autonomous_maintenance_schedule_type") ||
 		metadata.ResourceData.HasChange("data_storage_size_in_tbs") ||
 		metadata.ResourceData.HasChange("compute_count") ||
 		metadata.ResourceData.HasChange("auto_scaling_enabled") ||
