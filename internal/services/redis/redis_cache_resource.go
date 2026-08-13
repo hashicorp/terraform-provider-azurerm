@@ -471,7 +471,7 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 				Family:   redisresources.SkuFamily(d.Get("family").(string)),
 				Name:     redisresources.SkuName(d.Get("sku_name").(string)),
 			},
-			MinimumTlsVersion:   pointer.To(redisresources.TlsVersion(d.Get("minimum_tls_version").(string))),
+			MinimumTlsVersion:   pointer.ToEnum[redisresources.TlsVersion](d.Get("minimum_tls_version").(string)),
 			RedisConfiguration:  redisConfiguration,
 			PublicNetworkAccess: pointer.To(publicNetworkAccess),
 		},
@@ -579,7 +579,7 @@ func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	parameters := redisresources.RedisUpdateParameters{
 		Properties: &redisresources.RedisUpdateProperties{
 			DisableAccessKeyAuthentication: pointer.To(!d.Get("access_keys_authentication_enabled").(bool)),
-			MinimumTlsVersion:              pointer.To(redisresources.TlsVersion(d.Get("minimum_tls_version").(string))),
+			MinimumTlsVersion:              pointer.ToEnum[redisresources.TlsVersion](d.Get("minimum_tls_version").(string)),
 			EnableNonSslPort:               pointer.To(enableNonSslPort.(bool)),
 			Sku: &redisresources.Sku{
 				Capacity: int64(d.Get("capacity").(int)),

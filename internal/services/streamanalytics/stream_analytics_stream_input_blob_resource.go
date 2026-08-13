@@ -165,7 +165,7 @@ func resourceStreamAnalyticsStreamInputBlobCreateUpdate(d *pluginsdk.ResourceDat
 							AccountKey:  pointer.To(storageAccountKey),
 						},
 					},
-					AuthenticationMode: pointer.To(inputs.AuthenticationMode(d.Get("authentication_mode").(string))),
+					AuthenticationMode: pointer.ToEnum[inputs.AuthenticationMode](d.Get("authentication_mode").(string)),
 				},
 			},
 			Serialization: serialization,

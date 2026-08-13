@@ -158,7 +158,7 @@ func (r StreamInputEventHubV2Resource) Create() sdk.ResourceFunc {
 				ServiceBusNamespace: pointer.To(model.ServiceBusNamespace),
 				EventHubName:        pointer.To(model.EventHubName),
 				ConsumerGroupName:   pointer.To(model.EventHubConsumerGroupName),
-				AuthenticationMode:  pointer.To(inputs.AuthenticationMode(model.AuthenticationMode)),
+				AuthenticationMode:  pointer.ToEnum[inputs.AuthenticationMode](model.AuthenticationMode),
 			}
 
 			if v := model.SharedAccessPolicyKey; v != "" {
@@ -219,7 +219,7 @@ func (r StreamInputEventHubV2Resource) Update() sdk.ResourceFunc {
 					ServiceBusNamespace: pointer.To(state.ServiceBusNamespace),
 					EventHubName:        pointer.To(state.EventHubName),
 					ConsumerGroupName:   pointer.To(state.EventHubConsumerGroupName),
-					AuthenticationMode:  pointer.To(inputs.AuthenticationMode(state.AuthenticationMode)),
+					AuthenticationMode:  pointer.ToEnum[inputs.AuthenticationMode](state.AuthenticationMode),
 				}
 
 				serialization, err := expandStreamAnalyticsStreamInputSerializationTyped(state.Serialization)
