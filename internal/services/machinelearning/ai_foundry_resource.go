@@ -287,7 +287,7 @@ func (r AIFoundry) Create() sdk.ResourceFunc {
 				Kind:     pointer.To("Hub"),
 				Properties: &workspaces.WorkspaceProperties{
 					KeyVault:            pointer.To(keyVaultId.ID()),
-					PublicNetworkAccess: pointer.To(workspaces.PublicNetworkAccess(model.PublicNetworkAccess)),
+					PublicNetworkAccess: pointer.ToEnum[workspaces.PublicNetworkAccess](model.PublicNetworkAccess),
 					StorageAccount:      pointer.To(storageAccountId.ID()),
 				},
 			}
@@ -393,7 +393,7 @@ func (r AIFoundry) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("public_network_access") {
-				payload.Properties.PublicNetworkAccess = pointer.To(workspaces.PublicNetworkAccess(state.PublicNetworkAccess))
+				payload.Properties.PublicNetworkAccess = pointer.ToEnum[workspaces.PublicNetworkAccess](state.PublicNetworkAccess)
 			}
 
 			if metadata.ResourceData.HasChange("description") {
@@ -619,7 +619,7 @@ func expandManagedNetwork(input []ManagedNetwork) *workspaces.ManagedNetworkSett
 	network := input[0]
 
 	return &workspaces.ManagedNetworkSettings{
-		IsolationMode: pointer.To(workspaces.IsolationMode(network.IsolationMode)),
+		IsolationMode: pointer.ToEnum[workspaces.IsolationMode](network.IsolationMode),
 	}
 }
 

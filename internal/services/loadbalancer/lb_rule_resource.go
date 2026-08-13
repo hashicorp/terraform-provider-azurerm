@@ -295,7 +295,7 @@ func expandAzureRmLoadBalancerRule(d *pluginsdk.ResourceData, lb *loadbalancers.
 	}
 
 	if v := d.Get("load_distribution").(string); v != "" {
-		properties.LoadDistribution = pointer.To(loadbalancers.LoadDistribution(v))
+		properties.LoadDistribution = pointer.ToEnum[loadbalancers.LoadDistribution](v)
 	}
 
 	// TODO: ensure these ID's are consistent

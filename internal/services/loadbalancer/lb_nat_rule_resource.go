@@ -367,7 +367,7 @@ func resourceArmLoadBalancerNatRuleDelete(d *pluginsdk.ResourceData, meta interf
 
 func expandAzureRmLoadBalancerNatRule(d *pluginsdk.ResourceData, lb *loadbalancers.LoadBalancer, loadBalancerId loadbalancers.LoadBalancerId) (*loadbalancers.InboundNatRule, error) {
 	properties := loadbalancers.InboundNatRulePropertiesFormat{
-		Protocol:         pointer.To(loadbalancers.TransportProtocol(d.Get("protocol").(string))),
+		Protocol:         pointer.ToEnum[loadbalancers.TransportProtocol](d.Get("protocol").(string)),
 		BackendPort:      pointer.To(int64(d.Get("backend_port").(int))),
 		EnableFloatingIP: pointer.To(d.Get("floating_ip_enabled").(bool)),
 		EnableTcpReset:   pointer.To(d.Get("tcp_reset_enabled").(bool)),

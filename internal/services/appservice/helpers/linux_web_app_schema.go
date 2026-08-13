@@ -810,19 +810,19 @@ func (s *SiteConfigLinux) ExpandForCreate(appSettings map[string]string) (*webap
 	expanded.HTTP20Enabled = pointer.To(s.Http2Enabled)
 	expanded.ScmIPSecurityRestrictionsUseMain = pointer.To(s.ScmUseMainIpRestriction)
 	expanded.LocalMySqlEnabled = pointer.To(s.LocalMysql)
-	expanded.LoadBalancing = pointer.To(webapps.SiteLoadBalancing(s.LoadBalancing))
-	expanded.ManagedPipelineMode = pointer.To(webapps.ManagedPipelineMode(s.ManagedPipelineMode))
+	expanded.LoadBalancing = pointer.ToEnum[webapps.SiteLoadBalancing](s.LoadBalancing)
+	expanded.ManagedPipelineMode = pointer.ToEnum[webapps.ManagedPipelineMode](s.ManagedPipelineMode)
 	expanded.RemoteDebuggingEnabled = pointer.To(s.RemoteDebugging)
 	expanded.Use32BitWorkerProcess = pointer.To(s.Use32BitWorker)
 	expanded.WebSocketsEnabled = pointer.To(s.WebSockets)
-	expanded.FtpsState = pointer.To(webapps.FtpsState(s.FtpsState))
-	expanded.MinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.MinTlsVersion))
-	expanded.ScmMinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.ScmMinTlsVersion))
+	expanded.FtpsState = pointer.ToEnum[webapps.FtpsState](s.FtpsState)
+	expanded.MinTlsVersion = pointer.ToEnum[webapps.SupportedTlsVersions](s.MinTlsVersion)
+	expanded.ScmMinTlsVersion = pointer.ToEnum[webapps.SupportedTlsVersions](s.ScmMinTlsVersion)
 	expanded.AutoHealEnabled = pointer.To(false)
-	expanded.MinTlsCipherSuite = pointer.To(webapps.TlsCipherSuites(s.MinTlsCipherSuite))
+	expanded.MinTlsCipherSuite = pointer.ToEnum[webapps.TlsCipherSuites](s.MinTlsCipherSuite)
 	expanded.VnetRouteAllEnabled = pointer.To(s.VnetRouteAllEnabled)
-	expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.IpRestrictionDefaultAction))
-	expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.ScmIpRestrictionDefaultAction))
+	expanded.IPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](s.IpRestrictionDefaultAction)
+	expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](s.ScmIpRestrictionDefaultAction)
 
 	if s.ApiManagementConfigId != "" {
 		expanded.ApiManagementConfig = &webapps.ApiManagementConfig{
@@ -1036,7 +1036,7 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.ip_restriction_default_action") {
-		expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.IpRestrictionDefaultAction))
+		expanded.IPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](s.IpRestrictionDefaultAction)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction") {
@@ -1048,15 +1048,15 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction_default_action") {
-		expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.ScmIpRestrictionDefaultAction))
+		expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](s.ScmIpRestrictionDefaultAction)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.load_balancing_mode") {
-		expanded.LoadBalancing = pointer.To(webapps.SiteLoadBalancing(s.LoadBalancing))
+		expanded.LoadBalancing = pointer.ToEnum[webapps.SiteLoadBalancing](s.LoadBalancing)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.managed_pipeline_mode") {
-		expanded.ManagedPipelineMode = pointer.To(webapps.ManagedPipelineMode(s.ManagedPipelineMode))
+		expanded.ManagedPipelineMode = pointer.ToEnum[webapps.ManagedPipelineMode](s.ManagedPipelineMode)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_version") {
@@ -1064,7 +1064,7 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.ftps_state") {
-		expanded.FtpsState = pointer.To(webapps.FtpsState(s.FtpsState))
+		expanded.FtpsState = pointer.ToEnum[webapps.FtpsState](s.FtpsState)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.health_check_path") {
@@ -1076,15 +1076,15 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.minimum_tls_version") {
-		expanded.MinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.MinTlsVersion))
+		expanded.MinTlsVersion = pointer.ToEnum[webapps.SupportedTlsVersions](s.MinTlsVersion)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_minimum_tls_version") {
-		expanded.ScmMinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.ScmMinTlsVersion))
+		expanded.ScmMinTlsVersion = pointer.ToEnum[webapps.SupportedTlsVersions](s.ScmMinTlsVersion)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.minimum_tls_cipher_suite") {
-		expanded.MinTlsCipherSuite = pointer.To(webapps.TlsCipherSuites(s.MinTlsCipherSuite))
+		expanded.MinTlsCipherSuite = pointer.ToEnum[webapps.TlsCipherSuites](s.MinTlsCipherSuite)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.cors") {
@@ -1205,7 +1205,7 @@ func expandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *webap
 
 	if len(autoHeal.Actions) > 0 {
 		action := autoHeal.Actions[0]
-		result.Actions.ActionType = pointer.To(webapps.AutoHealActionType(action.ActionType))
+		result.Actions.ActionType = pointer.ToEnum[webapps.AutoHealActionType](action.ActionType)
 		result.Actions.MinProcessExecutionTime = pointer.To(action.MinimumProcessTime)
 	}
 

@@ -841,7 +841,7 @@ func resourceVirtualMachineScaleSetCreateUpdate(d *pluginsdk.ResourceData, meta 
 
 	scaleSetProps := virtualmachinescalesets.VirtualMachineScaleSetProperties{
 		UpgradePolicy: &virtualmachinescalesets.UpgradePolicy{
-			Mode: pointer.To(virtualmachinescalesets.UpgradeMode(upgradePolicy)),
+			Mode: pointer.ToEnum[virtualmachinescalesets.UpgradeMode](upgradePolicy),
 			AutomaticOSUpgradePolicy: &virtualmachinescalesets.AutomaticOSUpgradePolicy{
 				EnableAutomaticOSUpgrade: pointer.To(automaticOsUpgrade),
 			},
@@ -852,7 +852,7 @@ func resourceVirtualMachineScaleSetCreateUpdate(d *pluginsdk.ResourceData, meta 
 			StorageProfile:   &storageProfile,
 			OsProfile:        osProfile,
 			ExtensionProfile: extensions,
-			Priority:         pointer.To(virtualmachinescalesets.VirtualMachinePriorityTypes(priority)),
+			Priority:         pointer.ToEnum[virtualmachinescalesets.VirtualMachinePriorityTypes](priority),
 		},
 		// OrchestrationMode needs to be hardcoded to Uniform, for the
 		// standard VMSS resource, since virtualMachineProfile is now supported
@@ -863,7 +863,7 @@ func resourceVirtualMachineScaleSetCreateUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	if strings.EqualFold(priority, string(virtualmachinescalesets.VirtualMachinePriorityTypesLow)) {
-		scaleSetProps.VirtualMachineProfile.EvictionPolicy = pointer.To(virtualmachinescalesets.VirtualMachineEvictionPolicyTypes(evictionPolicy))
+		scaleSetProps.VirtualMachineProfile.EvictionPolicy = pointer.ToEnum[virtualmachinescalesets.VirtualMachineEvictionPolicyTypes](evictionPolicy)
 	}
 
 	if _, ok := d.GetOk("boot_diagnostics"); ok {
@@ -1941,8 +1941,8 @@ func expandAzureRMVirtualMachineScaleSetsStorageProfileOsDisk(d *pluginsdk.Resou
 
 	osDisk := &virtualmachinescalesets.VirtualMachineScaleSetOSDisk{
 		Name:         &name,
-		Caching:      pointer.To(virtualmachinescalesets.CachingTypes(caching)),
-		OsType:       pointer.To(virtualmachinescalesets.OperatingSystemTypes(osType)),
+		Caching:      pointer.ToEnum[virtualmachinescalesets.CachingTypes](caching),
+		OsType:       pointer.ToEnum[virtualmachinescalesets.OperatingSystemTypes](osType),
 		CreateOption: virtualmachinescalesets.DiskCreateOptionTypes(createOption),
 	}
 
@@ -1969,7 +1969,7 @@ func expandAzureRMVirtualMachineScaleSetsStorageProfileOsDisk(d *pluginsdk.Resou
 		}
 
 		osDisk.Name = nil
-		managedDisk.StorageAccountType = pointer.To(virtualmachinescalesets.StorageAccountTypes(managedDiskType))
+		managedDisk.StorageAccountType = pointer.ToEnum[virtualmachinescalesets.StorageAccountTypes](managedDiskType)
 		osDisk.ManagedDisk = managedDisk
 	}
 
@@ -2000,7 +2000,7 @@ func expandAzureRMVirtualMachineScaleSetsStorageProfileDataDisk(d *pluginsdk.Res
 		managedDiskVMSS := &virtualmachinescalesets.VirtualMachineScaleSetManagedDiskParameters{}
 
 		if managedDiskType != "" {
-			managedDiskVMSS.StorageAccountType = pointer.To(virtualmachinescalesets.StorageAccountTypes(managedDiskType))
+			managedDiskVMSS.StorageAccountType = pointer.ToEnum[virtualmachinescalesets.StorageAccountTypes](managedDiskType)
 		} else {
 			managedDiskVMSS.StorageAccountType = pointer.To(virtualmachinescalesets.StorageAccountTypesStandardLRS)
 		}
@@ -2008,7 +2008,7 @@ func expandAzureRMVirtualMachineScaleSetsStorageProfileDataDisk(d *pluginsdk.Res
 		// assume that data disks in VMSS can only be Managed Disks
 		dataDisk.ManagedDisk = managedDiskVMSS
 		if v := config["caching"].(string); v != "" {
-			dataDisk.Caching = pointer.To(virtualmachinescalesets.CachingTypes(v))
+			dataDisk.Caching = pointer.ToEnum[virtualmachinescalesets.CachingTypes](v)
 		}
 
 		if v := config["disk_size_gb"]; v != nil {
@@ -2111,7 +2111,7 @@ func expandAzureRmVirtualMachineScaleSetOsProfileWindowsConfig(d *pluginsdk.Reso
 
 				protocol := config["protocol"].(string)
 				winRmListener := virtualmachinescalesets.WinRMListener{
-					Protocol: pointer.To(virtualmachinescalesets.ProtocolTypes(protocol)),
+					Protocol: pointer.ToEnum[virtualmachinescalesets.ProtocolTypes](protocol),
 				}
 				if v := config["certificate_url"].(string); v != "" {
 					winRmListener.CertificateURL = &v
@@ -2136,9 +2136,9 @@ func expandAzureRmVirtualMachineScaleSetOsProfileWindowsConfig(d *pluginsdk.Reso
 				content := config["content"].(string)
 
 				addContent := virtualmachinescalesets.AdditionalUnattendContent{
-					PassName:      pointer.To(virtualmachinescalesets.PassName(pass)),
-					ComponentName: pointer.To(virtualmachinescalesets.ComponentName(component)),
-					SettingName:   pointer.To(virtualmachinescalesets.SettingNames(settingName)),
+					PassName:      pointer.ToEnum[virtualmachinescalesets.PassName](pass),
+					ComponentName: pointer.ToEnum[virtualmachinescalesets.ComponentName](component),
+					SettingName:   pointer.ToEnum[virtualmachinescalesets.SettingNames](settingName),
 				}
 
 				if content != "" {

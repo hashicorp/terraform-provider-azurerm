@@ -663,7 +663,7 @@ func resourceVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	properties := virtualmachines.VirtualMachineProperties{
 		NetworkProfile: &networkProfile,
 		HardwareProfile: &virtualmachines.HardwareProfile{
-			VMSize: pointer.To(virtualmachines.VirtualMachineSizeTypes(vmSize)),
+			VMSize: pointer.ToEnum[virtualmachines.VirtualMachineSizeTypes](vmSize),
 		},
 		StorageProfile: &storageProfile,
 	}
@@ -1544,7 +1544,7 @@ func expandAzureRmVirtualMachineOsProfileWindowsConfig(d *pluginsdk.ResourceData
 
 				protocol := config["protocol"].(string)
 				winRmListener := virtualmachines.WinRMListener{
-					Protocol: pointer.To(virtualmachines.ProtocolTypes(protocol)),
+					Protocol: pointer.ToEnum[virtualmachines.ProtocolTypes](protocol),
 				}
 				if v := config["certificate_url"].(string); v != "" {
 					winRmListener.CertificateURL = &v
@@ -1569,9 +1569,9 @@ func expandAzureRmVirtualMachineOsProfileWindowsConfig(d *pluginsdk.ResourceData
 				content := config["content"].(string)
 
 				addContent := virtualmachines.AdditionalUnattendContent{
-					PassName:      pointer.To(virtualmachines.PassNames(pass)),
-					ComponentName: pointer.To(virtualmachines.ComponentNames(component)),
-					SettingName:   pointer.To(virtualmachines.SettingNames(settingName)),
+					PassName:      pointer.ToEnum[virtualmachines.PassNames](pass),
+					ComponentName: pointer.ToEnum[virtualmachines.ComponentNames](component),
+					SettingName:   pointer.ToEnum[virtualmachines.SettingNames](settingName),
 				}
 
 				if content != "" {
@@ -1614,7 +1614,7 @@ func expandAzureRmVirtualMachineDataDisk(d *pluginsdk.ResourceData) ([]virtualma
 		managedDisk := &virtualmachines.ManagedDiskParameters{}
 
 		if managedDiskType != "" {
-			managedDisk.StorageAccountType = pointer.To(virtualmachines.StorageAccountTypes(managedDiskType))
+			managedDisk.StorageAccountType = pointer.ToEnum[virtualmachines.StorageAccountTypes](managedDiskType)
 			data_disk.ManagedDisk = managedDisk
 		}
 
@@ -1634,7 +1634,7 @@ func expandAzureRmVirtualMachineDataDisk(d *pluginsdk.ResourceData) ([]virtualma
 		}
 
 		if v := config["caching"].(string); v != "" {
-			data_disk.Caching = pointer.To(virtualmachines.CachingTypes(v))
+			data_disk.Caching = pointer.ToEnum[virtualmachines.CachingTypes](v)
 		}
 
 		if v, ok := config["disk_size_gb"].(int); ok {
@@ -1769,7 +1769,7 @@ func expandAzureRmVirtualMachineOsDisk(d *pluginsdk.ResourceData) (*virtualmachi
 	managedDisk := &virtualmachines.ManagedDiskParameters{}
 
 	if managedDiskType != "" {
-		managedDisk.StorageAccountType = pointer.To(virtualmachines.StorageAccountTypes(managedDiskType))
+		managedDisk.StorageAccountType = pointer.ToEnum[virtualmachines.StorageAccountTypes](managedDiskType)
 		osDisk.ManagedDisk = managedDisk
 	}
 
@@ -1797,11 +1797,11 @@ func expandAzureRmVirtualMachineOsDisk(d *pluginsdk.ResourceData) (*virtualmachi
 	}
 
 	if v := config["os_type"].(string); v != "" {
-		osDisk.OsType = pointer.To(virtualmachines.OperatingSystemTypes(v))
+		osDisk.OsType = pointer.ToEnum[virtualmachines.OperatingSystemTypes](v)
 	}
 
 	if v := config["caching"].(string); v != "" {
-		osDisk.Caching = pointer.To(virtualmachines.CachingTypes(v))
+		osDisk.Caching = pointer.ToEnum[virtualmachines.CachingTypes](v)
 	}
 
 	if v := config["disk_size_gb"].(int); v != 0 {

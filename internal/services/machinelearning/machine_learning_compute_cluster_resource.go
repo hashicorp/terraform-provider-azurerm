@@ -249,7 +249,7 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 		Sku: &machinelearningcomputes.Sku{
 			Name: workspaceModel.Sku.Name,
-			Tier: pointer.To(machinelearningcomputes.SkuTier(*workspaceModel.Sku.Tier)),
+			Tier: pointer.ToEnum[machinelearningcomputes.SkuTier](string(*workspaceModel.Sku.Tier)),
 		},
 	}
 

@@ -294,8 +294,8 @@ func resourceArmLoadBalancerCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	sku := loadbalancers.LoadBalancerSku{
-		Name: pointer.To(loadbalancers.LoadBalancerSkuName(d.Get("sku").(string))),
-		Tier: pointer.To(loadbalancers.LoadBalancerSkuTier(d.Get("sku_tier").(string))),
+		Name: pointer.ToEnum[loadbalancers.LoadBalancerSkuName](d.Get("sku").(string)),
+		Tier: pointer.ToEnum[loadbalancers.LoadBalancerSkuTier](d.Get("sku_tier").(string)),
 	}
 
 	properties := loadbalancers.LoadBalancerPropertiesFormat{}
@@ -459,7 +459,7 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData
 		properties := loadbalancers.FrontendIPConfigurationPropertiesFormat{}
 
 		if v := data["private_ip_address_allocation"].(string); v != "" {
-			properties.PrivateIPAllocationMethod = pointer.To(loadbalancers.IPAllocationMethod(v))
+			properties.PrivateIPAllocationMethod = pointer.ToEnum[loadbalancers.IPAllocationMethod](v)
 		}
 
 		if v := data["gateway_load_balancer_frontend_ip_configuration_id"].(string); v != "" {
@@ -487,7 +487,7 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData
 		if v := data["subnet_id"].(string); v != "" {
 			properties.PrivateIPAddressVersion = pointer.To(loadbalancers.IPVersionIPvFour)
 			if v := data["private_ip_address_version"].(string); v != "" {
-				properties.PrivateIPAddressVersion = pointer.To(loadbalancers.IPVersion(v))
+				properties.PrivateIPAddressVersion = pointer.ToEnum[loadbalancers.IPVersion](v)
 			}
 			properties.Subnet = &loadbalancers.Subnet{
 				Id: pointer.To(v),

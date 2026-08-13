@@ -365,7 +365,7 @@ func expandCreateForDashboardGrafana(model DashboardGrafanaModel) *managedgrafan
 	}
 
 	if model.SkuSize != "" {
-		properties.Sku.Size = pointer.To(managedgrafanas.Size(model.SkuSize))
+		properties.Sku.Size = pointer.ToEnum[managedgrafanas.Size](model.SkuSize)
 	}
 	return &properties
 }

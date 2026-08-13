@@ -1143,7 +1143,7 @@ func expandLogicAppStandardSiteConfigForCreate(d []helpers.LogicAppSiteConfig, m
 	siteConfig.FunctionsRuntimeScaleMonitoringEnabled = pointer.To(config.RuntimeScaleMonitoringEnabled)
 	siteConfig.Use32BitWorkerProcess = pointer.To(config.Use32BitWorkerProcess)
 	siteConfig.WebSocketsEnabled = pointer.To(config.WebSocketsEnabled)
-	siteConfig.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(config.SCMIpRestrictionDefaultAction))
+	siteConfig.ScmIPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](config.SCMIpRestrictionDefaultAction)
 
 	if config.LinuxFxVersion != "" {
 		siteConfig.LinuxFxVersion = pointer.To(config.LinuxFxVersion)
@@ -1248,7 +1248,7 @@ func expandLogicAppStandardSiteConfigForUpdate(d []helpers.LogicAppSiteConfig, m
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction_default_action") {
-		siteConfig.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(config.SCMIpRestrictionDefaultAction))
+		siteConfig.ScmIPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](config.SCMIpRestrictionDefaultAction)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_min_tls_version") {

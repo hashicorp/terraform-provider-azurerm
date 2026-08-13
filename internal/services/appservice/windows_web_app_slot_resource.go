@@ -374,7 +374,7 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 					SiteConfig:               siteConfig,
 					ClientAffinityEnabled:    pointer.To(webAppSlot.ClientAffinityEnabled),
 					ClientCertEnabled:        pointer.To(webAppSlot.ClientCertEnabled),
-					ClientCertMode:           pointer.To(webapps.ClientCertMode(webAppSlot.ClientCertMode)),
+					ClientCertMode:           pointer.ToEnum[webapps.ClientCertMode](webAppSlot.ClientCertMode),
 					ClientCertExclusionPaths: pointer.To(webAppSlot.ClientCertExclusionPaths),
 					VnetBackupRestoreEnabled: pointer.To(webAppSlot.VirtualNetworkBackupRestoreEnabled),
 					VnetRouteAllEnabled:      siteConfig.VnetRouteAllEnabled,
@@ -839,7 +839,7 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 				model.Properties.ClientCertEnabled = pointer.To(state.ClientCertEnabled)
 			}
 			if metadata.ResourceData.HasChange("client_certificate_mode") {
-				model.Properties.ClientCertMode = pointer.To(webapps.ClientCertMode(state.ClientCertMode))
+				model.Properties.ClientCertMode = pointer.ToEnum[webapps.ClientCertMode](state.ClientCertMode)
 			}
 			if metadata.ResourceData.HasChange("client_certificate_exclusion_paths") {
 				model.Properties.ClientCertExclusionPaths = pointer.To(state.ClientCertExclusionPaths)
