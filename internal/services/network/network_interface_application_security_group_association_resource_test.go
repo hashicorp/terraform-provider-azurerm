@@ -97,7 +97,7 @@ func TestAccNetworkInterfaceApplicationSecurityGroupAssociation_updateNIC(t *tes
 			Config: r.updateNIC(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				data.CheckWithClient(r.associationExistsOnIPv6Config),
+				data.CheckWithClient(r.asgAppliedToAllIPConfigurations),
 			),
 		},
 		data.ImportStep(),
@@ -138,7 +138,7 @@ func (t NetworkInterfaceApplicationSecurityGroupAssociationResource) Exists(ctx 
 	return pointer.To(found), nil
 }
 
-func (NetworkInterfaceApplicationSecurityGroupAssociationResource) associationExistsOnIPv6Config(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+func (NetworkInterfaceApplicationSecurityGroupAssociationResource) asgAppliedToAllIPConfigurations(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
 	id, err := commonids.ParseCompositeResourceID(state.ID, &commonids.NetworkInterfaceId{}, &applicationsecuritygroups.ApplicationSecurityGroupId{})
 	if err != nil {
 		return err
@@ -155,14 +155,11 @@ func (NetworkInterfaceApplicationSecurityGroupAssociationResource) associationEx
 		return fmt.Errorf("retrieving %s: `properties.ipConfigurations` was nil", id.First)
 	}
 
-	foundIPv6Config := false
 	for _, config := range *read.Model.Properties.IPConfigurations {
 		props := config.Properties
-		if props == nil || props.PrivateIPAddressVersion == nil || *props.PrivateIPAddressVersion != networkinterfaces.IPVersionIPvSix {
-			continue
+		if props == nil {
+			return fmt.Errorf("retrieving %s: `properties` was nil for IP configuration %q", id.First, pointer.From(config.Name))
 		}
-
-		foundIPv6Config = true
 
 		associated := false
 		if props.ApplicationSecurityGroups != nil {
@@ -175,12 +172,10 @@ func (NetworkInterfaceApplicationSecurityGroupAssociationResource) associationEx
 		}
 
 		if !associated {
-			return fmt.Errorf("expected Application Security Group %q to be associated with the IPv6 IP configuration %q but it was not", id.Second.ID(), pointer.From(config.Name))
+			return fmt.Errorf(
+				"expected Application Security Group %q to be associated with IP configuration %q but it was not", id.Second.ID(), pointer.From(config.Name),
+			)
 		}
-	}
-
-	if !foundIPv6Config {
-		return fmt.Errorf("expected an IPv6 IP configuration on %s but none was found", id.First)
 	}
 
 	return nil
