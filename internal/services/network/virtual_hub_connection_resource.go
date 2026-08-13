@@ -341,7 +341,7 @@ func expandVirtualHubConnectionRouting(input []interface{}) *virtualwans.Routing
 			StaticRoutes: expandVirtualHubConnectionVnetStaticRoute(v["static_vnet_route"].([]interface{})),
 			StaticRoutesConfig: &virtualwans.StaticRoutesConfig{
 				PropagateStaticRoutes:          pointer.To(v["static_vnet_propagate_static_routes_enabled"].(bool)),
-				VnetLocalRouteOverrideCriteria: pointer.To(virtualwans.VnetLocalRouteOverrideCriteria(v["static_vnet_local_route_override_criteria"].(string))),
+				VnetLocalRouteOverrideCriteria: pointer.ToEnum[virtualwans.VnetLocalRouteOverrideCriteria](v["static_vnet_local_route_override_criteria"].(string)),
 			},
 		},
 	}

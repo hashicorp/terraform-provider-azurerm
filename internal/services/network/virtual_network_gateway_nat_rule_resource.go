@@ -158,8 +158,8 @@ func resourceVirtualNetworkGatewayNatRuleCreate(d *pluginsdk.ResourceData, meta 
 		Properties: &virtualnetworkgateways.VirtualNetworkGatewayNatRuleProperties{
 			ExternalMappings: expandVirtualNetworkGatewayNatRuleMappings(d.Get("external_mapping").([]interface{})),
 			InternalMappings: expandVirtualNetworkGatewayNatRuleMappings(d.Get("internal_mapping").([]interface{})),
-			Mode:             pointer.To(virtualnetworkgateways.VpnNatRuleMode(d.Get("mode").(string))),
-			Type:             pointer.To(virtualnetworkgateways.VpnNatRuleType(d.Get("type").(string))),
+			Mode:             pointer.ToEnum[virtualnetworkgateways.VpnNatRuleMode](d.Get("mode").(string)),
+			Type:             pointer.ToEnum[virtualnetworkgateways.VpnNatRuleType](d.Get("type").(string)),
 		},
 	}
 
@@ -234,8 +234,8 @@ func resourceVirtualNetworkGatewayNatRuleUpdate(d *pluginsdk.ResourceData, meta 
 		Properties: &virtualnetworkgateways.VirtualNetworkGatewayNatRuleProperties{
 			ExternalMappings: expandVirtualNetworkGatewayNatRuleMappings(d.Get("external_mapping").([]interface{})),
 			InternalMappings: expandVirtualNetworkGatewayNatRuleMappings(d.Get("internal_mapping").([]interface{})),
-			Mode:             pointer.To(virtualnetworkgateways.VpnNatRuleMode(d.Get("mode").(string))),
-			Type:             pointer.To(virtualnetworkgateways.VpnNatRuleType(d.Get("type").(string))),
+			Mode:             pointer.ToEnum[virtualnetworkgateways.VpnNatRuleMode](d.Get("mode").(string)),
+			Type:             pointer.ToEnum[virtualnetworkgateways.VpnNatRuleType](d.Get("type").(string)),
 		},
 	}
 

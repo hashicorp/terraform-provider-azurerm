@@ -82,7 +82,7 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	props := firewallpolicies.FirewallPolicy{
 		Properties: &firewallpolicies.FirewallPolicyPropertiesFormat{
-			ThreatIntelMode:      pointer.To(firewallpolicies.AzureFirewallThreatIntelMode(d.Get("threat_intelligence_mode").(string))),
+			ThreatIntelMode:      pointer.ToEnum[firewallpolicies.AzureFirewallThreatIntelMode](d.Get("threat_intelligence_mode").(string)),
 			ThreatIntelWhitelist: expandFirewallPolicyThreatIntelWhitelist(d.Get("threat_intelligence_allowlist").([]interface{})),
 			DnsSettings:          expandFirewallPolicyDNSSetting(d.Get("dns").([]interface{})),
 			IntrusionDetection:   expandFirewallPolicyIntrusionDetection(d.Get("intrusion_detection").([]interface{})),
@@ -109,7 +109,7 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	if v, ok := d.GetOk("sku"); ok {
 		props.Properties.Sku = &firewallpolicies.FirewallPolicySku{
-			Tier: pointer.To(firewallpolicies.FirewallPolicySkuTier(v.(string))),
+			Tier: pointer.ToEnum[firewallpolicies.FirewallPolicySkuTier](v.(string)),
 		}
 	}
 
@@ -333,7 +333,7 @@ func expandFirewallPolicyIntrusionDetection(input []interface{}) *firewallpolici
 		overrides := v.(map[string]interface{})
 		signatureOverrides = append(signatureOverrides, firewallpolicies.FirewallPolicyIntrusionDetectionSignatureSpecification{
 			Id:   pointer.To(overrides["id"].(string)),
-			Mode: pointer.To(firewallpolicies.FirewallPolicyIntrusionDetectionStateType(overrides["state"].(string))),
+			Mode: pointer.ToEnum[firewallpolicies.FirewallPolicyIntrusionDetectionStateType](overrides["state"].(string)),
 		})
 	}
 
@@ -344,7 +344,7 @@ func expandFirewallPolicyIntrusionDetection(input []interface{}) *firewallpolici
 		trafficBypass = append(trafficBypass, firewallpolicies.FirewallPolicyIntrusionDetectionBypassTrafficSpecifications{
 			Name:                 pointer.To(bypass["name"].(string)),
 			Description:          pointer.To(bypass["description"].(string)),
-			Protocol:             pointer.To(firewallpolicies.FirewallPolicyIntrusionDetectionProtocol(bypass["protocol"].(string))),
+			Protocol:             pointer.ToEnum[firewallpolicies.FirewallPolicyIntrusionDetectionProtocol](bypass["protocol"].(string)),
 			SourceAddresses:      helpers.ExpandStringSlice(bypass["source_addresses"].(*pluginsdk.Set).List()),
 			DestinationAddresses: helpers.ExpandStringSlice(bypass["destination_addresses"].(*pluginsdk.Set).List()),
 			DestinationPorts:     helpers.ExpandStringSlice(bypass["destination_ports"].(*pluginsdk.Set).List()),
@@ -360,7 +360,7 @@ func expandFirewallPolicyIntrusionDetection(input []interface{}) *firewallpolici
 	}
 
 	return &firewallpolicies.FirewallPolicyIntrusionDetection{
-		Mode: pointer.To(firewallpolicies.FirewallPolicyIntrusionDetectionStateType(raw["mode"].(string))),
+		Mode: pointer.ToEnum[firewallpolicies.FirewallPolicyIntrusionDetectionStateType](raw["mode"].(string)),
 		Configuration: &firewallpolicies.FirewallPolicyIntrusionDetectionConfiguration{
 			SignatureOverrides:    &signatureOverrides,
 			PrivateRanges:         &privateRanges,

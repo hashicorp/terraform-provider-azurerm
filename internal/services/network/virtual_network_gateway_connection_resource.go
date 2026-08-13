@@ -864,7 +864,7 @@ func getVirtualNetworkGatewayConnectionProperties(d *pluginsdk.ResourceData, vir
 
 	if v, ok := d.GetOk("connection_protocol"); ok {
 		connectionProtocol := v.(string)
-		props.ConnectionProtocol = pointer.To(virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionProtocol(connectionProtocol))
+		props.ConnectionProtocol = pointer.ToEnum[virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionProtocol](connectionProtocol)
 	}
 
 	if v, ok := d.GetOk("traffic_selector_policy"); ok {

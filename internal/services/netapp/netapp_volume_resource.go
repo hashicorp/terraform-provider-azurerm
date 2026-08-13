@@ -841,8 +841,8 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	if len(d.Get("cool_access").([]interface{})) > 0 {
 		coolAccess := d.Get("cool_access").([]interface{})[0].(map[string]interface{})
 		parameters.Properties.CoolAccess = pointer.To(true)
-		parameters.Properties.CoolAccessRetrievalPolicy = pointer.To(volumes.CoolAccessRetrievalPolicy(coolAccess["retrieval_policy"].(string)))
-		parameters.Properties.CoolAccessTieringPolicy = pointer.To(volumes.CoolAccessTieringPolicy(coolAccess["tiering_policy"].(string)))
+		parameters.Properties.CoolAccessRetrievalPolicy = pointer.ToEnum[volumes.CoolAccessRetrievalPolicy](coolAccess["retrieval_policy"].(string))
+		parameters.Properties.CoolAccessTieringPolicy = pointer.ToEnum[volumes.CoolAccessTieringPolicy](coolAccess["tiering_policy"].(string))
 		parameters.Properties.CoolnessPeriod = pointer.To(int64(coolAccess["coolness_period_in_days"].(int)))
 	}
 
@@ -852,7 +852,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("volume encryption cannot be enabled when network features is set to basic: %s", id.ID())
 		}
 
-		parameters.Properties.EncryptionKeySource = pointer.To(volumes.EncryptionKeySource(encryptionKeySource.(string)))
+		parameters.Properties.EncryptionKeySource = pointer.ToEnum[volumes.EncryptionKeySource](encryptionKeySource.(string))
 	}
 
 	if keyVaultPrivateEndpointID, ok := d.GetOk("key_vault_private_endpoint_id"); ok {
@@ -1019,11 +1019,11 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 			update.Properties.CoolAccess = pointer.To(true)
 
 			if d.HasChange("cool_access.0.retrieval_policy") {
-				update.Properties.CoolAccessRetrievalPolicy = pointer.To(volumes.CoolAccessRetrievalPolicy(coolAccess["retrieval_policy"].(string)))
+				update.Properties.CoolAccessRetrievalPolicy = pointer.ToEnum[volumes.CoolAccessRetrievalPolicy](coolAccess["retrieval_policy"].(string))
 			}
 
 			if d.HasChange("cool_access.0.tiering_policy") {
-				update.Properties.CoolAccessTieringPolicy = pointer.To(volumes.CoolAccessTieringPolicy(coolAccess["tiering_policy"].(string)))
+				update.Properties.CoolAccessTieringPolicy = pointer.ToEnum[volumes.CoolAccessTieringPolicy](coolAccess["tiering_policy"].(string))
 			}
 
 			if d.HasChange("cool_access.0.coolness_period_in_days") {

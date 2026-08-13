@@ -155,8 +155,8 @@ func resourceVPNGatewayNatRuleCreate(d *pluginsdk.ResourceData, meta interface{}
 	props := virtualwans.VpnGatewayNatRule{
 		Name: pointer.To(d.Get("name").(string)),
 		Properties: &virtualwans.VpnGatewayNatRuleProperties{
-			Mode: pointer.To(virtualwans.VpnNatRuleMode(d.Get("mode").(string))),
-			Type: pointer.To(virtualwans.VpnNatRuleType(d.Get("type").(string))),
+			Mode: pointer.ToEnum[virtualwans.VpnNatRuleMode](d.Get("mode").(string)),
+			Type: pointer.ToEnum[virtualwans.VpnNatRuleType](d.Get("type").(string)),
 		},
 	}
 
@@ -250,8 +250,8 @@ func resourceVPNGatewayNatRuleUpdate(d *pluginsdk.ResourceData, meta interface{}
 	props := virtualwans.VpnGatewayNatRule{
 		Name: pointer.To(d.Get("name").(string)),
 		Properties: &virtualwans.VpnGatewayNatRuleProperties{
-			Mode:             pointer.To(virtualwans.VpnNatRuleMode(d.Get("mode").(string))),
-			Type:             pointer.To(virtualwans.VpnNatRuleType(d.Get("type").(string))),
+			Mode:             pointer.ToEnum[virtualwans.VpnNatRuleMode](d.Get("mode").(string)),
+			Type:             pointer.ToEnum[virtualwans.VpnNatRuleType](d.Get("type").(string)),
 			ExternalMappings: existing.Model.Properties.ExternalMappings,
 			InternalMappings: existing.Model.Properties.InternalMappings,
 		},

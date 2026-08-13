@@ -836,8 +836,8 @@ func expandKustoClusterLanguageExtensionList(input []interface{}) *clusters.Lang
 	for _, ext := range input {
 		extMap := ext.(map[string]interface{})
 		extensions = append(extensions, clusters.LanguageExtension{
-			LanguageExtensionName:      pointer.To(clusters.LanguageExtensionName(extMap["name"].(string))),
-			LanguageExtensionImageName: pointer.To(clusters.LanguageExtensionImageName(extMap["image"].(string))),
+			LanguageExtensionName:      pointer.ToEnum[clusters.LanguageExtensionName](extMap["name"].(string)),
+			LanguageExtensionImageName: pointer.ToEnum[clusters.LanguageExtensionImageName](extMap["image"].(string)),
 		})
 	}
 

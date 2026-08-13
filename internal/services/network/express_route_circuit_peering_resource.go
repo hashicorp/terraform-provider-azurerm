@@ -281,7 +281,7 @@ func resourceExpressRouteCircuitPeeringCreate(d *pluginsdk.ResourceData, meta in
 
 	parameters := expressroutecircuitpeerings.ExpressRouteCircuitPeering{
 		Properties: &expressroutecircuitpeerings.ExpressRouteCircuitPeeringPropertiesFormat{
-			PeeringType:        pointer.To(expressroutecircuitpeerings.ExpressRoutePeeringType(id.PeeringName)),
+			PeeringType:        pointer.ToEnum[expressroutecircuitpeerings.ExpressRoutePeeringType](id.PeeringName),
 			SharedKey:          pointer.To(d.Get("shared_key").(string)),
 			AzureASN:           pointer.To(int64(d.Get("azure_asn").(int))),
 			PeerASN:            pointer.To(int64(d.Get("peer_asn").(int))),
