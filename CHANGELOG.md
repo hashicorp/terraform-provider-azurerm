@@ -1,6 +1,7 @@
 ## 5.2.0 (Unreleased)
 
 ENHANCEMENTS:
+* dependencies: `go-azure-sdk` - update to `v0.20260811.1225050` [GH-33079]
 
 FEATURES:
 
