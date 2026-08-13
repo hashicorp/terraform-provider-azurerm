@@ -1,0 +1,25 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
+package validate
+
+import (
+	"fmt"
+	"regexp"
+)
+
+func ManagedDiskName(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
+		return
+	}
+
+	// Azure Managed Disk names are between 1 and 80 characters, must start with a letter or number,
+	// end with a letter, number or underscore, and may contain letters, numbers, underscores, periods or hyphens.
+	if !regexp.MustCompile(`^[a-zA-Z0-9]([-._a-zA-Z0-9]{0,78}[a-zA-Z0-9_])?$`).MatchString(v) {
+		errors = append(errors, fmt.Errorf("%q must be between 1 and 80 characters long, must start with a letter or number, must end with a letter, number or underscore, and may only contain letters, numbers, underscores, periods or hyphens, got %q", k, v))
+	}
+
+	return
+}
