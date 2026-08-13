@@ -27,6 +27,7 @@ func TestAccSiteRecoveryReplicatedVm_managedDiskMembership(t *testing.T) {
 				check.That(data.ResourceName).Key("managed_disk.#").HasValue("1"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.managedDiskMembershipAdded(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -34,6 +35,7 @@ func TestAccSiteRecoveryReplicatedVm_managedDiskMembership(t *testing.T) {
 				check.That(data.ResourceName).Key("managed_disk.#").HasValue("2"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.managedDiskMembershipUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -41,7 +43,7 @@ func TestAccSiteRecoveryReplicatedVm_managedDiskMembership(t *testing.T) {
 				check.That(data.ResourceName).Key("managed_disk.#").HasValue("2"),
 			),
 		},
-
+		data.ImportStep(),
 		{
 			Config: r.managedDiskMembershipRemovedDiskForceNew(data),
 			ConfigPlanChecks: resource.ConfigPlanChecks{
@@ -51,6 +53,7 @@ func TestAccSiteRecoveryReplicatedVm_managedDiskMembership(t *testing.T) {
 			},
 			ExpectError: regexp.MustCompile("INTENTIONAL_PLAN_ABORT_FOR_REPLACE"),
 		},
+		data.ImportStep(),
 		{
 			Config: r.managedDiskMembershipForceNewStagingStorageAccount(data),
 			ConfigPlanChecks: resource.ConfigPlanChecks{
