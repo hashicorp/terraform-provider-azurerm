@@ -720,16 +720,14 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	}
 	if nodeSubnetID != nil {
 		// Wait for vnet and node subnet to come back to Succeeded before releasing any locks
-		err = network.NewSubnetAndVnetPoller(subnetClient, vnetClient, nodeSubnetID, timeout).Poll(ctx)
-		if err != nil {
+		if err = network.NewSubnetAndVnetPoller(subnetClient, vnetClient, nodeSubnetID, timeout).Poll(ctx); err != nil {
 			return fmt.Errorf("waiting for provisioning state of subnet for AKS Node Pool creation %s: %+v", *nodeSubnetID, err)
 		}
 	}
 
 	if podSubnetID != nil {
 		// Wait for vnet and pod subnet to come back to Succeeded before releasing any locks
-		err = network.NewSubnetAndVnetPoller(subnetClient, vnetClient, podSubnetID, timeout).Poll(ctx)
-		if err != nil {
+		if err = network.NewSubnetAndVnetPoller(subnetClient, vnetClient, podSubnetID, timeout).Poll(ctx); err != nil {
 			return fmt.Errorf("waiting for provisioning state of the pod subnet for AKS Node Pool creation %s: %+v", *podSubnetID, err)
 		}
 	}
@@ -1039,8 +1037,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 
 		log.Printf("[DEBUG] Cycled Node Pool..")
 	} else {
-		err = client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, agentpools.DefaultCreateOrUpdateOperationOptions())
-		if err != nil {
+		if err = client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, agentpools.DefaultCreateOrUpdateOperationOptions()); err != nil {
 			return fmt.Errorf("updating Node Pool %s: %+v", *id, err)
 		}
 	}
@@ -1243,8 +1240,7 @@ func resourceKubernetesClusterNodePoolDelete(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id, agentpools.DefaultDeleteOperationOptions())
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id, agentpools.DefaultDeleteOperationOptions()); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

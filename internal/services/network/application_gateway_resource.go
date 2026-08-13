@@ -5146,8 +5146,7 @@ func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceD
 	tier := d.Get("sku.0.tier").(string)
 
 	if tier == string(applicationgateways.ApplicationGatewaySkuNameBasic) {
-		err := checkBasicSkuFeatures(d)
-		if err != nil {
+		if err := checkBasicSkuFeatures(d); err != nil {
 			return err
 		}
 	} else if !hasAutoscaleConfig && !hasCapacity {

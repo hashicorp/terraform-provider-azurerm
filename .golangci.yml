@@ -86,7 +86,6 @@ linters:
         type: module
         settings:
           disable:
-            - AZG001 # 'err' assignment should be combined many MANY hits, to fix in another pr
             - AZR002 # splite create and udpate: ~350 todo over time
             - AZT002 #tests should not obtain credentials via os.Getenv - investigate in a later pr
             - AZR004 #Resource IDs should not be compared with == or != - to fix in a later commit

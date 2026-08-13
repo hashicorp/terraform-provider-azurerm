@@ -235,10 +235,9 @@ func (r ManagerSecurityAdminConfigurationResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			err = client.DeleteThenPoll(ctx, *id, securityadminconfigurations.DeleteOperationOptions{
+			if err = client.DeleteThenPoll(ctx, *id, securityadminconfigurations.DeleteOperationOptions{
 				Force: pointer.To(true),
-			})
-			if err != nil {
+			}); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 

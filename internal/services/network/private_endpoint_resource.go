@@ -374,7 +374,7 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	// TODO: refactor to remove Retry func
 	// TODO: implement callback
-	err := pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
+	if err := pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
 		result, err := client.CreateOrUpdate(ctx, id, parameters)
 		if err != nil {
 			return &pluginsdk.RetryError{
@@ -416,8 +416,7 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 
 		return nil
-	})
-	if err != nil {
+	}); err != nil {
 		return err
 	}
 
@@ -537,16 +536,14 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	err = validatePrivateLinkServiceId(*parameters.Properties.PrivateLinkServiceConnections)
-	if err != nil {
+	if err = validatePrivateLinkServiceId(*parameters.Properties.PrivateLinkServiceConnections); err != nil {
 		return err
 	}
-	err = validatePrivateLinkServiceId(*parameters.Properties.ManualPrivateLinkServiceConnections)
-	if err != nil {
+	if err = validatePrivateLinkServiceId(*parameters.Properties.ManualPrivateLinkServiceConnections); err != nil {
 		return err
 	}
 
-	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
+	if err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
 		if err = client.CreateOrUpdateThenPoll(ctx, *id, parameters); err != nil {
 			switch {
 			case strings.EqualFold(err.Error(), "is missing required parameter 'group Id'"):
@@ -571,8 +568,7 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 
 		return nil
-	})
-	if err != nil {
+	}); err != nil {
 		return err
 	}
 

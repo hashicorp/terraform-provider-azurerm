@@ -281,8 +281,7 @@ func (r MsSqlFailoverGroupResource) Update() sdk.ResourceFunc {
 			}
 
 			// client.Update doesn't support changing the PartnerServers
-			err = client.CreateOrUpdateThenPoll(ctx, *id, properties)
-			if err != nil {
+			if err = client.CreateOrUpdateThenPoll(ctx, *id, properties); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -364,8 +363,7 @@ func (r MsSqlFailoverGroupResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			err = client.DeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 

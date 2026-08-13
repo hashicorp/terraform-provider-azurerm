@@ -218,8 +218,7 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Read() sdk.R
 			}
 			if !ASGInPE {
 				log.Printf("ApplicationSecurityGroup %q does not exist in %q, removing from state.", ASGId, privateEndpointId)
-				err := metadata.MarkAsGone(resourceId)
-				if err != nil {
+				if err := metadata.MarkAsGone(resourceId); err != nil {
 					return err
 				}
 			}

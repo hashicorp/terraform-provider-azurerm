@@ -1709,8 +1709,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 			},
 		}
 
-		err := disksClient.UpdateThenPoll(ctx, id, update)
-		if err != nil {
+		if err := disksClient.UpdateThenPoll(ctx, id, update); err != nil {
 			return fmt.Errorf("resizing OS Disk %q for Windows Virtual Machine %q (Resource Group %q): %+v", diskName, id.DiskName, id.ResourceGroupName, err)
 		}
 
@@ -1739,8 +1738,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 				},
 			}
 
-			err = disksClient.UpdateThenPoll(ctx, id, update)
-			if err != nil {
+			if err = disksClient.UpdateThenPoll(ctx, id, update); err != nil {
 				return fmt.Errorf("updating encryption settings of OS Disk %q for Windows Virtual Machine %q (Resource Group %q): %+v", diskName, id.DiskName, id.ResourceGroupName, err)
 			}
 		} else {

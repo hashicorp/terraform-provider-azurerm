@@ -265,8 +265,7 @@ func (r ApplicationInsightsWorkbookTemplateResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("template_data") {
 				var templateDataValue interface{}
-				err := json.Unmarshal([]byte(model.TemplateData), &templateDataValue)
-				if err != nil {
+				if err := json.Unmarshal([]byte(model.TemplateData), &templateDataValue); err != nil {
 					return err
 				}
 

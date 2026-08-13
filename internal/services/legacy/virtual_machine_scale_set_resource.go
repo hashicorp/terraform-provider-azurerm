@@ -2229,8 +2229,7 @@ func expandAzureRMVirtualMachineScaleSetExtensions(d *pluginsdk.ResourceData) (*
 
 		if s := config["settings"].(string); s != "" {
 			var result interface{}
-			err := json.Unmarshal([]byte(s), &result)
-			if err != nil {
+			if err := json.Unmarshal([]byte(s), &result); err != nil {
 				return nil, fmt.Errorf("unmarshaling `settings`: %+v", err)
 			}
 			extension.Properties.Settings = pointer.To(result)
@@ -2238,8 +2237,7 @@ func expandAzureRMVirtualMachineScaleSetExtensions(d *pluginsdk.ResourceData) (*
 
 		if s := config["protected_settings"].(string); s != "" {
 			var result interface{}
-			err := json.Unmarshal([]byte(s), &result)
-			if err != nil {
+			if err := json.Unmarshal([]byte(s), &result); err != nil {
 				return nil, fmt.Errorf("unmarshaling `protected_settings`: %+v", err)
 			}
 			extension.Properties.ProtectedSettings = pointer.To(result)

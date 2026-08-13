@@ -489,8 +489,7 @@ func expandAppCustomPersistentDiskResourceArray(input []interface{}, id parse.Sp
 func expandSpringCloudAppAddon(input string) (map[string]interface{}, error) {
 	var addonConfig map[string]interface{}
 	if len(input) != 0 {
-		err := json.Unmarshal([]byte(input), &addonConfig)
-		if err != nil {
+		if err := json.Unmarshal([]byte(input), &addonConfig); err != nil {
 			return nil, fmt.Errorf("unable to unmarshal `addon_json`: %+v", err)
 		}
 	}

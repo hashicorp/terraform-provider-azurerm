@@ -379,8 +379,7 @@ func resourceHealthcareServiceDelete(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	err = client.ServicesDeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.ServicesDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting Healthcare Service %q (Resource Group %q): %+v", id.ServiceName, id.ResourceGroupName, err)
 	}
 	return nil
