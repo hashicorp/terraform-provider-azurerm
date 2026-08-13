@@ -155,7 +155,7 @@ func resourceStorageContainerCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	payload := blobcontainers.BlobContainer{
 		Properties: &blobcontainers.ContainerProperties{
-			PublicAccess: pointer.To(blobcontainers.PublicAccess(containerAccessTypeConversionMap[accessLevelRaw])),
+			PublicAccess: pointer.ToEnum[blobcontainers.PublicAccess](containerAccessTypeConversionMap[accessLevelRaw]),
 			Metadata:     pointer.To(metaData),
 		},
 	}
@@ -202,7 +202,7 @@ func resourceStorageContainerUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	if d.HasChange("container_access_type") {
 		accessLevelRaw := d.Get("container_access_type").(string)
-		update.Properties.PublicAccess = pointer.To(blobcontainers.PublicAccess(containerAccessTypeConversionMap[accessLevelRaw]))
+		update.Properties.PublicAccess = pointer.ToEnum[blobcontainers.PublicAccess](containerAccessTypeConversionMap[accessLevelRaw])
 	}
 
 	if d.HasChange("metadata") {

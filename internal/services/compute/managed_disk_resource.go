@@ -474,7 +474,7 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
-	props.NetworkAccessPolicy = pointer.To(disks.NetworkAccessPolicy(d.Get("network_access_policy").(string)))
+	props.NetworkAccessPolicy = pointer.ToEnum[disks.NetworkAccessPolicy](d.Get("network_access_policy").(string))
 
 	if diskAccessID := d.Get("disk_access_id").(string); d.HasChange("disk_access_id") {
 		switch {
@@ -761,7 +761,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if d.HasChange("network_access_policy") {
-		diskUpdate.Properties.NetworkAccessPolicy = pointer.To(disks.NetworkAccessPolicy(d.Get("network_access_policy").(string)))
+		diskUpdate.Properties.NetworkAccessPolicy = pointer.ToEnum[disks.NetworkAccessPolicy](d.Get("network_access_policy").(string))
 	}
 
 	if diskAccessID := d.Get("disk_access_id").(string); d.HasChange("disk_access_id") {

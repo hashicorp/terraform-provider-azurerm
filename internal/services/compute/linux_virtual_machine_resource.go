@@ -547,7 +547,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 				GalleryApplications: expandVirtualMachineGalleryApplication(d.Get("gallery_application").([]interface{})),
 			},
 			HardwareProfile: &virtualmachines.HardwareProfile{
-				VMSize: pointer.To(virtualmachines.VirtualMachineSizeTypes(size)),
+				VMSize: pointer.ToEnum[virtualmachines.VirtualMachineSizeTypes](size),
 			},
 			NetworkProfile: &virtualmachines.NetworkProfile{
 				NetworkInterfaces: &networkInterfaceIds,
@@ -618,7 +618,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		}
 
 		params.Properties.OsProfile.LinuxConfiguration.PatchSettings = &virtualmachines.LinuxPatchSettings{
-			PatchMode: pointer.To(virtualmachines.LinuxVMGuestPatchMode(patchMode)),
+			PatchMode: pointer.ToEnum[virtualmachines.LinuxVMGuestPatchMode](patchMode),
 		}
 
 		mode := string(virtualmachines.LinuxVMGuestPatchModeImageDefault)
@@ -634,7 +634,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		if params.Properties.OsProfile.LinuxConfiguration.PatchSettings == nil {
 			params.Properties.OsProfile.LinuxConfiguration.PatchSettings = &virtualmachines.LinuxPatchSettings{}
 		}
-		params.Properties.OsProfile.LinuxConfiguration.PatchSettings.AssessmentMode = pointer.To(virtualmachines.LinuxPatchAssessmentMode(mode))
+		params.Properties.OsProfile.LinuxConfiguration.PatchSettings.AssessmentMode = pointer.ToEnum[virtualmachines.LinuxPatchAssessmentMode](mode)
 
 		if d.Get("bypass_platform_safety_checks_on_user_schedule_enabled").(bool) {
 			if patchMode != string(virtualmachines.LinuxVMGuestPatchModeAutomaticByPlatform) {
@@ -665,7 +665,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 				params.Properties.OsProfile.LinuxConfiguration.PatchSettings.AutomaticByPlatformSettings = &virtualmachines.LinuxVMGuestPatchAutomaticByPlatformSettings{}
 			}
 
-			params.Properties.OsProfile.LinuxConfiguration.PatchSettings.AutomaticByPlatformSettings.RebootSetting = pointer.To(virtualmachines.LinuxVMGuestPatchAutomaticByPlatformRebootSetting(v.(string)))
+			params.Properties.OsProfile.LinuxConfiguration.PatchSettings.AutomaticByPlatformSettings.RebootSetting = pointer.ToEnum[virtualmachines.LinuxVMGuestPatchAutomaticByPlatformRebootSetting](v.(string))
 		}
 
 		adminPassword := d.Get("admin_password").(string)
@@ -696,7 +696,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 	params.Properties.StorageProfile.OsDisk = osDisk
 
 	if diskControllerType, ok := d.GetOk("disk_controller_type"); ok {
-		params.Properties.StorageProfile.DiskControllerType = pointer.To(virtualmachines.DiskControllerTypes(diskControllerType.(string)))
+		params.Properties.StorageProfile.DiskControllerType = pointer.ToEnum[virtualmachines.DiskControllerTypes](diskControllerType.(string))
 	}
 
 	if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
@@ -816,7 +816,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 			return fmt.Errorf("an `eviction_policy` can only be specified when `priority` is set to `Spot`")
 		}
 
-		params.Properties.EvictionPolicy = pointer.To(virtualmachines.VirtualMachineEvictionPolicyTypes(evictionPolicyRaw.(string)))
+		params.Properties.EvictionPolicy = pointer.ToEnum[virtualmachines.VirtualMachineEvictionPolicyTypes](evictionPolicyRaw.(string))
 	} else if priority == virtualmachines.VirtualMachinePriorityTypesSpot {
 		return fmt.Errorf("an `eviction_policy` must be specified when `priority` is set to `Spot`")
 	}
@@ -1347,7 +1347,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 			update.Properties.StorageProfile = &virtualmachines.StorageProfile{}
 		}
 
-		update.Properties.StorageProfile.DiskControllerType = pointer.To(virtualmachines.DiskControllerTypes(d.Get("disk_controller_type").(string)))
+		update.Properties.StorageProfile.DiskControllerType = pointer.ToEnum[virtualmachines.DiskControllerTypes](d.Get("disk_controller_type").(string))
 	}
 
 	if d.HasChange("os_disk") {
@@ -1441,7 +1441,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 
 		update.Properties.HardwareProfile = &virtualmachines.HardwareProfile{
-			VMSize: pointer.To(virtualmachines.VirtualMachineSizeTypes(vmSize)),
+			VMSize: pointer.ToEnum[virtualmachines.VirtualMachineSizeTypes](vmSize),
 		}
 	}
 
@@ -1450,7 +1450,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		patchSettings := &virtualmachines.LinuxPatchSettings{}
 
 		if patchMode, ok := d.GetOk("patch_mode"); ok {
-			patchSettings.PatchMode = pointer.To(virtualmachines.LinuxVMGuestPatchMode(patchMode.(string)))
+			patchSettings.PatchMode = pointer.ToEnum[virtualmachines.LinuxVMGuestPatchMode](patchMode.(string))
 		} else {
 			patchSettings.PatchMode = pointer.To(virtualmachines.LinuxVMGuestPatchModeImageDefault)
 		}
@@ -1486,7 +1486,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 			update.Properties.OsProfile.LinuxConfiguration.PatchSettings = &virtualmachines.LinuxPatchSettings{}
 		}
 
-		update.Properties.OsProfile.LinuxConfiguration.PatchSettings.AssessmentMode = pointer.To(virtualmachines.LinuxPatchAssessmentMode(assessmentMode))
+		update.Properties.OsProfile.LinuxConfiguration.PatchSettings.AssessmentMode = pointer.ToEnum[virtualmachines.LinuxPatchAssessmentMode](assessmentMode)
 	}
 
 	isPatchModeAutomaticByPlatform := d.Get("patch_mode") == string(virtualmachines.LinuxVMGuestPatchModeAutomaticByPlatform)
@@ -1542,7 +1542,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 				update.Properties.OsProfile.LinuxConfiguration.PatchSettings.AutomaticByPlatformSettings = &virtualmachines.LinuxVMGuestPatchAutomaticByPlatformSettings{}
 			}
 
-			update.Properties.OsProfile.LinuxConfiguration.PatchSettings.AutomaticByPlatformSettings.RebootSetting = pointer.To(virtualmachines.LinuxVMGuestPatchAutomaticByPlatformRebootSetting(rebootSetting))
+			update.Properties.OsProfile.LinuxConfiguration.PatchSettings.AutomaticByPlatformSettings.RebootSetting = pointer.ToEnum[virtualmachines.LinuxVMGuestPatchAutomaticByPlatformRebootSetting](rebootSetting)
 		}
 	}
 
