@@ -5,6 +5,11 @@ name: TeamCity Run Tests on Comment
 # '/test [-b] [-f] [-s service] <TestPrefix>' on a PR. Verifies terraform-azure team
 # membership (or the allow-list) before dispatching via katbyte/tctest.
 # -f/-force bypasses the max-builds-per-pr limit.
+#
+# SECURITY: the failure comment may only ever contain tctest's stderr, which is
+# limited to trigger/discovery errors (bad flags, merge conflicts, GitHub/TeamCity
+# API errors). tctest is invoked without --wait, so it never fetches TeamCity build
+# logs and no build/test output can ever be echoed back onto a public PR.
 
 on:
   issue_comment:
@@ -112,12 +117,12 @@ jobs:
         with:
           path: ~/go/bin/tctest
           # keep this key in sync with the pinned version installed below
-          key: tctest-${{ runner.os }}-v1.2.0
+          key: tctest-${{ runner.os }}-v1.3.0
 
       - name: Install tctest
         if: steps.cache-tctest.outputs.cache-hit != 'true'
         run: |
-          go install github.com/katbyte/tctest@v1.2.0
+          go install github.com/katbyte/tctest@v1.3.0
 
       - name: Get PR commit SHA
         id: get-pr-sha
@@ -320,6 +325,12 @@ jobs:
             if (limit) {
               body = `❌ This would trigger builds on **${limit[1]}** services, exceeding the limit of ${limit[2]}.\n\n` +
                 `Re-run with \`/test -f\` (or \`/test -force\`) to run them anyway.`;
+            } else if (errors.includes('has merge conflicts')) {
+              body = '❌ This PR has merge conflicts — TeamCity tests cannot run until they are resolved.\n\n' +
+                'Merge the base branch (or rebase), then comment `/test` again.';
+            } else if (errors.includes('no builds were triggered')) {
+              body = '❌ No TeamCity builds were triggered — no acceptance tests could be discovered from this PR\'s changed files.\n\n' +
+                'If this PR does have acceptance tests, re-run with an explicit prefix, e.g. `/test TestAccFoo`.';
             } else {
               body = '❌ Failed to trigger TeamCity tests.';
               if (errors) {
