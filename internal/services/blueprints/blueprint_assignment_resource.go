@@ -174,7 +174,7 @@ func resourceBlueprintAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 	if lockModeRaw, ok := d.GetOk("lock_mode"); ok {
 		assignmentLockSettings := &assignment.AssignmentLockSettings{}
 		lockMode := lockModeRaw.(string)
-		assignmentLockSettings.Mode = pointer.To(assignment.AssignmentLockMode(lockMode))
+		assignmentLockSettings.Mode = pointer.ToEnum[assignment.AssignmentLockMode](lockMode)
 		if lockMode != "None" {
 			excludedPrincipalsRaw := d.Get("lock_exclude_principals").([]interface{})
 			if len(excludedPrincipalsRaw) != 0 {

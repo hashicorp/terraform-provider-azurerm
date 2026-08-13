@@ -221,7 +221,7 @@ func (r MaintenanceDynamicScopeResource) Create() sdk.ResourceFunc {
 					}
 
 					tagProperties := &configurationassignments.TagSettingsProperties{
-						FilterOperator: pointer.To(configurationassignments.TagOperators(filter.TagFilter)),
+						FilterOperator: pointer.ToEnum[configurationassignments.TagOperators](filter.TagFilter),
 						Tags:           pointer.To(tags),
 					}
 					filterProperties.TagSettings = tagProperties
@@ -352,7 +352,7 @@ func (MaintenanceDynamicScopeResource) Update() sdk.ResourceFunc {
 						}
 
 						tagProperties := &configurationassignments.TagSettingsProperties{
-							FilterOperator: pointer.To(configurationassignments.TagOperators(filter.TagFilter)),
+							FilterOperator: pointer.ToEnum[configurationassignments.TagOperators](filter.TagFilter),
 							Tags:           pointer.To(tags),
 						}
 						filterProperties.TagSettings = tagProperties

@@ -197,7 +197,7 @@ func resourceCosmosDbSQLContainerCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	db.Properties.Resource.PartitionKey = &cosmosdb.ContainerPartitionKey{
-		Kind: pointer.To(cosmosdb.PartitionKind(d.Get("partition_key_kind").(string))),
+		Kind: pointer.ToEnum[cosmosdb.PartitionKind](d.Get("partition_key_kind").(string)),
 	}
 
 	if v, ok := d.GetOk("partition_key_paths"); ok {
@@ -272,7 +272,7 @@ func resourceCosmosDbSQLContainerUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	db.Properties.Resource.PartitionKey = &cosmosdb.ContainerPartitionKey{
-		Kind: pointer.To(cosmosdb.PartitionKind(d.Get("partition_key_kind").(string))),
+		Kind: pointer.ToEnum[cosmosdb.PartitionKind](d.Get("partition_key_kind").(string)),
 	}
 
 	if v, ok := d.GetOk("partition_key_paths"); ok {

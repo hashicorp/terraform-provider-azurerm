@@ -295,7 +295,7 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		Sku:      sku,
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		Properties: &elasticpools.ElasticPoolProperties{
-			LicenseType:                pointer.To(elasticpools.ElasticPoolLicenseType(d.Get("license_type").(string))),
+			LicenseType:                pointer.ToEnum[elasticpools.ElasticPoolLicenseType](d.Get("license_type").(string)),
 			PerDatabaseSettings:        expandMsSqlElasticPoolPerDatabaseSettings(d),
 			ZoneRedundant:              pointer.To(d.Get("zone_redundant").(bool)),
 			MaintenanceConfigurationId: pointer.To(maintenanceConfigId.ID()),
@@ -309,7 +309,7 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 
 	// NOTE: The service default is actually nil/empty which indicates enclave is disabled. the value `Default` is NOT the default.
 	if v, ok := d.GetOk("enclave_type"); ok && v.(string) != "" {
-		elasticPool.Properties.PreferredEnclaveType = pointer.To(elasticpools.AlwaysEncryptedEnclaveType(v.(string)))
+		elasticPool.Properties.PreferredEnclaveType = pointer.ToEnum[elasticpools.AlwaysEncryptedEnclaveType](v.(string))
 	}
 
 	if d.HasChange("max_size_gb") {

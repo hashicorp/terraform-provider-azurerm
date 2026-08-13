@@ -144,7 +144,7 @@ func resourceCdnFrontDoorProfileCreate(d *pluginsdk.ResourceData, meta interface
 			OriginResponseTimeoutSeconds: pointer.To(int64(d.Get("response_timeout_seconds").(int))),
 		},
 		Sku: profiles.Sku{
-			Name: pointer.To(profiles.SkuName(d.Get("sku_name").(string))),
+			Name: pointer.ToEnum[profiles.SkuName](d.Get("sku_name").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}

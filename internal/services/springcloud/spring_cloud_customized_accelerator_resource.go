@@ -280,7 +280,7 @@ func (s SpringCloudCustomizedAcceleratorResource) Create() sdk.ResourceFunc {
 
 			CustomizedAcceleratorResource := appplatform.CustomizedAcceleratorResource{
 				Properties: &appplatform.CustomizedAcceleratorProperties{
-					AcceleratorType: pointer.To(appplatform.CustomizedAcceleratorType(model.AcceleratorType)),
+					AcceleratorType: pointer.ToEnum[appplatform.CustomizedAcceleratorType](model.AcceleratorType),
 					DisplayName:     pointer.To(model.DisplayName),
 					Description:     pointer.To(model.Description),
 					IconURL:         pointer.To(model.IconURL),
@@ -334,7 +334,7 @@ func (s SpringCloudCustomizedAcceleratorResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("accelerator_type") {
-				properties.AcceleratorType = pointer.To(appplatform.CustomizedAcceleratorType(model.AcceleratorType))
+				properties.AcceleratorType = pointer.ToEnum[appplatform.CustomizedAcceleratorType](model.AcceleratorType)
 			}
 
 			if metadata.ResourceData.HasChange("description") {

@@ -179,7 +179,7 @@ func resourceApiManagementSubscriptionCreateUpdate(d *pluginsdk.ResourceData, me
 		Properties: &subscription.SubscriptionCreateParameterProperties{
 			DisplayName:  displayName,
 			Scope:        scope,
-			State:        pointer.To(subscription.SubscriptionState(state)),
+			State:        pointer.ToEnum[subscription.SubscriptionState](state),
 			AllowTracing: pointer.To(allowTracing),
 		},
 	}

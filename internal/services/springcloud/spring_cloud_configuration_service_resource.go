@@ -233,7 +233,7 @@ func (s SpringCloudConfigurationServiceResource) Create() sdk.ResourceFunc {
 
 			configurationServiceResource := appplatform.ConfigurationServiceResource{
 				Properties: &appplatform.ConfigurationServiceProperties{
-					Generation: pointer.To(appplatform.ConfigurationServiceGeneration(model.Generation)),
+					Generation: pointer.ToEnum[appplatform.ConfigurationServiceGeneration](model.Generation),
 					Settings: &appplatform.ConfigurationServiceSettings{
 						GitProperty: &appplatform.ConfigurationServiceGitProperty{
 							Repositories: expandConfigurationServiceConfigurationServiceGitRepositoryArray(model.Repository),
@@ -280,7 +280,7 @@ func (s SpringCloudConfigurationServiceResource) Update() sdk.ResourceFunc {
 
 			properties := existing.Model.Properties
 			if metadata.ResourceData.HasChange("generation") {
-				properties.Generation = pointer.To(appplatform.ConfigurationServiceGeneration(model.Generation))
+				properties.Generation = pointer.ToEnum[appplatform.ConfigurationServiceGeneration](model.Generation)
 			}
 
 			if metadata.ResourceData.HasChange("repository") {

@@ -158,7 +158,7 @@ func resourceRecoveryServicesBackupProtectedVMCreate(d *pluginsdk.ResourceData, 
 
 		updateInput := protecteditems.ProtectedItemResource{
 			Properties: &protecteditems.AzureIaaSComputeVMProtectedItem{
-				ProtectionState:  pointer.To(protecteditems.ProtectionState(protectionState)),
+				ProtectionState:  pointer.ToEnum[protecteditems.ProtectionState](protectionState),
 				SourceResourceId: pointer.To(vmId),
 			},
 		}
@@ -279,7 +279,7 @@ func resourceRecoveryServicesBackupProtectedVMUpdate(d *pluginsdk.ResourceData, 
 				return err
 			}
 		}
-		properties.ProtectionState = pointer.To(protecteditems.ProtectionState(protectionState))
+		properties.ProtectionState = pointer.ToEnum[protecteditems.ProtectionState](protectionState)
 	}
 	model.Properties = properties
 
