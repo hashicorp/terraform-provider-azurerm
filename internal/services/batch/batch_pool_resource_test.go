@@ -1288,12 +1288,11 @@ resource "azurerm_batch_pool" "test" {
     }
   }
 }
-`, template, data.RandomString, data.RandomString)
+`, BatchPoolResource{}.template(data), data.RandomString, data.RandomString)
 }
 
 // testing unset start_task_bind_mount
 func (BatchPoolResource) startTask_complete_update(data acceptance.TestData) string {
-	template := BatchPoolResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
