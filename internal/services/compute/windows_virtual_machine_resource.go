@@ -21,7 +21,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -1544,8 +1544,8 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 			return fmt.Errorf("retrieving available sizes for Windows %s: %+v", id, err)
 		}
 
-		if sizes.Model != nil && sizes.Model.Value != nil {
-			for _, size := range *sizes.Model.Value {
+		if sizes.Model != nil {
+			for _, size := range *sizes.Model {
 				if size.Name == nil {
 					continue
 				}
