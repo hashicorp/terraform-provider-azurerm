@@ -128,9 +128,9 @@ func resourceDatadogSingleSignOnConfigurationsCreate(d *pluginsdk.ResourceData, 
 	}
 
 	if v, ok := d.GetOk("single_sign_on"); ok {
-		payload.Properties.SingleSignOnState = pointer.To(singlesignon.SingleSignOnStates(v.(string)))
+		payload.Properties.SingleSignOnState = pointer.ToEnum[singlesignon.SingleSignOnStates](v.(string))
 	} else if !features.FivePointOh() {
-		payload.Properties.SingleSignOnState = pointer.To(singlesignon.SingleSignOnStates(d.Get("single_sign_on_enabled").(string)))
+		payload.Properties.SingleSignOnState = pointer.ToEnum[singlesignon.SingleSignOnStates](d.Get("single_sign_on_enabled").(string))
 	}
 
 	if err := client.ConfigurationsCreateOrUpdateCallbackThenPoll(ctx, id, payload, sdk.SetIDCallback(meta, &id, d)); err != nil {
@@ -196,9 +196,9 @@ func resourceDatadogSingleSignOnConfigurationsUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	if v, ok := d.GetOk("single_sign_on"); ok && d.HasChange("single_sign_on") {
-		payload.Properties.SingleSignOnState = pointer.To(singlesignon.SingleSignOnStates(v.(string)))
+		payload.Properties.SingleSignOnState = pointer.ToEnum[singlesignon.SingleSignOnStates](v.(string))
 	} else if !features.FivePointOh() {
-		payload.Properties.SingleSignOnState = pointer.To(singlesignon.SingleSignOnStates(d.Get("single_sign_on_enabled").(string)))
+		payload.Properties.SingleSignOnState = pointer.ToEnum[singlesignon.SingleSignOnStates](d.Get("single_sign_on_enabled").(string))
 	}
 
 	if err := client.ConfigurationsCreateOrUpdateThenPoll(ctx, *id, payload); err != nil {

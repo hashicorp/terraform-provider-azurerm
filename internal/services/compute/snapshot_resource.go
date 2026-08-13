@@ -195,7 +195,7 @@ func resourceSnapshotCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if v, ok := d.GetOk("network_access_policy"); ok {
-		properties.Properties.NetworkAccessPolicy = pointer.To(snapshots.NetworkAccessPolicy(v.(string)))
+		properties.Properties.NetworkAccessPolicy = pointer.ToEnum[snapshots.NetworkAccessPolicy](v.(string))
 	}
 
 	if v, ok := d.GetOk("disk_access_id"); ok {

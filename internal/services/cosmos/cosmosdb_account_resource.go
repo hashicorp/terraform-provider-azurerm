@@ -893,7 +893,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			ConsistencyPolicy:                  expandAzureRmCosmosDBAccountConsistencyPolicy(d),
 			Locations:                          geoLocations,
 			Capabilities:                       expandAzureRmCosmosDBAccountCapabilities(d),
-			MinimalTlsVersion:                  pointer.To(cosmosdb.MinimalTlsVersion(d.Get("minimal_tls_version").(string))),
+			MinimalTlsVersion:                  pointer.ToEnum[cosmosdb.MinimalTlsVersion](d.Get("minimal_tls_version").(string)),
 			VirtualNetworkRules:                expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
 			EnableMultipleWriteLocations:       pointer.To(d.Get("multiple_write_locations_enabled").(bool)),
 			EnablePartitionMerge:               pointer.To(d.Get("partition_merge_enabled").(bool)),
@@ -934,7 +934,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	var createMode string
 	if v, ok := d.GetOk("create_mode"); ok {
 		createMode = v.(string)
-		account.Properties.CreateMode = pointer.To(cosmosdb.CreateMode(createMode))
+		account.Properties.CreateMode = pointer.ToEnum[cosmosdb.CreateMode](createMode)
 	}
 
 	if v, ok := d.GetOk("restore"); ok {
@@ -943,7 +943,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	if v, ok := d.GetOk("mongo_server_version"); ok {
 		account.Properties.ApiProperties = &cosmosdb.ApiProperties{
-			ServerVersion: pointer.To(cosmosdb.ServerVersion(v.(string))),
+			ServerVersion: pointer.ToEnum[cosmosdb.ServerVersion](v.(string)),
 		}
 	}
 
@@ -1115,14 +1115,14 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	account := cosmosdb.DatabaseAccountCreateUpdateParameters{
 		Location: pointer.To(location.NormalizeNilable(existing.Model.Location)),
-		Kind:     pointer.To(cosmosdb.DatabaseAccountKind(d.Get("kind").(string))),
+		Kind:     pointer.ToEnum[cosmosdb.DatabaseAccountKind](d.Get("kind").(string)),
 		Properties: cosmosdb.DatabaseAccountCreateUpdateProperties{
 			DatabaseAccountOfferType:           cosmosdb.DatabaseAccountOfferType(d.Get("offer_type").(string)),
 			IPRules:                            common.CosmosDBIpRangeFilterToIpRules(*helpers.ExpandStringSlice(d.Get("ip_range_filter").(*pluginsdk.Set).List())),
 			IsVirtualNetworkFilterEnabled:      pointer.To(d.Get("is_virtual_network_filter_enabled").(bool)),
 			EnableFreeTier:                     existing.Model.Properties.EnableFreeTier,
 			EnableAutomaticFailover:            pointer.To(d.Get("automatic_failover_enabled").(bool)),
-			MinimalTlsVersion:                  pointer.To(cosmosdb.MinimalTlsVersion(d.Get("minimal_tls_version").(string))),
+			MinimalTlsVersion:                  pointer.ToEnum[cosmosdb.MinimalTlsVersion](d.Get("minimal_tls_version").(string)),
 			Capabilities:                       existing.Model.Properties.Capabilities,
 			ConsistencyPolicy:                  expandAzureRmCosmosDBAccountConsistencyPolicy(d),
 			KeyVaultKeyUri:                     existing.Model.Properties.KeyVaultKeyUri,
@@ -1175,7 +1175,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	var createMode string
 	if v, ok := d.GetOk("create_mode"); ok {
 		createMode = v.(string)
-		account.Properties.CreateMode = pointer.To(cosmosdb.CreateMode(createMode))
+		account.Properties.CreateMode = pointer.ToEnum[cosmosdb.CreateMode](createMode)
 	}
 
 	if v, ok := d.GetOk("restore"); ok {
@@ -1184,7 +1184,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	if !pluginsdk.IsExplicitlyNullInConfig(d, "mongo_server_version") {
 		account.Properties.ApiProperties = &cosmosdb.ApiProperties{
-			ServerVersion: pointer.To(cosmosdb.ServerVersion(d.Get("mongo_server_version").(string))),
+			ServerVersion: pointer.ToEnum[cosmosdb.ServerVersion](d.Get("mongo_server_version").(string)),
 		}
 	}
 
@@ -1917,7 +1917,7 @@ func expandCosmosdbAccountBackup(input []interface{}, backupHasChange bool, crea
 
 		if v := attr["tier"].(string); v != "" {
 			result.ContinuousModeProperties = &cosmosdb.ContinuousModeProperties{
-				Tier: pointer.To(cosmosdb.ContinuousTier(v)),
+				Tier: pointer.ToEnum[cosmosdb.ContinuousTier](v),
 			}
 		}
 
@@ -1945,7 +1945,7 @@ func expandCosmosdbAccountBackup(input []interface{}, backupHasChange bool, crea
 		}
 
 		if v := attr["storage_redundancy"].(string); v != "" {
-			periodicModeBackupPolicy.PeriodicModeProperties.BackupStorageRedundancy = pointer.To(cosmosdb.BackupStorageRedundancy(attr["storage_redundancy"].(string)))
+			periodicModeBackupPolicy.PeriodicModeProperties.BackupStorageRedundancy = pointer.ToEnum[cosmosdb.BackupStorageRedundancy](attr["storage_redundancy"].(string))
 		}
 
 		return periodicModeBackupPolicy, nil
@@ -2010,7 +2010,7 @@ func expandCosmosDBAccountAnalyticalStorageConfiguration(input []interface{}) *c
 	v := input[0].(map[string]interface{})
 
 	return &cosmosdb.AnalyticalStorageConfiguration{
-		SchemaType: pointer.To(cosmosdb.AnalyticalStorageSchemaType(v["schema_type"].(string))),
+		SchemaType: pointer.ToEnum[cosmosdb.AnalyticalStorageSchemaType](v["schema_type"].(string)),
 	}
 }
 

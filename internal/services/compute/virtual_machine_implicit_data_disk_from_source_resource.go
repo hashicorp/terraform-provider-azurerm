@@ -169,7 +169,7 @@ func (r VirtualMachineImplicitDataDiskFromSourceResource) Create() sdk.ResourceF
 
 			expandedDisk := virtualmachines.DataDisk{
 				Name:         pointer.To(config.Name),
-				Caching:      pointer.To(virtualmachines.CachingTypes(caching)),
+				Caching:      pointer.ToEnum[virtualmachines.CachingTypes](caching),
 				CreateOption: virtualmachines.DiskCreateOptionTypes(config.CreateOption),
 				DiskSizeGB:   pointer.To(config.DiskSizeGb),
 				Lun:          config.Lun,
@@ -409,7 +409,7 @@ func (r VirtualMachineImplicitDataDiskFromSourceResource) Update() sdk.ResourceF
 									caching = config.Caching
 								}
 
-								expandedDisk.Caching = pointer.To(virtualmachines.CachingTypes(caching))
+								expandedDisk.Caching = pointer.ToEnum[virtualmachines.CachingTypes](caching)
 								needToUpdate = true
 							}
 

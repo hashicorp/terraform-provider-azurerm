@@ -529,15 +529,15 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	t := d.Get("tags").(map[string]interface{})
 
 	profile := agentpools.ManagedClusterAgentPoolProfileProperties{
-		OsType:                 pointer.To(agentpools.OSType(osType)),
+		OsType:                 pointer.ToEnum[agentpools.OSType](osType),
 		EnableAutoScaling:      pointer.To(enableAutoScaling),
 		EnableFIPS:             pointer.To(d.Get("fips_enabled").(bool)),
 		EnableEncryptionAtHost: pointer.To(hostEncryption),
 		EnableUltraSSD:         pointer.To(d.Get("ultra_ssd_enabled").(bool)),
 		EnableNodePublicIP:     pointer.To(nodeIp),
-		KubeletDiskType:        pointer.To(agentpools.KubeletDiskType(d.Get("kubelet_disk_type").(string))),
+		KubeletDiskType:        pointer.ToEnum[agentpools.KubeletDiskType](d.Get("kubelet_disk_type").(string)),
 		Mode:                   pointer.To(mode),
-		ScaleSetPriority:       pointer.To(agentpools.ScaleSetPriority(d.Get("priority").(string))),
+		ScaleSetPriority:       pointer.ToEnum[agentpools.ScaleSetPriority](d.Get("priority").(string)),
 		Tags:                   tags.Expand(t),
 		Type:                   pointer.To(agentpools.AgentPoolTypeVirtualMachineScaleSets),
 		VMSize:                 pointer.To(d.Get("vm_size").(string)),
@@ -549,29 +549,29 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if gpuInstanceProfile := d.Get("gpu_instance").(string); gpuInstanceProfile != "" {
-		profile.GpuInstanceProfile = pointer.To(agentpools.GPUInstanceProfile(gpuInstanceProfile))
+		profile.GpuInstanceProfile = pointer.ToEnum[agentpools.GPUInstanceProfile](gpuInstanceProfile)
 	}
 
 	if gpuDriver := d.Get("gpu_driver").(string); gpuDriver != "" {
 		profile.GpuProfile = &agentpools.GPUProfile{
-			Driver: pointer.To(agentpools.GPUDriver(gpuDriver)),
+			Driver: pointer.ToEnum[agentpools.GPUDriver](gpuDriver),
 		}
 	}
 
 	if osSku := d.Get("os_sku").(string); osSku != "" {
-		profile.OsSKU = pointer.To(agentpools.OSSKU(osSku))
+		profile.OsSKU = pointer.ToEnum[agentpools.OSSKU](osSku)
 	}
 
 	if scaleDownMode := d.Get("scale_down_mode").(string); scaleDownMode != "" {
-		profile.ScaleDownMode = pointer.To(agentpools.ScaleDownMode(scaleDownMode))
+		profile.ScaleDownMode = pointer.ToEnum[agentpools.ScaleDownMode](scaleDownMode)
 	}
 
 	if workloadRuntime := d.Get("workload_runtime").(string); workloadRuntime != "" {
-		profile.WorkloadRuntime = pointer.To(agentpools.WorkloadRuntime(workloadRuntime))
+		profile.WorkloadRuntime = pointer.ToEnum[agentpools.WorkloadRuntime](workloadRuntime)
 	}
 
 	if priority == string(managedclusters.ScaleSetPrioritySpot) {
-		profile.ScaleSetEvictionPolicy = pointer.To(agentpools.ScaleSetEvictionPolicy(evictionPolicy))
+		profile.ScaleSetEvictionPolicy = pointer.ToEnum[agentpools.ScaleSetEvictionPolicy](evictionPolicy)
 		profile.SpotMaxPrice = pointer.To(spotMaxPrice)
 	} else {
 		if evictionPolicy != "" {
@@ -625,7 +625,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if osDiskType := d.Get("os_disk_type").(string); osDiskType != "" {
-		profile.OsDiskType = pointer.To(agentpools.OSDiskType(osDiskType))
+		profile.OsDiskType = pointer.ToEnum[agentpools.OSDiskType](osDiskType)
 	}
 
 	subnetIDsToLock := make([]string, 0)
@@ -790,7 +790,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if d.HasChange("kubelet_disk_type") {
-		props.KubeletDiskType = pointer.To(agentpools.KubeletDiskType(d.Get("kubelet_disk_type").(string)))
+		props.KubeletDiskType = pointer.ToEnum[agentpools.KubeletDiskType](d.Get("kubelet_disk_type").(string))
 	}
 
 	if d.HasChange("linux_os_config") {
@@ -859,7 +859,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if d.HasChange("os_disk_type") {
-		props.OsDiskType = pointer.To(agentpools.OSDiskType(d.Get("os_disk_type").(string)))
+		props.OsDiskType = pointer.ToEnum[agentpools.OSDiskType](d.Get("os_disk_type").(string))
 	}
 
 	if d.HasChange("os_disk_size_gb") {
@@ -867,7 +867,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if d.HasChange("os_sku") {
-		props.OsSKU = pointer.To(agentpools.OSSKU(d.Get("os_sku").(string)))
+		props.OsSKU = pointer.ToEnum[agentpools.OSSKU](d.Get("os_sku").(string))
 	}
 
 	if d.HasChange("pod_subnet_id") {
@@ -1394,7 +1394,7 @@ func expandAgentPoolUpgradeSettings(input []interface{}) *agentpools.AgentPoolUp
 		setting.NodeSoakDurationInMinutes = pointer.To(int64(nodeSoakDurationInMinutesRaw))
 	}
 	if undrainableNodeBehaviorRaw, ok := v["undrainable_node_behavior"].(string); ok && undrainableNodeBehaviorRaw != "" {
-		setting.UndrainableNodeBehavior = pointer.To(agentpools.UndrainableNodeBehavior(undrainableNodeBehaviorRaw))
+		setting.UndrainableNodeBehavior = pointer.ToEnum[agentpools.UndrainableNodeBehavior](undrainableNodeBehaviorRaw)
 	}
 	return setting
 }

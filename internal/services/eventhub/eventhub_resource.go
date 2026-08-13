@@ -471,7 +471,7 @@ func expandEventHubRetentionDescription(d *pluginsdk.ResourceData) *eventhubs.Re
 	cleanupPolicy := input["cleanup_policy"].(string)
 
 	retentionDescription := eventhubs.RetentionDescription{
-		CleanupPolicy: pointer.To(eventhubs.CleanupPolicyRetentionDescription(cleanupPolicy)),
+		CleanupPolicy: pointer.ToEnum[eventhubs.CleanupPolicyRetentionDescription](cleanupPolicy),
 	}
 
 	if cleanupPolicy == string(eventhubs.CleanupPolicyRetentionDescriptionDelete) {
