@@ -299,7 +299,6 @@ func TestAccCdnFrontDoorBatchRuleSet_honorOrigin_attachedRoute(t *testing.T) {
 }
 
 func TestAccCdnFrontDoorBatchRuleSet_honorOrigin_unattachedRoute(t *testing.T) {
-	// NOTE: Root-path regression coverage for an unattached route is kept separate in TestAccCdnFrontDoorBatchRuleSet_requestPathRootValue_unattachedRoute.
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule_set", "test")
 	r := CdnFrontdoorBatchRuleSetResource{}
 
