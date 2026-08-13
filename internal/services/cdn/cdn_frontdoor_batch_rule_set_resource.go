@@ -417,9 +417,9 @@ func (CdnFrontDoorBatchRuleSetResource) Arguments() map[string]*pluginsdk.Schema
 											Optional: true,
 											MaxItems: 25,
 											Elem: &pluginsdk.Schema{
-												// Azure ignores a leading slash in request path values, so both forms are valid.
+												// Azure accepts `/` as the root path, while non-root values must omit the leading slash.
 												Type:         pluginsdk.TypeString,
-												ValidateFunc: validation.StringIsNotEmpty,
+												ValidateFunc: validate.FrontDoorRuleRequestPathMatchValue,
 											},
 										},
 										"transforms": cdnFrontDoorBatchRuleSetConditionTransformsSchema(),
