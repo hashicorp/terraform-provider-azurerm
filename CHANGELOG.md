@@ -1,3 +1,11 @@
+## 5.2.0 (Unreleased)
+
+ENHANCEMENTS:
+
+FEATURES:
+
+BUG FIXES:
+
 ## 5.1.0 (August 13, 2026)
 
 ENHANCEMENTS:
