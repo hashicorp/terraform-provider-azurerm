@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
@@ -29,6 +31,12 @@ func TestAccSecurityCenterAutomation_V0ToV1_501(t *testing.T) {
 		},
 		{
 			Config: r.logicAppV0(data),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					// Ensure import is a no-op to prevent the resource from normalizing the ID due to a combined CreateUpdate func
+					plancheck.ExpectResourceAction(importedResourceName, plancheck.ResourceActionNoop),
+				},
+			},
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(importedResourceName).Key("id").HasValue(fmt.Sprintf("/subscriptions/%[1]s/resourcegroups/acctestRG-%[2]d/providers/microsoft.security/automations/acctestautomation-%[2]d", data.Subscriptions.Primary, data.RandomInteger)),
 			),
@@ -90,6 +98,11 @@ resource "azurerm_security_center_automation" "test-import" {
 
   tags = {
     Env2 = "Test2"
+  }
+
+  lifecycle {
+    # ignore trigger_url, it's not returned on imports
+    ignore_changes = [action.0.trigger_url]
   }
 }
 
