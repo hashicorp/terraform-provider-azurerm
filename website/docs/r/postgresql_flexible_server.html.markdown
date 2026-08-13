@@ -94,7 +94,7 @@ The following arguments are supported:
 
 * `administrator_login` - (Optional) The Administrator login for the PostgreSQL Flexible Server. Required when `create_mode` is `Default` and `authentication.password_auth_enabled` is `true`.
 
--> **Note:** Once `administrator_login` is specified, changing this forces a new PostgreSQL Flexible Server to be created.
+-> **Note:** Once `administrator_login` is specified, changing this back to `null` will be done in-place but changing to another value forces a new PostgreSQL Flexible Server to be created.
 
 -> **Note:** To create with `administrator_login` specified or update with it first specified , `authentication.password_auth_enabled` must be set to `true`.
 
