@@ -235,7 +235,7 @@ resource "azurerm_oracle_exadata_infrastructure" "import" {
 func (a ExadataInfraResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 locals {
-  zones = ["2"]
+  zones = ["3"]
 }
 
 data "azurerm_client_config" "current" {}
