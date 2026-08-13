@@ -295,7 +295,7 @@ func expandFilteringTag(input []interface{}) *[]rules.FilteringTag {
 		filteringTags = append(filteringTags, rules.FilteringTag{
 			Name:   pointer.To(config["name"].(string)),
 			Value:  pointer.To(config["value"].(string)),
-			Action: pointer.To(rules.TagAction(config["action"].(string))),
+			Action: pointer.ToEnum[rules.TagAction](config["action"].(string)),
 		})
 	}
 

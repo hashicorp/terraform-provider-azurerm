@@ -343,7 +343,7 @@ func expandMonitorIdentityProperties(input []interface{}) *monitorsresource.Iden
 	v := input[0].(map[string]interface{})
 	return &monitorsresource.IdentityProperties{
 		// @tombuildsstuff: this should be normalized in Pandora to a common identity type? is this a Swagger bag with SA & UA omitted?
-		Type: pointer.To(monitorsresource.ManagedIdentityTypes(v["type"].(string))),
+		Type: pointer.ToEnum[monitorsresource.ManagedIdentityTypes](v["type"].(string)),
 	}
 }
 
