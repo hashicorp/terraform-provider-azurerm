@@ -22,9 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -33,7 +31,7 @@ import (
 )
 
 func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceNetworkWatcherFlowLogCreate,
 		Read:   resourceNetworkWatcherFlowLogRead,
 		Update: resourceNetworkWatcherFlowLogUpdate,
@@ -180,11 +178,6 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 		CustomizeDiff: func(_ context.Context, d *pluginsdk.ResourceDiff, _ any) error {
 			if d.Id() == "" {
 				targetResourceId := d.Get("target_resource_id").(string)
-				if !features.FivePointOh() {
-					if v, ok := d.GetOk("network_security_group_id"); ok && v.(string) != "" {
-						targetResourceId = v.(string)
-					}
-				}
 
 				if _, err := networksecuritygroups.ParseNetworkSecurityGroupID(targetResourceId); err == nil {
 					return errors.New("creation of new NSG flow logs is no longer supported by Azure as of June 30, 2025. NSG flow logs will be retired on September 30, 2027. For more information, see https://learn.microsoft.com/azure/network-watcher/nsg-flow-logs-migrate")
@@ -194,24 +187,6 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 			return nil
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["network_security_group_id"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: networksecuritygroups.ValidateNetworkSecurityGroupID,
-			Deprecated:   "The property `network_security_group_id` has been superseded by `target_resource_id` and will be removed in version 5.0 of the AzureRM Provider.",
-			ExactlyOneOf: []string{"network_security_group_id", "target_resource_id"},
-		}
-		resource.Schema["target_resource_id"].Required = false
-		resource.Schema["target_resource_id"].Optional = true
-		resource.Schema["target_resource_id"].Computed = true
-		resource.Schema["target_resource_id"].ForceNew = false
-		resource.Schema["target_resource_id"].ExactlyOneOf = []string{"network_security_group_id", "target_resource_id"}
-	}
-
-	return resource
 }
 
 func azureRMSuppressFlowLogRetentionPolicyEnabledDiff(_, old, _ string, d *pluginsdk.ResourceData) bool {
@@ -321,12 +296,6 @@ func resourceNetworkWatcherFlowLogUpdate(d *pluginsdk.ResourceData, meta interfa
 	payload := existing.Model
 
 	targetResourceId := d.Get("target_resource_id").(string)
-	if !features.FivePointOh() {
-		// Need to use RawConfig here since both properties are computed and a `Get`/`GetOk` may return the previously computed value
-		if rawVal, diags := d.GetRawConfigAt(sdk.ConstructCtyPath("network_security_group_id")); !diags.HasError() && !rawVal.IsNull() {
-			targetResourceId = rawVal.AsString()
-		}
-	}
 
 	locks.ByID(targetResourceId)
 	defer locks.UnlockByID(targetResourceId)
@@ -361,7 +330,7 @@ func resourceNetworkWatcherFlowLogUpdate(d *pluginsdk.ResourceData, meta interfa
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	if d.HasChange("target_resource_id") || (!features.FivePointOh() && d.HasChange("network_security_group_id")) {
+	if d.HasChange("target_resource_id") {
 		payload.Properties.TargetResourceId = targetResourceId
 	}
 
@@ -421,26 +390,14 @@ func resourceNetworkWatcherFlowLogRead(d *pluginsdk.ResourceData, meta interface
 			}
 
 			targetResourceId := props.TargetResourceId
-			targetIsNSG := false
 			if nsgId, err := networksecuritygroups.ParseNetworkSecurityGroupIDInsensitively(props.TargetResourceId); err == nil {
 				targetResourceId = nsgId.ID()
-				targetIsNSG = true
 			} else if vnetId, err := commonids.ParseVirtualNetworkIDInsensitively(props.TargetResourceId); err == nil {
 				targetResourceId = vnetId.ID()
 			} else if subnetId, err := commonids.ParseSubnetIDInsensitively(props.TargetResourceId); err == nil {
 				targetResourceId = subnetId.ID()
 			} else if nicId, err := commonids.ParseNetworkInterfaceIDInsensitively(props.TargetResourceId); err == nil {
 				targetResourceId = nicId.ID()
-			}
-
-			if !features.FivePointOh() {
-				if targetIsNSG {
-					d.Set("network_security_group_id", targetResourceId)
-				} else {
-					// If `network_security_group_id` was previously set, and target is no longer an NSG
-					// ensure we remove `network_security_group_id` from state
-					d.Set("network_security_group_id", nil)
-				}
 			}
 
 			d.Set("target_resource_id", targetResourceId)
