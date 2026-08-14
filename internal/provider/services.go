@@ -242,7 +242,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 
 func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 	return func() []sdk.UntypedServiceRegistration {
-		out := []sdk.UntypedServiceRegistration{
+		return []sdk.UntypedServiceRegistration{
 			advisor.Registration{},
 			analysisservices.Registration{},
 			apimanagement.Registration{},
@@ -336,12 +336,11 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			vmware.Registration{},
 			web.Registration{},
 		}
-		return out
 	}()
 }
 
 func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
-	services := []sdk.FrameworkServiceRegistration{
+	return []sdk.FrameworkServiceRegistration{
 		// Services with Framework Resources, Data Sources, or Ephemeral Resources to be listed here
 		// e.g.
 		// resource.Registration{}
@@ -473,6 +472,4 @@ func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
 		web.Registration{},
 		workloads.Registration{},
 	}
-
-	return services
 }

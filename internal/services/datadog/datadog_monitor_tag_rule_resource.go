@@ -381,11 +381,9 @@ func isDefaultSettings(input *rules.MonitoringTagRules) bool {
 
 	logRules := input.Properties.LogRules
 	metricRules := input.Properties.MetricRules
-	result := (logRules.SendAadLogs != nil && !*logRules.SendAadLogs) &&
+	return (logRules.SendAadLogs != nil && !*logRules.SendAadLogs) &&
 		(logRules.SendSubscriptionLogs != nil && !*logRules.SendSubscriptionLogs) &&
 		(logRules.SendResourceLogs != nil && !*logRules.SendResourceLogs) &&
 		(logRules.FilteringTags != nil && len(*logRules.FilteringTags) == 0) &&
 		(metricRules.FilteringTags != nil && len(*metricRules.FilteringTags) == 0)
-
-	return result
 }

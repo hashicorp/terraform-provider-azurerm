@@ -47,7 +47,7 @@ var unsupportedAddonsForEnvironment = map[string][]string{
 }
 
 func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"aci_connector_linux": {
 			Type:     pluginsdk.TypeList,
 			MaxItems: 1,
@@ -278,8 +278,6 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 			},
 		},
 	}
-
-	return out
 }
 
 func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interface{}, env environments.Environment) (*map[string]managedclusters.ManagedClusterAddonProfile, error) {
@@ -356,13 +354,12 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 
 	// Always set the azure_policy addon profile to ensure it's synchronized with Azure on every update
 	azurePolicyEnabled := input["azure_policy_enabled"].(bool)
-	props := managedclusters.ManagedClusterAddonProfile{
+	addonProfiles[azurePolicyKey] = managedclusters.ManagedClusterAddonProfile{
 		Enabled: azurePolicyEnabled,
 		Config: pointer.To(map[string]string{
 			"version": "v2",
 		}),
 	}
-	addonProfiles[azurePolicyKey] = props
 
 	ingressApplicationGateway := input["ingress_application_gateway"].([]interface{})
 	if len(ingressApplicationGateway) > 0 && ingressApplicationGateway[0] != nil {
@@ -405,8 +402,7 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 		value := azureKeyVaultSecretsProvider[0].(map[string]interface{})
 		config := make(map[string]string)
 
-		enableSecretRotation := fmt.Sprintf("%t", value["secret_rotation_enabled"].(bool))
-		config["enableSecretRotation"] = enableSecretRotation
+		config["enableSecretRotation"] = fmt.Sprintf("%t", value["secret_rotation_enabled"].(bool))
 		config["rotationPollInterval"] = value["secret_rotation_interval"].(string)
 
 		addonProfiles[azureKeyvaultSecretsProviderKey] = managedclusters.ManagedClusterAddonProfile{

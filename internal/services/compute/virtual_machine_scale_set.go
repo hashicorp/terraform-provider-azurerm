@@ -810,8 +810,7 @@ func expandVirtualMachineScaleSetIPConfiguration(raw map[string]interface{}) (*v
 	publicIPConfigsRaw := raw["public_ip_address"].([]interface{})
 	if len(publicIPConfigsRaw) > 0 {
 		publicIPConfigRaw := publicIPConfigsRaw[0].(map[string]interface{})
-		publicIPAddressConfig := expandVirtualMachineScaleSetPublicIPAddress(publicIPConfigRaw)
-		ipConfiguration.Properties.PublicIPAddressConfiguration = publicIPAddressConfig
+		ipConfiguration.Properties.PublicIPAddressConfiguration = expandVirtualMachineScaleSetPublicIPAddress(publicIPConfigRaw)
 	}
 
 	return &ipConfiguration, nil
@@ -837,10 +836,9 @@ func expandVirtualMachineScaleSetPublicIPAddress(raw map[string]interface{}) *vi
 	}
 
 	if domainNameLabel := raw["domain_name_label"].(string); domainNameLabel != "" {
-		dns := &virtualmachinescalesets.VirtualMachineScaleSetPublicIPAddressConfigurationDnsSettings{
+		publicIPAddressConfig.Properties.DnsSettings = &virtualmachinescalesets.VirtualMachineScaleSetPublicIPAddressConfigurationDnsSettings{
 			DomainNameLabel: domainNameLabel,
 		}
-		publicIPAddressConfig.Properties.DnsSettings = dns
 	}
 
 	if idleTimeout := raw["idle_timeout_in_minutes"].(int); idleTimeout > 0 {
@@ -950,8 +948,7 @@ func expandVirtualMachineScaleSetIPConfigurationUpdate(raw map[string]interface{
 	publicIPConfigsRaw := raw["public_ip_address"].([]interface{})
 	if len(publicIPConfigsRaw) > 0 {
 		publicIPConfigRaw := publicIPConfigsRaw[0].(map[string]interface{})
-		publicIPAddressConfig := expandVirtualMachineScaleSetPublicIPAddressUpdate(publicIPConfigRaw)
-		ipConfiguration.Properties.PublicIPAddressConfiguration = publicIPAddressConfig
+		ipConfiguration.Properties.PublicIPAddressConfiguration = expandVirtualMachineScaleSetPublicIPAddressUpdate(publicIPConfigRaw)
 	}
 
 	return &ipConfiguration, nil
@@ -964,10 +961,9 @@ func expandVirtualMachineScaleSetPublicIPAddressUpdate(raw map[string]interface{
 	}
 
 	if domainNameLabel := raw["domain_name_label"].(string); domainNameLabel != "" {
-		dns := &virtualmachinescalesets.VirtualMachineScaleSetPublicIPAddressConfigurationDnsSettings{
+		publicIPAddressConfig.Properties.DnsSettings = &virtualmachinescalesets.VirtualMachineScaleSetPublicIPAddressConfigurationDnsSettings{
 			DomainNameLabel: domainNameLabel,
 		}
-		publicIPAddressConfig.Properties.DnsSettings = dns
 	}
 
 	if idleTimeout := raw["idle_timeout_in_minutes"].(int); idleTimeout > 0 {
@@ -1881,7 +1877,7 @@ func FlattenVirtualMachineScaleSetAutomaticRepairsPolicy(input *virtualmachinesc
 }
 
 func VirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
-	schema := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
 		Optional: true,
 		Computed: true,
@@ -1956,8 +1952,6 @@ func VirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 		},
 		Set: virtualMachineScaleSetExtensionHash,
 	}
-
-	return schema
 }
 
 func virtualMachineScaleSetExtensionHash(v interface{}) int {

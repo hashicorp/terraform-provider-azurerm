@@ -483,10 +483,9 @@ func expandAzureRmCosmosDbGremlinGraphIncludedPath(input map[string]interface{})
 
 	for i, pathConfig := range includedPath {
 		attrs := pathConfig.(string)
-		path := cosmosdb.IncludedPath{
+		paths[i] = cosmosdb.IncludedPath{
 			Path: pointer.To(attrs),
 		}
-		paths[i] = path
 	}
 
 	return &paths
@@ -498,10 +497,9 @@ func expandAzureRmCosmosDbGremlinGraphExcludedPath(input map[string]interface{})
 
 	for i, pathConfig := range excludedPath {
 		attrs := pathConfig.(string)
-		path := cosmosdb.ExcludedPath{
+		paths[i] = cosmosdb.ExcludedPath{
 			Path: pointer.To(attrs),
 		}
-		paths[i] = path
 	}
 
 	return &paths
