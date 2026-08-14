@@ -316,7 +316,7 @@ func (r ContainerRegistryTokenPasswordResource) expandContainerRegistryTokenPass
 		if len(password) == 1 {
 			password := password[0]
 			ret := &tokens.TokenPassword{
-				Name:  pointer.To(tokens.TokenPasswordName(name)),
+				Name:  pointer.ToEnum[tokens.TokenPasswordName](name),
 				Value: pointer.To(password.Value),
 			}
 			if v := password.Expiry; v != "" {

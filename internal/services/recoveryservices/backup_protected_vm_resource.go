@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protecteditems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2024-10-01/protectionpolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -28,7 +29,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceRecoveryServicesBackupProtectedVM() *pluginsdk.Resource {
@@ -158,7 +158,7 @@ func resourceRecoveryServicesBackupProtectedVMCreate(d *pluginsdk.ResourceData, 
 
 		updateInput := protecteditems.ProtectedItemResource{
 			Properties: &protecteditems.AzureIaaSComputeVMProtectedItem{
-				ProtectionState:  pointer.To(protecteditems.ProtectionState(protectionState)),
+				ProtectionState:  pointer.ToEnum[protecteditems.ProtectionState](protectionState),
 				SourceResourceId: pointer.To(vmId),
 			},
 		}
@@ -214,11 +214,11 @@ func resourceRecoveryServicesBackupProtectedVMRead(d *pluginsdk.ResourceData, me
 
 				if v := vm.ExtendedProperties; v != nil && v.DiskExclusionProperties != nil {
 					if *v.DiskExclusionProperties.IsInclusionList {
-						if err := d.Set("include_disk_luns", utils.FlattenInt64Slice(v.DiskExclusionProperties.DiskLunList)); err != nil {
+						if err := d.Set("include_disk_luns", helpers.FlattenInt64Slice(v.DiskExclusionProperties.DiskLunList)); err != nil {
 							return fmt.Errorf("setting include_disk_luns: %+v", err)
 						}
 					} else {
-						if err := d.Set("exclude_disk_luns", utils.FlattenInt64Slice(v.DiskExclusionProperties.DiskLunList)); err != nil {
+						if err := d.Set("exclude_disk_luns", helpers.FlattenInt64Slice(v.DiskExclusionProperties.DiskLunList)); err != nil {
 							return fmt.Errorf("setting exclude_disk_luns: %+v", err)
 						}
 					}
@@ -279,7 +279,7 @@ func resourceRecoveryServicesBackupProtectedVMUpdate(d *pluginsdk.ResourceData, 
 				return err
 			}
 		}
-		properties.ProtectionState = pointer.To(protecteditems.ProtectionState(protectionState))
+		properties.ProtectionState = pointer.ToEnum[protecteditems.ProtectionState](protectionState)
 	}
 	model.Properties = properties
 
@@ -353,7 +353,7 @@ func expandDiskExclusion(d *pluginsdk.ResourceData) *protecteditems.ExtendedProp
 
 		return &protecteditems.ExtendedProperties{
 			DiskExclusionProperties: &protecteditems.DiskExclusionProperties{
-				DiskLunList:     utils.ExpandInt64Slice(diskLun),
+				DiskLunList:     helpers.ExpandInt64Slice(diskLun),
 				IsInclusionList: pointer.To(true),
 			},
 		}
@@ -364,7 +364,7 @@ func expandDiskExclusion(d *pluginsdk.ResourceData) *protecteditems.ExtendedProp
 
 		return &protecteditems.ExtendedProperties{
 			DiskExclusionProperties: &protecteditems.DiskExclusionProperties{
-				DiskLunList:     utils.ExpandInt64Slice(diskLun),
+				DiskLunList:     helpers.ExpandInt64Slice(diskLun),
 				IsInclusionList: pointer.To(false),
 			},
 		}

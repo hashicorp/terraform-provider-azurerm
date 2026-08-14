@@ -8,14 +8,13 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/packetcaptures"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -306,7 +305,7 @@ func expandNetworkPacketCaptureFilters(input []interface{}) *[]packetcaptures.Pa
 		filters = append(filters, packetcaptures.PacketCaptureFilter{
 			LocalIPAddress:  pointer.To(localIPAddress),
 			LocalPort:       pointer.To(localPort),
-			Protocol:        pointer.To(packetcaptures.PcProtocol(protocol)),
+			Protocol:        pointer.ToEnum[packetcaptures.PcProtocol](protocol),
 			RemoteIPAddress: pointer.To(remoteIPAddress),
 			RemotePort:      pointer.To(remotePort),
 		})

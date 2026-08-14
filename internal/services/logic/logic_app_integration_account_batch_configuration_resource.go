@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountbatchconfigurations"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
@@ -21,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceLogicAppIntegrationAccountBatchConfiguration() *pluginsdk.Resource {
@@ -399,23 +399,23 @@ func expandIntegrationAccountBatchConfigurationRecurrenceSchedule(input []interf
 	result := integrationaccountbatchconfigurations.RecurrenceSchedule{}
 
 	if hours := v["hours"].(*pluginsdk.Set).List(); len(hours) != 0 {
-		result.Hours = utils.ExpandInt64Slice(hours)
+		result.Hours = helpers.ExpandInt64Slice(hours)
 	}
 
 	if minutes := v["minutes"].(*pluginsdk.Set).List(); len(minutes) != 0 {
-		result.Minutes = utils.ExpandInt64Slice(minutes)
+		result.Minutes = helpers.ExpandInt64Slice(minutes)
 	}
 
 	if rawWeekDays := v["week_days"].(*pluginsdk.Set).List(); len(rawWeekDays) != 0 {
 		weekDays := make([]integrationaccountbatchconfigurations.DaysOfWeek, 0)
-		for _, item := range *utils.ExpandStringSlice(rawWeekDays) {
+		for _, item := range *helpers.ExpandStringSlice(rawWeekDays) {
 			weekDays = append(weekDays, integrationaccountbatchconfigurations.DaysOfWeek(item))
 		}
 		result.WeekDays = &weekDays
 	}
 
 	if monthDays := v["month_days"].(*pluginsdk.Set).List(); len(monthDays) != 0 {
-		result.MonthDays = utils.ExpandInt64Slice(monthDays)
+		result.MonthDays = helpers.ExpandInt64Slice(monthDays)
 	}
 
 	if monthlyOccurrence := v["monthly"].(*pluginsdk.Set).List(); len(monthlyOccurrence) != 0 {
@@ -514,14 +514,14 @@ func flattenIntegrationAccountBatchConfigurationRecurrenceSchedule(input *integr
 		for _, item := range *input.WeekDays {
 			weekDaysCast = append(weekDaysCast, string(item))
 		}
-		weekDays = utils.FlattenStringSlice(&weekDaysCast)
+		weekDays = helpers.FlattenStringSlice(&weekDaysCast)
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"hours":      utils.FlattenInt64Slice(input.Hours),
-			"minutes":    utils.FlattenInt64Slice(input.Minutes),
-			"month_days": utils.FlattenInt64Slice(input.MonthDays),
+			"hours":      helpers.FlattenInt64Slice(input.Hours),
+			"minutes":    helpers.FlattenInt64Slice(input.Minutes),
+			"month_days": helpers.FlattenInt64Slice(input.MonthDays),
 			"monthly":    flattenIntegrationAccountBatchConfigurationRecurrenceScheduleOccurrence(input.MonthlyOccurrences),
 			"week_days":  weekDays,
 		},

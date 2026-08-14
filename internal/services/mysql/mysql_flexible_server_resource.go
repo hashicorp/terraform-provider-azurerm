@@ -865,7 +865,7 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 		if parameters.Properties.Network == nil {
 			parameters.Properties.Network = &servers.Network{}
 		}
-		parameters.Properties.Network.PublicNetworkAccess = pointer.To(servers.EnableStatusEnum(d.Get("public_network_access").(string)))
+		parameters.Properties.Network.PublicNetworkAccess = pointer.ToEnum[servers.EnableStatusEnum](d.Get("public_network_access").(string))
 	}
 
 	if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
@@ -904,7 +904,7 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 	if d.HasChange("version") {
 		parameters := servers.ServerForUpdate{
 			Properties: &servers.ServerPropertiesForUpdate{
-				Version: pointer.To(servers.ServerVersion(d.Get("version").(string))),
+				Version: pointer.ToEnum[servers.ServerVersion](d.Get("version").(string)),
 			},
 		}
 
@@ -945,7 +945,7 @@ func expandArmServerNetwork(d *pluginsdk.ResourceData) *servers.Network {
 	}
 
 	if v, ok := d.GetOk("public_network_access"); ok {
-		network.PublicNetworkAccess = pointer.To(servers.EnableStatusEnum(v.(string)))
+		network.PublicNetworkAccess = pointer.ToEnum[servers.EnableStatusEnum](v.(string))
 	}
 
 	return &network

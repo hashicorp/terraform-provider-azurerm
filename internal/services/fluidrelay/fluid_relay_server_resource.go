@@ -210,7 +210,7 @@ func (s Server) Create() sdk.ResourceFunc {
 			}
 
 			if model.StorageSKU != "" {
-				payload.Properties.Storagesku = pointer.To(fluidrelayservers.StorageSKU(model.StorageSKU))
+				payload.Properties.Storagesku = pointer.ToEnum[fluidrelayservers.StorageSKU](model.StorageSKU)
 			}
 
 			if customerManagedKey := expandFluidRelayServerCustomerManagedKey(model.CustomerManagedKey); customerManagedKey != nil {

@@ -16,13 +16,13 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/clusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/extensions"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func SchemaHDInsightName() *pluginsdk.Schema {
@@ -415,7 +415,7 @@ func SchemaHDInsightsHttpsEndpoints() *pluginsdk.Schema {
 
 type HttpEndpointModel struct {
 	AccessModes        []string `tfschema:"access_modes"`
-	DestinationPort    int32    `tfschema:"destination_port"`
+	DestinationPort    int64    `tfschema:"destination_port"`
 	DisableGatewayAuth bool     `tfschema:"disable_gateway_auth"`
 	PrivateIpAddress   string   `tfschema:"private_ip_address"`
 	SubDomainSuffix    string   `tfschema:"sub_domain_suffix"`
@@ -634,7 +634,7 @@ func ExpandHDInsightPrivateLinkConfigurationIpConfigurationProperties(input []in
 
 	props := clusters.IPConfigurationProperties{
 		Primary:                   pointer.To(v["primary"].(bool)),
-		PrivateIPAllocationMethod: pointer.To(clusters.PrivateIPAllocationMethod(v["private_ip_allocation_method"].(string))),
+		PrivateIPAllocationMethod: pointer.ToEnum[clusters.PrivateIPAllocationMethod](v["private_ip_allocation_method"].(string)),
 	}
 	if v["private_ip_address"] != nil && v["private_ip_address"].(string) != "" {
 		props.PrivateIPAddress = pointer.To(v["private_ip_address"].(string))
@@ -1030,7 +1030,7 @@ func ExpandHDInsightsDiskEncryptionProperties(input []interface{}) (*clusters.Di
 	keyVaultManagedIdentityId := v["key_vault_managed_identity_id"].(string)
 
 	diskEncryptionProps := &clusters.DiskEncryptionProperties{
-		EncryptionAlgorithm: pointer.To(clusters.JsonWebKeyEncryptionAlgorithm(encryptionAlgorithm)),
+		EncryptionAlgorithm: pointer.ToEnum[clusters.JsonWebKeyEncryptionAlgorithm](encryptionAlgorithm),
 		EncryptionAtHost:    &encryptionAtHost,
 		MsiResourceId:       &keyVaultManagedIdentityId,
 	}
@@ -1713,7 +1713,7 @@ func ExpandHDInsightSecurityProfile(input []interface{}) *clusters.SecurityProfi
 	result := clusters.SecurityProfile{
 		DirectoryType:      pointer.To(clusters.DirectoryTypeActiveDirectory),
 		Domain:             pointer.To(v["domain_name"].(string)),
-		LdapsURLs:          utils.ExpandStringSlice(v["ldaps_urls"].(*pluginsdk.Set).List()),
+		LdapsURLs:          helpers.ExpandStringSlice(v["ldaps_urls"].(*pluginsdk.Set).List()),
 		DomainUsername:     pointer.To(v["domain_username"].(string)),
 		DomainUserPassword: pointer.To(v["domain_user_password"].(string)),
 		AaddsResourceId:    pointer.To(v["aadds_resource_id"].(string)),
@@ -1721,7 +1721,7 @@ func ExpandHDInsightSecurityProfile(input []interface{}) *clusters.SecurityProfi
 	}
 
 	if clusterUsersGroupDNS := v["cluster_users_group_dns"].(*pluginsdk.Set).List(); len(clusterUsersGroupDNS) != 0 {
-		result.ClusterUsersGroupDNs = utils.ExpandStringSlice(clusterUsersGroupDNS)
+		result.ClusterUsersGroupDNs = helpers.ExpandStringSlice(clusterUsersGroupDNS)
 	}
 
 	return &result
@@ -1941,11 +1941,11 @@ func flattenHDInsightSecurityProfile(input *clusters.SecurityProfile, d *plugins
 	return []interface{}{
 		map[string]interface{}{
 			"aadds_resource_id":       aaddsResourceId,
-			"cluster_users_group_dns": utils.FlattenStringSlice(input.ClusterUsersGroupDNs),
+			"cluster_users_group_dns": helpers.FlattenStringSlice(input.ClusterUsersGroupDNs),
 			"domain_name":             domain,
 			"domain_username":         domainUsername,
 			"domain_user_password":    d.Get("security_profile.0.domain_user_password"),
-			"ldaps_urls":              utils.FlattenStringSlice(input.LdapsURLs),
+			"ldaps_urls":              helpers.FlattenStringSlice(input.LdapsURLs),
 			"msi_resource_id":         msiResourceId,
 		},
 	}

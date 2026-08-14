@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -205,7 +204,7 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 					Optional: true,
 					// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE
 					DiffSuppressFunc: suppress.CaseDifference,
-					ValidateFunc:     validate.DiskEncryptionSetID,
+					ValidateFunc:     validation.AsGeneratedID(commonids.ParseDiskEncryptionSetIDInsensitively),
 					ConflictsWith:    []string{"os_disk.0.secure_vm_disk_encryption_set_id"},
 				},
 
@@ -230,7 +229,7 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 					Type:          pluginsdk.TypeString,
 					Optional:      true,
 					ForceNew:      true,
-					ValidateFunc:  validate.DiskEncryptionSetID,
+					ValidateFunc:  validation.AsGeneratedID(commonids.ParseDiskEncryptionSetIDInsensitively),
 					ConflictsWith: []string{"os_disk.0.disk_encryption_set_id"},
 				},
 
@@ -264,9 +263,9 @@ func expandVirtualMachineOSDisk(input []interface{}, osType virtualmachines.Oper
 	caching := raw["caching"].(string)
 
 	disk := virtualmachines.OSDisk{
-		Caching: pointer.To(virtualmachines.CachingTypes(caching)),
+		Caching: pointer.ToEnum[virtualmachines.CachingTypes](caching),
 		ManagedDisk: &virtualmachines.ManagedDiskParameters{
-			StorageAccountType: pointer.To(virtualmachines.StorageAccountTypes(raw["storage_account_type"].(string))),
+			StorageAccountType: pointer.ToEnum[virtualmachines.StorageAccountTypes](raw["storage_account_type"].(string)),
 		},
 		WriteAcceleratorEnabled: pointer.To(raw["write_accelerator_enabled"].(bool)),
 
@@ -281,7 +280,7 @@ func expandVirtualMachineOSDisk(input []interface{}, osType virtualmachines.Oper
 	securityEncryptionType := raw["security_encryption_type"].(string)
 	if securityEncryptionType != "" {
 		disk.ManagedDisk.SecurityProfile = &virtualmachines.VMDiskSecurityProfile{
-			SecurityEncryptionType: pointer.To(virtualmachines.SecurityEncryptionTypes(securityEncryptionType)),
+			SecurityEncryptionType: pointer.ToEnum[virtualmachines.SecurityEncryptionTypes](securityEncryptionType),
 		}
 	}
 	if secureVMDiskEncryptionId := raw["secure_vm_disk_encryption_set_id"].(string); secureVMDiskEncryptionId != "" {
@@ -305,8 +304,8 @@ func expandVirtualMachineOSDisk(input []interface{}, osType virtualmachines.Oper
 
 		diffDiskRaw := diffDiskSettingsRaw[0].(map[string]interface{})
 		disk.DiffDiskSettings = &virtualmachines.DiffDiskSettings{
-			Option:    pointer.To(virtualmachines.DiffDiskOptions(diffDiskRaw["option"].(string))),
-			Placement: pointer.To(virtualmachines.DiffDiskPlacement(diffDiskRaw["placement"].(string))),
+			Option:    pointer.ToEnum[virtualmachines.DiffDiskOptions](diffDiskRaw["option"].(string)),
+			Placement: pointer.ToEnum[virtualmachines.DiffDiskPlacement](diffDiskRaw["placement"].(string)),
 		}
 	}
 

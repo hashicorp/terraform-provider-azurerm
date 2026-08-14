@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
@@ -43,7 +42,7 @@ var (
 )
 
 func resourceServiceBusNamespace() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceServiceBusNamespaceCreate,
 		Read:   resourceServiceBusNamespaceRead,
 		Update: resourceServiceBusNamespaceUpdate,
@@ -267,21 +266,6 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 			pluginsdk.CustomizeDiffShim(servicebusTLSVersionDiff),
 		),
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["minimum_tls_version"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(namespaces.TlsVersionOnePointTwo),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(namespaces.TlsVersionOnePointZero),
-				string(namespaces.TlsVersionOnePointOne),
-				string(namespaces.TlsVersionOnePointTwo),
-			}, false),
-		}
-	}
-
-	return resource
 }
 
 func resourceServiceBusNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -437,7 +421,7 @@ func resourceServiceBusNamespaceUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("minimum_tls_version") {
-		payload.Properties.MinimumTlsVersion = pointer.To(namespaces.TlsVersion(d.Get("minimum_tls_version").(string)))
+		payload.Properties.MinimumTlsVersion = pointer.ToEnum[namespaces.TlsVersion](d.Get("minimum_tls_version").(string))
 	}
 
 	if d.HasChange("capacity") {

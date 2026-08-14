@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -41,7 +40,7 @@ func (r VMWareReplicationPolicyResource) ResourceType() string {
 }
 
 func (r VMWareReplicationPolicyResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ReplicationPolicyID
+	return replicationpolicies.ValidateReplicationPolicyID
 }
 
 func (r VMWareReplicationPolicyResource) Arguments() map[string]*pluginsdk.Schema {

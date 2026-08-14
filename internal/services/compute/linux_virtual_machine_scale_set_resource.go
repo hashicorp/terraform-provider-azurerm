@@ -20,6 +20,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryimages"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-07-03/galleryimageversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -174,8 +176,9 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 	healthProbeId := d.Get("health_probe_id").(string)
 	upgradeMode := virtualmachinescalesets.UpgradeMode(d.Get("upgrade_mode").(string))
 	automaticOSUpgradePolicyRaw := d.Get("automatic_os_upgrade_policy").([]interface{})
-	automaticOSUpgradePolicy := ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(automaticOSUpgradePolicyRaw)
 	rollingUpgradePolicyRaw := d.Get("rolling_upgrade_policy").([]interface{})
+	useRollingUpgradePolicy := len(rollingUpgradePolicyRaw) > 0
+	automaticOSUpgradePolicy := ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(automaticOSUpgradePolicyRaw, useRollingUpgradePolicy)
 	rollingUpgradePolicy, err := ExpandVirtualMachineScaleSetRollingUpgradePolicy(rollingUpgradePolicyRaw, len(zones) > 0, overProvision)
 	if err != nil {
 		return err
@@ -314,12 +317,6 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
-		if encryptionAtHostEnabled.(bool) {
-			if virtualmachinescalesets.SecurityEncryptionTypesDiskWithVMGuestState == virtualmachinescalesets.SecurityEncryptionTypes(securityEncryptionType) {
-				return fmt.Errorf("`encryption_at_host_enabled` cannot be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
-			}
-		}
-
 		virtualMachineProfile.SecurityProfile = &virtualmachinescalesets.SecurityProfile{
 			EncryptionAtHost: pointer.To(encryptionAtHostEnabled.(bool)),
 		}
@@ -382,7 +379,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		if *virtualMachineProfile.Priority != virtualmachinescalesets.VirtualMachinePriorityTypesSpot {
 			return fmt.Errorf("an `eviction_policy` can only be specified when `priority` is set to `Spot`")
 		}
-		virtualMachineProfile.EvictionPolicy = pointer.To(virtualmachinescalesets.VirtualMachineEvictionPolicyTypes(evictionPolicyRaw.(string)))
+		virtualMachineProfile.EvictionPolicy = pointer.ToEnum[virtualmachinescalesets.VirtualMachineEvictionPolicyTypes](evictionPolicyRaw.(string))
 	} else if priority == virtualmachinescalesets.VirtualMachinePriorityTypesSpot {
 		return fmt.Errorf("an `eviction_policy` must be specified when `priority` is set to `Spot`")
 	}
@@ -537,16 +534,18 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 		upgradePolicy := virtualmachinescalesets.UpgradePolicy{}
 		if existing.Model.Properties.UpgradePolicy == nil {
 			upgradePolicy = virtualmachinescalesets.UpgradePolicy{
-				Mode: pointer.To(virtualmachinescalesets.UpgradeMode(d.Get("upgrade_mode").(string))),
+				Mode: pointer.ToEnum[virtualmachinescalesets.UpgradeMode](d.Get("upgrade_mode").(string)),
 			}
 		} else {
 			upgradePolicy = *existing.Model.Properties.UpgradePolicy
-			upgradePolicy.Mode = pointer.To(virtualmachinescalesets.UpgradeMode(d.Get("upgrade_mode").(string)))
+			upgradePolicy.Mode = pointer.ToEnum[virtualmachinescalesets.UpgradeMode](d.Get("upgrade_mode").(string))
 		}
 
 		if d.HasChange("automatic_os_upgrade_policy") {
 			automaticRaw := d.Get("automatic_os_upgrade_policy").([]interface{})
-			upgradePolicy.AutomaticOSUpgradePolicy = ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(automaticRaw)
+			rollingRaw := d.Get("rolling_upgrade_policy").([]interface{})
+			useRollingUpgradePolicy := len(rollingRaw) > 0
+			upgradePolicy.AutomaticOSUpgradePolicy = ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(automaticRaw, useRollingUpgradePolicy)
 
 			if upgradePolicy.AutomaticOSUpgradePolicy != nil {
 				automaticOSUpgradeIsEnabled = *upgradePolicy.AutomaticOSUpgradePolicy.EnableAutomaticOSUpgrade
@@ -723,14 +722,6 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if d.HasChange("encryption_at_host_enabled") {
-		if d.Get("encryption_at_host_enabled").(bool) {
-			osDiskRaw := d.Get("os_disk").([]interface{})
-			securityEncryptionType := osDiskRaw[0].(map[string]interface{})["security_encryption_type"].(string)
-			if virtualmachinescalesets.SecurityEncryptionTypesDiskWithVMGuestState == virtualmachinescalesets.SecurityEncryptionTypes(securityEncryptionType) {
-				return fmt.Errorf("`encryption_at_host_enabled` cannot be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
-			}
-		}
-
 		updateProps.VirtualMachineProfile.SecurityProfile = &virtualmachinescalesets.SecurityProfile{
 			EncryptionAtHost: pointer.To(d.Get("encryption_at_host_enabled").(bool)),
 		}
@@ -1385,8 +1376,8 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 			ValidateFunc: validation.Any(
 				images.ValidateImageID,
-				validate.SharedImageID,
-				validate.SharedImageVersionID,
+				validation.AsGeneratedID(galleryimages.ParseGalleryImageIDInsensitively),
+				validation.AsGeneratedID(galleryimageversions.ParseImageVersionIDInsensitively),
 				validate.CommunityGalleryImageID,
 				validate.CommunityGalleryImageVersionID,
 				validate.SharedGalleryImageID,

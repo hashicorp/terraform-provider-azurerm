@@ -15,10 +15,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
@@ -32,7 +32,7 @@ import (
 
 func resourceSpringCloudService() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		DeprecationMessage: features.DeprecatedInFivePointOh("Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_service` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information."),
+		DeprecationMessage: "Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_service` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information.",
 
 		Create: resourceSpringCloudServiceCreate,
 		Read:   resourceSpringCloudServiceRead,
@@ -928,7 +928,7 @@ func expandSpringCloudNetwork(input []interface{}) *appplatform.NetworkProfile {
 		return nil
 	}
 	v := input[0].(map[string]interface{})
-	cidrRanges := utils.ExpandStringSlice(v["cidr_ranges"].([]interface{}))
+	cidrRanges := helpers.ExpandStringSlice(v["cidr_ranges"].([]interface{}))
 	network := &appplatform.NetworkProfile{
 		ServiceRuntimeSubnetID: pointer.To(v["service_runtime_subnet_id"].(string)),
 		AppSubnetID:            pointer.To(v["app_subnet_id"].(string)),
@@ -967,7 +967,7 @@ func expandSpringCloudConfigServerGitProperty(input []interface{}) (*appplatform
 		result.Label = pointer.To(label)
 	}
 	if searchPaths := v["search_paths"].([]interface{}); len(searchPaths) > 0 {
-		result.SearchPaths = utils.ExpandStringSlice(searchPaths)
+		result.SearchPaths = helpers.ExpandStringSlice(searchPaths)
 	}
 
 	httpBasicAuth := v["http_basic_auth"].([]interface{})
@@ -1018,10 +1018,10 @@ func expandSpringCloudGitPatternRepository(input []interface{}) (*[]appplatform.
 			result.Label = pointer.To(label)
 		}
 		if pattern := v["pattern"].([]interface{}); len(pattern) > 0 {
-			result.Pattern = utils.ExpandStringSlice(pattern)
+			result.Pattern = helpers.ExpandStringSlice(pattern)
 		}
 		if searchPaths := v["search_paths"].([]interface{}); len(searchPaths) > 0 {
-			result.SearchPaths = utils.ExpandStringSlice(searchPaths)
+			result.SearchPaths = helpers.ExpandStringSlice(searchPaths)
 		}
 
 		httpBasicAuth := v["http_basic_auth"].([]interface{})
@@ -1135,7 +1135,7 @@ func flattenSpringCloudConfigServerGitProperty(input *appplatform.ConfigServerPr
 		label = *gitProperty.Label
 	}
 
-	searchPaths := utils.FlattenStringSlice(gitProperty.SearchPaths)
+	searchPaths := helpers.FlattenStringSlice(gitProperty.SearchPaths)
 
 	httpBasicAuth := make([]interface{}, 0)
 	if gitProperty.Username != nil && gitProperty.Password != nil {
@@ -1244,8 +1244,8 @@ func flattenSpringCloudGitPatternRepository(input *[]appplatform.GitPatternRepos
 			oldGitPatternRepository = gpr.(map[string]interface{})
 		}
 
-		pattern := utils.FlattenStringSlice(item.Pattern)
-		searchPaths := utils.FlattenStringSlice(item.SearchPaths)
+		pattern := helpers.FlattenStringSlice(item.Pattern)
+		searchPaths := helpers.FlattenStringSlice(item.SearchPaths)
 
 		httpBasicAuth := []interface{}{}
 		if item.Username != nil && item.Password != nil {
@@ -1362,7 +1362,7 @@ func flattenSpringCloudNetwork(input *appplatform.NetworkProfile) []interface{} 
 	}
 	if input.ServiceCidr != nil {
 		cidrs := strings.Split(*input.ServiceCidr, ",")
-		cidrRanges = utils.FlattenStringSlice(&cidrs)
+		cidrRanges = helpers.FlattenStringSlice(&cidrs)
 	}
 	if input.ServiceRuntimeNetworkResourceGroup != nil {
 		serviceRuntimeNetworkResourceGroup = *input.ServiceRuntimeNetworkResourceGroup
@@ -1404,7 +1404,7 @@ func flattenOutboundPublicIPAddresses(input *appplatform.NetworkProfile) []inter
 		return []interface{}{}
 	}
 
-	return utils.FlattenStringSlice(input.OutboundIPs.PublicIPs)
+	return helpers.FlattenStringSlice(input.OutboundIPs.PublicIPs)
 }
 
 func flattenRequiredTraffic(input *appplatform.NetworkProfile) []interface{} {
@@ -1427,8 +1427,8 @@ func flattenRequiredTraffic(input *appplatform.NetworkProfile) []interface{} {
 		result = append(result, map[string]interface{}{
 			"protocol":     protocol,
 			"port":         port,
-			"ip_addresses": utils.FlattenStringSlice(v.Ips),
-			"fqdns":        utils.FlattenStringSlice(v.Fqdns),
+			"ip_addresses": helpers.FlattenStringSlice(v.Ips),
+			"fqdns":        helpers.FlattenStringSlice(v.Fqdns),
 			"direction":    string(v.Direction),
 		})
 	}

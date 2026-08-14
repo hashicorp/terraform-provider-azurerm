@@ -24,6 +24,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/fileservices"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/storageaccounts"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	providerhelpers "github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -37,7 +38,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity
@@ -1233,14 +1233,14 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			AllowBlobPublicAccess:        pointer.To(d.Get("allow_nested_items_to_be_public").(bool)),
 			AllowCrossTenantReplication:  pointer.To(d.Get("cross_tenant_replication_enabled").(bool)),
 			AllowSharedKeyAccess:         pointer.To(d.Get("shared_access_key_enabled").(bool)),
-			DnsEndpointType:              pointer.To(storageaccounts.DnsEndpointType(dnsEndpointType)),
+			DnsEndpointType:              pointer.ToEnum[storageaccounts.DnsEndpointType](dnsEndpointType),
 			DefaultToOAuthAuthentication: pointer.To(d.Get("default_to_oauth_authentication").(bool)),
 			SupportsHTTPSTrafficOnly:     pointer.To(httpsTrafficOnlyEnabled),
 			IsNfsV3Enabled:               pointer.To(nfsV3Enabled),
 			IsHnsEnabled:                 pointer.To(isHnsEnabled),
 			IsLocalUserEnabled:           pointer.To(d.Get("local_user_enabled").(bool)),
 			IsSftpEnabled:                pointer.To(d.Get("sftp_enabled").(bool)),
-			MinimumTlsVersion:            pointer.To(storageaccounts.MinimumTlsVersion(d.Get("min_tls_version").(string))),
+			MinimumTlsVersion:            pointer.ToEnum[storageaccounts.MinimumTlsVersion](d.Get("min_tls_version").(string)),
 			NetworkAcls:                  expandAccountNetworkRules(d.Get("network_rules").([]interface{}), tenantId),
 			PublicNetworkAccess:          pointer.To(publicNetworkAccess),
 			SasPolicy:                    expandAccountSASPolicy(d.Get("sas_policy").([]interface{})),
@@ -1253,7 +1253,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if v := d.Get("allowed_copy_scope").(string); v != "" {
-		payload.Properties.AllowedCopyScope = pointer.To(storageaccounts.AllowedCopyScope(v))
+		payload.Properties.AllowedCopyScope = pointer.ToEnum[storageaccounts.AllowedCopyScope](v)
 	}
 	if v, ok := d.GetOk("azure_files_authentication"); ok {
 		expandAADFilesAuthentication, err := expandAccountAzureFilesAuthentication(v.([]interface{}))
@@ -1285,7 +1285,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			// default to "Hot"
 			accessTier = string(storageaccounts.AccessTierHot)
 		}
-		payload.Properties.AccessTier = pointer.To(storageaccounts.AccessTier(accessTier.(string)))
+		payload.Properties.AccessTier = pointer.ToEnum[storageaccounts.AccessTier](accessTier.(string))
 	}
 
 	// NFSv3 is supported for standard general-purpose v2 storage accounts and for premium block blob storage accounts.
@@ -1535,10 +1535,10 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("access_tier") {
-		props.AccessTier = pointer.To(storageaccounts.AccessTier(d.Get("access_tier").(string)))
+		props.AccessTier = pointer.ToEnum[storageaccounts.AccessTier](d.Get("access_tier").(string))
 	}
 	if d.HasChange("allowed_copy_scope") {
-		props.AllowedCopyScope = pointer.To(storageaccounts.AllowedCopyScope(d.Get("allowed_copy_scope").(string)))
+		props.AllowedCopyScope = pointer.ToEnum[storageaccounts.AllowedCopyScope](d.Get("allowed_copy_scope").(string))
 	}
 	if d.HasChange("allow_nested_items_to_be_public") {
 		props.AllowBlobPublicAccess = pointer.To(d.Get("allow_nested_items_to_be_public").(bool))
@@ -1606,7 +1606,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		props.IsLocalUserEnabled = pointer.To(d.Get("local_user_enabled").(bool))
 	}
 	if d.HasChange("min_tls_version") {
-		props.MinimumTlsVersion = pointer.To(storageaccounts.MinimumTlsVersion(d.Get("min_tls_version").(string)))
+		props.MinimumTlsVersion = pointer.ToEnum[storageaccounts.MinimumTlsVersion](d.Get("min_tls_version").(string))
 	}
 	if d.HasChange("network_rules") {
 		props.NetworkAcls = expandAccountNetworkRules(d.Get("network_rules").([]interface{}), tenantId)
@@ -2256,7 +2256,7 @@ func expandAccountImmutabilityPolicy(input []interface{}) *storageaccounts.Immut
 		ImmutabilityPolicy: &storageaccounts.AccountImmutabilityPolicyProperties{
 			AllowProtectedAppendWrites:            pointer.To(v["allow_protected_append_writes"].(bool)),
 			ImmutabilityPeriodSinceCreationInDays: pointer.To(int64(v["period_since_creation_in_days"].(int))),
-			State:                                 pointer.To(storageaccounts.AccountImmutabilityPolicyState(v["state"].(string))),
+			State:                                 pointer.ToEnum[storageaccounts.AccountImmutabilityPolicyState](v["state"].(string)),
 		},
 	}
 }
@@ -2350,7 +2350,7 @@ func expandAccountAzureFilesAuthentication(input []interface{}) (*storageaccount
 		}
 
 		output.ActiveDirectoryProperties = ad
-		output.DefaultSharePermission = pointer.To(storageaccounts.DefaultSharePermission(v["default_share_level_permission"].(string)))
+		output.DefaultSharePermission = pointer.ToEnum[storageaccounts.DefaultSharePermission](v["default_share_level_permission"].(string))
 	}
 
 	return &output, nil
@@ -2378,7 +2378,7 @@ func expandAccountRoutingPreference(input []interface{}) *storageaccounts.Routin
 	return &storageaccounts.RoutingPreference{
 		PublishMicrosoftEndpoints: pointer.To(v["publish_microsoft_endpoints"].(bool)),
 		PublishInternetEndpoints:  pointer.To(v["publish_internet_endpoints"].(bool)),
-		RoutingChoice:             pointer.To(storageaccounts.RoutingChoice(v["choice"].(string))),
+		RoutingChoice:             pointer.ToEnum[storageaccounts.RoutingChoice](v["choice"].(string)),
 	}
 }
 
@@ -2692,14 +2692,14 @@ func expandAccountBlobPropertiesCors(input []interface{}) *blobservices.CorsRule
 			item := raw.(map[string]interface{})
 
 			allowedMethods := make([]blobservices.AllowedMethods, 0)
-			for _, val := range *utils.ExpandStringSlice(item["allowed_methods"].([]interface{})) {
+			for _, val := range *providerhelpers.ExpandStringSlice(item["allowed_methods"].([]interface{})) {
 				allowedMethods = append(allowedMethods, blobservices.AllowedMethods(val))
 			}
 			corsRules = append(corsRules, blobservices.CorsRule{
-				AllowedHeaders:  *utils.ExpandStringSlice(item["allowed_headers"].([]interface{})),
-				AllowedOrigins:  *utils.ExpandStringSlice(item["allowed_origins"].([]interface{})),
+				AllowedHeaders:  *providerhelpers.ExpandStringSlice(item["allowed_headers"].([]interface{})),
+				AllowedOrigins:  *providerhelpers.ExpandStringSlice(item["allowed_origins"].([]interface{})),
 				AllowedMethods:  allowedMethods,
-				ExposedHeaders:  *utils.ExpandStringSlice(item["exposed_headers"].([]interface{})),
+				ExposedHeaders:  *providerhelpers.ExpandStringSlice(item["exposed_headers"].([]interface{})),
 				MaxAgeInSeconds: int64(item["max_age_in_seconds"].(int)),
 			})
 		}
@@ -2780,14 +2780,14 @@ func expandAccountSharePropertiesCorsRule(input []interface{}) *fileservices.Cor
 			item := raw.(map[string]interface{})
 
 			allowedMethods := make([]fileservices.AllowedMethods, 0)
-			for _, val := range *utils.ExpandStringSlice(item["allowed_methods"].([]interface{})) {
+			for _, val := range *providerhelpers.ExpandStringSlice(item["allowed_methods"].([]interface{})) {
 				allowedMethods = append(allowedMethods, fileservices.AllowedMethods(val))
 			}
 			corsRules = append(corsRules, fileservices.CorsRule{
-				AllowedHeaders:  *utils.ExpandStringSlice(item["allowed_headers"].([]interface{})),
+				AllowedHeaders:  *providerhelpers.ExpandStringSlice(item["allowed_headers"].([]interface{})),
 				AllowedMethods:  allowedMethods,
-				AllowedOrigins:  *utils.ExpandStringSlice(item["allowed_origins"].([]interface{})),
-				ExposedHeaders:  *utils.ExpandStringSlice(item["exposed_headers"].([]interface{})),
+				AllowedOrigins:  *providerhelpers.ExpandStringSlice(item["allowed_origins"].([]interface{})),
+				ExposedHeaders:  *providerhelpers.ExpandStringSlice(item["exposed_headers"].([]interface{})),
 				MaxAgeInSeconds: int64(item["max_age_in_seconds"].(int)),
 			})
 		}
@@ -2865,10 +2865,10 @@ func expandAccountSharePropertiesSMB(input []interface{}) *fileservices.SmbSetti
 	v := input[0].(map[string]interface{})
 
 	return &fileservices.SmbSetting{
-		AuthenticationMethods:    utils.ExpandStringSliceWithDelimiter(v["authentication_types"].(*pluginsdk.Set).List(), ";"),
-		ChannelEncryption:        utils.ExpandStringSliceWithDelimiter(v["channel_encryption_type"].(*pluginsdk.Set).List(), ";"),
-		KerberosTicketEncryption: utils.ExpandStringSliceWithDelimiter(v["kerberos_ticket_encryption_type"].(*pluginsdk.Set).List(), ";"),
-		Versions:                 utils.ExpandStringSliceWithDelimiter(v["versions"].(*pluginsdk.Set).List(), ";"),
+		AuthenticationMethods:    providerhelpers.ExpandStringSliceWithDelimiter(v["authentication_types"].(*pluginsdk.Set).List(), ";"),
+		ChannelEncryption:        providerhelpers.ExpandStringSliceWithDelimiter(v["channel_encryption_type"].(*pluginsdk.Set).List(), ";"),
+		KerberosTicketEncryption: providerhelpers.ExpandStringSliceWithDelimiter(v["kerberos_ticket_encryption_type"].(*pluginsdk.Set).List(), ";"),
+		Versions:                 providerhelpers.ExpandStringSliceWithDelimiter(v["versions"].(*pluginsdk.Set).List(), ";"),
 		Multichannel: &fileservices.Multichannel{
 			Enabled: pointer.To(v["multichannel_enabled"].(bool)),
 		},
@@ -2882,22 +2882,22 @@ func flattenAccountSharePropertiesSMB(input *fileservices.ProtocolSettings) []in
 
 	versions := make([]interface{}, 0)
 	if input.Smb.Versions != nil {
-		versions = utils.FlattenStringSliceWithDelimiter(input.Smb.Versions, ";")
+		versions = providerhelpers.FlattenStringSliceWithDelimiter(input.Smb.Versions, ";")
 	}
 
 	authenticationMethods := make([]interface{}, 0)
 	if input.Smb.AuthenticationMethods != nil {
-		authenticationMethods = utils.FlattenStringSliceWithDelimiter(input.Smb.AuthenticationMethods, ";")
+		authenticationMethods = providerhelpers.FlattenStringSliceWithDelimiter(input.Smb.AuthenticationMethods, ";")
 	}
 
 	kerberosTicketEncryption := make([]interface{}, 0)
 	if input.Smb.KerberosTicketEncryption != nil {
-		kerberosTicketEncryption = utils.FlattenStringSliceWithDelimiter(input.Smb.KerberosTicketEncryption, ";")
+		kerberosTicketEncryption = providerhelpers.FlattenStringSliceWithDelimiter(input.Smb.KerberosTicketEncryption, ";")
 	}
 
 	channelEncryption := make([]interface{}, 0)
 	if input.Smb.ChannelEncryption != nil {
-		channelEncryption = utils.FlattenStringSliceWithDelimiter(input.Smb.ChannelEncryption, ";")
+		channelEncryption = providerhelpers.FlattenStringSliceWithDelimiter(input.Smb.ChannelEncryption, ";")
 	}
 
 	multichannelEnabled := false

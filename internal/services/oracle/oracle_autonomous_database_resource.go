@@ -272,16 +272,16 @@ func (r AutonomousDatabaseRegularResource) Create() sdk.ResourceFunc {
 				BackupRetentionPeriodInDays:    pointer.To(model.BackupRetentionPeriodInDays),
 				CharacterSet:                   pointer.To(model.CharacterSet),
 				ComputeCount:                   pointer.To(model.ComputeCount),
-				ComputeModel:                   pointer.To(autonomousdatabases.ComputeModel(model.ComputeModel)),
+				ComputeModel:                   pointer.ToEnum[autonomousdatabases.ComputeModel](model.ComputeModel),
 				DataBaseType:                   "Regular",
 				DataStorageSizeInTbs:           pointer.To(model.DataStorageSizeInTbs),
-				DbWorkload:                     pointer.To(autonomousdatabases.WorkloadType(model.DbWorkload)),
+				DbWorkload:                     pointer.ToEnum[autonomousdatabases.WorkloadType](model.DbWorkload),
 				DbVersion:                      pointer.To(model.DbVersion),
 				DisplayName:                    pointer.To(model.DisplayName),
 				IsAutoScalingEnabled:           pointer.To(model.AutoScalingEnabled),
 				IsAutoScalingForStorageEnabled: pointer.To(model.AutoScalingForStorageEnabled),
 				IsMtlsConnectionRequired:       pointer.To(model.MtlsConnectionRequired),
-				LicenseModel:                   pointer.To(autonomousdatabases.LicenseModel(model.LicenseModel)),
+				LicenseModel:                   pointer.ToEnum[autonomousdatabases.LicenseModel](model.LicenseModel),
 				NcharacterSet:                  pointer.To(model.NationalCharacterSet),
 				WhitelistedIPs:                 pointer.To(model.AllowedIps),
 			}
@@ -528,7 +528,7 @@ func expandLongTermBackupSchedule(input []LongTermBackUpScheduleDetails) *autono
 	}
 	schedule := input[0]
 	return &autonomousdatabases.LongTermBackUpScheduleDetails{
-		RepeatCadence:         pointer.To(autonomousdatabases.RepeatCadenceType(schedule.RepeatCadence)),
+		RepeatCadence:         pointer.ToEnum[autonomousdatabases.RepeatCadenceType](schedule.RepeatCadence),
 		TimeOfBackup:          pointer.To(schedule.TimeOfBackup),
 		RetentionPeriodInDays: pointer.To(schedule.RetentionPeriodInDays),
 		IsDisabled:            pointer.To(!schedule.Enabled),

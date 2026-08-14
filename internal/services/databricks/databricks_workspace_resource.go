@@ -1042,7 +1042,7 @@ func resourceDatabricksWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("network_security_group_rules_required") {
-		props.RequiredNsgRules = pointer.To(workspaces.RequiredNsgRules(d.Get("network_security_group_rules_required").(string)))
+		props.RequiredNsgRules = pointer.ToEnum[workspaces.RequiredNsgRules](d.Get("network_security_group_rules_required").(string))
 	}
 
 	if d.HasChange("custom_parameters") {

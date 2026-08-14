@@ -26,7 +26,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
@@ -49,7 +48,7 @@ var skuWeight = map[string]int8{
 }
 
 func resourceRedisCache() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create:   resourceRedisCacheCreate,
 		Read:     resourceRedisCacheRead,
 		Update:   resourceRedisCacheUpdate,
@@ -421,21 +420,6 @@ func resourceRedisCache() *pluginsdk.Resource {
 			}),
 		),
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["minimum_tls_version"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(redisresources.TlsVersionOnePointTwo),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(redisresources.TlsVersionOnePointZero),
-				string(redisresources.TlsVersionOnePointOne),
-				string(redisresources.TlsVersionOnePointTwo),
-			}, false),
-		}
-	}
-
-	return resource
 }
 
 func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -487,7 +471,7 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 				Family:   redisresources.SkuFamily(d.Get("family").(string)),
 				Name:     redisresources.SkuName(d.Get("sku_name").(string)),
 			},
-			MinimumTlsVersion:   pointer.To(redisresources.TlsVersion(d.Get("minimum_tls_version").(string))),
+			MinimumTlsVersion:   pointer.ToEnum[redisresources.TlsVersion](d.Get("minimum_tls_version").(string)),
 			RedisConfiguration:  redisConfiguration,
 			PublicNetworkAccess: pointer.To(publicNetworkAccess),
 		},
@@ -595,7 +579,7 @@ func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	parameters := redisresources.RedisUpdateParameters{
 		Properties: &redisresources.RedisUpdateProperties{
 			DisableAccessKeyAuthentication: pointer.To(!d.Get("access_keys_authentication_enabled").(bool)),
-			MinimumTlsVersion:              pointer.To(redisresources.TlsVersion(d.Get("minimum_tls_version").(string))),
+			MinimumTlsVersion:              pointer.ToEnum[redisresources.TlsVersion](d.Get("minimum_tls_version").(string)),
 			EnableNonSslPort:               pointer.To(enableNonSslPort.(bool)),
 			Sku: &redisresources.Sku{
 				Capacity: int64(d.Get("capacity").(int)),

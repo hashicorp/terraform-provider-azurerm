@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -22,7 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name virtual_hub_connection -service-package-name network -properties "name" -compare-values "subscription_id:virtual_hub_id,resource_group_name:virtual_hub_id,virtual_hub_name:virtual_hub_id"
@@ -341,7 +341,7 @@ func expandVirtualHubConnectionRouting(input []interface{}) *virtualwans.Routing
 			StaticRoutes: expandVirtualHubConnectionVnetStaticRoute(v["static_vnet_route"].([]interface{})),
 			StaticRoutesConfig: &virtualwans.StaticRoutesConfig{
 				PropagateStaticRoutes:          pointer.To(v["static_vnet_propagate_static_routes_enabled"].(bool)),
-				VnetLocalRouteOverrideCriteria: pointer.To(virtualwans.VnetLocalRouteOverrideCriteria(v["static_vnet_local_route_override_criteria"].(string))),
+				VnetLocalRouteOverrideCriteria: pointer.ToEnum[virtualwans.VnetLocalRouteOverrideCriteria](v["static_vnet_local_route_override_criteria"].(string)),
 			},
 		},
 	}
@@ -381,7 +381,7 @@ func expandVirtualHubConnectionPropagatedRouteTable(input []interface{}) *virtua
 	result := virtualwans.PropagatedRouteTable{}
 
 	if labels := v["labels"].(*pluginsdk.Set).List(); len(labels) != 0 {
-		result.Labels = utils.ExpandStringSlice(labels)
+		result.Labels = helpers.ExpandStringSlice(labels)
 	}
 
 	if routeTableIds := v["route_table_ids"].([]interface{}); len(routeTableIds) != 0 {
@@ -412,7 +412,7 @@ func expandVirtualHubConnectionVnetStaticRoute(input []interface{}) *[]virtualwa
 		}
 
 		if addressPrefixes := v["address_prefixes"].(*pluginsdk.Set).List(); len(addressPrefixes) != 0 {
-			result.AddressPrefixes = utils.ExpandStringSlice(addressPrefixes)
+			result.AddressPrefixes = helpers.ExpandStringSlice(addressPrefixes)
 		}
 
 		if nextHopIPAddress := v["next_hop_ip_address"].(string); nextHopIPAddress != "" {
@@ -487,7 +487,7 @@ func flattenVirtualHubConnectionPropagatedRouteTable(input *virtualwans.Propagat
 
 	labels := make([]interface{}, 0)
 	if input.Labels != nil {
-		labels = utils.FlattenStringSlice(input.Labels)
+		labels = helpers.FlattenStringSlice(input.Labels)
 	}
 
 	routeTableIds := make([]interface{}, 0)
@@ -522,7 +522,7 @@ func flattenVirtualHubConnectionVnetStaticRoute(input *virtualwans.VnetRoute) []
 
 		addressPrefixes := make([]interface{}, 0)
 		if item.AddressPrefixes != nil {
-			addressPrefixes = utils.FlattenStringSlice(item.AddressPrefixes)
+			addressPrefixes = helpers.FlattenStringSlice(item.AddressPrefixes)
 		}
 
 		v := map[string]interface{}{
