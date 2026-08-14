@@ -510,25 +510,15 @@ func flattenVirtualHubConnectionVnetStaticRoute(input *virtualwans.VnetRoute) []
 	}
 
 	for _, item := range *input.StaticRoutes {
-		var name string
-		if item.Name != nil {
-			name = *item.Name
-		}
-
-		var nextHopIpAddress string
-		if item.NextHopIPAddress != nil {
-			nextHopIpAddress = *item.NextHopIPAddress
-		}
-
 		addressPrefixes := make([]interface{}, 0)
 		if item.AddressPrefixes != nil {
 			addressPrefixes = helpers.FlattenStringSlice(item.AddressPrefixes)
 		}
 
 		v := map[string]interface{}{
-			"name":                name,
+			"name":                pointer.From(item.Name),
 			"address_prefixes":    addressPrefixes,
-			"next_hop_ip_address": nextHopIpAddress,
+			"next_hop_ip_address": pointer.From(item.NextHopIPAddress),
 		}
 
 		results = append(results, v)

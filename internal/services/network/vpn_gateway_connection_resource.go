@@ -426,11 +426,7 @@ func resourceVpnGatewayConnectionResourceRead(d *pluginsdk.ResourceData, meta in
 			}
 			d.Set("remote_vpn_site_id", vpnSiteId)
 
-			enableInternetSecurity := false
-			if props.EnableInternetSecurity != nil {
-				enableInternetSecurity = *props.EnableInternetSecurity
-			}
-			d.Set("internet_security_enabled", enableInternetSecurity)
+			d.Set("internet_security_enabled", pointer.From(props.EnableInternetSecurity))
 
 			if err := d.Set("routing", flattenVpnGatewayConnectionRoutingConfiguration(props.RoutingConfiguration)); err != nil {
 				return fmt.Errorf(`setting "routing": %v`, err)
@@ -831,10 +827,7 @@ func flattenVpnGatewayConnectionNatRuleIds(input *[]virtualwans.SubResource) []i
 	}
 
 	for _, item := range *input {
-		var id string
-		if item.Id != nil {
-			id = *item.Id
-		}
+		id := pointer.From(item.Id)
 
 		results = append(results, id)
 	}

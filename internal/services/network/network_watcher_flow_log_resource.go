@@ -512,17 +512,13 @@ func flattenNetworkWatcherFlowLogRetentionPolicy(input *flowlogs.RetentionPolicy
 	output := make([]interface{}, 0)
 
 	if input != nil {
-		enabled := false
-		if input.Enabled != nil {
-			enabled = *input.Enabled
-		}
 		days := 0
 		if input.Days != nil {
 			days = int(*input.Days)
 		}
 		output = append(output, map[string]interface{}{
 			"days":    days,
-			"enabled": enabled,
+			"enabled": pointer.From(input.Enabled),
 		})
 	}
 
@@ -533,33 +529,16 @@ func flattenNetworkWatcherFlowLogTrafficAnalytics(input *flowlogs.TrafficAnalyti
 	output := make([]interface{}, 0)
 	if input != nil {
 		if cfg := input.NetworkWatcherFlowAnalyticsConfiguration; cfg != nil {
-			enabled := false
-			if cfg.Enabled != nil {
-				enabled = *cfg.Enabled
-			}
-			workspaceId := ""
-			if cfg.WorkspaceId != nil {
-				workspaceId = *cfg.WorkspaceId
-			}
-			workspaceRegion := ""
-			if cfg.WorkspaceRegion != nil {
-				workspaceRegion = *cfg.WorkspaceRegion
-			}
-			workspaceResourceId := ""
-			if cfg.WorkspaceResourceId != nil {
-				workspaceResourceId = *cfg.WorkspaceResourceId
-			}
-
 			intervalInMinutes := 0
 			if cfg.TrafficAnalyticsInterval != nil {
 				intervalInMinutes = int(*cfg.TrafficAnalyticsInterval)
 			}
 			output = append(output, map[string]interface{}{
-				"enabled":               enabled,
+				"enabled":               pointer.From(cfg.Enabled),
 				"interval_in_minutes":   intervalInMinutes,
-				"workspace_id":          workspaceId,
-				"workspace_region":      workspaceRegion,
-				"workspace_resource_id": workspaceResourceId,
+				"workspace_id":          pointer.From(cfg.WorkspaceId),
+				"workspace_region":      pointer.From(cfg.WorkspaceRegion),
+				"workspace_resource_id": pointer.From(cfg.WorkspaceResourceId),
 			})
 		}
 	}

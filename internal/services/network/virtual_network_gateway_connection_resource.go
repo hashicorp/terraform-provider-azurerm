@@ -1118,10 +1118,7 @@ func flattenVirtualNetworkGatewayConnectionNatRuleIds(input *[]virtualnetworkgat
 	}
 
 	for _, item := range *input {
-		var id string
-		if item.Id != nil {
-			id = *item.Id
-		}
+		id := pointer.From(item.Id)
 
 		results = append(results, id)
 	}

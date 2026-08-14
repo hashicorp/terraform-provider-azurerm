@@ -1159,10 +1159,7 @@ func flattenRedisPatchSchedules(schedule redispatchschedules.RedisPatchSchedule)
 	outputs := make([]interface{}, 0)
 
 	for _, entry := range schedule.Properties.ScheduleEntries {
-		maintenanceWindow := ""
-		if entry.MaintenanceWindow != nil {
-			maintenanceWindow = *entry.MaintenanceWindow
-		}
+		maintenanceWindow := pointer.From(entry.MaintenanceWindow)
 
 		outputs = append(outputs, map[string]interface{}{
 			"day_of_week":        string(entry.DayOfWeek),

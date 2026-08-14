@@ -467,11 +467,6 @@ func flattenExpressRoutePortLinks(links *[]expressrouteports.ExpressRouteLink) (
 }
 
 func flattenExpressRoutePortLink(link expressrouteports.ExpressRouteLink) []interface{} {
-	var id string
-	if link.Id != nil {
-		id = *link.Id
-	}
-
 	var (
 		routerName    string
 		interfaceName string
@@ -514,7 +509,7 @@ func flattenExpressRoutePortLink(link expressrouteports.ExpressRouteLink) []inte
 
 	return []interface{}{
 		map[string]interface{}{
-			"id":                            id,
+			"id":                            pointer.From(link.Id),
 			"router_name":                   routerName,
 			"interface_name":                interfaceName,
 			"patch_panel_id":                patchPanelId,

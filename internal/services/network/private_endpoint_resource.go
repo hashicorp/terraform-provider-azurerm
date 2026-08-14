@@ -699,11 +699,7 @@ func resourcePrivateEndpointFlatten(ctx context.Context, metaClient *clients.Cli
 				subnetId = *props.Subnet.Id
 			}
 			d.Set("subnet_id", subnetId)
-			customNicName := ""
-			if props.CustomNetworkInterfaceName != nil {
-				customNicName = *props.CustomNetworkInterfaceName
-			}
-			d.Set("custom_network_interface_name", customNicName)
+			d.Set("custom_network_interface_name", pointer.From(props.CustomNetworkInterfaceName))
 
 			if fetchCompleteData {
 				privateDnsZoneIds, err := retrievePrivateDnsZoneGroupsForPrivateEndpoint(ctx, dnsClient, *id)
@@ -898,11 +894,6 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]privateen
 
 	if serviceConnections != nil {
 		for _, item := range *serviceConnections {
-			name := ""
-			if item.Name != nil {
-				name = *item.Name
-			}
-
 			privateConnectionId := ""
 			subResourceNames := make([]interface{}, 0)
 
@@ -915,7 +906,7 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]privateen
 				}
 			}
 			attrs := map[string]interface{}{
-				"name":                 name,
+				"name":                 pointer.From(item.Name),
 				"is_manual_connection": false,
 				"private_ip_address":   privateIPAddress,
 				"subresource_names":    subResourceNames,
@@ -933,11 +924,6 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]privateen
 
 	if manualServiceConnections != nil {
 		for _, item := range *manualServiceConnections {
-			name := ""
-			if item.Name != nil {
-				name = *item.Name
-			}
-
 			privateConnectionId := ""
 			requestMessage := ""
 			subResourceNames := make([]interface{}, 0)
@@ -955,7 +941,7 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]privateen
 			}
 
 			attrs := map[string]interface{}{
-				"name":                 name,
+				"name":                 pointer.From(item.Name),
 				"is_manual_connection": true,
 				"private_ip_address":   privateIPAddress,
 				"request_message":      requestMessage,
@@ -1117,21 +1103,6 @@ func flattenPrivateDnsZoneGroupRecordSets(input *[]privatednszonegroups.RecordSe
 	}
 
 	for _, v := range *input {
-		fqdn := ""
-		if v.Fqdn != nil {
-			fqdn = *v.Fqdn
-		}
-
-		name := ""
-		if v.RecordSetName != nil {
-			name = *v.RecordSetName
-		}
-
-		recordType := ""
-		if v.RecordType != nil {
-			recordType = *v.RecordType
-		}
-
 		ttl := 0
 		if v.Ttl != nil {
 			ttl = int(*v.Ttl)
@@ -1143,11 +1114,11 @@ func flattenPrivateDnsZoneGroupRecordSets(input *[]privatednszonegroups.RecordSe
 		}
 
 		output = append(output, map[string]interface{}{
-			"fqdn":         fqdn,
+			"fqdn":         pointer.From(v.Fqdn),
 			"ip_addresses": ipAddresses,
-			"name":         name,
+			"name":         pointer.From(v.RecordSetName),
 			"ttl":          ttl,
-			"type":         recordType,
+			"type":         pointer.From(v.RecordType),
 		})
 	}
 
