@@ -497,23 +497,11 @@ func flattenAuthentication(input *service.ServiceAuthenticationConfigurationInfo
 		return []interface{}{}
 	}
 
-	authority := ""
-	if input.Authority != nil {
-		authority = *input.Authority
-	}
-	audience := ""
-	if input.Audience != nil {
-		audience = *input.Audience
-	}
-	smartProxyEnabled := false
-	if input.SmartProxyEnabled != nil {
-		smartProxyEnabled = *input.SmartProxyEnabled
-	}
 	return []interface{}{
 		map[string]interface{}{
-			"audience":            audience,
-			"authority":           authority,
-			"smart_proxy_enabled": smartProxyEnabled,
+			"audience":            pointer.From(input.Audience),
+			"authority":           pointer.From(input.Authority),
+			"smart_proxy_enabled": pointer.From(input.SmartProxyEnabled),
 		},
 	}
 }
@@ -527,14 +515,9 @@ func flattenCorsConfig(input *service.ServiceCorsConfigurationInfo) []interface{
 	if input.MaxAge != nil {
 		maxAge = int(*input.MaxAge)
 	}
-	allowCredentials := false
-	if input.AllowCredentials != nil {
-		allowCredentials = *input.AllowCredentials
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"allow_credentials":  allowCredentials,
+			"allow_credentials":  pointer.From(input.AllowCredentials),
 			"allowed_headers":    helpers.FlattenStringSlice(input.Headers),
 			"allowed_methods":    helpers.FlattenStringSlice(input.Methods),
 			"allowed_origins":    helpers.FlattenStringSlice(input.Origins),

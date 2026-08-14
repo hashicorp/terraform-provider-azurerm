@@ -755,42 +755,30 @@ func expandEventSubscriptionStorageBlobDeadLetterDestination(d *pluginsdk.Resour
 }
 
 func flattenValue(inputKey *string, inputValue *any) map[string]any {
-	key := ""
-	if inputKey != nil {
-		key = *inputKey
-	}
 	var value any
 	if inputValue != nil {
 		value = inputValue
 	}
 
 	return map[string]any{
-		"key":   key,
+		"key":   pointer.From(inputKey),
 		"value": value,
 	}
 }
 
 func flattenValues(inputKey *string, inputValues *[]any) map[string]any {
-	key := ""
-	if inputKey != nil {
-		key = *inputKey
-	}
 	values := make([]any, 0)
 	if inputValues != nil {
 		values = *inputValues
 	}
 
 	return map[string]any{
-		"key":    key,
+		"key":    pointer.From(inputKey),
 		"values": values,
 	}
 }
 
 func flattenRangeValues(inputKey *string, inputValues *[][]any) map[string]any {
-	key := ""
-	if inputKey != nil {
-		key = *inputKey
-	}
 	values := make([]any, 0)
 	if inputValues != nil {
 		for _, item := range *inputValues {
@@ -799,18 +787,13 @@ func flattenRangeValues(inputKey *string, inputValues *[][]any) map[string]any {
 	}
 
 	return map[string]any{
-		"key":    key,
+		"key":    pointer.From(inputKey),
 		"values": values,
 	}
 }
 
 func flattenKey(inputKey *string) map[string]any {
-	key := ""
-	if inputKey != nil {
-		key = *inputKey
-	}
-
 	return map[string]any{
-		"key": key,
+		"key": pointer.From(inputKey),
 	}
 }

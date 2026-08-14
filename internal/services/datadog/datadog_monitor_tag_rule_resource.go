@@ -306,26 +306,11 @@ func flattenLogRules(input *rules.LogRules) []interface{} {
 	results := make([]interface{}, 0)
 
 	if input != nil {
-		aadLogEnabled := false
-		if input.SendAadLogs != nil {
-			aadLogEnabled = *input.SendAadLogs
-		}
-
-		subscriptionLogEnabled := false
-		if input.SendSubscriptionLogs != nil {
-			subscriptionLogEnabled = *input.SendSubscriptionLogs
-		}
-
-		resourceLogEnabled := false
-		if input.SendResourceLogs != nil {
-			resourceLogEnabled = *input.SendResourceLogs
-		}
-
 		results = append(results, map[string]interface{}{
-			"aad_log_enabled":          aadLogEnabled,
+			"aad_log_enabled":          pointer.From(input.SendAadLogs),
 			"filter":                   flattenFilteringTags(input.FilteringTags),
-			"resource_log_enabled":     resourceLogEnabled,
-			"subscription_log_enabled": subscriptionLogEnabled,
+			"resource_log_enabled":     pointer.From(input.SendResourceLogs),
+			"subscription_log_enabled": pointer.From(input.SendSubscriptionLogs),
 		})
 	}
 
@@ -352,18 +337,10 @@ func flattenFilteringTags(input *[]rules.FilteringTag) []interface{} {
 			if filteringTagRules.Action != nil {
 				action = string(*filteringTagRules.Action)
 			}
-			name := ""
-			if filteringTagRules.Name != nil {
-				name = *filteringTagRules.Name
-			}
-			value := ""
-			if filteringTagRules.Value != nil {
-				value = *filteringTagRules.Value
-			}
 			results = append(results, map[string]interface{}{
 				"action": action,
-				"name":   name,
-				"value":  value,
+				"name":   pointer.From(filteringTagRules.Name),
+				"value":  pointer.From(filteringTagRules.Value),
 			})
 		}
 	}

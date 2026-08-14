@@ -466,15 +466,10 @@ func flattenFirewallPolicyDNSSetting(input *firewallpolicies.DnsSettings) []inte
 		return []interface{}{}
 	}
 
-	proxyEnabled := false
-	if input.EnableProxy != nil {
-		proxyEnabled = *input.EnableProxy
-	}
-
 	return []interface{}{
 		map[string]interface{}{
 			"servers":       helpers.FlattenStringSlice(input.Servers),
-			"proxy_enabled": proxyEnabled,
+			"proxy_enabled": pointer.From(input.EnableProxy),
 		},
 	}
 }
@@ -499,12 +494,8 @@ func flattenFirewallPolicyIntrusionDetection(input *firewallpolicies.FirewallPol
 
 	if overrides := input.Configuration.SignatureOverrides; overrides != nil {
 		for _, override := range *overrides {
-			id := ""
-			if override.Id != nil {
-				id = *override.Id
-			}
 			signatureOverrides = append(signatureOverrides, map[string]interface{}{
-				"id":    id,
+				"id":    pointer.From(override.Id),
 				"state": string(pointer.From(override.Mode)),
 			})
 		}
@@ -512,26 +503,6 @@ func flattenFirewallPolicyIntrusionDetection(input *firewallpolicies.FirewallPol
 
 	if bypasses := input.Configuration.BypassTrafficSettings; bypasses != nil {
 		for _, bypass := range *bypasses {
-			name := ""
-			if bypass.Name != nil {
-				name = *bypass.Name
-			}
-
-			description := ""
-			if bypass.Description != nil {
-				description = *bypass.Description
-			}
-
-			var sourceAddresses []string
-			if bypass.SourceAddresses != nil {
-				sourceAddresses = *bypass.SourceAddresses
-			}
-
-			var destinationAddresses []string
-			if bypass.DestinationAddresses != nil {
-				destinationAddresses = *bypass.DestinationAddresses
-			}
-
 			destinationPorts := make([]string, 0)
 			if bypass.DestinationPorts != nil {
 				destinationPorts = *bypass.DestinationPorts
@@ -548,20 +519,16 @@ func flattenFirewallPolicyIntrusionDetection(input *firewallpolicies.FirewallPol
 			}
 
 			trafficBypass = append(trafficBypass, map[string]interface{}{
-				"name":                  name,
-				"description":           description,
+				"name":                  pointer.From(bypass.Name),
+				"description":           pointer.From(bypass.Description),
 				"protocol":              string(pointer.From(bypass.Protocol)),
-				"source_addresses":      sourceAddresses,
-				"destination_addresses": destinationAddresses,
+				"source_addresses":      pointer.From(bypass.SourceAddresses),
+				"destination_addresses": pointer.From(bypass.DestinationAddresses),
 				"destination_ports":     destinationPorts,
 				"source_ip_groups":      sourceIPGroups,
 				"destination_ip_groups": destinationIPGroups,
 			})
 		}
-	}
-	var privateRanges []string
-	if privates := input.Configuration.PrivateRanges; privates != nil {
-		privateRanges = *privates
 	}
 
 	return []interface{}{
@@ -569,7 +536,7 @@ func flattenFirewallPolicyIntrusionDetection(input *firewallpolicies.FirewallPol
 			"mode":                string(pointer.From(input.Mode)),
 			"signature_overrides": signatureOverrides,
 			"traffic_bypass":      trafficBypass,
-			"private_ranges":      privateRanges,
+			"private_ranges":      pointer.From(input.Configuration.PrivateRanges),
 		},
 	}
 }
@@ -592,11 +559,6 @@ func flattenFirewallPolicyInsights(input *firewallpolicies.FirewallPolicyInsight
 		return []interface{}{}
 	}
 
-	var enabled bool
-	if input.IsEnabled != nil {
-		enabled = *input.IsEnabled
-	}
-
 	var retentionInDays int
 	if input.RetentionDays != nil {
 		retentionInDays = int(*input.RetentionDays)
@@ -606,7 +568,7 @@ func flattenFirewallPolicyInsights(input *firewallpolicies.FirewallPolicyInsight
 
 	return []interface{}{
 		map[string]interface{}{
-			"enabled":                            enabled,
+			"enabled":                            pointer.From(input.IsEnabled),
 			"retention_in_days":                  retentionInDays,
 			"default_log_analytics_workspace_id": defaultLogAnalyticsWorspaceId,
 			"log_analytics_workspace":            logAnalyticsWorkspaces,

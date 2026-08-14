@@ -542,11 +542,7 @@ func resourceEventHubNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("maximum_throughput_units", int(*props.MaximumThroughputUnits))
 			d.Set("dedicated_cluster_id", props.ClusterArmId)
 
-			localAuthDisabled := false
-			if props.DisableLocalAuth != nil {
-				localAuthDisabled = *props.DisableLocalAuth
-			}
-			d.Set("local_authentication_enabled", !localAuthDisabled)
+			d.Set("local_authentication_enabled", !pointer.From(props.DisableLocalAuth))
 
 			publicNetworkAccess := true
 			if props.PublicNetworkAccess != nil && *props.PublicNetworkAccess == namespaces.PublicNetworkAccessDisabled {

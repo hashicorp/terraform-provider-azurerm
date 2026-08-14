@@ -758,23 +758,14 @@ func flattenFirewallPolicyRuleCollection(input *[]firewallpolicyrulecollectiongr
 
 		switch rule := e.(type) {
 		case firewallpolicyrulecollectiongroups.FirewallPolicyFilterRuleCollection:
-			var name string
-			if rule.Name != nil {
-				name = *rule.Name
-			}
-			var priority int64
-			if rule.Priority != nil {
-				priority = *rule.Priority
-			}
-
 			var action string
 			if rule.Action != nil {
 				action = string(pointer.From(rule.Action.Type))
 			}
 
 			result = map[string]interface{}{
-				"name":     name,
-				"priority": priority,
+				"name":     pointer.From(rule.Name),
+				"priority": pointer.From(rule.Priority),
 				"action":   action,
 			}
 
@@ -806,15 +797,6 @@ func flattenFirewallPolicyRuleCollection(input *[]firewallpolicyrulecollectiongr
 				return nil, nil, nil, fmt.Errorf("unknown rule condition type %+v", (*rule.Rules)[0])
 			}
 		case firewallpolicyrulecollectiongroups.FirewallPolicyNatRuleCollection:
-			var name string
-			if rule.Name != nil {
-				name = *rule.Name
-			}
-			var priority int64
-			if rule.Priority != nil {
-				priority = *rule.Priority
-			}
-
 			var action string
 			if rule.Action != nil {
 				// doing this because we hardcode Dnat for https://github.com/Azure/azure-rest-api-specs/issues/9986
@@ -830,8 +812,8 @@ func flattenFirewallPolicyRuleCollection(input *[]firewallpolicyrulecollectiongr
 				return nil, nil, nil, err
 			}
 			result = map[string]interface{}{
-				"name":     name,
-				"priority": priority,
+				"name":     pointer.From(rule.Name),
+				"priority": pointer.From(rule.Priority),
 				"action":   action,
 				"rule":     rules,
 			}
@@ -854,21 +836,6 @@ func flattenFirewallPolicyRuleApplication(input *[]firewallpolicyrulecollectiong
 		rule, ok := e.(firewallpolicyrulecollectiongroups.ApplicationRule)
 		if !ok {
 			return nil, fmt.Errorf("unexpected non-application rule: %+v", e)
-		}
-
-		var name string
-		if rule.Name != nil {
-			name = *rule.Name
-		}
-
-		var description string
-		if rule.Description != nil {
-			description = *rule.Description
-		}
-
-		var terminate_tls bool
-		if rule.TerminateTLS != nil {
-			terminate_tls = *rule.TerminateTLS
 		}
 
 		protocols := make([]interface{}, 0)
@@ -894,8 +861,8 @@ func flattenFirewallPolicyRuleApplication(input *[]firewallpolicyrulecollectiong
 		}
 
 		output = append(output, map[string]interface{}{
-			"name":                  name,
-			"description":           description,
+			"name":                  pointer.From(rule.Name),
+			"description":           pointer.From(rule.Description),
 			"protocols":             protocols,
 			"http_headers":          httpHeaders,
 			"source_addresses":      helpers.FlattenStringSlice(rule.SourceAddresses),
@@ -904,7 +871,7 @@ func flattenFirewallPolicyRuleApplication(input *[]firewallpolicyrulecollectiong
 			"destination_urls":      helpers.FlattenStringSlice(rule.TargetURLs),
 			"destination_fqdns":     helpers.FlattenStringSlice(rule.TargetFqdns),
 			"destination_fqdn_tags": helpers.FlattenStringSlice(rule.FqdnTags),
-			"terminate_tls":         terminate_tls,
+			"terminate_tls":         pointer.From(rule.TerminateTLS),
 			"web_categories":        helpers.FlattenStringSlice(rule.WebCategories),
 		})
 	}
@@ -923,11 +890,6 @@ func flattenFirewallPolicyRuleNetwork(input *[]firewallpolicyrulecollectiongroup
 			return nil, fmt.Errorf("unexpected non-network rule: %+v", e)
 		}
 
-		var name string
-		if rule.Name != nil {
-			name = *rule.Name
-		}
-
 		protocols := make([]interface{}, 0)
 		if rule.IPProtocols != nil {
 			for _, protocol := range *rule.IPProtocols {
@@ -936,7 +898,7 @@ func flattenFirewallPolicyRuleNetwork(input *[]firewallpolicyrulecollectiongroup
 		}
 
 		output = append(output, map[string]interface{}{
-			"name":                  name,
+			"name":                  pointer.From(rule.Name),
 			"protocols":             protocols,
 			"source_addresses":      helpers.FlattenStringSlice(rule.SourceAddresses),
 			"source_ip_groups":      helpers.FlattenStringSlice(rule.SourceIPGroups),
@@ -961,11 +923,6 @@ func flattenFirewallPolicyRuleNat(input *[]firewallpolicyrulecollectiongroups.Fi
 			return nil, fmt.Errorf("unexpected non-nat rule: %+v", e)
 		}
 
-		var name string
-		if rule.Name != nil {
-			name = *rule.Name
-		}
-
 		protocols := make([]interface{}, 0)
 		if rule.IPProtocols != nil {
 			for _, protocol := range *rule.IPProtocols {
@@ -986,26 +943,16 @@ func flattenFirewallPolicyRuleNat(input *[]firewallpolicyrulecollectiongroups.Fi
 			translatedPort = port
 		}
 
-		translatedAddress := ""
-		if rule.TranslatedAddress != nil {
-			translatedAddress = *rule.TranslatedAddress
-		}
-
-		translatedFQDN := ""
-		if rule.TranslatedFqdn != nil {
-			translatedFQDN = *rule.TranslatedFqdn
-		}
-
 		output = append(output, map[string]interface{}{
-			"name":                name,
+			"name":                pointer.From(rule.Name),
 			"protocols":           protocols,
 			"source_addresses":    helpers.FlattenStringSlice(rule.SourceAddresses),
 			"source_ip_groups":    helpers.FlattenStringSlice(rule.SourceIPGroups),
 			"destination_address": destinationAddr,
 			"destination_ports":   helpers.FlattenStringSlice(rule.DestinationPorts),
-			"translated_address":  translatedAddress,
+			"translated_address":  pointer.From(rule.TranslatedAddress),
 			"translated_port":     translatedPort,
-			"translated_fqdn":     translatedFQDN,
+			"translated_fqdn":     pointer.From(rule.TranslatedFqdn),
 			"description":         pointer.From(rule.Description),
 		})
 	}
