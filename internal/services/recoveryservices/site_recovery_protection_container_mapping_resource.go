@@ -198,12 +198,11 @@ func resourceSiteRecoveryContainerMappingUpdate(d *pluginsdk.ResourceData, meta 
 
 	if d.HasChange("automatic_update") {
 		autoUpdateEnabledValue, automationAccountArmId, authType := expandAutoUpdateSettings(d.Get("automatic_update").([]interface{}))
-		updateInput := replicationprotectioncontainermappings.A2AUpdateContainerMappingInput{
+		update.Properties.ProviderSpecificInput = replicationprotectioncontainermappings.A2AUpdateContainerMappingInput{
 			AgentAutoUpdateStatus:               &autoUpdateEnabledValue,
 			AutomationAccountArmId:              automationAccountArmId,
 			AutomationAccountAuthenticationType: authType,
 		}
-		update.Properties.ProviderSpecificInput = updateInput
 	}
 
 	err = client.UpdateThenPoll(ctx, *id, update)

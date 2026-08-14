@@ -1657,12 +1657,10 @@ func expandAzureRmVirtualMachineDiagnosticsProfile(d *pluginsdk.ResourceData) *v
 	if len(bootDiagnostics) > 0 {
 		bootDiagnostic := bootDiagnostics[0].(map[string]interface{})
 
-		diagnostic := &virtualmachines.BootDiagnostics{
+		diagnosticsProfile.BootDiagnostics = &virtualmachines.BootDiagnostics{
 			Enabled:    pointer.To(bootDiagnostic["enabled"].(bool)),
 			StorageUri: pointer.To(bootDiagnostic["storage_uri"].(string)),
 		}
-
-		diagnosticsProfile.BootDiagnostics = diagnostic
 
 		return diagnosticsProfile
 	}
@@ -1677,11 +1675,9 @@ func expandAzureRmVirtualMachineAdditionalCapabilities(d *pluginsdk.ResourceData
 	}
 
 	additionalCapability := additionalCapabilities[0].(map[string]interface{})
-	capability := &virtualmachines.AdditionalCapabilities{
+	return &virtualmachines.AdditionalCapabilities{
 		UltraSSDEnabled: pointer.To(additionalCapability["ultra_ssd_enabled"].(bool)),
 	}
-
-	return capability
 }
 
 func expandAzureRmVirtualMachineImageReference(d *pluginsdk.ResourceData) (*virtualmachines.ImageReference, error) {

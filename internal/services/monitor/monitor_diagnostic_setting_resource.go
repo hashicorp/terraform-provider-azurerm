@@ -316,8 +316,7 @@ func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta inte
 	if d.HasChange("enabled_metric") {
 		enabledMetrics := d.Get("enabled_metric").(*pluginsdk.Set).List()
 		if len(enabledMetrics) > 0 {
-			expandEnabledMetrics := expandMonitorDiagnosticsSettingsEnabledMetrics(enabledMetrics)
-			metrics = expandEnabledMetrics
+			metrics = expandMonitorDiagnosticsSettingsEnabledMetrics(enabledMetrics)
 			hasEnabledMetrics = true
 		} else if existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.Metrics != nil {
 			// if the enabled_metric is updated to empty, we disable the metric explicitly

@@ -2627,7 +2627,7 @@ resource "azurerm_application_gateway" "import" {
 
 // nolint unused - mistakenly marked as unused
 func (r ApplicationGatewayResource) trustedRootCertificate_keyvault(data acceptance.TestData) string {
-	out := fmt.Sprintf(`
+	return fmt.Sprintf(`
 %[1]s
 
 # since these variables are re-used - a locals block makes this more maintainable
@@ -2792,11 +2792,10 @@ resource "azurerm_application_gateway" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
-	return out
 }
 
 func (r ApplicationGatewayResource) update_trustedRootCertificate_keyvault(data acceptance.TestData) string {
-	out := fmt.Sprintf(`
+	return fmt.Sprintf(`
 %[1]s
 
 # since these variables are re-used - a locals block makes this more maintainable
@@ -2987,7 +2986,6 @@ resource "azurerm_application_gateway" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
-	return out
 }
 
 func (r ApplicationGatewayResource) updateForceFirewallPolicyAssociation(data acceptance.TestData, forceFirewallPolicyAssociation bool) string {

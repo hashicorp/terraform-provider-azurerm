@@ -426,14 +426,12 @@ func expandLongTermRetentionPolicy(ltrPolicy []LongTermRetentionPolicy) *managed
 		weekOfYear = ltrPolicy[0].WeekOfYear
 	}
 
-	result := &managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicyProperties{
+	return &managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicyProperties{
 		WeeklyRetention:  &ltrPolicy[0].WeeklyRetention,
 		MonthlyRetention: &ltrPolicy[0].MonthlyRetention,
 		YearlyRetention:  &ltrPolicy[0].YearlyRetention,
 		WeekOfYear:       &weekOfYear,
 	}
-
-	return result
 }
 
 func flattenLongTermRetentionPolicy(ltrPolicy managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicyProperties) []LongTermRetentionPolicy {

@@ -29,7 +29,7 @@ import (
 //go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceMonitorActionGroup() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceMonitorActionGroupCreateUpdate,
 		Read:   resourceMonitorActionGroupRead,
 		Update: resourceMonitorActionGroupCreateUpdate,
@@ -439,8 +439,6 @@ func resourceMonitorActionGroup() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	return resource
 }
 
 func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

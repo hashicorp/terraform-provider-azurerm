@@ -397,8 +397,7 @@ func resourceKustoClusterCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if !features.FivePointOh() {
 		if v, ok := d.GetOk("virtual_network_configuration"); ok {
-			vnet := expandKustoClusterVNET(v.([]interface{}))
-			clusterProperties.VirtualNetworkConfiguration = vnet
+			clusterProperties.VirtualNetworkConfiguration = expandKustoClusterVNET(v.([]interface{}))
 		}
 	}
 	if v, ok := d.GetOk("allowed_fqdns"); ok {
@@ -752,14 +751,12 @@ func expandOptimizedAutoScale(input []interface{}) *clusters.OptimizedAutoscale 
 	}
 
 	config := input[0].(map[string]interface{})
-	optimizedAutoScale := &clusters.OptimizedAutoscale{
+	return &clusters.OptimizedAutoscale{
 		Version:   1,
 		IsEnabled: true,
 		Minimum:   int64(config["minimum_instances"].(int)),
 		Maximum:   int64(config["maximum_instances"].(int)),
 	}
-
-	return optimizedAutoScale
 }
 
 func flattenOptimizedAutoScale(optimizedAutoScale *clusters.OptimizedAutoscale) []interface{} {

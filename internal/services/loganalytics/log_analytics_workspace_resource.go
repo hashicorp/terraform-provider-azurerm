@@ -33,7 +33,7 @@ import (
 )
 
 func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceLogAnalyticsWorkspaceCreate,
 		Read:   resourceLogAnalyticsWorkspaceRead,
 		Update: resourceLogAnalyticsWorkspaceUpdate,
@@ -193,8 +193,6 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	return resource
 }
 
 func resourceLogAnalyticsWorkspaceCustomDiff(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {

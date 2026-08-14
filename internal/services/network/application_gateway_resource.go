@@ -2013,8 +2013,7 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("global") {
-		globalConfiguration := expandApplicationGatewayGlobalConfiguration(d.Get("global").([]interface{}))
-		payload.Properties.GlobalConfiguration = globalConfiguration
+		payload.Properties.GlobalConfiguration = expandApplicationGatewayGlobalConfiguration(d.Get("global").([]interface{}))
 	}
 
 	if d.HasChange("http_listener") {
@@ -2072,9 +2071,7 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("probe") {
-		probes := expandApplicationGatewayProbes(d.Get("probe").(*schema.Set).List())
-
-		payload.Properties.Probes = probes
+		payload.Properties.Probes = expandApplicationGatewayProbes(d.Get("probe").(*schema.Set).List())
 	}
 
 	if d.HasChange("sku") {
@@ -4457,8 +4454,7 @@ func flattenApplicationGatewaySslCertificates(input *[]applicationgateways.Appli
 
 				if name == existingName {
 					if data := existingCerts["data"]; data != nil {
-						v := helpers.Base64EncodeIfNot(data.(string))
-						output["data"] = v
+						output["data"] = helpers.Base64EncodeIfNot(data.(string))
 					}
 
 					if password := existingCerts["password"]; password != nil {

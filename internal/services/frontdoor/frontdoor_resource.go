@@ -1324,7 +1324,7 @@ func flattenSingleFrontDoorHealthProbeSettingsModel(input *frontdoors.HealthProb
 		}
 	}
 
-	output := map[string]interface{}{
+	return map[string]interface{}{
 		"enabled":             enabled,
 		"id":                  id,
 		"name":                name,
@@ -1333,8 +1333,6 @@ func flattenSingleFrontDoorHealthProbeSettingsModel(input *frontdoors.HealthProb
 		"path":                path,
 		"probe_method":        probeMethod,
 	}
-
-	return output
 }
 
 func combineLoadBalancingSettingsModel(allLoadBalancingSettings []frontdoors.LoadBalancingSettingsModel, orderedIds []interface{}, frontDoorId frontdoors.FrontDoorId) []interface{} {
@@ -1419,15 +1417,13 @@ func flattenSingleFrontDoorLoadBalancingSettingsModel(input *frontdoors.LoadBala
 		}
 	}
 
-	output := map[string]interface{}{
+	return map[string]interface{}{
 		"additional_latency_milliseconds": additionalLatencyMilliseconds,
 		"id":                              id,
 		"name":                            name,
 		"sample_size":                     sampleSize,
 		"successful_samples_required":     successfulSamplesRequired,
 	}
-
-	return output
 }
 
 func combineRoutingRules(allRoutingRules []frontdoors.RoutingRule, oldBlocks interface{}, orderedIds []interface{}, frontDoorId frontdoors.FrontDoorId) ([]interface{}, error) {

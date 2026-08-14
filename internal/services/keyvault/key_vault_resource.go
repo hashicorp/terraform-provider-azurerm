@@ -506,8 +506,7 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	if d.HasChange("access_policy") {
 		policiesRaw := d.Get("access_policy").([]interface{})
-		accessPolicies := expandAccessPolicies(policiesRaw)
-		update.Properties.AccessPolicies = accessPolicies
+		update.Properties.AccessPolicies = expandAccessPolicies(policiesRaw)
 	}
 
 	if d.HasChange("enabled_for_deployment") {

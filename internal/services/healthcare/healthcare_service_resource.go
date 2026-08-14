@@ -427,14 +427,13 @@ func expandCorsConfiguration(d *pluginsdk.ResourceData) *service.ServiceCorsConf
 	maxAgeInSeconds := int64(corsConfigAttr["max_age_in_seconds"].(int))
 	allowCredentials := corsConfigAttr["allow_credentials"].(bool)
 
-	cors := &service.ServiceCorsConfigurationInfo{
+	return &service.ServiceCorsConfigurationInfo{
 		Origins:          &allowedOrigins,
 		Headers:          &allowedHeaders,
 		Methods:          &allowedMethods,
 		MaxAge:           &maxAgeInSeconds,
 		AllowCredentials: &allowCredentials,
 	}
-	return cors
 }
 
 func expandAuthentication(d *pluginsdk.ResourceData) *service.ServiceAuthenticationConfigurationInfo {
@@ -449,12 +448,11 @@ func expandAuthentication(d *pluginsdk.ResourceData) *service.ServiceAuthenticat
 	audience := authConfigAttr["audience"].(string)
 	smartProxyEnabled := authConfigAttr["smart_proxy_enabled"].(bool)
 
-	auth := &service.ServiceAuthenticationConfigurationInfo{
+	return &service.ServiceAuthenticationConfigurationInfo{
 		Authority:         &authority,
 		Audience:          &audience,
 		SmartProxyEnabled: &smartProxyEnabled,
 	}
-	return auth
 }
 
 func expandsCosmosDBConfiguration(d *pluginsdk.ResourceData) (*service.ServiceCosmosDbConfigurationInfo, error) {

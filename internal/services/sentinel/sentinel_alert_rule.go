@@ -122,12 +122,10 @@ func expandAlertRuleIncidentConfiguration(input []interface{}, createIncidentKey
 
 	raw := input[0].(map[string]interface{})
 
-	output := &alertrules.IncidentConfiguration{
+	return &alertrules.IncidentConfiguration{
 		CreateIncident:        raw[createIncidentKey].(bool),
 		GroupingConfiguration: expandAlertRuleGrouping(raw["grouping"].([]interface{}), withGroupByPrefix),
 	}
-
-	return output
 }
 
 func flattenAlertRuleIncidentConfiguration(input *alertrules.IncidentConfiguration, createIncidentKey string, withGroupByPrefix bool) []interface{} {
