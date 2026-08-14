@@ -863,10 +863,7 @@ func flattenGatewaySsoProperties(input *appplatform.SsoProperties, old []Gateway
 		oldItems[item.IssuerUri] = item
 	}
 
-	var issuerUri string
-	if input.IssuerUri != nil {
-		issuerUri = *input.IssuerUri
-	}
+	issuerUri := pointer.From(input.IssuerUri)
 	var clientId string
 	var clientSecret string
 	if oldItem, ok := oldItems[issuerUri]; ok {

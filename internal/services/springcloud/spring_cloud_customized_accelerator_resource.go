@@ -515,44 +515,19 @@ func flattenSpringCloudCustomizedAcceleratorGitRepository(state []GitRepositoryM
 		sshAuth = append(sshAuth, sshAuthState)
 	}
 
-	branch := ""
-	if input.Branch != nil {
-		branch = *input.Branch
-	}
-
-	commit := ""
-	if input.Commit != nil {
-		commit = *input.Commit
-	}
-
-	gitTag := ""
-	if input.GitTag != nil {
-		gitTag = *input.GitTag
-	}
-
-	var intervalInSeconds int64
-	if input.IntervalInSeconds != nil {
-		intervalInSeconds = *input.IntervalInSeconds
-	}
-
-	subPath := ""
-	if input.SubPath != nil {
-		subPath = *input.SubPath
-	}
-
 	url := input.Url
 
 	return []GitRepositoryModel{
 		{
 			BasicAuth:         basicAuth,
 			SshAuth:           sshAuth,
-			Branch:            branch,
+			Branch:            pointer.From(input.Branch),
 			CaCertificateId:   caCertificateId,
-			Commit:            commit,
-			GitTag:            gitTag,
-			IntervalInSeconds: intervalInSeconds,
+			Commit:            pointer.From(input.Commit),
+			GitTag:            pointer.From(input.GitTag),
+			IntervalInSeconds: pointer.From(input.IntervalInSeconds),
 			Url:               url,
-			Path:              subPath,
+			Path:              pointer.From(input.SubPath),
 		},
 	}
 }

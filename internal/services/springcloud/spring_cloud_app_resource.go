@@ -546,15 +546,10 @@ func flattenSpringCloudAppPersistentDisk(input *appplatform.PersistentDisk) []in
 		sizeInGB = int(*input.SizeInGB)
 	}
 
-	mountPath := ""
-	if input.MountPath != nil {
-		mountPath = *input.MountPath
-	}
-
 	return []interface{}{
 		map[string]interface{}{
 			"size_in_gb": sizeInGB,
-			"mount_path": mountPath,
+			"mount_path": pointer.From(input.MountPath),
 		},
 	}
 }
