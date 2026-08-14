@@ -1880,11 +1880,7 @@ func flattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 		result["acr_user_managed_identity_client_id"] = *input.AcrUserManagedIdentityID
 	}
 
-	vnetRouteAllEnabled := false
-	if input.VnetRouteAllEnabled != nil {
-		vnetRouteAllEnabled = *input.VnetRouteAllEnabled
-	}
-	result["vnet_route_all_enabled"] = vnetRouteAllEnabled
+	result["vnet_route_all_enabled"] = pointer.From(input.VnetRouteAllEnabled)
 
 	return append(results, result)
 }
@@ -1911,17 +1907,9 @@ func flattenAppServiceIpRestriction(input *[]web.IPSecurityRestriction) []interf
 			}
 		}
 
-		subnetId := ""
-		if subnetIdRaw := v.VnetSubnetResourceID; subnetIdRaw != nil {
-			subnetId = *subnetIdRaw
-		}
-		restriction["virtual_network_subnet_id"] = subnetId
+		restriction["virtual_network_subnet_id"] = pointer.From(v.VnetSubnetResourceID)
 
-		name := ""
-		if nameRaw := v.Name; nameRaw != nil {
-			name = *nameRaw
-		}
-		restriction["name"] = name
+		restriction["name"] = pointer.From(v.Name)
 
 		priority := 0
 		if priorityRaw := v.Priority; priorityRaw != nil {
@@ -1929,11 +1917,7 @@ func flattenAppServiceIpRestriction(input *[]web.IPSecurityRestriction) []interf
 		}
 		restriction["priority"] = priority
 
-		action := ""
-		if actionRaw := v.Action; actionRaw != nil {
-			action = *actionRaw
-		}
-		restriction["action"] = action
+		restriction["action"] = pointer.From(v.Action)
 
 		if headers := v.Headers; headers != nil {
 			restriction["headers"] = flattenHeaders(headers)

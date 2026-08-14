@@ -578,11 +578,7 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 		result["dotnet_framework_version"] = *input.NetFrameworkVersion
 	}
 
-	vnetRouteAllEnabled := false
-	if input.VnetRouteAllEnabled != nil {
-		vnetRouteAllEnabled = *input.VnetRouteAllEnabled
-	}
-	result["vnet_route_all_enabled"] = vnetRouteAllEnabled
+	result["vnet_route_all_enabled"] = pointer.From(input.VnetRouteAllEnabled)
 
 	results = append(results, result)
 	return results
