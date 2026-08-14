@@ -207,11 +207,7 @@ func resourceStaticSiteRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if prop := resp.StaticSite; prop != nil {
-		defaultHostname := ""
-		if prop.DefaultHostname != nil {
-			defaultHostname = *prop.DefaultHostname
-		}
-		d.Set("default_host_name", defaultHostname)
+		d.Set("default_host_name", pointer.From(prop.DefaultHostname))
 	}
 
 	skuName := ""
@@ -233,11 +229,7 @@ func resourceStaticSiteRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("listing secretes for %s: %v", id, err)
 	}
 
-	apiKey := ""
-	if pkey := secretResp.Properties["apiKey"]; pkey != nil {
-		apiKey = *pkey
-	}
-	d.Set("api_key", apiKey)
+	d.Set("api_key", pointer.From(secretResp.Properties["apiKey"]))
 
 	appSettingsResp, err := client.ListStaticSiteAppSettings(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
