@@ -395,7 +395,7 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 				string(webapps.FunctionsDeploymentStorageTypeBlobContainer),
 			}, false),
 			ExactlyOneOf: []string{"storage_container_type", "deployment_storage"},
-			Deprecated:   "`storage_container_type` has been deprecated in favour of the `deployment_storage` property and will be removed in v5.0 of the AzureRM Provider.",
+			Deprecated:   "`storage_container_type` has been deprecated in favour of the `deployment_storage` property and will be removed in v6.0 of the AzureRM Provider.",
 			Description:  "The type of the storage container where the function app's code is hosted. Only `blobContainer` is supported currently.",
 		}
 
@@ -406,7 +406,7 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 			RequiredWith: []string{
 				"storage_container_type",
 			},
-			Deprecated:  "`storage_container_endpoint` has been deprecated in favour of the `deployment_storage` property and will be removed in v5.0 of the AzureRM Provider.",
+			Deprecated:  "`storage_container_endpoint` has been deprecated in favour of the `deployment_storage` property and will be removed in v6.0 of the AzureRM Provider.",
 			Description: "The endpoint of the storage container where the function app's code is hosted.",
 		}
 
@@ -422,7 +422,7 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 			RequiredWith: []string{
 				"storage_container_type",
 			},
-			Deprecated: "`storage_authentication_type` has been deprecated in favour of the `deployment_storage` property and will be removed in v5.0 of the AzureRM Provider.",
+			Deprecated: "`storage_authentication_type` has been deprecated in favour of the `deployment_storage` property and will be removed in v6.0 of the AzureRM Provider.",
 		}
 
 		schema["storage_access_key"] = &pluginsdk.Schema{
@@ -434,7 +434,7 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 				"storage_container_type",
 			},
 			ValidateFunc: validation.StringIsNotEmpty,
-			Deprecated:   "`storage_access_key` has been deprecated in favour of the `deployment_storage` property and will be removed in v5.0 of the AzureRM Provider.",
+			Deprecated:   "`storage_access_key` has been deprecated in favour of the `deployment_storage` property and will be removed in v6.0 of the AzureRM Provider.",
 		}
 
 		schema["storage_user_assigned_identity_id"] = &pluginsdk.Schema{
@@ -445,7 +445,7 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 				"storage_container_type",
 			},
 			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
-			Deprecated:   "`storage_user_assigned_identity_id` has been deprecated in favour of the `deployment_storage` property and will be removed in v5.0 of the AzureRM Provider.",
+			Deprecated:   "`storage_user_assigned_identity_id` has been deprecated in favour of the `deployment_storage` property and will be removed in v6.0 of the AzureRM Provider.",
 		}
 	}
 	return schema
