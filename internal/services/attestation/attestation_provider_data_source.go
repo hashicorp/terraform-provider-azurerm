@@ -48,7 +48,21 @@ func dataSourceAttestationProvider() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"sev_snp_policy_base64": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"open_enclave_policy_base64": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+			"sgx_enclave_policy_base64": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"tpm_policy_base64": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -96,13 +110,42 @@ func dataSourceArmAttestationProviderRead(d *pluginsdk.ResourceData, meta interf
 	if err != nil && !utils.ResponseWasBadRequest(openEnclavePolicy.Response) {
 		return fmt.Errorf("retrieving OpenEnclave Policy for %s: %+v", id, err)
 	}
+	sgxEnclavePolicy, err := dataPlaneClient.Get(ctx, *dataPlaneUri, attestation.TypeSgxEnclave)
+	if err != nil && !utils.ResponseWasBadRequest(sgxEnclavePolicy.Response) {
+		return fmt.Errorf("retrieving SgxEnclave Policy for %s: %+v", id, err)
+	}
+	tpmPolicy, err := dataPlaneClient.Get(ctx, *dataPlaneUri, attestation.TypeTpm)
+	if err != nil && !utils.ResponseWasBadRequest(tpmPolicy.Response) {
+		return fmt.Errorf("retrieving Tpm Policy for %s: %+v", id, err)
+	}
+	sevSnpPolicy, err := dataPlaneClient.Get(ctx, *dataPlaneUri, attestation.TypeSevSnpVM)
+	if err != nil && !utils.ResponseWasBadRequest(sevSnpPolicy.Response) {
+		return fmt.Errorf("retrieving SEV-SNP Policy for %s: %+v", id, err)
+	}
 
 	openEnclavePolicyData, err := base64DataFromAttestationJWT(openEnclavePolicy.Token)
 	if err != nil {
 		return fmt.Errorf("parsing OpenEnclave Policy for %s: %+v", id, err)
 	}
-
 	d.Set("open_enclave_policy_base64", pointer.From(openEnclavePolicyData))
+
+	sgxEnclavePolicyData, err := base64DataFromAttestationJWT(sgxEnclavePolicy.Token)
+	if err != nil {
+		return fmt.Errorf("parsing SgxEnclave Policy for %s: %+v", id, err)
+	}
+	d.Set("sgx_enclave_policy_base64", pointer.From(sgxEnclavePolicyData))
+
+	tpmPolicyData, err := base64DataFromAttestationJWT(tpmPolicy.Token)
+	if err != nil {
+		return fmt.Errorf("parsing Tpm Policy for %s: %+v", id, err)
+	}
+	d.Set("tpm_policy_base64", pointer.From(tpmPolicyData))
+
+	sevSnpPolicyData, err := base64DataFromAttestationJWT(sevSnpPolicy.Token)
+	if err != nil {
+		return fmt.Errorf("parsing SEV-SNP policy for %s: %+v", id, err)
+	}
+	d.Set("sev_snp_policy_base64", pointer.From(sevSnpPolicyData))
 
 	if resp.Model != nil {
 		d.Set("location", location.Normalize(resp.Model.Location))
