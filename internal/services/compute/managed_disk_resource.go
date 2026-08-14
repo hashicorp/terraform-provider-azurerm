@@ -939,11 +939,7 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			d.Set("security_type", securityType)
 			d.Set("secure_vm_disk_encryption_set_id", secureVMDiskEncryptionSetId)
 
-			onDemandBurstingEnabled := false
-			if props.BurstingEnabled != nil {
-				onDemandBurstingEnabled = *props.BurstingEnabled
-			}
-			d.Set("on_demand_bursting_enabled", onDemandBurstingEnabled)
+			d.Set("on_demand_bursting_enabled", pointer.From(props.BurstingEnabled))
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {

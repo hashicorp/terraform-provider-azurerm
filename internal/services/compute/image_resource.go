@@ -457,10 +457,7 @@ func flattenImageOSDisk(input *images.ImageStorageProfile) []interface{} {
 
 	if input != nil {
 		if v := input.OsDisk; v != nil {
-			blobUri := ""
-			if uri := v.BlobUri; uri != nil {
-				blobUri = *uri
-			}
+			blobUri := pointer.From(v.BlobUri)
 			caching := ""
 			if v.Caching != nil {
 				caching = string(*v.Caching)
@@ -508,10 +505,7 @@ func flattenImageDataDisks(input *images.ImageStorageProfile) []interface{} {
 	if input != nil {
 		if v := input.DataDisks; v != nil {
 			for _, disk := range *input.DataDisks {
-				blobUri := ""
-				if disk.BlobUri != nil {
-					blobUri = *disk.BlobUri
-				}
+				blobUri := pointer.From(disk.BlobUri)
 				caching := ""
 				if disk.Caching != nil {
 					caching = string(*disk.Caching)

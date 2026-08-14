@@ -276,11 +276,7 @@ func resourceVirtualMachineExtensionsRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("protected_settings_from_key_vault", flattenProtectedSettingsFromKeyVault(props.ProtectedSettingsFromKeyVault))
 			d.Set("provision_after_extensions", pointer.From(props.ProvisionAfterExtensions))
 
-			suppressFailure := false
-			if props.SuppressFailures != nil {
-				suppressFailure = *props.SuppressFailures
-			}
-			d.Set("failure_suppression_enabled", suppressFailure)
+			d.Set("failure_suppression_enabled", pointer.From(props.SuppressFailures))
 
 			if props.Settings != nil {
 				settings, err := json.Marshal(props.Settings)

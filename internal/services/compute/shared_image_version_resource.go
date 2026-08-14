@@ -439,10 +439,7 @@ func resourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta interface{})
 			osDiskSnapShotID := ""
 			storageAccountID := ""
 			if props.StorageProfile.OsDiskImage != nil && props.StorageProfile.OsDiskImage.Source != nil {
-				sourceID := ""
-				if props.StorageProfile.OsDiskImage.Source.Id != nil {
-					sourceID = *props.StorageProfile.OsDiskImage.Source.Id
-				}
+				sourceID := pointer.From(props.StorageProfile.OsDiskImage.Source.Id)
 
 				if props.StorageProfile.OsDiskImage.Source.StorageAccountId != nil {
 					sourceID = *props.StorageProfile.OsDiskImage.Source.StorageAccountId
