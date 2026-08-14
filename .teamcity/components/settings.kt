@@ -167,6 +167,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // Orbital is deprecated and can no longer be created - to be removed along with service ref: https://azure.microsoft.com/en-gb/updates?id=azure-orbital-ground-station-retirement
         "orbital" to testConfiguration(locationOverride = LocationConfiguration("eastus", "southcentralus", "westus2", false), disableTriggers = true),
 
+        // `azurerm_geo_catalog` is only available in `canadacentral`, `eastus`, `northcentralus`, `westeurope`, and `uksouth`
+        "orbitalplanetarycomputer" to testConfiguration(locationOverride = LocationConfiguration("uksouth", "eastus2", "westus2", false)),
+
         "paloalto" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus", "westus", false)),
 
         "policy" to testConfiguration(useAltSubscription = true),
