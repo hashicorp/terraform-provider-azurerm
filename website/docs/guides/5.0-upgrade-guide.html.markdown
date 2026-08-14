@@ -748,6 +748,7 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 
 * The deprecated `language_extensions` property has been removed in favour of the `language_extension` property.
 * The deprecated `virtual_network_configuration` block has been removed as it is no longer supported by the resource.
+* The `trusted_external_tenants` property's type has changed from a List to a Set, meaning its values are unordered and can no longer be referenced by numeric index.
 
 ### `azurerm_kusto_eventgrid_data_connection`
 
