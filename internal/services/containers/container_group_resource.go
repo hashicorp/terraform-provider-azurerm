@@ -1136,14 +1136,9 @@ func flattenContainerSecurityContext(input *containerinstance.SecurityContextDef
 		return []interface{}{}
 	}
 
-	var privileged bool
-	if v := input.Privileged; v != nil {
-		privileged = *v
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"privilege_enabled": privileged,
+			"privilege_enabled": pointer.From(input.Privileged),
 		},
 	}
 }
@@ -1584,14 +1579,8 @@ func flattenContainerProbeHttpHeaders(input *[]containerinstance.HTTPHeader) map
 
 	output := map[string]interface{}{}
 	for _, header := range *input {
-		name := ""
-		if header.Name != nil {
-			name = *header.Name
-		}
-		value := ""
-		if header.Value != nil {
-			value = *header.Value
-		}
+		name := pointer.From(header.Name)
+		value := pointer.From(header.Value)
 		output[name] = value
 	}
 	return output

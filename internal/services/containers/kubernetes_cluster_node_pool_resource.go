@@ -763,10 +763,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	props := existing.Model.Properties
 
 	// store the existing value should the user have opted to ignore it
-	enableAutoScaling := false
-	if props.EnableAutoScaling != nil {
-		enableAutoScaling = *props.EnableAutoScaling
-	}
+	enableAutoScaling := pointer.From(props.EnableAutoScaling)
 
 	log.Printf("[DEBUG] Determining delta for existing %s..", *id)
 
@@ -841,10 +838,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		}
 		if existingNodePool := existingNodePoolResp.Model; existingNodePool != nil && existingNodePool.Properties != nil {
 			orchestratorVersion := d.Get("orchestrator_version").(string)
-			currentOrchestratorVersion := ""
-			if v := existingNodePool.Properties.CurrentOrchestratorVersion; v != nil {
-				currentOrchestratorVersion = *v
-			}
+			currentOrchestratorVersion := pointer.From(existingNodePool.Properties.CurrentOrchestratorVersion)
 			if err := validateNodePoolSupportsVersion(ctx, containersClient, currentOrchestratorVersion, *id, orchestratorVersion); err != nil {
 				return err
 			}
@@ -1571,14 +1565,8 @@ func flattenAgentPoolLinuxOSConfig(input *agentpools.LinuxOSConfig) ([]interface
 	if input.SwapFileSizeMB != nil {
 		swapFileSizeMB = int(*input.SwapFileSizeMB)
 	}
-	var transparentHugePageDefrag string
-	if input.TransparentHugePageDefrag != nil {
-		transparentHugePageDefrag = *input.TransparentHugePageDefrag
-	}
-	var transparentHugePageEnabled string
-	if input.TransparentHugePageEnabled != nil {
-		transparentHugePageEnabled = *input.TransparentHugePageEnabled
-	}
+	transparentHugePageDefrag := pointer.From(input.TransparentHugePageDefrag)
+	transparentHugePageEnabled := pointer.From(input.TransparentHugePageEnabled)
 	sysctlConfig, err := flattenAgentPoolSysctlConfig(input.Sysctls)
 	if err != nil {
 		return nil, err
@@ -1700,10 +1688,7 @@ func flattenAgentPoolSysctlConfig(input *agentpools.SysctlConfig) ([]interface{}
 	if input.NetIPv4TcpMaxTwBuckets != nil {
 		netIpv4TcpMaxTwBuckets = int(*input.NetIPv4TcpMaxTwBuckets)
 	}
-	var netIpv4TcpTwReuse bool
-	if input.NetIPv4TcpTwReuse != nil {
-		netIpv4TcpTwReuse = *input.NetIPv4TcpTwReuse
-	}
+	netIpv4TcpTwReuse := pointer.From(input.NetIPv4TcpTwReuse)
 	var netNetfilterNfConntrackBuckets int
 	if input.NetNetfilterNfConntrackBuckets != nil {
 		netNetfilterNfConntrackBuckets = int(*input.NetNetfilterNfConntrackBuckets)

@@ -216,11 +216,7 @@ func resourceContainerRegistryWebhookRead(d *pluginsdk.ResourceData, meta interf
 			}
 			d.Set("status", status)
 
-			scope := ""
-			if v := props.Scope; v != nil {
-				scope = *v
-			}
-			d.Set("scope", scope)
+			d.Set("scope", pointer.From(props.Scope))
 
 			webhookActions := make([]string, len(props.Actions))
 			for i, action := range props.Actions {
