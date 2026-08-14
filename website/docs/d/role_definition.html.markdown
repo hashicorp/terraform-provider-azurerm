@@ -68,6 +68,8 @@ output "contributor_role_definition_id" {
 
 * `permissions` - A `permissions` block as documented below.
 
+* `role_definition_resource_id` - The Azure Resource Manager ID for the resource.
+
 * `assignable_scopes` - One or more assignable scopes for this Role Definition, such as `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333`, `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup`, or `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup/providers/Microsoft.Compute/virtualMachines/myVM`.
 
 ---
@@ -85,6 +87,7 @@ A `permissions` block contains:
 * `condition` - The conditions on this role definition, which limits the resources it can be assigned to.
 
 * `condition_version` - The version of the condition.
+
 
 ## Timeouts
 
