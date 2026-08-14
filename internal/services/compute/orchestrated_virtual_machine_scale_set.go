@@ -926,15 +926,9 @@ func FlattenOrchestratedVirtualMachineScaleSetAdditionalCapabilities(input *virt
 		return []interface{}{}
 	}
 
-	ultraSsdEnabled := false
-
-	if input.UltraSSDEnabled != nil {
-		ultraSsdEnabled = *input.UltraSSDEnabled
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"ultra_ssd_enabled": ultraSsdEnabled,
+			"ultra_ssd_enabled": pointer.From(input.UltraSSDEnabled),
 		},
 	}
 }
@@ -1559,10 +1553,7 @@ func flattenOrchestratedVirtualMachineScaleSetExtensions(input *virtualmachinesc
 	}
 
 	for _, v := range *input.Extensions {
-		name := ""
-		if v.Name != nil {
-			name = *v.Name
-		}
+		name := pointer.From(v.Name)
 
 		autoUpgradeMinorVersion := false
 		suppressFailures := false
@@ -1940,10 +1931,7 @@ func FlattenOrchestratedVirtualMachineScaleSetDataDisk(input *[]virtualmachinesc
 			}
 		}
 
-		writeAcceleratorEnabled := false
-		if v.WriteAcceleratorEnabled != nil {
-			writeAcceleratorEnabled = *v.WriteAcceleratorEnabled
-		}
+		writeAcceleratorEnabled := pointer.From(v.WriteAcceleratorEnabled)
 
 		iops := 0
 		if v.DiskIOPSReadWrite != nil {
@@ -2031,10 +2019,7 @@ func FlattenOrchestratedVirtualMachineScaleSetOSDisk(input *virtualmachinescales
 		}
 	}
 
-	writeAcceleratorEnabled := false
-	if input.WriteAcceleratorEnabled != nil {
-		writeAcceleratorEnabled = *input.WriteAcceleratorEnabled
-	}
+	writeAcceleratorEnabled := pointer.From(input.WriteAcceleratorEnabled)
 
 	return []interface{}{
 		map[string]interface{}{

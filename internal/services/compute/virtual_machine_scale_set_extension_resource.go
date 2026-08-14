@@ -338,11 +338,7 @@ func resourceVirtualMachineScaleSetExtensionRead(d *pluginsdk.ResourceData, meta
 			d.Set("type", props.Type)
 			d.Set("type_handler_version", props.TypeHandlerVersion)
 
-			suppressFailure := false
-			if props.SuppressFailures != nil {
-				suppressFailure = *props.SuppressFailures
-			}
-			d.Set("failure_suppression_enabled", suppressFailure)
+			d.Set("failure_suppression_enabled", pointer.From(props.SuppressFailures))
 
 			settings := ""
 			if props.Settings != nil {

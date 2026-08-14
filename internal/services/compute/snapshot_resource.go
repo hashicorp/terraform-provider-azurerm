@@ -283,11 +283,7 @@ func resourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 			d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
 
-			incrementalEnabled := false
-			if props.Incremental != nil {
-				incrementalEnabled = *props.Incremental
-			}
-			d.Set("incremental_enabled", incrementalEnabled)
+			d.Set("incremental_enabled", pointer.From(props.Incremental))
 
 			trustedLaunchEnabled := false
 			if securityProfile := props.SecurityProfile; securityProfile != nil && securityProfile.SecurityType != nil {

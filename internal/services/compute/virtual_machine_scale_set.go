@@ -61,14 +61,9 @@ func FlattenVirtualMachineScaleSetAdditionalCapabilities(input *virtualmachinesc
 		return []interface{}{}
 	}
 
-	ultraSsdEnabled := false
-	if input.UltraSSDEnabled != nil {
-		ultraSsdEnabled = *input.UltraSSDEnabled
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"ultra_ssd_enabled": ultraSsdEnabled,
+			"ultra_ssd_enabled": pointer.From(input.UltraSSDEnabled),
 		},
 	}
 }
@@ -357,20 +352,10 @@ func FlattenVirtualMachineScaleSetSpotRestorePolicy(input *virtualmachinescalese
 		return nil
 	}
 
-	var enabled bool
-	if input.Enabled != nil {
-		enabled = *input.Enabled
-	}
-
-	var restore string
-	if input.RestoreTimeout != nil {
-		restore = *input.RestoreTimeout
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"enabled": enabled,
-			"timeout": restore,
+			"enabled": pointer.From(input.Enabled),
+			"timeout": pointer.From(input.RestoreTimeout),
 		},
 	}
 }
@@ -1285,10 +1270,7 @@ func FlattenVirtualMachineScaleSetDataDisk(input *[]virtualmachinescalesets.Virt
 	output := make([]interface{}, 0)
 
 	for _, v := range *input {
-		var name string
-		if v.Name != nil {
-			name = *v.Name
-		}
+		name := pointer.From(v.Name)
 
 		diskSizeGb := 0
 		if v.DiskSizeGB != nil && *v.DiskSizeGB != 0 {
@@ -1304,10 +1286,7 @@ func FlattenVirtualMachineScaleSetDataDisk(input *[]virtualmachinescalesets.Virt
 			}
 		}
 
-		writeAcceleratorEnabled := false
-		if v.WriteAcceleratorEnabled != nil {
-			writeAcceleratorEnabled = *v.WriteAcceleratorEnabled
-		}
+		writeAcceleratorEnabled := pointer.From(v.WriteAcceleratorEnabled)
 
 		iops := 0
 		if v.DiskIOPSReadWrite != nil {
@@ -1560,10 +1539,7 @@ func FlattenVirtualMachineScaleSetOSDisk(input *virtualmachinescalesets.VirtualM
 		}
 	}
 
-	writeAcceleratorEnabled := false
-	if input.WriteAcceleratorEnabled != nil {
-		writeAcceleratorEnabled = *input.WriteAcceleratorEnabled
-	}
+	writeAcceleratorEnabled := pointer.From(input.WriteAcceleratorEnabled)
 
 	return []interface{}{
 		map[string]interface{}{
@@ -1706,10 +1682,7 @@ func FlattenVirtualMachineScaleSetRollingUpgradePolicy(input *virtualmachinescal
 		return []interface{}{}
 	}
 
-	enableCrossZoneUpgrade := false
-	if input.EnableCrossZoneUpgrade != nil {
-		enableCrossZoneUpgrade = *input.EnableCrossZoneUpgrade
-	}
+	enableCrossZoneUpgrade := pointer.From(input.EnableCrossZoneUpgrade)
 
 	maxBatchInstancePercent := 0
 	if input.MaxBatchInstancePercent != nil {
@@ -1726,20 +1699,11 @@ func FlattenVirtualMachineScaleSetRollingUpgradePolicy(input *virtualmachinescal
 		maxUnhealthyUpgradedInstancePercent = int(*input.MaxUnhealthyUpgradedInstancePercent)
 	}
 
-	pauseTimeBetweenBatches := ""
-	if input.PauseTimeBetweenBatches != nil {
-		pauseTimeBetweenBatches = *input.PauseTimeBetweenBatches
-	}
+	pauseTimeBetweenBatches := pointer.From(input.PauseTimeBetweenBatches)
 
-	prioritizeUnhealthyInstances := false
-	if input.PrioritizeUnhealthyInstances != nil {
-		prioritizeUnhealthyInstances = *input.PrioritizeUnhealthyInstances
-	}
+	prioritizeUnhealthyInstances := pointer.From(input.PrioritizeUnhealthyInstances)
 
-	maxSurge := false
-	if input.MaxSurge != nil {
-		maxSurge = *input.MaxSurge
-	}
+	maxSurge := pointer.From(input.MaxSurge)
 
 	return []interface{}{
 		map[string]interface{}{
@@ -2100,10 +2064,7 @@ func flattenVirtualMachineScaleSetExtensions(input *virtualmachinescalesets.Virt
 	}
 
 	for _, v := range *input.Extensions {
-		name := ""
-		if v.Name != nil {
-			name = *v.Name
-		}
+		name := pointer.From(v.Name)
 
 		autoUpgradeMinorVersion := false
 		enableAutomaticUpgrade := false
