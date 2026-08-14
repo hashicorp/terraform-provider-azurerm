@@ -21,8 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-// TODO 4.0 - consider/investigate inlining this within the mssql_server resource now that it exists.
-
 func resourceMsSqlServerSecurityAlertPolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceMsSqlServerSecurityAlertPolicyCreate,
@@ -68,7 +66,7 @@ func resourceMsSqlServerSecurityAlertPolicy() *pluginsdk.Resource {
 				},
 			},
 
-			"email_account_admins": {
+			"email_account_admins_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -132,7 +130,6 @@ func resourceMsSqlServerSecurityAlertPolicyCreate(d *pluginsdk.ResourceData, met
 
 	var disabledAlerts *[]string
 	var emailAddresses *[]string
-	var emailAdmins *bool
 	var retentionDays *int64
 	var storageAccountAccessKey *string
 	var storageEndpoint *string
@@ -155,12 +152,7 @@ func resourceMsSqlServerSecurityAlertPolicyCreate(d *pluginsdk.ResourceData, met
 	}
 	props.EmailAddresses = emailAddresses
 
-	// NOTE: The API defaults to 'true' for the 'EmailAccountAdmins'
-	// property, the provider defaults to 'false'...
-	if v, ok := d.GetOk("email_account_admins"); ok {
-		emailAdmins = pointer.To(v.(bool))
-	}
-	props.EmailAccountAdmins = emailAdmins
+	props.EmailAccountAdmins = pointer.To(d.Get("email_account_admins_enabled").(bool))
 
 	if v, ok := d.GetOk("retention_days"); ok {
 		retentionDays = pointer.To(int64(v.(int)))
@@ -253,11 +245,7 @@ func resourceMsSqlServerSecurityAlertPolicyRead(d *pluginsdk.ResourceData, meta 
 	}
 	d.Set("disabled_alerts", disabledAlerts)
 
-	var emailAdmins bool
-	if props.EmailAccountAdmins != nil {
-		emailAdmins = *props.EmailAccountAdmins
-	}
-	d.Set("email_account_admins", emailAdmins)
+	d.Set("email_account_admins_enabled", props.EmailAccountAdmins)
 
 	emailAddresses := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
 	if props.EmailAddresses != nil {
@@ -349,12 +337,8 @@ func resourceMsSqlServerSecurityAlertPolicyUpdate(d *pluginsdk.ResourceData, met
 		props.EmailAddresses = pointer.To(emailAddresses)
 	}
 
-	if d.HasChange("email_account_admins") {
-		var emailAdmins *bool
-		if v, ok := d.GetOk("email_account_admins"); ok {
-			emailAdmins = pointer.To(v.(bool))
-		}
-		props.EmailAccountAdmins = emailAdmins
+	if d.HasChange("email_account_admins_enabled") {
+		props.EmailAccountAdmins = pointer.To(d.Get("email_account_admins_enabled").(bool))
 	}
 
 	if d.HasChange("retention_days") {

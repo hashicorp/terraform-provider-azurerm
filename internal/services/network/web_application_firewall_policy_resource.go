@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -25,10 +26,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name web_application_firewall_policy -properties "name,resource_group_name"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -406,10 +406,10 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 								NOTE: O+C: This value defaults to true but is only available under certain conditions (i.e. when version is 3.2)
 									managed_rules {
 										managed_rule_set {
-										  type    = "OWASP"
-										  version = "3.2"
+										 type  = "OWASP"
+										 version = "3.2"
 										}
-									  }
+									 }
 							*/
 							Optional: true,
 							// We'll remove computed in 5.0 so we don't break existing configurations
@@ -744,7 +744,7 @@ func expandWebApplicationFirewallPolicyWebApplicationFirewallCustomRule(input []
 		}
 
 		if rateLimitDuration, ok := v["rate_limit_duration"]; ok && rateLimitDuration.(string) != "" {
-			result.RateLimitDuration = pointer.To(webapplicationfirewallpolicies.ApplicationGatewayFirewallRateLimitDuration(rateLimitDuration.(string)))
+			result.RateLimitDuration = pointer.ToEnum[webapplicationfirewallpolicies.ApplicationGatewayFirewallRateLimitDuration](rateLimitDuration.(string))
 		}
 
 		if rateLimitThreshHold, ok := v["rate_limit_threshold"]; ok && rateLimitThreshHold.(int) > 0 {
@@ -788,7 +788,7 @@ func expandWebApplicationFirewallPolicyPolicySettings(input []interface{}) *weba
 
 	result := webapplicationfirewallpolicies.PolicySettings{
 		State:                             pointer.To(enabled),
-		Mode:                              pointer.To(webapplicationfirewallpolicies.WebApplicationFirewallMode(mode)),
+		Mode:                              pointer.ToEnum[webapplicationfirewallpolicies.WebApplicationFirewallMode](mode),
 		FileUploadEnforcement:             pointer.To(fileUploadEnforcement),
 		RequestBodyCheck:                  pointer.To(requestBodyCheck),
 		RequestBodyEnforcement:            pointer.To(requestBodyEnforcement),
@@ -1002,7 +1002,7 @@ func expandWebApplicationFirewallPolicyOverrideRules(input []interface{}) *[]web
 
 		action := v["action"].(string)
 		if action != "" {
-			result.Action = pointer.To(webapplicationfirewallpolicies.ActionType(action))
+			result.Action = pointer.ToEnum[webapplicationfirewallpolicies.ActionType](action)
 		}
 
 		sensitivityLevel := v["sensitivity_level"].(string)
@@ -1031,7 +1031,7 @@ func expandWebApplicationFirewallPolicyMatchCondition(input []interface{}) []web
 			transforms = append(transforms, webapplicationfirewallpolicies.WebApplicationFirewallTransform(trans.(string)))
 		}
 		result := webapplicationfirewallpolicies.MatchCondition{
-			MatchValues:      pointer.From(utils.ExpandStringSlice(matchValues)),
+			MatchValues:      pointer.From(helpers.ExpandStringSlice(matchValues)),
 			MatchVariables:   expandWebApplicationFirewallPolicyMatchVariable(matchVariables),
 			NegationConditon: pointer.To(negationCondition),
 			Operator:         webapplicationfirewallpolicies.WebApplicationFirewallOperator(operator),
@@ -1300,7 +1300,7 @@ func flattenWebApplicationFirewallPolicyMatchCondition(input []webapplicationfir
 				transforms = append(transforms, string(trans))
 			}
 		}
-		v["match_values"] = utils.FlattenStringSlice(pointer.To(item.MatchValues))
+		v["match_values"] = helpers.FlattenStringSlice(pointer.To(item.MatchValues))
 		v["match_variables"] = flattenWebApplicationFirewallPolicyMatchVariable(item.MatchVariables)
 		if negationCondition := item.NegationConditon; negationCondition != nil {
 			v["negation_condition"] = *negationCondition

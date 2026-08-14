@@ -123,7 +123,7 @@ func (r AutonomousDatabaseBackupResource) Create() sdk.ResourceFunc {
 				Name: pointer.To(model.Name),
 				Properties: &autonomousdatabasebackups.AutonomousDatabaseBackupProperties{
 					RetentionPeriodInDays: pointer.To(model.RetentionPeriodInDays),
-					BackupType:            pointer.To(autonomousdatabasebackups.AutonomousDatabaseBackupType(model.Type)),
+					BackupType:            pointer.ToEnum[autonomousdatabasebackups.AutonomousDatabaseBackupType](model.Type),
 				},
 			}
 

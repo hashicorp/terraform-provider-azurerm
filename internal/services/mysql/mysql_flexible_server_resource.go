@@ -33,7 +33,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name mysql_flexible_server -service-package-name mysql -properties "name:name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-expect-non-empty
+//go:generate go run ../../tools/generator-tests resourceidentity -test-expect-non-empty
 
 const (
 	ServerMaintenanceWindowEnabled  = "Enabled"
@@ -829,7 +829,7 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	if d.HasChange("backup_retention_days") || d.HasChange("geo_redundant_backup_enabled") {
+	if d.HasChanges("backup_retention_days", "geo_redundant_backup_enabled") {
 		parameters.Properties.Backup = expandArmServerBackup(d)
 	}
 
@@ -865,7 +865,7 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 		if parameters.Properties.Network == nil {
 			parameters.Properties.Network = &servers.Network{}
 		}
-		parameters.Properties.Network.PublicNetworkAccess = pointer.To(servers.EnableStatusEnum(d.Get("public_network_access").(string)))
+		parameters.Properties.Network.PublicNetworkAccess = pointer.ToEnum[servers.EnableStatusEnum](d.Get("public_network_access").(string))
 	}
 
 	if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
@@ -904,7 +904,7 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 	if d.HasChange("version") {
 		parameters := servers.ServerForUpdate{
 			Properties: &servers.ServerPropertiesForUpdate{
-				Version: pointer.To(servers.ServerVersion(d.Get("version").(string))),
+				Version: pointer.ToEnum[servers.ServerVersion](d.Get("version").(string)),
 			},
 		}
 
@@ -945,7 +945,7 @@ func expandArmServerNetwork(d *pluginsdk.ResourceData) *servers.Network {
 	}
 
 	if v, ok := d.GetOk("public_network_access"); ok {
-		network.PublicNetworkAccess = pointer.To(servers.EnableStatusEnum(v.(string)))
+		network.PublicNetworkAccess = pointer.ToEnum[servers.EnableStatusEnum](v.(string))
 	}
 
 	return &network

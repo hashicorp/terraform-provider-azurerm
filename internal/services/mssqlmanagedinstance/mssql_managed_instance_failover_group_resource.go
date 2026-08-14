@@ -61,7 +61,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) ModelObject() interface{} {
 }
 
 func (r MsSqlManagedInstanceFailoverGroupResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ManagedInstanceFailoverGroupID
+	return instancefailovergroups.ValidateInstanceFailoverGroupID
 }
 
 func (r MsSqlManagedInstanceFailoverGroupResource) Arguments() map[string]*pluginsdk.Schema {
@@ -215,7 +215,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Create() sdk.ResourceFunc {
 							PartnerManagedInstanceId: pointer.To(partnerId.ID()),
 						},
 					},
-					SecondaryType: pointer.To(instancefailovergroups.SecondaryInstanceType(model.SecondaryType)),
+					SecondaryType: pointer.ToEnum[instancefailovergroups.SecondaryInstanceType](model.SecondaryType),
 				},
 			}
 
@@ -291,7 +291,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Update() sdk.ResourceFunc {
 							PartnerManagedInstanceId: pointer.To(partnerId.ID()),
 						},
 					},
-					SecondaryType: pointer.To(instancefailovergroups.SecondaryInstanceType(state.SecondaryType)),
+					SecondaryType: pointer.ToEnum[instancefailovergroups.SecondaryInstanceType](state.SecondaryType),
 				},
 			}
 

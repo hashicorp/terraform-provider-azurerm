@@ -259,7 +259,7 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 			"source_api_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.ApiID,
+				ValidateFunc: validation.AsGeneratedID(api.ParseApiIDInsensitively),
 			},
 
 			"oauth2_authorization": {
@@ -529,7 +529,6 @@ func resourceApiManagementApiUpdate(d *pluginsdk.ResourceData, meta interface{})
 	// First we execute import and then updated the other props.
 	if d.HasChange("import") {
 		if vs, hasImport := d.GetOk("import"); hasImport {
-			d.Partial(true)
 			if apiParams := expandApiManagementApiImport(vs.([]interface{}), apiType, soapApiType,
 				path, serviceUrl, version, versionSetId); apiParams != nil {
 				result, err := client.CreateOrUpdate(ctx, *id, *apiParams, api.CreateOrUpdateOperationOptions{})
@@ -544,7 +543,6 @@ func resourceApiManagementApiUpdate(d *pluginsdk.ResourceData, meta interface{})
 					}
 				}
 			}
-			d.Partial(false)
 		}
 	}
 
@@ -820,7 +818,7 @@ func expandApiManagementApiImport(importVs []interface{}, apiType api.ApiType, s
 		Properties: &api.ApiCreateOrUpdateProperties{
 			Type:    pointer.To(apiType),
 			ApiType: pointer.To(soapApiType),
-			Format:  pointer.To(api.ContentFormat(contentFormat)),
+			Format:  pointer.ToEnum[api.ContentFormat](contentFormat),
 			Value:   pointer.To(contentValue),
 			Path:    path,
 		},

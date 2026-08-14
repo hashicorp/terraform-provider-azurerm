@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/blobauditing"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
@@ -18,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceMsSqlServerExtendedAuditingPolicy() *pluginsdk.Resource {
@@ -54,8 +54,7 @@ func resourceMsSqlServerExtendedAuditingPolicy() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"storage_endpoint": {
-				// TODO 4.0: rename to `blob_storage_endpoint`
+			"blob_storage_endpoint": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.IsURLWithHTTPS,
@@ -143,7 +142,7 @@ func resourceMsSqlServerExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resource
 
 	params := blobauditing.ExtendedServerBlobAuditingPolicy{
 		Properties: &blobauditing.ExtendedServerBlobAuditingPolicyProperties{
-			StorageEndpoint:             pointer.To(d.Get("storage_endpoint").(string)),
+			StorageEndpoint:             pointer.To(d.Get("blob_storage_endpoint").(string)),
 			IsStorageSecondaryKeyInUse:  pointer.To(d.Get("storage_account_access_key_is_secondary").(bool)),
 			RetentionDays:               pointer.To(int64(d.Get("retention_in_days").(int))),
 			IsAzureMonitorTargetEnabled: pointer.To(d.Get("log_monitoring_enabled").(bool)),
@@ -169,7 +168,7 @@ func resourceMsSqlServerExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resource
 	}
 
 	if v, ok := d.GetOk("audit_actions_and_groups"); ok && len(v.([]interface{})) > 0 {
-		params.Properties.AuditActionsAndGroups = utils.ExpandStringSlice(v.([]interface{}))
+		params.Properties.AuditActionsAndGroups = helpers.ExpandStringSlice(v.([]interface{}))
 	}
 
 	err = client.ExtendedServerBlobAuditingPoliciesCreateOrUpdateThenPoll(ctx, *serverId, params)
@@ -209,13 +208,13 @@ func resourceMsSqlServerExtendedAuditingPolicyRead(d *pluginsdk.ResourceData, me
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("storage_endpoint", props.StorageEndpoint)
+			d.Set("blob_storage_endpoint", props.StorageEndpoint)
 			d.Set("storage_account_access_key_is_secondary", props.IsStorageSecondaryKeyInUse)
 			d.Set("retention_in_days", props.RetentionDays)
 			d.Set("log_monitoring_enabled", props.IsAzureMonitorTargetEnabled)
 			d.Set("enabled", props.State == blobauditing.BlobAuditingPolicyStateEnabled)
 			d.Set("predicate_expression", props.PredicateExpression)
-			d.Set("audit_actions_and_groups", utils.FlattenStringSlice(props.AuditActionsAndGroups))
+			d.Set("audit_actions_and_groups", helpers.FlattenStringSlice(props.AuditActionsAndGroups))
 
 			if pointer.From(props.StorageAccountSubscriptionId) != "00000000-0000-0000-0000-000000000000" {
 				d.Set("storage_account_subscription_id", props.StorageAccountSubscriptionId)

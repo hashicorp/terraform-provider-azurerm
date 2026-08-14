@@ -30,6 +30,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2024-03-01/signalr"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -39,10 +40,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name private_endpoint -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourcePrivateEndpoint() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -72,6 +72,8 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 			},
 
 			"location": commonschema.Location(),
+
+			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
@@ -341,7 +343,8 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	privateDnsZoneGroup := d.Get("private_dns_zone_group").([]interface{})
 
 	parameters := privateendpoints.PrivateEndpoint{
-		Location: pointer.To(location.Normalize(d.Get("location").(string))),
+		Location:         pointer.To(location.Normalize(d.Get("location").(string))),
+		ExtendedLocation: expandEdgeZoneModel(d.Get("edge_zone").(string)),
 		Properties: &privateendpoints.PrivateEndpointProperties{
 			PrivateLinkServiceConnections:       expandPrivateLinkEndpointServiceConnection(d.Get("private_service_connection").([]interface{}), false),
 			ManualPrivateLinkServiceConnections: expandPrivateLinkEndpointServiceConnection(d.Get("private_service_connection").([]interface{}), true),
@@ -519,7 +522,8 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	// TODO: in future it'd be nice to support conditional updates here, but one problem at a time
 	parameters := privateendpoints.PrivateEndpoint{
-		Location: pointer.To(location),
+		Location:         pointer.To(location),
+		ExtendedLocation: expandEdgeZoneModel(d.Get("edge_zone").(string)),
 		Properties: &privateendpoints.PrivateEndpointProperties{
 			ApplicationSecurityGroups:           applicationSecurityGroupAssociation,
 			PrivateLinkServiceConnections:       expandPrivateLinkEndpointServiceConnection(privateServiceConnections, false),
@@ -658,6 +662,7 @@ func resourcePrivateEndpointFlatten(ctx context.Context, metaClient *clients.Cli
 
 	if model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
+		d.Set("edge_zone", flattenEdgeZoneModel(model.ExtendedLocation))
 
 		if props := model.Properties; props != nil {
 			if err := d.Set("custom_dns_configs", flattenCustomDnsConfigs(props.CustomDnsConfigs)); err != nil {
@@ -807,7 +812,7 @@ func expandPrivateLinkEndpointServiceConnection(input []interface{}, parseManual
 			result := privateendpoints.PrivateLinkServiceConnection{
 				Name: pointer.To(name),
 				Properties: &privateendpoints.PrivateLinkServiceConnectionProperties{
-					GroupIds:             utils.ExpandStringSlice(subresourceNames),
+					GroupIds:             helpers.ExpandStringSlice(subresourceNames),
 					PrivateLinkServiceId: pointer.To(privateConnectionResourceId),
 				},
 			}
@@ -878,7 +883,7 @@ func flattenCustomDnsConfigs(customDnsConfigs *[]privateendpoints.CustomDnsConfi
 	for _, item := range *customDnsConfigs {
 		results = append(results, map[string]interface{}{
 			"fqdn":         item.Fqdn,
-			"ip_addresses": utils.FlattenStringSlice(item.IPAddresses),
+			"ip_addresses": helpers.FlattenStringSlice(item.IPAddresses),
 		})
 	}
 
@@ -903,7 +908,7 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]privateen
 
 			if props := item.Properties; props != nil {
 				if v := props.GroupIds; v != nil {
-					subResourceNames = utils.FlattenStringSlice(v)
+					subResourceNames = helpers.FlattenStringSlice(v)
 				}
 				if props.PrivateLinkServiceId != nil {
 					privateConnectionId = *props.PrivateLinkServiceId
@@ -939,7 +944,7 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]privateen
 
 			if props := item.Properties; props != nil {
 				if v := props.GroupIds; v != nil {
-					subResourceNames = utils.FlattenStringSlice(v)
+					subResourceNames = helpers.FlattenStringSlice(v)
 				}
 				if props.PrivateLinkServiceId != nil {
 					privateConnectionId = *props.PrivateLinkServiceId

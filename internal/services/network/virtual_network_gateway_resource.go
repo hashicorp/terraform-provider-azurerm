@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/localnetworkgateways"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworkgateways"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -28,7 +29,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceVirtualNetworkGateway() *pluginsdk.Resource {
@@ -1044,8 +1044,8 @@ func getVirtualNetworkGatewayProperties(id virtualnetworkgateways.VirtualNetwork
 	}
 
 	props := &virtualnetworkgateways.VirtualNetworkGatewayPropertiesFormat{
-		GatewayType:                     pointer.To(virtualnetworkgateways.VirtualNetworkGatewayType(d.Get("type").(string))),
-		VpnType:                         pointer.To(virtualnetworkgateways.VpnType(d.Get("vpn_type").(string))),
+		GatewayType:                     pointer.ToEnum[virtualnetworkgateways.VirtualNetworkGatewayType](d.Get("type").(string)),
+		VpnType:                         pointer.ToEnum[virtualnetworkgateways.VpnType](d.Get("vpn_type").(string)),
 		EnableBgp:                       pointer.To(enableBgp),
 		EnablePrivateIPAddress:          pointer.To(d.Get("private_ip_address_enabled").(bool)),
 		ActiveActive:                    pointer.To(d.Get("active_active").(bool)),
@@ -1059,7 +1059,7 @@ func getVirtualNetworkGatewayProperties(id virtualnetworkgateways.VirtualNetwork
 	}
 
 	if v, ok := d.GetOk("generation"); ok {
-		props.VpnGatewayGeneration = pointer.To(virtualnetworkgateways.VpnGatewayGeneration(v.(string)))
+		props.VpnGatewayGeneration = pointer.ToEnum[virtualnetworkgateways.VpnGatewayGeneration](v.(string))
 	}
 
 	if v, ok := d.GetOk("dns_forwarding_enabled"); ok {
@@ -1187,7 +1187,7 @@ func expandVirtualNetworkGatewayBgpPeeringAddresses(id virtualnetworkgateways.Vi
 		ipConfigId := parse.NewVirtualNetworkGatewayIpConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.VirtualNetworkGatewayName, ipConfigName)
 		result = append(result, virtualnetworkgateways.IPConfigurationBgpPeeringAddress{
 			IPconfigurationId:    pointer.To(ipConfigId.ID()),
-			CustomBgpIPAddresses: utils.ExpandStringSlice(b["apipa_addresses"].([]interface{})),
+			CustomBgpIPAddresses: helpers.ExpandStringSlice(b["apipa_addresses"].([]interface{})),
 		})
 	}
 
@@ -1204,7 +1204,7 @@ func expandVirtualNetworkGatewayIPConfigurations(d *pluginsdk.ResourceData) *[]v
 		name := conf["name"].(string)
 
 		props := &virtualnetworkgateways.VirtualNetworkGatewayIPConfigurationPropertiesFormat{
-			PrivateIPAllocationMethod: pointer.To(virtualnetworkgateways.IPAllocationMethod(conf["private_ip_address_allocation"].(string))),
+			PrivateIPAllocationMethod: pointer.ToEnum[virtualnetworkgateways.IPAllocationMethod](conf["private_ip_address_allocation"].(string)),
 		}
 
 		if subnetID := conf["subnet_id"].(string); subnetID != "" {
@@ -1308,8 +1308,8 @@ func expandVirtualNetworkGatewaySku(d *pluginsdk.ResourceData) *virtualnetworkga
 	sku := d.Get("sku").(string)
 
 	return &virtualnetworkgateways.VirtualNetworkGatewaySku{
-		Name: pointer.To(virtualnetworkgateways.VirtualNetworkGatewaySkuName(sku)),
-		Tier: pointer.To(virtualnetworkgateways.VirtualNetworkGatewaySkuTier(sku)),
+		Name: pointer.ToEnum[virtualnetworkgateways.VirtualNetworkGatewaySkuName](sku),
+		Tier: pointer.ToEnum[virtualnetworkgateways.VirtualNetworkGatewaySkuTier](sku),
 	}
 }
 
@@ -1319,7 +1319,7 @@ func expandVirtualNetworkGatewayAddressSpace(input []interface{}) *virtualnetwor
 	}
 	v := input[0].(map[string]interface{})
 	return &virtualnetworkgateways.AddressSpace{
-		AddressPrefixes: utils.ExpandStringSlice(v["address_prefixes"].(*pluginsdk.Set).List()),
+		AddressPrefixes: helpers.ExpandStringSlice(v["address_prefixes"].(*pluginsdk.Set).List()),
 	}
 }
 
@@ -1399,7 +1399,7 @@ func expandVirtualNetworkGatewayPolicyMembers(input []interface{}) *[]virtualnet
 
 		results = append(results, virtualnetworkgateways.VirtualNetworkGatewayPolicyGroupMember{
 			Name:           pointer.To(policyMember["name"].(string)),
-			AttributeType:  pointer.To(virtualnetworkgateways.VpnPolicyMemberAttributeType(policyMember["type"].(string))),
+			AttributeType:  pointer.ToEnum[virtualnetworkgateways.VpnPolicyMemberAttributeType](policyMember["type"].(string)),
 			AttributeValue: pointer.To(policyMember["value"].(string)),
 		})
 	}
@@ -1504,9 +1504,9 @@ func flattenVirtualNetworkGatewayBgpPeeringAddresses(input *[]virtualnetworkgate
 
 		output = append(output, map[string]interface{}{
 			"ip_configuration_name": ipConfigName,
-			"apipa_addresses":       utils.FlattenStringSlice(e.CustomBgpIPAddresses),
-			"default_addresses":     utils.FlattenStringSlice(e.DefaultBgpIPAddresses),
-			"tunnel_ip_addresses":   utils.FlattenStringSlice(e.TunnelIPAddresses),
+			"apipa_addresses":       helpers.FlattenStringSlice(e.CustomBgpIPAddresses),
+			"default_addresses":     helpers.FlattenStringSlice(e.DefaultBgpIPAddresses),
+			"tunnel_ip_addresses":   helpers.FlattenStringSlice(e.TunnelIPAddresses),
 		})
 	}
 
@@ -1564,7 +1564,7 @@ func flattenVirtualNetworkGatewayVpnClientConfig(cfg *virtualnetworkgateways.Vpn
 	flat["virtual_network_gateway_client_connection"] = connection
 
 	if pool := cfg.VpnClientAddressPool; pool != nil {
-		flat["address_space"] = utils.FlattenStringSlice(pool.AddressPrefixes)
+		flat["address_space"] = helpers.FlattenStringSlice(pool.AddressPrefixes)
 	} else {
 		flat["address_space"] = []interface{}{}
 	}
@@ -1636,8 +1636,8 @@ func hashVirtualNetworkGatewayRootCert(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
 
-	buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["public_cert_data"].(string)))
+	fmt.Fprintf(&buf, "%s-", m["name"].(string))
+	fmt.Fprintf(&buf, "%s-", m["public_cert_data"].(string))
 
 	return pluginsdk.HashString(buf.String())
 }
@@ -1646,8 +1646,8 @@ func hashVirtualNetworkGatewayRevokedCert(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
 
-	buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["thumbprint"].(string)))
+	fmt.Fprintf(&buf, "%s-", m["name"].(string))
+	fmt.Fprintf(&buf, "%s-", m["thumbprint"].(string))
 
 	return pluginsdk.HashString(buf.String())
 }
@@ -1704,7 +1704,7 @@ func flattenVirtualNetworkGatewayAddressSpace(input *virtualnetworkgateways.Addr
 
 	return []interface{}{
 		map[string]interface{}{
-			"address_prefixes": utils.FlattenStringSlice(input.AddressPrefixes),
+			"address_prefixes": helpers.FlattenStringSlice(input.AddressPrefixes),
 		},
 	}
 }

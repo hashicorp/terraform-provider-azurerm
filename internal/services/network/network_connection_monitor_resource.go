@@ -8,8 +8,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -20,15 +18,16 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkwatchers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/connectionmonitors"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceNetworkConnectionMonitor() *pluginsdk.Resource {
@@ -650,7 +649,7 @@ func expandNetworkConnectionMonitorEndpoint(input []interface{}) *[]connectionmo
 		}
 
 		if coverageLevel := v["coverage_level"]; coverageLevel != "" {
-			result.CoverageLevel = pointer.To(connectionmonitors.CoverageLevel(coverageLevel.(string)))
+			result.CoverageLevel = pointer.ToEnum[connectionmonitors.CoverageLevel](coverageLevel.(string))
 		}
 
 		excludedItems := v["excluded_ip_addresses"].(*pluginsdk.Set).List()
@@ -684,7 +683,7 @@ func expandNetworkConnectionMonitorEndpoint(input []interface{}) *[]connectionmo
 		}
 
 		if endpointType := v["target_resource_type"]; endpointType != "" {
-			result.Type = pointer.To(connectionmonitors.EndpointType(endpointType.(string)))
+			result.Type = pointer.ToEnum[connectionmonitors.EndpointType](endpointType.(string))
 		}
 
 		results = append(results, result)
@@ -701,7 +700,7 @@ func expandNetworkConnectionMonitorEndpointFilter(input []interface{}) *connecti
 	v := input[0].(map[string]interface{})
 
 	return &connectionmonitors.ConnectionMonitorEndpointFilter{
-		Type:  pointer.To(connectionmonitors.ConnectionMonitorEndpointFilterType(v["type"].(string))),
+		Type:  pointer.ToEnum[connectionmonitors.ConnectionMonitorEndpointFilterType](v["type"].(string)),
 		Items: expandNetworkConnectionMonitorEndpointFilterItem(v["item"].(*pluginsdk.Set).List()),
 	}
 }
@@ -717,7 +716,7 @@ func expandNetworkConnectionMonitorEndpointFilterItem(input []interface{}) *[]co
 		v := item.(map[string]interface{})
 
 		result := connectionmonitors.ConnectionMonitorEndpointFilterItem{
-			Type: pointer.To(connectionmonitors.ConnectionMonitorEndpointFilterItemType(v["type"].(string))),
+			Type: pointer.ToEnum[connectionmonitors.ConnectionMonitorEndpointFilterItemType](v["type"].(string)),
 		}
 
 		if address := v["address"]; address != "" {
@@ -747,7 +746,7 @@ func expandNetworkConnectionMonitorTestConfiguration(input []interface{}) *[]con
 		}
 
 		if preferredIPVersion := v["preferred_ip_version"]; preferredIPVersion != "" {
-			result.PreferredIPVersion = pointer.To(connectionmonitors.PreferredIPVersion(preferredIPVersion.(string)))
+			result.PreferredIPVersion = pointer.ToEnum[connectionmonitors.PreferredIPVersion](preferredIPVersion.(string))
 		}
 
 		results = append(results, result)
@@ -764,7 +763,7 @@ func expandNetworkConnectionMonitorHTTPConfiguration(input []interface{}) *conne
 	v := input[0].(map[string]interface{})
 
 	props := &connectionmonitors.ConnectionMonitorHTTPConfiguration{
-		Method:         pointer.To(connectionmonitors.HTTPConfigurationMethod(v["method"].(string))),
+		Method:         pointer.ToEnum[connectionmonitors.HTTPConfigurationMethod](v["method"].(string)),
 		PreferHTTPS:    pointer.To(v["prefer_https"].(bool)),
 		RequestHeaders: expandNetworkConnectionMonitorHTTPHeader(v["request_header"].(*pluginsdk.Set).List()),
 	}
@@ -778,7 +777,7 @@ func expandNetworkConnectionMonitorHTTPConfiguration(input []interface{}) *conne
 	}
 
 	if ranges := v["valid_status_code_ranges"].(*pluginsdk.Set).List(); len(ranges) != 0 {
-		props.ValidStatusCodeRanges = utils.ExpandStringSlice(ranges)
+		props.ValidStatusCodeRanges = helpers.ExpandStringSlice(ranges)
 	}
 
 	return props
@@ -797,7 +796,7 @@ func expandNetworkConnectionMonitorTCPConfiguration(input []interface{}) *connec
 	}
 
 	if destinationPortBehavior := v["destination_port_behavior"].(string); destinationPortBehavior != "" {
-		result.DestinationPortBehavior = pointer.To(connectionmonitors.DestinationPortBehavior(destinationPortBehavior))
+		result.DestinationPortBehavior = pointer.ToEnum[connectionmonitors.DestinationPortBehavior](destinationPortBehavior)
 	}
 
 	return result
@@ -857,10 +856,10 @@ func expandNetworkConnectionMonitorTestGroup(input []interface{}) *[]connectionm
 
 		result := connectionmonitors.ConnectionMonitorTestGroup{
 			Name:               v["name"].(string),
-			Destinations:       *utils.ExpandStringSlice(v["destination_endpoints"].(*pluginsdk.Set).List()),
+			Destinations:       *helpers.ExpandStringSlice(v["destination_endpoints"].(*pluginsdk.Set).List()),
 			Disable:            pointer.To(!v["enabled"].(bool)),
-			Sources:            *utils.ExpandStringSlice(v["source_endpoints"].(*pluginsdk.Set).List()),
-			TestConfigurations: *utils.ExpandStringSlice(v["test_configuration_names"].(*pluginsdk.Set).List()),
+			Sources:            *helpers.ExpandStringSlice(v["source_endpoints"].(*pluginsdk.Set).List()),
+			TestConfigurations: *helpers.ExpandStringSlice(v["test_configuration_names"].(*pluginsdk.Set).List()),
 		}
 
 		results = append(results, result)
@@ -1069,7 +1068,7 @@ func flattenNetworkConnectionMonitorHTTPConfiguration(input *connectionmonitors.
 			"port":                     port,
 			"prefer_https":             preferHttps,
 			"request_header":           flattenNetworkConnectionMonitorHTTPHeader(input.RequestHeaders),
-			"valid_status_code_ranges": utils.FlattenStringSlice(input.ValidStatusCodeRanges),
+			"valid_status_code_ranges": helpers.FlattenStringSlice(input.ValidStatusCodeRanges),
 		},
 	}
 }

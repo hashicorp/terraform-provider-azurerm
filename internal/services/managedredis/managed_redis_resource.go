@@ -21,7 +21,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/redisenterprise"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/preflight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/validate"
@@ -91,7 +91,7 @@ type ModuleModel struct {
 const defaultDatabaseName = "default"
 
 func (r ManagedRedisResource) Arguments() map[string]*pluginsdk.Schema {
-	args := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -263,12 +263,6 @@ func (r ManagedRedisResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
-
-	if !features.FivePointOh() {
-		args["customer_managed_key"].Elem.(*pluginsdk.Resource).Schema["key_vault_key_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny)
-	}
-
-	return args
 }
 
 func (r ManagedRedisResource) Attributes() map[string]*pluginsdk.Schema {
@@ -322,25 +316,10 @@ func (r ManagedRedisResource) Create() sdk.ResourceFunc {
 
 			dbId := databases.NewDatabaseID(subscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, defaultDatabaseName)
 
-			clusterParams := redisenterprise.Cluster{
-				Location: location.Normalize(model.Location),
-				Sku: redisenterprise.Sku{
-					Name: redisenterprise.SkuName(model.SkuName),
-				},
-				Properties: &redisenterprise.ClusterCreateProperties{
-					Encryption:          expandManagedRedisClusterCustomerManagedKey(model.CustomerManagedKey),
-					MinimumTlsVersion:   pointer.To(redisenterprise.TlsVersionOnePointTwo),
-					HighAvailability:    expandHighAvailability(model.HighAvailabilityEnabled),
-					PublicNetworkAccess: redisenterprise.PublicNetworkAccess(model.PublicNetworkAccess),
-				},
-				Tags: pointer.To(model.Tags),
-			}
-
-			expandedIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(model.Identity)
+			clusterParams, err := expandCreateForManagedRedis(model)
 			if err != nil {
-				return fmt.Errorf("expanding `identity`: %+v", err)
+				return err
 			}
-			clusterParams.Identity = expandedIdentity
 
 			if err := clusterClient.CreateCallbackThenPoll(ctx, clusterId, clusterParams, metadata.SetIDCallback(&clusterId)); err != nil {
 				return fmt.Errorf("creating %s: %+v", clusterId, err)
@@ -366,6 +345,30 @@ func (r ManagedRedisResource) Create() sdk.ResourceFunc {
 			return nil
 		},
 	}
+}
+
+func expandCreateForManagedRedis(model ManagedRedisResourceModel) (redisenterprise.Cluster, error) {
+	clusterParams := redisenterprise.Cluster{
+		Location: location.Normalize(model.Location),
+		Sku: redisenterprise.Sku{
+			Name: redisenterprise.SkuName(model.SkuName),
+		},
+		Properties: &redisenterprise.ClusterCreateProperties{
+			Encryption:          expandManagedRedisClusterCustomerManagedKey(model.CustomerManagedKey),
+			MinimumTlsVersion:   pointer.To(redisenterprise.TlsVersionOnePointTwo),
+			HighAvailability:    expandHighAvailability(model.HighAvailabilityEnabled),
+			PublicNetworkAccess: redisenterprise.PublicNetworkAccess(model.PublicNetworkAccess),
+		},
+		Tags: pointer.To(model.Tags),
+	}
+
+	expandedIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(model.Identity)
+	if err != nil {
+		return clusterParams, fmt.Errorf("expanding `identity`: %+v", err)
+	}
+	clusterParams.Identity = expandedIdentity
+
+	return clusterParams, nil
 }
 
 func (r ManagedRedisResource) Read() sdk.ResourceFunc {
@@ -550,6 +553,7 @@ func (r ManagedRedisResource) Update() sdk.ResourceFunc {
 						return fmt.Errorf("creating %s: %+v", dbId, err)
 					}
 				default:
+					// lintignore:R019 // deliberate subsets: the first branch lists fields requiring database re-creation, the second lists fields updatable in place
 					if metadata.ResourceData.HasChanges(
 						"default_database.0.clustering_policy",
 						"default_database.0.geo_replication_group_name",
@@ -661,6 +665,27 @@ func (r ManagedRedisResource) CustomizeDiff() sdk.ResourceFunc {
 				return err
 			}
 
+			if metadata.Client.Features.EnhancedValidation.PreflightEnabled {
+				// Only perform preflight validation if there are changes. This avoids validation failures and
+				// additional API calls for resources that are unchanged between plan invocations
+				if len(metadata.ResourceDiff.GetChangedKeysPrefix("")) > 0 || metadata.ResourceDiff.Id() == "" {
+					req, err := expandCreateForManagedRedis(model)
+					if err != nil {
+						return err
+					}
+
+					resId := redisenterprise.NewRedisEnterpriseID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
+					preflightValidate, err := preflight.NewValidationRequestWithTypeOverride(pointer.To(model.Location), pointer.To(resId), "redis", "2025-07-01", req)
+					if err != nil {
+						return fmt.Errorf("constructing preflight validation request: %w", err)
+					}
+
+					if err = preflightValidate.ValidateResource(ctx, metadata); err != nil {
+						return err
+					}
+				}
+			}
+
 			if metadata.ResourceDiff.Id() == "" && len(model.DefaultDatabase) == 0 {
 				return fmt.Errorf("`default_database` must be provided when creating a new resource")
 			}
@@ -717,9 +742,9 @@ func createDb(ctx context.Context, dbClient *databases.DatabasesClient, dbId dat
 	dbParams := databases.Database{
 		Properties: &databases.DatabaseCreateProperties{
 			AccessKeysAuthentication: expandAccessKeysAuth(dbModel.AccessKeysAuthenticationEnabled),
-			ClientProtocol:           pointer.To(databases.Protocol(dbModel.ClientProtocol)),
-			ClusteringPolicy:         pointer.To(databases.ClusteringPolicy(dbModel.ClusteringPolicy)),
-			EvictionPolicy:           pointer.To(databases.EvictionPolicy(dbModel.EvictionPolicy)),
+			ClientProtocol:           pointer.ToEnum[databases.Protocol](dbModel.ClientProtocol),
+			ClusteringPolicy:         pointer.ToEnum[databases.ClusteringPolicy](dbModel.ClusteringPolicy),
+			EvictionPolicy:           pointer.ToEnum[databases.EvictionPolicy](dbModel.EvictionPolicy),
 			GeoReplication:           expandGeoReplication(dbModel.GeoReplicationGroupName, dbId.ID()),
 			Modules:                  expandModules(dbModel.Module),
 			Persistence:              expandPersistence(dbModel.PersistenceAppendOnlyFileBackupFrequency, dbModel.PersistenceRedisDatabaseBackupFrequency),

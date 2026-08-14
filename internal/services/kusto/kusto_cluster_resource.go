@@ -483,7 +483,7 @@ func resourceKustoClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	model := existing.Model
 	props := model.Properties
 
-	if d.HasChange("sku") || d.HasChange("optimized_auto_scale") {
+	if d.HasChanges("sku", "optimized_auto_scale") {
 		sku, err := expandKustoClusterSku(d.Get("sku").([]interface{}))
 		if err != nil {
 			return err
@@ -836,8 +836,8 @@ func expandKustoClusterLanguageExtensionList(input []interface{}) *clusters.Lang
 	for _, ext := range input {
 		extMap := ext.(map[string]interface{})
 		extensions = append(extensions, clusters.LanguageExtension{
-			LanguageExtensionName:      pointer.To(clusters.LanguageExtensionName(extMap["name"].(string))),
-			LanguageExtensionImageName: pointer.To(clusters.LanguageExtensionImageName(extMap["image"].(string))),
+			LanguageExtensionName:      pointer.ToEnum[clusters.LanguageExtensionName](extMap["name"].(string)),
+			LanguageExtensionImageName: pointer.ToEnum[clusters.LanguageExtensionImageName](extMap["image"].(string)),
 		})
 	}
 

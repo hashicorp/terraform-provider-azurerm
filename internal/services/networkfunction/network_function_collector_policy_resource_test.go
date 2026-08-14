@@ -19,7 +19,7 @@ import (
 
 type NetworkFunctionCollectorPolicyResource struct{}
 
-func TestAccNetworkFunctionCollectorPolicy(t *testing.T) {
+func TestAccNetworkFunctionCollectorPolicy_sequential(t *testing.T) {
 	if os.Getenv("ARM_NETWORK_FUNCTION_PEERING_LOCATION") == "" {
 		t.Skip("Skipping as ARM_NETWORK_FUNCTION_PEERING_LOCATION is not specified")
 	}

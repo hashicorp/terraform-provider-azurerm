@@ -45,7 +45,7 @@ The following attributes are exported:
   
 * `zone` - The Availability Zone in which the Volume is located.
 
-* `mount_ip_addresses` - A list of IPv4 Addresses which should be used to mount the volume.
+* `mount_target` - One or more `mount_target` blocks as defined below.
 
 * `protocols` - A list of protocol types enabled on volume.
 
@@ -106,6 +106,12 @@ A `data_protection_advanced_ransomware` block exports the following:
 ~> **Note:** For performance considerations and supported regions, please refer to the [Azure documentation](https://learn.microsoft.com/en-us/azure/azure-netapp-files/ransomware-configure).
 
 ---
+
+A `mount_target` block exports the following:
+
+* `ip_address` - The IP address of the mount target.
+
+* `smb_server_fqdn` - The SMB server's Fully Qualified Domain Name (FQDN). This value is populated when the volume's `protocols` include `CIFS`; otherwise, it is empty.
 
 ## Timeouts
 

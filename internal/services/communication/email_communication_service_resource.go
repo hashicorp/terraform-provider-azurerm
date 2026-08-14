@@ -3,7 +3,7 @@
 
 package communication
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name email_communication_service -service-package-name communication -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 import (
 	"context"

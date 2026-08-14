@@ -12,13 +12,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceStreamAnalyticsOutputServiceBusQueue() *pluginsdk.Resource {
@@ -158,9 +158,9 @@ func resourceStreamAnalyticsOutputServiceBusQueueCreateUpdate(d *pluginsdk.Resou
 	dataSourceProperties := &outputs.ServiceBusQueueOutputDataSourceProperties{
 		QueueName:             pointer.To(queueName),
 		ServiceBusNamespace:   pointer.To(serviceBusNamespace),
-		PropertyColumns:       utils.ExpandStringSlice(d.Get("property_columns").([]interface{})),
+		PropertyColumns:       helpers.ExpandStringSlice(d.Get("property_columns").([]interface{})),
 		SystemPropertyColumns: &systemPropertyColumns,
-		AuthenticationMode:    pointer.To(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
+		AuthenticationMode:    pointer.ToEnum[outputs.AuthenticationMode](d.Get("authentication_mode").(string)),
 	}
 
 	// Add shared access policy key/name only if required by authentication mode
