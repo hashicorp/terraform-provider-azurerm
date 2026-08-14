@@ -228,7 +228,7 @@ func resourceEventGridTopicCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &topics.TopicProperties{
 			InputSchemaMapping:  expandTopicInputMapping(d),
-			InputSchema:         pointer.To(topics.InputSchema(d.Get("input_schema").(string))),
+			InputSchema:         pointer.ToEnum[topics.InputSchema](d.Get("input_schema").(string)),
 			PublicNetworkAccess: pointer.To(publicNetworkAccess),
 			InboundIPRules:      inboundIPRules,
 			DisableLocalAuth:    pointer.To(!d.Get("local_auth_enabled").(bool)),
@@ -604,7 +604,7 @@ func expandTopicInboundIPRules(input []interface{}) *[]topics.InboundIPRule {
 	for _, item := range input {
 		rawRule := item.(map[string]interface{})
 		rules = append(rules, topics.InboundIPRule{
-			Action: pointer.To(topics.IPActionType(rawRule["action"].(string))),
+			Action: pointer.ToEnum[topics.IPActionType](rawRule["action"].(string)),
 			IPMask: pointer.To(rawRule["ip_mask"].(string)),
 		})
 	}

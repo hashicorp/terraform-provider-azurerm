@@ -159,7 +159,7 @@ func resourceStreamAnalyticsReferenceInputMsSqlCreateUpdate(d *pluginsdk.Resourc
 		Database:    pointer.To(d.Get("database").(string)),
 		User:        pointer.To(d.Get("username").(string)),
 		Password:    pointer.To(d.Get("password").(string)),
-		RefreshType: pointer.To(inputs.RefreshType(refreshType)),
+		RefreshType: pointer.ToEnum[inputs.RefreshType](refreshType),
 	}
 
 	if v, ok := d.GetOk("refresh_interval_duration"); ok {

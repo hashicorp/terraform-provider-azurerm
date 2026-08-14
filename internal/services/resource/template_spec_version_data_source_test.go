@@ -12,7 +12,7 @@ import (
 
 type TemplateSpecVersionDataSource struct{}
 
-func TestAccDataSourceTemplateSpecVersion(t *testing.T) {
+func TestAccDataSourceTemplateSpecVersion_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_template_spec_version", "test")
 	r := TemplateSpecVersionDataSource{}
 

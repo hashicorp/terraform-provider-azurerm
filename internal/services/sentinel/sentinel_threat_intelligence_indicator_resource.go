@@ -13,8 +13,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/threatintelligence"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -129,12 +131,14 @@ func (r ThreatIntelligenceIndicator) Arguments() map[string]*pluginsdk.Schema {
 		"description": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"display_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -298,6 +302,7 @@ func (r ThreatIntelligenceIndicator) Arguments() map[string]*pluginsdk.Schema {
 		"validate_from_utc": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.IsRFC3339Time,
 		},
 
@@ -511,6 +516,15 @@ func (r ThreatIntelligenceIndicator) Create() sdk.ResourceFunc {
 				return err
 			}
 
+			// Indicator creation should be an LRO, but the API currently does not support it. Polling is required because
+			// the resource may return 404 responses for some time after creation.
+			// Tracked by https://github.com/Azure/azure-rest-api-specs/issues/35551
+			pollerType := custompollers.NewThreatIntelligenceIndicatorPoller(client, *id)
+			poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return err
+			}
+
 			metadata.SetID(id)
 			return nil
 		},
@@ -550,7 +564,9 @@ func (r ThreatIntelligenceIndicator) Update() sdk.ResourceFunc {
 			if v.Properties == nil {
 				return fmt.Errorf("retrieving %s: `properties` was nil", id)
 			}
+			previousEtag := pointer.From(v.Etag)
 			props := v.Properties
+			currentEtag := v.Etag
 
 			if metadata.ResourceData.HasChange("confidence") {
 				props.Confidence = pointer.To(model.Confidence)
@@ -595,10 +611,6 @@ func (r ThreatIntelligenceIndicator) Update() sdk.ResourceFunc {
 				props.KillChainPhases = expandThreatIntelligenceKillChainPhaseModel(model.KillChainPhases)
 			}
 
-			if metadata.ResourceData.HasChange("tags") {
-				props.Labels = &model.Labels
-			}
-
 			if metadata.ResourceData.HasChange("language") {
 				props.Language = &model.Language
 			}
@@ -626,7 +638,6 @@ func (r ThreatIntelligenceIndicator) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("revoked") {
 				props.Revoked = &model.Revoked
 			}
-
 			if metadata.ResourceData.HasChange("source") {
 				props.Source = &model.Source
 			}
@@ -643,8 +654,38 @@ func (r ThreatIntelligenceIndicator) Update() sdk.ResourceFunc {
 				props.ValidUntil = &model.ValidUntil
 			}
 
-			if _, err := client.IndicatorCreate(ctx, *id, v); err != nil {
-				return fmt.Errorf("updating %s: %+v", *id, err)
+			props.ExternalLastUpdatedTimeUtc = nil
+			props.LastUpdatedTimeUtc = nil
+			if metadata.ResourceData.HasChangesExcept("tags") {
+				resp, err := client.IndicatorCreate(ctx, *id, v)
+				if err != nil {
+					return fmt.Errorf("updating %s: %+v", *id, err)
+				}
+
+				if updated, ok := resp.Model.(threatintelligence.ThreatIntelligenceIndicatorModel); ok {
+					currentEtag = updated.Etag
+				}
+			}
+
+			if metadata.ResourceData.HasChange("tags") {
+				payload := threatintelligence.ThreatIntelligenceIndicatorModel{
+					Etag: currentEtag,
+					Kind: threatintelligence.ThreatIntelligenceResourceKindEnumIndicator,
+					Properties: &threatintelligence.ThreatIntelligenceIndicatorProperties{
+						ThreatIntelligenceTags: &model.Labels,
+					},
+				}
+				if _, err := client.IndicatorReplaceTags(ctx, *id, payload); err != nil {
+					return fmt.Errorf("replacing tags for %s: %+v", *id, err)
+				}
+			}
+
+			// Normal indicator updates change the ETag but do not change LastUpdatedTimeUtc. Wait until GET consistently
+			// returns a version newer than the one read before the update.
+			pollerType := custompollers.NewThreatIntelligenceIndicatorUpdatePoller(client, *id, previousEtag)
+			poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("waiting for update of %s: %+v", *id, err)
 			}
 
 			return nil

@@ -10,11 +10,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	loadBalancerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
@@ -159,10 +158,6 @@ func resourceArmLoadBalancerRuleRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("disable_outbound_snat", pointer.From(props.DisableOutboundSnat))
 			d.Set("floating_ip_enabled", pointer.From(props.EnableFloatingIP))
 			d.Set("tcp_reset_enabled", pointer.From(props.EnableTcpReset))
-			if !features.FivePointOh() {
-				d.Set("enable_floating_ip", pointer.From(props.EnableFloatingIP))
-				d.Set("enable_tcp_reset", pointer.From(props.EnableTcpReset))
-			}
 			d.Set("protocol", string(props.Protocol))
 			d.Set("backend_port", int(pointer.From(props.BackendPort)))
 
@@ -280,22 +275,12 @@ func expandAzureRmLoadBalancerRule(d *pluginsdk.ResourceData, lb *loadbalancers.
 		DisableOutboundSnat: pointer.To(d.Get("disable_outbound_snat").(bool)),
 	}
 
-	if !features.FivePointOh() {
-		if !pluginsdk.IsExplicitlyNullInConfig(d, "enable_floating_ip") {
-			properties.EnableFloatingIP = pointer.To(d.Get("enable_floating_ip").(bool))
-		}
-
-		if !pluginsdk.IsExplicitlyNullInConfig(d, "enable_tcp_reset") {
-			properties.EnableTcpReset = pointer.To(d.Get("enable_tcp_reset").(bool))
-		}
-	}
-
 	if v, ok := d.GetOk("idle_timeout_in_minutes"); ok {
 		properties.IdleTimeoutInMinutes = pointer.To(int64(v.(int)))
 	}
 
 	if v := d.Get("load_distribution").(string); v != "" {
-		properties.LoadDistribution = pointer.To(loadbalancers.LoadDistribution(v))
+		properties.LoadDistribution = pointer.ToEnum[loadbalancers.LoadDistribution](v)
 	}
 
 	// TODO: ensure these ID's are consistent
@@ -348,7 +333,7 @@ func expandAzureRmLoadBalancerRule(d *pluginsdk.ResourceData, lb *loadbalancers.
 }
 
 func resourceArmLoadBalancerRuleSchema() map[string]*pluginsdk.Schema {
-	schema := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -444,34 +429,4 @@ func resourceArmLoadBalancerRuleSchema() map[string]*pluginsdk.Schema {
 			Default:  string(loadbalancers.LoadDistributionDefault),
 		},
 	}
-
-	if !features.FivePointOh() {
-		schema["enable_floating_ip"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"floating_ip_enabled"},
-			Deprecated:    "This field is deprecated in favour of `floating_ip_enabled` and will be removed in version 5.0 of the provider.",
-		}
-		schema["floating_ip_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Computed: true,
-		}
-
-		schema["enable_tcp_reset"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"tcp_reset_enabled"},
-			Deprecated:    "This field is deprecated in favour of `tcp_reset_enabled` and will be removed in version 5.0 of the provider.",
-		}
-		schema["tcp_reset_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Computed: true,
-		}
-	}
-
-	return schema
 }

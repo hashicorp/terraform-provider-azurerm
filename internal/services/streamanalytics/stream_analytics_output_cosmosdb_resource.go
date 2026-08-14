@@ -150,7 +150,7 @@ func (r OutputCosmosDBResource) Create() sdk.ResourceFunc {
 				CollectionNamePattern: pointer.To(model.ContainerName),
 				DocumentId:            pointer.To(model.DocumentID),
 				PartitionKey:          pointer.To(model.PartitionKey),
-				AuthenticationMode:    pointer.To(outputs.AuthenticationMode(model.AuthenticationMode)),
+				AuthenticationMode:    pointer.ToEnum[outputs.AuthenticationMode](model.AuthenticationMode),
 			}
 
 			props := outputs.Output{

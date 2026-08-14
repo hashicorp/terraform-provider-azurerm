@@ -226,7 +226,7 @@ func expandDatasetFromModel(input []CostManagementViewDatasetModel) *views.Repor
 
 	ds := input[0]
 	dataset := &views.ReportConfigDataset{
-		Granularity: pointer.To(views.ReportGranularityType(ds.Granularity)),
+		Granularity: pointer.ToEnum[views.ReportGranularityType](ds.Granularity),
 	}
 
 	if len(ds.Aggregation) > 0 {
@@ -244,7 +244,7 @@ func expandDatasetFromModel(input []CostManagementViewDatasetModel) *views.Repor
 		sorting := make([]views.ReportConfigSorting, 0)
 		for _, s := range ds.Sorting {
 			sorting = append(sorting, views.ReportConfigSorting{
-				Direction: pointer.To(views.ReportConfigSortingType(s.Direction)),
+				Direction: pointer.ToEnum[views.ReportConfigSortingType](s.Direction),
 				Name:      s.Name,
 			})
 		}
@@ -319,7 +319,7 @@ func expandKpisFromModel(input []CostManagementViewKpiModel) *[]views.KpiPropert
 	kpis := make([]views.KpiProperties, 0)
 	for _, k := range input {
 		kpis = append(kpis, views.KpiProperties{
-			Type:    pointer.To(views.KpiTypeType(k.Type)),
+			Type:    pointer.ToEnum[views.KpiTypeType](k.Type),
 			Enabled: pointer.To(true),
 		})
 	}
@@ -348,7 +348,7 @@ func expandPivotsFromModel(input []CostManagementViewPivotModel) *[]views.PivotP
 	pivots := make([]views.PivotProperties, 0)
 	for _, p := range input {
 		pivots = append(pivots, views.PivotProperties{
-			Type: pointer.To(views.PivotTypeType(p.Type)),
+			Type: pointer.ToEnum[views.PivotTypeType](p.Type),
 			Name: pointer.To(p.Name),
 		})
 	}

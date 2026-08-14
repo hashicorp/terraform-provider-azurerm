@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -90,7 +89,7 @@ func expandAdditionalUnattendContent(input []interface{}) *[]virtualmachines.Add
 		raw := v.(map[string]interface{})
 
 		output = append(output, virtualmachines.AdditionalUnattendContent{
-			SettingName: pointer.To(virtualmachines.SettingNames(raw["setting"].(string))),
+			SettingName: pointer.ToEnum[virtualmachines.SettingNames](raw["setting"].(string)),
 			Content:     pointer.To(raw["content"].(string)),
 
 			// no other possible values
@@ -109,7 +108,7 @@ func expandAdditionalUnattendContentVMSS(input []interface{}) *[]virtualmachines
 		raw := v.(map[string]interface{})
 
 		output = append(output, virtualmachinescalesets.AdditionalUnattendContent{
-			SettingName: pointer.To(virtualmachinescalesets.SettingNames(raw["setting"].(string))),
+			SettingName: pointer.ToEnum[virtualmachinescalesets.SettingNames](raw["setting"].(string)),
 			Content:     pointer.To(raw["content"].(string)),
 
 			// no other possible values
@@ -307,7 +306,7 @@ func flattenBootDiagnosticsVMSS(input *virtualmachinescalesets.DiagnosticsProfil
 }
 
 func linuxSecretSchema() *pluginsdk.Schema {
-	s := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Elem: &pluginsdk.Resource{
@@ -334,12 +333,6 @@ func linuxSecretSchema() *pluginsdk.Schema {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		s.Elem.(*pluginsdk.Resource).Schema["certificate"].Elem.(*pluginsdk.Resource).Schema["url"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny)
-	}
-
-	return s
 }
 
 func expandLinuxSecrets(input []interface{}) *[]virtualmachines.VaultSecretGroup {
@@ -871,7 +864,7 @@ func flattenSourceImageReferenceVMSS(input *virtualmachinescalesets.ImageReferen
 }
 
 func winRmListenerSchema() *pluginsdk.Schema {
-	s := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
 		Optional: true,
 		// Whilst the SDK allows you to modify this, the API does not:
@@ -900,16 +893,10 @@ func winRmListenerSchema() *pluginsdk.Schema {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		s.Elem.(*pluginsdk.Resource).Schema["certificate_url"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny)
-	}
-
-	return s
 }
 
 func winRmListenerSchemaVM() *pluginsdk.Schema {
-	s := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
 		Optional: true,
 		// Whilst the SDK allows you to modify this, the API does not:
@@ -941,12 +928,6 @@ func winRmListenerSchemaVM() *pluginsdk.Schema {
 			"os_managed_disk_id",
 		},
 	}
-
-	if !features.FivePointOh() {
-		s.Elem.(*pluginsdk.Resource).Schema["certificate_url"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny)
-	}
-
-	return s
 }
 
 func expandWinRMListener(input []interface{}) *virtualmachines.WinRMConfiguration {
@@ -956,7 +937,7 @@ func expandWinRMListener(input []interface{}) *virtualmachines.WinRMConfiguratio
 		raw := v.(map[string]interface{})
 
 		listener := virtualmachines.WinRMListener{
-			Protocol: pointer.To(virtualmachines.ProtocolTypes(raw["protocol"].(string))),
+			Protocol: pointer.ToEnum[virtualmachines.ProtocolTypes](raw["protocol"].(string)),
 		}
 
 		certificateUrl := raw["certificate_url"].(string)
@@ -979,7 +960,7 @@ func expandWinRMListenerVMSS(input []interface{}) *virtualmachinescalesets.WinRM
 		raw := v.(map[string]interface{})
 
 		listener := virtualmachinescalesets.WinRMListener{
-			Protocol: pointer.To(virtualmachinescalesets.ProtocolTypes(raw["protocol"].(string))),
+			Protocol: pointer.ToEnum[virtualmachinescalesets.ProtocolTypes](raw["protocol"].(string)),
 		}
 
 		certificateUrl := raw["certificate_url"].(string)
@@ -1040,7 +1021,7 @@ func flattenWinRMListenerVMSS(input *virtualmachinescalesets.WinRMConfiguration)
 }
 
 func windowsSecretSchema() *pluginsdk.Schema {
-	s := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Elem: &pluginsdk.Resource{
@@ -1069,16 +1050,10 @@ func windowsSecretSchema() *pluginsdk.Schema {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		s.Elem.(*pluginsdk.Resource).Schema["certificate"].Elem.(*pluginsdk.Resource).Schema["url"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny)
-	}
-
-	return s
 }
 
 func windowsSecretSchemaVM() *pluginsdk.Schema {
-	s := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Elem: &pluginsdk.Resource{
@@ -1110,12 +1085,6 @@ func windowsSecretSchemaVM() *pluginsdk.Schema {
 			"os_managed_disk_id",
 		},
 	}
-
-	if !features.FivePointOh() {
-		s.Elem.(*pluginsdk.Resource).Schema["certificate"].Elem.(*pluginsdk.Resource).Schema["url"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny)
-	}
-
-	return s
 }
 
 func expandWindowsSecrets(input []interface{}) *[]virtualmachines.VaultSecretGroup {

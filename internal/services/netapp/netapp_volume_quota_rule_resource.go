@@ -123,7 +123,7 @@ func (r NetAppVolumeQuotaRuleResource) Create() sdk.ResourceFunc {
 				Location: location.Normalize(model.Location),
 				Properties: &volumequotarules.VolumeQuotaRulesProperties{
 					QuotaSizeInKiBs: pointer.To(model.QuotaSizeInKiB),
-					QuotaType:       pointer.To(volumequotarules.QuotaType(model.QuotaType)),
+					QuotaType:       pointer.ToEnum[volumequotarules.QuotaType](model.QuotaType),
 					QuotaTarget:     pointer.To(model.QuotaTarget),
 				},
 			}

@@ -153,7 +153,7 @@ func resourceStreamAnalyticsOutputSqlCreateUpdate(d *pluginsdk.ResourceData, met
 		Table:              pointer.To(d.Get("table").(string)),
 		MaxBatchCount:      pointer.To(d.Get("max_batch_count").(float64)),
 		MaxWriterCount:     pointer.To(d.Get("max_writer_count").(float64)),
-		AuthenticationMode: pointer.To(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
+		AuthenticationMode: pointer.ToEnum[outputs.AuthenticationMode](d.Get("authentication_mode").(string)),
 	}
 
 	// Add user/password dataSourceProperties only if authentication mode requires them

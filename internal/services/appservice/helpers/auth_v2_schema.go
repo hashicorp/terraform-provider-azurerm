@@ -518,7 +518,7 @@ func expandAuthV2LoginSettings(input []AuthV2Login) *webapps.Login {
 			NonceExpirationInterval: pointer.To(login.NonceExpirationTime),
 		},
 		CookieExpiration: &webapps.CookieExpiration{
-			Convention:       pointer.To(webapps.CookieExpirationConvention(login.CookieExpirationConvention)),
+			Convention:       pointer.ToEnum[webapps.CookieExpirationConvention](login.CookieExpirationConvention),
 			TimeToExpiration: pointer.To(login.CookieExpirationTime),
 		},
 	}
@@ -2096,7 +2096,7 @@ func ExpandAuthV2Settings(input []AuthV2Settings) *webapps.SiteAuthSettingsV2 {
 		},
 		GlobalValidation: &webapps.GlobalValidation{
 			RequireAuthentication:       pointer.To(settings.RequireAuth),
-			UnauthenticatedClientAction: pointer.To(webapps.UnauthenticatedClientActionV2(settings.UnauthenticatedAction)),
+			UnauthenticatedClientAction: pointer.ToEnum[webapps.UnauthenticatedClientActionV2](settings.UnauthenticatedAction),
 			ExcludedPaths:               pointer.To(settings.ExcludedPaths),
 		},
 		IdentityProviders: &webapps.IdentityProviders{
@@ -2117,7 +2117,7 @@ func ExpandAuthV2Settings(input []AuthV2Settings) *webapps.SiteAuthSettingsV2 {
 				ApiPrefix: pointer.To(settings.HttpRoutesAPIPrefix),
 			},
 			ForwardProxy: &webapps.ForwardProxy{
-				Convention: pointer.To(webapps.ForwardProxyConvention(settings.ForwardProxyConvention)),
+				Convention: pointer.ToEnum[webapps.ForwardProxyConvention](settings.ForwardProxyConvention),
 			},
 		},
 	}

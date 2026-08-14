@@ -98,7 +98,7 @@ func resourceSharedImageVersion() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
-							ValidateFunc: validate.DiskEncryptionSetID,
+							ValidateFunc: validation.AsGeneratedID(commonids.ParseDiskEncryptionSetIDInsensitively),
 						},
 
 						"exclude_from_latest_enabled": {
@@ -234,7 +234,7 @@ func resourceSharedImageVersionCreate(d *pluginsdk.ResourceData, meta interface{
 		Properties: &galleryimageversions.GalleryImageVersionProperties{
 			PublishingProfile: &galleryimageversions.GalleryArtifactPublishingProfileBase{
 				ExcludeFromLatest: pointer.To(d.Get("exclude_from_latest").(bool)),
-				ReplicationMode:   pointer.To(galleryimageversions.ReplicationMode(d.Get("replication_mode").(string))),
+				ReplicationMode:   pointer.ToEnum[galleryimageversions.ReplicationMode](d.Get("replication_mode").(string)),
 				TargetRegions:     targetRegions,
 			},
 			SafetyProfile: &galleryimageversions.GalleryImageVersionSafetyProfile{
@@ -537,7 +537,7 @@ func expandSharedImageVersionTargetRegions(d *pluginsdk.ResourceData) (*[]galler
 			Name:                 name,
 			ExcludeFromLatest:    pointer.To(excludeFromLatest),
 			RegionalReplicaCount: pointer.To(int64(regionalReplicaCount)),
-			StorageAccountType:   pointer.To(galleryimageversions.StorageAccountType(storageAccountType)),
+			StorageAccountType:   pointer.ToEnum[galleryimageversions.StorageAccountType](storageAccountType),
 		}
 
 		if diskEncryptionSetId != "" {

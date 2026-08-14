@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/deletedvaults"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/vaults"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -38,7 +39,7 @@ import (
 	dataplane "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name key_vault -service-package-name keyvault -properties "name,resource_group_name"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 var keyVaultResourceName = "azurerm_key_vault"
 
@@ -398,7 +399,7 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		if err != nil {
 			return err
 		}
-		if !utils.SliceContainsValue(virtualNetworkNames, id.VirtualNetworkName) {
+		if !helpers.SliceContainsValue(virtualNetworkNames, id.VirtualNetworkName) {
 			virtualNetworkNames = append(virtualNetworkNames, id.VirtualNetworkName)
 		}
 	}
@@ -487,8 +488,6 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	locks.ByName(id.VaultName, keyVaultResourceName)
 	defer locks.UnlockByName(id.VaultName, keyVaultResourceName)
 
-	d.Partial(true)
-
 	// first pull the existing key vault since we need to lock on several bits of its information
 	existing, err := client.Get(ctx, *id)
 	if err != nil {
@@ -545,7 +544,7 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 				return err
 			}
 
-			if !utils.SliceContainsValue(virtualNetworkNames, id.VirtualNetworkName) {
+			if !helpers.SliceContainsValue(virtualNetworkNames, id.VirtualNetworkName) {
 				virtualNetworkNames = append(virtualNetworkNames, id.VirtualNetworkName)
 			}
 		}
@@ -684,8 +683,6 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 		}
 	}
-
-	d.Partial(false)
 
 	return resourceKeyVaultRead(d, meta)
 }
@@ -830,7 +827,11 @@ func resourceKeyVaultDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	read, err := client.Get(ctx, *id)
 	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
+		if response.WasNotFound(read.HttpResponse) {
+			log.Printf("[DEBUG] Key Vault %q was not found - removing from state", id.VaultName)
+			return nil
+		}
+		return fmt.Errorf("checking if key vault %q exists: %v", *id, err)
 	}
 
 	location := ""
@@ -859,7 +860,7 @@ func resourceKeyVaultDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 						return err
 					}
 
-					if !utils.SliceContainsValue(virtualNetworkNames, subnetId.VirtualNetworkName) {
+					if !helpers.SliceContainsValue(virtualNetworkNames, subnetId.VirtualNetworkName) {
 						virtualNetworkNames = append(virtualNetworkNames, subnetId.VirtualNetworkName)
 					}
 				}
@@ -962,8 +963,8 @@ func expandKeyVaultNetworkAcls(input []interface{}) (*vaults.NetworkRuleSet, []s
 	}
 
 	ruleSet := vaults.NetworkRuleSet{
-		Bypass:              pointer.To(vaults.NetworkRuleBypassOptions(bypass)),
-		DefaultAction:       pointer.To(vaults.NetworkRuleAction(defaultAction)),
+		Bypass:              pointer.ToEnum[vaults.NetworkRuleBypassOptions](bypass),
+		DefaultAction:       pointer.ToEnum[vaults.NetworkRuleAction](defaultAction),
 		IPRules:             &ipRules,
 		VirtualNetworkRules: &networkRules,
 	}

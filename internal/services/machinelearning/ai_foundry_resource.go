@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -100,7 +99,7 @@ var _ sdk.ResourceWithUpdate = AIFoundry{}
 var _ sdk.ResourceWithCustomImporter = AIFoundry{}
 
 func (r AIFoundry) Arguments() map[string]*pluginsdk.Schema {
-	args := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -216,12 +215,6 @@ func (r AIFoundry) Arguments() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
-
-	if !features.FivePointOh() {
-		args["encryption"].Elem.(*pluginsdk.Resource).Schema["key_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny)
-	}
-
-	return args
 }
 
 func (r AIFoundry) Attributes() map[string]*pluginsdk.Schema {
@@ -287,7 +280,7 @@ func (r AIFoundry) Create() sdk.ResourceFunc {
 				Kind:     pointer.To("Hub"),
 				Properties: &workspaces.WorkspaceProperties{
 					KeyVault:            pointer.To(keyVaultId.ID()),
-					PublicNetworkAccess: pointer.To(workspaces.PublicNetworkAccess(model.PublicNetworkAccess)),
+					PublicNetworkAccess: pointer.ToEnum[workspaces.PublicNetworkAccess](model.PublicNetworkAccess),
 					StorageAccount:      pointer.To(storageAccountId.ID()),
 				},
 			}
@@ -393,7 +386,7 @@ func (r AIFoundry) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("public_network_access") {
-				payload.Properties.PublicNetworkAccess = pointer.To(workspaces.PublicNetworkAccess(state.PublicNetworkAccess))
+				payload.Properties.PublicNetworkAccess = pointer.ToEnum[workspaces.PublicNetworkAccess](state.PublicNetworkAccess)
 			}
 
 			if metadata.ResourceData.HasChange("description") {
@@ -592,12 +585,7 @@ func flattenEncryption(input *workspaces.EncryptionProperty) ([]Encryption, erro
 		encryption.KeyVaultID = keyVaultId.ID()
 	}
 	if v := input.KeyVaultProperties.KeyIdentifier; v != "" {
-		nestedItemType := keyvault.NestedItemTypeKey
-		if !features.FivePointOh() {
-			nestedItemType = keyvault.NestedItemTypeAny
-		}
-
-		keyId, err := keyvault.ParseNestedItemID(v, keyvault.VersionTypeVersioned, nestedItemType)
+		keyId, err := keyvault.ParseNestedItemID(v, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 		if err != nil {
 			return nil, err
 		}
@@ -619,7 +607,7 @@ func expandManagedNetwork(input []ManagedNetwork) *workspaces.ManagedNetworkSett
 	network := input[0]
 
 	return &workspaces.ManagedNetworkSettings{
-		IsolationMode: pointer.To(workspaces.IsolationMode(network.IsolationMode)),
+		IsolationMode: pointer.ToEnum[workspaces.IsolationMode](network.IsolationMode),
 	}
 }
 

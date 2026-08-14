@@ -278,7 +278,7 @@ func expandWebhookPropertiesCreateParameters(d *pluginsdk.ResourceData) *webhook
 		CustomHeaders: &customHeaders,
 		Actions:       expandWebhookActions(d),
 		Scope:         pointer.To(d.Get("scope").(string)),
-		Status:        pointer.To(webhooks.WebhookStatus(d.Get("status").(string))),
+		Status:        pointer.ToEnum[webhooks.WebhookStatus](d.Get("status").(string)),
 	}
 
 	return &webhookProperties
@@ -295,7 +295,7 @@ func expandWebhookPropertiesUpdateParameters(d *pluginsdk.ResourceData) *webhook
 		CustomHeaders: &customHeaders,
 		Actions:       pointer.To(expandWebhookActions(d)),
 		Scope:         pointer.To(d.Get("scope").(string)),
-		Status:        pointer.To(webhooks.WebhookStatus(d.Get("status").(string))),
+		Status:        pointer.ToEnum[webhooks.WebhookStatus](d.Get("status").(string)),
 	}
 
 	return &webhookProperties

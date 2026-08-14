@@ -187,7 +187,7 @@ func (r MachineLearningDataStoreBlobStorage) Create() sdk.ResourceFunc {
 				Endpoint:                      pointer.To(metadata.Client.Storage.StorageDomainSuffix),
 				ContainerName:                 pointer.To(containerId.ContainerName),
 				Description:                   pointer.To(model.Description),
-				ServiceDataAccessAuthIdentity: pointer.To(datastore.ServiceDataAccessAuthIdentity(model.ServiceDataAuthIdentity)),
+				ServiceDataAccessAuthIdentity: pointer.ToEnum[datastore.ServiceDataAccessAuthIdentity](model.ServiceDataAuthIdentity),
 				IsDefault:                     pointer.To(model.IsDefault),
 				Tags:                          pointer.To(model.Tags),
 			}
@@ -263,7 +263,7 @@ func (r MachineLearningDataStoreBlobStorage) Update() sdk.ResourceFunc {
 				AccountName:                   pointer.To(containerId.StorageAccountName),
 				ContainerName:                 pointer.To(containerId.ContainerName),
 				Description:                   pointer.To(state.Description),
-				ServiceDataAccessAuthIdentity: pointer.To(datastore.ServiceDataAccessAuthIdentity(state.ServiceDataAuthIdentity)),
+				ServiceDataAccessAuthIdentity: pointer.ToEnum[datastore.ServiceDataAccessAuthIdentity](state.ServiceDataAuthIdentity),
 				IsDefault:                     pointer.To(state.IsDefault),
 				Tags:                          pointer.To(state.Tags),
 			}

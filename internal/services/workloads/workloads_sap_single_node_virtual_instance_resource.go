@@ -3,7 +3,7 @@
 
 package workloads
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name workloads_sap_single_node_virtual_instance -service-package-name workloads -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-params "10+(data.RandomInteger%90)" -test-expect-non-empty true
+//go:generate go run ../../tools/generator-tests resourceidentity -test-params "10+(data.RandomInteger%90)" -test-expect-non-empty true
 
 import (
 	"context"
@@ -489,7 +489,7 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) Create() sdk.ResourceFunc
 						},
 					},
 					Environment:                       sapvirtualinstances.SAPEnvironmentType(model.Environment),
-					ManagedResourcesNetworkAccessType: pointer.To(sapvirtualinstances.ManagedResourcesNetworkAccessType(model.ManagedResourcesNetworkAccessType)),
+					ManagedResourcesNetworkAccessType: pointer.ToEnum[sapvirtualinstances.ManagedResourcesNetworkAccessType](model.ManagedResourcesNetworkAccessType),
 					SapProduct:                        sapvirtualinstances.SAPProductType(model.SapProduct),
 				},
 				Tags: &model.Tags,
@@ -544,7 +544,7 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) Update() sdk.ResourceFunc
 			}
 
 			if metadata.ResourceData.HasChange("managed_resources_network_access_type") {
-				parameters.Properties.ManagedResourcesNetworkAccessType = pointer.To(sapvirtualinstances.ManagedResourcesNetworkAccessType(model.ManagedResourcesNetworkAccessType))
+				parameters.Properties.ManagedResourcesNetworkAccessType = pointer.ToEnum[sapvirtualinstances.ManagedResourcesNetworkAccessType](model.ManagedResourcesNetworkAccessType)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
