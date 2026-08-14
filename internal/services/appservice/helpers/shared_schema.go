@@ -1409,11 +1409,7 @@ func FlattenAuthSettings(auth *webapps.SiteAuthSettings) []AuthSettings {
 		result.AdditionalLoginParameters = params
 	}
 
-	var allowedRedirectUrls []string
-	if props.AllowedExternalRedirectURLs != nil {
-		allowedRedirectUrls = *props.AllowedExternalRedirectURLs
-	}
-	result.AllowedExternalRedirectURLs = allowedRedirectUrls
+	result.AllowedExternalRedirectURLs = pointer.From(props.AllowedExternalRedirectURLs)
 
 	if props.Issuer != nil {
 		result.Issuer = *props.Issuer

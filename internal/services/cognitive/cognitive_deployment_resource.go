@@ -432,23 +432,9 @@ func flattenDeploymentModelModel(input *deployments.DeploymentModel) []Deploymen
 	}
 
 	output := DeploymentModelModel{}
-	format := ""
-	if input.Format != nil {
-		format = *input.Format
-	}
-	output.Format = format
-
-	name := ""
-	if input.Name != nil {
-		name = *input.Name
-	}
-	output.Name = name
-
-	version := ""
-	if input.Version != nil {
-		version = *input.Version
-	}
-	output.Version = version
+	output.Format = pointer.From(input.Format)
+	output.Name = pointer.From(input.Name)
+	output.Version = pointer.From(input.Version)
 
 	return append(outputList, output)
 }
