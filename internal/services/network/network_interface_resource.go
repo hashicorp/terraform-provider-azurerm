@@ -662,19 +662,9 @@ func flattenNetworkInterfaceIPConfigurations(input *[]networkinterfaces.NetworkI
 	for _, ipConfig := range *input {
 		props := ipConfig.Properties
 
-		name := ""
-		if ipConfig.Name != nil {
-			name = *ipConfig.Name
-		}
-
 		subnetId := ""
 		if props.Subnet != nil && props.Subnet.Id != nil {
 			subnetId = *props.Subnet.Id
-		}
-
-		privateIPAddress := ""
-		if props.PrivateIPAddress != nil {
-			privateIPAddress = *props.PrivateIPAddress
 		}
 
 		privateIPAllocationMethod := ""
@@ -692,20 +682,15 @@ func flattenNetworkInterfaceIPConfigurations(input *[]networkinterfaces.NetworkI
 			publicIPAddressId = *props.PublicIPAddress.Id
 		}
 
-		primary := false
-		if props.Primary != nil {
-			primary = *props.Primary
-		}
-
 		gatewayLBFrontendIPConfigId := ""
 		if props.GatewayLoadBalancer != nil && props.GatewayLoadBalancer.Id != nil {
 			gatewayLBFrontendIPConfigId = *props.GatewayLoadBalancer.Id
 		}
 
 		result = append(result, map[string]interface{}{
-			"name":                          name,
-			"primary":                       primary,
-			"private_ip_address":            privateIPAddress,
+			"name":                          pointer.From(ipConfig.Name),
+			"primary":                       pointer.From(props.Primary),
+			"private_ip_address":            pointer.From(props.PrivateIPAddress),
 			"private_ip_address_allocation": privateIPAllocationMethod,
 			"private_ip_address_version":    privateIPAddressVersion,
 			"public_ip_address_id":          publicIPAddressId,

@@ -273,10 +273,7 @@ func resourceExpressRouteConnectionRead(d *pluginsdk.ResourceData, meta interfac
 				d.Set("express_route_gateway_bypass_enabled", props.ExpressRouteGatewayBypass)
 			}
 
-			circuitPeeringID := ""
-			if v := props.ExpressRouteCircuitPeering.Id; v != nil {
-				circuitPeeringID = *v
-			}
+			circuitPeeringID := pointer.From(props.ExpressRouteCircuitPeering.Id)
 			peeringId, err := commonids.ParseExpressRouteCircuitPeeringIDInsensitively(circuitPeeringID)
 			if err != nil {
 				return err

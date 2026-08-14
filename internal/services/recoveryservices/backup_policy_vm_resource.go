@@ -765,16 +765,10 @@ func flattenBackupProtectionPolicyVMResourceGroup(rpDetail protectionpolicies.In
 
 	block := map[string]interface{}{}
 
-	prefix := ""
-	if rpDetail.AzureBackupRGNamePrefix != nil {
-		prefix = *rpDetail.AzureBackupRGNamePrefix
-	}
+	prefix := pointer.From(rpDetail.AzureBackupRGNamePrefix)
 	block["prefix"] = prefix
 
-	suffix := ""
-	if rpDetail.AzureBackupRGNameSuffix != nil {
-		suffix = *rpDetail.AzureBackupRGNameSuffix
-	}
+	suffix := pointer.From(rpDetail.AzureBackupRGNameSuffix)
 	block["suffix"] = suffix
 
 	return []interface{}{block}

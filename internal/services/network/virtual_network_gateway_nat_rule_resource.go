@@ -294,19 +294,9 @@ func flattenVirtualNetworkGatewayNatRuleMappings(input *[]virtualnetworkgateways
 	}
 
 	for _, item := range *input {
-		var addressSpace string
-		if item.AddressSpace != nil {
-			addressSpace = *item.AddressSpace
-		}
-
-		var portRange string
-		if item.PortRange != nil {
-			portRange = *item.PortRange
-		}
-
 		results = append(results, map[string]interface{}{
-			"address_space": addressSpace,
-			"port_range":    portRange,
+			"address_space": pointer.From(item.AddressSpace),
+			"port_range":    pointer.From(item.PortRange),
 		})
 	}
 

@@ -513,11 +513,6 @@ func flattenPrivateLinkServiceIPConfiguration(input *[]privatelinkservices.Priva
 	}
 
 	for _, item := range *input {
-		name := ""
-		if item.Name != nil {
-			name = *item.Name
-		}
-
 		privateIpAddress := ""
 		privateIpVersion := ""
 		subnetId := ""
@@ -540,7 +535,7 @@ func flattenPrivateLinkServiceIPConfiguration(input *[]privatelinkservices.Priva
 		}
 
 		results = append(results, map[string]interface{}{
-			"name":                       name,
+			"name":                       pointer.From(item.Name),
 			"primary":                    primary,
 			"private_ip_address":         privateIpAddress,
 			"private_ip_address_version": privateIpVersion,
