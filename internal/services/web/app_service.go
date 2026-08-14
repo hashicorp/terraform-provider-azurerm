@@ -1218,9 +1218,7 @@ func flattenAdditionalLoginParams(input *[]string) map[string]interface{} {
 			continue // Params not following the format `key=value` is considered malformed and will be ignored.
 		}
 		key := parts[0]
-		value := parts[1]
-
-		result[key] = value
+		result[key] = parts[1]
 	}
 
 	return result

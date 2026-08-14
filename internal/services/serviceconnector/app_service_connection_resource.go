@@ -148,8 +148,7 @@ func (r AppServiceConnectorResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.SecretStore != nil {
-				secretStore := expandSecretStore(model.SecretStore)
-				serviceConnectorProperties.SecretStore = secretStore
+				serviceConnectorProperties.SecretStore = expandSecretStore(model.SecretStore)
 			}
 
 			if model.ClientType != "" {

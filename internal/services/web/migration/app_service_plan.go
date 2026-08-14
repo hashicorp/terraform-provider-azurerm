@@ -121,8 +121,7 @@ func (a AppServicePlanV0toV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		if err != nil {
 			return nil, err
 		}
-		newId := parsedId.ID()
-		rawState["id"] = newId
+		rawState["id"] = parsedId.ID()
 		return rawState, nil
 	}
 }

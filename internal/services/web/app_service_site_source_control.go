@@ -113,15 +113,13 @@ func expandAppServiceSiteSourceControl(d *pluginsdk.ResourceData) *web.SiteSourc
 	sourceControlRaw := d.Get("source_control").([]interface{})
 	sourceControl := sourceControlRaw[0].(map[string]interface{})
 
-	result := &web.SiteSourceControlProperties{
+	return &web.SiteSourceControlProperties{
 		RepoURL:                   pointer.To(sourceControl["repo_url"].(string)),
 		Branch:                    pointer.To(sourceControl["branch"].(string)),
 		IsManualIntegration:       pointer.To(sourceControl["manual_integration"].(bool)),
 		IsMercurial:               pointer.To(sourceControl["use_mercurial"].(bool)),
 		DeploymentRollbackEnabled: pointer.To(sourceControl["rollback_enabled"].(bool)),
 	}
-
-	return result
 }
 
 func flattenAppServiceSourceControl(input *web.SiteSourceControlProperties) []interface{} {
