@@ -317,25 +317,10 @@ func flattenKeyVaultCertificateContactsContact(input *[]keyvault.Contact) []Cont
 	}
 
 	for _, item := range *input {
-		emailAddress := ""
-		if item.EmailAddress != nil {
-			emailAddress = *item.EmailAddress
-		}
-
-		name := ""
-		if item.Name != nil {
-			name = *item.Name
-		}
-
-		phone := ""
-		if item.Phone != nil {
-			phone = *item.Phone
-		}
-
 		result = append(result, Contact{
-			Email: emailAddress,
-			Name:  name,
-			Phone: phone,
+			Email: pointer.From(item.EmailAddress),
+			Name:  pointer.From(item.Name),
+			Phone: pointer.From(item.Phone),
 		})
 	}
 

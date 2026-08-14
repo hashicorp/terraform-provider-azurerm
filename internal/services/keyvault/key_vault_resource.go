@@ -559,10 +559,7 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		newValue := d.Get("purge_protection_enabled").(bool)
 
 		// existing.Properties guaranteed non-nil above
-		oldValue := false
-		if existing.Model.Properties.EnablePurgeProtection != nil {
-			oldValue = *existing.Model.Properties.EnablePurgeProtection
-		}
+		oldValue := pointer.From(existing.Model.Properties.EnablePurgeProtection)
 
 		// whilst this should have got caught in the customizeDiff this won't work if that fields interpolated
 		// hence the double-checking here
@@ -609,10 +606,7 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 
 		// existing.Properties guaranteed non-nil above
-		var oldValue int64 = 0
-		if existing.Model.Properties.SoftDeleteRetentionInDays != nil {
-			oldValue = *existing.Model.Properties.SoftDeleteRetentionInDays
-		}
+		oldValue := pointer.From(existing.Model.Properties.SoftDeleteRetentionInDays)
 
 		// whilst this should have got caught in the customizeDiff this won't work if that fields interpolated
 		// hence the double-checking here
@@ -1018,25 +1012,10 @@ func flattenKeyVaultCertificateContactList(input *dataplane.Contacts) []interfac
 	}
 
 	for _, contact := range *input.ContactList {
-		emailAddress := ""
-		if contact.EmailAddress != nil {
-			emailAddress = *contact.EmailAddress
-		}
-
-		name := ""
-		if contact.Name != nil {
-			name = *contact.Name
-		}
-
-		phone := ""
-		if contact.Phone != nil {
-			phone = *contact.Phone
-		}
-
 		results = append(results, map[string]interface{}{
-			"email": emailAddress,
-			"name":  name,
-			"phone": phone,
+			"email": pointer.From(contact.EmailAddress),
+			"name":  pointer.From(contact.Name),
+			"phone": pointer.From(contact.Phone),
 		})
 	}
 

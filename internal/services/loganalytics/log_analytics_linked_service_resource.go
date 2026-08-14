@@ -159,17 +159,9 @@ func resourceLogAnalyticsLinkedServiceRead(d *pluginsdk.ResourceData, meta inter
 	d.Set("workspace_id", workspace.ID())
 
 	if model := resp.Model; model != nil {
-		readAccessId := ""
-		if model.Properties.ResourceId != nil {
-			readAccessId = *model.Properties.ResourceId
-		}
-		d.Set("read_access_id", readAccessId)
+		d.Set("read_access_id", pointer.From(model.Properties.ResourceId))
 
-		writeAccessId := ""
-		if model.Properties.WriteAccessResourceId != nil {
-			writeAccessId = *model.Properties.WriteAccessResourceId
-		}
-		d.Set("write_access_id", writeAccessId)
+		d.Set("write_access_id", pointer.From(model.Properties.WriteAccessResourceId))
 	}
 
 	return nil

@@ -497,15 +497,9 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]loadbalancers.Front
 	}
 
 	for _, config := range *ipConfigs {
-		name := ""
-		if config.Name != nil {
-			name = *config.Name
-		}
+		name := pointer.From(config.Name)
 
-		id := ""
-		if config.Id != nil {
-			id = *config.Id
-		}
+		id := pointer.From(config.Id)
 
 		var inboundNatRules []interface{}
 		var loadBalancingRules []interface{}
