@@ -1042,17 +1042,9 @@ func flattenLogicAppStandardIpRestriction(input *[]webapps.IPSecurityRestriction
 			}
 		}
 
-		subnetId := ""
-		if subnetIdRaw := v.VnetSubnetResourceId; subnetIdRaw != nil {
-			subnetId = *subnetIdRaw
-		}
-		restriction["virtual_network_subnet_id"] = subnetId
+		restriction["virtual_network_subnet_id"] = pointer.From(v.VnetSubnetResourceId)
 
-		name := ""
-		if nameRaw := v.Name; nameRaw != nil {
-			name = *nameRaw
-		}
-		restriction["name"] = name
+		restriction["name"] = pointer.From(v.Name)
 
 		priority := 0
 		if priorityRaw := v.Priority; priorityRaw != nil {
@@ -1060,11 +1052,7 @@ func flattenLogicAppStandardIpRestriction(input *[]webapps.IPSecurityRestriction
 		}
 		restriction["priority"] = priority
 
-		action := ""
-		if actionRaw := v.Action; actionRaw != nil {
-			action = *actionRaw
-		}
-		restriction["action"] = action
+		restriction["action"] = pointer.From(v.Action)
 
 		if headers := v.Headers; headers != nil {
 			restriction["headers"] = flattenHeaders(*headers)

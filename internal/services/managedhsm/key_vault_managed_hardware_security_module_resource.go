@@ -346,11 +346,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleRead(d *pluginsdk.ResourceD
 		d.Set("location", location.NormalizeNilable(model.Location))
 
 		if props := model.Properties; props != nil {
-			tenantId := ""
-			if props.TenantId != nil {
-				tenantId = *props.TenantId
-			}
-			d.Set("tenant_id", tenantId)
+			d.Set("tenant_id", pointer.From(props.TenantId))
 			d.Set("admin_object_ids", helpers.FlattenStringSlice(props.InitialAdminObjectIds))
 			d.Set("hsm_uri", props.HsmUri)
 			d.Set("soft_delete_retention_days", props.SoftDeleteRetentionInDays)

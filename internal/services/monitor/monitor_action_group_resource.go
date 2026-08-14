@@ -896,15 +896,10 @@ func flattenMonitorActionGroupWebHookReceiver(receivers *[]actiongroupsapis.Webh
 	result := make([]interface{}, 0)
 	if receivers != nil {
 		for _, receiver := range *receivers {
-			var useCommonAlert bool
-			if receiver.UseCommonAlertSchema != nil {
-				useCommonAlert = *receiver.UseCommonAlertSchema
-			}
-
 			result = append(result, map[string]interface{}{
 				"name":                    receiver.Name,
 				"service_uri":             receiver.ServiceUri,
-				"use_common_alert_schema": useCommonAlert,
+				"use_common_alert_schema": pointer.From(receiver.UseCommonAlertSchema),
 				"aad_auth":                flattenMonitorActionGroupSecureWebHookReceiver(receiver),
 			})
 		}
