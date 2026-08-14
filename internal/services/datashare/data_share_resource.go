@@ -283,13 +283,8 @@ func flattenAzureRmDataShareSnapshotSchedule(input []synchronizationsetting.Sche
 
 	for _, setting := range input {
 		props := setting.Properties
-		name := ""
-		if setting.Name != nil {
-			name = *setting.Name
-		}
-
 		output = append(output, map[string]interface{}{
-			"name":       name,
+			"name":       pointer.From(setting.Name),
 			"recurrence": string(props.RecurrenceInterval),
 			"start_time": props.SynchronizationTime,
 		})

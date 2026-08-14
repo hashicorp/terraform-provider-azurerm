@@ -633,14 +633,9 @@ func flattenFhirCorsConfiguration(corsConfig *fhirservices.FhirServiceCorsConfig
 		maxAge = int(*corsConfig.MaxAge)
 	}
 
-	allowCredentials := false
-	if corsConfig.AllowCredentials != nil {
-		allowCredentials = *corsConfig.AllowCredentials
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"credentials_allowed": allowCredentials,
+			"credentials_allowed": pointer.From(corsConfig.AllowCredentials),
 			"allowed_headers":     helpers.FlattenStringSlice(corsConfig.Headers),
 			"allowed_methods":     helpers.FlattenStringSlice(corsConfig.Methods),
 			"allowed_origins":     helpers.FlattenStringSlice(corsConfig.Origins),
@@ -654,26 +649,11 @@ func flattenFhirAuthentication(authConfig *fhirservices.FhirServiceAuthenticatio
 		return []interface{}{}
 	}
 
-	authority := ""
-	if authConfig.Authority != nil {
-		authority = *authConfig.Authority
-	}
-
-	audience := ""
-	if authConfig.Audience != nil {
-		audience = *authConfig.Audience
-	}
-
-	smartProxyEnabled := false
-	if authConfig.SmartProxyEnabled != nil {
-		smartProxyEnabled = *authConfig.SmartProxyEnabled
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"audience":            audience,
-			"authority":           authority,
-			"smart_proxy_enabled": smartProxyEnabled,
+			"audience":            pointer.From(authConfig.Audience),
+			"authority":           pointer.From(authConfig.Authority),
+			"smart_proxy_enabled": pointer.From(authConfig.SmartProxyEnabled),
 		},
 	}
 }
