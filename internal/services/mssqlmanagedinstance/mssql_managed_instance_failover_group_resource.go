@@ -366,13 +366,8 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Read() sdk.ResourceFunc {
 					}
 
 					for _, partnerRegion := range props.PartnerRegions {
-						var location string
-						if partnerRegion.Location != nil {
-							location = *partnerRegion.Location
-						}
-
 						model.PartnerRegion = append(model.PartnerRegion, MsSqlManagedInstancePartnerRegionModel{
-							Location: location,
+							Location: pointer.From(partnerRegion.Location),
 							Role:     string(pointer.From(partnerRegion.ReplicationRole)),
 						})
 					}

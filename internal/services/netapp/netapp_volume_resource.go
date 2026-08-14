@@ -1514,10 +1514,6 @@ func flattenNetAppVolumeExportPolicyRule(input *volumes.VolumePropertiesExportPo
 	}
 
 	for _, item := range *input.Rules {
-		ruleIndex := int64(0)
-		if v := item.RuleIndex; v != nil {
-			ruleIndex = *v
-		}
 		allowedClients := []string{}
 		if v := item.AllowedClients; v != nil {
 			allowedClients = strings.Split(*v, ",")
@@ -1544,7 +1540,7 @@ func flattenNetAppVolumeExportPolicyRule(input *volumes.VolumePropertiesExportPo
 			"kerberos_5p_read_write_enabled": pointer.From(item.Kerberos5pReadWrite),
 			"protocol":                       helpers.FlattenStringSlice(&protocolsEnabled),
 			"root_access_enabled":            pointer.From(item.HasRootAccess),
-			"rule_index":                     ruleIndex,
+			"rule_index":                     pointer.From(item.RuleIndex),
 			"unix_read_only":                 pointer.From(item.UnixReadOnly),
 			"unix_read_write":                pointer.From(item.UnixReadWrite),
 		}
