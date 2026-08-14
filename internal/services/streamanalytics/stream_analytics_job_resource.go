@@ -593,10 +593,7 @@ func flattenJobStorageAccount(d *pluginsdk.ResourceData, input *streamingjobs.Jo
 		return []interface{}{}
 	}
 
-	accountName := ""
-	if v := input.AccountName; v != nil {
-		accountName = *v
-	}
+	accountName := pointer.From(input.AccountName)
 
 	return []interface{}{
 		map[string]interface{}{
