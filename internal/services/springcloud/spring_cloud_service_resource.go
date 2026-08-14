@@ -1125,15 +1125,9 @@ func flattenSpringCloudConfigServerGitProperty(input *appplatform.ConfigServerPr
 		oldGitSetting = oldGitSettings[0].(map[string]interface{})
 	}
 
-	uri := ""
-	if gitProperty.URI != nil {
-		uri = *gitProperty.URI
-	}
+	uri := pointer.From(gitProperty.URI)
 
-	label := ""
-	if gitProperty.Label != nil {
-		label = *gitProperty.Label
-	}
+	label := pointer.From(gitProperty.Label)
 
 	searchPaths := helpers.FlattenStringSlice(gitProperty.SearchPaths)
 
@@ -1177,10 +1171,7 @@ func flattenSpringCloudConfigServerGitProperty(input *appplatform.ConfigServerPr
 			}
 		}
 
-		strictHostKeyChecking := false
-		if gitProperty.StrictHostKeyChecking != nil {
-			strictHostKeyChecking = *gitProperty.StrictHostKeyChecking
-		}
+		strictHostKeyChecking := pointer.From(gitProperty.StrictHostKeyChecking)
 
 		sshAuth = []interface{}{
 			map[string]interface{}{
@@ -1223,20 +1214,11 @@ func flattenSpringCloudGitPatternRepository(input *[]appplatform.GitPatternRepos
 	}
 
 	for _, item := range *input {
-		name := ""
-		if item.Name != nil {
-			name = *item.Name
-		}
+		name := pointer.From(item.Name)
 
-		uri := ""
-		if item.URI != nil {
-			uri = *item.URI
-		}
+		uri := pointer.From(item.URI)
 
-		label := ""
-		if item.Label != nil {
-			label = *item.Label
-		}
+		label := pointer.From(item.Label)
 
 		// prepare old state to find sensitive props not returned by API.
 		oldGitPatternRepository := make(map[string]interface{})
@@ -1287,10 +1269,7 @@ func flattenSpringCloudGitPatternRepository(input *[]appplatform.GitPatternRepos
 				}
 			}
 
-			strictHostKeyChecking := false
-			if item.StrictHostKeyChecking != nil {
-				strictHostKeyChecking = *item.StrictHostKeyChecking
-			}
+			strictHostKeyChecking := pointer.From(item.StrictHostKeyChecking)
 
 			sshAuth = []interface{}{
 				map[string]interface{}{
@@ -1414,10 +1393,7 @@ func flattenRequiredTraffic(input *appplatform.NetworkProfile) []interface{} {
 
 	result := make([]interface{}, 0)
 	for _, v := range *input.RequiredTraffics {
-		protocol := ""
-		if v.Protocol != nil {
-			protocol = *v.Protocol
-		}
+		protocol := pointer.From(v.Protocol)
 
 		port := 0
 		if v.Port != nil {
