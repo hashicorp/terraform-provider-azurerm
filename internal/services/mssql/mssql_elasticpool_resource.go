@@ -401,8 +401,7 @@ func resourceMsSqlElasticPoolDelete(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting ElasticPool %s: %+v", id, err)
 	}
 

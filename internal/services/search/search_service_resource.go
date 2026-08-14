@@ -352,8 +352,7 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		payload.Identity = expandedIdentity
 	}
 
-	err = client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, services.CreateOrUpdateOperationOptions{}, sdk.SetIDCallback(meta, &id, d))
-	if err != nil {
+	if err = client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, services.CreateOrUpdateOperationOptions{}, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 	d.SetId(id.ID())

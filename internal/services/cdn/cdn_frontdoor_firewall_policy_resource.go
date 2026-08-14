@@ -875,8 +875,7 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 
 	model.Properties = pointer.To(props)
 
-	err = client.PoliciesCreateOrUpdateThenPoll(ctx, *id, *model)
-	if err != nil {
+	if err = client.PoliciesCreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
@@ -966,8 +965,7 @@ func resourceCdnFrontDoorFirewallPolicyDelete(d *pluginsdk.ResourceData, meta in
 		return err
 	}
 
-	err = client.PoliciesDeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.PoliciesDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

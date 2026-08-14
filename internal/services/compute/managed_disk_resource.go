@@ -821,13 +821,11 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		locks.ByName(virtualMachineId.VirtualMachineName, VirtualMachineResourceName)
 		defer locks.UnlockByName(virtualMachineId.VirtualMachineName, VirtualMachineResourceName)
 
-		err = resourceManagedDiskUpdateWithVmShutDown(ctx, meta.(*clients.Client), id, virtualMachineId, diskUpdate, shouldDetach)
-		if err != nil {
+		if err = resourceManagedDiskUpdateWithVmShutDown(ctx, meta.(*clients.Client), id, virtualMachineId, diskUpdate, shouldDetach); err != nil {
 			return err
 		}
 	} else { // otherwise, just update it
-		err := client.UpdateThenPoll(ctx, *id, diskUpdate)
-		if err != nil {
+		if err := client.UpdateThenPoll(ctx, *id, diskUpdate); err != nil {
 			return fmt.Errorf("expanding managed disk %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
@@ -960,8 +958,7 @@ func resourceManagedDiskDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting Managed Disk %q (Resource Group %q): %+v", id.DiskName, id.ResourceGroupName, err)
 	}
 

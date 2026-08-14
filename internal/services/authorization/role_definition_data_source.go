@@ -175,7 +175,7 @@ func (a RoleDefinitionDataSource) Read() sdk.ResourceFunc {
 				if !ok {
 					return fmt.Errorf("internal error: context had no deadline")
 				}
-				err := pluginsdk.Retry(time.Until(deadline), func() *pluginsdk.RetryError {
+				if err := pluginsdk.Retry(time.Until(deadline), func() *pluginsdk.RetryError {
 					roleDefinitions, err := client.List(ctx, commonids.NewScopeID(config.Scope), roledefinitions.ListOperationOptions{
 						Filter: pointer.To(fmt.Sprintf("roleName eq '%s'", config.Name)),
 					})
@@ -196,8 +196,7 @@ func (a RoleDefinitionDataSource) Read() sdk.ResourceFunc {
 					id = roledefinitions.NewScopedRoleDefinitionID(config.Scope, defId)
 
 					return nil
-				})
-				if err != nil {
+				}); err != nil {
 					return err
 				}
 			} else {

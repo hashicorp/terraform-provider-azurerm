@@ -650,8 +650,7 @@ func expandMonitorActionGroupItsmReceiver(v []interface{}) (*[]actiongroupsapis.
 		// https://github.com/Azure/azure-rest-api-specs/issues/20488 ticket_configuration should have `PayloadRevision` and `WorkItemType` keys
 
 		j := make(map[string]interface{})
-		err := json.Unmarshal([]byte(ticketConfiguration), &j)
-		if err != nil {
+		if err := json.Unmarshal([]byte(ticketConfiguration), &j); err != nil {
 			return nil, fmt.Errorf("`itsm_receiver.ticket_configuration` %s unmarshall json error: %+v", ticketConfiguration, err)
 		}
 

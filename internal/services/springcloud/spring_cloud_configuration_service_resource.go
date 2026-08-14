@@ -293,8 +293,7 @@ func (s SpringCloudConfigurationServiceResource) Update() sdk.ResourceFunc {
 			configurationServiceResource := appplatform.ConfigurationServiceResource{
 				Properties: properties,
 			}
-			err = client.ConfigurationServicesCreateOrUpdateThenPoll(ctx, id, configurationServiceResource)
-			if err != nil {
+			if err = client.ConfigurationServicesCreateOrUpdateThenPoll(ctx, id, configurationServiceResource); err != nil {
 				return fmt.Errorf("creating/updating %s: %+v", id, err)
 			}
 
@@ -360,8 +359,7 @@ func (s SpringCloudConfigurationServiceResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			err = client.ConfigurationServicesDeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.ConfigurationServicesDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 

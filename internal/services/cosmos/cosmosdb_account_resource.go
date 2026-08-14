@@ -900,8 +900,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
-	err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, id, account)
-	if err != nil {
+	if err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, id, account); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -910,8 +909,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	// NOTE: this is to work around the issue here: https://github.com/Azure/azure-rest-api-specs/issues/27596
 	// Once the above issue is resolved we shouldn't need this check and update anymore
 	if d.Get("create_mode").(string) == string(cosmosdb.CreateModeRestore) {
-		err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, id, account)
-		if err != nil {
+		if err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, id, account); err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
 		}
 	}
@@ -1148,8 +1146,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		account.Properties.Locations = configLocations
 
 		// Update the database locations...
-		err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, *id, account)
-		if err != nil {
+		if err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, *id, account); err != nil {
 			return fmt.Errorf("updating %q `locations`: %+v", id, err)
 		}
 	}
@@ -1171,8 +1168,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 
 		// Update the database 'Identity' to 'None'...
-		err = resourceCosmosDbAccountApiUpdate(client, ctx, *id, identityVal)
-		if err != nil {
+		if err = resourceCosmosDbAccountApiUpdate(client, ctx, *id, identityVal); err != nil {
 			return fmt.Errorf("updating 'identity' %q: %+v", id, err)
 		}
 
@@ -1189,8 +1185,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 
 			// Update the database...
-			err = resourceCosmosDbAccountApiUpdate(client, ctx, *id, identityVal)
-			if err != nil {
+			if err = resourceCosmosDbAccountApiUpdate(client, ctx, *id, identityVal); err != nil {
 				return fmt.Errorf("updating `identity` for %s: %+v", id, err)
 			}
 		}
@@ -1213,8 +1208,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 
 		// Update the database...
-		err = resourceCosmosDbAccountApiUpdate(client, ctx, *id, defaultIdentity)
-		if err != nil {
+		if err = resourceCosmosDbAccountApiUpdate(client, ctx, *id, defaultIdentity); err != nil {
 			return fmt.Errorf("updating `default_identity_type` for %s: %+v", id, err)
 		}
 	}

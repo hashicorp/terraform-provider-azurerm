@@ -301,8 +301,7 @@ func resourceArmLoadBalancerOutboundRuleDelete(d *pluginsdk.ResourceData, meta i
 			outboundRules = append(outboundRules[:index], outboundRules[index+1:]...)
 			props.OutboundRules = &outboundRules
 
-			err := client.CreateOrUpdateThenPoll(ctx, plbId, *model)
-			if err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, plbId, *model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 		}

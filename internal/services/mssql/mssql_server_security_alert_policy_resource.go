@@ -361,8 +361,7 @@ func resourceMsSqlServerSecurityAlertPolicyUpdate(d *pluginsdk.ResourceData, met
 
 	payload.Properties = props
 
-	err = client.CreateOrUpdateThenPoll(ctx, serverId, payload)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, serverId, payload); err != nil {
 		return fmt.Errorf("updating mssql server security alert policy: %+v", err)
 	}
 
@@ -387,8 +386,7 @@ func resourceMsSqlServerSecurityAlertPolicyDelete(d *pluginsdk.ResourceData, met
 
 	serverId := commonids.NewSqlServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
 
-	err = client.CreateOrUpdateThenPoll(ctx, serverId, disabledPolicy)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, serverId, disabledPolicy); err != nil {
 		return fmt.Errorf("updating mssql server security alert policy: %+v", err)
 	}
 

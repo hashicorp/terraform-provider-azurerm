@@ -629,8 +629,7 @@ func resourceLogAnalyticsWorkspaceDelete(d *pluginsdk.ResourceData, meta interfa
 	sharedKeyId := sharedKeyWorkspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
 
 	permanentlyDeleteOnDestroy := meta.(*clients.Client).Features.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy
-	err = client.DeleteThenPoll(ctx, sharedKeyId, sharedKeyWorkspaces.DeleteOperationOptions{Force: pointer.To(permanentlyDeleteOnDestroy)})
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, sharedKeyId, sharedKeyWorkspaces.DeleteOperationOptions{Force: pointer.To(permanentlyDeleteOnDestroy)}); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

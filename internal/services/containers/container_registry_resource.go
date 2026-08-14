@@ -442,8 +442,7 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 	newGeoReplicationLocations = expandReplications(d.Get("georeplications").([]interface{}))
 	// geo replications have been specified
 	if len(newGeoReplicationLocations) > 0 {
-		err = applyGeoReplicationLocations(ctx, meta, id, oldGeoReplicationLocations, newGeoReplicationLocations)
-		if err != nil {
+		if err = applyGeoReplicationLocations(ctx, meta, id, oldGeoReplicationLocations, newGeoReplicationLocations); err != nil {
 			return fmt.Errorf("applying geo replications for %s: %+v", id, err)
 		}
 	}
@@ -605,8 +604,7 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if hasGeoReplicationsChanges {
-		err := applyGeoReplicationLocations(ctx, meta, *id, expandReplications(oldReplications), expandReplications(newReplications))
-		if err != nil {
+		if err := applyGeoReplicationLocations(ctx, meta, *id, expandReplications(oldReplications), expandReplications(newReplications)); err != nil {
 			return fmt.Errorf("applying geo replications for %s: %+v", id, err)
 		}
 	}

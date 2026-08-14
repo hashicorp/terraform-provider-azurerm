@@ -288,7 +288,7 @@ func resourceSharedImageVersionCreate(d *pluginsdk.ResourceData, meta interface{
 
 	readCtx, cancelCtx := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancelCtx()
-	err = retry.RetryContext(readCtx, 5*time.Second, func() *retry.RetryError {
+	if err = retry.RetryContext(readCtx, 5*time.Second, func() *retry.RetryError {
 		read, err := client.Get(ctx, id, galleryimageversions.DefaultGetOperationOptions())
 		if err != nil {
 			if response.WasNotFound(read.HttpResponse) {
@@ -300,8 +300,7 @@ func resourceSharedImageVersionCreate(d *pluginsdk.ResourceData, meta interface{
 			return retry.RetryableError(fmt.Errorf("waiting for `model` to become available for %s", id))
 		}
 		return nil
-	})
-	if err != nil {
+	}); err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 

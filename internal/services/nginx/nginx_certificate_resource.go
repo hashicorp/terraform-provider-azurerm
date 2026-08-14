@@ -160,8 +160,7 @@ func (m CertificateResource) Update() sdk.ResourceFunc {
 				upd.Properties.KeyVaultSecretId = pointer.To(model.KeyVaultSecretId)
 			}
 
-			err = client.CertificatesCreateOrUpdateThenPoll(ctx, *id, *upd)
-			if err != nil {
+			if err = client.CertificatesCreateOrUpdateThenPoll(ctx, *id, *upd); err != nil {
 				return fmt.Errorf("updating %s: %v", id, err)
 			}
 			return nil

@@ -2012,8 +2012,7 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (extensionProfi
 
 		if val, ok := extensionRaw["settings"]; ok && val.(string) != "" {
 			var result interface{}
-			err := json.Unmarshal([]byte(val.(string)), &result)
-			if err != nil {
+			if err := json.Unmarshal([]byte(val.(string)), &result); err != nil {
 				return nil, false, fmt.Errorf("unmarshaling `settings`: %+v", err)
 			}
 			extensionProps.Settings = pointer.To(result)
@@ -2028,8 +2027,7 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (extensionProfi
 			}
 
 			var result interface{}
-			err := json.Unmarshal([]byte(val.(string)), &result)
-			if err != nil {
+			if err := json.Unmarshal([]byte(val.(string)), &result); err != nil {
 				return nil, false, fmt.Errorf("unmarshaling `protected_settings`: %+v", err)
 			}
 			extensionProps.ProtectedSettings = pointer.To(result)

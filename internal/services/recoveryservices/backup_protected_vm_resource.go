@@ -110,8 +110,7 @@ func resourceRecoveryServicesBackupProtectedVMCreate(d *pluginsdk.ResourceData, 
 
 		if isSoftDeleted {
 			if meta.(*clients.Client).Features.RecoveryServicesVault.RecoverSoftDeletedBackupProtectedVM {
-				err = resourceRecoveryServicesVaultBackupProtectedVMRecoverSoftDeleted(ctx, client, id)
-				if err != nil {
+				if err = resourceRecoveryServicesVaultBackupProtectedVMRecoverSoftDeleted(ctx, client, id); err != nil {
 					return fmt.Errorf("recovering soft deleted %s: %+v", id, err)
 				}
 			} else {

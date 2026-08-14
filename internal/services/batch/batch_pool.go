@@ -842,15 +842,13 @@ func expandBatchPoolExtension(ref map[string]interface{}) (*pool.VmExtension, er
 	}
 
 	if settings, ok := ref["settings_json"]; ok {
-		err := json.Unmarshal([]byte(settings.(string)), &result.Settings)
-		if err != nil {
+		if err := json.Unmarshal([]byte(settings.(string)), &result.Settings); err != nil {
 			return nil, fmt.Errorf("unmarshaling `settings_json`: %+v", err)
 		}
 	}
 
 	if protectedSettings, ok := ref["protected_settings"]; ok {
-		err := json.Unmarshal([]byte(protectedSettings.(string)), &result.ProtectedSettings)
-		if err != nil {
+		if err := json.Unmarshal([]byte(protectedSettings.(string)), &result.ProtectedSettings); err != nil {
 			return nil, fmt.Errorf("unmarshaling `protected_settings`: %+v", err)
 		}
 	}

@@ -351,8 +351,7 @@ func (s SpringCloudCustomizedAcceleratorResource) Update() sdk.ResourceFunc {
 			CustomizedAcceleratorResource := appplatform.CustomizedAcceleratorResource{
 				Properties: properties,
 			}
-			err = client.CustomizedAcceleratorsCreateOrUpdateThenPoll(ctx, *id, CustomizedAcceleratorResource)
-			if err != nil {
+			if err = client.CustomizedAcceleratorsCreateOrUpdateThenPoll(ctx, *id, CustomizedAcceleratorResource); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -426,8 +425,7 @@ func (s SpringCloudCustomizedAcceleratorResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			err = client.CustomizedAcceleratorsDeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.CustomizedAcceleratorsDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 

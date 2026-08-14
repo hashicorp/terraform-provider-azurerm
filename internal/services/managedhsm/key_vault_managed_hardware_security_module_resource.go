@@ -524,8 +524,7 @@ func securityDomainDownload(ctx context.Context, sdClient *kv74.HSMSecurityDomai
 		Value string `json:"value"`
 	}
 
-	err = json.Unmarshal(data, &encData)
-	if err != nil {
+	if err = json.Unmarshal(data, &encData); err != nil {
 		return "", fmt.Errorf("unmarshal EncData: %v", err)
 	}
 

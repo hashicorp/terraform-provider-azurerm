@@ -194,8 +194,7 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, met
 
 	if settingsString := d.Get("settings").(string); settingsString != "" {
 		var result interface{}
-		err := json.Unmarshal([]byte(settingsString), &result)
-		if err != nil {
+		if err := json.Unmarshal([]byte(settingsString), &result); err != nil {
 			return fmt.Errorf("unmarshaling `settings`: %+v", err)
 		}
 		extension.Properties.Settings = pointer.To(result)
@@ -203,8 +202,7 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, met
 
 	if protectedSettingsString := d.Get("protected_settings").(string); protectedSettingsString != "" {
 		var result interface{}
-		err := json.Unmarshal([]byte(protectedSettingsString), &result)
-		if err != nil {
+		if err := json.Unmarshal([]byte(protectedSettingsString), &result); err != nil {
 			return fmt.Errorf("unmarshaling `protected_settings`: %+v", err)
 		}
 		extension.Properties.ProtectedSettings = pointer.To(result)

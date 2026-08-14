@@ -302,8 +302,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			err = client.CreateOrUpdateThenPoll(ctx, *id, parameters)
-			if err != nil {
+			if err = client.CreateOrUpdateThenPoll(ctx, *id, parameters); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -405,8 +404,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			err = client.DeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 

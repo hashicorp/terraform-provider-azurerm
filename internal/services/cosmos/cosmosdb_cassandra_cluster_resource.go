@@ -196,8 +196,7 @@ func resourceCassandraClusterCreate(d *pluginsdk.ResourceData, meta interface{})
 		body.Properties.ExternalSeedNodes = expandCassandraClusterExternalSeedNode(v.([]interface{}))
 	}
 
-	err = client.CassandraClustersCreateUpdateCallbackThenPoll(ctx, id, body, sdk.SetIDCallback(meta, &id, d))
-	if err != nil {
+	if err = client.CassandraClustersCreateUpdateCallbackThenPoll(ctx, id, body, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %q: %+v", id, err)
 	}
 
@@ -314,8 +313,7 @@ func resourceCassandraClusterUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	// Though there is update method but Service API complains it isn't implemented
-	err = client.CassandraClustersCreateUpdateThenPoll(ctx, id, body)
-	if err != nil {
+	if err = client.CassandraClustersCreateUpdateThenPoll(ctx, id, body); err != nil {
 		return fmt.Errorf("updating %q: %+v", id, err)
 	}
 
@@ -349,8 +347,7 @@ func resourceCassandraClusterDelete(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	err = client.CassandraClustersDeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.CassandraClustersDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %q: %+v", id, err)
 	}
 

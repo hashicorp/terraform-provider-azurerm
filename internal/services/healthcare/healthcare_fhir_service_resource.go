@@ -437,8 +437,7 @@ func resourceHealthcareApisFhirServiceUpdate(d *pluginsdk.ResourceData, meta int
 	}
 	parameters.Properties.AcrConfiguration = &acrConfig
 
-	err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -456,8 +455,7 @@ func resourceHealthcareApisFhirServiceDelete(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
