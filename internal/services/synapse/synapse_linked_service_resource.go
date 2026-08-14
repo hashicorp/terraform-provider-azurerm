@@ -521,10 +521,7 @@ func flattenSynapseLinkedServiceIntegrationRuntimeV2(input *artifacts.Integratio
 		return []interface{}{}
 	}
 
-	name := ""
-	if input.ReferenceName != nil {
-		name = *input.ReferenceName
-	}
+	name := pointer.From(input.ReferenceName)
 
 	return []interface{}{
 		map[string]interface{}{

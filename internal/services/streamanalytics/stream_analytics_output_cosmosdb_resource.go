@@ -210,23 +210,11 @@ func (r OutputCosmosDBResource) Read() sdk.ResourceFunc {
 					databaseId := cosmosdb.NewSqlDatabaseID(id.SubscriptionId, id.ResourceGroupName, *output.Properties.AccountId, *output.Properties.Database)
 					state.Database = databaseId.ID()
 
-					collectionName := ""
-					if v := output.Properties.CollectionNamePattern; v != nil {
-						collectionName = *v
-					}
-					state.ContainerName = collectionName
+					state.ContainerName = pointer.From(output.Properties.CollectionNamePattern)
 
-					document := ""
-					if v := output.Properties.DocumentId; v != nil {
-						document = *v
-					}
-					state.DocumentID = document
+					state.DocumentID = pointer.From(output.Properties.DocumentId)
 
-					partitionKey := ""
-					if v := output.Properties.PartitionKey; v != nil {
-						partitionKey = *v
-					}
-					state.PartitionKey = partitionKey
+					state.PartitionKey = pointer.From(output.Properties.PartitionKey)
 
 					state.AuthenticationMode = string(pointer.From(output.Properties.AuthenticationMode))
 
