@@ -263,11 +263,7 @@ func resourceMsSqlServerSecurityAlertPolicyRead(d *pluginsdk.ResourceData, meta 
 	}
 	d.Set("retention_days", retentionDays)
 
-	var storageEndpoint string
-	if props.StorageEndpoint != nil {
-		storageEndpoint = *props.StorageEndpoint
-	}
-	d.Set("storage_endpoint", storageEndpoint)
+	d.Set("storage_endpoint", pointer.From(props.StorageEndpoint))
 
 	// NOTE: 'storage_account_access_key' field is not returned by the API
 	// so we need to pull it from the state...
