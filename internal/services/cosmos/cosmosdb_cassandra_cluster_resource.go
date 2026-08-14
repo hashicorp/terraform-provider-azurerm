@@ -417,12 +417,7 @@ func flattenCassandraClusterCertificate(input *[]managedcassandras.Certificate) 
 	}
 
 	for _, item := range *input {
-		var pem string
-		if item.Pem != nil {
-			pem = *item.Pem
-		}
-
-		results = append(results, pem)
+		results = append(results, pointer.From(item.Pem))
 	}
 
 	return results
@@ -435,12 +430,7 @@ func flattenCassandraClusterExternalSeedNode(input *[]managedcassandras.SeedNode
 	}
 
 	for _, item := range *input {
-		var ipAddress string
-		if item.IPAddress != nil {
-			ipAddress = *item.IPAddress
-		}
-
-		results = append(results, ipAddress)
+		results = append(results, pointer.From(item.IPAddress))
 	}
 
 	return results

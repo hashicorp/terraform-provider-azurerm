@@ -1946,14 +1946,9 @@ func flattenCosmosDBAccountCapacity(input *cosmosdb.Capacity) []interface{} {
 		return make([]interface{}, 0)
 	}
 
-	var totalThroughputLimit int64
-	if input.TotalThroughputLimit != nil {
-		totalThroughputLimit = *input.TotalThroughputLimit
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"total_throughput_limit": totalThroughputLimit,
+			"total_throughput_limit": pointer.From(input.TotalThroughputLimit),
 		},
 	}
 }
@@ -2014,10 +2009,7 @@ func flattenCosmosdbAccountRestoreParameters(input *cosmosdb.RestoreParameters) 
 	if input == nil {
 		return make([]interface{}, 0)
 	}
-	var restoreSource string
-	if input.RestoreSource != nil {
-		restoreSource = *input.RestoreSource
-	}
+	restoreSource := pointer.From(input.RestoreSource)
 
 	var restoreTimestampInUtc string
 	if input.RestoreTimestampInUtc != nil {
@@ -2042,10 +2034,7 @@ func flattenCosmosdbAccountDatabasesToRestore(input *[]cosmosdb.DatabaseRestoreR
 	}
 
 	for _, item := range *input {
-		var databaseName string
-		if item.DatabaseName != nil {
-			databaseName = *item.DatabaseName
-		}
+		databaseName := pointer.From(item.DatabaseName)
 
 		results = append(results, map[string]interface{}{
 			"collection_names": helpers.FlattenStringSlice(item.CollectionNames),
