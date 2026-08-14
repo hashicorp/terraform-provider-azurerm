@@ -231,17 +231,15 @@ func resourceContainerRegistryWebhookRead(d *pluginsdk.ResourceData, meta interf
 	}
 
 	if callbackModel := callbackConfig.Model; callbackModel != nil {
-		if props := callbackModel; props != nil {
-			d.Set("service_uri", props.ServiceUri)
+		d.Set("service_uri", callbackModel.ServiceUri)
 
-			customHeaders := make(map[string]string)
-			if props.CustomHeaders != nil {
-				for k, v := range *props.CustomHeaders {
-					customHeaders[k] = v
-				}
+		customHeaders := make(map[string]string)
+		if callbackModel.CustomHeaders != nil {
+			for k, v := range *callbackModel.CustomHeaders {
+				customHeaders[k] = v
 			}
-			d.Set("custom_headers", customHeaders)
 		}
+		d.Set("custom_headers", customHeaders)
 	}
 	return nil
 }
