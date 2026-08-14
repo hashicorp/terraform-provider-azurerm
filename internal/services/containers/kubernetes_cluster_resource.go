@@ -477,7 +477,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: commonids.ValidateDiskEncryptionSetID,
+				ValidateFunc: validation.AsGeneratedID(commonids.ParseDiskEncryptionSetIDInsensitively),
 			},
 
 			"dns_prefix": {
@@ -1921,13 +1921,13 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if autoChannelUpgrade != "" {
-		autoUpgradeProfile.UpgradeChannel = pointer.To(managedclusters.UpgradeChannel(autoChannelUpgrade))
+		autoUpgradeProfile.UpgradeChannel = pointer.ToEnum[managedclusters.UpgradeChannel](autoChannelUpgrade)
 	} else {
 		autoUpgradeProfile.UpgradeChannel = pointer.To(managedclusters.UpgradeChannelNone)
 	}
 
 	if nodeOsChannelUpgrade != "" {
-		autoUpgradeProfile.NodeOSUpgradeChannel = pointer.To(managedclusters.NodeOSUpgradeChannel(nodeOsChannelUpgrade))
+		autoUpgradeProfile.NodeOSUpgradeChannel = pointer.ToEnum[managedclusters.NodeOSUpgradeChannel](nodeOsChannelUpgrade)
 	}
 
 	if customCaTrustCertListRaw := d.Get("custom_ca_trust_certificates_base64").([]interface{}); len(customCaTrustCertListRaw) > 0 {
@@ -1939,7 +1939,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		Location:         location,
 		Sku: &managedclusters.ManagedClusterSKU{
 			Name: pointer.To(managedclusters.ManagedClusterSKUNameBase), // the only possible value at this point
-			Tier: pointer.To(managedclusters.ManagedClusterSKUTier(d.Get("sku_tier").(string))),
+			Tier: pointer.ToEnum[managedclusters.ManagedClusterSKUTier](d.Get("sku_tier").(string)),
 		},
 		Properties: &managedclusters.ManagedClusterProperties{
 			ApiServerAccessProfile:    apiAccessProfile,
@@ -2026,7 +2026,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if v := d.Get("support_plan").(string); v != "" {
-		parameters.Properties.SupportPlan = pointer.To(managedclusters.KubernetesSupportPlan(v))
+		parameters.Properties.SupportPlan = pointer.ToEnum[managedclusters.KubernetesSupportPlan](v)
 	}
 
 	if ingressProfile := expandKubernetesClusterIngressProfile(d, d.Get("web_app_routing").([]interface{})); ingressProfile != nil {
@@ -2258,7 +2258,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 			if key := "network_profile.0.network_policy"; d.HasChange(key) {
 				networkPolicy := d.Get(key).(string)
-				existing.Model.Properties.NetworkProfile.NetworkPolicy = pointer.To(managedclusters.NetworkPolicy(networkPolicy))
+				existing.Model.Properties.NetworkProfile.NetworkPolicy = pointer.ToEnum[managedclusters.NetworkPolicy](networkPolicy)
 			}
 
 			if key := "network_profile.0.load_balancer_profile.0.effective_outbound_ips"; d.HasChange(key) {
@@ -2345,7 +2345,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 			if key := "network_profile.0.load_balancer_profile.0.backend_pool_type"; d.HasChange(key) {
 				backendPoolType := d.Get(key).(string)
-				loadBalancerProfile.BackendPoolType = pointer.To(managedclusters.BackendPoolType(backendPoolType))
+				loadBalancerProfile.BackendPoolType = pointer.ToEnum[managedclusters.BackendPoolType](backendPoolType)
 			}
 
 			existing.Model.Properties.NetworkProfile.LoadBalancerProfile = &loadBalancerProfile
@@ -2371,17 +2371,17 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 
 		if d.HasChange("network_profile.0.network_data_plane") {
-			existing.Model.Properties.NetworkProfile.NetworkDataplane = pointer.To(managedclusters.NetworkDataplane(d.Get("network_profile.0.network_data_plane").(string)))
+			existing.Model.Properties.NetworkProfile.NetworkDataplane = pointer.ToEnum[managedclusters.NetworkDataplane](d.Get("network_profile.0.network_data_plane").(string))
 		}
 
 		if key := "network_profile.0.network_plugin"; d.HasChange(key) {
 			networkPlugin := d.Get(key).(string)
-			existing.Model.Properties.NetworkProfile.NetworkPlugin = pointer.To(managedclusters.NetworkPlugin(networkPlugin))
+			existing.Model.Properties.NetworkProfile.NetworkPlugin = pointer.ToEnum[managedclusters.NetworkPlugin](networkPlugin)
 		}
 
 		if key := "network_profile.0.network_plugin_mode"; d.HasChange(key) {
 			networkPluginMode := d.Get(key).(string)
-			existing.Model.Properties.NetworkProfile.NetworkPluginMode = pointer.To(managedclusters.NetworkPluginMode(networkPluginMode))
+			existing.Model.Properties.NetworkProfile.NetworkPluginMode = pointer.ToEnum[managedclusters.NetworkPluginMode](networkPluginMode)
 		}
 
 		if key := "network_profile.0.pod_cidr"; d.HasChange(key) {
@@ -2467,7 +2467,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		if channel == "" {
 			channel = string(managedclusters.UpgradeChannelNone)
 		}
-		existing.Model.Properties.AutoUpgradeProfile.UpgradeChannel = pointer.To(managedclusters.UpgradeChannel(channel))
+		existing.Model.Properties.AutoUpgradeProfile.UpgradeChannel = pointer.ToEnum[managedclusters.UpgradeChannel](channel)
 	}
 
 	if d.HasChange(nodeOsUpgradeChannel) {
@@ -2478,7 +2478,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		if existing.Model.Properties.AutoUpgradeProfile == nil {
 			existing.Model.Properties.AutoUpgradeProfile = &managedclusters.ManagedClusterAutoUpgradeProfile{}
 		}
-		existing.Model.Properties.AutoUpgradeProfile.NodeOSUpgradeChannel = pointer.To(managedclusters.NodeOSUpgradeChannel(d.Get(nodeOsUpgradeChannel).(string)))
+		existing.Model.Properties.AutoUpgradeProfile.NodeOSUpgradeChannel = pointer.ToEnum[managedclusters.NodeOSUpgradeChannel](d.Get(nodeOsUpgradeChannel).(string))
 	}
 
 	if d.HasChange("http_proxy_config") {
@@ -2616,7 +2616,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	if d.HasChange("support_plan") {
 		updateCluster = true
-		existing.Model.Properties.SupportPlan = pointer.To(managedclusters.KubernetesSupportPlan(d.Get("support_plan").(string)))
+		existing.Model.Properties.SupportPlan = pointer.ToEnum[managedclusters.KubernetesSupportPlan](d.Get("support_plan").(string))
 	}
 
 	if updateCluster {
@@ -3629,20 +3629,20 @@ func expandKubernetesClusterNetworkProfile(input []interface{}, d *pluginsdk.Res
 	}
 
 	networkProfile := managedclusters.ContainerServiceNetworkProfile{
-		NetworkPlugin:   pointer.To(managedclusters.NetworkPlugin(networkPlugin)),
-		NetworkMode:     pointer.To(managedclusters.NetworkMode(networkMode)),
-		NetworkPolicy:   pointer.To(managedclusters.NetworkPolicy(networkPolicy)),
-		LoadBalancerSku: pointer.To(managedclusters.LoadBalancerSku(loadBalancerSku)),
-		OutboundType:    pointer.To(managedclusters.OutboundType(outboundType)),
+		NetworkPlugin:   pointer.ToEnum[managedclusters.NetworkPlugin](networkPlugin),
+		NetworkMode:     pointer.ToEnum[managedclusters.NetworkMode](networkMode),
+		NetworkPolicy:   pointer.ToEnum[managedclusters.NetworkPolicy](networkPolicy),
+		LoadBalancerSku: pointer.ToEnum[managedclusters.LoadBalancerSku](loadBalancerSku),
+		OutboundType:    pointer.ToEnum[managedclusters.OutboundType](outboundType),
 		IPFamilies:      ipVersions,
 	}
 
 	if networkDataPlane := config["network_data_plane"].(string); networkDataPlane != "" {
-		networkProfile.NetworkDataplane = pointer.To(managedclusters.NetworkDataplane(networkDataPlane))
+		networkProfile.NetworkDataplane = pointer.ToEnum[managedclusters.NetworkDataplane](networkDataPlane)
 	}
 
 	if networkPluginMode := config["network_plugin_mode"].(string); networkPluginMode != "" {
-		networkProfile.NetworkPluginMode = pointer.To(managedclusters.NetworkPluginMode(networkPluginMode))
+		networkProfile.NetworkPluginMode = pointer.ToEnum[managedclusters.NetworkPluginMode](networkPluginMode)
 	}
 
 	if len(loadBalancerProfileRaw) > 0 {
@@ -3787,7 +3787,7 @@ func expandLoadBalancerProfile(d []interface{}) *managedclusters.ManagedClusterL
 	}
 
 	if backendPoolType, ok := config["backend_pool_type"].(string); ok {
-		profile.BackendPoolType = pointer.To(managedclusters.BackendPoolType(backendPoolType))
+		profile.BackendPoolType = pointer.ToEnum[managedclusters.BackendPoolType](backendPoolType)
 	}
 
 	return profile
@@ -4288,7 +4288,7 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *managedclust
 		BalanceSimilarNodeGroups:          pointer.To(strconv.FormatBool(balanceSimilarNodeGroups)),
 		DaemonsetEvictionForEmptyNodes:    pointer.To(daemonsetEvictionForEmptyNodes),
 		DaemonsetEvictionForOccupiedNodes: pointer.To(daemonsetEvictionForOccupiedNodes),
-		Expander:                          pointer.To(managedclusters.Expander(expander)),
+		Expander:                          pointer.ToEnum[managedclusters.Expander](expander),
 		IgnoreDaemonsetsUtilization:       pointer.To(ignoreDaemonsetsUtilization),
 		MaxGracefulTerminationSec:         pointer.To(maxGracefulTerminationSec),
 		MaxNodeProvisionTime:              pointer.To(maxNodeProvisionTime),
@@ -4517,7 +4517,7 @@ func expandKubernetesClusterMaintenanceConfigurationTimeInWeeks(input []interfac
 	for _, item := range input {
 		v := item.(map[string]interface{})
 		results = append(results, maintenanceconfigurations.TimeInWeek{
-			Day:       pointer.To(maintenanceconfigurations.WeekDay(v["day"].(string))),
+			Day:       pointer.ToEnum[maintenanceconfigurations.WeekDay](v["day"].(string)),
 			HourSlots: helpers.ExpandInt64Slice(v["hours"].(*pluginsdk.Set).List()),
 		})
 	}
@@ -4929,7 +4929,7 @@ func expandKubernetesClusterIngressProfile(d *pluginsdk.ResourceData, input []in
 		}
 		if v := config["default_nginx_controller"]; v != nil {
 			out.WebAppRouting.Nginx = &managedclusters.ManagedClusterIngressProfileNginx{
-				DefaultIngressControllerType: pointer.To(managedclusters.NginxIngressControllerType(v.(string))),
+				DefaultIngressControllerType: pointer.ToEnum[managedclusters.NginxIngressControllerType](v.(string)),
 			}
 		}
 	}

@@ -468,7 +468,7 @@ func expandPrivateLinkServiceIPConfiguration(input []interface{}) *[]privatelink
 			Name: pointer.To(name),
 			Properties: &privatelinkservices.PrivateLinkServiceIPConfigurationProperties{
 				PrivateIPAddress:        pointer.To(privateIpAddress),
-				PrivateIPAddressVersion: pointer.To(privatelinkservices.IPVersion(privateIpAddressVersion)),
+				PrivateIPAddressVersion: pointer.ToEnum[privatelinkservices.IPVersion](privateIpAddressVersion),
 				Subnet: &privatelinkservices.Subnet{
 					Id: pointer.To(subnetId),
 				},

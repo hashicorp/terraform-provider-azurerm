@@ -577,8 +577,8 @@ func ExpandBatchPoolStartTask(list []interface{}) (*pool.StartTask, error) {
 		if len(autoUser) != 0 {
 			autoUserMap := autoUser[0].(map[string]interface{})
 			userIdentity.AutoUser = &pool.AutoUserSpecification{
-				ElevationLevel: pointer.To(pool.ElevationLevel(autoUserMap["elevation_level"].(string))),
-				Scope:          pointer.To(pool.AutoUserScope(autoUserMap["scope"].(string))),
+				ElevationLevel: pointer.ToEnum[pool.ElevationLevel](autoUserMap["elevation_level"].(string)),
+				Scope:          pointer.ToEnum[pool.AutoUserScope](autoUserMap["scope"].(string)),
 			}
 		}
 	}
@@ -674,7 +674,7 @@ func ExpandBatchPoolStartTask(list []interface{}) (*pool.StartTask, error) {
 				}
 			}
 			if workingDir, ok := settingMap["working_directory"]; ok {
-				containerSettings.WorkingDirectory = pointer.To(pool.ContainerWorkingDirectory(workingDir.(string)))
+				containerSettings.WorkingDirectory = pointer.ToEnum[pool.ContainerWorkingDirectory](workingDir.(string))
 			}
 		}
 		startTask.ContainerSettings = &containerSettings
@@ -765,7 +765,7 @@ func expandBatchPoolSecurityProfile(profile []interface{}) *pool.SecurityProfile
 	}
 
 	if v, ok := item["security_type"]; ok {
-		securityProfile.SecurityType = pointer.To(pool.SecurityTypes(v.(string)))
+		securityProfile.SecurityType = pointer.ToEnum[pool.SecurityTypes](v.(string))
 	}
 
 	if v, ok := item["secure_boot_enabled"]; ok {
@@ -786,7 +786,7 @@ func expandBatchPoolOSDisk(ref interface{}) *pool.OSDisk {
 
 	return &pool.OSDisk{
 		EphemeralOSDiskSettings: &pool.DiffDiskSettings{
-			Placement: pointer.To(pool.DiffDiskPlacement(ref.(string))),
+			Placement: pointer.ToEnum[pool.DiffDiskPlacement](ref.(string)),
 		},
 	}
 }
@@ -797,7 +797,7 @@ func expandBatchPoolNodeReplacementConfig(list []interface{}) *pool.NodePlacemen
 	}
 	item := list[0].(map[string]interface{})["policy"].(string)
 	return &pool.NodePlacementConfiguration{
-		Policy: pointer.To(pool.NodePlacementPolicyType(item)),
+		Policy: pointer.ToEnum[pool.NodePlacementPolicyType](item),
 	}
 }
 
@@ -913,9 +913,9 @@ func expandBatchPoolDataDisks(list []interface{}) *[]pool.DataDisk {
 func expandBatchPoolDataDisk(ref map[string]interface{}) pool.DataDisk {
 	return pool.DataDisk{
 		Lun:                int64(ref["lun"].(int)),
-		Caching:            pointer.To(pool.CachingType(ref["caching"].(string))),
+		Caching:            pointer.ToEnum[pool.CachingType](ref["caching"].(string)),
 		DiskSizeGB:         int64(ref["disk_size_gb"].(int)),
-		StorageAccountType: pointer.To(pool.StorageAccountType(ref["storage_account_type"].(string))),
+		StorageAccountType: pointer.ToEnum[pool.StorageAccountType](ref["storage_account_type"].(string)),
 	}
 }
 
@@ -1104,7 +1104,7 @@ func ExpandBatchPoolNetworkConfiguration(list []interface{}) (*pool.NetworkConfi
 	networkConfiguration := &pool.NetworkConfiguration{}
 
 	if v, ok := networkConfigValue["dynamic_vnet_assignment_scope"]; ok {
-		networkConfiguration.DynamicVnetAssignmentScope = pointer.To(pool.DynamicVNetAssignmentScope(v.(string)))
+		networkConfiguration.DynamicVnetAssignmentScope = pointer.ToEnum[pool.DynamicVNetAssignmentScope](v.(string))
 	}
 
 	if v, ok := networkConfigValue["accelerated_networking_enabled"]; ok {
@@ -1140,7 +1140,7 @@ func ExpandBatchPoolNetworkConfiguration(list []interface{}) (*pool.NetworkConfi
 		}
 
 		if value := v.(string); value != "" {
-			networkConfiguration.PublicIPAddressConfiguration.Provision = pointer.To(pool.IPAddressProvisioningType(value))
+			networkConfiguration.PublicIPAddressConfiguration.Provision = pointer.ToEnum[pool.IPAddressProvisioningType](value)
 		}
 	}
 
@@ -1338,7 +1338,7 @@ func expandBatchPoolUserAccount(ref map[string]interface{}) pool.UserAccount {
 	result := pool.UserAccount{
 		Name:           ref["name"].(string),
 		Password:       ref["password"].(string),
-		ElevationLevel: pointer.To(pool.ElevationLevel(ref["elevation_level"].(string))),
+		ElevationLevel: pointer.ToEnum[pool.ElevationLevel](ref["elevation_level"].(string)),
 	}
 
 	if linuxUserConfig, ok := ref["linux_user_configuration"]; ok {
@@ -1362,7 +1362,7 @@ func expandBatchPoolUserAccount(ref map[string]interface{}) pool.UserAccount {
 		if winUserConfig != nil && len(winUserConfig.([]interface{})) > 0 {
 			winUserConfigMap := winUserConfig.([]interface{})[0].(map[string]interface{})
 			result.WindowsUserConfiguration = &pool.WindowsUserConfiguration{
-				LoginMode: pointer.To(pool.LoginMode(winUserConfigMap["login_mode"].(string))),
+				LoginMode: pointer.ToEnum[pool.LoginMode](winUserConfigMap["login_mode"].(string)),
 			}
 		}
 	}

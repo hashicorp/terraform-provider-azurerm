@@ -1044,8 +1044,8 @@ func getVirtualNetworkGatewayProperties(id virtualnetworkgateways.VirtualNetwork
 	}
 
 	props := &virtualnetworkgateways.VirtualNetworkGatewayPropertiesFormat{
-		GatewayType:                     pointer.To(virtualnetworkgateways.VirtualNetworkGatewayType(d.Get("type").(string))),
-		VpnType:                         pointer.To(virtualnetworkgateways.VpnType(d.Get("vpn_type").(string))),
+		GatewayType:                     pointer.ToEnum[virtualnetworkgateways.VirtualNetworkGatewayType](d.Get("type").(string)),
+		VpnType:                         pointer.ToEnum[virtualnetworkgateways.VpnType](d.Get("vpn_type").(string)),
 		EnableBgp:                       pointer.To(enableBgp),
 		EnablePrivateIPAddress:          pointer.To(d.Get("private_ip_address_enabled").(bool)),
 		ActiveActive:                    pointer.To(d.Get("active_active").(bool)),
@@ -1059,7 +1059,7 @@ func getVirtualNetworkGatewayProperties(id virtualnetworkgateways.VirtualNetwork
 	}
 
 	if v, ok := d.GetOk("generation"); ok {
-		props.VpnGatewayGeneration = pointer.To(virtualnetworkgateways.VpnGatewayGeneration(v.(string)))
+		props.VpnGatewayGeneration = pointer.ToEnum[virtualnetworkgateways.VpnGatewayGeneration](v.(string))
 	}
 
 	if v, ok := d.GetOk("dns_forwarding_enabled"); ok {
@@ -1204,7 +1204,7 @@ func expandVirtualNetworkGatewayIPConfigurations(d *pluginsdk.ResourceData) *[]v
 		name := conf["name"].(string)
 
 		props := &virtualnetworkgateways.VirtualNetworkGatewayIPConfigurationPropertiesFormat{
-			PrivateIPAllocationMethod: pointer.To(virtualnetworkgateways.IPAllocationMethod(conf["private_ip_address_allocation"].(string))),
+			PrivateIPAllocationMethod: pointer.ToEnum[virtualnetworkgateways.IPAllocationMethod](conf["private_ip_address_allocation"].(string)),
 		}
 
 		if subnetID := conf["subnet_id"].(string); subnetID != "" {
@@ -1308,8 +1308,8 @@ func expandVirtualNetworkGatewaySku(d *pluginsdk.ResourceData) *virtualnetworkga
 	sku := d.Get("sku").(string)
 
 	return &virtualnetworkgateways.VirtualNetworkGatewaySku{
-		Name: pointer.To(virtualnetworkgateways.VirtualNetworkGatewaySkuName(sku)),
-		Tier: pointer.To(virtualnetworkgateways.VirtualNetworkGatewaySkuTier(sku)),
+		Name: pointer.ToEnum[virtualnetworkgateways.VirtualNetworkGatewaySkuName](sku),
+		Tier: pointer.ToEnum[virtualnetworkgateways.VirtualNetworkGatewaySkuTier](sku),
 	}
 }
 
@@ -1399,7 +1399,7 @@ func expandVirtualNetworkGatewayPolicyMembers(input []interface{}) *[]virtualnet
 
 		results = append(results, virtualnetworkgateways.VirtualNetworkGatewayPolicyGroupMember{
 			Name:           pointer.To(policyMember["name"].(string)),
-			AttributeType:  pointer.To(virtualnetworkgateways.VpnPolicyMemberAttributeType(policyMember["type"].(string))),
+			AttributeType:  pointer.ToEnum[virtualnetworkgateways.VpnPolicyMemberAttributeType](policyMember["type"].(string)),
 			AttributeValue: pointer.To(policyMember["value"].(string)),
 		})
 	}

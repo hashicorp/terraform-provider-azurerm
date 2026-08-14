@@ -89,7 +89,7 @@ func expandAdditionalUnattendContent(input []interface{}) *[]virtualmachines.Add
 		raw := v.(map[string]interface{})
 
 		output = append(output, virtualmachines.AdditionalUnattendContent{
-			SettingName: pointer.To(virtualmachines.SettingNames(raw["setting"].(string))),
+			SettingName: pointer.ToEnum[virtualmachines.SettingNames](raw["setting"].(string)),
 			Content:     pointer.To(raw["content"].(string)),
 
 			// no other possible values
@@ -108,7 +108,7 @@ func expandAdditionalUnattendContentVMSS(input []interface{}) *[]virtualmachines
 		raw := v.(map[string]interface{})
 
 		output = append(output, virtualmachinescalesets.AdditionalUnattendContent{
-			SettingName: pointer.To(virtualmachinescalesets.SettingNames(raw["setting"].(string))),
+			SettingName: pointer.ToEnum[virtualmachinescalesets.SettingNames](raw["setting"].(string)),
 			Content:     pointer.To(raw["content"].(string)),
 
 			// no other possible values
@@ -937,7 +937,7 @@ func expandWinRMListener(input []interface{}) *virtualmachines.WinRMConfiguratio
 		raw := v.(map[string]interface{})
 
 		listener := virtualmachines.WinRMListener{
-			Protocol: pointer.To(virtualmachines.ProtocolTypes(raw["protocol"].(string))),
+			Protocol: pointer.ToEnum[virtualmachines.ProtocolTypes](raw["protocol"].(string)),
 		}
 
 		certificateUrl := raw["certificate_url"].(string)
@@ -960,7 +960,7 @@ func expandWinRMListenerVMSS(input []interface{}) *virtualmachinescalesets.WinRM
 		raw := v.(map[string]interface{})
 
 		listener := virtualmachinescalesets.WinRMListener{
-			Protocol: pointer.To(virtualmachinescalesets.ProtocolTypes(raw["protocol"].(string))),
+			Protocol: pointer.ToEnum[virtualmachinescalesets.ProtocolTypes](raw["protocol"].(string)),
 		}
 
 		certificateUrl := raw["certificate_url"].(string)

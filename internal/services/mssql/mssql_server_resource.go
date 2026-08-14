@@ -28,7 +28,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
@@ -40,7 +39,7 @@ import (
 //go:generate go run ../../tools/generator-tests resourceidentity -test-expect-non-empty
 
 func resourceMsSqlServer() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceMsSqlServerCreate,
 		Read:   resourceMsSqlServerRead,
 		Update: resourceMsSqlServerUpdate,
@@ -223,22 +222,6 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 			pluginsdk.CustomizeDiffShim(msSqlPasswordChangeWhenAADAuthOnly),
 		),
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["minimum_tls_version"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  "1.2",
-			ValidateFunc: validation.StringInSlice([]string{
-				"1.0",
-				"1.1",
-				"1.2",
-				"Disabled",
-			}, false),
-		}
-	}
-
-	return resource
 }
 
 func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -332,7 +315,7 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if v := d.Get("minimum_tls_version"); v.(string) != "Disabled" {
-		props.Properties.MinimalTlsVersion = pointer.To(servers.MinimalTlsVersion(v.(string)))
+		props.Properties.MinimalTlsVersion = pointer.ToEnum[servers.MinimalTlsVersion](v.(string))
 	}
 
 	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, props, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
@@ -501,7 +484,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 
 		if d.HasChange("minimum_tls_version") {
-			payload.Properties.MinimalTlsVersion = pointer.To(servers.MinimalTlsVersion(d.Get("minimum_tls_version").(string)))
+			payload.Properties.MinimalTlsVersion = pointer.ToEnum[servers.MinimalTlsVersion](d.Get("minimum_tls_version").(string))
 		}
 
 		err := client.CreateOrUpdateThenPoll(ctx, *id, *payload)

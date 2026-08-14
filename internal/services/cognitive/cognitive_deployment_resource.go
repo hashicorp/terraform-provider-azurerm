@@ -297,7 +297,7 @@ func (r CognitiveDeploymentResource) Update() sdk.ResourceFunc {
 				properties.Properties.Model.Version = pointer.To(model.Model[0].Version)
 			}
 
-			properties.Properties.VersionUpgradeOption = pointer.To(deployments.DeploymentModelVersionUpgradeOption(model.VersionUpgradeOption))
+			properties.Properties.VersionUpgradeOption = pointer.ToEnum[deployments.DeploymentModelVersionUpgradeOption](model.VersionUpgradeOption)
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)

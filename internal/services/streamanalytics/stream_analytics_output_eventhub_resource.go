@@ -156,7 +156,7 @@ func resourceStreamAnalyticsOutputEventHubCreateUpdate(d *pluginsdk.ResourceData
 		PropertyColumns:     helpers.ExpandStringSlice(propertyColumns),
 		EventHubName:        pointer.To(eventHubName),
 		ServiceBusNamespace: pointer.To(serviceBusNamespace),
-		AuthenticationMode:  pointer.To(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
+		AuthenticationMode:  pointer.ToEnum[outputs.AuthenticationMode](d.Get("authentication_mode").(string)),
 	}
 
 	if sharedAccessPolicyKey != "" {

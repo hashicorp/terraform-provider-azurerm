@@ -614,7 +614,7 @@ func expandFirewallPolicyRuleCollectionNat(input []interface{}) ([]firewallpolic
 			Name:     pointer.To(rule["name"].(string)),
 			Priority: pointer.To(int64(rule["priority"].(int))),
 			Action: &firewallpolicyrulecollectiongroups.FirewallPolicyNatRuleCollectionAction{
-				Type: pointer.To(firewallpolicyrulecollectiongroups.FirewallPolicyNatRuleCollectionActionType(rule["action"].(string))),
+				Type: pointer.ToEnum[firewallpolicyrulecollectiongroups.FirewallPolicyNatRuleCollectionActionType](rule["action"].(string)),
 			},
 			Rules: rules,
 		}
@@ -629,7 +629,7 @@ func expandFirewallPolicyFilterRuleCollection(input []interface{}, f func(input 
 		rule := e.(map[string]interface{})
 		output := &firewallpolicyrulecollectiongroups.FirewallPolicyFilterRuleCollection{
 			Action: &firewallpolicyrulecollectiongroups.FirewallPolicyFilterRuleCollectionAction{
-				Type: pointer.To(firewallpolicyrulecollectiongroups.FirewallPolicyFilterRuleCollectionActionType(rule["action"].(string))),
+				Type: pointer.ToEnum[firewallpolicyrulecollectiongroups.FirewallPolicyFilterRuleCollectionActionType](rule["action"].(string)),
 			},
 			Name:     pointer.To(rule["name"].(string)),
 			Priority: pointer.To(int64(rule["priority"].(int))),
@@ -648,7 +648,7 @@ func expandFirewallPolicyRuleApplication(input []interface{}) *[]firewallpolicyr
 		for _, p := range condition["protocols"].([]interface{}) {
 			proto := p.(map[string]interface{})
 			protocols = append(protocols, firewallpolicyrulecollectiongroups.FirewallPolicyRuleApplicationProtocol{
-				ProtocolType: pointer.To(firewallpolicyrulecollectiongroups.FirewallPolicyRuleApplicationProtocolType(proto["type"].(string))),
+				ProtocolType: pointer.ToEnum[firewallpolicyrulecollectiongroups.FirewallPolicyRuleApplicationProtocolType](proto["type"].(string)),
 				Port:         pointer.To(int64(proto["port"].(int))),
 			})
 		}

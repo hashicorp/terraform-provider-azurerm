@@ -323,7 +323,7 @@ func flattenEventSubscriptionDeliveryAttributeMappings(input eventsubscriptions.
 func expandEventSubscriptionIdentity(input []interface{}) (*eventsubscriptions.EventSubscriptionIdentity, error) {
 	if len(input) == 0 || input[0] == nil {
 		return &eventsubscriptions.EventSubscriptionIdentity{
-			Type: pointer.To(eventsubscriptions.EventSubscriptionIdentityType("None")),
+			Type: pointer.ToEnum[eventsubscriptions.EventSubscriptionIdentityType]("None"),
 		}, nil
 	}
 

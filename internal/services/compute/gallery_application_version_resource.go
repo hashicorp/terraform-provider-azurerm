@@ -565,7 +565,7 @@ func expandGalleryApplicationVersionTargetRegion(input []TargetRegion) *[]galler
 		targetRegion := galleryapplicationversions.TargetRegion{
 			Name:                 location.Normalize(item.Name),
 			RegionalReplicaCount: pointer.To(item.RegionalReplicaCount),
-			StorageAccountType:   pointer.To(galleryapplicationversions.StorageAccountType(item.StorageAccountType)),
+			StorageAccountType:   pointer.ToEnum[galleryapplicationversions.StorageAccountType](item.StorageAccountType),
 		}
 
 		if item.ExcludeFromLatest {

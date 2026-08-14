@@ -2551,12 +2551,12 @@ func expandApplicationGatewayBackendHTTPSettings(input []interface{}, gatewayID 
 			Name: &name,
 			Properties: &applicationgateways.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
 				ConnectionDraining:             expandApplicationGatewayConnectionDraining(v),
-				CookieBasedAffinity:            pointer.To(applicationgateways.ApplicationGatewayCookieBasedAffinity(cookieBasedAffinity)),
+				CookieBasedAffinity:            pointer.ToEnum[applicationgateways.ApplicationGatewayCookieBasedAffinity](cookieBasedAffinity),
 				DedicatedBackendConnection:     pointer.To(v["dedicated_backend_connection_enabled"].(bool)),
 				Path:                           pointer.To(path),
 				PickHostNameFromBackendAddress: pointer.To(pickHostNameFromBackendAddress),
 				Port:                           pointer.To(port),
-				Protocol:                       pointer.To(applicationgateways.ApplicationGatewayProtocol(protocol)),
+				Protocol:                       pointer.ToEnum[applicationgateways.ApplicationGatewayProtocol](protocol),
 				RequestTimeout:                 pointer.To(requestTimeout),
 				SniName:                        pointer.To(v["sni_name"].(string)),
 				ValidateCertChainAndExpiry:     pointer.To(v["certificate_chain_validation_enabled"].(bool)),
@@ -2939,7 +2939,7 @@ func expandApplicationGatewayHTTPListeners(d *pluginsdk.ResourceData, gatewayID 
 				FrontendPort: &applicationgateways.SubResource{
 					Id: pointer.To(frontendPortID),
 				},
-				Protocol:                    pointer.To(applicationgateways.ApplicationGatewayProtocol(protocol)),
+				Protocol:                    pointer.ToEnum[applicationgateways.ApplicationGatewayProtocol](protocol),
 				RequireServerNameIndication: pointer.To(requireSNI),
 				CustomErrorConfigurations:   customErrorConfigurations,
 			},
@@ -3096,7 +3096,7 @@ func expandApplicationGatewayListeners(input []interface{}, appGwID applicationg
 				FrontendPort: &applicationgateways.SubResource{
 					Id: pointer.To(parse.NewFrontendPortID(appGwID.SubscriptionId, appGwID.ResourceGroupName, appGwID.ApplicationGatewayName, v["frontend_port_name"].(string)).ID()),
 				},
-				Protocol: pointer.To(applicationgateways.ApplicationGatewayProtocol(v["protocol"].(string))),
+				Protocol: pointer.ToEnum[applicationgateways.ApplicationGatewayProtocol](v["protocol"].(string)),
 			},
 		}
 
@@ -3372,7 +3372,7 @@ func expandApplicationGatewayFrontendIPConfigurations(d *pluginsdk.ResourceData,
 		}
 
 		if val := v["private_ip_address_allocation"].(string); val != "" {
-			properties.PrivateIPAllocationMethod = pointer.To(applicationgateways.IPAllocationMethod(val))
+			properties.PrivateIPAllocationMethod = pointer.ToEnum[applicationgateways.IPAllocationMethod](val)
 		}
 
 		if val := v["private_ip_address"].(string); val != "" {
@@ -3475,7 +3475,7 @@ func expandApplicationGatewayProbes(input []interface{}) *[]applicationgateways.
 				Interval:                            pointer.To(interval),
 				MinServers:                          pointer.To(minServers),
 				Path:                                pointer.To(probePath),
-				Protocol:                            pointer.To(applicationgateways.ApplicationGatewayProtocol(protocol)),
+				Protocol:                            pointer.ToEnum[applicationgateways.ApplicationGatewayProtocol](protocol),
 				Timeout:                             pointer.To(timeout),
 				UnhealthyThreshold:                  pointer.To(unhealthyThreshold),
 				PickHostNameFromBackendHTTPSettings: pointer.To(pickHostNameFromBackendHTTPSettings),
@@ -3619,7 +3619,7 @@ func expandApplicationGatewayPrivateLinkConfigurations(d *pluginsdk.ResourceData
 				ipConfiguration.Properties.PrivateIPAddress = pointer.To(privateIpAddress)
 			}
 			if privateIpAddressAllocation := v["private_ip_address_allocation"].(string); privateIpAddressAllocation != "" {
-				ipConfiguration.Properties.PrivateIPAllocationMethod = pointer.To(applicationgateways.IPAllocationMethod(privateIpAddressAllocation))
+				ipConfiguration.Properties.PrivateIPAllocationMethod = pointer.ToEnum[applicationgateways.IPAllocationMethod](privateIpAddressAllocation)
 			}
 			ipConfigurationResults = append(ipConfigurationResults, ipConfiguration)
 		}
@@ -3716,7 +3716,7 @@ func expandApplicationGatewayRequestRoutingRules(d *pluginsdk.ResourceData, gate
 		rule := applicationgateways.ApplicationGatewayRequestRoutingRule{
 			Name: pointer.To(name),
 			Properties: &applicationgateways.ApplicationGatewayRequestRoutingRulePropertiesFormat{
-				RuleType: pointer.To(applicationgateways.ApplicationGatewayRequestRoutingRuleType(ruleType)),
+				RuleType: pointer.ToEnum[applicationgateways.ApplicationGatewayRequestRoutingRuleType](ruleType),
 				HTTPListener: &applicationgateways.SubResource{
 					Id: pointer.To(httpListenerID),
 				},
@@ -4225,7 +4225,7 @@ func expandApplicationGatewayRedirectConfigurations(d *pluginsdk.ResourceData, g
 		output := applicationgateways.ApplicationGatewayRedirectConfiguration{
 			Name: pointer.To(name),
 			Properties: &applicationgateways.ApplicationGatewayRedirectConfigurationPropertiesFormat{
-				RedirectType:       pointer.To(applicationgateways.ApplicationGatewayRedirectType(redirectType)),
+				RedirectType:       pointer.ToEnum[applicationgateways.ApplicationGatewayRedirectType](redirectType),
 				IncludeQueryString: pointer.To(includeQueryString),
 				IncludePath:        pointer.To(includePath),
 			},
@@ -4350,8 +4350,8 @@ func expandApplicationGatewaySku(d *pluginsdk.ResourceData) *applicationgateways
 	capacity := int64(v["capacity"].(int))
 
 	sku := applicationgateways.ApplicationGatewaySku{
-		Name: pointer.To(applicationgateways.ApplicationGatewaySkuName(name)),
-		Tier: pointer.To(applicationgateways.ApplicationGatewayTier(tier)),
+		Name: pointer.ToEnum[applicationgateways.ApplicationGatewaySkuName](name),
+		Tier: pointer.ToEnum[applicationgateways.ApplicationGatewayTier](tier),
 	}
 
 	if capacity != 0 {
@@ -5073,7 +5073,7 @@ func expandApplicationGatewayCustomErrorConfigurations(vs []interface{}) *[]appl
 		customErrorPageUrl := v["custom_error_page_url"].(string)
 
 		output := applicationgateways.ApplicationGatewayCustomError{
-			StatusCode:         pointer.To(applicationgateways.ApplicationGatewayCustomErrorStatusCode(statusCode)),
+			StatusCode:         pointer.ToEnum[applicationgateways.ApplicationGatewayCustomErrorStatusCode](statusCode),
 			CustomErrorPageURL: pointer.To(customErrorPageUrl),
 		}
 		results = append(results, output)

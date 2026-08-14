@@ -415,7 +415,7 @@ func SchemaHDInsightsHttpsEndpoints() *pluginsdk.Schema {
 
 type HttpEndpointModel struct {
 	AccessModes        []string `tfschema:"access_modes"`
-	DestinationPort    int32    `tfschema:"destination_port"`
+	DestinationPort    int64    `tfschema:"destination_port"`
 	DisableGatewayAuth bool     `tfschema:"disable_gateway_auth"`
 	PrivateIpAddress   string   `tfschema:"private_ip_address"`
 	SubDomainSuffix    string   `tfschema:"sub_domain_suffix"`
@@ -634,7 +634,7 @@ func ExpandHDInsightPrivateLinkConfigurationIpConfigurationProperties(input []in
 
 	props := clusters.IPConfigurationProperties{
 		Primary:                   pointer.To(v["primary"].(bool)),
-		PrivateIPAllocationMethod: pointer.To(clusters.PrivateIPAllocationMethod(v["private_ip_allocation_method"].(string))),
+		PrivateIPAllocationMethod: pointer.ToEnum[clusters.PrivateIPAllocationMethod](v["private_ip_allocation_method"].(string)),
 	}
 	if v["private_ip_address"] != nil && v["private_ip_address"].(string) != "" {
 		props.PrivateIPAddress = pointer.To(v["private_ip_address"].(string))
@@ -1030,7 +1030,7 @@ func ExpandHDInsightsDiskEncryptionProperties(input []interface{}) (*clusters.Di
 	keyVaultManagedIdentityId := v["key_vault_managed_identity_id"].(string)
 
 	diskEncryptionProps := &clusters.DiskEncryptionProperties{
-		EncryptionAlgorithm: pointer.To(clusters.JsonWebKeyEncryptionAlgorithm(encryptionAlgorithm)),
+		EncryptionAlgorithm: pointer.ToEnum[clusters.JsonWebKeyEncryptionAlgorithm](encryptionAlgorithm),
 		EncryptionAtHost:    &encryptionAtHost,
 		MsiResourceId:       &keyVaultManagedIdentityId,
 	}

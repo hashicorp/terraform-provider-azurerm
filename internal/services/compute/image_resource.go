@@ -142,7 +142,7 @@ func resourceImage() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
-							ValidateFunc: commonids.ValidateDiskEncryptionSetID,
+							ValidateFunc: validation.AsGeneratedID(commonids.ParseDiskEncryptionSetIDInsensitively),
 						},
 
 						"storage_type": {
@@ -203,7 +203,7 @@ func resourceImage() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
-							ValidateFunc: commonids.ValidateDiskEncryptionSetID,
+							ValidateFunc: validation.AsGeneratedID(commonids.ParseDiskEncryptionSetIDInsensitively),
 						},
 
 						"storage_type": {
@@ -245,7 +245,7 @@ func resourceImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	props := images.ImageProperties{
-		HyperVGeneration: pointer.To(images.HyperVGenerationTypes(d.Get("hyper_v_generation").(string))),
+		HyperVGeneration: pointer.ToEnum[images.HyperVGenerationTypes](d.Get("hyper_v_generation").(string)),
 	}
 
 	sourceVM := images.SubResource{}
@@ -392,7 +392,7 @@ func expandImageOSDisk(input []interface{}) *images.ImageOSDisk {
 		out.BlobUri = &blobURI
 
 		if v := config["caching"].(string); v != "" {
-			out.Caching = pointer.To(images.CachingTypes(v))
+			out.Caching = pointer.ToEnum[images.CachingTypes](v)
 		}
 
 		if size := config["size_gb"]; size != 0 {
@@ -405,7 +405,7 @@ func expandImageOSDisk(input []interface{}) *images.ImageOSDisk {
 			}
 		}
 
-		out.StorageAccountType = pointer.To(images.StorageAccountTypes(config["storage_type"].(string)))
+		out.StorageAccountType = pointer.ToEnum[images.StorageAccountTypes](config["storage_type"].(string))
 
 		return out
 	}
@@ -428,7 +428,7 @@ func expandImageDataDisks(disks []interface{}) *[]images.ImageDataDisk {
 		}
 
 		if v := config["caching"].(string); v != "" {
-			item.Caching = pointer.To(images.CachingTypes(v))
+			item.Caching = pointer.ToEnum[images.CachingTypes](v)
 		}
 
 		if managedDiskID := config["managed_disk_id"].(string); managedDiskID != "" {
@@ -444,7 +444,7 @@ func expandImageDataDisks(disks []interface{}) *[]images.ImageDataDisk {
 			}
 		}
 
-		item.StorageAccountType = pointer.To(images.StorageAccountTypes(config["storage_type"].(string)))
+		item.StorageAccountType = pointer.ToEnum[images.StorageAccountTypes](config["storage_type"].(string))
 
 		output = append(output, item)
 	}

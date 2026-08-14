@@ -84,7 +84,7 @@ func resourceGroupTemplateDeploymentResource() *pluginsdk.Resource {
 					"template_content",
 					"template_spec_version_id",
 				},
-				ValidateFunc: templatespecversions.ValidateTemplateSpecVersionID,
+				ValidateFunc: validation.AsGeneratedID(templatespecversions.ParseTemplateSpecVersionIDInsensitively),
 			},
 
 			// Optional

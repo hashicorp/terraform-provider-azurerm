@@ -155,7 +155,7 @@ func resourceStreamAnalyticsOutputServiceBusTopicCreateUpdate(d *pluginsdk.Resou
 		ServiceBusNamespace:   pointer.To(d.Get("servicebus_namespace").(string)),
 		PropertyColumns:       helpers.ExpandStringSlice(d.Get("property_columns").([]interface{})),
 		SystemPropertyColumns: expandSystemPropertyColumns(systemPropertyColumns),
-		AuthenticationMode:    pointer.To(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
+		AuthenticationMode:    pointer.ToEnum[outputs.AuthenticationMode](d.Get("authentication_mode").(string)),
 	}
 
 	// Add shared access policy key/name only if required by authentication mode

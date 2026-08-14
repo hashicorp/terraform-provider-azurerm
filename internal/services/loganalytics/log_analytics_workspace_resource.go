@@ -292,8 +292,8 @@ func resourceLogAnalyticsWorkspaceCreate(d *pluginsdk.ResourceData, meta interfa
 		Tags:     expandTags(d.Get("tags").(map[string]interface{})),
 		Properties: &workspaces.WorkspaceProperties{
 			Sku:                             sku,
-			PublicNetworkAccessForIngestion: pointer.To(workspaces.PublicNetworkAccessType(d.Get("internet_ingestion_access_type").(string))),
-			PublicNetworkAccessForQuery:     pointer.To(workspaces.PublicNetworkAccessType(d.Get("internet_query_access_type").(string))),
+			PublicNetworkAccessForIngestion: pointer.ToEnum[workspaces.PublicNetworkAccessType](d.Get("internet_ingestion_access_type").(string)),
+			PublicNetworkAccessForQuery:     pointer.ToEnum[workspaces.PublicNetworkAccessType](d.Get("internet_query_access_type").(string)),
 			RetentionInDays:                 pointer.To(int64(d.Get("retention_in_days").(int))),
 			Features: &workspaces.WorkspaceFeatures{
 				EnableLogAccessUsingOnlyResourcePermissions: pointer.To(allowResourceOnlyPermission),
@@ -434,11 +434,11 @@ func resourceLogAnalyticsWorkspaceUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if d.HasChange("internet_ingestion_access_type") {
-		props.PublicNetworkAccessForIngestion = pointer.To(workspaces.PublicNetworkAccessType(d.Get("internet_ingestion_access_type").(string)))
+		props.PublicNetworkAccessForIngestion = pointer.ToEnum[workspaces.PublicNetworkAccessType](d.Get("internet_ingestion_access_type").(string))
 	}
 
 	if d.HasChange("internet_query_access_type") {
-		props.PublicNetworkAccessForQuery = pointer.To(workspaces.PublicNetworkAccessType(d.Get("internet_query_access_type").(string)))
+		props.PublicNetworkAccessForQuery = pointer.ToEnum[workspaces.PublicNetworkAccessType](d.Get("internet_query_access_type").(string))
 	}
 
 	var isLACluster bool

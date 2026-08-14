@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2025-06-11/datadogsinglesignonresources"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -21,7 +20,7 @@ import (
 )
 
 func resourceDatadogSingleSignOnConfigurations() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceDatadogSingleSignOnConfigurationsCreate,
 		Read:   resourceDatadogSingleSignOnConfigurationsRead,
 		Update: resourceDatadogSingleSignOnConfigurationsUpdate,
@@ -71,29 +70,6 @@ func resourceDatadogSingleSignOnConfigurations() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["single_sign_on"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: validation.StringInSlice(datadogsinglesignonresources.PossibleValuesForSingleSignOnStates(), false),
-		}
-
-		resource.Schema["single_sign_on_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(datadogsinglesignonresources.SingleSignOnStatesEnable),
-				string(datadogsinglesignonresources.SingleSignOnStatesDisable),
-			}, false),
-			ExactlyOneOf: []string{"single_sign_on", "single_sign_on_enabled"},
-			Deprecated:   "`single_sign_on_enabled` has been deprecated in favour of the `single_sign_on` property and will be removed in v5.0 of the AzureRM Provider.",
-		}
-	}
-
-	return resource
 }
 
 func resourceDatadogSingleSignOnConfigurationsCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -127,9 +103,7 @@ func resourceDatadogSingleSignOnConfigurationsCreate(d *pluginsdk.ResourceData, 
 	}
 
 	if v, ok := d.GetOk("single_sign_on"); ok {
-		payload.Properties.SingleSignOnState = pointer.To(datadogsinglesignonresources.SingleSignOnStates(v.(string)))
-	} else if !features.FivePointOh() {
-		payload.Properties.SingleSignOnState = pointer.To(datadogsinglesignonresources.SingleSignOnStates(d.Get("single_sign_on_enabled").(string)))
+		payload.Properties.SingleSignOnState = pointer.ToEnum[datadogsinglesignonresources.SingleSignOnStates](v.(string))
 	}
 
 	if err := client.SingleSignOnConfigurationsCreateOrUpdateCallbackThenPoll(ctx, id, payload, sdk.SetIDCallback(meta, &id, d)); err != nil {
@@ -168,10 +142,6 @@ func resourceDatadogSingleSignOnConfigurationsRead(d *pluginsdk.ResourceData, me
 			d.Set("single_sign_on", string(pointer.From(props.SingleSignOnState)))
 			d.Set("login_url", props.SingleSignOnURL)
 			d.Set("enterprise_application_id", props.EnterpriseAppId)
-
-			if !features.FivePointOh() {
-				d.Set("single_sign_on_enabled", string(pointer.From(props.SingleSignOnState)))
-			}
 		}
 	}
 
@@ -195,9 +165,7 @@ func resourceDatadogSingleSignOnConfigurationsUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	if v, ok := d.GetOk("single_sign_on"); ok && d.HasChange("single_sign_on") {
-		payload.Properties.SingleSignOnState = pointer.To(datadogsinglesignonresources.SingleSignOnStates(v.(string)))
-	} else if !features.FivePointOh() {
-		payload.Properties.SingleSignOnState = pointer.To(datadogsinglesignonresources.SingleSignOnStates(d.Get("single_sign_on_enabled").(string)))
+		payload.Properties.SingleSignOnState = pointer.ToEnum[datadogsinglesignonresources.SingleSignOnStates](v.(string))
 	}
 
 	if err := client.SingleSignOnConfigurationsCreateOrUpdateThenPoll(ctx, *id, payload); err != nil {

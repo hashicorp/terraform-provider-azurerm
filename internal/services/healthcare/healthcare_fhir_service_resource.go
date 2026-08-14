@@ -262,7 +262,7 @@ func resourceHealthcareApisFhirServiceCreate(d *pluginsdk.ResourceData, meta int
 	parameters := fhirservices.FhirService{
 		Identity: i,
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
-		Kind:     pointer.To(fhirservices.FhirServiceKind(d.Get("kind").(string))),
+		Kind:     pointer.ToEnum[fhirservices.FhirServiceKind](d.Get("kind").(string)),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		Properties: &fhirservices.FhirServiceProperties{
 			AuthenticationConfiguration: expandFhirAuthentication(d.Get("authentication").([]interface{})),
@@ -408,7 +408,7 @@ func resourceHealthcareApisFhirServiceUpdate(d *pluginsdk.ResourceData, meta int
 	parameters := fhirservices.FhirService{
 		Identity: i,
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
-		Kind:     pointer.To(fhirservices.FhirServiceKind(d.Get("kind").(string))),
+		Kind:     pointer.ToEnum[fhirservices.FhirServiceKind](d.Get("kind").(string)),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		Properties: &fhirservices.FhirServiceProperties{
 			AuthenticationConfiguration: expandFhirAuthentication(d.Get("authentication").([]interface{})),

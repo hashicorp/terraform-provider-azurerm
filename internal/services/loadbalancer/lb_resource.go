@@ -25,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -34,7 +33,7 @@ import (
 )
 
 func resourceArmLoadBalancer() *pluginsdk.Resource {
-	r := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceArmLoadBalancerCreate,
 		Read:   resourceArmLoadBalancerRead,
 		Update: resourceArmLoadBalancerUpdate,
@@ -244,25 +243,6 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 			}),
 		),
 	}
-
-	if !features.FivePointOh() {
-		r.Schema["subnet_id"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			// Removing O+C did not seem to cause drift
-			Computed:     true,
-			ValidateFunc: commonids.ValidateSubnetID,
-		}
-		r.Schema["public_ip_address_id"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			// Removing O+C did not seem to cause drift
-			Computed:     true,
-			ValidateFunc: commonids.ValidatePublicIPAddressID,
-		}
-	}
-
-	return r
 }
 
 func resourceArmLoadBalancerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -294,8 +274,8 @@ func resourceArmLoadBalancerCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	sku := loadbalancers.LoadBalancerSku{
-		Name: pointer.To(loadbalancers.LoadBalancerSkuName(d.Get("sku").(string))),
-		Tier: pointer.To(loadbalancers.LoadBalancerSkuTier(d.Get("sku_tier").(string))),
+		Name: pointer.ToEnum[loadbalancers.LoadBalancerSkuName](d.Get("sku").(string)),
+		Tier: pointer.ToEnum[loadbalancers.LoadBalancerSkuTier](d.Get("sku_tier").(string)),
 	}
 
 	properties := loadbalancers.LoadBalancerPropertiesFormat{}
@@ -459,7 +439,7 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData
 		properties := loadbalancers.FrontendIPConfigurationPropertiesFormat{}
 
 		if v := data["private_ip_address_allocation"].(string); v != "" {
-			properties.PrivateIPAllocationMethod = pointer.To(loadbalancers.IPAllocationMethod(v))
+			properties.PrivateIPAllocationMethod = pointer.ToEnum[loadbalancers.IPAllocationMethod](v)
 		}
 
 		if v := data["gateway_load_balancer_frontend_ip_configuration_id"].(string); v != "" {
@@ -487,7 +467,7 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData
 		if v := data["subnet_id"].(string); v != "" {
 			properties.PrivateIPAddressVersion = pointer.To(loadbalancers.IPVersionIPvFour)
 			if v := data["private_ip_address_version"].(string); v != "" {
-				properties.PrivateIPAddressVersion = pointer.To(loadbalancers.IPVersion(v))
+				properties.PrivateIPAddressVersion = pointer.ToEnum[loadbalancers.IPVersion](v)
 			}
 			properties.Subnet = &loadbalancers.Subnet{
 				Id: pointer.To(v),

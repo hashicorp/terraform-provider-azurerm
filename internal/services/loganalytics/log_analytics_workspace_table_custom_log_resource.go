@@ -178,7 +178,7 @@ func (r WorkspaceTableCustomLogResource) Create() sdk.ResourceFunc {
 
 			param := tables.Table{
 				Properties: &tables.TableProperties{
-					Plan:                 pointer.To(tables.TablePlanEnum(config.Plan)),
+					Plan:                 pointer.ToEnum[tables.TablePlanEnum](config.Plan),
 					RetentionInDays:      defaultRetentionInDays,
 					TotalRetentionInDays: defaultRetentionInDays,
 					Schema: &tables.Schema{

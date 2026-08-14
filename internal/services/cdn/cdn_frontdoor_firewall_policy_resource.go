@@ -687,7 +687,7 @@ func resourceCdnFrontDoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 	payload := waf.WebApplicationFirewallPolicy{
 		Location: pointer.To(location.Normalize("Global")),
 		Sku: &waf.Sku{
-			Name: pointer.To(waf.SkuName(sku)),
+			Name: pointer.ToEnum[waf.SkuName](sku),
 		},
 		Properties: &waf.WebApplicationFirewallPolicyProperties{
 			PolicySettings: &waf.PolicySettings{
@@ -799,7 +799,7 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 
 		props.PolicySettings = &waf.PolicySettings{
 			EnabledState:     pointer.To(enabled),
-			Mode:             pointer.To(waf.PolicyMode(d.Get("mode").(string))),
+			Mode:             pointer.ToEnum[waf.PolicyMode](d.Get("mode").(string)),
 			RequestBodyCheck: pointer.To(requestBodyCheck),
 		}
 
@@ -1105,7 +1105,7 @@ func expandCdnFrontDoorFirewallManagedRules(input []interface{}) (*waf.ManagedRu
 		}
 
 		if action != "" {
-			managedRuleSet.RuleSetAction = pointer.To(waf.ManagedRuleSetActionType(action))
+			managedRuleSet.RuleSetAction = pointer.ToEnum[waf.ManagedRuleSetActionType](action)
 		}
 
 		result = append(result, managedRuleSet)
