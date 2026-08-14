@@ -233,24 +233,22 @@ func resourceCassandraClusterRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("location", location.NormalizeNilable(model.Location))
 
 		if props := model.Properties; props != nil {
-			if res := props; res != nil {
-				d.Set("delegated_management_subnet_id", props.DelegatedManagementSubnetId)
-				d.Set("authentication_method", string(pointer.From(props.AuthenticationMethod)))
-				d.Set("repair_enabled", props.RepairEnabled)
-				d.Set("version", props.CassandraVersion)
-				d.Set("hours_between_backups", props.HoursBetweenBackups)
+			d.Set("delegated_management_subnet_id", props.DelegatedManagementSubnetId)
+			d.Set("authentication_method", string(pointer.From(props.AuthenticationMethod)))
+			d.Set("repair_enabled", props.RepairEnabled)
+			d.Set("version", props.CassandraVersion)
+			d.Set("hours_between_backups", props.HoursBetweenBackups)
 
-				if err := d.Set("client_certificate_pems", flattenCassandraClusterCertificate(props.ClientCertificates)); err != nil {
-					return fmt.Errorf("setting `client_certificate_pems`: %+v", err)
-				}
+			if err := d.Set("client_certificate_pems", flattenCassandraClusterCertificate(props.ClientCertificates)); err != nil {
+				return fmt.Errorf("setting `client_certificate_pems`: %+v", err)
+			}
 
-				if err := d.Set("external_gossip_certificate_pems", flattenCassandraClusterCertificate(props.ExternalGossipCertificates)); err != nil {
-					return fmt.Errorf("setting `external_gossip_certificate_pems`: %+v", err)
-				}
+			if err := d.Set("external_gossip_certificate_pems", flattenCassandraClusterCertificate(props.ExternalGossipCertificates)); err != nil {
+				return fmt.Errorf("setting `external_gossip_certificate_pems`: %+v", err)
+			}
 
-				if err := d.Set("external_seed_node_ip_addresses", flattenCassandraClusterExternalSeedNode(props.ExternalSeedNodes)); err != nil {
-					return fmt.Errorf("setting `external_seed_node_ip_addresses`: %+v", err)
-				}
+			if err := d.Set("external_seed_node_ip_addresses", flattenCassandraClusterExternalSeedNode(props.ExternalSeedNodes)); err != nil {
+				return fmt.Errorf("setting `external_seed_node_ip_addresses`: %+v", err)
 			}
 		}
 

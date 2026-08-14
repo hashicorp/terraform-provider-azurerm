@@ -787,17 +787,15 @@ func flattenRecoveryServicesVaultMonitorSettings(input *vaults.MonitoringSetting
 	criticalAlert := false
 	emailNotification := false
 
-	if input != nil {
-		if input.AzureMonitorAlertSettings != nil {
-			allJobAlert = pointer.From(input.AzureMonitorAlertSettings.AlertsForAllJobFailures) == vaults.AlertsStateEnabled
-			allFailoverAlert = pointer.From(input.AzureMonitorAlertSettings.AlertsForAllFailoverIssues) == vaults.AlertsStateEnabled
-			allReplicationAlert = pointer.From(input.AzureMonitorAlertSettings.AlertsForAllReplicationIssues) == vaults.AlertsStateEnabled
-		}
+	if input.AzureMonitorAlertSettings != nil {
+		allJobAlert = pointer.From(input.AzureMonitorAlertSettings.AlertsForAllJobFailures) == vaults.AlertsStateEnabled
+		allFailoverAlert = pointer.From(input.AzureMonitorAlertSettings.AlertsForAllFailoverIssues) == vaults.AlertsStateEnabled
+		allReplicationAlert = pointer.From(input.AzureMonitorAlertSettings.AlertsForAllReplicationIssues) == vaults.AlertsStateEnabled
+	}
 
-		if input.ClassicAlertSettings != nil {
-			criticalAlert = pointer.From(input.ClassicAlertSettings.AlertsForCriticalOperations) == vaults.AlertsStateEnabled
-			emailNotification = pointer.From(input.ClassicAlertSettings.EmailNotificationsForSiteRecovery) == vaults.AlertsStateEnabled
-		}
+	if input.ClassicAlertSettings != nil {
+		criticalAlert = pointer.From(input.ClassicAlertSettings.AlertsForCriticalOperations) == vaults.AlertsStateEnabled
+		emailNotification = pointer.From(input.ClassicAlertSettings.EmailNotificationsForSiteRecovery) == vaults.AlertsStateEnabled
 	}
 
 	return []interface{}{

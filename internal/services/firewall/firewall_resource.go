@@ -725,7 +725,7 @@ func expandFirewallPrivateIpRange(input []interface{}) map[string]string {
 }
 
 func flattenFirewallPrivateIpRange(input *map[string]string) []interface{} {
-	if input == nil && len(*input) == 0 {
+	if input == nil || len(*input) == 0 {
 		return nil
 	}
 

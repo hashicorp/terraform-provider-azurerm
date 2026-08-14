@@ -822,9 +822,6 @@ func resourceVirtualMachineScaleSetCreateUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	osProfile := expandAzureRMVirtualMachineScaleSetsOsProfile(d)
-	if err != nil {
-		return err
-	}
 
 	extensions, err := expandAzureRMVirtualMachineScaleSetExtensions(d)
 	if err != nil {

@@ -1026,10 +1026,6 @@ func resourceVirtualMachineDeleteVhd(ctx context.Context, storageClient *intStor
 		return fmt.Errorf("unable to locate Storage Account %q (Disk %q)", id.AccountId.AccountName, uri)
 	}
 
-	if err != nil {
-		return fmt.Errorf("building Blobs Client: %s", err)
-	}
-
 	blobsClient, err := storageClient.BlobsDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
 		return fmt.Errorf("building Blobs Client: %s", err)
