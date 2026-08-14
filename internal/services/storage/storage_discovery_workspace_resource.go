@@ -83,7 +83,6 @@ func (r StorageDiscoveryWorkspaceResource) Arguments() map[string]*pluginsdk.Sch
 		"scope": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
-			ForceNew: true,
 			MinItems: 1,
 			MaxItems: storageDiscoveryWorkspaceMaxScopes,
 			Elem: &pluginsdk.Resource{
@@ -91,14 +90,12 @@ func (r StorageDiscoveryWorkspaceResource) Arguments() map[string]*pluginsdk.Sch
 					"display_name": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ForceNew:     true,
 						ValidateFunc: validate.StorageDiscoveryScopeDisplayName,
 					},
 
 					"resource_types": {
 						Type:     pluginsdk.TypeSet,
 						Required: true,
-						ForceNew: true,
 						MinItems: 1,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
@@ -112,7 +109,6 @@ func (r StorageDiscoveryWorkspaceResource) Arguments() map[string]*pluginsdk.Sch
 					"tag_keys_only": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
-						ForceNew: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -122,7 +118,6 @@ func (r StorageDiscoveryWorkspaceResource) Arguments() map[string]*pluginsdk.Sch
 					"tags": {
 						Type:     pluginsdk.TypeMap,
 						Optional: true,
-						ForceNew: true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
@@ -331,6 +326,10 @@ func (r StorageDiscoveryWorkspaceResource) Update() sdk.ResourceFunc {
 				payload.Properties.Sku = pointer.ToEnum[storagediscoveryworkspaces.StorageDiscoverySku](model.Sku)
 			}
 
+			if metadata.ResourceData.HasChange("scope") {
+				payload.Properties.Scopes = pointer.To(expandStorageDiscoveryScopes(model.Scope))
+			}
+
 			if metadata.ResourceData.HasChange("tags") {
 				payload.Tags = pointer.To(model.Tags)
 			}
@@ -407,11 +406,11 @@ func flattenStorageDiscoveryScopes(input []storagediscoveryworkspaces.StorageDis
 		}
 
 		if scope.TagKeysOnly != nil {
-			model.TagKeysOnly = *scope.TagKeysOnly
+			model.TagKeysOnly = pointer.From(scope.TagKeysOnly)
 		}
 
 		if scope.Tags != nil {
-			model.Tags = *scope.Tags
+			model.Tags = pointer.From(scope.Tags)
 		}
 
 		result = append(result, model)

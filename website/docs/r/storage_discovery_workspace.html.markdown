@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the Azure Region where the Discovery resource is created. Changing this forces a new resource to be created.
 
-* `scope` - (Required) One or more `scope` blocks as defined below. Changing this forces a new resource to be created.
+* `scope` - (Required) One or more `scope` blocks as defined below.
 
 -> **Note:** A maximum of 10 scopes are supported.
 
@@ -74,13 +74,13 @@ The following arguments are supported:
 
 A `scope` block supports the following:
 
-* `display_name` - (Required) The display name for this scope. Must be 4-64 characters long and can only contain letters, numbers, spaces, and hyphens. Cannot start or end with a number, space, or hyphen, and cannot contain consecutive hyphens or spaces. Changing this forces a new resource to be created.
+* `display_name` - (Required) The display name for this scope. Must be 4-64 characters long and can only contain letters, numbers, spaces, and hyphens. Cannot start or end with a number, space, or hyphen, and cannot contain consecutive hyphens or spaces.
 
-* `resource_types` - (Required) A set of Azure resource type strings to include in this scope. Possible values are `Microsoft.Storage/storageAccounts`. Changing this forces a new resource to be created.
+* `resource_types` - (Required) A set of Azure resource type strings to include in this scope. Possible values are `Microsoft.Storage/storageAccounts`.
 
-* `tag_keys_only` - (Optional) A set of tag keys used to filter resources. Resources with any of these tag keys will be included. Changing this forces a new resource to be created.
+* `tag_keys_only` - (Optional) A set of tag keys used to filter resources. Resources with any of these tag keys will be included.
 
-* `tags` - (Optional) A map of tag key-value pairs that resources must have to be included in this scope. Changing this forces a new resource to be created.
+* `tags` - (Optional) A map of tag key-value pairs that resources must have to be included in this scope.
 
 ## Attributes Reference
 

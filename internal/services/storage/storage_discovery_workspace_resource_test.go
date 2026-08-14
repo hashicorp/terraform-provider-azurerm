@@ -78,23 +78,35 @@ func TestAccStorageDiscoveryWorkspace_resourceGroupRoots(t *testing.T) {
 	})
 }
 
-func TestAccStorageDiscoveryWorkspace_scopeChangeRequiresReplacement(t *testing.T) {
+func TestAccStorageDiscoveryWorkspace_scopeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_discovery_workspace", "test")
 	r := StorageDiscoveryWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.scopeTagsV1(data),
+			Config: r.scopeUpdateOne(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("scope.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config:             r.scopeTagsV2(data),
-			PlanOnly:           true,
-			ExpectNonEmptyPlan: true,
+			Config: r.scopeUpdateTwo(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("scope.#").HasValue("2"),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.scopeUpdateOne(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("scope.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -327,7 +339,7 @@ resource "azurerm_storage_discovery_workspace" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r StorageDiscoveryWorkspaceResource) scopeTagsV1(data acceptance.TestData) string {
+func (r StorageDiscoveryWorkspaceResource) scopeUpdateOne(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -359,7 +371,7 @@ resource "azurerm_storage_discovery_workspace" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r StorageDiscoveryWorkspaceResource) scopeTagsV2(data acceptance.TestData) string {
+func (r StorageDiscoveryWorkspaceResource) scopeUpdateTwo(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -386,6 +398,11 @@ resource "azurerm_storage_discovery_workspace" "test" {
     tags = {
       compliance = "required"
     }
+  }
+
+  scope {
+    display_name   = "AdditionalScope"
+    resource_types = ["Microsoft.Storage/storageAccounts"]
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
