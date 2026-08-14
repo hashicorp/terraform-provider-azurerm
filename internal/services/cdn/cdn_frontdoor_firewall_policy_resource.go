@@ -1298,11 +1298,6 @@ func flattenCdnFrontDoorFirewallCustomRules(input *waf.CustomRuleList) []interfa
 			enabled = pointer.From(v.EnabledState) == waf.CustomRuleEnabledStateEnabled
 		}
 
-		name := ""
-		if v.Name != nil {
-			name = *v.Name
-		}
-
 		rateLimitDurationInMinutes := 0
 		if v.RateLimitDurationInMinutes != nil {
 			rateLimitDurationInMinutes = int(*v.RateLimitDurationInMinutes)
@@ -1320,7 +1315,7 @@ func flattenCdnFrontDoorFirewallCustomRules(input *waf.CustomRuleList) []interfa
 			"rate_limit_duration_in_minutes": rateLimitDurationInMinutes,
 			"rate_limit_threshold":           rateLimitThreshold,
 			"priority":                       priority,
-			"name":                           name,
+			"name":                           pointer.From(v.Name),
 			"type":                           ruleType,
 		})
 	}
@@ -1335,22 +1330,12 @@ func flattenCdnFrontDoorFirewallMatchConditions(input []waf.MatchCondition) []in
 
 	results := make([]interface{}, 0)
 	for _, v := range input {
-		selector := ""
-		if v.Selector != nil {
-			selector = *v.Selector
-		}
-
-		negateCondition := false
-		if v.NegateCondition != nil {
-			negateCondition = *v.NegateCondition
-		}
-
 		results = append(results, map[string]interface{}{
 			"match_variable":     string(v.MatchVariable),
 			"match_values":       v.MatchValue,
-			"negation_condition": negateCondition,
+			"negation_condition": pointer.From(v.NegateCondition),
 			"operator":           string(v.Operator),
-			"selector":           selector,
+			"selector":           pointer.From(v.Selector),
 			"transforms":         flattenTransformSlice(v.Transforms),
 		})
 	}
