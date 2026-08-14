@@ -1,6 +1,7 @@
 ## 5.2.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_cdn_frontdoor_batch_rule_set` - allow `/` as an input to `rule.conditions.request_path.values` [GH-33023]
 * `azurerm_logic_app_standard` - add support for `v10.0` to `site_config.dotnet_framework_version` [GH-33116]
 * dependencies: `go-azure-sdk` - update to `v0.20260811.1225050` [GH-33079]
 
