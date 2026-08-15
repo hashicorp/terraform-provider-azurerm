@@ -257,7 +257,7 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: certificate.ValidateCertificateID,
+							ValidateFunc: validation.AsGeneratedID(certificate.ParseCertificateIDInsensitively),
 						},
 
 						"client_certificate_thumbprint": {
@@ -380,7 +380,7 @@ func resourceApiManagementBackendCreateUpdate(d *pluginsdk.ResourceData, meta in
 	backendContract := backend.BackendContract{
 		Properties: &backend.BackendContractProperties{
 			Credentials: credentials,
-			Protocol:    pointer.To(backend.BackendProtocol(protocol)),
+			Protocol:    pointer.ToEnum[backend.BackendProtocol](protocol),
 			Proxy:       proxy,
 			Tls:         tls,
 			Url:         pointer.To(url),

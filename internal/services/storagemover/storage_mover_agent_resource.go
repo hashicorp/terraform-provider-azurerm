@@ -65,7 +65,7 @@ func (r StorageMoverAgentResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: machines.ValidateMachineID,
+			ValidateFunc: validation.AsGeneratedID(machines.ParseMachineIDInsensitively),
 		},
 
 		"arc_virtual_machine_uuid": {

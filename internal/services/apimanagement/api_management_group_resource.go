@@ -110,7 +110,7 @@ func resourceApiManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			DisplayName: displayName,
 			Description: pointer.To(description),
 			ExternalId:  pointer.To(externalID),
-			Type:        pointer.To(group.GroupType(groupType)),
+			Type:        pointer.ToEnum[group.GroupType](groupType),
 		},
 	}
 

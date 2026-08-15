@@ -442,20 +442,10 @@ func expandIntegrationAccountBatchConfigurationRecurrenceScheduleOccurrences(inp
 }
 
 func flattenIntegrationAccountBatchConfigurationBatchReleaseCriteria(input integrationaccountbatchconfigurations.BatchReleaseCriteria) []interface{} {
-	var batchSize int64
-	if input.BatchSize != nil {
-		batchSize = *input.BatchSize
-	}
-
-	var messageCount int64
-	if input.MessageCount != nil {
-		messageCount = *input.MessageCount
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"batch_size":    batchSize,
-			"message_count": messageCount,
+			"batch_size":    pointer.From(input.BatchSize),
+			"message_count": pointer.From(input.MessageCount),
 			"recurrence":    flattenIntegrationAccountBatchConfigurationWorkflowTriggerRecurrence(input.Recurrence),
 		},
 	}
@@ -466,30 +456,18 @@ func flattenIntegrationAccountBatchConfigurationWorkflowTriggerRecurrence(input 
 		return make([]interface{}, 0)
 	}
 
-	var endTime string
-	if input.EndTime != nil {
-		endTime = *input.EndTime
-	}
+	endTime := pointer.From(input.EndTime)
 
 	var frequency integrationaccountbatchconfigurations.RecurrenceFrequency
 	if input.Frequency != nil && *input.Frequency != "" {
 		frequency = *input.Frequency
 	}
 
-	var interval int64
-	if input.Interval != nil {
-		interval = *input.Interval
-	}
+	interval := pointer.From(input.Interval)
 
-	var startTime string
-	if input.StartTime != nil {
-		startTime = *input.StartTime
-	}
+	startTime := pointer.From(input.StartTime)
 
-	var timeZone string
-	if input.TimeZone != nil {
-		timeZone = *input.TimeZone
-	}
+	timeZone := pointer.From(input.TimeZone)
 
 	return []interface{}{
 		map[string]interface{}{
@@ -540,10 +518,7 @@ func flattenIntegrationAccountBatchConfigurationRecurrenceScheduleOccurrence(inp
 			day = *item.Day
 		}
 
-		var occurrence int64
-		if item.Occurrence != nil {
-			occurrence = *item.Occurrence
-		}
+		occurrence := pointer.From(item.Occurrence)
 
 		results = append(results, map[string]interface{}{
 			"weekday": day,

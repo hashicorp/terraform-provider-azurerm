@@ -360,11 +360,7 @@ func (r AzureBotServiceResource) Read() sdk.ResourceFunc {
 					state.LuisAppIds = *v
 				}
 
-				streamingEndpointEnabled := false
-				if v := props.IsStreamingSupported; v != nil {
-					streamingEndpointEnabled = *v
-				}
-				state.StreamingEndpointEnabled = streamingEndpointEnabled
+				state.StreamingEndpointEnabled = pointer.From(props.IsStreamingSupported)
 			}
 
 			return metadata.Encode(&state)

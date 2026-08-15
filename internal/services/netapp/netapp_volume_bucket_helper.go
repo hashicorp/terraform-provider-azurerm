@@ -335,7 +335,7 @@ func expandNetAppBucketServer(input []netAppModels.NetAppVolumeBucketServer) *bu
 		out.CertificateObject = pointer.To(srv.CertificatePem)
 	}
 	if srv.OnCertificateConflictAction != "" {
-		out.OnCertificateConflictAction = pointer.To(buckets.OnCertificateConflictAction(srv.OnCertificateConflictAction))
+		out.OnCertificateConflictAction = pointer.ToEnum[buckets.OnCertificateConflictAction](srv.OnCertificateConflictAction)
 	}
 
 	return out
@@ -356,7 +356,7 @@ func expandNetAppBucketServerPatch(input []netAppModels.NetAppVolumeBucketServer
 		out.CertificateObject = pointer.To(srv.CertificatePem)
 	}
 	if rd.HasChange("server.0.on_certificate_conflict_action") && srv.OnCertificateConflictAction != "" {
-		out.OnCertificateConflictAction = pointer.To(buckets.OnCertificateConflictAction(srv.OnCertificateConflictAction))
+		out.OnCertificateConflictAction = pointer.ToEnum[buckets.OnCertificateConflictAction](srv.OnCertificateConflictAction)
 	}
 
 	return out

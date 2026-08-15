@@ -175,7 +175,7 @@ func (a RoleDefinitionDataSource) Read() sdk.ResourceFunc {
 				if !ok {
 					return fmt.Errorf("internal error: context had no deadline")
 				}
-				err := pluginsdk.Retry(time.Until(deadline), func() *pluginsdk.RetryError {
+				if err := pluginsdk.Retry(time.Until(deadline), func() *pluginsdk.RetryError {
 					roleDefinitions, err := client.List(ctx, commonids.NewScopeID(config.Scope), roledefinitions.ListOperationOptions{
 						Filter: pointer.To(fmt.Sprintf("roleName eq '%s'", config.Name)),
 					})
@@ -196,8 +196,7 @@ func (a RoleDefinitionDataSource) Read() sdk.ResourceFunc {
 					id = roledefinitions.NewScopedRoleDefinitionID(config.Scope, defId)
 
 					return nil
-				})
-				if err != nil {
+				}); err != nil {
 					return err
 				}
 			} else {
@@ -233,7 +232,7 @@ func (a RoleDefinitionDataSource) Read() sdk.ResourceFunc {
 			// The sdk managed id start with two "/" when scope is tenant level (empty).
 			// So we use the id from response without parsing and reformatting it.
 			// Tracked on https://github.com/hashicorp/pandora/issues/3257
-			metadata.ResourceData.SetId(*role.Id)
+			metadata.ResourceData.SetId(*role.Id) // azignore:AZR001
 			return metadata.Encode(&state)
 		},
 	}

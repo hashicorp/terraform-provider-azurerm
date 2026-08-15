@@ -114,7 +114,7 @@ func resourceVirtualWanCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		Properties: &virtualwans.VirtualWanProperties{
 			DisableVpnEncryption:           pointer.To(d.Get("disable_vpn_encryption").(bool)),
 			AllowBranchToBranchTraffic:     pointer.To(d.Get("allow_branch_to_branch_traffic").(bool)),
-			Office365LocalBreakoutCategory: pointer.To(virtualwans.OfficeTrafficCategory(d.Get("office365_local_breakout_category").(string))),
+			Office365LocalBreakoutCategory: pointer.ToEnum[virtualwans.OfficeTrafficCategory](d.Get("office365_local_breakout_category").(string)),
 			Type:                           pointer.To(d.Get("type").(string)),
 		},
 	}
@@ -161,7 +161,7 @@ func resourceVirtualWanUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if d.HasChange("office365_local_breakout_category") {
-		payload.Properties.Office365LocalBreakoutCategory = pointer.To(virtualwans.OfficeTrafficCategory(d.Get("office365_local_breakout_category").(string)))
+		payload.Properties.Office365LocalBreakoutCategory = pointer.ToEnum[virtualwans.OfficeTrafficCategory](d.Get("office365_local_breakout_category").(string))
 	}
 
 	if d.HasChange("type") {
