@@ -218,8 +218,7 @@ func resourceDevTestLabDelete(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

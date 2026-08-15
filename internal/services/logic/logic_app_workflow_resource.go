@@ -985,11 +985,7 @@ func flattenLogicAppWorkflowIPAddressRanges(input *[]workflows.IPAddressRange) [
 	}
 
 	for _, item := range *input {
-		var addressRange string
-		if item.AddressRange != nil {
-			addressRange = *item.AddressRange
-		}
-		results = append(results, addressRange)
+		results = append(results, pointer.From(item.AddressRange))
 	}
 
 	return results
@@ -1018,19 +1014,9 @@ func flattenLogicAppWorkflowOpenAuthenticationPolicyClaim(input *[]workflows.Ope
 	}
 
 	for _, item := range *input {
-		var name string
-		if item.Name != nil {
-			name = *item.Name
-		}
-
-		var value string
-		if item.Value != nil {
-			value = *item.Value
-		}
-
 		results = append(results, map[string]interface{}{
-			"name":  name,
-			"value": value,
+			"name":  pointer.From(item.Name),
+			"value": pointer.From(item.Value),
 		})
 	}
 

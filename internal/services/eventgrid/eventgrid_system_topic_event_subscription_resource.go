@@ -178,7 +178,7 @@ func resourceEventGridSystemTopicEventSubscriptionCreateUpdate(d *pluginsdk.Reso
 		Filter:              filter,
 		RetryPolicy:         expandEventSubscriptionRetryPolicy(d),
 		Labels:              helpers.ExpandStringSlice(d.Get("labels").([]interface{})),
-		EventDeliverySchema: pointer.To(eventsubscriptions.EventDeliverySchema(d.Get("event_delivery_schema").(string))),
+		EventDeliverySchema: pointer.ToEnum[eventsubscriptions.EventDeliverySchema](d.Get("event_delivery_schema").(string)),
 		ExpirationTimeUtc:   pointer.To(d.Get("expiration_time_utc").(string)),
 	}
 

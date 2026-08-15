@@ -158,7 +158,7 @@ func (r StreamInputEventHubV2Resource) Create() sdk.ResourceFunc {
 				ServiceBusNamespace: pointer.To(model.ServiceBusNamespace),
 				EventHubName:        pointer.To(model.EventHubName),
 				ConsumerGroupName:   pointer.To(model.EventHubConsumerGroupName),
-				AuthenticationMode:  pointer.To(inputs.AuthenticationMode(model.AuthenticationMode)),
+				AuthenticationMode:  pointer.ToEnum[inputs.AuthenticationMode](model.AuthenticationMode),
 			}
 
 			if v := model.SharedAccessPolicyKey; v != "" {
@@ -219,7 +219,7 @@ func (r StreamInputEventHubV2Resource) Update() sdk.ResourceFunc {
 					ServiceBusNamespace: pointer.To(state.ServiceBusNamespace),
 					EventHubName:        pointer.To(state.EventHubName),
 					ConsumerGroupName:   pointer.To(state.EventHubConsumerGroupName),
-					AuthenticationMode:  pointer.To(inputs.AuthenticationMode(state.AuthenticationMode)),
+					AuthenticationMode:  pointer.ToEnum[inputs.AuthenticationMode](state.AuthenticationMode),
 				}
 
 				serialization, err := expandStreamAnalyticsStreamInputSerializationTyped(state.Serialization)
@@ -287,37 +287,22 @@ func (r StreamInputEventHubV2Resource) Read() sdk.ResourceFunc {
 					}
 
 					if eventHubV2InputProps := eventHubV2Input.Properties; eventHubV2InputProps != nil {
-						servicebusNamespace := ""
-						if v := eventHubV2InputProps.ServiceBusNamespace; v != nil {
-							servicebusNamespace = *v
-						}
+						servicebusNamespace := pointer.From(eventHubV2InputProps.ServiceBusNamespace)
 
-						eventHubName := ""
-						if v := eventHubV2InputProps.EventHubName; v != nil {
-							eventHubName = *v
-						}
+						eventHubName := pointer.From(eventHubV2InputProps.EventHubName)
 
-						eventHubConsumerGroup := ""
-						if v := eventHubV2InputProps.ConsumerGroupName; v != nil {
-							eventHubConsumerGroup = *v
-						}
+						eventHubConsumerGroup := pointer.From(eventHubV2InputProps.ConsumerGroupName)
 
 						authenticationMode := ""
 						if v := eventHubV2InputProps.AuthenticationMode; v != nil {
 							authenticationMode = string(*v)
 						}
 
-						sharedAccessPolicyName := ""
-						if v := eventHubV2InputProps.SharedAccessPolicyName; v != nil {
-							sharedAccessPolicyName = *v
-						}
+						sharedAccessPolicyName := pointer.From(eventHubV2InputProps.SharedAccessPolicyName)
 
 						serialization := flattenStreamAnalyticsStreamInputSerializationTyped(streamInput.Serialization)
 
-						partitionKey := ""
-						if v := streamInput.PartitionKey; v != nil {
-							partitionKey = *v
-						}
+						partitionKey := pointer.From(streamInput.PartitionKey)
 
 						state.ServiceBusNamespace = servicebusNamespace
 						state.EventHubName = eventHubName

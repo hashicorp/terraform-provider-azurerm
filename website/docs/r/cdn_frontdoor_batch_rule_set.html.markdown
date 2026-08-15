@@ -491,9 +491,9 @@ A `request_path` block supports the following:
 
 * `transforms` - (Optional) A list of condition transforms. Possible values are `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode`, and `UrlEncode`. A maximum of `4` transforms may be defined.
 
-* `values` - (Optional) One or more values representing the request path to match. Do not include the leading slash (`/`). A maximum of `25` values may be defined. If multiple values are specified, they are evaluated using `OR` logic.
+* `values` - (Optional) One or more values representing the request path to match. If multiple values are specified, they are evaluated using `OR` logic.
 
-~> **Note:** `values` must not be set when `operator` is set to `Any` or `NotAny`, and is required for all other operators.
+~> **Note:** `values` must not be set when `operator` is set to `Any` or `NotAny`, and is required for all other operators. A maximum of `25` values may be defined. Do not include a leading slash (`/`) unless matching the root path, which is represented by `/`.
 
 ---
 

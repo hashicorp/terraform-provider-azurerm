@@ -395,10 +395,9 @@ func (r ManagerAdminRuleResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			err = client.DeleteThenPoll(ctx, *id, adminrules.DeleteOperationOptions{
+			if err = client.DeleteThenPoll(ctx, *id, adminrules.DeleteOperationOptions{
 				Force: pointer.To(true),
-			})
-			if err != nil {
+			}); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 

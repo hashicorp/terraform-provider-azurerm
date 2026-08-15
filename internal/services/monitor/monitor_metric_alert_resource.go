@@ -779,10 +779,7 @@ func flattenMonitorMetricAlertSingleResourceMultiMetricCriteria(input *[]metrica
 	operator := string(criteria.Operator)
 	threshold := criteria.Threshold
 
-	var skipMetricValidation bool
-	if criteria.SkipMetricValidation != nil {
-		skipMetricValidation = *criteria.SkipMetricValidation
-	}
+	skipMetricValidation := pointer.From(criteria.SkipMetricValidation)
 
 	return []interface{}{
 		map[string]interface{}{
@@ -851,11 +848,7 @@ func flattenMonitorMetricAlertMultiResourceMultiMetricCriteria(input *[]metrical
 			v["evaluation_total_count"] = int(criteria.FailingPeriods.NumberOfEvaluationPeriods)
 			v["evaluation_failure_count"] = int(criteria.FailingPeriods.MinFailingPeriodsToAlert)
 
-			ignoreDataBefore := ""
-			if criteria.IgnoreDataBefore != nil {
-				ignoreDataBefore = *criteria.IgnoreDataBefore
-			}
-			v["ignore_data_before"] = ignoreDataBefore
+			v["ignore_data_before"] = pointer.From(criteria.IgnoreDataBefore)
 		}
 
 		// Common properties

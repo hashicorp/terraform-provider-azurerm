@@ -268,8 +268,7 @@ func resourceArmLoadBalancerProbeDelete(d *pluginsdk.ResourceData, meta interfac
 			probes = append(probes[:index], probes[index+1:]...)
 			props.Probes = &probes
 
-			err := client.CreateOrUpdateThenPoll(ctx, plbId, *model)
-			if err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, plbId, *model); err != nil {
 				return fmt.Errorf("updating Load Balancer %q (Resource Group %q) for deletion of Probe %q: %+v", id.LoadBalancerName, id.ResourceGroupName, id.ProbeName, err)
 			}
 		}

@@ -462,9 +462,9 @@ func expandMonitorScheduledQueryRulesAlertMetricTrigger(input []interface{}) *sc
 		if !ok {
 			continue
 		}
-		result.ThresholdOperator = pointer.To(scheduledqueryrules.ConditionalOperator(v["operator"].(string)))
+		result.ThresholdOperator = pointer.ToEnum[scheduledqueryrules.ConditionalOperator](v["operator"].(string))
 		result.Threshold = pointer.To(v["threshold"].(float64))
-		result.MetricTriggerType = pointer.To(scheduledqueryrules.MetricTriggerType(v["metric_trigger_type"].(string)))
+		result.MetricTriggerType = pointer.ToEnum[scheduledqueryrules.MetricTriggerType](v["metric_trigger_type"].(string))
 		result.MetricColumn = pointer.To(v["metric_column"].(string))
 	}
 
