@@ -31,9 +31,12 @@ func resourceCdnEndpoint() *pluginsdk.Resource {
 		Update: resourceCdnEndpointUpdate,
 		Delete: resourceCdnEndpointDelete,
 
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.CdnEndpointV0ToV1{},
+			// v1 -> v2 normalises the casing of IDs imported while this resource parsed them with the
+			// case-insensitive legacy parser, so they can be parsed with the case-sensitive SDK parser
+			1: migration.CdnEndpointV1ToV2{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
