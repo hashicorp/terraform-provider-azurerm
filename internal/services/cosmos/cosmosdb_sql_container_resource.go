@@ -197,7 +197,7 @@ func resourceCosmosDbSQLContainerCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	db.Properties.Resource.PartitionKey = &cosmosdb.ContainerPartitionKey{
-		Kind: pointer.To(cosmosdb.PartitionKind(d.Get("partition_key_kind").(string))),
+		Kind: pointer.ToEnum[cosmosdb.PartitionKind](d.Get("partition_key_kind").(string)),
 	}
 
 	if v, ok := d.GetOk("partition_key_paths"); ok {
@@ -251,8 +251,7 @@ func resourceCosmosDbSQLContainerUpdate(d *pluginsdk.ResourceData, meta interfac
 		return err
 	}
 
-	err = common.CheckForChangeFromAutoscaleAndManualThroughput(d)
-	if err != nil {
+	if err = common.CheckForChangeFromAutoscaleAndManualThroughput(d); err != nil {
 		return fmt.Errorf("checking `autoscale_settings` and `throughput` for %s: %w", id, err)
 	}
 
@@ -272,7 +271,7 @@ func resourceCosmosDbSQLContainerUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	db.Properties.Resource.PartitionKey = &cosmosdb.ContainerPartitionKey{
-		Kind: pointer.To(cosmosdb.PartitionKind(d.Get("partition_key_kind").(string))),
+		Kind: pointer.ToEnum[cosmosdb.PartitionKind](d.Get("partition_key_kind").(string)),
 	}
 
 	if v, ok := d.GetOk("partition_key_paths"); ok {
@@ -297,8 +296,7 @@ func resourceCosmosDbSQLContainerUpdate(d *pluginsdk.ResourceData, meta interfac
 		db.Properties.Resource.DefaultTtl = pointer.To(int64(defaultTTL.(int)))
 	}
 
-	err = client.SqlResourcesCreateUpdateSqlContainerThenPoll(ctx, *id, db)
-	if err != nil {
+	if err = client.SqlResourcesCreateUpdateSqlContainerThenPoll(ctx, *id, db); err != nil {
 		return fmt.Errorf("updating %q: %+v", id, err)
 	}
 
@@ -398,8 +396,7 @@ func resourceCosmosDbSQLContainerDelete(d *pluginsdk.ResourceData, meta interfac
 		return err
 	}
 
-	err = client.SqlResourcesDeleteSqlContainerThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.SqlResourcesDeleteSqlContainerThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 

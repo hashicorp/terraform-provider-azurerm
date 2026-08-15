@@ -10,7 +10,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/storagequeues"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -55,11 +54,11 @@ func (StorageQueueV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		}
 
 		storageAccountID, err := resolveStorageAccountIDForStateUpgrade(ctx, meta, rawState, func(idstr string) (*commonids.StorageAccountId, error) {
-			id, err := parse.StorageQueueResourceManagerID(idstr)
+			id, err := storagequeues.ParseQueueIDInsensitively(idstr)
 			if err != nil {
 				return nil, err
 			}
-			return new(commonids.NewStorageAccountID(id.SubscriptionId, id.ResourceGroup, id.StorageAccountName)), nil
+			return new(commonids.NewStorageAccountID(id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName)), nil
 		})
 		if err != nil {
 			return rawState, err

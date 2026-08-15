@@ -167,17 +167,9 @@ func flattenGitHubActionConfiguration(input *webapps.GitHubActionConfiguration) 
 		return output
 	}
 
-	isLinux := false
-	if v := input.IsLinux; v != nil {
-		isLinux = *v
-	}
-	genWorkflow := false
-	if v := input.GenerateWorkflowFile; v != nil {
-		genWorkflow = *v
-	}
 	ghConfig := GithubActionConfiguration{
-		UsesLinux:            isLinux,
-		GenerateWorkflowFile: genWorkflow,
+		UsesLinux:            pointer.From(input.IsLinux),
+		GenerateWorkflowFile: pointer.From(input.GenerateWorkflowFile),
 	}
 
 	if codeConfig := input.CodeConfiguration; codeConfig != nil {

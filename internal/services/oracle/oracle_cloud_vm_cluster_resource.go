@@ -369,7 +369,7 @@ func (r CloudVmClusterResource) Create() sdk.ResourceFunc {
 					DisplayName:                  model.DisplayName,
 					GiVersion:                    model.GiVersion,
 					Hostname:                     model.Hostname,
-					LicenseModel:                 pointer.To(cloudvmclusters.LicenseModel(model.LicenseModel)),
+					LicenseModel:                 pointer.ToEnum[cloudvmclusters.LicenseModel](model.LicenseModel),
 					SshPublicKeys:                model.SshPublicKeys,
 					SubnetId:                     model.SubnetId,
 					VnetId:                       model.VnetId,

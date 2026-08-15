@@ -407,7 +407,7 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 		Location: location.Normalize(d.Get("location").(string)),
 		Sku: registries.Sku{
 			Name: registries.SkuName(sku),
-			Tier: pointer.To(registries.SkuTier(sku)),
+			Tier: pointer.ToEnum[registries.SkuTier](sku),
 		},
 		Identity: identity,
 		Properties: &registries.RegistryProperties{
@@ -424,7 +424,7 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 			ZoneRedundancy:                   &zoneRedundancy,
 			AnonymousPullEnabled:             pointer.To(d.Get("anonymous_pull_enabled").(bool)),
 			DataEndpointEnabled:              pointer.To(d.Get("data_endpoint_enabled").(bool)),
-			NetworkRuleBypassOptions:         pointer.To(registries.NetworkRuleBypassOptions(d.Get("network_rule_bypass_option").(string))),
+			NetworkRuleBypassOptions:         pointer.ToEnum[registries.NetworkRuleBypassOptions](d.Get("network_rule_bypass_option").(string)),
 			RoleAssignmentMode:               pointer.ToEnum[registries.RoleAssignmentMode](d.Get("role_assignment_mode").(string)),
 			NetworkRuleBypassAllowedForTasks: pointer.To(d.Get("network_rule_bypass_for_tasks_enabled").(bool)),
 		},
@@ -442,8 +442,7 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 	newGeoReplicationLocations = expandReplications(d.Get("georeplications").([]interface{}))
 	// geo replications have been specified
 	if len(newGeoReplicationLocations) > 0 {
-		err = applyGeoReplicationLocations(ctx, meta, id, oldGeoReplicationLocations, newGeoReplicationLocations)
-		if err != nil {
+		if err = applyGeoReplicationLocations(ctx, meta, id, oldGeoReplicationLocations, newGeoReplicationLocations); err != nil {
 			return fmt.Errorf("applying geo replications for %s: %+v", id, err)
 		}
 	}
@@ -584,7 +583,7 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if d.HasChange("network_rule_bypass_option") {
-		payload.Properties.NetworkRuleBypassOptions = pointer.To(registries.NetworkRuleBypassOptions(d.Get("network_rule_bypass_option").(string)))
+		payload.Properties.NetworkRuleBypassOptions = pointer.ToEnum[registries.NetworkRuleBypassOptions](d.Get("network_rule_bypass_option").(string))
 	}
 
 	if d.HasChange("role_assignment_mode") {
@@ -605,8 +604,7 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if hasGeoReplicationsChanges {
-		err := applyGeoReplicationLocations(ctx, meta, *id, expandReplications(oldReplications), expandReplications(newReplications))
-		if err != nil {
+		if err := applyGeoReplicationLocations(ctx, meta, *id, expandReplications(oldReplications), expandReplications(newReplications)); err != nil {
 			return fmt.Errorf("applying geo replications for %s: %+v", id, err)
 		}
 	}
@@ -635,7 +633,7 @@ func applyContainerRegistrySku(d *pluginsdk.ResourceData, meta interface{}, sku 
 	parameters := registries.RegistryUpdateParameters{
 		Sku: &registries.Sku{
 			Name: registries.SkuName(sku),
-			Tier: pointer.To(registries.SkuTier(sku)),
+			Tier: pointer.ToEnum[registries.SkuTier](sku),
 		},
 	}
 
@@ -937,7 +935,7 @@ func expandNetworkRuleSet(profiles []interface{}) *registries.NetworkRuleSet {
 	for _, ipRuleInterface := range ipRuleConfigs {
 		config := ipRuleInterface.(map[string]interface{})
 		newIpRule := registries.IPRule{
-			Action: pointer.To(registries.Action(config["action"].(string))),
+			Action: pointer.ToEnum[registries.Action](config["action"].(string)),
 			Value:  config["ip_range"].(string),
 		}
 		ipRules = append(ipRules, newIpRule)

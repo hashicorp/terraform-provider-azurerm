@@ -236,11 +236,6 @@ func dataSourceFlattenVPNGatewayBGPSettings(input *virtualwans.BgpSettings) []in
 		asn = int(*input.Asn)
 	}
 
-	bgpPeeringAddress := ""
-	if input.BgpPeeringAddress != nil {
-		bgpPeeringAddress = *input.BgpPeeringAddress
-	}
-
 	peerWeight := 0
 	if input.PeerWeight != nil {
 		peerWeight = int(*input.PeerWeight)
@@ -257,7 +252,7 @@ func dataSourceFlattenVPNGatewayBGPSettings(input *virtualwans.BgpSettings) []in
 	return []interface{}{
 		map[string]interface{}{
 			"asn":                            asn,
-			"bgp_peering_address":            bgpPeeringAddress,
+			"bgp_peering_address":            pointer.From(input.BgpPeeringAddress),
 			"instance_0_bgp_peering_address": instance0BgpPeeringAddress,
 			"instance_1_bgp_peering_address": instance1BgpPeeringAddress,
 			"peer_weight":                    peerWeight,
@@ -266,14 +261,9 @@ func dataSourceFlattenVPNGatewayBGPSettings(input *virtualwans.BgpSettings) []in
 }
 
 func dataSourceFlattenVPNGatewayIPConfigurationBgpPeeringAddress(input virtualwans.IPConfigurationBgpPeeringAddress) []interface{} {
-	ipConfigurationID := ""
-	if input.IPconfigurationId != nil {
-		ipConfigurationID = *input.IPconfigurationId
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"ip_configuration_id": ipConfigurationID,
+			"ip_configuration_id": pointer.From(input.IPconfigurationId),
 			"custom_ips":          helpers.FlattenStringSlice(input.CustomBgpIPAddresses),
 			"default_ips":         helpers.FlattenStringSlice(input.DefaultBgpIPAddresses),
 			"tunnel_ips":          helpers.FlattenStringSlice(input.TunnelIPAddresses),

@@ -31,9 +31,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -49,7 +47,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 		Update: resourceSiteRecoveryReplicatedItemUpdate,
 		Delete: resourceSiteRecoveryReplicatedItemDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ReplicationProtectedItemID(id)
+			_, err := replicationprotecteditems.ParseReplicationProtectedItemID(id)
 			return err
 		}),
 		CustomizeDiff: resourceSiteRecoveryReplicatedVMCustomizeDiff,
@@ -434,7 +432,7 @@ func networkInterfaceResource() *pluginsdk.Resource {
 }
 
 func diskEncryptionResource() *pluginsdk.Resource {
-	args := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"disk_encryption_key": {
 				Type:       pluginsdk.TypeList,
@@ -475,13 +473,6 @@ func diskEncryptionResource() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		args.Schema["disk_encryption_key"].Elem.(*pluginsdk.Resource).Schema["secret_url"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny)
-		args.Schema["key_encryption_key"].Elem.(*pluginsdk.Resource).Schema["key_url"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny)
-	}
-
-	return args
 }
 
 func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -693,8 +684,7 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 		},
 	}
 
-	err = client.UpdateThenPoll(ctx, id, parameters)
-	if err != nil {
+	if err = client.UpdateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("updating replicated vm %s (vault %s): %+v", name, vaultName, err)
 	}
 
@@ -918,16 +908,10 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 					}
 					diskOutput["target_resource_group_id"] = recoveryResourceGroupID
 
-					recoveryReplicaDiskAccountType := ""
-					if disk.RecoveryReplicaDiskAccountType != nil {
-						recoveryReplicaDiskAccountType = *disk.RecoveryReplicaDiskAccountType
-					}
+					recoveryReplicaDiskAccountType := pointer.From(disk.RecoveryReplicaDiskAccountType)
 					diskOutput["target_replica_disk_type"] = recoveryReplicaDiskAccountType
 
-					recoveryTargetDiskAccountType := ""
-					if disk.RecoveryTargetDiskAccountType != nil {
-						recoveryTargetDiskAccountType = *disk.RecoveryTargetDiskAccountType
-					}
+					recoveryTargetDiskAccountType := pointer.From(disk.RecoveryTargetDiskAccountType)
 					diskOutput["target_disk_type"] = recoveryTargetDiskAccountType
 
 					recoveryEncryptionSetId := ""
@@ -992,8 +976,7 @@ func resourceSiteRecoveryReplicatedItemDelete(d *pluginsdk.ResourceData, meta in
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	err = client.DeleteThenPoll(ctx, *id, disableProtectionInput)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id, disableProtectionInput); err != nil {
 		return fmt.Errorf("deleting site recovery replicated vm %s : %+v", id.String(), err)
 	}
 
