@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -114,50 +113,6 @@ func (BillingAccountCostManagementExport) basic(data acceptance.TestData) string
 	start := time.Now().AddDate(0, 0, 1).Format("2006-01-02")
 	end := time.Now().AddDate(0, 0, 2).Format("2006-01-02")
 	billingAccount := os.Getenv("ARM_BILLING_ACCOUNT")
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-cm-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                = "unlikely23exst2acct%s"
-  resource_group_name = azurerm_resource_group.test.name
-
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                 = "acctestcontainer%s"
-  storage_account_name = azurerm_storage_account.test.name
-}
-
-resource "azurerm_billing_account_cost_management_export" "test" {
-  name                         = "accs%d"
-  billing_account_id           = "%s"
-  recurrence_type              = "Monthly"
-  recurrence_period_start_date = "%sT00:00:00Z"
-  recurrence_period_end_date   = "%sT00:00:00Z"
-
-  export_data_storage_location {
-    container_id     = azurerm_storage_container.test.id
-    root_folder_path = "/root"
-  }
-
-  export_data_options {
-    type       = "Usage"
-    time_frame = "TheLastMonth"
-  }
-}
-		`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, billingAccount, start, end)
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -206,50 +161,6 @@ func (BillingAccountCostManagementExport) update(data acceptance.TestData) strin
 	start := time.Now().AddDate(0, 3, 0).Format("2006-01-02")
 	end := time.Now().AddDate(0, 4, 0).Format("2006-01-02")
 	billingAccount := os.Getenv("ARM_BILLING_ACCOUNT")
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-cm-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                = "unlikely23exst2acct%s"
-  resource_group_name = azurerm_resource_group.test.name
-
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                 = "acctestcontainer%s"
-  storage_account_name = azurerm_storage_account.test.name
-}
-
-resource "azurerm_billing_account_cost_management_export" "test" {
-  name                         = "accrg%d"
-  billing_account_id           = "%s"
-  recurrence_type              = "Monthly"
-  recurrence_period_start_date = "%sT00:00:00Z"
-  recurrence_period_end_date   = "%sT00:00:00Z"
-
-  export_data_storage_location {
-    container_id     = azurerm_storage_container.test.id
-    root_folder_path = "/root/updated"
-  }
-
-  export_data_options {
-    type       = "Usage"
-    time_frame = "WeekToDate"
-  }
-}
-		`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, billingAccount, start, end)
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -286,7 +286,7 @@ func expandJobTargets(input []MsSqlJobTarget) []jobtargetgroups.JobTarget {
 
 	for _, v := range input {
 		t := jobtargetgroups.JobTarget{
-			MembershipType: pointer.To(jobtargetgroups.JobTargetGroupMembershipType(v.MembershipType)),
+			MembershipType: pointer.ToEnum[jobtargetgroups.JobTargetGroupMembershipType](v.MembershipType),
 			ServerName:     pointer.To(v.ServerName),
 		}
 

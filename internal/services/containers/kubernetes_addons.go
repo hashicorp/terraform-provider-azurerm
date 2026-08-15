@@ -609,20 +609,11 @@ func flattenKubernetesClusterAddOnIdentityProfile(profile *managedclusters.UserA
 	}
 
 	identity := make([]interface{}, 0)
-	clientID := ""
-	if clientid := profile.ClientId; clientid != nil {
-		clientID = *clientid
-	}
+	clientID := pointer.From(profile.ClientId)
 
-	objectID := ""
-	if objectid := profile.ObjectId; objectid != nil {
-		objectID = *objectid
-	}
+	objectID := pointer.From(profile.ObjectId)
 
-	userAssignedIdentityID := ""
-	if resourceid := profile.ResourceId; resourceid != nil {
-		userAssignedIdentityID = *resourceid
-	}
+	userAssignedIdentityID := pointer.From(profile.ResourceId)
 
 	identity = append(identity, map[string]interface{}{
 		"client_id":                 clientID,

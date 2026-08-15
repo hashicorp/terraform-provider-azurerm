@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2025-08-01/managedgrafanas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/preflight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -85,7 +84,7 @@ func (r DashboardGrafanaResource) IDValidationFunc() pluginsdk.SchemaValidateFun
 }
 
 func (r DashboardGrafanaResource) Arguments() map[string]*pluginsdk.Schema {
-	arguments := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -233,30 +232,6 @@ func (r DashboardGrafanaResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 	}
-
-	if !features.FivePointOh() {
-		arguments["sku"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  "Standard",
-			ValidateFunc: validation.All(
-				validation.StringInSlice([]string{
-					"Standard",
-					"Essential",
-				}, false),
-				// lintignore:V013 // false positive - this emits a deprecation warning for a specific value, it does not reject values
-				func(v interface{}, k string) (warnings []string, errors []error) {
-					if val, ok := v.(string); ok && val == "Essential" {
-						warnings = append(warnings, "the `Essential` value for `sku` is deprecated and will be removed in v5.0 of the AzureRM provider")
-					}
-					return
-				},
-			),
-		}
-	}
-
-	return arguments
 }
 
 func (r DashboardGrafanaResource) Attributes() map[string]*pluginsdk.Schema {
@@ -366,7 +341,7 @@ func expandCreateForDashboardGrafana(model DashboardGrafanaModel) *managedgrafan
 	}
 
 	if model.SkuSize != "" {
-		properties.Sku.Size = pointer.To(managedgrafanas.Size(model.SkuSize))
+		properties.Sku.Size = pointer.ToEnum[managedgrafanas.Size](model.SkuSize)
 	}
 	return &properties
 }

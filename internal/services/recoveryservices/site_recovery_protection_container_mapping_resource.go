@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -31,7 +30,7 @@ func resourceSiteRecoveryProtectionContainerMapping() *pluginsdk.Resource {
 		Update: resourceSiteRecoveryContainerMappingUpdate,
 		Delete: resourceSiteRecoveryServicesContainerMappingDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ReplicationProtectionContainerMappingsID(id)
+			_, err := replicationprotectioncontainermappings.ParseReplicationProtectionContainerMappingID(id)
 			return err
 		}),
 
@@ -207,8 +206,7 @@ func resourceSiteRecoveryContainerMappingUpdate(d *pluginsdk.ResourceData, meta 
 		update.Properties.ProviderSpecificInput = updateInput
 	}
 
-	err = client.UpdateThenPoll(ctx, *id, update)
-	if err != nil {
+	if err = client.UpdateThenPoll(ctx, *id, update); err != nil {
 		return fmt.Errorf("update %s: %+v", id, err)
 	}
 
@@ -278,8 +276,7 @@ func resourceSiteRecoveryServicesContainerMappingDelete(d *pluginsdk.ResourceDat
 		},
 	}
 
-	err = client.DeleteThenPoll(ctx, *id, input)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id, input); err != nil {
 		return fmt.Errorf("deleting site recovery protection container mapping %s : %+v", id.String(), err)
 	}
 

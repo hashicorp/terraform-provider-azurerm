@@ -346,7 +346,7 @@ func resourceMaintenanceConfigurationUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("visibility") {
-		payload.Properties.Visibility = pointer.To(maintenanceconfigurations.Visibility(d.Get("visibility").(string)))
+		payload.Properties.Visibility = pointer.ToEnum[maintenanceconfigurations.Visibility](d.Get("visibility").(string))
 	}
 
 	if d.HasChange("tags") {

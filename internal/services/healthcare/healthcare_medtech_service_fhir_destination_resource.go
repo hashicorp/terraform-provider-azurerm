@@ -222,8 +222,7 @@ func resourceHealthcareApisMedTechServiceFhirDestinationUpdate(d *pluginsdk.Reso
 	}
 	medTechFhirServiceParameters.Properties.FhirMapping = fhirMap
 
-	err = client.IotConnectorFhirDestinationCreateOrUpdateThenPoll(ctx, id, medTechFhirServiceParameters)
-	if err != nil {
+	if err = client.IotConnectorFhirDestinationCreateOrUpdateThenPoll(ctx, id, medTechFhirServiceParameters); err != nil {
 		return fmt.Errorf("updating fhir service %s for the Med Tech Service err: %+v", id, err)
 	}
 
@@ -242,8 +241,7 @@ func resourceHealthcareApisMedTechServiceFhirDestinationDelete(d *pluginsdk.Reso
 		return err
 	}
 
-	err = client.IotConnectorFhirDestinationDeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.IotConnectorFhirDestinationDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 	log.Printf("[DEBUG] Waiting for %s to be deleted..", id)
