@@ -174,7 +174,7 @@ func (s SpringCloudCustomizedAcceleratorResource) Arguments() map[string]*schema
 					"ca_certificate_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: appplatform.ValidateCertificateID,
+						ValidateFunc: validation.AsGeneratedID(appplatform.ParseCertificateIDInsensitively),
 					},
 
 					"commit": {

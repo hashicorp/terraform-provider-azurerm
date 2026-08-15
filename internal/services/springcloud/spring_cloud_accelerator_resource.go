@@ -71,7 +71,7 @@ func (s SpringCloudAcceleratorResource) Arguments() map[string]*schema.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: commonids.ValidateSpringCloudServiceID,
+			ValidateFunc: validation.AsGeneratedID(commonids.ParseSpringCloudServiceIDInsensitively),
 		},
 	}
 }
@@ -90,7 +90,9 @@ func (s SpringCloudAcceleratorResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.AppPlatform.ApplicationAcceleratorClient
-			springId, err := commonids.ParseSpringCloudServiceID(model.SpringCloudServiceId)
+			// todo 6.0 - move to the case-sensitive parser when validation.AsGeneratedID is removed: this parses a config
+			// value which the paired AsGeneratedID validator accepts with legacy casing, and configs cannot be migrated.
+			springId, err := commonids.ParseSpringCloudServiceIDInsensitively(model.SpringCloudServiceId)
 			if err != nil {
 				return fmt.Errorf("parsing spring service ID: %+v", err)
 			}

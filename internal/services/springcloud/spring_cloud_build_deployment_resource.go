@@ -59,7 +59,7 @@ func resourceSpringCloudBuildDeployment() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: appplatform_rm.ValidateAppID,
+				ValidateFunc: validation.AsGeneratedID(appplatform_rm.ParseAppIDInsensitively),
 			},
 
 			"build_result_id": {
@@ -138,7 +138,9 @@ func resourceSpringCloudBuildDeploymentCreateUpdate(d *pluginsdk.ResourceData, m
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	appId, err := appplatform_rm.ParseAppID(d.Get("spring_cloud_app_id").(string))
+	// todo 6.0 - move to the case-sensitive parser when validation.AsGeneratedID is removed: this parses a config
+	// value which the paired AsGeneratedID validator accepts with legacy casing, and configs cannot be migrated.
+	appId, err := appplatform_rm.ParseAppIDInsensitively(d.Get("spring_cloud_app_id").(string))
 	if err != nil {
 		return err
 	}

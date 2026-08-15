@@ -73,7 +73,7 @@ func (s SpringCloudConfigurationServiceResource) Arguments() map[string]*schema.
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: commonids.ValidateSpringCloudServiceID,
+			ValidateFunc: validation.AsGeneratedID(commonids.ParseSpringCloudServiceIDInsensitively),
 		},
 
 		"generation": {
@@ -126,7 +126,7 @@ func (s SpringCloudConfigurationServiceResource) Arguments() map[string]*schema.
 					"ca_certificate_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: appplatform.ValidateCertificateID,
+						ValidateFunc: validation.AsGeneratedID(appplatform.ParseCertificateIDInsensitively),
 					},
 
 					"host_key": {

@@ -57,7 +57,7 @@ func resourceSpringCloudGatewayCustomDomain() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: appplatform_rm.ValidateGatewayID,
+				ValidateFunc: validation.AsGeneratedID(appplatform_rm.ParseGatewayIDInsensitively),
 			},
 
 			"thumbprint": {
@@ -75,7 +75,9 @@ func resourceSpringCloudGatewayCustomDomainCreateUpdate(d *pluginsdk.ResourceDat
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	gatewayId, err := appplatform_rm.ParseGatewayID(d.Get("spring_cloud_gateway_id").(string))
+	// todo 6.0 - move to the case-sensitive parser when validation.AsGeneratedID is removed: this parses a config
+	// value which the paired AsGeneratedID validator accepts with legacy casing, and configs cannot be migrated.
+	gatewayId, err := appplatform_rm.ParseGatewayIDInsensitively(d.Get("spring_cloud_gateway_id").(string))
 	if err != nil {
 		return err
 	}

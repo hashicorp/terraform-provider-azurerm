@@ -59,7 +59,7 @@ func resourceSpringCloudStorage() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: commonids.ValidateSpringCloudServiceID,
+				ValidateFunc: validation.AsGeneratedID(commonids.ParseSpringCloudServiceIDInsensitively),
 			},
 
 			"storage_account_name": {
@@ -83,7 +83,9 @@ func resourceSpringCloudStorageCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	springCloudId, err := commonids.ParseSpringCloudServiceID(d.Get("spring_cloud_service_id").(string))
+	// todo 6.0 - move to the case-sensitive parser when validation.AsGeneratedID is removed: this parses a config
+	// value which the paired AsGeneratedID validator accepts with legacy casing, and configs cannot be migrated.
+	springCloudId, err := commonids.ParseSpringCloudServiceIDInsensitively(d.Get("spring_cloud_service_id").(string))
 	if err != nil {
 		return err
 	}

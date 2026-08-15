@@ -67,7 +67,7 @@ func (s SpringCloudApplicationInsightsApplicationPerformanceMonitoringResource) 
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: commonids.ValidateSpringCloudServiceID,
+			ValidateFunc: validation.AsGeneratedID(commonids.ParseSpringCloudServiceIDInsensitively),
 		},
 
 		"globally_enabled": {

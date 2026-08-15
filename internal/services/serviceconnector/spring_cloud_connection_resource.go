@@ -46,7 +46,7 @@ func (r SpringCloudConnectorResource) Arguments() map[string]*schema.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: appplatform.ValidateDeploymentID,
+			ValidateFunc: validation.AsGeneratedID(appplatform.ParseDeploymentIDInsensitively),
 		},
 
 		"target_resource_id": {

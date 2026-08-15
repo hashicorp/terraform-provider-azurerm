@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
@@ -56,7 +57,7 @@ func resourceSpringCloudAPIPortalCustomDomain() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: appplatform_rm.ValidateApiPortalID,
+				ValidateFunc: validation.AsGeneratedID(appplatform_rm.ParseApiPortalIDInsensitively),
 			},
 
 			"thumbprint": {
@@ -73,7 +74,9 @@ func resourceSpringCloudAPIPortalCustomDomainCreateUpdate(d *pluginsdk.ResourceD
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	portalId, err := appplatform_rm.ParseApiPortalID(d.Get("spring_cloud_api_portal_id").(string))
+	// todo 6.0 - move to the case-sensitive parser when validation.AsGeneratedID is removed: this parses a config
+	// value which the paired AsGeneratedID validator accepts with legacy casing, and configs cannot be migrated.
+	portalId, err := appplatform_rm.ParseApiPortalIDInsensitively(d.Get("spring_cloud_api_portal_id").(string))
 	if err != nil {
 		return err
 	}
