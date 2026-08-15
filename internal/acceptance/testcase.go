@@ -195,6 +195,50 @@ func (td TestData) ResourceRegressionTest(t *testing.T, testResource types.TestR
 	resource.ParallelTest(t, testCase)
 }
 
+// ResourceRegressionAdditionalStepsTest runs an acceptance test for resource regression scenarios that require multiple steps to set up.
+// It expects multiple steps (3 or more), for regression testing with 1 or 2 steps, use ResourceRegressionTest.
+// All steps except the final step use a specified previous provider version constraint. If an empty string is supplied, the test will use the version in ./version/VERSION from the root of the project
+// For StateMigration testing, this should be the last version that has the previous `SchemaVersion` value.
+// The final step uses the locally built provider code.
+func (td TestData) ResourceRegressionAdditionalStepsTest(t *testing.T, testResource types.TestResource, steps []TestStep, previousVersion string) {
+	l := len(steps)
+	if l < 3 {
+		t.Fatalf("expected at least 3 steps, got %d. For tests with less than 3 steps, use `ResourceRegressionTest`", l)
+	}
+
+	os.Setenv("TF_ACC_REFRESH_AFTER_APPLY", "true")
+
+	for i := range steps[:l-1] {
+		steps[i].ExternalProviders = td.externalProviders()
+		steps[i].ExternalProviders["azurerm"] = resource.ExternalProvider{
+			VersionConstraint: providerRelease([]string{previousVersion}...),
+			Source:            "hashicorp/azurerm",
+		}
+	}
+
+	steps[l-1].ExternalProviders = td.externalProviders()
+	steps[l-1].ProtoV5ProviderFactories = framework.ProtoV5ProviderFactoriesInitWithTestName(context.Background(), t.Name(), "azurerm", "azurerm-alt")
+	steps[l-1].ConfigPlanChecks = resource.ConfigPlanChecks{
+		PreApply: []plancheck.PlanCheck{
+			helpers.IsNotResourceAction(td.ResourceName, plancheck.ResourceActionReplace),
+		},
+	}
+
+	testCase := resource.TestCase{
+		PreCheck: func() { PreCheck(t) },
+		CheckDestroy: func(s *terraform.State) error {
+			client, err := testclient.BuildWithTestName(t.Name())
+			if err != nil {
+				return fmt.Errorf("building client: %+v", err)
+			}
+			return helpers.CheckDestroyedFunc(client, testResource, td.ResourceType, td.ResourceName)(s)
+		},
+		Steps: steps,
+	}
+
+	resource.ParallelTest(t, testCase)
+}
+
 func RunTestsInSequence(t *testing.T, tests map[string]map[string]func(t *testing.T)) {
 	for group, m := range tests {
 		m := m

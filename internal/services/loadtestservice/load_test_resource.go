@@ -314,7 +314,7 @@ func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestEncryption(input []
 	encryptionIdentity := &loadtests.EncryptionPropertiesIdentity{}
 	if attrIdentity := attr.Identity; len(attrIdentity) > 0 {
 		encryptionIdentity.ResourceId = pointer.To(attrIdentity[0].IdentityID)
-		encryptionIdentity.Type = pointer.To(loadtests.Type(attrIdentity[0].Type))
+		encryptionIdentity.Type = pointer.ToEnum[loadtests.Type](attrIdentity[0].Type)
 	}
 
 	return &loadtests.EncryptionProperties{

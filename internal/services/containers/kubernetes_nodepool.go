@@ -747,7 +747,7 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 				allowedHostPorts = append(allowedHostPorts, agentpools.PortRange{
 					PortStart: allowedHostPortRaw.PortStart,
 					PortEnd:   allowedHostPortRaw.PortEnd,
-					Protocol:  pointer.To(agentpools.Protocol(pointer.From(allowedHostPortRaw.Protocol))),
+					Protocol:  pointer.ToEnum[agentpools.Protocol](string(pointer.From(allowedHostPortRaw.Protocol))),
 				})
 			}
 			networkProfile.AllowedHostPorts = &allowedHostPorts
@@ -766,28 +766,28 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 		agentpool.Properties.NetworkProfile = &networkProfile
 	}
 	if osTypeNodePool := defaultCluster.OsType; osTypeNodePool != nil {
-		agentpool.Properties.OsType = pointer.To(agentpools.OSType(string(*osTypeNodePool)))
+		agentpool.Properties.OsType = pointer.ToEnum[agentpools.OSType](string(*osTypeNodePool))
 	}
 	if osSku := defaultCluster.OsSKU; osSku != nil {
-		agentpool.Properties.OsSKU = pointer.To(agentpools.OSSKU(*osSku))
+		agentpool.Properties.OsSKU = pointer.ToEnum[agentpools.OSSKU](string(*osSku))
 	}
 	if kubeletDiskTypeNodePool := defaultCluster.KubeletDiskType; kubeletDiskTypeNodePool != nil {
-		agentpool.Properties.KubeletDiskType = pointer.To(agentpools.KubeletDiskType(string(*kubeletDiskTypeNodePool)))
+		agentpool.Properties.KubeletDiskType = pointer.ToEnum[agentpools.KubeletDiskType](string(*kubeletDiskTypeNodePool))
 	}
 	if agentPoolTypeNodePool := defaultCluster.Type; agentPoolTypeNodePool != nil {
-		agentpool.Properties.Type = pointer.To(agentpools.AgentPoolType(string(*agentPoolTypeNodePool)))
+		agentpool.Properties.Type = pointer.ToEnum[agentpools.AgentPoolType](string(*agentPoolTypeNodePool))
 	}
 	if scaleSetPriorityNodePool := defaultCluster.ScaleSetPriority; scaleSetPriorityNodePool != nil {
-		agentpool.Properties.ScaleSetPriority = pointer.To(agentpools.ScaleSetPriority(string(*scaleSetPriorityNodePool)))
+		agentpool.Properties.ScaleSetPriority = pointer.ToEnum[agentpools.ScaleSetPriority](string(*scaleSetPriorityNodePool))
 	}
 	if scaleSetEvictionPolicyNodePool := defaultCluster.ScaleSetEvictionPolicy; scaleSetEvictionPolicyNodePool != nil {
-		agentpool.Properties.ScaleSetEvictionPolicy = pointer.To(agentpools.ScaleSetEvictionPolicy(string(*scaleSetEvictionPolicyNodePool)))
+		agentpool.Properties.ScaleSetEvictionPolicy = pointer.ToEnum[agentpools.ScaleSetEvictionPolicy](string(*scaleSetEvictionPolicyNodePool))
 	}
 	if modeNodePool := defaultCluster.Mode; modeNodePool != nil {
-		agentpool.Properties.Mode = pointer.To(agentpools.AgentPoolMode(string(*modeNodePool)))
+		agentpool.Properties.Mode = pointer.ToEnum[agentpools.AgentPoolMode](string(*modeNodePool))
 	}
 	if scaleDownModeNodePool := defaultCluster.ScaleDownMode; scaleDownModeNodePool != nil {
-		agentpool.Properties.ScaleDownMode = pointer.To(agentpools.ScaleDownMode(string(*scaleDownModeNodePool)))
+		agentpool.Properties.ScaleDownMode = pointer.ToEnum[agentpools.ScaleDownMode](string(*scaleDownModeNodePool))
 	}
 	agentpool.Properties.UpgradeSettings = &agentpools.AgentPoolUpgradeSettings{}
 	if upgradeSettingsNodePool := defaultCluster.UpgradeSettings; upgradeSettingsNodePool != nil {
@@ -801,11 +801,11 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 			agentpool.Properties.UpgradeSettings.NodeSoakDurationInMinutes = upgradeSettingsNodePool.NodeSoakDurationInMinutes
 		}
 		if upgradeSettingsNodePool.UndrainableNodeBehavior != nil {
-			agentpool.Properties.UpgradeSettings.UndrainableNodeBehavior = pointer.To(agentpools.UndrainableNodeBehavior(*upgradeSettingsNodePool.UndrainableNodeBehavior))
+			agentpool.Properties.UpgradeSettings.UndrainableNodeBehavior = pointer.ToEnum[agentpools.UndrainableNodeBehavior](string(*upgradeSettingsNodePool.UndrainableNodeBehavior))
 		}
 	}
 	if workloadRuntimeNodePool := defaultCluster.WorkloadRuntime; workloadRuntimeNodePool != nil {
-		agentpool.Properties.WorkloadRuntime = pointer.To(agentpools.WorkloadRuntime(string(*workloadRuntimeNodePool)))
+		agentpool.Properties.WorkloadRuntime = pointer.ToEnum[agentpools.WorkloadRuntime](string(*workloadRuntimeNodePool))
 	}
 
 	if creationData := defaultCluster.CreationData; creationData != nil {
@@ -817,7 +817,7 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 	}
 
 	if defaultCluster.GpuInstanceProfile != nil {
-		agentpool.Properties.GpuInstanceProfile = pointer.To(agentpools.GPUInstanceProfile(*defaultCluster.GpuInstanceProfile))
+		agentpool.Properties.GpuInstanceProfile = pointer.ToEnum[agentpools.GPUInstanceProfile](string(*defaultCluster.GpuInstanceProfile))
 	}
 
 	return agentpool
@@ -846,12 +846,12 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 		EnableFIPS:             pointer.To(raw["fips_enabled"].(bool)),
 		EnableNodePublicIP:     pointer.To(raw["node_public_ip_enabled"].(bool)),
 		EnableEncryptionAtHost: pointer.To(raw["host_encryption_enabled"].(bool)),
-		KubeletDiskType:        pointer.To(managedclusters.KubeletDiskType(raw["kubelet_disk_type"].(string))),
+		KubeletDiskType:        pointer.ToEnum[managedclusters.KubeletDiskType](raw["kubelet_disk_type"].(string)),
 		Name:                   raw["name"].(string),
 		NodeLabels:             nodeLabels,
 		NodeTaints:             nodeTaints,
 		Tags:                   tags.Expand(t),
-		Type:                   pointer.To(managedclusters.AgentPoolType(raw["type"].(string))),
+		Type:                   pointer.ToEnum[managedclusters.AgentPoolType](raw["type"].(string)),
 		VMSize:                 pointer.To(raw["vm_size"].(string)),
 
 		// at this time the default node pool has to be Linux or the AKS cluster fails to provision with:
@@ -890,11 +890,11 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 
 	profile.OsDiskType = pointer.To(managedclusters.OSDiskTypeManaged)
 	if osDiskType := raw["os_disk_type"].(string); osDiskType != "" {
-		profile.OsDiskType = pointer.To(managedclusters.OSDiskType(osDiskType))
+		profile.OsDiskType = pointer.ToEnum[managedclusters.OSDiskType](osDiskType)
 	}
 
 	if osSku := raw["os_sku"].(string); osSku != "" {
-		profile.OsSKU = pointer.To(managedclusters.OSSKU(osSku))
+		profile.OsSKU = pointer.ToEnum[managedclusters.OSSKU](osSku)
 	}
 
 	if podSubnetID := raw["pod_subnet_id"].(string); podSubnetID != "" {
@@ -904,7 +904,7 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 	scaleDownModeDelete := managedclusters.ScaleDownModeDelete
 	profile.ScaleDownMode = &scaleDownModeDelete
 	if scaleDownMode := raw["scale_down_mode"].(string); scaleDownMode != "" {
-		profile.ScaleDownMode = pointer.To(managedclusters.ScaleDownMode(scaleDownMode))
+		profile.ScaleDownMode = pointer.ToEnum[managedclusters.ScaleDownMode](scaleDownMode)
 	}
 
 	if snapshotId := raw["snapshot_id"].(string); snapshotId != "" {
@@ -934,7 +934,7 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 	}
 
 	if workloadRunTime := raw["workload_runtime"].(string); workloadRunTime != "" {
-		profile.WorkloadRuntime = pointer.To(managedclusters.WorkloadRuntime(workloadRunTime))
+		profile.WorkloadRuntime = pointer.ToEnum[managedclusters.WorkloadRuntime](workloadRunTime)
 	}
 
 	if capacityReservationGroupId := raw["capacity_reservation_group_id"].(string); capacityReservationGroupId != "" {
@@ -942,12 +942,12 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 	}
 
 	if gpuInstanceProfile := raw["gpu_instance"].(string); gpuInstanceProfile != "" {
-		profile.GpuInstanceProfile = pointer.To(managedclusters.GPUInstanceProfile(gpuInstanceProfile))
+		profile.GpuInstanceProfile = pointer.ToEnum[managedclusters.GPUInstanceProfile](gpuInstanceProfile)
 	}
 
 	if gpuDriver := raw["gpu_driver"].(string); gpuDriver != "" {
 		profile.GpuProfile = &managedclusters.GPUProfile{
-			Driver: pointer.To(managedclusters.GPUDriver(gpuDriver)),
+			Driver: pointer.ToEnum[managedclusters.GPUDriver](gpuDriver),
 		}
 	}
 
@@ -1203,30 +1203,15 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		count = int(*agentPool.Count)
 	}
 
-	enableUltraSSD := false
-	if agentPool.EnableUltraSSD != nil {
-		enableUltraSSD = *agentPool.EnableUltraSSD
-	}
+	enableUltraSSD := pointer.From(agentPool.EnableUltraSSD)
 
-	enableAutoScaling := false
-	if agentPool.EnableAutoScaling != nil {
-		enableAutoScaling = *agentPool.EnableAutoScaling
-	}
+	enableAutoScaling := pointer.From(agentPool.EnableAutoScaling)
 
-	enableFIPS := false
-	if agentPool.EnableFIPS != nil {
-		enableFIPS = *agentPool.EnableFIPS
-	}
+	enableFIPS := pointer.From(agentPool.EnableFIPS)
 
-	enableNodePublicIP := false
-	if agentPool.EnableNodePublicIP != nil {
-		enableNodePublicIP = *agentPool.EnableNodePublicIP
-	}
+	enableNodePublicIP := pointer.From(agentPool.EnableNodePublicIP)
 
-	enableHostEncryption := false
-	if agentPool.EnableEncryptionAtHost != nil {
-		enableHostEncryption = *agentPool.EnableEncryptionAtHost
-	}
+	enableHostEncryption := pointer.From(agentPool.EnableEncryptionAtHost)
 
 	gpuInstanceProfile := ""
 	if agentPool.GpuInstanceProfile != nil {
@@ -1266,10 +1251,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		}
 	}
 
-	nodePublicIPPrefixID := ""
-	if agentPool.NodePublicIPPrefixID != nil {
-		nodePublicIPPrefixID = *agentPool.NodePublicIPPrefixID
-	}
+	nodePublicIPPrefixID := pointer.From(agentPool.NodePublicIPPrefixID)
 
 	criticalAddonsEnabled := false
 	if agentPool.NodeTaints != nil {
@@ -1290,20 +1272,11 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		osDiskType = *agentPool.OsDiskType
 	}
 
-	podSubnetId := ""
-	if agentPool.PodSubnetID != nil {
-		podSubnetId = *agentPool.PodSubnetID
-	}
+	podSubnetId := pointer.From(agentPool.PodSubnetID)
 
-	vnetSubnetId := ""
-	if agentPool.VnetSubnetID != nil {
-		vnetSubnetId = *agentPool.VnetSubnetID
-	}
+	vnetSubnetId := pointer.From(agentPool.VnetSubnetID)
 
-	hostGroupID := ""
-	if agentPool.HostGroupID != nil {
-		hostGroupID = *agentPool.HostGroupID
-	}
+	hostGroupID := pointer.From(agentPool.HostGroupID)
 
 	orchestratorVersion := ""
 	// NOTE: workaround for migration from 2022-01-02-preview (<3.12.0) to 2022-03-02-preview (>=3.12.0). Before terraform apply is run against the new API, Azure will respond only with currentOrchestratorVersion, orchestratorVersion will be absent. More details: https://github.com/hashicorp/terraform-provider-azurerm/issues/17833#issuecomment-1227583353
@@ -1313,10 +1286,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		orchestratorVersion = *agentPool.CurrentOrchestratorVersion
 	}
 
-	proximityPlacementGroupId := ""
-	if agentPool.ProximityPlacementGroupID != nil {
-		proximityPlacementGroupId = *agentPool.ProximityPlacementGroupID
-	}
+	proximityPlacementGroupId := pointer.From(agentPool.ProximityPlacementGroupID)
 
 	scaleDownMode := managedclusters.ScaleDownModeDelete
 	if agentPool.ScaleDownMode != nil {
@@ -1332,14 +1302,8 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		snapshotId = id.ID()
 	}
 
-	vmSize := ""
-	if agentPool.VMSize != nil {
-		vmSize = *agentPool.VMSize
-	}
-	capacityReservationGroupId := ""
-	if agentPool.CapacityReservationGroupID != nil {
-		capacityReservationGroupId = *agentPool.CapacityReservationGroupID
-	}
+	vmSize := pointer.From(agentPool.VMSize)
+	capacityReservationGroupId := pointer.From(agentPool.CapacityReservationGroupID)
 
 	workloadRunTime := ""
 	if agentPool.WorkloadRuntime != nil {
@@ -1559,14 +1523,8 @@ func flattenClusterNodePoolLinuxOSConfig(input *managedclusters.LinuxOSConfig) (
 	if input.SwapFileSizeMB != nil {
 		swapFileSizeMB = int(*input.SwapFileSizeMB)
 	}
-	var transparentHugePageDefrag string
-	if input.TransparentHugePageDefrag != nil {
-		transparentHugePageDefrag = *input.TransparentHugePageDefrag
-	}
-	var transparentHugePageEnabled string
-	if input.TransparentHugePageEnabled != nil {
-		transparentHugePageEnabled = *input.TransparentHugePageEnabled
-	}
+	transparentHugePageDefrag := pointer.From(input.TransparentHugePageDefrag)
+	transparentHugePageEnabled := pointer.From(input.TransparentHugePageEnabled)
 	sysctlConfig, err := flattenClusterNodePoolSysctlConfig(input.Sysctls)
 	if err != nil {
 		return nil, err
@@ -1689,10 +1647,7 @@ func flattenClusterNodePoolSysctlConfig(input *managedclusters.SysctlConfig) ([]
 	if input.NetIPv4TcpMaxTwBuckets != nil {
 		netIpv4TcpMaxTwBuckets = int(*input.NetIPv4TcpMaxTwBuckets)
 	}
-	var netIpv4TcpTwReuse bool
-	if input.NetIPv4TcpTwReuse != nil {
-		netIpv4TcpTwReuse = *input.NetIPv4TcpTwReuse
-	}
+	netIpv4TcpTwReuse := pointer.From(input.NetIPv4TcpTwReuse)
 	var netNetfilterNfConntrackBuckets int
 	if input.NetNetfilterNfConntrackBuckets != nil {
 		netNetfilterNfConntrackBuckets = int(*input.NetNetfilterNfConntrackBuckets)
@@ -1816,7 +1771,7 @@ func expandClusterNodePoolUpgradeSettings(input []interface{}) *managedclusters.
 		setting.NodeSoakDurationInMinutes = pointer.To(int64(nodeSoakDurationInMinutesRaw))
 	}
 	if undrainableNodeBehaviorRaw, ok := v["undrainable_node_behavior"].(string); ok && undrainableNodeBehaviorRaw != "" {
-		setting.UndrainableNodeBehavior = pointer.To(managedclusters.UndrainableNodeBehavior(undrainableNodeBehaviorRaw))
+		setting.UndrainableNodeBehavior = pointer.ToEnum[managedclusters.UndrainableNodeBehavior](undrainableNodeBehaviorRaw)
 	}
 
 	return setting

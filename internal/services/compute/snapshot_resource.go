@@ -195,7 +195,7 @@ func resourceSnapshotCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if v, ok := d.GetOk("network_access_policy"); ok {
-		properties.Properties.NetworkAccessPolicy = pointer.To(snapshots.NetworkAccessPolicy(v.(string)))
+		properties.Properties.NetworkAccessPolicy = pointer.ToEnum[snapshots.NetworkAccessPolicy](v.(string))
 	}
 
 	if v, ok := d.GetOk("disk_access_id"); ok {
@@ -283,11 +283,7 @@ func resourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 			d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
 
-			incrementalEnabled := false
-			if props.Incremental != nil {
-				incrementalEnabled = *props.Incremental
-			}
-			d.Set("incremental_enabled", incrementalEnabled)
+			d.Set("incremental_enabled", pointer.From(props.Incremental))
 
 			trustedLaunchEnabled := false
 			if securityProfile := props.SecurityProfile; securityProfile != nil && securityProfile.SecurityType != nil {

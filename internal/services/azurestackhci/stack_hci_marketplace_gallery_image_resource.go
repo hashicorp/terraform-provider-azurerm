@@ -180,7 +180,7 @@ func (r StackHCIMarketplaceGalleryImageResource) Create() sdk.ResourceFunc {
 				Properties: &marketplacegalleryimages.MarketplaceGalleryImageProperties{
 					Identifier:       expandStackHCIMarketplaceGalleryImageIdentifier(config.Identifier),
 					OsType:           marketplacegalleryimages.OperatingSystemTypes(config.OsType),
-					HyperVGeneration: pointer.To(marketplacegalleryimages.HyperVGeneration(config.HypervGeneration)),
+					HyperVGeneration: pointer.ToEnum[marketplacegalleryimages.HyperVGeneration](config.HypervGeneration),
 					Version: &marketplacegalleryimages.GalleryImageVersion{
 						Name: pointer.To(config.Version),
 					},

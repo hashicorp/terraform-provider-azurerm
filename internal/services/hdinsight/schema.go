@@ -415,7 +415,7 @@ func SchemaHDInsightsHttpsEndpoints() *pluginsdk.Schema {
 
 type HttpEndpointModel struct {
 	AccessModes        []string `tfschema:"access_modes"`
-	DestinationPort    int32    `tfschema:"destination_port"`
+	DestinationPort    int64    `tfschema:"destination_port"`
 	DisableGatewayAuth bool     `tfschema:"disable_gateway_auth"`
 	PrivateIpAddress   string   `tfschema:"private_ip_address"`
 	SubDomainSuffix    string   `tfschema:"sub_domain_suffix"`
@@ -634,7 +634,7 @@ func ExpandHDInsightPrivateLinkConfigurationIpConfigurationProperties(input []in
 
 	props := clusters.IPConfigurationProperties{
 		Primary:                   pointer.To(v["primary"].(bool)),
-		PrivateIPAllocationMethod: pointer.To(clusters.PrivateIPAllocationMethod(v["private_ip_allocation_method"].(string))),
+		PrivateIPAllocationMethod: pointer.ToEnum[clusters.PrivateIPAllocationMethod](v["private_ip_allocation_method"].(string)),
 	}
 	if v["private_ip_address"] != nil && v["private_ip_address"].(string) != "" {
 		props.PrivateIPAddress = pointer.To(v["private_ip_address"].(string))
@@ -1030,7 +1030,7 @@ func ExpandHDInsightsDiskEncryptionProperties(input []interface{}) (*clusters.Di
 	keyVaultManagedIdentityId := v["key_vault_managed_identity_id"].(string)
 
 	diskEncryptionProps := &clusters.DiskEncryptionProperties{
-		EncryptionAlgorithm: pointer.To(clusters.JsonWebKeyEncryptionAlgorithm(encryptionAlgorithm)),
+		EncryptionAlgorithm: pointer.ToEnum[clusters.JsonWebKeyEncryptionAlgorithm](encryptionAlgorithm),
 		EncryptionAtHost:    &encryptionAtHost,
 		MsiResourceId:       &keyVaultManagedIdentityId,
 	}
@@ -1918,35 +1918,15 @@ func flattenHDInsightSecurityProfile(input *clusters.SecurityProfile, d *plugins
 		return make([]interface{}, 0)
 	}
 
-	var aaddsResourceId string
-	if input.AaddsResourceId != nil {
-		aaddsResourceId = *input.AaddsResourceId
-	}
-
-	var domain string
-	if input.Domain != nil {
-		domain = *input.Domain
-	}
-
-	var domainUsername string
-	if input.DomainUsername != nil {
-		domainUsername = *input.DomainUsername
-	}
-
-	var msiResourceId string
-	if input.MsiResourceId != nil {
-		msiResourceId = *input.MsiResourceId
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"aadds_resource_id":       aaddsResourceId,
+			"aadds_resource_id":       pointer.From(input.AaddsResourceId),
 			"cluster_users_group_dns": helpers.FlattenStringSlice(input.ClusterUsersGroupDNs),
-			"domain_name":             domain,
-			"domain_username":         domainUsername,
+			"domain_name":             pointer.From(input.Domain),
+			"domain_username":         pointer.From(input.DomainUsername),
 			"domain_user_password":    d.Get("security_profile.0.domain_user_password"),
 			"ldaps_urls":              helpers.FlattenStringSlice(input.LdapsURLs),
-			"msi_resource_id":         msiResourceId,
+			"msi_resource_id":         pointer.From(input.MsiResourceId),
 		},
 	}
 }

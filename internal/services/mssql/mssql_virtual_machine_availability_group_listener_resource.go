@@ -532,10 +532,10 @@ func expandMsSqlVirtualMachineAvailabilityGroupListenerReplicas(replicas []Repli
 
 	for _, rep := range replicas {
 		replica := availabilitygrouplisteners.AgReplica{
-			Role:              pointer.To(availabilitygrouplisteners.Role(rep.Role)),
-			Commit:            pointer.To(availabilitygrouplisteners.Commit(rep.Commit)),
-			Failover:          pointer.To(availabilitygrouplisteners.Failover(rep.FailoverMode)),
-			ReadableSecondary: pointer.To(availabilitygrouplisteners.ReadableSecondary(rep.ReadableSecondary)),
+			Role:              pointer.ToEnum[availabilitygrouplisteners.Role](rep.Role),
+			Commit:            pointer.ToEnum[availabilitygrouplisteners.Commit](rep.Commit),
+			Failover:          pointer.ToEnum[availabilitygrouplisteners.Failover](rep.FailoverMode),
+			ReadableSecondary: pointer.ToEnum[availabilitygrouplisteners.ReadableSecondary](rep.ReadableSecondary),
 		}
 
 		sqlVirtualMachineId := rep.SqlVirtualMachineId

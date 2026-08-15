@@ -657,7 +657,7 @@ func expandOpenshiftNetworkProfile(input []NetworkProfile) *openshiftclusters.Ne
 	}
 
 	return &openshiftclusters.NetworkProfile{
-		OutboundType:     pointer.To(openshiftclusters.OutboundType(input[0].OutboundType)),
+		OutboundType:     pointer.ToEnum[openshiftclusters.OutboundType](input[0].OutboundType),
 		PodCidr:          pointer.To(input[0].PodCidr),
 		ServiceCidr:      pointer.To(input[0].ServiceCidr),
 		PreconfiguredNSG: pointer.To(preconfiguredNSG),
@@ -818,7 +818,7 @@ func expandOpenshiftIngressProfiles(input []IngressProfile) *[]openshiftclusters
 
 	profile := openshiftclusters.IngressProfile{
 		Name:       pointer.To("default"),
-		Visibility: pointer.To(openshiftclusters.Visibility(input[0].Visibility)),
+		Visibility: pointer.ToEnum[openshiftclusters.Visibility](input[0].Visibility),
 	}
 
 	profiles = append(profiles, profile)

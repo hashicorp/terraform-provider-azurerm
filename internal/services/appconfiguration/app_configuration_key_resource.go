@@ -321,8 +321,7 @@ func (k KeyResource) Read() sdk.ResourceFunc {
 			} else {
 				var ref VaultKeyReference
 				refBytes := []byte(pointer.From(kv.Value))
-				err := json.Unmarshal(refBytes, &ref)
-				if err != nil {
+				if err := json.Unmarshal(refBytes, &ref); err != nil {
 					return fmt.Errorf("while unmarshalling vault reference: %+v", err)
 				}
 

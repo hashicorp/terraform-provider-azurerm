@@ -23,7 +23,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstanceazureadonlyauthentications"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstances"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -98,7 +97,7 @@ func (r MsSqlManagedInstanceResource) IDValidationFunc() pluginsdk.SchemaValidat
 }
 
 func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
-	args := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         schema.TypeString,
 			Required:     true,
@@ -346,33 +345,6 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
-
-	if !features.FivePointOh() {
-		args["minimum_tls_version"] = &pluginsdk.Schema{
-			Type:     schema.TypeString,
-			Optional: true,
-			Default:  "1.2",
-			ValidateFunc: validation.StringInSlice([]string{
-				"1.0",
-				"1.1",
-				"1.2",
-			}, false),
-		}
-
-		args["proxy_override"] = &pluginsdk.Schema{
-			Type:     schema.TypeString,
-			Optional: true,
-			// Note: O+C while in 4.x because the value returned by Azure depends on when the resource was created if provisioned with `Default`.
-			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(managedinstances.ManagedInstanceProxyOverrideDefault),
-				string(managedinstances.ManagedInstanceProxyOverrideRedirect),
-				string(managedinstances.ManagedInstanceProxyOverrideProxy),
-			}, false),
-		}
-	}
-
-	return args
 }
 
 func (r MsSqlManagedInstanceResource) Attributes() map[string]*pluginsdk.Schema {
@@ -484,13 +456,6 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 
 			maintenanceConfigId := publicmaintenanceconfigurations.NewPublicMaintenanceConfigurationID(subscriptionId, model.MaintenanceConfigurationName)
 
-			if !features.FivePointOh() {
-				// Preserve previous Default value for `proxy_override`
-				if model.ProxyOverride == "" {
-					model.ProxyOverride = string(managedinstances.ManagedInstanceProxyOverrideDefault)
-				}
-			}
-
 			isGeneralPurposeV2 := expandMsSqlManagedInstanceGeneralPurposeV2Enabled(model.GeneralPurposeV2Enabled, model.SkuName)
 
 			parameters := managedinstances.ManagedInstance{
@@ -503,10 +468,10 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 					Collation:                        pointer.To(model.Collation),
 					DnsZonePartner:                   pointer.To(model.DnsZonePartnerId),
 					IsGeneralPurposeV2:               isGeneralPurposeV2,
-					LicenseType:                      pointer.To(managedinstances.ManagedInstanceLicenseType(model.LicenseType)),
+					LicenseType:                      pointer.ToEnum[managedinstances.ManagedInstanceLicenseType](model.LicenseType),
 					MaintenanceConfigurationId:       pointer.To(maintenanceConfigId.ID()),
 					MinimalTlsVersion:                pointer.To(model.MinimumTlsVersion),
-					ProxyOverride:                    pointer.To(managedinstances.ManagedInstanceProxyOverride(model.ProxyOverride)),
+					ProxyOverride:                    pointer.ToEnum[managedinstances.ManagedInstanceProxyOverride](model.ProxyOverride),
 					PublicDataEndpointEnabled:        pointer.To(model.PublicDataEndpointEnabled),
 					RequestedBackupStorageRedundancy: pointer.To(storageAccTypeToBackupStorageRedundancy(model.StorageAccountType)),
 					StorageSizeInGB:                  pointer.To(model.StorageSizeInGb),
@@ -516,8 +481,8 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 					ZoneRedundant:                    pointer.To(model.ZoneRedundantEnabled),
 					// `Administrators` is only valid when specified during creation`
 					Administrators:       expandMsSqlManagedInstanceExternalAdministrators(model.AzureActiveDirectoryAdministrator),
-					DatabaseFormat:       pointer.To(managedinstances.ManagedInstanceDatabaseFormat(model.DatabaseFormat)),
-					HybridSecondaryUsage: pointer.To(managedinstances.HybridSecondaryUsage(model.HybridSecondaryUsage)),
+					DatabaseFormat:       pointer.ToEnum[managedinstances.ManagedInstanceDatabaseFormat](model.DatabaseFormat),
+					HybridSecondaryUsage: pointer.ToEnum[managedinstances.HybridSecondaryUsage](model.HybridSecondaryUsage),
 				},
 				Tags: pointer.To(model.Tags),
 			}
@@ -536,7 +501,7 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 
 			if model.ServicePrincipalType != "" {
 				parameters.Properties.ServicePrincipal = &managedinstances.ServicePrincipal{
-					Type: pointer.To(managedinstances.ServicePrincipalType(model.ServicePrincipalType)),
+					Type: pointer.ToEnum[managedinstances.ServicePrincipalType](model.ServicePrincipalType),
 				}
 			}
 
@@ -670,7 +635,7 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 				if state.ServicePrincipalType == "" {
 					props.ServicePrincipal.Type = pointer.To(managedinstances.ServicePrincipalTypeNone)
 				} else {
-					props.ServicePrincipal.Type = pointer.To(managedinstances.ServicePrincipalType(state.ServicePrincipalType))
+					props.ServicePrincipal.Type = pointer.ToEnum[managedinstances.ServicePrincipalType](state.ServicePrincipalType)
 				}
 			}
 
@@ -697,8 +662,7 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 							AzureADOnlyAuthentication: false,
 						},
 					}
-					err = azureADAuthenticationOnlyClient.CreateOrUpdateThenPoll(ctx, *id, aadAuthOnlyParams)
-					if err != nil {
+					if err = azureADAuthenticationOnlyClient.CreateOrUpdateThenPoll(ctx, *id, aadAuthOnlyParams); err != nil {
 						return fmt.Errorf("disabling `azuread_authentication_only` for %s: %+v", *id, err)
 					}
 
@@ -721,19 +685,18 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 						},
 					}
 
-					err := azureADAuthenticationOnlyClient.CreateOrUpdateThenPoll(ctx, *id, aadOnlyAuthenticationsProps)
-					if err != nil {
+					if err := azureADAuthenticationOnlyClient.CreateOrUpdateThenPoll(ctx, *id, aadOnlyAuthenticationsProps); err != nil {
 						return fmt.Errorf("setting `azuread_authentication_only_enabled` for %s: %+v", *id, err)
 					}
 				}
 			}
 
 			if metadata.ResourceData.HasChange("database_format") {
-				props.DatabaseFormat = pointer.To(managedinstances.ManagedInstanceDatabaseFormat(state.DatabaseFormat))
+				props.DatabaseFormat = pointer.ToEnum[managedinstances.ManagedInstanceDatabaseFormat](state.DatabaseFormat)
 			}
 
 			if metadata.ResourceData.HasChange("hybrid_secondary_usage") {
-				props.HybridSecondaryUsage = pointer.To(managedinstances.HybridSecondaryUsage(state.HybridSecondaryUsage))
+				props.HybridSecondaryUsage = pointer.ToEnum[managedinstances.HybridSecondaryUsage](state.HybridSecondaryUsage)
 			}
 
 			effectiveIsGeneralPurposeV2 := expandMsSqlManagedInstanceGeneralPurposeV2Enabled(state.GeneralPurposeV2Enabled, state.SkuName)
@@ -862,8 +825,7 @@ func (r MsSqlManagedInstanceResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			err = client.DeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
@@ -1005,7 +967,7 @@ func expandMsSqlManagedInstanceExternalAdministrators(input []AzureActiveDirecto
 	admin := input[0]
 	adminParams := managedinstances.ManagedInstanceExternalAdministrator{
 		AdministratorType:         pointer.To(managedinstances.AdministratorTypeActiveDirectory),
-		PrincipalType:             pointer.To(managedinstances.PrincipalType(admin.PrincipalType)),
+		PrincipalType:             pointer.ToEnum[managedinstances.PrincipalType](admin.PrincipalType),
 		Login:                     pointer.To(admin.LoginUserName),
 		Sid:                       pointer.To(admin.ObjectID),
 		AzureADOnlyAuthentication: pointer.To(admin.AzureADAuthenticationOnlyEnabled),

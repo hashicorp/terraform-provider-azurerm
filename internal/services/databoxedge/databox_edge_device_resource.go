@@ -319,8 +319,8 @@ func expandDeviceSku(input string) *devices.Sku {
 	}
 
 	return &devices.Sku{
-		Name: pointer.To(devices.SkuName(v.Name)),
-		Tier: pointer.To(devices.SkuTier(v.Tier)),
+		Name: pointer.ToEnum[devices.SkuName](v.Name),
+		Tier: pointer.ToEnum[devices.SkuTier](v.Tier),
 	}
 }
 

@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -22,7 +21,7 @@ import (
 )
 
 func resourceMsSqlServerExtendedAuditingPolicy() *pluginsdk.Resource {
-	r := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceMsSqlServerExtendedAuditingPolicyCreateUpdate,
 		Read:   resourceMsSqlServerExtendedAuditingPolicyRead,
 		Update: resourceMsSqlServerExtendedAuditingPolicyCreateUpdate,
@@ -111,27 +110,6 @@ func resourceMsSqlServerExtendedAuditingPolicy() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		r.Schema["storage_endpoint"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Computed:      true,
-			ValidateFunc:  validation.IsURLWithHTTPS,
-			ConflictsWith: []string{"blob_storage_endpoint"},
-			Deprecated:    "`storage_endpoint` is deprecated in favour of `blob_storage_endpoint` and will be removed in version 5.0 of the AzureRM provider",
-		}
-
-		r.Schema["blob_storage_endpoint"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Computed:      true,
-			ValidateFunc:  validation.IsURLWithHTTPS,
-			ConflictsWith: []string{"storage_endpoint"},
-		}
-	}
-
-	return r
 }
 
 func resourceMsSqlServerExtendedAuditingPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -170,12 +148,6 @@ func resourceMsSqlServerExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resource
 		},
 	}
 
-	if !features.FivePointOh() {
-		if !pluginsdk.IsExplicitlyNullInConfig(d, "storage_endpoint") {
-			params.Properties.StorageEndpoint = pointer.To(d.Get("storage_endpoint").(string))
-		}
-	}
-
 	if d.Get("enabled").(bool) {
 		params.Properties.State = blobauditing.BlobAuditingPolicyStateEnabled
 	} else {
@@ -198,8 +170,7 @@ func resourceMsSqlServerExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resource
 		params.Properties.AuditActionsAndGroups = helpers.ExpandStringSlice(v.([]interface{}))
 	}
 
-	err = client.ExtendedServerBlobAuditingPoliciesCreateOrUpdateThenPoll(ctx, *serverId, params)
-	if err != nil {
+	if err = client.ExtendedServerBlobAuditingPoliciesCreateOrUpdateThenPoll(ctx, *serverId, params); err != nil {
 		return fmt.Errorf("creating MsSql Server Extended Auditing Policy %s: %+v", serverId, err)
 	}
 
@@ -236,9 +207,6 @@ func resourceMsSqlServerExtendedAuditingPolicyRead(d *pluginsdk.ResourceData, me
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("blob_storage_endpoint", props.StorageEndpoint)
-			if !features.FivePointOh() {
-				d.Set("storage_endpoint", props.StorageEndpoint)
-			}
 			d.Set("storage_account_access_key_is_secondary", props.IsStorageSecondaryKeyInUse)
 			d.Set("retention_in_days", props.RetentionDays)
 			d.Set("log_monitoring_enabled", props.IsAzureMonitorTargetEnabled)
@@ -273,8 +241,7 @@ func resourceMsSqlServerExtendedAuditingPolicyDelete(d *pluginsdk.ResourceData, 
 		},
 	}
 
-	err = client.ExtendedServerBlobAuditingPoliciesCreateOrUpdateThenPoll(ctx, serverId, params)
-	if err != nil {
+	if err = client.ExtendedServerBlobAuditingPoliciesCreateOrUpdateThenPoll(ctx, serverId, params); err != nil {
 		return fmt.Errorf("deleting %s: %+v", serverId, err)
 	}
 	return nil

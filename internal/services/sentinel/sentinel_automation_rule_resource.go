@@ -374,8 +374,7 @@ func expandAutomationRuleConditionsFromJSON(input string) (*[]automationrules.Au
 		return nil, nil
 	}
 	triggerLogic := &automationrules.AutomationRuleTriggeringLogic{}
-	err := triggerLogic.UnmarshalJSON([]byte(fmt.Sprintf(`{ "conditions": %s }`, input)))
-	if err != nil {
+	if err := triggerLogic.UnmarshalJSON([]byte(fmt.Sprintf(`{ "conditions": %s }`, input))); err != nil {
 		return nil, err
 	}
 	return triggerLogic.Conditions, nil

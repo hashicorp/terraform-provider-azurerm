@@ -200,8 +200,7 @@ func resourceMsSqlServerMicrosoftSupportAuditingPolicyDelete(d *pluginsdk.Resour
 		},
 	}
 
-	err = client.SettingsCreateOrUpdateThenPoll(ctx, serverId, params)
-	if err != nil {
+	if err = client.SettingsCreateOrUpdateThenPoll(ctx, serverId, params); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
