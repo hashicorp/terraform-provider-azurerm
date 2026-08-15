@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -24,7 +23,7 @@ import (
 )
 
 func resourceSynapseSparkPool() *pluginsdk.Resource {
-	r := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceSynapseSparkPoolCreate,
 		Read:   resourceSynapseSparkPoolRead,
 		Update: resourceSynapseSparkPoolUpdate,
@@ -227,30 +226,6 @@ func resourceSynapseSparkPool() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	if !features.FivePointOh() {
-		r.Schema["spark_version"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.All(
-				validation.StringInSlice([]string{
-					"3.2",
-					"3.3",
-					"3.4",
-					"3.5",
-				}, false),
-				// lintignore:V013 // false positive - this emits a deprecation warning for specific values, it does not reject values
-				func(v interface{}, k string) (warnings []string, errors []error) {
-					if val, ok := v.(string); ok && (val == "3.2" || val == "3.3") {
-						warnings = append(warnings, fmt.Sprintf("Spark version %s is deprecated and will be removed in a future version of the AzureRM provider. Please consider upgrading to version 3.4 or later.", val))
-					}
-					return
-				},
-			),
-		}
-	}
-
-	return r
 }
 
 func resourceSynapseSparkPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -520,14 +495,8 @@ func flattenArmSparkPoolAutoPauseProperties(input *synapse.AutoPauseProperties) 
 		return make([]interface{}, 0)
 	}
 
-	var delayInMinutes int32
-	if input.DelayInMinutes != nil {
-		delayInMinutes = *input.DelayInMinutes
-	}
-	var enabled bool
-	if input.Enabled != nil {
-		enabled = *input.Enabled
-	}
+	delayInMinutes := pointer.From(input.DelayInMinutes)
+	enabled := pointer.From(input.Enabled)
 
 	if !enabled {
 		return make([]interface{}, 0)
@@ -545,23 +514,14 @@ func flattenArmSparkPoolAutoScaleProperties(input *synapse.AutoScaleProperties) 
 		return make([]interface{}, 0)
 	}
 
-	var enabled bool
-	if input.Enabled != nil {
-		enabled = *input.Enabled
-	}
+	enabled := pointer.From(input.Enabled)
 
 	if !enabled {
 		return make([]interface{}, 0)
 	}
 
-	var maxNodeCount int32
-	if input.MaxNodeCount != nil {
-		maxNodeCount = *input.MaxNodeCount
-	}
-	var minNodeCount int32
-	if input.MinNodeCount != nil {
-		minNodeCount = *input.MinNodeCount
-	}
+	maxNodeCount := pointer.From(input.MaxNodeCount)
+	minNodeCount := pointer.From(input.MinNodeCount)
 	return []interface{}{
 		map[string]interface{}{
 			"max_node_count": maxNodeCount,
@@ -575,14 +535,8 @@ func flattenArmSparkPoolLibraryRequirements(input *synapse.LibraryRequirements) 
 		return make([]interface{}, 0)
 	}
 
-	var content string
-	if input.Content != nil {
-		content = *input.Content
-	}
-	var filename string
-	if input.Filename != nil {
-		filename = *input.Filename
-	}
+	content := pointer.From(input.Content)
+	filename := pointer.From(input.Filename)
 	return []interface{}{
 		map[string]interface{}{
 			"content":  content,
@@ -596,14 +550,8 @@ func flattenSparkPoolSparkConfig(input *synapse.SparkConfigProperties) []interfa
 		return make([]interface{}, 0)
 	}
 
-	var content string
-	if input.Content != nil {
-		content = *input.Content
-	}
-	var filename string
-	if input.Filename != nil {
-		filename = *input.Filename
-	}
+	content := pointer.From(input.Content)
+	filename := pointer.From(input.Filename)
 	return []interface{}{
 		map[string]interface{}{
 			"content":  content,

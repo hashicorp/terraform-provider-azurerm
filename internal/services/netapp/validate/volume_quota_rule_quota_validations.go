@@ -68,7 +68,7 @@ func ValidateNetAppVolumeQuotaRule(ctx context.Context, volumeID volumes.VolumeI
 	}
 
 	// Quota types and targets validations
-	errors = append(errors, ValidateNetAppVolumeQuotaRuleQuotaType(pointer.To(volumequotarules.QuotaType(rule.QuotaType)), pointer.To(rule.QuotaTarget))...)
+	errors = append(errors, ValidateNetAppVolumeQuotaRuleQuotaType(pointer.ToEnum[volumequotarules.QuotaType](rule.QuotaType), pointer.To(rule.QuotaTarget))...)
 
 	return errors
 }

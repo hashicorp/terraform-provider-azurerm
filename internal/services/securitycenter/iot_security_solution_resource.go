@@ -524,14 +524,9 @@ func flattenIotSecuritySolutionAdditionalWorkspace(input *[]security.AdditionalW
 		}
 		dataTypes := helpers.FlattenStringSlice(&rawDataTypes)
 
-		var workspaceId string
-		if item.Workspace != nil {
-			workspaceId = *item.Workspace
-		}
-
 		results = append(results, map[string]interface{}{
 			"data_types":   dataTypes,
-			"workspace_id": workspaceId,
+			"workspace_id": pointer.From(item.Workspace),
 		})
 	}
 

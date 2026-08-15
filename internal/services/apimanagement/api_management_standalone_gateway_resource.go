@@ -153,7 +153,7 @@ func (r ApiManagementStandaloneGatewayResource) Create() sdk.ResourceFunc {
 			properties := &apigateway.ApiManagementGatewayResource{
 				Location: location.Normalize(model.Location),
 				Properties: apigateway.ApiManagementGatewayBaseProperties{
-					VirtualNetworkType: pointer.To(apigateway.VirtualNetworkType(virtualNetworkType)),
+					VirtualNetworkType: pointer.ToEnum[apigateway.VirtualNetworkType](virtualNetworkType),
 				},
 				Sku:  pointer.From(expandGatewaySkuModel(model.Sku)),
 				Tags: pointer.To(model.Tags),

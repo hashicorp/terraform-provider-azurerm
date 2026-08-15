@@ -344,20 +344,10 @@ func flattenAADBasedSecurityPrincipal(input *[]confidentialledger.AADBasedSecuri
 			ledgerRoleName = string(*item.LedgerRoleName)
 		}
 
-		principalId := ""
-		if item.PrincipalId != nil {
-			principalId = *item.PrincipalId
-		}
-
-		tenantId := ""
-		if item.TenantId != nil {
-			tenantId = *item.TenantId
-		}
-
 		output = append(output, map[string]interface{}{
 			"ledger_role_name": ledgerRoleName,
-			"principal_id":     principalId,
-			"tenant_id":        tenantId,
+			"principal_id":     pointer.From(item.PrincipalId),
+			"tenant_id":        pointer.From(item.TenantId),
 		})
 	}
 
@@ -371,11 +361,6 @@ func flattenCertBasedSecurityPrincipal(input *[]confidentialledger.CertBasedSecu
 	}
 
 	for _, item := range *input {
-		pemPublicKey := ""
-		if item.Cert != nil {
-			pemPublicKey = *item.Cert
-		}
-
 		ledgerRoleName := ""
 		if item.LedgerRoleName != nil {
 			ledgerRoleName = string(*item.LedgerRoleName)
@@ -383,7 +368,7 @@ func flattenCertBasedSecurityPrincipal(input *[]confidentialledger.CertBasedSecu
 
 		output = append(output, map[string]interface{}{
 			"ledger_role_name": ledgerRoleName,
-			"pem_public_key":   pemPublicKey,
+			"pem_public_key":   pointer.From(item.Cert),
 		})
 	}
 

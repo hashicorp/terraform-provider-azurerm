@@ -305,11 +305,7 @@ func resourceIotHubDPSRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 		d.Set("allocation_policy", allocationPolicy)
 
-		enableDataResidency := false
-		if props.EnableDataResidency != nil {
-			enableDataResidency = *props.EnableDataResidency
-		}
-		d.Set("data_residency_enabled", enableDataResidency)
+		d.Set("data_residency_enabled", pointer.From(props.EnableDataResidency))
 
 		publicNetworkAccess := true
 		if props.PublicNetworkAccess != nil && *props.PublicNetworkAccess != "" {

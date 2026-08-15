@@ -161,7 +161,7 @@ func (r ExtendedLocationCustomLocationResource) Create() sdk.ResourceFunc {
 				ClusterExtensionIds: pointer.To(model.ClusterExtensionIds),
 				DisplayName:         pointer.To(model.DisplayName),
 				HostResourceId:      pointer.To(model.HostResourceId),
-				HostType:            pointer.To(customlocations.HostType(model.HostType)),
+				HostType:            pointer.ToEnum[customlocations.HostType](model.HostType),
 				Namespace:           pointer.To(model.Namespace),
 			}
 

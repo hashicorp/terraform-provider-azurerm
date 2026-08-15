@@ -10,10 +10,6 @@
   version: v3.0
 
 - module: github.com/Azure/azure-sdk-for-go
-  service: securityinsight
-  version: 2021-09-01-preview
-
-- module: github.com/Azure/azure-sdk-for-go
   service: sql
   version: v5.0
 
@@ -128,10 +124,6 @@
 - module: github.com/jackofallops/kermit/sdk
   service: iothub
   version: 2022-04-30-preview
-
-- module: github.com/jackofallops/kermit/sdk
-  service: securityinsights
-  version: 2022-10-01-preview
 
 - module: github.com/jackofallops/kermit/sdk
   service: synapse

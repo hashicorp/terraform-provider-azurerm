@@ -230,19 +230,9 @@ func flattenLineChannel(input *[]botservice.LineRegistration) []interface{} {
 	}
 
 	for _, item := range *input {
-		var channelAccessToken string
-		if item.ChannelAccessToken != nil {
-			channelAccessToken = *item.ChannelAccessToken
-		}
-
-		var channelSecret string
-		if item.ChannelSecret != nil {
-			channelSecret = *item.ChannelSecret
-		}
-
 		results = append(results, map[string]interface{}{
-			"access_token": channelAccessToken,
-			"secret":       channelSecret,
+			"access_token": pointer.From(item.ChannelAccessToken),
+			"secret":       pointer.From(item.ChannelSecret),
 		})
 	}
 

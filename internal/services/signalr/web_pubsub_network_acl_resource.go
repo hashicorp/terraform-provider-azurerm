@@ -221,7 +221,7 @@ func resourceWebPubsubNetworkACLRead(d *pluginsdk.ResourceData, meta interface{}
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			if props != nil && props.NetworkACLs != nil {
+			if props.NetworkACLs != nil {
 				defaultAction := ""
 				if props.NetworkACLs.DefaultAction != nil && *props.NetworkACLs.DefaultAction != "" {
 					defaultAction = string(*props.NetworkACLs.DefaultAction)

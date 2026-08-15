@@ -145,7 +145,7 @@ func resourceNatGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 			IdleTimeoutInMinutes: pointer.To(int64(d.Get("idle_timeout_in_minutes").(int))),
 		},
 		Sku: &natgateways.NatGatewaySku{
-			Name: pointer.To(natgateways.NatGatewaySkuName(d.Get("sku_name").(string))),
+			Name: pointer.ToEnum[natgateways.NatGatewaySkuName](d.Get("sku_name").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -216,7 +216,7 @@ func resourceNatGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	if d.HasChange("sku_name") {
 		payload.Sku = &natgateways.NatGatewaySku{
-			Name: pointer.To(natgateways.NatGatewaySkuName(d.Get("sku_name").(string))),
+			Name: pointer.ToEnum[natgateways.NatGatewaySkuName](d.Get("sku_name").(string)),
 		}
 	}
 

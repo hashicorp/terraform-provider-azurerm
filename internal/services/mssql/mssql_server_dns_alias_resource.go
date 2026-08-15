@@ -139,8 +139,7 @@ func (m ServerDNSAliasResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 			client := metadata.Client.MSSQL.ServerDNSAliasClient
-			err = client.DeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", id, err)
 			}
 			return nil
@@ -149,5 +148,5 @@ func (m ServerDNSAliasResource) Delete() sdk.ResourceFunc {
 }
 
 func (m ServerDNSAliasResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ServerDNSAliasID
+	return serverdnsaliases.ValidateDnsAliasID
 }
