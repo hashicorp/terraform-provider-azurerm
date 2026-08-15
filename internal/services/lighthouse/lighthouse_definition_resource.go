@@ -344,15 +344,10 @@ func resourceLighthouseDefinitionDelete(d *pluginsdk.ResourceData, meta interfac
 func flattenLighthouseDefinitionAuthorization(input []registrationdefinitions.Authorization) []interface{} {
 	results := make([]interface{}, 0)
 	for _, item := range input {
-		principalIDDisplayName := ""
-		if item.PrincipalIdDisplayName != nil {
-			principalIDDisplayName = *item.PrincipalIdDisplayName
-		}
-
 		results = append(results, map[string]interface{}{
 			"role_definition_id":            item.RoleDefinitionId,
 			"principal_id":                  item.PrincipalId,
-			"principal_display_name":        principalIDDisplayName,
+			"principal_display_name":        pointer.From(item.PrincipalIdDisplayName),
 			"delegated_role_definition_ids": helpers.FlattenStringSlice(item.DelegatedRoleDefinitionIds),
 		})
 	}

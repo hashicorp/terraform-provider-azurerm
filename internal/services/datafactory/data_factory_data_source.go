@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -163,14 +164,10 @@ func flattenGitHubRepoConfigurationDataSource(input factories.FactoryRepoConfigu
 	output := make([]interface{}, 0)
 
 	if v, ok := input.(factories.FactoryGitHubConfiguration); ok {
-		gitUrl := ""
-		if v.HostName != nil {
-			gitUrl = *v.HostName
-		}
 		output = append(output, map[string]interface{}{
 			"account_name":    v.AccountName,
 			"branch_name":     v.CollaborationBranch,
-			"git_url":         gitUrl,
+			"git_url":         pointer.From(v.HostName),
 			"repository_name": v.RepositoryName,
 			"root_folder":     v.RootFolder,
 		})
@@ -183,17 +180,13 @@ func flattenVSTSRepoConfigurationDataSource(input factories.FactoryRepoConfigura
 	output := make([]interface{}, 0)
 
 	if v, ok := input.(factories.FactoryVSTSConfiguration); ok {
-		tenantId := ""
-		if v.TenantId != nil {
-			tenantId = *v.TenantId
-		}
 		output = append(output, map[string]interface{}{
 			"account_name":    v.AccountName,
 			"branch_name":     v.CollaborationBranch,
 			"project_name":    v.ProjectName,
 			"repository_name": v.RepositoryName,
 			"root_folder":     v.RootFolder,
-			"tenant_id":       tenantId,
+			"tenant_id":       pointer.From(v.TenantId),
 		})
 	}
 

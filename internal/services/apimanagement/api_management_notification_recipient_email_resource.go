@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -182,5 +181,5 @@ func (r ApiManagementNotificationRecipientEmailResource) Delete() sdk.ResourceFu
 }
 
 func (r ApiManagementNotificationRecipientEmailResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.NotificationRecipientEmailID
+	return notificationrecipientemail.ValidateRecipientEmailID
 }

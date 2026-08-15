@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -248,12 +249,7 @@ func flattenDevTestGlobalVMShutdownScheduleRecurrenceDaily(dailyRecurrence *glob
 		return nil
 	}
 
-	var result string
-	if dailyRecurrence.Time != nil {
-		result = *dailyRecurrence.Time
-	}
-
-	return result
+	return pointer.From(dailyRecurrence.Time)
 }
 
 func expandDevTestGlobalVMShutdownScheduleNotificationSettings(d *pluginsdk.ResourceData) *globalschedules.NotificationSettings {

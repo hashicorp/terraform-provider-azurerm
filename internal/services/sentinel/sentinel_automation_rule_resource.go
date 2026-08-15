@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -217,7 +216,7 @@ func resourceSentinelAutomationRule() *pluginsdk.Resource {
 		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.AutomationRuleID(id)
+			_, err := automationrules.ParseAutomationRuleID(id)
 			return err
 		}),
 
@@ -375,8 +374,7 @@ func expandAutomationRuleConditionsFromJSON(input string) (*[]automationrules.Au
 		return nil, nil
 	}
 	triggerLogic := &automationrules.AutomationRuleTriggeringLogic{}
-	err := triggerLogic.UnmarshalJSON([]byte(fmt.Sprintf(`{ "conditions": %s }`, input)))
-	if err != nil {
+	if err := triggerLogic.UnmarshalJSON([]byte(fmt.Sprintf(`{ "conditions": %s }`, input))); err != nil {
 		return nil, err
 	}
 	return triggerLogic.Conditions, nil

@@ -100,7 +100,7 @@ func resourceVirtualHubSecurityPartnerProviderCreate(d *pluginsdk.ResourceData, 
 	parameters := securitypartnerproviders.SecurityPartnerProvider{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &securitypartnerproviders.SecurityPartnerProviderPropertiesFormat{
-			SecurityProviderName: pointer.To(securitypartnerproviders.SecurityProviderName(d.Get("security_provider_name").(string))),
+			SecurityProviderName: pointer.ToEnum[securitypartnerproviders.SecurityProviderName](d.Get("security_provider_name").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}

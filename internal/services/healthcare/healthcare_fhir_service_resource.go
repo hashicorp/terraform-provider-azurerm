@@ -262,7 +262,7 @@ func resourceHealthcareApisFhirServiceCreate(d *pluginsdk.ResourceData, meta int
 	parameters := fhirservices.FhirService{
 		Identity: i,
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
-		Kind:     pointer.To(fhirservices.FhirServiceKind(d.Get("kind").(string))),
+		Kind:     pointer.ToEnum[fhirservices.FhirServiceKind](d.Get("kind").(string)),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		Properties: &fhirservices.FhirServiceProperties{
 			AuthenticationConfiguration: expandFhirAuthentication(d.Get("authentication").([]interface{})),
@@ -408,7 +408,7 @@ func resourceHealthcareApisFhirServiceUpdate(d *pluginsdk.ResourceData, meta int
 	parameters := fhirservices.FhirService{
 		Identity: i,
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
-		Kind:     pointer.To(fhirservices.FhirServiceKind(d.Get("kind").(string))),
+		Kind:     pointer.ToEnum[fhirservices.FhirServiceKind](d.Get("kind").(string)),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		Properties: &fhirservices.FhirServiceProperties{
 			AuthenticationConfiguration: expandFhirAuthentication(d.Get("authentication").([]interface{})),
@@ -437,8 +437,7 @@ func resourceHealthcareApisFhirServiceUpdate(d *pluginsdk.ResourceData, meta int
 	}
 	parameters.Properties.AcrConfiguration = &acrConfig
 
-	err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -456,8 +455,7 @@ func resourceHealthcareApisFhirServiceDelete(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
@@ -633,14 +631,9 @@ func flattenFhirCorsConfiguration(corsConfig *fhirservices.FhirServiceCorsConfig
 		maxAge = int(*corsConfig.MaxAge)
 	}
 
-	allowCredentials := false
-	if corsConfig.AllowCredentials != nil {
-		allowCredentials = *corsConfig.AllowCredentials
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"credentials_allowed": allowCredentials,
+			"credentials_allowed": pointer.From(corsConfig.AllowCredentials),
 			"allowed_headers":     helpers.FlattenStringSlice(corsConfig.Headers),
 			"allowed_methods":     helpers.FlattenStringSlice(corsConfig.Methods),
 			"allowed_origins":     helpers.FlattenStringSlice(corsConfig.Origins),
@@ -654,26 +647,11 @@ func flattenFhirAuthentication(authConfig *fhirservices.FhirServiceAuthenticatio
 		return []interface{}{}
 	}
 
-	authority := ""
-	if authConfig.Authority != nil {
-		authority = *authConfig.Authority
-	}
-
-	audience := ""
-	if authConfig.Audience != nil {
-		audience = *authConfig.Audience
-	}
-
-	smartProxyEnabled := false
-	if authConfig.SmartProxyEnabled != nil {
-		smartProxyEnabled = *authConfig.SmartProxyEnabled
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"audience":            audience,
-			"authority":           authority,
-			"smart_proxy_enabled": smartProxyEnabled,
+			"audience":            pointer.From(authConfig.Audience),
+			"authority":           pointer.From(authConfig.Authority),
+			"smart_proxy_enabled": pointer.From(authConfig.SmartProxyEnabled),
 		},
 	}
 }

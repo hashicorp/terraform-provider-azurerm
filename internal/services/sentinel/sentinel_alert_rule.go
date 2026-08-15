@@ -303,26 +303,6 @@ func flattenAlertRuleAlertDetailsOverride(input *alertrules.AlertDetailsOverride
 		return []interface{}{}
 	}
 
-	var descriptionFormat string
-	if input.AlertDescriptionFormat != nil {
-		descriptionFormat = *input.AlertDescriptionFormat
-	}
-
-	var displayNameFormat string
-	if input.AlertDisplayNameFormat != nil {
-		displayNameFormat = *input.AlertDisplayNameFormat
-	}
-
-	var severityColumnName string
-	if input.AlertSeverityColumnName != nil {
-		severityColumnName = *input.AlertSeverityColumnName
-	}
-
-	var tacticsColumnName string
-	if input.AlertTacticsColumnName != nil {
-		tacticsColumnName = *input.AlertTacticsColumnName
-	}
-
 	var dynamicProperties []interface{}
 	if input.AlertDynamicProperties != nil {
 		dynamicProperties = flattenAlertRuleAlertDynamicProperties(input.AlertDynamicProperties)
@@ -330,10 +310,10 @@ func flattenAlertRuleAlertDetailsOverride(input *alertrules.AlertDetailsOverride
 
 	return []interface{}{
 		map[string]interface{}{
-			"description_format":   descriptionFormat,
-			"display_name_format":  displayNameFormat,
-			"severity_column_name": severityColumnName,
-			"tactics_column_name":  tacticsColumnName,
+			"description_format":   pointer.From(input.AlertDescriptionFormat),
+			"display_name_format":  pointer.From(input.AlertDisplayNameFormat),
+			"severity_column_name": pointer.From(input.AlertSeverityColumnName),
+			"tactics_column_name":  pointer.From(input.AlertTacticsColumnName),
 			"dynamic_property":     dynamicProperties,
 		},
 	}
@@ -439,19 +419,9 @@ func flattenAlertRuleFieldMapping(input *[]alertrules.FieldMapping) []interface{
 
 	output := make([]interface{}, 0, len(*input))
 	for _, e := range *input {
-		var identifier string
-		if e.Identifier != nil {
-			identifier = *e.Identifier
-		}
-
-		var columnName string
-		if e.ColumnName != nil {
-			columnName = *e.ColumnName
-		}
-
 		output = append(output, map[string]interface{}{
-			"identifier":  identifier,
-			"column_name": columnName,
+			"identifier":  pointer.From(e.Identifier),
+			"column_name": pointer.From(e.ColumnName),
 		})
 	}
 
@@ -481,13 +451,8 @@ func flattenAlertRuleSentinelEntityMapping(input *[]alertrules.SentinelEntityMap
 
 	output := make([]interface{}, 0, len(*input))
 	for _, e := range *input {
-		var columnName string
-		if e.ColumnName != nil {
-			columnName = *e.ColumnName
-		}
-
 		output = append(output, map[string]interface{}{
-			"column_name": columnName,
+			"column_name": pointer.From(e.ColumnName),
 		})
 	}
 

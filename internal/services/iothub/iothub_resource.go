@@ -1540,17 +1540,9 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 				}
 				output["authentication_type"] = authenticationType
 
-				connectionStr := ""
-				if container.ConnectionString != nil {
-					connectionStr = *container.ConnectionString
-				}
-				output["connection_string"] = connectionStr
+				output["connection_string"] = pointer.From(container.ConnectionString)
 
-				endpointUri := ""
-				if container.EndpointURI != nil {
-					endpointUri = *container.EndpointURI
-				}
-				output["endpoint_uri"] = endpointUri
+				output["endpoint_uri"] = pointer.From(container.EndpointURI)
 
 				identityId := ""
 				if container.Identity != nil && container.Identity.UserAssignedIdentity != nil {
@@ -1595,23 +1587,11 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 				}
 				output["authentication_type"] = authenticationType
 
-				connectionStr := ""
-				if queue.ConnectionString != nil {
-					connectionStr = *queue.ConnectionString
-				}
-				output["connection_string"] = connectionStr
+				output["connection_string"] = pointer.From(queue.ConnectionString)
 
-				endpointUri := ""
-				if queue.EndpointURI != nil {
-					endpointUri = *queue.EndpointURI
-				}
-				output["endpoint_uri"] = endpointUri
+				output["endpoint_uri"] = pointer.From(queue.EndpointURI)
 
-				entityPath := ""
-				if queue.EntityPath != nil {
-					entityPath = *queue.EntityPath
-				}
-				output["entity_path"] = entityPath
+				output["entity_path"] = pointer.From(queue.EntityPath)
 
 				identityId := ""
 				if queue.Identity != nil && queue.Identity.UserAssignedIdentity != nil {
@@ -1643,23 +1623,11 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 				}
 				output["authentication_type"] = authenticationType
 
-				connectionStr := ""
-				if topic.ConnectionString != nil {
-					connectionStr = *topic.ConnectionString
-				}
-				output["connection_string"] = connectionStr
+				output["connection_string"] = pointer.From(topic.ConnectionString)
 
-				endpointUri := ""
-				if topic.EndpointURI != nil {
-					endpointUri = *topic.EndpointURI
-				}
-				output["endpoint_uri"] = endpointUri
+				output["endpoint_uri"] = pointer.From(topic.EndpointURI)
 
-				entityPath := ""
-				if topic.EntityPath != nil {
-					entityPath = *topic.EntityPath
-				}
-				output["entity_path"] = entityPath
+				output["entity_path"] = pointer.From(topic.EntityPath)
 
 				identityId := ""
 				if topic.Identity != nil && topic.Identity.UserAssignedIdentity != nil {
@@ -1691,23 +1659,11 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 				}
 				output["authentication_type"] = authenticationType
 
-				connectionStr := ""
-				if eventHub.ConnectionString != nil {
-					connectionStr = *eventHub.ConnectionString
-				}
-				output["connection_string"] = connectionStr
+				output["connection_string"] = pointer.From(eventHub.ConnectionString)
 
-				endpointUri := ""
-				if eventHub.EndpointURI != nil {
-					endpointUri = *eventHub.EndpointURI
-				}
-				output["endpoint_uri"] = endpointUri
+				output["endpoint_uri"] = pointer.From(eventHub.EndpointURI)
 
-				entityPath := ""
-				if eventHub.EntityPath != nil {
-					entityPath = *eventHub.EntityPath
-				}
-				output["entity_path"] = entityPath
+				output["entity_path"] = pointer.From(eventHub.EntityPath)
 
 				identityId := ""
 				if eventHub.Identity != nil && eventHub.Identity.UserAssignedIdentity != nil {

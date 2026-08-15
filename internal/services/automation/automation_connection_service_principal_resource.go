@@ -217,11 +217,7 @@ func resourceAutomationConnectionServicePrincipalRead(d *pluginsdk.ResourceData,
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			description := ""
-			if props.Description != nil {
-				description = *props.Description
-			}
-			d.Set("description", description)
+			d.Set("description", pointer.From(props.Description))
 
 			if props.FieldDefinitionValues != nil {
 				fieldDefinitionValues := *props.FieldDefinitionValues

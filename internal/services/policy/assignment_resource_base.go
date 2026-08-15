@@ -627,7 +627,7 @@ func (br assignmentBaseResource) expandSelectors(i []assignmentOverrideSelectorM
 	var res []policyassignments.Selector
 	for _, v := range i {
 		var item policyassignments.Selector
-		item.Kind = pointer.To(policyassignments.SelectorKind(v.Kind))
+		item.Kind = pointer.ToEnum[policyassignments.SelectorKind](v.Kind)
 		if len(v.In) > 0 {
 			item.In = pointer.To(v.In)
 		}

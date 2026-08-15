@@ -338,10 +338,7 @@ func flattenPrivateDNSZoneSOARecord(input *privatedns.RecordSet) []interface{} {
 		metaData = tags.Flatten(input.Properties.Metadata)
 	}
 
-	fqdn := ""
-	if input.Properties.Fqdn != nil {
-		fqdn = *input.Properties.Fqdn
-	}
+	fqdn := pointer.From(input.Properties.Fqdn)
 
 	email := ""
 	hostName := ""
