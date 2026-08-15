@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -25,6 +26,7 @@ import (
 var (
 	_ sdk.ResourceWithUpdate         = AzureBotServiceResource{}
 	_ sdk.ResourceWithCustomImporter = AzureBotServiceResource{}
+	_ sdk.ResourceWithStateMigration = AzureBotServiceResource{}
 )
 
 type AzureBotServiceResource struct{}
@@ -462,6 +464,17 @@ func (r AzureBotServiceResource) Update() sdk.ResourceFunc {
 			}
 
 			return nil
+		},
+	}
+}
+
+func (r AzureBotServiceResource) StateUpgraders() sdk.StateUpgradeData {
+	return sdk.StateUpgradeData{
+		SchemaVersion: 1,
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			// v0 -> v1 normalises the casing of IDs imported while this resource parsed them with the
+			// case-insensitive legacy parser, so they can be parsed with the case-sensitive SDK parser
+			0: migration.BotServiceAzureBotV0ToV1{},
 		},
 	}
 }
