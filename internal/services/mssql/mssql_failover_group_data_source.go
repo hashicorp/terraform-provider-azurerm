@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type MsSqlFailoverGroupDataSourceModel struct {
@@ -63,7 +64,7 @@ func (d MsSqlFailoverGroupDataSource) Arguments() map[string]*pluginsdk.Schema {
 		"server_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: commonids.ValidateSqlServerID,
+			ValidateFunc: validation.AsGeneratedID(commonids.ParseSqlServerIDInsensitively),
 		},
 	}
 }

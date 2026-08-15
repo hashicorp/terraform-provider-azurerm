@@ -49,7 +49,7 @@ func resourceMsSqlFirewallRule() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: commonids.ValidateSqlServerID,
+				ValidateFunc: validation.AsGeneratedID(commonids.ParseSqlServerIDInsensitively),
 			},
 
 			"start_ip_address": {
@@ -78,7 +78,9 @@ func resourceMsSqlFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	serverId, err := commonids.ParseSqlServerID(d.Get("server_id").(string))
+	// todo 6.0 - move to the case-sensitive parser when validation.AsGeneratedID is removed: this parses a config
+	// value which the paired AsGeneratedID validator accepts with legacy casing, and configs cannot be migrated.
+	serverId, err := commonids.ParseSqlServerIDInsensitively(d.Get("server_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing server ID %q: %+v", d.Get("server_id"), err)
 	}

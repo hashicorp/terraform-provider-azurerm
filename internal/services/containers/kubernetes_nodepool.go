@@ -248,7 +248,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
-						ValidateFunc: commonids.ValidateDedicatedHostGroupID,
+						ValidateFunc: validation.AsGeneratedID(commonids.ParseDedicatedHostGroupIDInsensitively),
 					},
 
 					"upgrade_settings": upgradeSettingsSchemaClusterDefaultNodePool(),

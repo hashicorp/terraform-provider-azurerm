@@ -1306,7 +1306,7 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 			// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE
 			// tracked by https://github.com/Azure/azure-rest-api-specs/issues/19424
 			DiffSuppressFunc: suppress.CaseDifference,
-			ValidateFunc:     commonids.ValidateDedicatedHostGroupID,
+			ValidateFunc:     validation.AsGeneratedID(commonids.ParseDedicatedHostGroupIDInsensitively),
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
@@ -1401,8 +1401,8 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 			Optional: true,
 			ValidateFunc: validation.Any(
 				images.ValidateImageID,
-				galleryimages.ValidateGalleryImageID,
-				galleryimageversions.ValidateImageVersionID,
+				validation.AsGeneratedID(galleryimages.ParseGalleryImageIDInsensitively),
+				validation.AsGeneratedID(galleryimageversions.ParseImageVersionIDInsensitively),
 				computeValidate.CommunityGalleryImageID,
 				computeValidate.CommunityGalleryImageVersionID,
 				computeValidate.SharedGalleryImageID,

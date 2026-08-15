@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
@@ -52,7 +53,7 @@ func resourceMsSqlTransparentDataEncryption() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: commonids.ValidateSqlServerID,
+				ValidateFunc: validation.AsGeneratedID(commonids.ParseSqlServerIDInsensitively),
 			},
 
 			"key_vault_key_id": {

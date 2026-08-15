@@ -44,7 +44,7 @@ func resourceMsSqlServerExtendedAuditingPolicy() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: commonids.ValidateSqlServerID,
+				ValidateFunc: validation.AsGeneratedID(commonids.ParseSqlServerIDInsensitively),
 			},
 
 			"enabled": {

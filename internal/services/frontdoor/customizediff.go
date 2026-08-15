@@ -25,7 +25,9 @@ func customizeHttpsConfigurationCustomizeDiff(ctx context.Context, d *pluginsdk.
 	}
 
 	if v, ok := d.GetOk("frontend_endpoint_id"); ok && v.(string) != "" {
-		id, err := frontdoors.ParseFrontendEndpointID(v.(string))
+		// todo 6.0 - move to the case-sensitive parser when validation.AsGeneratedID is removed: this parses a config
+		// value which the paired AsGeneratedID validator accepts with legacy casing, and configs cannot be migrated.
+		id, err := frontdoors.ParseFrontendEndpointIDInsensitively(v.(string))
 		if err != nil {
 			return err
 		}

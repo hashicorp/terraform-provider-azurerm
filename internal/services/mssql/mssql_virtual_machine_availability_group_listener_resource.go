@@ -193,7 +193,7 @@ func (r MsSqlVirtualMachineAvailabilityGroupListenerResource) Arguments() map[st
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: sqlvirtualmachines.ValidateSqlVirtualMachineID,
+						ValidateFunc: validation.AsGeneratedID(sqlvirtualmachines.ParseSqlVirtualMachineIDInsensitively),
 					},
 
 					"role": {

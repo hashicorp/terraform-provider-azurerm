@@ -76,7 +76,7 @@ func (r MsSqlFailoverGroupResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: commonids.ValidateSqlServerID,
+			ValidateFunc: validation.AsGeneratedID(commonids.ParseSqlServerIDInsensitively),
 		},
 
 		"partner_server": {

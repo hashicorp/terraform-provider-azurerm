@@ -246,7 +246,7 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 		"dns_zone_partner_id": {
 			Type:         schema.TypeString,
 			Optional:     true,
-			ValidateFunc: commonids.ValidateSqlManagedInstanceID,
+			ValidateFunc: validation.AsGeneratedID(commonids.ParseSqlManagedInstanceIDInsensitively),
 		},
 
 		"hybrid_secondary_usage": {

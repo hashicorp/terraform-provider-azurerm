@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type ServerDNSAliasModel struct {
@@ -33,7 +34,7 @@ func (m ServerDNSAliasResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: commonids.ValidateSqlServerID,
+			ValidateFunc: validation.AsGeneratedID(commonids.ParseSqlServerIDInsensitively),
 		},
 
 		"name": {
@@ -73,7 +74,9 @@ func (m ServerDNSAliasResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			serverID, err := commonids.ParseSqlServerID(alias.MsSQLServerId)
+			// todo 6.0 - move to the case-sensitive parser when validation.AsGeneratedID is removed: this parses a config
+			// value which the paired AsGeneratedID validator accepts with legacy casing, and configs cannot be migrated.
+			serverID, err := commonids.ParseSqlServerIDInsensitively(alias.MsSQLServerId)
 			if err != nil {
 				return err
 			}

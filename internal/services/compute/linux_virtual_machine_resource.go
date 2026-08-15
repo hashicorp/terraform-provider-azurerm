@@ -386,8 +386,8 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.Any(
 					images.ValidateImageID,
-					galleryimages.ValidateGalleryImageID,
-					galleryimageversions.ValidateImageVersionID,
+					validation.AsGeneratedID(galleryimages.ParseGalleryImageIDInsensitively),
+					validation.AsGeneratedID(galleryimageversions.ParseImageVersionIDInsensitively),
 					computeValidate.CommunityGalleryImageID,
 					computeValidate.CommunityGalleryImageVersionID,
 					computeValidate.SharedGalleryImageID,

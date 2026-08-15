@@ -56,7 +56,7 @@ func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: endpoints.ValidateEndpointID,
+				ValidateFunc: validation.AsGeneratedID(endpoints.ParseEndpointIDInsensitively),
 			},
 
 			"host_name": {
@@ -147,7 +147,9 @@ func resourceArmCdnEndpointCustomDomainCreate(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	cdnEndpointId, err := endpoints.ParseEndpointID(d.Get("cdn_endpoint_id").(string))
+	// todo 6.0 - move to the case-sensitive parser when validation.AsGeneratedID is removed: this parses a config
+	// value which the paired AsGeneratedID validator accepts with legacy casing, and configs cannot be migrated.
+	cdnEndpointId, err := endpoints.ParseEndpointIDInsensitively(d.Get("cdn_endpoint_id").(string))
 	if err != nil {
 		return err
 	}

@@ -2101,7 +2101,7 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 					"web_application_firewall_policy_link_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: webapplicationfirewallpolicies.ValidateFrontDoorWebApplicationFirewallPolicyID,
+						ValidateFunc: validation.AsGeneratedID(webapplicationfirewallpolicies.ParseFrontDoorWebApplicationFirewallPolicyIDInsensitively),
 					},
 				},
 			},

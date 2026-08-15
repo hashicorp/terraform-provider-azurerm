@@ -84,7 +84,7 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: commonids.ValidateSqlManagedInstanceID,
+			ValidateFunc: validation.AsGeneratedID(commonids.ParseSqlManagedInstanceIDInsensitively),
 		},
 
 		"long_term_retention_policy": {
@@ -158,7 +158,7 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         schema.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: validation.Any(commonids.ValidateSqlManagedInstanceDatabaseID, validate.RestorableDatabaseID),
+						ValidateFunc: validation.Any(validation.AsGeneratedID(commonids.ParseSqlManagedInstanceDatabaseIDInsensitively), validate.RestorableDatabaseID),
 					},
 				},
 			},

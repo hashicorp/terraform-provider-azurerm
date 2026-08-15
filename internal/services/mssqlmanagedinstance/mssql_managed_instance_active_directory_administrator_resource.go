@@ -54,7 +54,7 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Arguments() ma
 			Type:         schema.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: commonids.ValidateSqlManagedInstanceID,
+			ValidateFunc: validation.AsGeneratedID(commonids.ParseSqlManagedInstanceIDInsensitively),
 		},
 
 		"login_username": {

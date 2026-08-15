@@ -78,7 +78,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Arguments() map[string]*plugi
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: commonids.ValidateSqlManagedInstanceID,
+			ValidateFunc: validation.AsGeneratedID(commonids.ParseSqlManagedInstanceIDInsensitively),
 		},
 
 		"partner_managed_instance_id": {
@@ -170,7 +170,9 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Create() sdk.ResourceFunc {
 			id := instancefailovergroups.NewInstanceFailoverGroupID(managedInstanceId.SubscriptionId,
 				managedInstanceId.ResourceGroupName, model.Location, model.Name)
 
-			partnerId, err := commonids.ParseSqlManagedInstanceID(model.PartnerManagedInstanceId)
+			// todo 6.0 - move to the case-sensitive parser when validation.AsGeneratedID is removed: this parses a config
+			// value which the paired AsGeneratedID validator accepts with legacy casing, and configs cannot be migrated.
+			partnerId, err := commonids.ParseSqlManagedInstanceIDInsensitively(model.PartnerManagedInstanceId)
 			if err != nil {
 				return err
 			}
@@ -257,7 +259,9 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			partnerId, err := commonids.ParseSqlManagedInstanceID(state.PartnerManagedInstanceId)
+			// todo 6.0 - move to the case-sensitive parser when validation.AsGeneratedID is removed: this parses a config
+			// value which the paired AsGeneratedID validator accepts with legacy casing, and configs cannot be migrated.
+			partnerId, err := commonids.ParseSqlManagedInstanceIDInsensitively(state.PartnerManagedInstanceId)
 			if err != nil {
 				return err
 			}
