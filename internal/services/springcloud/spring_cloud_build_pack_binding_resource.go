@@ -37,7 +37,9 @@ func resourceSpringCloudBuildPackBinding() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := appplatform_rm.ParseBuildPackBindingID(id)
+			// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+			// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+			_, err := appplatform_rm.ParseBuildPackBindingIDInsensitively(id)
 			return err
 		}),
 
@@ -109,8 +111,8 @@ func resourceSpringCloudBuildPackBindingCreateUpdate(d *pluginsdk.ResourceData, 
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	// todo 6.0 - move to the case-sensitive parser when validation.AsGeneratedID is removed: this parses a config
-	// value which the paired AsGeneratedID validator accepts with legacy casing, and configs cannot be migrated.
+	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
 	builderId, err := appplatform_rm.ParseBuilderIDInsensitively(d.Get("spring_cloud_builder_id").(string))
 	if err != nil {
 		return err
@@ -156,7 +158,9 @@ func resourceSpringCloudBuildPackBindingRead(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := appplatform_rm.ParseBuildPackBindingID(d.Id())
+	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+	id, err := appplatform_rm.ParseBuildPackBindingIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
@@ -186,7 +190,9 @@ func resourceSpringCloudBuildPackBindingDelete(d *pluginsdk.ResourceData, meta i
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := appplatform_rm.ParseBuildPackBindingID(d.Id())
+	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+	id, err := appplatform_rm.ParseBuildPackBindingIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}

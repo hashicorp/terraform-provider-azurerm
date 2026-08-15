@@ -36,7 +36,9 @@ func resourceSpringCloudCustomDomain() *pluginsdk.Resource {
 		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := appplatform_rm.ParseDomainID(id)
+			// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+			// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+			_, err := appplatform_rm.ParseDomainIDInsensitively(id)
 			return err
 		}),
 
@@ -86,8 +88,8 @@ func resourceSpringCloudCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta
 	defer cancel()
 
 	name := d.Get("name").(string)
-	// todo 6.0 - move to the case-sensitive parser when validation.AsGeneratedID is removed: this parses a config
-	// value which the paired AsGeneratedID validator accepts with legacy casing, and configs cannot be migrated.
+	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
 	appId, err := appplatform_rm.ParseAppIDInsensitively(d.Get("spring_cloud_app_id").(string))
 	if err != nil {
 		return err
@@ -135,7 +137,9 @@ func resourceSpringCloudCustomDomainRead(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := appplatform_rm.ParseDomainID(d.Id())
+	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+	id, err := appplatform_rm.ParseDomainIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
@@ -165,7 +169,9 @@ func resourceSpringCloudCustomDomainDelete(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := appplatform_rm.ParseDomainID(d.Id())
+	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+	id, err := appplatform_rm.ParseDomainIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}

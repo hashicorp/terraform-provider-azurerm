@@ -90,8 +90,8 @@ func (s SpringCloudAcceleratorResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.AppPlatform.ApplicationAcceleratorClient
-			// todo 6.0 - move to the case-sensitive parser when validation.AsGeneratedID is removed: this parses a config
-			// value which the paired AsGeneratedID validator accepts with legacy casing, and configs cannot be migrated.
+			// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+			// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
 			springId, err := commonids.ParseSpringCloudServiceIDInsensitively(model.SpringCloudServiceId)
 			if err != nil {
 				return fmt.Errorf("parsing spring service ID: %+v", err)
@@ -131,7 +131,9 @@ func (s SpringCloudAcceleratorResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppPlatform.ApplicationAcceleratorClient
 
-			id, err := appplatform_rm.ParseApplicationAcceleratorID(metadata.ResourceData.Id())
+			// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+			// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+			id, err := appplatform_rm.ParseApplicationAcceleratorIDInsensitively(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -159,7 +161,9 @@ func (s SpringCloudAcceleratorResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppPlatform.ApplicationAcceleratorClient
 
-			id, err := appplatform_rm.ParseApplicationAcceleratorID(metadata.ResourceData.Id())
+			// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+			// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+			id, err := appplatform_rm.ParseApplicationAcceleratorIDInsensitively(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}

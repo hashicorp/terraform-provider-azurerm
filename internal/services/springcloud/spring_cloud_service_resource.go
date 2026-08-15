@@ -52,7 +52,9 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := commonids.ParseSpringCloudServiceID(id)
+			// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+			// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+			_, err := commonids.ParseSpringCloudServiceIDInsensitively(id)
 			return err
 		}),
 
@@ -585,7 +587,9 @@ func resourceSpringCloudServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := commonids.ParseSpringCloudServiceID(d.Id())
+	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+	id, err := commonids.ParseSpringCloudServiceIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
@@ -709,7 +713,9 @@ func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := commonids.ParseSpringCloudServiceID(d.Id())
+	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+	id, err := commonids.ParseSpringCloudServiceIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
@@ -843,7 +849,9 @@ func resourceSpringCloudServiceDelete(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := commonids.ParseSpringCloudServiceID(d.Id())
+	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+	id, err := commonids.ParseSpringCloudServiceIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}

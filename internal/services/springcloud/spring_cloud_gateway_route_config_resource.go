@@ -43,7 +43,9 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := appplatform_rm.ParseRouteConfigID(id)
+			// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+			// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+			_, err := appplatform_rm.ParseRouteConfigIDInsensitively(id)
 			return err
 		}),
 
@@ -191,8 +193,8 @@ func resourceSpringCloudGatewayRouteConfigCreateUpdate(d *pluginsdk.ResourceData
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	// todo 6.0 - move to the case-sensitive parser when validation.AsGeneratedID is removed: this parses a config
-	// value which the paired AsGeneratedID validator accepts with legacy casing, and configs cannot be migrated.
+	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
 	gatewayId, err := appplatform_rm.ParseGatewayIDInsensitively(d.Get("spring_cloud_gateway_id").(string))
 	if err != nil {
 		return err
@@ -254,7 +256,9 @@ func resourceSpringCloudGatewayRouteConfigRead(d *pluginsdk.ResourceData, meta i
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := appplatform_rm.ParseRouteConfigID(d.Id())
+	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+	id, err := appplatform_rm.ParseRouteConfigIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
@@ -306,7 +310,9 @@ func resourceSpringCloudGatewayRouteConfigDelete(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := appplatform_rm.ParseRouteConfigID(d.Id())
+	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+	id, err := appplatform_rm.ParseRouteConfigIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}

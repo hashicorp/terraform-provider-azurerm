@@ -37,7 +37,9 @@ func resourceSpringCloudContainerDeployment() *pluginsdk.Resource {
 		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := appplatform_rm.ParseDeploymentID(id)
+			// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+			// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+			_, err := appplatform_rm.ParseDeploymentIDInsensitively(id)
 			return err
 		}),
 
@@ -171,8 +173,8 @@ func resourceSpringCloudContainerDeploymentCreateUpdate(d *pluginsdk.ResourceDat
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	// todo 6.0 - move to the case-sensitive parser when validation.AsGeneratedID is removed: this parses a config
-	// value which the paired AsGeneratedID validator accepts with legacy casing, and configs cannot be migrated.
+	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
 	appId, err := appplatform_rm.ParseAppIDInsensitively(d.Get("spring_cloud_app_id").(string))
 	if err != nil {
 		return err
@@ -253,7 +255,9 @@ func resourceSpringCloudContainerDeploymentRead(d *pluginsdk.ResourceData, meta 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := appplatform_rm.ParseDeploymentID(d.Id())
+	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+	id, err := appplatform_rm.ParseDeploymentIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
@@ -307,7 +311,9 @@ func resourceSpringCloudContainerDeploymentDelete(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := appplatform_rm.ParseDeploymentID(d.Id())
+	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+	id, err := appplatform_rm.ParseDeploymentIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}

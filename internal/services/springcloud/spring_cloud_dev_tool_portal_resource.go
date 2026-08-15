@@ -145,8 +145,8 @@ func (s SpringCloudDevToolPortalResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.AppPlatform.DevToolPortalClient
-			// todo 6.0 - move to the case-sensitive parser when validation.AsGeneratedID is removed: this parses a config
-			// value which the paired AsGeneratedID validator accepts with legacy casing, and configs cannot be migrated.
+			// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+			// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
 			springId, err := commonids.ParseSpringCloudServiceIDInsensitively(model.SpringCloudServiceId)
 			if err != nil {
 				return fmt.Errorf("parsing spring service ID: %+v", err)

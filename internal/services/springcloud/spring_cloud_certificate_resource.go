@@ -38,7 +38,9 @@ func resourceSpringCloudCertificate() *pluginsdk.Resource {
 		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := appplatform_rm.ParseCertificateID(id)
+			// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+			// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+			_, err := appplatform_rm.ParseCertificateIDInsensitively(id)
 			return err
 		}),
 
@@ -156,7 +158,9 @@ func resourceSpringCloudCertificateRead(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := appplatform_rm.ParseCertificateID(d.Id())
+	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+	id, err := appplatform_rm.ParseCertificateIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
@@ -190,7 +194,9 @@ func resourceSpringCloudCertificateDelete(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := appplatform_rm.ParseCertificateID(d.Id())
+	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+	id, err := appplatform_rm.ParseCertificateIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
