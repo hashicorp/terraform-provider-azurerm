@@ -231,8 +231,7 @@ func resourceManagedApplicationUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 	payload.Properties.Parameters = pointer.To(interface{}(params))
 
-	err = client.CreateOrUpdateThenPoll(ctx, *id, *payload)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 

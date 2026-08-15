@@ -11,14 +11,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func dataSourceArmLoadBalancerRule() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Read: dataSourceArmLoadBalancerRuleRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -94,22 +93,6 @@ func dataSourceArmLoadBalancerRule() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["enable_floating_ip"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Computed:   true,
-			Deprecated: "The property `enable_floating_ip` has been deprecated in favour of `floating_ip_enabled` and will be removed in version 5.0 of the provider",
-		}
-
-		resource.Schema["enable_tcp_reset"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Computed:   true,
-			Deprecated: "The property `enable_tcp_reset` has been deprecated in favour of `tcp_reset_enabled` and will be removed in version 5.0 of the provider",
-		}
-	}
-
-	return resource
 }
 
 func dataSourceArmLoadBalancerRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -172,15 +155,6 @@ func dataSourceArmLoadBalancerRuleRead(d *pluginsdk.ResourceData, meta interface
 			if err := d.Set("tcp_reset_enabled", pointer.From(props.EnableTcpReset)); err != nil {
 				return fmt.Errorf("setting `tcp_reset_enabled`: %+v", err)
 			}
-			if !features.FivePointOh() {
-				if err := d.Set("enable_floating_ip", pointer.From(props.EnableFloatingIP)); err != nil {
-					return fmt.Errorf("setting `enable_floating_ip`: %+v", err)
-				}
-				if err := d.Set("enable_tcp_reset", pointer.From(props.EnableTcpReset)); err != nil {
-					return fmt.Errorf("setting `enable_tcp_reset`: %+v", err)
-				}
-			}
-
 			if err := d.Set("disable_outbound_snat", pointer.From(props.DisableOutboundSnat)); err != nil {
 				return fmt.Errorf("setting `disable_outbound_snat`: %+v", err)
 			}

@@ -167,11 +167,7 @@ func resourceContainerRegistryScopeMapRead(d *pluginsdk.ResourceData, meta inter
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			description := ""
-			if v := props.Description; v != nil {
-				description = *v
-			}
-			d.Set("description", description)
+			d.Set("description", pointer.From(props.Description))
 			d.Set("actions", helpers.FlattenStringSlice(&props.Actions))
 		}
 	}

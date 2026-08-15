@@ -289,8 +289,7 @@ func resourceCdnFrontdoorSecurityPolicyUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	// Using 'Create' for update because it is a PUT operation
-	err = client.CreateThenPoll(ctx, id, props)
-	if err != nil {
+	if err = client.CreateThenPoll(ctx, id, props); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -307,8 +306,7 @@ func resourceCdnFrontdoorSecurityPolicyDelete(d *pluginsdk.ResourceData, meta in
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, pointer.From(id))
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, pointer.From(id)); err != nil {
 		return fmt.Errorf("deleting %s: %+v", pointer.From(id), err)
 	}
 

@@ -246,11 +246,7 @@ func resourceSynapseRoleAssignmentRead(d *pluginsdk.ResourceData, meta interface
 	}
 	d.Set("principal_id", principalID)
 
-	principalType := ""
-	if resp.PrincipalType != nil {
-		principalType = *resp.PrincipalType
-	}
-	d.Set("principal_type", principalType)
+	d.Set("principal_type", pointer.From(resp.PrincipalType))
 
 	synapseWorkspaceId := ""
 	synapseSparkPoolId := ""

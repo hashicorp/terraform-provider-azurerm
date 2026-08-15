@@ -175,8 +175,7 @@ func resourceMsSqlVirtualNetworkRuleDelete(d *pluginsdk.ResourceData, meta inter
 		return fmt.Errorf("parsing ID %q: %+v", d.Id(), err)
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting MSSQL %s: %+v", id.String(), err)
 	}
 
