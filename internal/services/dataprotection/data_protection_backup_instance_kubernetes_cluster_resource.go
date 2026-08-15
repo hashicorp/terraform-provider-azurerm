@@ -305,7 +305,7 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) Read() sdk.Resour
 						if dataStorePara := policyParameters.DataStoreParametersList; dataStorePara != nil {
 							if dsp := pointer.From(dataStorePara); len(dsp) > 0 {
 								if parameter, ok := dsp[0].(backupinstanceresources.AzureOperationalStoreParameters); ok && parameter.ResourceGroupId != nil {
-									resourceGroupId, err := commonids.ParseResourceGroupID(*parameter.ResourceGroupId)
+									resourceGroupId, err := commonids.ParseResourceGroupIDInsensitively(*parameter.ResourceGroupId)
 									if err != nil {
 										return err
 									}

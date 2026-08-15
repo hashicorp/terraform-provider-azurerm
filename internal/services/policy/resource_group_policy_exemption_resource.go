@@ -57,7 +57,7 @@ func resourceArmResourceGroupPolicyExemption() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: commonids.ValidateResourceGroupID,
+				ValidateFunc: validation.AsGeneratedID(commonids.ParseResourceGroupIDInsensitively),
 			},
 
 			"exemption_category": {
@@ -113,7 +113,9 @@ func resourceArmResourceGroupPolicyExemptionCreateUpdate(d *pluginsdk.ResourceDa
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroupId, err := commonids.ParseResourceGroupID(d.Get("resource_group_id").(string))
+	// todo 6.0 - move to the case-sensitive parser when validation.AsGeneratedID is removed: this parses a config
+	// value which the paired AsGeneratedID validator accepts with legacy casing, and configs cannot be migrated.
+	resourceGroupId, err := commonids.ParseResourceGroupIDInsensitively(d.Get("resource_group_id").(string))
 	if err != nil {
 		return err
 	}

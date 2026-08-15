@@ -49,7 +49,7 @@ func (r ResourceGroupCostManagementExportResource) Arguments() map[string]*plugi
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: commonids.ValidateResourceGroupID,
+			ValidateFunc: validation.AsGeneratedID(commonids.ParseResourceGroupIDInsensitively),
 		},
 	}
 	return r.base.arguments(schema)

@@ -45,7 +45,7 @@ func (r FunctionAppConnectorResource) Arguments() map[string]*schema.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: commonids.ValidateFunctionAppID,
+			ValidateFunc: validation.AsGeneratedID(commonids.ParseFunctionAppIDInsensitively),
 		},
 
 		"target_resource_id": {

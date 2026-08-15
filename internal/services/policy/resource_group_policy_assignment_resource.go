@@ -66,7 +66,7 @@ func (r ResourceGroupAssignmentResource) Arguments() map[string]*pluginsdk.Schem
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: commonids.ValidateResourceGroupID,
+			ValidateFunc: validation.AsGeneratedID(commonids.ParseResourceGroupIDInsensitively),
 		},
 	}
 	return r.base.arguments(schema)

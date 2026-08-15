@@ -54,7 +54,7 @@ func resourceSynapseRoleAssignment() *pluginsdk.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				ExactlyOneOf: []string{"synapse_workspace_id", "synapse_spark_pool_id"},
-				ValidateFunc: workspaces.ValidateWorkspaceID,
+				ValidateFunc: validation.AsGeneratedID(workspaces.ParseWorkspaceIDInsensitively),
 			},
 
 			"synapse_spark_pool_id": {
