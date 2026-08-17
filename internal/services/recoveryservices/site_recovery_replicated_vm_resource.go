@@ -908,11 +908,9 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 					}
 					diskOutput["target_resource_group_id"] = recoveryResourceGroupID
 
-					recoveryReplicaDiskAccountType := pointer.From(disk.RecoveryReplicaDiskAccountType)
-					diskOutput["target_replica_disk_type"] = recoveryReplicaDiskAccountType
+					diskOutput["target_replica_disk_type"] = pointer.From(disk.RecoveryReplicaDiskAccountType)
 
-					recoveryTargetDiskAccountType := pointer.From(disk.RecoveryTargetDiskAccountType)
-					diskOutput["target_disk_type"] = recoveryTargetDiskAccountType
+					diskOutput["target_disk_type"] = pointer.From(disk.RecoveryTargetDiskAccountType)
 
 					recoveryEncryptionSetId := ""
 					if respDESId := pointer.From(disk.RecoveryDiskEncryptionSetId); respDESId != "" {

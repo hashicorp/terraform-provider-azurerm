@@ -1333,7 +1333,7 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 		}
 	}
 
-	s := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		MaxItems: 1,
 		Required: required,
@@ -1342,8 +1342,6 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 			Schema: result,
 		},
 	}
-
-	return s
 }
 
 func SchemaHDInsightNodeDefinitionKafka(schemaLocation string, definition HDInsightNodeDefinition, required bool) *pluginsdk.Schema {
@@ -1520,7 +1518,7 @@ func SchemaHDInsightNodeDefinitionKafka(schemaLocation string, definition HDInsi
 		}
 	}
 
-	s := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		MaxItems: 1,
 		Required: required,
@@ -1529,8 +1527,6 @@ func SchemaHDInsightNodeDefinitionKafka(schemaLocation string, definition HDInsi
 			Schema: result,
 		},
 	}
-
-	return s
 }
 
 func ExpandHDInsightNodeDefinition(name string, input []interface{}, definition HDInsightNodeDefinition) (*clusters.Role, error) {
@@ -1695,12 +1691,10 @@ func ExpandHDInsightAutoscaleRecurrenceDefinition(input []interface{}) *clusters
 		})
 	}
 
-	result := &clusters.AutoscaleRecurrence{
+	return &clusters.AutoscaleRecurrence{
 		TimeZone: pointer.To(vs["timezone"].(string)),
 		Schedule: &schedules,
 	}
-
-	return result
 }
 
 func ExpandHDInsightSecurityProfile(input []interface{}) *clusters.SecurityProfile {
@@ -1763,11 +1757,9 @@ func FlattenHDInsightNodeDefinition(input *clusters.Role, existing []interface{}
 		// after extensive experimentation it appears multiple instance sizes fit `extralarge`, as such
 		// unfortunately we can't transform these; since it can't be changed
 		// we should be "safe" to try and pull it from the state instead, but clearly this isn't ideal
-		vmSize := existingV["vm_size"].(string)
-		output["vm_size"] = vmSize
+		output["vm_size"] = existingV["vm_size"].(string)
 
-		scriptActions := existingV["script_actions"].([]interface{})
-		output["script_actions"] = scriptActions
+		output["script_actions"] = existingV["script_actions"].([]interface{})
 	}
 
 	if profile := input.VirtualNetworkProfile; profile != nil {

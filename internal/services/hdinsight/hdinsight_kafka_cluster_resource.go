@@ -57,7 +57,7 @@ var hdInsightKafkaClusterKafkaManagementNodeDefinition = HDInsightNodeDefinition
 }
 
 func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceHDInsightKafkaClusterCreate,
 		Read:   resourceHDInsightKafkaClusterRead,
 		Update: hdinsightClusterUpdate("Kafka", resourceHDInsightKafkaClusterRead),
@@ -190,8 +190,6 @@ func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
 			"extension": SchemaHDInsightsExtension(),
 		},
 	}
-
-	return resource
 }
 
 func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
