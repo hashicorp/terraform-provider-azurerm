@@ -111,7 +111,7 @@ func TestAccDnsCNameRecord_withTags(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDnsCNameRecord_withAlias(t *testing.T) {
+func TestAccDnsCNameRecord_withAlias(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_cname_record", "test")
 	r := DnsCNameRecordResource{}
 	targetResourceName := "azurerm_dns_cname_record.target"
@@ -136,7 +136,7 @@ func TestAccAzureRMDnsCNameRecord_withAlias(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDnsCNameRecord_RecordToAlias(t *testing.T) {
+func TestAccDnsCNameRecord_RecordToAlias(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_cname_record", "test")
 	r := DnsCNameRecordResource{}
 	targetResourceName := "azurerm_dns_cname_record.target2"
@@ -160,7 +160,7 @@ func TestAccAzureRMDnsCNameRecord_RecordToAlias(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDnsCNameRecord_AliasToRecord(t *testing.T) {
+func TestAccDnsCNameRecord_AliasToRecord(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_cname_record", "test")
 	r := DnsCNameRecordResource{}
 	targetResourceName := "azurerm_dns_cname_record.target2"

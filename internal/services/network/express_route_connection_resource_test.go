@@ -13,20 +13,18 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type ExpressRouteConnectionResource struct{}
 
-func TestAccExpressRouteConnection(t *testing.T) {
+func TestAccExpressRouteConnection_sequential(t *testing.T) {
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"Resource": {
 			"basic":          testAccExpressRouteConnection_basic,
 			"requiresImport": testAccExpressRouteConnection_requiresImport,
 			"complete":       testAccExpressRouteConnection_complete,
 			"update":         testAccExpressRouteConnection_update,
-			"deprecated":     testAccExpressRouteConnection_deprecated,
 		},
 	})
 }
@@ -43,28 +41,6 @@ func testAccExpressRouteConnection_basic(t *testing.T) {
 				check.That("azurerm_express_route_connection.test").Key("routing.0.associated_route_table_id").Exists(),
 				check.That("azurerm_express_route_connection.test").Key("routing.0.propagated_route_table.#").HasValue("1"),
 				check.That("azurerm_express_route_connection.test").Key("internet_security_enabled").HasValue("false"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func testAccExpressRouteConnection_deprecated(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip("Skipping as `enable_internet_security` is deprecated in favour of `internet_security_enabled` in v5.0 of the provider")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_express_route_connection", "test")
-	r := ExpressRouteConnectionResource{}
-
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.deprecated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That("azurerm_express_route_connection.test").Key("routing.0.associated_route_table_id").Exists(),
-				check.That("azurerm_express_route_connection.test").Key("routing.0.propagated_route_table.#").HasValue("1"),
-				check.That("azurerm_express_route_connection.test").Key("enable_internet_security").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -123,17 +99,6 @@ func testAccExpressRouteConnection_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			// regression test step for https://github.com/hashicorp/terraform-provider-azurerm/issues/32486
-			// updating only routing_weight to confirm `internet_security_enabled` doesn't unintentionally change
-			// can be removed post 5.0 (features.FivePointOh)
-			Config: r.update(data, 4),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That("azurerm_express_route_connection.test").Key("internet_security_enabled").HasValue("true"),
-			),
-		},
-		data.ImportStep(),
-		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -166,19 +131,6 @@ resource "azurerm_express_route_connection" "test" {
   name                             = "acctest-ExpressRouteConnection-%d"
   express_route_gateway_id         = azurerm_express_route_gateway.test.id
   express_route_circuit_peering_id = azurerm_express_route_circuit_peering.test.id
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r ExpressRouteConnectionResource) deprecated(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_express_route_connection" "test" {
-  name                             = "acctest-ExpressRouteConnection-%d"
-  express_route_gateway_id         = azurerm_express_route_gateway.test.id
-  express_route_circuit_peering_id = azurerm_express_route_circuit_peering.test.id
-  enable_internet_security         = true
 }
 `, r.template(data), data.RandomInteger)
 }

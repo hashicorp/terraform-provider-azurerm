@@ -644,7 +644,7 @@ func (r KubernetesFluxConfigurationResource) Create() sdk.ResourceFunc {
 			properties := &fluxconfiguration.FluxConfiguration{
 				Properties: &fluxconfiguration.FluxConfigurationProperties{
 					Kustomizations: expandKustomizationDefinitionModel(model.Kustomizations),
-					Scope:          pointer.To(fluxconfiguration.ScopeType(model.Scope)),
+					Scope:          pointer.ToEnum[fluxconfiguration.ScopeType](model.Scope),
 					Suspend:        pointer.To(!model.ContinuousReconciliationEnabled),
 				},
 			}
@@ -1091,7 +1091,7 @@ func expandGitRepositoryDefinitionModel(inputList []GitRepositoryDefinitionModel
 	}
 
 	if input.Provider != "" {
-		output.Provider = pointer.To(fluxconfiguration.ProviderType(input.Provider))
+		output.Provider = pointer.ToEnum[fluxconfiguration.ProviderType](input.Provider)
 	}
 
 	configSettings := make(map[string]string)

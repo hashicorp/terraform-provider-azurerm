@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -29,7 +28,7 @@ import (
 )
 
 func resourceBotChannelsRegistration() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceBotChannelsRegistrationCreate,
 		Read:   resourceBotChannelsRegistrationRead,
 		Delete: resourceBotChannelsRegistrationDelete,
@@ -187,25 +186,6 @@ func resourceBotChannelsRegistration() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["cmk_key_vault_url"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
-
-		resource.Schema["microsoft_app_type"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			// O+C because Azure sets a value for this if omitted
-			Computed: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(botservice.MsaAppTypeMultiTenant),
-				string(botservice.MsaAppTypeSingleTenant),
-				string(botservice.MsaAppTypeUserAssignedMSI),
-			}, false),
-		}
-	}
-
-	return resource
 }
 
 func resourceBotChannelsRegistrationCreate(d *pluginsdk.ResourceData, meta interface{}) error {

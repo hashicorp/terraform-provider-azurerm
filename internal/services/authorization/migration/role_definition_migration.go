@@ -104,9 +104,7 @@ func (RoleDefinitionV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 			return nil, fmt.Errorf("failed to migrate state: scope missing")
 		}
 
-		newID := fmt.Sprintf("%s|%s", oldID, scope)
-
-		rawState["id"] = newID
+		rawState["id"] = fmt.Sprintf("%s|%s", oldID, scope)
 
 		return rawState, nil
 	}

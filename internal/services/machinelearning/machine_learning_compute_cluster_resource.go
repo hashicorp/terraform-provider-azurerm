@@ -249,7 +249,7 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 		Sku: &machinelearningcomputes.Sku{
 			Name: workspaceModel.Sku.Name,
-			Tier: pointer.To(machinelearningcomputes.SkuTier(*workspaceModel.Sku.Tier)),
+			Tier: pointer.ToEnum[machinelearningcomputes.SkuTier](string(*workspaceModel.Sku.Tier)),
 		},
 	}
 
@@ -452,21 +452,11 @@ func flattenUserAccountCredentials(credentials *machinelearningcomputes.UserAcco
 		username = credentials.AdminUserName
 	}
 
-	var adminPassword string
-	if credentials.AdminUserPassword != nil {
-		adminPassword = *credentials.AdminUserPassword
-	}
-
-	var sshPublicKey string
-	if credentials.AdminUserSshPublicKey != nil {
-		sshPublicKey = *credentials.AdminUserSshPublicKey
-	}
-
 	return []interface{}{
 		map[string]interface{}{
 			"admin_username": username,
-			"admin_password": adminPassword,
-			"key_value":      sshPublicKey,
+			"admin_password": pointer.From(credentials.AdminUserPassword),
+			"key_value":      pointer.From(credentials.AdminUserSshPublicKey),
 		},
 	}
 }

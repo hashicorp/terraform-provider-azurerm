@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -219,25 +220,10 @@ func flattenAzureRmDnsCaaRecords(records *[]recordsets.CaaRecord) []map[string]i
 
 	if records != nil {
 		for _, record := range *records {
-			flags := int64(0)
-			if record.Flags != nil {
-				flags = *record.Flags
-			}
-
-			tag := ""
-			if record.Tag != nil {
-				tag = *record.Tag
-			}
-
-			value := ""
-			if record.Value != nil {
-				value = *record.Value
-			}
-
 			results = append(results, map[string]interface{}{
-				"flags": flags,
-				"tag":   tag,
-				"value": value,
+				"flags": pointer.From(record.Flags),
+				"tag":   pointer.From(record.Tag),
+				"value": pointer.From(record.Value),
 			})
 		}
 	}
@@ -270,9 +256,9 @@ func resourceDnsCaaRecordHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%d-", m["flags"].(int)))
-		buf.WriteString(fmt.Sprintf("%s-", m["tag"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["value"].(string)))
+		fmt.Fprintf(&buf, "%d-", m["flags"].(int))
+		fmt.Fprintf(&buf, "%s-", m["tag"].(string))
+		fmt.Fprintf(&buf, "%s-", m["value"].(string))
 	}
 
 	return pluginsdk.HashString(buf.String())

@@ -185,11 +185,7 @@ func resourceLogAnalyticsSavedSearchRead(d *pluginsdk.ResourceData, meta interfa
 		d.Set("category", props.Category)
 		d.Set("query", props.Query)
 
-		functionAlias := ""
-		if props.FunctionAlias != nil {
-			functionAlias = *props.FunctionAlias
-		}
-		d.Set("function_alias", functionAlias)
+		d.Set("function_alias", pointer.From(props.FunctionAlias))
 
 		functionParams := make([]string, 0)
 		if props.FunctionParameters != nil {
