@@ -101,7 +101,7 @@ type WebAppRoutingIdentityModel struct {
 	UserAssignedIdentityID string `tfschema:"user_assigned_identity_id"`
 }
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name azurerm_kubernetes_automatic_cluster -properties "name,resource_group_name"
+//go:generate go run ../../tools/generator-tests resourceidentity
 type KubernetesAutomaticClusterResource struct{}
 
 var (
@@ -1027,7 +1027,7 @@ func expandKubernetesAutomaticClusterServiceMeshProfile(input []ServiceMeshProfi
 						Mode:    managedclusters.IstioIngressGatewayModeExternal,
 					},
 				},
-				ProxyRedirectionMechanism: pointer.To(managedclusters.ProxyRedirectionMechanism(config.ProxyRedirectMechanism)),
+				ProxyRedirectionMechanism: pointer.ToEnum[managedclusters.ProxyRedirectionMechanism](config.ProxyRedirectMechanism),
 			},
 		},
 	}

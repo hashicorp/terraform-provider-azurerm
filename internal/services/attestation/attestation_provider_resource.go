@@ -29,7 +29,7 @@ import (
 	"github.com/jackofallops/kermit/sdk/attestation/2022-08-01/attestation"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name attestation_provider -service-package-name attestation -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basicForResourceIdentity
+//go:generate go run ../../tools/generator-tests resourceidentity -test-name basicForResourceIdentity
 
 func resourceAttestationProvider() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -72,7 +72,7 @@ func resourceAttestationProvider() *pluginsdk.Resource {
 		},
 
 		Schema: func() map[string]*pluginsdk.Schema {
-			s := map[string]*pluginsdk.Schema{
+			return map[string]*pluginsdk.Schema{
 				"name": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
@@ -127,8 +127,6 @@ func resourceAttestationProvider() *pluginsdk.Resource {
 					ValidateFunc: validate.ContainsABase64UriEncodedJWTOfAStoredAttestationPolicy,
 				},
 			}
-
-			return s
 		}(),
 	}
 }
@@ -160,8 +158,8 @@ func resourceAttestationProviderCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	// NOTE: This maybe an slice in a future release or even a slice of slices
-	//       The service team does not currently have any user data for this
-	//       pluginsdk.
+	//    The service team does not currently have any user data for this
+	//    pluginsdk.
 	policySigningCertificate := d.Get("policy_signing_certificate_data").(string)
 
 	if policySigningCertificate != "" {
@@ -324,7 +322,12 @@ func resourceAttestationProviderUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	if d.HasChanges("open_enclave_policy_base64", "sgx_enclave_policy_base64", "tpm_policy_base64", "sev_snp_policy_base64") {
+	if d.HasChanges(
+		"open_enclave_policy_base64",
+		"sgx_enclave_policy_base64",
+		"tpm_policy_base64",
+		"sev_snp_policy_base64",
+	) {
 		dataPlaneUri, err := attestationClients.DataPlaneEndpointForProvider(ctx, *id)
 		if err != nil {
 			return fmt.Errorf("determining Data Plane URI for %s: %+v", *id, err)

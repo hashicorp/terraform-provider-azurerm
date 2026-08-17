@@ -68,7 +68,7 @@ func deleteAndOptionallyPurge(ctx context.Context, description string, shouldPur
 	}
 
 	log.Printf("[DEBUG] Purging %s..", description)
-	err := pluginsdk.Retry(time.Until(timeout), func() *pluginsdk.RetryError {
+	if err := pluginsdk.Retry(time.Until(timeout), func() *pluginsdk.RetryError {
 		_, err := helper.PurgeNestedItem(ctx)
 		if err == nil {
 			return nil
@@ -77,8 +77,7 @@ func deleteAndOptionallyPurge(ctx context.Context, description string, shouldPur
 			return pluginsdk.RetryableError(fmt.Errorf("%s is currently being deleted, retrying", description))
 		}
 		return pluginsdk.NonRetryableError(fmt.Errorf("purging of %s : %+v", description, err))
-	})
-	if err != nil {
+	}); err != nil {
 		return err
 	}
 

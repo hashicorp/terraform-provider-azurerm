@@ -24,7 +24,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
@@ -34,7 +33,7 @@ import (
 )
 
 func resourceContainerRegistry() *pluginsdk.Resource {
-	r := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceContainerRegistryCreate,
 		Read:   resourceContainerRegistryRead,
 		Update: resourceContainerRegistryUpdate,
@@ -96,15 +95,15 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"location": commonschema.LocationWithoutForceNew(),
 
+						"global_endpoint_routing_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Required: true,
+						},
+
 						"zone_redundancy_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
-						},
-
-						"regional_endpoint_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
 						},
 
 						"tags": commonschema.Tags(),
@@ -213,12 +212,6 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				ValidateFunc: validation.IntBetween(0, 365),
 			},
 
-			"trust_policy_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
 			"export_policy_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -314,11 +307,6 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				return errors.New("an ACR retention policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please unset `retention_policy_in_days`")
 			}
 
-			trustPolicyEnabled, ok := d.GetOk("trust_policy_enabled")
-			if ok && trustPolicyEnabled.(bool) && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
-				return errors.New("an ACR trust policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please unset `trust_policy_enabled` or set `trust_policy_enabled = false`")
-			}
-
 			exportPolicyEnabled := d.Get("export_policy_enabled").(bool)
 			if !exportPolicyEnabled {
 				if !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
@@ -360,13 +348,6 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 			return nil
 		}),
 	}
-
-	if !features.FivePointOh() {
-		r.Schema["encryption"].Computed = true
-		r.Schema["encryption"].Elem.(*pluginsdk.Resource).Schema["key_vault_key_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
-	}
-
-	return r
 }
 
 func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -422,16 +403,11 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 		retentionPolicy.Status = pointer.To(registries.PolicyStatusEnabled)
 	}
 
-	trustPolicy := &registries.TrustPolicy{}
-	if v, ok := d.GetOk("trust_policy_enabled"); ok && v.(bool) {
-		trustPolicy.Status = pointer.To(registries.PolicyStatusEnabled)
-	}
-
 	parameters := registries.Registry{
 		Location: location.Normalize(d.Get("location").(string)),
 		Sku: registries.Sku{
 			Name: registries.SkuName(sku),
-			Tier: pointer.To(registries.SkuTier(sku)),
+			Tier: pointer.ToEnum[registries.SkuTier](sku),
 		},
 		Identity: identity,
 		Properties: &registries.RegistryProperties{
@@ -441,7 +417,6 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 			Policies: &registries.Policies{
 				QuarantinePolicy:                 expandQuarantinePolicy(d.Get("quarantine_policy_enabled").(bool)),
 				RetentionPolicy:                  retentionPolicy,
-				TrustPolicy:                      trustPolicy,
 				ExportPolicy:                     expandExportPolicy(d.Get("export_policy_enabled").(bool)),
 				AzureADAuthenticationAsArmPolicy: expandAadAuthAsArmPolicy(d.Get("azuread_authentication_as_arm_policy_enabled").(bool)),
 			},
@@ -449,7 +424,7 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 			ZoneRedundancy:                   &zoneRedundancy,
 			AnonymousPullEnabled:             pointer.To(d.Get("anonymous_pull_enabled").(bool)),
 			DataEndpointEnabled:              pointer.To(d.Get("data_endpoint_enabled").(bool)),
-			NetworkRuleBypassOptions:         pointer.To(registries.NetworkRuleBypassOptions(d.Get("network_rule_bypass_option").(string))),
+			NetworkRuleBypassOptions:         pointer.ToEnum[registries.NetworkRuleBypassOptions](d.Get("network_rule_bypass_option").(string)),
 			RoleAssignmentMode:               pointer.ToEnum[registries.RoleAssignmentMode](d.Get("role_assignment_mode").(string)),
 			NetworkRuleBypassAllowedForTasks: pointer.To(d.Get("network_rule_bypass_for_tasks_enabled").(bool)),
 		},
@@ -467,8 +442,7 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 	newGeoReplicationLocations = expandReplications(d.Get("georeplications").([]interface{}))
 	// geo replications have been specified
 	if len(newGeoReplicationLocations) > 0 {
-		err = applyGeoReplicationLocations(ctx, meta, id, oldGeoReplicationLocations, newGeoReplicationLocations)
-		if err != nil {
+		if err = applyGeoReplicationLocations(ctx, meta, id, oldGeoReplicationLocations, newGeoReplicationLocations); err != nil {
 			return fmt.Errorf("applying geo replications for %s: %+v", id, err)
 		}
 	}
@@ -545,7 +519,7 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 		"azuread_authentication_as_arm_policy_enabled",
 	}
 
-	policyKeys = append(policyKeys, []string{"retention_policy_in_days", "trust_policy_enabled"}...)
+	policyKeys = append(policyKeys, "retention_policy_in_days")
 
 	if d.HasChanges(policyKeys...) {
 		payload.Properties.Policies = &registries.Policies{}
@@ -560,18 +534,6 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 			payload.Properties.Policies.RetentionPolicy = &registries.RetentionPolicy{
 				Status: pointer.To(registries.PolicyStatusEnabled),
 				Days:   pointer.To(int64(v)),
-			}
-		}
-	}
-
-	if d.HasChange("trust_policy_enabled") {
-		payload.Properties.Policies.TrustPolicy = &registries.TrustPolicy{
-			Status: pointer.To(registries.PolicyStatusDisabled),
-		}
-
-		if v := d.Get("trust_policy_enabled").(bool); v {
-			payload.Properties.Policies.TrustPolicy = &registries.TrustPolicy{
-				Status: pointer.To(registries.PolicyStatusEnabled),
 			}
 		}
 	}
@@ -621,7 +583,7 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if d.HasChange("network_rule_bypass_option") {
-		payload.Properties.NetworkRuleBypassOptions = pointer.To(registries.NetworkRuleBypassOptions(d.Get("network_rule_bypass_option").(string)))
+		payload.Properties.NetworkRuleBypassOptions = pointer.ToEnum[registries.NetworkRuleBypassOptions](d.Get("network_rule_bypass_option").(string))
 	}
 
 	if d.HasChange("role_assignment_mode") {
@@ -642,8 +604,7 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if hasGeoReplicationsChanges {
-		err := applyGeoReplicationLocations(ctx, meta, *id, expandReplications(oldReplications), expandReplications(newReplications))
-		if err != nil {
+		if err := applyGeoReplicationLocations(ctx, meta, *id, expandReplications(oldReplications), expandReplications(newReplications)); err != nil {
 			return fmt.Errorf("applying geo replications for %s: %+v", id, err)
 		}
 	}
@@ -672,7 +633,7 @@ func applyContainerRegistrySku(d *pluginsdk.ResourceData, meta interface{}, sku 
 	parameters := registries.RegistryUpdateParameters{
 		Sku: &registries.Sku{
 			Name: registries.SkuName(sku),
-			Tier: pointer.To(registries.SkuTier(sku)),
+			Tier: pointer.ToEnum[registries.SkuTier](sku),
 		},
 	}
 
@@ -881,10 +842,6 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 				}
 				d.Set("retention_policy_in_days", retentionInDays)
 
-				if policies.TrustPolicy != nil && policies.TrustPolicy.Status != nil {
-					policyEnabled := *policies.TrustPolicy.Status == registries.PolicyStatusEnabled
-					d.Set("trust_policy_enabled", policyEnabled)
-				}
 				d.Set("quarantine_policy_enabled", flattenQuarantinePolicy(props.Policies))
 				d.Set("export_policy_enabled", flattenExportPolicy(props.Policies))
 				d.Set("azuread_authentication_as_arm_policy_enabled", flattenAadAuthAsArmPolicy(props.Policies))
@@ -932,7 +889,7 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 				replication["location"] = valueLocation
 				replication["tags"] = tags.Flatten(value.Tags)
 				replication["zone_redundancy_enabled"] = *value.Properties.ZoneRedundancy == replications.ZoneRedundancyEnabled
-				replication["regional_endpoint_enabled"] = value.Properties.RegionEndpointEnabled != nil && *value.Properties.RegionEndpointEnabled
+				replication["global_endpoint_routing_enabled"] = value.Properties.RegionEndpointEnabled != nil && *value.Properties.RegionEndpointEnabled
 				geoReplications = append(geoReplications, replication)
 			}
 		}
@@ -977,7 +934,7 @@ func expandNetworkRuleSet(profiles []interface{}) *registries.NetworkRuleSet {
 	for _, ipRuleInterface := range ipRuleConfigs {
 		config := ipRuleInterface.(map[string]interface{})
 		newIpRule := registries.IPRule{
-			Action: pointer.To(registries.Action(config["action"].(string))),
+			Action: pointer.ToEnum[registries.Action](config["action"].(string)),
 			Value:  config["ip_range"].(string),
 		}
 		ipRules = append(ipRules, newIpRule)
@@ -1038,13 +995,14 @@ func expandReplications(p []interface{}) []replications.Replication {
 		if value["zone_redundancy_enabled"].(bool) {
 			zoneRedundancy = replications.ZoneRedundancyEnabled
 		}
+		regionEndpointEnabled := value["global_endpoint_routing_enabled"].(bool)
 		reps = append(reps, replications.Replication{
 			Location: location,
 			Name:     &location,
 			Tags:     tags,
 			Properties: &replications.ReplicationProperties{
 				ZoneRedundancy:        &zoneRedundancy,
-				RegionEndpointEnabled: pointer.To(value["regional_endpoint_enabled"].(bool)),
+				RegionEndpointEnabled: pointer.To(regionEndpointEnabled),
 			},
 		})
 	}

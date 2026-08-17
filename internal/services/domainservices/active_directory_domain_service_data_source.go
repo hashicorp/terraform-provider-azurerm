@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -271,11 +272,7 @@ func dataSourceActiveDirectoryDomainServiceRead(d *pluginsdk.ResourceData, meta 
 	if props := model.Properties; props != nil {
 		d.Set("deployment_id", props.DeploymentId)
 
-		domainConfigType := ""
-		if v := props.DomainConfigurationType; v != nil {
-			domainConfigType = *v
-		}
-		d.Set("domain_configuration_type", domainConfigType)
+		d.Set("domain_configuration_type", pointer.From(props.DomainConfigurationType))
 
 		d.Set("domain_name", props.DomainName)
 

@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2025-08-01/backuppolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2025-08-01/backupprotectableitems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2025-08-01/backupprotecteditems"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2025-08-01/backupresourcevaultconfigs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2025-08-01/protecteditems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2025-08-01/protectioncontainers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2025-08-01/protectionpolicies"
@@ -45,7 +44,6 @@ type Client struct {
 	BackupOperationStatusesClient             *backup.OperationStatusesClient
 	BackupOperationResultsClient              *backup.OperationResultsClient
 	VaultsClient                              *vaults.VaultsClient
-	VaultsConfigsClient                       *backupresourcevaultconfigs.BackupResourceVaultConfigsClient
 	VaultCertificatesClient                   *azuresdkhacks.VaultCertificatesClient
 	VaultReplicationProvider                  *replicationrecoveryservicesproviders.ReplicationRecoveryServicesProvidersClient
 	VaultsSettingsClient                      *replicationvaultsetting.ReplicationVaultSettingClient
@@ -63,9 +61,6 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-	vaultConfigsClient := backupresourcevaultconfigs.NewBackupResourceVaultConfigsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&vaultConfigsClient.Client, o.ResourceManagerAuthorizer)
-
 	vaultSettingsClient, err := replicationvaultsetting.NewReplicationVaultSettingClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building ReplicationVaultSettings client: %+v", err)
@@ -186,7 +181,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		BackupOperationStatusesClient:             &backupOperationStatusesClient,
 		BackupOperationResultsClient:              &backupOperationResultClient,
 		VaultsClient:                              vaultsClient,
-		VaultsConfigsClient:                       &vaultConfigsClient,
 		VaultCertificatesClient:                   &vaultCertificatesClient,
 		VaultsSettingsClient:                      vaultSettingsClient,
 		FabricClient:                              fabricClient,

@@ -18,7 +18,7 @@ import (
 
 type CognitiveRaiBlocklistTestResource struct{}
 
-func TestAccCognitiveRaiBlocklistSequential(t *testing.T) {
+func TestAccCognitiveRaiBlocklist_sequential(t *testing.T) {
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"raiBlocklist": {
 			"basic":          TestAccCognitiveRaiBlocklist_basic,

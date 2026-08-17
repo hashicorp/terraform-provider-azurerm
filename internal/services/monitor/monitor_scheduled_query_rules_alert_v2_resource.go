@@ -75,7 +75,7 @@ type ScheduledQueryRulesAlertV2FailingPeriodsModel struct {
 	NumberOfEvaluationPeriods int64 `tfschema:"number_of_evaluation_periods"`
 }
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name monitor_scheduled_query_rules_alert_v2 -service-package-name monitor -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 type ScheduledQueryRulesAlertV2Resource struct{}
 
