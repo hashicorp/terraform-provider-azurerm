@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"log"
 	"math"
 	"time"
 
@@ -19,20 +18,20 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/localnetworkgateways"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworkgateways"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceVirtualNetworkGateway() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceVirtualNetworkGatewayCreate,
 		Read:   resourceVirtualNetworkGatewayRead,
 		Update: resourceVirtualNetworkGatewayUpdate,
@@ -488,6 +487,7 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 						"radius_server_secret": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
+							Sensitive:    true,
 							RequiredWith: []string{"vpn_client_configuration.0.radius_server_address"},
 						},
 
@@ -639,6 +639,22 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			"maximum_scale_unit": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntBetween(1, 40),
+				RequiredWith: []string{"maximum_scale_unit", "minimum_scale_unit"},
+			},
+
+			"minimum_scale_unit": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntBetween(1, 40),
+				RequiredWith: []string{"maximum_scale_unit", "minimum_scale_unit"},
+			},
+
 			"remote_vnet_traffic_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -654,24 +670,6 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["enable_bgp"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"bgp_enabled"},
-			Deprecated:    "the `enable_bgp` property has been deprecated in favour of the `bgp_enabled` property and will be removed in v5.0 of the AzureRM Provider",
-		}
-
-		resource.Schema["bgp_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"enable_bgp"},
-		}
-	}
-	return resource
 }
 
 func resourceVirtualNetworkGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
@@ -688,7 +686,59 @@ func resourceVirtualNetworkGatewayCustomizeDiff(ctx context.Context, d *pluginsd
 		}
 	}
 
+	minScaleUnit := d.Get("minimum_scale_unit").(int)
+	maxScaleUnit := d.Get("maximum_scale_unit").(int)
+	sku := d.Get("sku").(string)
+
+	if sku == string(virtualnetworkgateways.VirtualNetworkGatewaySkuNameErGwScale) {
+		if minScaleUnit == 0 || maxScaleUnit == 0 {
+			return fmt.Errorf("`minimum_scale_unit` and `maximum_scale_unit` must be set when `sku` is `%s`", virtualnetworkgateways.VirtualNetworkGatewaySkuNameErGwScale)
+		}
+	}
+
+	// Use RawConfig to determine if the user explicitly set the scale unit fields,
+	// since these are Optional+Computed and d.Get() returns API-stored values from state
+	rawConfig := d.GetRawConfig().AsValueMap()
+	minIsSet := !rawConfig["minimum_scale_unit"].IsNull()
+	maxIsSet := !rawConfig["maximum_scale_unit"].IsNull()
+
+	if minIsSet || maxIsSet {
+		if sku != string(virtualnetworkgateways.VirtualNetworkGatewaySkuNameErGwScale) {
+			return fmt.Errorf("`minimum_scale_unit` and `maximum_scale_unit` are only supported when `sku` is set to `%s`", virtualnetworkgateways.VirtualNetworkGatewaySkuNameErGwScale)
+		}
+
+		if minScaleUnit > maxScaleUnit {
+			return fmt.Errorf("`minimum_scale_unit` (%d) cannot be greater than `maximum_scale_unit` (%d)", minScaleUnit, maxScaleUnit)
+		}
+	}
+
+	// The Azure API can't convert an ExpressRoute gateway between the
+	// availability-zone SKUs (ErGw1AZ/ErGw2AZ/ErGw3AZ/ErGwScale) and the
+	// non-availability-zone SKUs (Standard/HighPerformance/UltraPerformance) in
+	// place; the gateway must be deleted and recreated. An in-place change fails
+	// with `ExpressRouteVirtualNetworkGatewayAutoscaleBoundsNotValid`.
+	if d.Id() != "" && gatewayType == string(virtualnetworkgateways.VirtualNetworkGatewayTypeExpressRoute) && d.HasChange("sku") {
+		oldSku, newSku := d.GetChange("sku")
+		if expressRouteGatewaySkuIsAvailabilityZone(oldSku.(string)) != expressRouteGatewaySkuIsAvailabilityZone(newSku.(string)) {
+			if err := d.ForceNew("sku"); err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
+}
+
+func expressRouteGatewaySkuIsAvailabilityZone(sku string) bool {
+	switch virtualnetworkgateways.VirtualNetworkGatewaySkuName(sku) {
+	case virtualnetworkgateways.VirtualNetworkGatewaySkuNameErGwOneAZ,
+		virtualnetworkgateways.VirtualNetworkGatewaySkuNameErGwTwoAZ,
+		virtualnetworkgateways.VirtualNetworkGatewaySkuNameErGwThreeAZ,
+		virtualnetworkgateways.VirtualNetworkGatewaySkuNameErGwScale:
+		return true
+	default:
+		return false
+	}
 }
 
 func resourceVirtualNetworkGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -697,19 +747,19 @@ func resourceVirtualNetworkGatewayCreate(d *pluginsdk.ResourceData, meta interfa
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Virtual Network Gateway creation.")
-
 	id := virtualnetworkgateways.NewVirtualNetworkGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_virtual_network_gateway", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_virtual_network_gateway", id.ID())
+		}
 	}
 
 	properties, err := getVirtualNetworkGatewayProperties(id, d)
@@ -725,7 +775,7 @@ func resourceVirtualNetworkGatewayCreate(d *pluginsdk.ResourceData, meta interfa
 		Properties:       *properties,
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, gateway); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, gateway, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -763,9 +813,6 @@ func resourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface
 		props := model.Properties
 
 		d.Set("bgp_enabled", props.EnableBgp)
-		if !features.FivePointOh() {
-			d.Set("enable_bgp", props.EnableBgp)
-		}
 
 		d.Set("type", string(pointer.From(props.GatewayType)))
 		d.Set("private_ip_address_enabled", props.EnablePrivateIPAddress)
@@ -792,6 +839,14 @@ func resourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface
 		gatewayType := pointer.From(props.GatewayType)
 		if err := d.Set("ip_configuration", flattenVirtualNetworkGatewayIPConfigurations(props.IPConfigurations, gatewayType)); err != nil {
 			return fmt.Errorf("setting `ip_configuration`: %+v", err)
+		}
+
+		minScaleUnit, maxScaleUnit := flattenVirtualNetworkGatewayAutoScaleConfiguration(props.AutoScaleConfiguration)
+		if err := d.Set("minimum_scale_unit", minScaleUnit); err != nil {
+			return fmt.Errorf("setting `minimum_scale_unit`: %+v", err)
+		}
+		if err := d.Set("maximum_scale_unit", maxScaleUnit); err != nil {
+			return fmt.Errorf("setting: `maximum_scale_unit`: %+v", err)
 		}
 
 		if err := d.Set("policy_group", flattenVirtualNetworkGatewayPolicyGroups(props.VirtualNetworkGatewayPolicyGroups)); err != nil {
@@ -831,8 +886,6 @@ func resourceVirtualNetworkGatewayUpdate(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Virtual Network Gateway update.")
-
 	id, err := virtualnetworkgateways.ParseVirtualNetworkGatewayID(d.Id())
 	if err != nil {
 		return err
@@ -849,16 +902,7 @@ func resourceVirtualNetworkGatewayUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	payload := existing.Model
 
-	if !features.FivePointOh() && d.HasChanges("enable_bgp", "bgp_enabled") {
-		enableBgp := false
-		if d.HasChange("enable_bgp") && !d.GetRawConfig().AsValueMap()["enable_bgp"].IsNull() {
-			enableBgp = d.Get("enable_bgp").(bool)
-		}
-		if d.HasChange("bgp_enabled") && !d.GetRawConfig().AsValueMap()["bgp_enabled"].IsNull() {
-			enableBgp = d.Get("bgp_enabled").(bool)
-		}
-		payload.Properties.EnableBgp = pointer.To(enableBgp)
-	} else if d.HasChange("bgp_enabled") {
+	if d.HasChange("bgp_enabled") {
 		payload.Properties.EnableBgp = pointer.To(d.Get("bgp_enabled").(bool))
 	}
 
@@ -923,6 +967,13 @@ func resourceVirtualNetworkGatewayUpdate(d *pluginsdk.ResourceData, meta interfa
 		payload.Properties.AllowVirtualWanTraffic = pointer.To(d.Get("virtual_wan_traffic_enabled").(bool))
 	}
 
+	// SKU changes that cross the availability-zone boundary are ForceNew (see
+	// resourceVirtualNetworkGatewayCustomizeDiff), so here we only need to push
+	// autoscale changes while the gateway stays on the ErGwScale SKU.
+	if d.HasChanges("minimum_scale_unit", "maximum_scale_unit") {
+		payload.Properties.AutoScaleConfiguration = expandVirtualNetworkGatewayAutoScaleConfiguration(d)
+	}
+
 	if d.HasChange("tags") {
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
@@ -954,15 +1005,10 @@ func resourceVirtualNetworkGatewayDelete(d *pluginsdk.ResourceData, meta interfa
 }
 
 func getVirtualNetworkGatewayProperties(id virtualnetworkgateways.VirtualNetworkGatewayId, d *pluginsdk.ResourceData) (*virtualnetworkgateways.VirtualNetworkGatewayPropertiesFormat, error) {
-	enableBgp := d.Get("bgp_enabled").(bool)
-	if !features.FivePointOh() && !d.GetRawConfig().AsValueMap()["enable_bgp"].IsNull() {
-		enableBgp = d.Get("enable_bgp").(bool)
-	}
-
 	props := &virtualnetworkgateways.VirtualNetworkGatewayPropertiesFormat{
-		GatewayType:                     pointer.To(virtualnetworkgateways.VirtualNetworkGatewayType(d.Get("type").(string))),
-		VpnType:                         pointer.To(virtualnetworkgateways.VpnType(d.Get("vpn_type").(string))),
-		EnableBgp:                       pointer.To(enableBgp),
+		GatewayType:                     pointer.ToEnum[virtualnetworkgateways.VirtualNetworkGatewayType](d.Get("type").(string)),
+		VpnType:                         pointer.ToEnum[virtualnetworkgateways.VpnType](d.Get("vpn_type").(string)),
+		EnableBgp:                       pointer.To(d.Get("bgp_enabled").(bool)),
 		EnablePrivateIPAddress:          pointer.To(d.Get("private_ip_address_enabled").(bool)),
 		ActiveActive:                    pointer.To(d.Get("active_active").(bool)),
 		EnableBgpRouteTranslationForNat: pointer.To(d.Get("bgp_route_translation_for_nat_enabled").(bool)),
@@ -975,7 +1021,7 @@ func getVirtualNetworkGatewayProperties(id virtualnetworkgateways.VirtualNetwork
 	}
 
 	if v, ok := d.GetOk("generation"); ok {
-		props.VpnGatewayGeneration = pointer.To(virtualnetworkgateways.VpnGatewayGeneration(v.(string)))
+		props.VpnGatewayGeneration = pointer.ToEnum[virtualnetworkgateways.VpnGatewayGeneration](v.(string))
 	}
 
 	if v, ok := d.GetOk("dns_forwarding_enabled"); ok {
@@ -987,6 +1033,8 @@ func getVirtualNetworkGatewayProperties(id virtualnetworkgateways.VirtualNetwork
 			Id: &gatewayDefaultSiteID,
 		}
 	}
+
+	props.AutoScaleConfiguration = expandVirtualNetworkGatewayAutoScaleConfiguration(d)
 
 	if v, ok := d.GetOk("policy_group"); ok {
 		props.VirtualNetworkGatewayPolicyGroups = expandVirtualNetworkGatewayPolicyGroups(v.([]interface{}))
@@ -1101,7 +1149,7 @@ func expandVirtualNetworkGatewayBgpPeeringAddresses(id virtualnetworkgateways.Vi
 		ipConfigId := parse.NewVirtualNetworkGatewayIpConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.VirtualNetworkGatewayName, ipConfigName)
 		result = append(result, virtualnetworkgateways.IPConfigurationBgpPeeringAddress{
 			IPconfigurationId:    pointer.To(ipConfigId.ID()),
-			CustomBgpIPAddresses: utils.ExpandStringSlice(b["apipa_addresses"].([]interface{})),
+			CustomBgpIPAddresses: helpers.ExpandStringSlice(b["apipa_addresses"].([]interface{})),
 		})
 	}
 
@@ -1118,7 +1166,7 @@ func expandVirtualNetworkGatewayIPConfigurations(d *pluginsdk.ResourceData) *[]v
 		name := conf["name"].(string)
 
 		props := &virtualnetworkgateways.VirtualNetworkGatewayIPConfigurationPropertiesFormat{
-			PrivateIPAllocationMethod: pointer.To(virtualnetworkgateways.IPAllocationMethod(conf["private_ip_address_allocation"].(string))),
+			PrivateIPAllocationMethod: pointer.ToEnum[virtualnetworkgateways.IPAllocationMethod](conf["private_ip_address_allocation"].(string)),
 		}
 
 		if subnetID := conf["subnet_id"].(string); subnetID != "" {
@@ -1222,8 +1270,8 @@ func expandVirtualNetworkGatewaySku(d *pluginsdk.ResourceData) *virtualnetworkga
 	sku := d.Get("sku").(string)
 
 	return &virtualnetworkgateways.VirtualNetworkGatewaySku{
-		Name: pointer.To(virtualnetworkgateways.VirtualNetworkGatewaySkuName(sku)),
-		Tier: pointer.To(virtualnetworkgateways.VirtualNetworkGatewaySkuTier(sku)),
+		Name: pointer.ToEnum[virtualnetworkgateways.VirtualNetworkGatewaySkuName](sku),
+		Tier: pointer.ToEnum[virtualnetworkgateways.VirtualNetworkGatewaySkuTier](sku),
 	}
 }
 
@@ -1233,7 +1281,7 @@ func expandVirtualNetworkGatewayAddressSpace(input []interface{}) *virtualnetwor
 	}
 	v := input[0].(map[string]interface{})
 	return &virtualnetworkgateways.AddressSpace{
-		AddressPrefixes: utils.ExpandStringSlice(v["address_prefixes"].(*pluginsdk.Set).List()),
+		AddressPrefixes: helpers.ExpandStringSlice(v["address_prefixes"].(*pluginsdk.Set).List()),
 	}
 }
 
@@ -1313,7 +1361,7 @@ func expandVirtualNetworkGatewayPolicyMembers(input []interface{}) *[]virtualnet
 
 		results = append(results, virtualnetworkgateways.VirtualNetworkGatewayPolicyGroupMember{
 			Name:           pointer.To(policyMember["name"].(string)),
-			AttributeType:  pointer.To(virtualnetworkgateways.VpnPolicyMemberAttributeType(policyMember["type"].(string))),
+			AttributeType:  pointer.ToEnum[virtualnetworkgateways.VpnPolicyMemberAttributeType](policyMember["type"].(string)),
 			AttributeValue: pointer.To(policyMember["value"].(string)),
 		})
 	}
@@ -1418,9 +1466,9 @@ func flattenVirtualNetworkGatewayBgpPeeringAddresses(input *[]virtualnetworkgate
 
 		output = append(output, map[string]interface{}{
 			"ip_configuration_name": ipConfigName,
-			"apipa_addresses":       utils.FlattenStringSlice(e.CustomBgpIPAddresses),
-			"default_addresses":     utils.FlattenStringSlice(e.DefaultBgpIPAddresses),
-			"tunnel_ip_addresses":   utils.FlattenStringSlice(e.TunnelIPAddresses),
+			"apipa_addresses":       helpers.FlattenStringSlice(e.CustomBgpIPAddresses),
+			"default_addresses":     helpers.FlattenStringSlice(e.DefaultBgpIPAddresses),
+			"tunnel_ip_addresses":   helpers.FlattenStringSlice(e.TunnelIPAddresses),
 		})
 	}
 
@@ -1478,7 +1526,7 @@ func flattenVirtualNetworkGatewayVpnClientConfig(cfg *virtualnetworkgateways.Vpn
 	flat["virtual_network_gateway_client_connection"] = connection
 
 	if pool := cfg.VpnClientAddressPool; pool != nil {
-		flat["address_space"] = utils.FlattenStringSlice(pool.AddressPrefixes)
+		flat["address_space"] = helpers.FlattenStringSlice(pool.AddressPrefixes)
 	} else {
 		flat["address_space"] = []interface{}{}
 	}
@@ -1550,8 +1598,8 @@ func hashVirtualNetworkGatewayRootCert(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
 
-	buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["public_cert_data"].(string)))
+	fmt.Fprintf(&buf, "%s-", m["name"].(string))
+	fmt.Fprintf(&buf, "%s-", m["public_cert_data"].(string))
 
 	return pluginsdk.HashString(buf.String())
 }
@@ -1560,8 +1608,8 @@ func hashVirtualNetworkGatewayRevokedCert(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
 
-	buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["thumbprint"].(string)))
+	fmt.Fprintf(&buf, "%s-", m["name"].(string))
+	fmt.Fprintf(&buf, "%s-", m["thumbprint"].(string))
 
 	return pluginsdk.HashString(buf.String())
 }
@@ -1618,7 +1666,7 @@ func flattenVirtualNetworkGatewayAddressSpace(input *virtualnetworkgateways.Addr
 
 	return []interface{}{
 		map[string]interface{}{
-			"address_prefixes": utils.FlattenStringSlice(input.AddressPrefixes),
+			"address_prefixes": helpers.FlattenStringSlice(input.AddressPrefixes),
 		},
 	}
 }
@@ -1747,4 +1795,28 @@ func flattenVirtualNetworkGatewayPolicyGroupNames(input []virtualnetworkgateways
 	}
 
 	return results, nil
+}
+
+func expandVirtualNetworkGatewayAutoScaleConfiguration(d *pluginsdk.ResourceData) *virtualnetworkgateways.VirtualNetworkGatewayAutoScaleConfiguration {
+	minScaleUnit := d.Get("minimum_scale_unit").(int)
+	maxScaleUnit := d.Get("maximum_scale_unit").(int)
+
+	if minScaleUnit == 0 {
+		return nil
+	}
+
+	return &virtualnetworkgateways.VirtualNetworkGatewayAutoScaleConfiguration{
+		Bounds: &virtualnetworkgateways.VirtualNetworkGatewayAutoScaleBounds{
+			Min: pointer.To(int64(minScaleUnit)),
+			Max: pointer.To(int64(maxScaleUnit)),
+		},
+	}
+}
+
+func flattenVirtualNetworkGatewayAutoScaleConfiguration(input *virtualnetworkgateways.VirtualNetworkGatewayAutoScaleConfiguration) (interface{}, interface{}) {
+	if input == nil || input.Bounds == nil {
+		return nil, nil
+	}
+
+	return input.Bounds.Min, input.Bounds.Max
 }

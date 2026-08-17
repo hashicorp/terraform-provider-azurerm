@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -625,7 +624,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 							Optional:     true,
 							ValidateFunc: validation.StringIsJSON,
 						},
-						"protected_settings": { // todo 4.0 - should this actually be a map of key value pairs?
+						"protected_settings": {
 							Type:      pluginsdk.TypeString,
 							Optional:  true,
 							Sensitive: true,
@@ -669,7 +668,8 @@ func resourceBatchPool() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice(
 					[]string{
 						string(pool.DiffDiskPlacementCacheDisk),
-					}, false),
+					}, false,
+				),
 			},
 			"inter_node_communication": {
 				Type:     pluginsdk.TypeString,
@@ -819,53 +819,6 @@ func resourceBatchPool() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FivePointOh() {
-		resource.Schema["certificate"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			Deprecated: "the `certificate` property has been deprecated and will be removed in v5.0 of the AzureRM provider.",
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: azure.ValidateResourceID,
-						// The ID returned for the certificate in the batch account and the certificate applied to the pool
-						// are not consistent in their casing which causes issues when referencing IDs across resources
-						// (as Terraform still sees differences to apply due to the casing)
-						// Handling by ignoring casing for now. Raised as an issue: https://github.com/Azure/azure-rest-api-specs/issues/5574
-						DiffSuppressFunc: suppress.CaseDifference,
-					},
-					"store_location": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							"CurrentUser",
-							"LocalMachine",
-						}, false),
-					},
-					"store_name": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"visibility": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-							ValidateFunc: validation.StringInSlice([]string{
-								"StartTask",
-								"Task",
-								"RemoteUser",
-							}, false),
-						},
-					},
-				},
-			},
-		}
-	}
-
 	resource.Identity = &schema.ResourceIdentity{
 		SchemaFunc: pluginsdk.GenerateIdentitySchema(&pool.PoolId{}),
 	}
@@ -881,22 +834,24 @@ func resourceBatchCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	id := pool.NewPoolID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_batch_pool", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_batch_pool", id.ID())
+		}
 	}
 
 	parameters := pool.Pool{
 		Properties: &pool.PoolProperties{
 			VMSize:                 pointer.To(d.Get("vm_size").(string)),
 			DisplayName:            pointer.To(d.Get("display_name").(string)),
-			InterNodeCommunication: pointer.To(pool.InterNodeCommunicationState(d.Get("inter_node_communication").(string))),
+			InterNodeCommunication: pointer.ToEnum[pool.InterNodeCommunicationState](d.Get("inter_node_communication").(string)),
 			TaskSlotsPerNode:       pointer.To(int64(d.Get("max_tasks_per_node").(int))),
 		},
 	}
@@ -951,16 +906,6 @@ func resourceBatchCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		return deploymentErr
 	}
 
-	if !features.FivePointOh() {
-		if v, ok := d.GetOk("certificate"); ok {
-			certificateReferences, err := ExpandBatchPoolCertificateReferences(v.([]interface{}))
-			if err != nil {
-				return fmt.Errorf("expanding `certificate`: %+v", err)
-			}
-			parameters.Properties.Certificates = certificateReferences
-		}
-	}
-
 	if err := validateBatchPoolCrossFieldRules(parameters.Properties); err != nil {
 		return err
 	}
@@ -981,7 +926,7 @@ func resourceBatchCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if v, ok := d.GetOk("target_node_communication_mode"); ok {
-		parameters.Properties.TargetNodeCommunicationMode = pointer.To(pool.NodeCommunicationMode(v.(string)))
+		parameters.Properties.TargetNodeCommunicationMode = pointer.ToEnum[pool.NodeCommunicationMode](v.(string))
 	}
 
 	if _, err = client.Create(ctx, id, parameters, pool.CreateOperationOptions{}); err != nil {
@@ -1100,21 +1045,11 @@ func resourceBatchUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 	}
 
-	if !features.FivePointOh() {
-		certificates := d.Get("certificate").([]interface{})
-		certificateReferences, err := ExpandBatchPoolCertificateReferences(certificates)
-		if err != nil {
-			return fmt.Errorf("expanding `certificate`: %+v", err)
-		}
-		parameters.Properties.Certificates = certificateReferences
-	}
-
 	if err := validateBatchPoolCrossFieldRules(parameters.Properties); err != nil {
 		return err
 	}
 
 	if d.HasChange("metadata") {
-		log.Printf("[DEBUG] Updating the MetaData for %s", *id)
 		metaDataRaw := d.Get("metadata").(map[string]interface{})
 
 		parameters.Properties.Metadata = ExpandBatchMetaData(metaDataRaw)
@@ -1127,7 +1062,7 @@ func resourceBatchUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	parameters.Properties.MountConfiguration = mountConfiguration
 
 	if d.HasChange("target_node_communication_mode") {
-		parameters.Properties.TargetNodeCommunicationMode = pointer.To(pool.NodeCommunicationMode(d.Get("target_node_communication_mode").(string)))
+		parameters.Properties.TargetNodeCommunicationMode = pointer.ToEnum[pool.NodeCommunicationMode](d.Get("target_node_communication_mode").(string))
 	}
 
 	result, err := client.Update(ctx, *id, parameters, pool.UpdateOperationOptions{})
@@ -1322,12 +1257,6 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 						}
 						d.Set("windows", windowsConfig)
 					}
-				}
-			}
-
-			if !features.FivePointOh() {
-				if err := d.Set("certificate", flattenBatchPoolCertificateReferences(props.Certificates)); err != nil {
-					return fmt.Errorf("flattening `certificate`: %+v", err)
 				}
 			}
 

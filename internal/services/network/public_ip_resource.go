@@ -7,7 +7,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -24,13 +23,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name public_ip -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourcePublicIp() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -182,7 +182,19 @@ func resourcePublicIp() *pluginsdk.Resource {
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			pluginsdk.CustomizeDiffShim(func(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
 				sku := d.Get("sku").(string)
-				if strings.EqualFold(sku, string(publicipaddresses.PublicIPAddressSkuNameBasic)) && d.HasChanges("name", "resource_group_name", "location", "allocation_method", "edge_zone", "ip_version", "sku", "sku_tier", "public_ip_prefix_id", "ip_tags", "zones") {
+				if strings.EqualFold(sku, string(publicipaddresses.PublicIPAddressSkuNameBasic)) && d.HasChanges(
+					"name",
+					"resource_group_name",
+					"location",
+					"allocation_method",
+					"edge_zone",
+					"ip_version",
+					"sku",
+					"sku_tier",
+					"public_ip_prefix_id",
+					"ip_tags",
+					"zones",
+				) {
 					return errors.New(publicIPBasicSkuCreateDeprecationMessage)
 				}
 
@@ -211,19 +223,19 @@ func resourcePublicIpCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Public IP creation.")
-
 	id := commonids.NewPublicIPAddressID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id, publicipaddresses.DefaultGetOperationOptions())
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id, publicipaddresses.DefaultGetOperationOptions())
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_public_ip", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_public_ip", id.ID())
+		}
 	}
 
 	sku := d.Get("sku").(string)
@@ -242,15 +254,15 @@ func resourcePublicIpCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		ExtendedLocation: expandEdgeZoneNew(d.Get("edge_zone").(string)),
 		Location:         pointer.To(location.Normalize(d.Get("location").(string))),
 		Sku: &publicipaddresses.PublicIPAddressSku{
-			Name: pointer.To(publicipaddresses.PublicIPAddressSkuName(sku)),
-			Tier: pointer.To(publicipaddresses.PublicIPAddressSkuTier(d.Get("sku_tier").(string))),
+			Name: pointer.ToEnum[publicipaddresses.PublicIPAddressSkuName](sku),
+			Tier: pointer.ToEnum[publicipaddresses.PublicIPAddressSkuTier](d.Get("sku_tier").(string)),
 		},
 		Properties: &publicipaddresses.PublicIPAddressPropertiesFormat{
-			PublicIPAllocationMethod: pointer.To(publicipaddresses.IPAllocationMethod(ipAllocationMethod)),
-			PublicIPAddressVersion:   pointer.To(publicipaddresses.IPVersion(d.Get("ip_version").(string))),
+			PublicIPAllocationMethod: pointer.ToEnum[publicipaddresses.IPAllocationMethod](ipAllocationMethod),
+			PublicIPAddressVersion:   pointer.ToEnum[publicipaddresses.IPVersion](d.Get("ip_version").(string)),
 			IdleTimeoutInMinutes:     pointer.To(int64(d.Get("idle_timeout_in_minutes").(int))),
 			DdosSettings: &publicipaddresses.DdosSettings{
-				ProtectionMode: pointer.To(publicipaddresses.DdosSettingsProtectionMode(ddosProtectionMode)),
+				ProtectionMode: pointer.ToEnum[publicipaddresses.DdosSettingsProtectionMode](ddosProtectionMode),
 			},
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -295,7 +307,7 @@ func resourcePublicIpCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 
 		if dnlcOk {
-			dnsSettings.DomainNameLabelScope = pointer.To(publicipaddresses.PublicIPAddressDnsSettingsDomainNameLabelScope(dnlc.(string)))
+			dnsSettings.DomainNameLabelScope = pointer.ToEnum[publicipaddresses.PublicIPAddressDnsSettingsDomainNameLabelScope](dnlc.(string))
 		}
 
 		publicIp.Properties.DnsSettings = &dnsSettings
@@ -316,7 +328,7 @@ func resourcePublicIpCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		publicIp.Properties.IPTags = &newIpTags
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, publicIp); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, publicIp, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -332,8 +344,6 @@ func resourcePublicIpUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PublicIPAddresses
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for AzureRM Public IP update.")
 
 	id, err := commonids.ParsePublicIPAddressID(d.Id())
 	if err != nil {
@@ -355,14 +365,14 @@ func resourcePublicIpUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	payload := existing.Model
 
 	if d.HasChange("allocation_method") {
-		payload.Properties.PublicIPAllocationMethod = pointer.To(publicipaddresses.IPAllocationMethod(d.Get("allocation_method").(string)))
+		payload.Properties.PublicIPAllocationMethod = pointer.ToEnum[publicipaddresses.IPAllocationMethod](d.Get("allocation_method").(string))
 	}
 
 	if d.HasChange("ddos_protection_mode") {
 		if payload.Properties.DdosSettings == nil {
 			payload.Properties.DdosSettings = &publicipaddresses.DdosSettings{}
 		}
-		payload.Properties.DdosSettings.ProtectionMode = pointer.To(publicipaddresses.DdosSettingsProtectionMode(d.Get("ddos_protection_mode").(string)))
+		payload.Properties.DdosSettings.ProtectionMode = pointer.ToEnum[publicipaddresses.DdosSettingsProtectionMode](d.Get("ddos_protection_mode").(string))
 	}
 
 	if d.HasChange("ddos_protection_plan_id") {

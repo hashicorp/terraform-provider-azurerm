@@ -5,6 +5,7 @@ package mssqlmanagedinstance
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"regexp"
@@ -22,7 +23,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstanceazureadonlyauthentications"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstances"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -56,6 +56,7 @@ type MsSqlManagedInstanceModel struct {
 	ServicePrincipalType              string                              `tfschema:"service_principal_type"`
 	SkuName                           string                              `tfschema:"sku_name"`
 	StorageAccountType                string                              `tfschema:"storage_account_type"`
+	StorageIOps                       int64                               `tfschema:"storage_iops"`
 	StorageSizeInGb                   int64                               `tfschema:"storage_size_in_gb"`
 	SubnetId                          string                              `tfschema:"subnet_id"`
 	TimezoneId                        string                              `tfschema:"timezone_id"`
@@ -96,7 +97,7 @@ func (r MsSqlManagedInstanceResource) IDValidationFunc() pluginsdk.SchemaValidat
 }
 
 func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
-	args := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         schema.TypeString,
 			Required:     true,
@@ -320,6 +321,14 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 
+		"storage_iops": {
+			Type:     schema.TypeInt,
+			Optional: true,
+			// NOTE: O+C - Azure returns a calculated IOPS value for GPv2 instances when `storage_iops` is omitted.
+			Computed:     true,
+			ValidateFunc: validation.IntBetween(300, 80000),
+		},
+
 		"timezone_id": {
 			Type:         schema.TypeString,
 			Optional:     true,
@@ -336,33 +345,6 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
-
-	if !features.FivePointOh() {
-		args["minimum_tls_version"] = &pluginsdk.Schema{
-			Type:     schema.TypeString,
-			Optional: true,
-			Default:  "1.2",
-			ValidateFunc: validation.StringInSlice([]string{
-				"1.0",
-				"1.1",
-				"1.2",
-			}, false),
-		}
-
-		args["proxy_override"] = &pluginsdk.Schema{
-			Type:     schema.TypeString,
-			Optional: true,
-			// Note: O+C while in 4.x because the value returned by Azure depends on when the resource was created if provisioned with `Default`.
-			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(managedinstances.ManagedInstanceProxyOverrideDefault),
-				string(managedinstances.ManagedInstanceProxyOverrideRedirect),
-				string(managedinstances.ManagedInstanceProxyOverrideProxy),
-			}, false),
-		}
-	}
-
-	return args
 }
 
 func (r MsSqlManagedInstanceResource) Attributes() map[string]*pluginsdk.Schema {
@@ -407,15 +389,34 @@ func (r MsSqlManagedInstanceResource) CustomizeDiff() sdk.ResourceFunc {
 
 			_, aadAdminOk := rd.GetOk("azure_active_directory_administrator")
 			authOnlyEnabled := rd.Get("azure_active_directory_administrator.0.azuread_authentication_only_enabled").(bool)
-			adminLogin := rd.GetRawConfig().AsValueMap()["administrator_login"]
-			adminPassword := rd.GetRawConfig().AsValueMap()["administrator_login_password"]
+			rawConfig := rd.GetRawConfig().AsValueMap()
+			adminLogin := rawConfig["administrator_login"]
+			adminPassword := rawConfig["administrator_login_password"]
 
 			if aadAdminOk && !authOnlyEnabled && (adminLogin.IsNull() || adminPassword.IsNull()) {
 				return fmt.Errorf("`administrator_login` and `administrator_login_password` are required when `azuread_authentication_only_enabled` is false")
 			}
 
+			// Unknown values can come from expressions and may later resolve to null, so only
+			// validate `storage_iops` rules when the argument is known to be explicitly configured.
+			if storageIOps, ok := rawConfig["storage_iops"]; ok && storageIOps.IsKnown() && !storageIOps.IsNull() {
+				if !rd.Get("general_purpose_v2_enabled").(bool) {
+					return errors.New("`storage_iops` can only be set when `general_purpose_v2_enabled` is `true`")
+				}
+
+				if sku := rd.Get("sku_name").(string); strings.HasPrefix(sku, "BC_") {
+					return fmt.Errorf("`storage_iops` is not supported on Business Critical SKUs, got SKU `%s`", sku)
+				}
+			}
+
 			if sku := rd.Get("sku_name").(string); strings.HasPrefix(sku, "BC_") && rd.Get("general_purpose_v2_enabled").(bool) {
 				return fmt.Errorf("`general_purpose_v2_enabled` cannot be set to `true` on Business Critical SKUs, got SKU `%s`", sku)
+			}
+
+			// Zone redundancy is not available for Next-gen General Purpose instances.
+			// https://learn.microsoft.com/azure/azure-sql/managed-instance/high-availability-sla-local-zone-redundancy#next-gen-general-purpose-service-tier
+			if rd.Get("zone_redundant_enabled").(bool) && rd.Get("general_purpose_v2_enabled").(bool) {
+				return errors.New("`zone_redundant_enabled` cannot be set to `true` when `general_purpose_v2_enabled` is `true`")
 			}
 
 			return nil
@@ -437,14 +438,15 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 
 			id := commonids.NewSqlManagedInstanceID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			metadata.Logger.Infof("Import check for %s", id)
-			existing, err := client.Get(ctx, id, managedinstances.GetOperationOptions{})
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id, managedinstances.GetOperationOptions{})
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			sku, err := r.expandSkuName(model.SkuName)
@@ -454,12 +456,7 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 
 			maintenanceConfigId := publicmaintenanceconfigurations.NewPublicMaintenanceConfigurationID(subscriptionId, model.MaintenanceConfigurationName)
 
-			if !features.FivePointOh() {
-				// Preserve previous Default value for `proxy_override`
-				if model.ProxyOverride == "" {
-					model.ProxyOverride = string(managedinstances.ManagedInstanceProxyOverrideDefault)
-				}
-			}
+			isGeneralPurposeV2 := expandMsSqlManagedInstanceGeneralPurposeV2Enabled(model.GeneralPurposeV2Enabled, model.SkuName)
 
 			parameters := managedinstances.ManagedInstance{
 				Sku:      sku,
@@ -470,11 +467,11 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 					AdministratorLoginPassword:       pointer.To(model.AdministratorLoginPassword),
 					Collation:                        pointer.To(model.Collation),
 					DnsZonePartner:                   pointer.To(model.DnsZonePartnerId),
-					IsGeneralPurposeV2:               expandMsSqlManagedInstanceGeneralPurposeV2Enabled(model.GeneralPurposeV2Enabled, model.SkuName),
-					LicenseType:                      pointer.To(managedinstances.ManagedInstanceLicenseType(model.LicenseType)),
+					IsGeneralPurposeV2:               isGeneralPurposeV2,
+					LicenseType:                      pointer.ToEnum[managedinstances.ManagedInstanceLicenseType](model.LicenseType),
 					MaintenanceConfigurationId:       pointer.To(maintenanceConfigId.ID()),
 					MinimalTlsVersion:                pointer.To(model.MinimumTlsVersion),
-					ProxyOverride:                    pointer.To(managedinstances.ManagedInstanceProxyOverride(model.ProxyOverride)),
+					ProxyOverride:                    pointer.ToEnum[managedinstances.ManagedInstanceProxyOverride](model.ProxyOverride),
 					PublicDataEndpointEnabled:        pointer.To(model.PublicDataEndpointEnabled),
 					RequestedBackupStorageRedundancy: pointer.To(storageAccTypeToBackupStorageRedundancy(model.StorageAccountType)),
 					StorageSizeInGB:                  pointer.To(model.StorageSizeInGb),
@@ -484,10 +481,15 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 					ZoneRedundant:                    pointer.To(model.ZoneRedundantEnabled),
 					// `Administrators` is only valid when specified during creation`
 					Administrators:       expandMsSqlManagedInstanceExternalAdministrators(model.AzureActiveDirectoryAdministrator),
-					DatabaseFormat:       pointer.To(managedinstances.ManagedInstanceDatabaseFormat(model.DatabaseFormat)),
-					HybridSecondaryUsage: pointer.To(managedinstances.HybridSecondaryUsage(model.HybridSecondaryUsage)),
+					DatabaseFormat:       pointer.ToEnum[managedinstances.ManagedInstanceDatabaseFormat](model.DatabaseFormat),
+					HybridSecondaryUsage: pointer.ToEnum[managedinstances.HybridSecondaryUsage](model.HybridSecondaryUsage),
 				},
 				Tags: pointer.To(model.Tags),
+			}
+
+			// If StorageIOps is carried in payload and set to 0, the service will return HTTP 405.
+			if pointer.From(isGeneralPurposeV2) && model.StorageIOps != 0 {
+				parameters.Properties.StorageIOps = pointer.To(model.StorageIOps)
 			}
 
 			if parameters.Identity != nil && len(parameters.Identity.IdentityIds) > 0 {
@@ -499,14 +501,11 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 
 			if model.ServicePrincipalType != "" {
 				parameters.Properties.ServicePrincipal = &managedinstances.ServicePrincipal{
-					Type: pointer.To(managedinstances.ServicePrincipalType(model.ServicePrincipalType)),
+					Type: pointer.ToEnum[managedinstances.ServicePrincipalType](model.ServicePrincipalType),
 				}
 			}
 
-			metadata.Logger.Infof("Creating %s", id)
-
-			err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
-			if err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -529,7 +528,6 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("Decoding state for %s", *id)
 			var state MsSqlManagedInstanceModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
@@ -637,7 +635,7 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 				if state.ServicePrincipalType == "" {
 					props.ServicePrincipal.Type = pointer.To(managedinstances.ServicePrincipalTypeNone)
 				} else {
-					props.ServicePrincipal.Type = pointer.To(managedinstances.ServicePrincipalType(state.ServicePrincipalType))
+					props.ServicePrincipal.Type = pointer.ToEnum[managedinstances.ServicePrincipalType](state.ServicePrincipalType)
 				}
 			}
 
@@ -664,8 +662,7 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 							AzureADOnlyAuthentication: false,
 						},
 					}
-					err = azureADAuthenticationOnlyClient.CreateOrUpdateThenPoll(ctx, *id, aadAuthOnlyParams)
-					if err != nil {
+					if err = azureADAuthenticationOnlyClient.CreateOrUpdateThenPoll(ctx, *id, aadAuthOnlyParams); err != nil {
 						return fmt.Errorf("disabling `azuread_authentication_only` for %s: %+v", *id, err)
 					}
 
@@ -688,28 +685,33 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 						},
 					}
 
-					err := azureADAuthenticationOnlyClient.CreateOrUpdateThenPoll(ctx, *id, aadOnlyAuthenticationsProps)
-					if err != nil {
+					if err := azureADAuthenticationOnlyClient.CreateOrUpdateThenPoll(ctx, *id, aadOnlyAuthenticationsProps); err != nil {
 						return fmt.Errorf("setting `azuread_authentication_only_enabled` for %s: %+v", *id, err)
 					}
 				}
 			}
 
 			if metadata.ResourceData.HasChange("database_format") {
-				props.DatabaseFormat = pointer.To(managedinstances.ManagedInstanceDatabaseFormat(state.DatabaseFormat))
+				props.DatabaseFormat = pointer.ToEnum[managedinstances.ManagedInstanceDatabaseFormat](state.DatabaseFormat)
 			}
 
 			if metadata.ResourceData.HasChange("hybrid_secondary_usage") {
-				props.HybridSecondaryUsage = pointer.To(managedinstances.HybridSecondaryUsage(state.HybridSecondaryUsage))
+				props.HybridSecondaryUsage = pointer.ToEnum[managedinstances.HybridSecondaryUsage](state.HybridSecondaryUsage)
 			}
 
-			if metadata.ResourceData.HasChange("general_purpose_v2_enabled") {
-				props.IsGeneralPurposeV2 = expandMsSqlManagedInstanceGeneralPurposeV2Enabled(state.GeneralPurposeV2Enabled, state.SkuName)
+			effectiveIsGeneralPurposeV2 := expandMsSqlManagedInstanceGeneralPurposeV2Enabled(state.GeneralPurposeV2Enabled, state.SkuName)
 
-				// when `general_purpose_v2_enabled` is `nil` or `false`, ensure `storageIOps is not in the request as this is not supported
-				if !pointer.From(props.IsGeneralPurposeV2) {
-					props.StorageIOps = nil
+			if metadata.ResourceData.HasChanges("general_purpose_v2_enabled", "sku_name") {
+				props.IsGeneralPurposeV2 = effectiveIsGeneralPurposeV2
+			}
+
+			// When updating MI from GPv2 to non GPv2, `StorageIOps` is not a valid value in payload.
+			if pointer.From(effectiveIsGeneralPurposeV2) && state.StorageIOps != 0 {
+				if metadata.ResourceData.HasChange("storage_iops") {
+					props.StorageIOps = pointer.To(state.StorageIOps)
 				}
+			} else {
+				props.StorageIOps = nil
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
@@ -732,7 +734,6 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("Decoding state for %s", id)
 			var state MsSqlManagedInstanceModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
@@ -791,6 +792,8 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 
 					model.MinimumTlsVersion = pointer.From(props.MinimalTlsVersion)
 					model.PublicDataEndpointEnabled = pointer.From(props.PublicDataEndpointEnabled)
+					model.GeneralPurposeV2Enabled = pointer.From(props.IsGeneralPurposeV2)
+					model.StorageIOps = pointer.From(props.StorageIOps)
 					model.StorageSizeInGb = pointer.From(props.StorageSizeInGB)
 					model.SubnetId = pointer.From(props.SubnetId)
 					model.TimezoneId = pointer.From(props.TimezoneId)
@@ -803,9 +806,9 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 					}
 					model.DatabaseFormat = string(pointer.From(props.DatabaseFormat))
 					model.HybridSecondaryUsage = string(pointer.From(props.HybridSecondaryUsage))
-					model.GeneralPurposeV2Enabled = pointer.From(props.IsGeneralPurposeV2)
 				}
 			}
+
 			return metadata.Encode(&model)
 		},
 	}
@@ -822,8 +825,7 @@ func (r MsSqlManagedInstanceResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			err = client.DeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
@@ -965,7 +967,7 @@ func expandMsSqlManagedInstanceExternalAdministrators(input []AzureActiveDirecto
 	admin := input[0]
 	adminParams := managedinstances.ManagedInstanceExternalAdministrator{
 		AdministratorType:         pointer.To(managedinstances.AdministratorTypeActiveDirectory),
-		PrincipalType:             pointer.To(managedinstances.PrincipalType(admin.PrincipalType)),
+		PrincipalType:             pointer.ToEnum[managedinstances.PrincipalType](admin.PrincipalType),
 		Login:                     pointer.To(admin.LoginUserName),
 		Sid:                       pointer.To(admin.ObjectID),
 		AzureADOnlyAuthentication: pointer.To(admin.AzureADAuthenticationOnlyEnabled),

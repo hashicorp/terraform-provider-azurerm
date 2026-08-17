@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstances"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	helperValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	miParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
@@ -73,7 +72,7 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 		"long_term_retention_policy.0.yearly_retention", "long_term_retention_policy.0.week_of_year",
 	}
 
-	resource := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -167,63 +166,6 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
-
-	if !features.FivePointOh() {
-		resource["long_term_retention_policy"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Computed: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					// WeeklyRetention - The weekly retention policy for an LTR backup in an ISO 8601 format.
-					"weekly_retention": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: helperValidate.ISO8601Duration,
-						AtLeastOneOf: atLeastOneOf,
-					},
-
-					// MonthlyRetention - The monthly retention policy for an LTR backup in an ISO 8601 format.
-					"monthly_retention": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: helperValidate.ISO8601Duration,
-						AtLeastOneOf: atLeastOneOf,
-					},
-
-					// YearlyRetention - The yearly retention policy for an LTR backup in an ISO 8601 format.
-					"yearly_retention": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: helperValidate.ISO8601Duration,
-						AtLeastOneOf: atLeastOneOf,
-					},
-
-					// WeekOfYear - The week of year to take the yearly backup in an ISO 8601 format.
-					"week_of_year": {
-						Type:         pluginsdk.TypeInt,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: validation.IntBetween(0, 52),
-						AtLeastOneOf: atLeastOneOf,
-					},
-
-					"immutable_backups_enabled": {
-						Type:       pluginsdk.TypeBool,
-						Optional:   true,
-						Default:    false,
-						Deprecated: "The `long_term_retention_policy.immutable_backups_enabled` property has been deprecated and will be removed in v5.0 of the AzureRM provider. This property is non-functional and was mistakenly exposed in the resource.",
-					},
-				},
-			},
-		}
-	}
-
-	return resource
 }
 
 func (r MsSqlManagedDatabaseResource) Attributes() map[string]*pluginsdk.Schema {
@@ -257,14 +199,15 @@ func (r MsSqlManagedDatabaseResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("checking for existence and region of Managed Instance for %s: %+v", id, err)
 			}
 
-			metadata.Logger.Infof("Import check for %s", id)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := manageddatabases.ManagedDatabase{
@@ -285,12 +228,10 @@ func (r MsSqlManagedDatabaseResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			metadata.Logger.Infof("Creating %s", id)
-
-			err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
-			if err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
+			metadata.SetID(id)
 
 			if len(model.LongTermRetentionPolicy) > 0 {
 				longTermRetentionPolicy := managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicy{
@@ -312,8 +253,6 @@ func (r MsSqlManagedDatabaseResource) Create() sdk.ResourceFunc {
 					return fmt.Errorf("setting Short Term Retention Policy for %s: %+v", id, err)
 				}
 			}
-
-			metadata.SetID(id)
 
 			return nil
 		},
@@ -355,8 +294,7 @@ func (r MsSqlManagedDatabaseResource) Update() sdk.ResourceFunc {
 					Tags:     pointer.To(model.Tags),
 				}
 
-				err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
-				if err != nil {
+				if err = client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 					return fmt.Errorf("updating %s: %+v", id, err)
 				}
 			}
@@ -399,7 +337,6 @@ func (r MsSqlManagedDatabaseResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("Decoding state for %s", id)
 			var state MsSqlManagedDatabaseModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
@@ -467,8 +404,7 @@ func (r MsSqlManagedDatabaseResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			err = client.DeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
@@ -488,14 +424,12 @@ func expandLongTermRetentionPolicy(ltrPolicy []LongTermRetentionPolicy) *managed
 		weekOfYear = ltrPolicy[0].WeekOfYear
 	}
 
-	result := &managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicyProperties{
+	return &managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicyProperties{
 		WeeklyRetention:  &ltrPolicy[0].WeeklyRetention,
 		MonthlyRetention: &ltrPolicy[0].MonthlyRetention,
 		YearlyRetention:  &ltrPolicy[0].YearlyRetention,
 		WeekOfYear:       &weekOfYear,
 	}
-
-	return result
 }
 
 func flattenLongTermRetentionPolicy(ltrPolicy managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicyProperties) []LongTermRetentionPolicy {

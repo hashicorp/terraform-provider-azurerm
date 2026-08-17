@@ -8,8 +8,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/suppress"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -18,17 +16,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	service "github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/resource"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceHealthcareService() *pluginsdk.Resource {
-	r := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceHealthcareServiceCreateUpdate,
 		Read:   resourceHealthcareServiceRead,
 		Update: resourceHealthcareServiceCreateUpdate,
@@ -216,18 +214,6 @@ func resourceHealthcareService() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	if !features.FivePointOh() {
-		r.Schema["cosmosdb_key_vault_key_versionless_id"] = &pluginsdk.Schema{
-			Type:             pluginsdk.TypeString,
-			Optional:         true,
-			ForceNew:         true,
-			DiffSuppressFunc: suppress.DiffSuppressIgnoreKeyVaultKeyVersion,
-			ValidateFunc:     keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeAny),
-		}
-	}
-
-	return r
 }
 
 func resourceHealthcareServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -238,15 +224,17 @@ func resourceHealthcareServiceCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 	id := service.NewServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.ServicesGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.ServicesGet(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_healthcare_service", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_healthcare_service", id.ID())
+			}
 		}
 	}
 
@@ -286,12 +274,17 @@ func resourceHealthcareServiceCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	}
 	payload.Identity = expandedIdentity
 
-	err = client.ServicesCreateOrUpdateThenPoll(ctx, id, payload)
-	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.ServicesCreateOrUpdateCallbackThenPoll(ctx, id, payload, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.ServicesCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
-	d.SetId(id.ID())
 	return resourceHealthcareServiceRead(d, meta)
 }
 
@@ -386,8 +379,7 @@ func resourceHealthcareServiceDelete(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	err = client.ServicesDeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.ServicesDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting Healthcare Service %q (Resource Group %q): %+v", id.ServiceName, id.ResourceGroupName, err)
 	}
 	return nil
@@ -414,20 +406,19 @@ func expandCorsConfiguration(d *pluginsdk.ResourceData) *service.ServiceCorsConf
 
 	corsConfigAttr := corsConfigRaw[0].(map[string]interface{})
 
-	allowedOrigins := *utils.ExpandStringSlice(corsConfigAttr["allowed_origins"].(*pluginsdk.Set).List())
-	allowedHeaders := *utils.ExpandStringSlice(corsConfigAttr["allowed_headers"].(*pluginsdk.Set).List())
-	allowedMethods := *utils.ExpandStringSlice(corsConfigAttr["allowed_methods"].([]interface{}))
+	allowedOrigins := *helpers.ExpandStringSlice(corsConfigAttr["allowed_origins"].(*pluginsdk.Set).List())
+	allowedHeaders := *helpers.ExpandStringSlice(corsConfigAttr["allowed_headers"].(*pluginsdk.Set).List())
+	allowedMethods := *helpers.ExpandStringSlice(corsConfigAttr["allowed_methods"].([]interface{}))
 	maxAgeInSeconds := int64(corsConfigAttr["max_age_in_seconds"].(int))
 	allowCredentials := corsConfigAttr["allow_credentials"].(bool)
 
-	cors := &service.ServiceCorsConfigurationInfo{
+	return &service.ServiceCorsConfigurationInfo{
 		Origins:          &allowedOrigins,
 		Headers:          &allowedHeaders,
 		Methods:          &allowedMethods,
 		MaxAge:           &maxAgeInSeconds,
 		AllowCredentials: &allowCredentials,
 	}
-	return cors
 }
 
 func expandAuthentication(d *pluginsdk.ResourceData) *service.ServiceAuthenticationConfigurationInfo {
@@ -442,12 +433,11 @@ func expandAuthentication(d *pluginsdk.ResourceData) *service.ServiceAuthenticat
 	audience := authConfigAttr["audience"].(string)
 	smartProxyEnabled := authConfigAttr["smart_proxy_enabled"].(bool)
 
-	auth := &service.ServiceAuthenticationConfigurationInfo{
+	return &service.ServiceAuthenticationConfigurationInfo{
 		Authority:         &authority,
 		Audience:          &audience,
 		SmartProxyEnabled: &smartProxyEnabled,
 	}
-	return auth
 }
 
 func expandsCosmosDBConfiguration(d *pluginsdk.ResourceData) (*service.ServiceCosmosDbConfigurationInfo, error) {
@@ -456,12 +446,7 @@ func expandsCosmosDBConfiguration(d *pluginsdk.ResourceData) (*service.ServiceCo
 	}
 
 	if keyVaultKeyIDRaw, ok := d.GetOk("cosmosdb_key_vault_key_versionless_id"); ok {
-		nestedItemType := keyvault.NestedItemTypeKey
-		if !features.FivePointOh() {
-			nestedItemType = keyvault.NestedItemTypeAny
-		}
-
-		keyVaultKey, err := keyvault.ParseNestedItemID(keyVaultKeyIDRaw.(string), keyvault.VersionTypeVersionless, nestedItemType)
+		keyVaultKey, err := keyvault.ParseNestedItemID(keyVaultKeyIDRaw.(string), keyvault.VersionTypeVersionless, keyvault.NestedItemTypeKey)
 		if err != nil {
 			return nil, err
 		}
@@ -490,23 +475,11 @@ func flattenAuthentication(input *service.ServiceAuthenticationConfigurationInfo
 		return []interface{}{}
 	}
 
-	authority := ""
-	if input.Authority != nil {
-		authority = *input.Authority
-	}
-	audience := ""
-	if input.Audience != nil {
-		audience = *input.Audience
-	}
-	smartProxyEnabled := false
-	if input.SmartProxyEnabled != nil {
-		smartProxyEnabled = *input.SmartProxyEnabled
-	}
 	return []interface{}{
 		map[string]interface{}{
-			"audience":            audience,
-			"authority":           authority,
-			"smart_proxy_enabled": smartProxyEnabled,
+			"audience":            pointer.From(input.Audience),
+			"authority":           pointer.From(input.Authority),
+			"smart_proxy_enabled": pointer.From(input.SmartProxyEnabled),
 		},
 	}
 }
@@ -520,17 +493,12 @@ func flattenCorsConfig(input *service.ServiceCorsConfigurationInfo) []interface{
 	if input.MaxAge != nil {
 		maxAge = int(*input.MaxAge)
 	}
-	allowCredentials := false
-	if input.AllowCredentials != nil {
-		allowCredentials = *input.AllowCredentials
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"allow_credentials":  allowCredentials,
-			"allowed_headers":    utils.FlattenStringSlice(input.Headers),
-			"allowed_methods":    utils.FlattenStringSlice(input.Methods),
-			"allowed_origins":    utils.FlattenStringSlice(input.Origins),
+			"allow_credentials":  pointer.From(input.AllowCredentials),
+			"allowed_headers":    helpers.FlattenStringSlice(input.Headers),
+			"allowed_methods":    helpers.FlattenStringSlice(input.Methods),
+			"allowed_origins":    helpers.FlattenStringSlice(input.Origins),
 			"max_age_in_seconds": maxAge,
 		},
 	}

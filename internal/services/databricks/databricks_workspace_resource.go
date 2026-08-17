@@ -20,13 +20,14 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/accessconnector"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/workspaces"
 	mlworkspace "github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/subnets"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/validate"
 	resourcesParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -35,10 +36,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name databricks_workspace -service-package-name databricks -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basicForResourceIdentity
+//go:generate go run ../../tools/generator-tests resourceidentity -test-name basicForResourceIdentity
 
 func resourceDatabricksWorkspace() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceDatabricksWorkspaceCreate,
 		Read:   resourceDatabricksWorkspaceRead,
 		Update: resourceDatabricksWorkspaceUpdate,
@@ -452,8 +453,6 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 			}),
 		),
 	}
-
-	return resource
 }
 
 func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -467,15 +466,18 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 	defer cancel()
 
 	id := workspaces.NewWorkspaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_databricks_workspace", id.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+		}
+
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_databricks_workspace", id.ID())
+		}
 	}
 
 	var backendPoolName, loadBalancerId string
@@ -707,10 +709,6 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 		workspace.Properties.DefaultStorageFirewall = &defaultStorageFirewallEnabled
 	}
 
-	if !d.IsNewResource() && d.HasChange("default_storage_firewall_enabled") {
-		workspace.Properties.DefaultStorageFirewall = &defaultStorageFirewallEnabled
-	}
-
 	if requireNsgRules != "" {
 		requiredNsgRulesConst := workspaces.RequiredNsgRules(requireNsgRules)
 		workspace.Properties.RequiredNsgRules = &requiredNsgRulesConst
@@ -723,7 +721,7 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 	enhancedSecurityCompliance := d.Get("enhanced_security_compliance")
 	workspace.Properties.EnhancedSecurityCompliance = expandWorkspaceEnhancedSecurity(enhancedSecurityCompliance.([]interface{}))
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, workspace); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, workspace, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -851,17 +849,8 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 			return fmt.Errorf("setting `managed_disk_identity`: %+v", err)
 		}
 
-		var workspaceUrl string
-		if model.Properties.WorkspaceURL != nil {
-			workspaceUrl = *model.Properties.WorkspaceURL
-		}
-		d.Set("workspace_url", workspaceUrl)
-
-		var workspaceId string
-		if model.Properties.WorkspaceId != nil {
-			workspaceId = *model.Properties.WorkspaceId
-		}
-		d.Set("workspace_id", workspaceId)
+		d.Set("workspace_url", pointer.From(model.Properties.WorkspaceURL))
+		d.Set("workspace_id", pointer.From(model.Properties.WorkspaceId))
 
 		// customer managed key for managed services
 		var servicesKeyId string
@@ -893,11 +882,7 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 
 		d.Set("enhanced_security_compliance", flattenWorkspaceEnhancedSecurity(model.Properties.EnhancedSecurityCompliance))
 
-		var encryptDiskEncryptionSetId string
-		if model.Properties.DiskEncryptionSetId != nil {
-			encryptDiskEncryptionSetId = *model.Properties.DiskEncryptionSetId
-		}
-		d.Set("disk_encryption_set_id", encryptDiskEncryptionSetId)
+		d.Set("disk_encryption_set_id", pointer.From(model.Properties.DiskEncryptionSetId))
 
 		// Always set these even if they are empty to keep the state file
 		// consistent with the configuration file...
@@ -1042,7 +1027,7 @@ func resourceDatabricksWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("network_security_group_rules_required") {
-		props.RequiredNsgRules = pointer.To(workspaces.RequiredNsgRules(d.Get("network_security_group_rules_required").(string)))
+		props.RequiredNsgRules = pointer.ToEnum[workspaces.RequiredNsgRules](d.Get("network_security_group_rules_required").(string))
 	}
 
 	if d.HasChange("custom_parameters") {

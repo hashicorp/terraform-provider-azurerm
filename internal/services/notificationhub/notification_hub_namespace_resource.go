@@ -121,15 +121,17 @@ func resourceNotificationHubNamespaceCreate(d *pluginsdk.ResourceData, meta inte
 
 	id := namespaces.NewNamespaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_notification_hub_namespace", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_notification_hub_namespace", id.ID())
+		}
 	}
 
 	zoneRedundancy := namespaces.ZoneRedundancyPreferenceDisabled
@@ -152,7 +154,7 @@ func resourceNotificationHubNamespaceCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if v, ok := d.GetOk("replication_region"); ok {
-		parameters.Properties.ReplicationRegion = pointer.To(namespaces.ReplicationRegion(location.Normalize(v.(string))))
+		parameters.Properties.ReplicationRegion = pointer.ToEnum[namespaces.ReplicationRegion](location.Normalize(v.(string)))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
@@ -190,7 +192,7 @@ func resourceNotificationHubNamespaceUpdate(d *pluginsdk.ResourceData, meta inte
 
 	parameters := namespaces.NamespacePatchParameters{
 		Properties: &namespaces.NamespaceProperties{
-			NamespaceType: pointer.To(namespaces.NamespaceType(d.Get("namespace_type").(string))),
+			NamespaceType: pointer.ToEnum[namespaces.NamespaceType](d.Get("namespace_type").(string)),
 			Enabled:       pointer.To(d.Get("enabled").(bool)),
 		},
 	}

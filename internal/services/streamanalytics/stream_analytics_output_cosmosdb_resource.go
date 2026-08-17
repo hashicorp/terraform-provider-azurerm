@@ -127,13 +127,15 @@ func (r OutputCosmosDBResource) Create() sdk.ResourceFunc {
 			}
 			id := outputs.NewOutputID(subscriptionId, streamingJobId.ResourceGroupName, streamingJobId.StreamingJobName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			databaseId, err := cosmosdb.ParseSqlDatabaseID(model.Database)
@@ -148,7 +150,7 @@ func (r OutputCosmosDBResource) Create() sdk.ResourceFunc {
 				CollectionNamePattern: pointer.To(model.ContainerName),
 				DocumentId:            pointer.To(model.DocumentID),
 				PartitionKey:          pointer.To(model.PartitionKey),
-				AuthenticationMode:    pointer.To(outputs.AuthenticationMode(model.AuthenticationMode)),
+				AuthenticationMode:    pointer.ToEnum[outputs.AuthenticationMode](model.AuthenticationMode),
 			}
 
 			props := outputs.Output{
@@ -208,23 +210,11 @@ func (r OutputCosmosDBResource) Read() sdk.ResourceFunc {
 					databaseId := cosmosdb.NewSqlDatabaseID(id.SubscriptionId, id.ResourceGroupName, *output.Properties.AccountId, *output.Properties.Database)
 					state.Database = databaseId.ID()
 
-					collectionName := ""
-					if v := output.Properties.CollectionNamePattern; v != nil {
-						collectionName = *v
-					}
-					state.ContainerName = collectionName
+					state.ContainerName = pointer.From(output.Properties.CollectionNamePattern)
 
-					document := ""
-					if v := output.Properties.DocumentId; v != nil {
-						document = *v
-					}
-					state.DocumentID = document
+					state.DocumentID = pointer.From(output.Properties.DocumentId)
 
-					partitionKey := ""
-					if v := output.Properties.PartitionKey; v != nil {
-						partitionKey = *v
-					}
-					state.PartitionKey = partitionKey
+					state.PartitionKey = pointer.From(output.Properties.PartitionKey)
 
 					state.AuthenticationMode = string(pointer.From(output.Properties.AuthenticationMode))
 
@@ -245,8 +235,6 @@ func (r OutputCosmosDBResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-
-			metadata.Logger.Infof("deleting %s", *id)
 
 			if resp, err := client.Delete(ctx, *id); err != nil {
 				if !response.WasNotFound(resp.HttpResponse) {

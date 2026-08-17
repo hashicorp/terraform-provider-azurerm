@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
@@ -485,15 +486,17 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("looking up Base URI for Certificate %q in %s: %+v", name, *keyVaultId, err)
 	}
 
-	existing, err := client.GetCertificate(ctx, *keyVaultBaseUrl, name, "")
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Certificate %q in %s: %s", name, *keyVaultBaseUrl, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.GetCertificate(ctx, *keyVaultBaseUrl, name, "")
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for presence of existing Certificate %q in %s: %s", name, *keyVaultBaseUrl, err)
+			}
 		}
-	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_key_vault_certificate", *existing.ID)
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_key_vault_certificate", *existing.ID)
+		}
 	}
 
 	t := d.Get("tags").(map[string]interface{})
@@ -597,9 +600,6 @@ func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta interface{})
 
 	meta.(*clients.Client).KeyVault.AddToCache(*keyVaultId, id.KeyVaultBaseURL)
 
-	// Because certificate content is not returned from the api, we need to set partial as true in case
-	// the update fails and state is updated incorrectly causing subsequent refreshes to not update `certificate`.
-	d.Partial(true)
 	if d.HasChange("certificate") {
 		if v, ok := d.GetOk("certificate"); ok {
 			// Import new version of certificate
@@ -675,7 +675,6 @@ func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta interface{})
 			return err
 		}
 	}
-	d.Partial(false)
 	return resourceKeyVaultCertificateRead(d, meta)
 }
 
@@ -839,7 +838,6 @@ func resourceKeyVaultCertificateDelete(d *pluginsdk.ResourceData, meta interface
 	if err != nil {
 		if response.WasNotFound(kv.HttpResponse) {
 			log.Printf("[DEBUG] Certificate %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseURL)
-			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("checking if key vault %q for Certificate %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseURL, err)
@@ -955,7 +953,7 @@ func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*kv.Certificate
 		cert := v.(map[string]interface{})
 
 		ekus := cert["extended_key_usage"].([]interface{})
-		extendedKeyUsage := utils.ExpandStringSlice(ekus)
+		extendedKeyUsage := helpers.ExpandStringSlice(ekus)
 
 		keyUsage := make([]kv.KeyUsageType, 0)
 		keys := cert["key_usage"].(*pluginsdk.Set).List()
@@ -971,17 +969,17 @@ func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*kv.Certificate
 
 					emails := san["emails"].(*pluginsdk.Set).List()
 					if len(emails) > 0 {
-						subjectAlternativeNames.Emails = utils.ExpandStringSlice(emails)
+						subjectAlternativeNames.Emails = helpers.ExpandStringSlice(emails)
 					}
 
 					dnsNames := san["dns_names"].(*pluginsdk.Set).List()
 					if len(dnsNames) > 0 {
-						subjectAlternativeNames.DNSNames = utils.ExpandStringSlice(dnsNames)
+						subjectAlternativeNames.DNSNames = helpers.ExpandStringSlice(dnsNames)
 					}
 
 					upns := san["upns"].(*pluginsdk.Set).List()
 					if len(upns) > 0 {
-						subjectAlternativeNames.Upns = utils.ExpandStringSlice(upns)
+						subjectAlternativeNames.Upns = helpers.ExpandStringSlice(upns)
 					}
 				}
 			}

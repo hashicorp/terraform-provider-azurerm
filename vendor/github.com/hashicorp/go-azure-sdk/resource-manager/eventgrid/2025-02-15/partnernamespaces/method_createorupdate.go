@@ -61,9 +61,20 @@ func (c PartnerNamespacesClient) CreateOrUpdate(ctx context.Context, id PartnerN
 
 // CreateOrUpdateThenPoll performs CreateOrUpdate then polls until it's completed
 func (c PartnerNamespacesClient) CreateOrUpdateThenPoll(ctx context.Context, id PartnerNamespaceId, input PartnerNamespace) error {
+	return c.CreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CreateOrUpdateCallbackThenPoll performs CreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c PartnerNamespacesClient) CreateOrUpdateCallbackThenPoll(ctx context.Context, id PartnerNamespaceId, input PartnerNamespace, callback func() error) error {
 	result, err := c.CreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

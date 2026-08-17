@@ -100,6 +100,7 @@ var (
 	// Type constants.
 	tBool       = types.Typ[types.Bool]
 	tByte       = types.Typ[types.Byte]
+	tRune       = types.Universe.Lookup("rune").Type() // prints as "rune" (Typ[Rune] is same as Int32)
 	tInt        = types.Typ[types.Int]
 	tInvalid    = types.Typ[types.Invalid]
 	tString     = types.Typ[types.String]
@@ -582,33 +583,6 @@ func (b *builder) assign(fn *Function, loc lvalue, e ast.Expr, isZero bool, sb *
 			}
 			return
 		}
-
-		if _, ok := loc.(*address); ok {
-			if isNonTypeParamInterface(loc.typ()) {
-				// e.g. var x interface{} = T{...}
-				// Can't in-place initialize an interface value.
-				// Fall back to copying.
-			} else {
-				// x = T{...} or x := T{...}
-				addr := loc.address(fn)
-				if sb != nil {
-					b.compLit(fn, addr, e, isZero, sb)
-				} else {
-					var sb storebuf
-					b.compLit(fn, addr, e, isZero, &sb)
-					sb.emit(fn)
-				}
-
-				// Subtle: emit debug ref for aggregate types only;
-				// slice and map are handled by store ops in compLit.
-				switch typeparams.CoreType(loc.typ()).(type) {
-				case *types.Struct, *types.Array:
-					emitDebugRef(fn, e, addr, true)
-				}
-
-				return
-			}
-		}
 	}
 
 	// simple case: just copy
@@ -824,8 +798,8 @@ func (b *builder) expr0(fn *Function, e ast.Expr, tv types.TypeAndValue) Value {
 			}
 			callee := v.(*Function) // (func)
 			if callee.typeparams.Len() > 0 {
-				targs := fn.subst.types(instanceArgs(fn.info, e))
-				callee = callee.instance(targs, b)
+				targs := fn.subtargs(e)
+				callee = callee.instance(nil, targs, b)
 			}
 			return callee
 		}
@@ -846,15 +820,16 @@ func (b *builder) expr0(fn *Function, e ast.Expr, tv types.TypeAndValue) Value {
 		case types.MethodExpr:
 			// (*T).f or T.f, the method f from the method-set of type T.
 			// The result is a "thunk".
-			thunk := createThunk(fn.Prog, sel)
+			targs := fn.subtargs(e.Sel)
+			thunk := createThunk(fn.Prog, sel, targs)
 			b.enqueue(thunk)
-			return emitConv(fn, thunk, fn.typ(tv.Type))
+			return thunk
 
 		case types.MethodVal:
 			// e.f where e is an expression and f is a method.
 			// The result is a "bound".
-			obj := sel.obj.(*types.Func)
-			rt := fn.typ(recvType(obj))
+			m := sel.obj.(*types.Func)
+			rt := fn.typ(recvType(m))
 			wantAddr := isPointer(rt)
 			escaping := true
 			v := b.receiver(fn, e.X, wantAddr, escaping, sel)
@@ -885,19 +860,25 @@ func (b *builder) expr0(fn *Function, e ast.Expr, tv types.TypeAndValue) Value {
 					emitTypeAssert(fn, v, rt, e.Sel.Pos())
 				}
 			}
-			if targs := receiverTypeArgs(obj); len(targs) > 0 {
-				// obj is generic.
-				obj = fn.Prog.canon.instantiateMethod(obj, fn.subst.types(targs), fn.Prog.ctxt)
+
+			if rtargs := fn.subrtargs(m); len(rtargs) > 0 {
+				m = fn.Prog.canon.instantiateMethod(m, rtargs, fn.Prog.ctxt)
 			}
-			bound := createBound(fn.Prog, obj)
+
+			targs := fn.subtargs(e.Sel)
+			bound := createBound(fn.Prog, m, targs)
 			b.enqueue(bound)
+
+			// The assignment may widen a type parameter to its
+			// interface bound (case #3 of go.dev/issue.78110).
+			v = emitConv(fn, v, bound.FreeVars[0].Type())
 
 			c := &MakeClosure{
 				Fn:       bound,
 				Bindings: []Value{v},
 			}
 			c.setPos(e.Sel.Pos())
-			c.setType(fn.typ(tv.Type))
+			c.setType(bound.Signature)
 			return fn.emit(c)
 
 		case types.FieldVal:
@@ -1010,8 +991,15 @@ func (b *builder) receiver(fn *Function, e ast.Expr, wantAddr, escaping bool, se
 func (b *builder) setCallFunc(fn *Function, e *ast.CallExpr, c *CallCommon) {
 	c.pos = e.Lparen
 
-	// Is this a method call?
-	if selector, ok := ast.Unparen(e.Fun).(*ast.SelectorExpr); ok {
+	// Is this a (possibly generic) method call?
+	m := ast.Unparen(e.Fun)
+	switch e := m.(type) {
+	case *ast.IndexExpr:
+		m = e.X
+	case *ast.IndexListExpr:
+		m = e.X
+	}
+	if selector, ok := m.(*ast.SelectorExpr); ok {
 		sel := fn.selection(selector)
 		if sel != nil && sel.kind == types.MethodVal {
 			obj := sel.obj.(*types.Func)
@@ -1026,7 +1014,8 @@ func (b *builder) setCallFunc(fn *Function, e *ast.CallExpr, c *CallCommon) {
 				c.Method = obj
 			} else {
 				// "Call"-mode call.
-				c.Value = fn.Prog.objectMethod(obj, b)
+				targs := fn.subtargs(selector.Sel)
+				c.Value = fn.Prog.objectMethod(obj, targs, b)
 				c.Args = append(c.Args, v)
 			}
 			return
@@ -1270,7 +1259,7 @@ func (b *builder) arrayLen(fn *Function, elts []ast.Expr) int64 {
 //	x := T{a: 1}
 //	x = T{a: x.a}
 //
-// all the reads must occur before all the writes.  Thus all stores to
+// all the reads must occur before all the writes. Thus all stores to
 // loc are emitted to the storebuf sb for later execution.
 //
 // A CompositeLit may have pointer type only in the recursive (nested)
@@ -1287,28 +1276,35 @@ func (b *builder) compLit(fn *Function, addr Value, e *ast.CompositeLit, isZero 
 			sb.store(&address{addr, e.Lbrace, nil}, zeroConst(zt))
 			isZero = true
 		}
+		var fIndices []int
 		for i, e := range e.Elts {
-			fieldIndex := i
-			pos := e.Pos()
-			if kv, ok := e.(*ast.KeyValueExpr); ok {
+			var (
+				pos   token.Pos
+				fType types.Type
+			)
+
+			if kv, ok := e.(*ast.KeyValueExpr); ok { // tagged field
 				fname := kv.Key.(*ast.Ident).Name
-				for i, n := 0, t.NumFields(); i < n; i++ {
-					sf := t.Field(i)
-					if sf.Name() == fname {
-						fieldIndex = i
-						pos = kv.Colon
-						e = kv.Value
-						break
-					}
-				}
+				obj, index, _ := types.LookupFieldOrMethod(t, true, fn.declaredPackage().Pkg, fname)
+				fIndices = append(fIndices[:0], index...)
+				pos = kv.Colon
+				e = kv.Value
+				fType = obj.Type()
+			} else { // untagged field
+				fIndices = append(fIndices[:0], i)
+				pos = e.Pos()
+				fType = t.Field(i).Type()
 			}
-			sf := t.Field(fieldIndex)
+
+			last := len(fIndices) - 1
+			v := emitImplicitSelections(fn, addr, fIndices[:last], pos)
+
 			faddr := &FieldAddr{
-				X:     addr,
-				Field: fieldIndex,
+				X:     v,
+				Field: fIndices[last],
 			}
 			faddr.setPos(pos)
-			faddr.setType(types.NewPointer(sf.Type()))
+			faddr.setType(types.NewPointer(fType))
 			fn.emit(faddr)
 			b.assign(fn, &address{addr: faddr, pos: pos, expr: e}, e, isZero, sb)
 		}
@@ -1467,13 +1463,14 @@ func (b *builder) switchStmt(fn *Function, s *ast.SwitchStmt, label *lblock) {
 		var nextCond *BasicBlock
 		for _, cond := range cc.List {
 			nextCond = fn.newBasicBlock("switch.next")
-			// TODO(adonovan): opt: when tag==vTrue, we'd
-			// get better code if we use b.cond(cond)
-			// instead of BinOp(EQL, tag, b.expr(cond))
-			// followed by If.  Don't forget conversions
-			// though.
-			cond := emitCompare(fn, token.EQL, tag, b.expr(fn, cond), cond.Pos())
-			emitIf(fn, cond, body, nextCond)
+			// For boolean switches, emit short-circuit control flow,
+			// just like an if/else-chain.
+			if tag == vTrue && !isNonTypeParamInterface(fn.info.Types[cond].Type) {
+				b.cond(fn, cond, body, nextCond)
+			} else {
+				c := emitCompare(fn, token.EQL, tag, b.expr(fn, cond), cond.Pos())
+				emitIf(fn, c, body, nextCond)
+			}
 			fn.currentBlock = nextCond
 		}
 		fn.currentBlock = body
@@ -2149,13 +2146,6 @@ func (b *builder) rangeIter(fn *Function, x Value, tk, tv types.Type, pos token.
 	// done:                                   (target of break)
 	//
 
-	if tk == nil {
-		tk = tInvalid
-	}
-	if tv == nil {
-		tv = tInvalid
-	}
-
 	rng := &Range{X: x}
 	rng.setPos(pos)
 	rng.setType(tRangeIter)
@@ -2165,14 +2155,29 @@ func (b *builder) rangeIter(fn *Function, x Value, tk, tv types.Type, pos token.
 	emitJump(fn, loop)
 	fn.currentBlock = loop
 
+	var ak, av types.Type
+	isString := false
+	if m, ok := typeparams.CoreType(x.Type()).(*types.Map); ok {
+		ak, av = m.Key(), m.Elem()
+	} else {
+		isString = true
+		ak, av = tInt, tRune
+	}
+	if tk == nil {
+		ak = tInvalid
+	}
+	if tv == nil {
+		av = tInvalid
+	}
+
 	okv := &Next{
 		Iter:     it,
-		IsString: isBasic(typeparams.CoreType(x.Type())),
+		IsString: isString,
 	}
 	okv.setType(types.NewTuple(
 		varOk,
-		newVar("k", tk),
-		newVar("v", tv),
+		newVar("k", ak),
+		newVar("v", av),
 	))
 	fn.emit(okv)
 
@@ -2181,11 +2186,14 @@ func (b *builder) rangeIter(fn *Function, x Value, tk, tv types.Type, pos token.
 	emitIf(fn, emitExtract(fn, okv, 0), body, done)
 	fn.currentBlock = body
 
-	if tk != tInvalid {
-		k = emitExtract(fn, okv, 1)
+	// The assignment may widen a map or string
+	// key/value to a variable's interface type
+	// (cases #1 and #2 of go.dev/issue/78110).
+	if tk != nil {
+		k = emitConv(fn, emitExtract(fn, okv, 1), tk)
 	}
-	if tv != tInvalid {
-		v = emitExtract(fn, okv, 2)
+	if tv != nil {
+		v = emitConv(fn, emitExtract(fn, okv, 2), tv)
 	}
 	return
 }

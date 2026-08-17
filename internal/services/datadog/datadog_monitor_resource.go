@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/monitorsresource"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datadog/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -173,14 +174,16 @@ func resourceDatadogMonitorCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	id := monitorsresource.NewMonitorID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.MonitorsGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.MonitorsGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_datadog_monitor", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_datadog_monitor", id.ID())
+		}
 	}
 
 	monitoringStatus := monitorsresource.MonitoringStatusDisabled
@@ -202,7 +205,7 @@ func resourceDatadogMonitorCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if err := client.MonitorsCreateThenPoll(ctx, id, payload); err != nil {
+	if err := client.MonitorsCreateCallbackThenPoll(ctx, id, payload, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -340,7 +343,7 @@ func expandMonitorIdentityProperties(input []interface{}) *monitorsresource.Iden
 	v := input[0].(map[string]interface{})
 	return &monitorsresource.IdentityProperties{
 		// @tombuildsstuff: this should be normalized in Pandora to a common identity type? is this a Swagger bag with SA & UA omitted?
-		Type: pointer.To(monitorsresource.ManagedIdentityTypes(v["type"].(string))),
+		Type: pointer.ToEnum[monitorsresource.ManagedIdentityTypes](v["type"].(string)),
 	}
 }
 
@@ -380,19 +383,11 @@ func flattenMonitorIdentityProperties(input *monitorsresource.IdentityProperties
 	if *input.Type != "" {
 		t = string(*input.Type)
 	}
-	var principalId string
-	if input.PrincipalId != nil {
-		principalId = *input.PrincipalId
-	}
-	var tenantId string
-	if input.TenantId != nil {
-		tenantId = *input.TenantId
-	}
 	return []interface{}{
 		map[string]interface{}{
 			"type":         t,
-			"principal_id": principalId,
-			"tenant_id":    tenantId,
+			"principal_id": pointer.From(input.PrincipalId),
+			"tenant_id":    pointer.From(input.TenantId),
 		},
 	}
 }
@@ -404,32 +399,16 @@ func flattenMonitorOrganizationProperties(input *monitorsresource.DatadogOrganiz
 	}
 	v := organisationProperties[0].(map[string]interface{})
 
-	var name string
-	if input.Name != nil {
-		name = *input.Name
-	}
-	var id string
-	if input.Id != nil {
-		id = *input.Id
-	}
-	var redirectUri string
-	if input.RedirectUri != nil {
-		redirectUri = *input.RedirectUri
-	}
-	var enterpriseAppId string
-	if input.EnterpriseAppId != nil {
-		enterpriseAppId = *input.EnterpriseAppId
-	}
 	return []interface{}{
 		map[string]interface{}{
-			"name":              name,
+			"name":              pointer.From(input.Name),
 			"api_key":           pointer.To(v["api_key"].(string)),
 			"application_key":   pointer.To(v["application_key"].(string)),
-			"enterprise_app_id": enterpriseAppId,
+			"enterprise_app_id": pointer.From(input.EnterpriseAppId),
 			"linking_auth_code": pointer.To(v["linking_auth_code"].(string)),
 			"linking_client_id": pointer.To(v["linking_client_id"].(string)),
-			"redirect_uri":      redirectUri,
-			"id":                id,
+			"redirect_uri":      pointer.From(input.RedirectUri),
+			"id":                pointer.From(input.Id),
 		},
 	}
 }

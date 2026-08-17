@@ -156,20 +156,23 @@ func resourceBotChannelDirectlineCreate(d *pluginsdk.ResourceData, meta interfac
 	defer cancel()
 
 	resourceId := parse.NewBotChannelID(subscriptionId, d.Get("resource_group_name").(string), d.Get("bot_name").(string), string(botservice.ChannelNameBasicChannelChannelNameDirectLineChannel))
-	existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.BotServiceName, resourceId.ChannelName)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Directline Channel for Bot %q (Resource Group %q): %+v", resourceId.BotServiceName, resourceId.ResourceGroup, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.BotServiceName, resourceId.ChannelName)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for presence of existing Directline Channel for Bot %q (Resource Group %q): %+v", resourceId.BotServiceName, resourceId.ResourceGroup, err)
+			}
 		}
-	}
-	if !utils.ResponseWasNotFound(existing.Response) {
-		// a "Default Site" site gets created and returned.. so let's check it's not just that
-		if props := existing.Properties; props != nil {
-			directLineChannel, ok := props.AsDirectLineChannel()
-			if ok && directLineChannel.Properties != nil {
-				sites := filterSites(directLineChannel.Properties.Sites)
-				if len(sites) != 0 {
-					return tf.ImportAsExistsError("azurerm_bot_channel_directline", resourceId.ID())
+		if !utils.ResponseWasNotFound(existing.Response) {
+			// a "Default Site" site gets created and returned.. so let's check it's not just that
+			if props := existing.Properties; props != nil {
+				directLineChannel, ok := props.AsDirectLineChannel()
+				if ok && directLineChannel.Properties != nil {
+					sites := filterSites(directLineChannel.Properties.Sites)
+					if len(sites) != 0 {
+						return tf.ImportAsExistsError("azurerm_bot_channel_directline", resourceId.ID())
+					}
 				}
 			}
 		}
@@ -363,11 +366,7 @@ func flattenDirectlineSites(input []botservice.DirectLineSite) []interface{} {
 		}
 		site["user_upload_enabled"] = userUploadEnabled
 
-		var endpointParametersEnabled bool
-		if v := element.IsEndpointParametersEnabled; v != nil {
-			endpointParametersEnabled = *v
-		}
-		site["endpoint_parameters_enabled"] = endpointParametersEnabled
+		site["endpoint_parameters_enabled"] = pointer.From(element.IsEndpointParametersEnabled)
 
 		storageEnabled := true
 		if v := element.IsNoStorageEnabled; v != nil {

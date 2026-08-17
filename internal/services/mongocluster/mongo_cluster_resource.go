@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2025-09-01/mongoclusters"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -85,7 +84,7 @@ func (r MongoClusterResource) ResourceType() string {
 }
 
 func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
-	args := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			ForceNew: true,
 			Required: true,
@@ -265,7 +264,7 @@ func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"storage_size_in_gb": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			ValidateFunc: validation.IntBetween(32, 16384),
+			ValidateFunc: validation.IntBetween(32, 32768),
 		},
 
 		"storage_type": {
@@ -290,12 +289,6 @@ func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 	}
-
-	if !features.FivePointOh() {
-		args["customer_managed_key"].Elem.(*pluginsdk.Resource).Schema["key_vault_key_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeAny)
-	}
-
-	return args
 }
 
 func (r MongoClusterResource) Attributes() map[string]*pluginsdk.Schema {
@@ -337,14 +330,17 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 			}
 
 			id := mongoclusters.NewMongoClusterID(subscriptionId, state.ResourceGroupName, state.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameter := mongoclusters.MongoCluster{
@@ -376,7 +372,7 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 			}
 
 			if state.CreateMode != "" {
-				parameter.Properties.CreateMode = pointer.To(mongoclusters.CreateMode(state.CreateMode))
+				parameter.Properties.CreateMode = pointer.ToEnum[mongoclusters.CreateMode](state.CreateMode)
 			}
 
 			parameter.Properties.PreviewFeatures = expandPreviewFeatures(state.PreviewFeatures)
@@ -406,11 +402,11 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 
 			if state.HighAvailabilityMode != "" {
 				parameter.Properties.HighAvailability = &mongoclusters.HighAvailabilityProperties{
-					TargetMode: pointer.To(mongoclusters.HighAvailabilityMode(state.HighAvailabilityMode)),
+					TargetMode: pointer.ToEnum[mongoclusters.HighAvailabilityMode](state.HighAvailabilityMode),
 				}
 			}
 
-			parameter.Properties.PublicNetworkAccess = pointer.To(mongoclusters.PublicNetworkAccess(state.PublicNetworkAccess))
+			parameter.Properties.PublicNetworkAccess = pointer.ToEnum[mongoclusters.PublicNetworkAccess](state.PublicNetworkAccess)
 
 			if state.StorageSizeInGb != 0 {
 				parameter.Properties.Storage = &mongoclusters.StorageProperties{
@@ -435,9 +431,10 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, parameter); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameter, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
+			metadata.SetID(id)
 
 			// `data_api_mode_enabled` can only be enabled after the resource is created
 			if state.CreateMode == string(mongoclusters.CreateModeDefault) && state.DataApiModeEnabled {
@@ -453,8 +450,6 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 					return fmt.Errorf("updating `data_api_mode_enabled`: %+v", err)
 				}
 			}
-
-			metadata.SetID(id)
 
 			return nil
 		},
@@ -472,7 +467,6 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Info("Decoding state...")
 			var state MongoClusterResourceModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
@@ -490,8 +484,6 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 			}
 			payload := existing.Model
-
-			metadata.Logger.Infof("updating %s", *id)
 
 			// Set SystemData to nil as the API returns `The property '#/systemData' of type null did not match the following type: object in schema 25debcc2-6915-5536-9566-a2ecd765b755"}}` error.
 			// https://github.com/Azure/azure-rest-api-specs/issues/31377 has been filed to track it.
@@ -516,14 +508,12 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 				}
 				oldComputeTier, newComputeTier := metadata.ResourceData.GetChange("compute_tier")
 				if (oldComputeTier == "Free" || oldComputeTier == "M25") && newComputeTier != "Free" && newComputeTier != "M25" {
-					metadata.Logger.Infof("updating compute tier for %s", *id)
 					if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 						return fmt.Errorf("updating %s: %+v", *id, err)
 					}
 				}
 			}
 
-			metadata.Logger.Infof("updating other configurations for %s", *id)
 			if metadata.ResourceData.HasChange("administrator_password") {
 				payload.Properties.Administrator = &mongoclusters.AdministratorProperties{
 					UserName: pointer.To(state.AdministratorUserName),
@@ -533,18 +523,18 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("high_availability_mode") {
 				payload.Properties.HighAvailability = &mongoclusters.HighAvailabilityProperties{
-					TargetMode: pointer.To(mongoclusters.HighAvailabilityMode(state.HighAvailabilityMode)),
+					TargetMode: pointer.ToEnum[mongoclusters.HighAvailabilityMode](state.HighAvailabilityMode),
 				}
 			}
 
 			if metadata.ResourceData.HasChange("public_network_access") {
-				payload.Properties.PublicNetworkAccess = pointer.To(mongoclusters.PublicNetworkAccess(state.PublicNetworkAccess))
+				payload.Properties.PublicNetworkAccess = pointer.ToEnum[mongoclusters.PublicNetworkAccess](state.PublicNetworkAccess)
 			}
 
 			if metadata.ResourceData.HasChange("storage_size_in_gb") {
 				payload.Properties.Storage = &mongoclusters.StorageProperties{
 					SizeGb: pointer.To(state.StorageSizeInGb),
-					Type:   pointer.To(mongoclusters.StorageType(state.StorageType)),
+					Type:   pointer.ToEnum[mongoclusters.StorageType](state.StorageType),
 				}
 			}
 

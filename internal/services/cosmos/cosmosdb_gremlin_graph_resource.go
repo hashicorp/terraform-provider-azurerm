@@ -14,15 +14,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
@@ -203,14 +204,16 @@ func resourceCosmosDbGremlinGraphCreate(d *pluginsdk.ResourceData, meta interfac
 	id := cosmosdb.NewGraphID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("database_name").(string), d.Get("name").(string))
 	partitionkeypaths := d.Get("partition_key_path").(string)
 
-	existing, err := client.GremlinResourcesGetGremlinGraph(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.GremlinResourcesGetGremlinGraph(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_cosmosdb_gremlin_graph", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_cosmosdb_gremlin_graph", id.ID())
+		}
 	}
 
 	db := cosmosdb.GremlinGraphCreateUpdateParameters{
@@ -261,9 +264,8 @@ func resourceCosmosDbGremlinGraphCreate(d *pluginsdk.ResourceData, meta interfac
 		db.Properties.Options.AutoScaleSettings = common.ExpandCosmosDbAutoscaleSettings(d)
 	}
 
-	err = client.GremlinResourcesCreateUpdateGremlinGraphThenPoll(ctx, id, db)
-	if err != nil {
-		return fmt.Errorf("creating %q: %+v", id, err)
+	if err := client.GremlinResourcesCreateUpdateGremlinGraphCallbackThenPoll(ctx, id, db, sdk.SetIDCallback(meta, &id, d)); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -281,8 +283,7 @@ func resourceCosmosDbGremlinGraphUpdate(d *pluginsdk.ResourceData, meta interfac
 		return err
 	}
 
-	err = common.CheckForChangeFromAutoscaleAndManualThroughput(d)
-	if err != nil {
+	if err = common.CheckForChangeFromAutoscaleAndManualThroughput(d); err != nil {
 		return fmt.Errorf("checking `autoscale_settings` and `throughput` for %s: %w", id, err)
 	}
 
@@ -324,8 +325,7 @@ func resourceCosmosDbGremlinGraphUpdate(d *pluginsdk.ResourceData, meta interfac
 		db.Properties.Resource.DefaultTtl = pointer.To(int64(defaultTTL.(int)))
 	}
 
-	err = client.GremlinResourcesCreateUpdateGremlinGraphThenPoll(ctx, *id, db)
-	if err != nil {
+	if err = client.GremlinResourcesCreateUpdateGremlinGraphThenPoll(ctx, *id, db); err != nil {
 		return fmt.Errorf("updating %q: %+v", id, err)
 	}
 
@@ -441,8 +441,7 @@ func resourceCosmosDbGremlinGraphDelete(d *pluginsdk.ResourceData, meta interfac
 		return err
 	}
 
-	err = client.GremlinResourcesDeleteGremlinGraphThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.GremlinResourcesDeleteGremlinGraphThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
@@ -481,10 +480,9 @@ func expandAzureRmCosmosDbGremlinGraphIncludedPath(input map[string]interface{})
 
 	for i, pathConfig := range includedPath {
 		attrs := pathConfig.(string)
-		path := cosmosdb.IncludedPath{
+		paths[i] = cosmosdb.IncludedPath{
 			Path: pointer.To(attrs),
 		}
-		paths[i] = path
 	}
 
 	return &paths
@@ -496,10 +494,9 @@ func expandAzureRmCosmosDbGremlinGraphExcludedPath(input map[string]interface{})
 
 	for i, pathConfig := range excludedPath {
 		attrs := pathConfig.(string)
-		path := cosmosdb.ExcludedPath{
+		paths[i] = cosmosdb.ExcludedPath{
 			Path: pointer.To(attrs),
 		}
-		paths[i] = path
 	}
 
 	return &paths
@@ -521,7 +518,7 @@ func expandAzureRmCosmosDbGremlinGraphUniqueKeys(s *pluginsdk.Set) *[]cosmosdb.U
 		}
 
 		keys = append(keys, cosmosdb.UniqueKey{
-			Paths: utils.ExpandStringSlice(paths),
+			Paths: helpers.ExpandStringSlice(paths),
 		})
 	}
 

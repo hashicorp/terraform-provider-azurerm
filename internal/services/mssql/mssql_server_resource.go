@@ -28,7 +28,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -36,10 +36,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name mssql_server -service-package-name mssql -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-expect-non-empty
+//go:generate go run ../../tools/generator-tests resourceidentity -test-expect-non-empty
 
 func resourceMsSqlServer() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceMsSqlServerCreate,
 		Read:   resourceMsSqlServerRead,
 		Update: resourceMsSqlServerUpdate,
@@ -222,22 +222,6 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 			pluginsdk.CustomizeDiffShim(msSqlPasswordChangeWhenAADAuthOnly),
 		),
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["minimum_tls_version"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  "1.2",
-			ValidateFunc: validation.StringInSlice([]string{
-				"1.0",
-				"1.1",
-				"1.2",
-				"Disabled",
-			}, false),
-		}
-	}
-
-	return resource
 }
 
 func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -250,15 +234,17 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	id := commonids.NewSqlServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id, servers.DefaultGetOperationOptions())
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id, servers.DefaultGetOperationOptions())
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_mssql_server", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_mssql_server", id.ID())
+		}
 	}
 
 	props := servers.Server{
@@ -329,11 +315,10 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if v := d.Get("minimum_tls_version"); v.(string) != "Disabled" {
-		props.Properties.MinimalTlsVersion = pointer.To(servers.MinimalTlsVersion(v.(string)))
+		props.Properties.MinimalTlsVersion = pointer.ToEnum[servers.MinimalTlsVersion](v.(string))
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, id, props)
-	if err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, props, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -387,8 +372,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	if d.HasChange("azuread_administrator") {
 		log.Printf("[INFO] Expanding 'azuread_administrator' to see if we need Create or Delete")
 		if adminProps := expandMsSqlServerAdministrator(d.Get("azuread_administrator").([]interface{})); adminProps != nil {
-			err := adminClient.CreateOrUpdateThenPoll(ctx, *id, pointer.From(adminProps))
-			if err != nil {
+			if err := adminClient.CreateOrUpdateThenPoll(ctx, *id, pointer.From(adminProps)); err != nil {
 				return fmt.Errorf("updating Azure Active Directory Administrator %s: %+v", id, err)
 			}
 		} else {
@@ -396,8 +380,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 				return fmt.Errorf("retrieving Azure Active Directory Administrator %s: %+v", id, err)
 			}
 
-			err = adminClient.DeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = adminClient.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting Azure Active Directory Administrator %s: %+v", id, err)
 			}
 		}
@@ -413,8 +396,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 				},
 			}
 
-			err := aadOnlyAuthenticationsClient.CreateOrUpdateThenPoll(ctx, *id, aadOnlyAuthenticationProps)
-			if err != nil {
+			if err := aadOnlyAuthenticationsClient.CreateOrUpdateThenPoll(ctx, *id, aadOnlyAuthenticationProps); err != nil {
 				return fmt.Errorf("updating Azure Active Directory Only Authentication for %s: %+v", id, err)
 			}
 		} else {
@@ -499,11 +481,10 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 
 		if d.HasChange("minimum_tls_version") {
-			payload.Properties.MinimalTlsVersion = pointer.To(servers.MinimalTlsVersion(d.Get("minimum_tls_version").(string)))
+			payload.Properties.MinimalTlsVersion = pointer.ToEnum[servers.MinimalTlsVersion](d.Get("minimum_tls_version").(string))
 		}
 
-		err := client.CreateOrUpdateThenPoll(ctx, *id, *payload)
-		if err != nil {
+		if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
 		}
 	}
@@ -661,8 +642,7 @@ func resourceMsSqlServerDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, pointer.From(id))
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, pointer.From(id)); err != nil {
 		return fmt.Errorf("deleting SQL Server %s: %+v", id, err)
 	}
 

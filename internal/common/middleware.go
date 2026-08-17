@@ -4,6 +4,7 @@
 package common
 
 import (
+	"bytes"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -53,8 +54,12 @@ func responseLoggerMiddleware(providerName string) client.ResponseMiddleware {
 		if dump, err2 := httputil.DumpResponse(response, true); err2 == nil {
 			log.Printf("[DEBUG] %s Response for %s: \n%s\n", providerName, request.URL, dump)
 		} else {
-			// fallback to basic message
-			log.Printf("[DEBUG] %s Response: %s for %s\n", providerName, response.Status, request.URL)
+			var bs bytes.Buffer
+			if err := response.Header.Write(&bs); err != nil {
+				log.Printf("[DEBUG] %s Response dump failed for %s: %s\nStatus: %s (header write also failed: %s)", providerName, request.URL, err2, response.Status, err)
+			} else {
+				log.Printf("[DEBUG] %s Response dump failed for %s: %s\nStatus: %s\nResponse Headers: %s", providerName, request.URL, err2, response.Status, bs.String())
+			}
 		}
 		return response, nil
 	}

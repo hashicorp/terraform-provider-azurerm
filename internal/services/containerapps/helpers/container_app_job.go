@@ -44,10 +44,11 @@ type ScaleModel struct {
 }
 
 type ScaleRule struct {
-	Auth     []ScaleRuleAuth        `tfschema:"authentication"`
-	Metadata map[string]interface{} `tfschema:"metadata"`
-	Name     string                 `tfschema:"name"`
-	Type     string                 `tfschema:"custom_rule_type"`
+	Auth       []ScaleRuleAuth        `tfschema:"authentication"`
+	IdentityID string                 `tfschema:"identity_id"`
+	Metadata   map[string]interface{} `tfschema:"metadata"`
+	Name       string                 `tfschema:"name"`
+	Type       string                 `tfschema:"custom_rule_type"`
 }
 
 type ScaleRuleAuth struct {
@@ -252,6 +253,10 @@ func ExpandContainerAppJobScaleRules(input []ScaleRule) *[]jobs.JobScaleRule {
 			rule.Type = pointer.To(v.Type)
 		}
 
+		if v.IdentityID != "" {
+			rule.Identity = pointer.To(v.IdentityID)
+		}
+
 		rules = append(rules, rule)
 	}
 
@@ -285,13 +290,11 @@ func ExpandContainerAppJobTemplate(input []JobTemplateModel) *jobs.JobTemplate {
 		return nil
 	}
 	v := input[0]
-	template := &jobs.JobTemplate{
+	return &jobs.JobTemplate{
 		Containers:     expandContainerAppJobContainers(v.Containers),
 		InitContainers: expandInitContainerAppJobContainers(v.InitContainers),
 		Volumes:        expandContainerAppJobVolumes(v.Volumes),
 	}
-
-	return template
 }
 
 func FlattenContainerAppJobTemplate(input *jobs.JobTemplate) []JobTemplateModel {
@@ -890,8 +893,7 @@ func FlattenContainerAppJobConfigurationEventTriggerConfig(input *jobs.JobConfig
 	}
 
 	if input.Scale != nil {
-		scale := flattenContainerAppJobScale(input.Scale)
-		eventTriggerConfig.Scale = scale
+		eventTriggerConfig.Scale = flattenContainerAppJobScale(input.Scale)
 	}
 
 	result = append(result, eventTriggerConfig)
@@ -951,8 +953,7 @@ func flattenContainerAppJobScale(input *jobs.JobScale) []ScaleModel {
 	}
 
 	if input.Rules != nil {
-		rules := flattenContainerAppJobScaleRules(input.Rules)
-		scale.Rules = rules
+		scale.Rules = flattenContainerAppJobScaleRules(input.Rules)
 	}
 
 	result = append(result, scale)
@@ -969,8 +970,9 @@ func flattenContainerAppJobScaleRules(input *[]jobs.JobScaleRule) []ScaleRule {
 
 	for _, v := range *input {
 		rule := ScaleRule{
-			Name: pointer.From(v.Name),
-			Type: pointer.From(v.Type),
+			IdentityID: pointer.From(v.Identity),
+			Name:       pointer.From(v.Name),
+			Type:       pointer.From(v.Type),
 		}
 
 		if v.Metadata != nil {
@@ -981,8 +983,7 @@ func flattenContainerAppJobScaleRules(input *[]jobs.JobScaleRule) []ScaleRule {
 		}
 
 		if v.Auth != nil {
-			auth := flattenContainerAppJobScaleRulesAuth(v.Auth)
-			rule.Auth = auth
+			rule.Auth = flattenContainerAppJobScaleRulesAuth(v.Auth)
 		}
 
 		result = append(result, rule)

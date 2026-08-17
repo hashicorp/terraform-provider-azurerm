@@ -226,12 +226,14 @@ func (r ExadataInfraResource) Create() sdk.ResourceFunc {
 				model.ResourceGroupName,
 				model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			param := cloudexadatainfrastructures.CloudExadataInfrastructure{
@@ -259,17 +261,17 @@ func (r ExadataInfraResource) Create() sdk.ResourceFunc {
 					HoursOfDay:      pointer.To(model.MaintenanceWindow[0].HoursOfDay),
 					LeadTimeInWeeks: pointer.To(model.MaintenanceWindow[0].LeadTimeInWeeks),
 					Months:          pointer.To(ExpandMonths(model.MaintenanceWindow[0].Months)),
-					PatchingMode:    pointer.To(cloudexadatainfrastructures.PatchingMode(model.MaintenanceWindow[0].PatchingMode)),
-					Preference:      pointer.To(cloudexadatainfrastructures.Preference(model.MaintenanceWindow[0].Preference)),
+					PatchingMode:    pointer.ToEnum[cloudexadatainfrastructures.PatchingMode](model.MaintenanceWindow[0].PatchingMode),
+					Preference:      pointer.ToEnum[cloudexadatainfrastructures.Preference](model.MaintenanceWindow[0].Preference),
 					WeeksOfMonth:    pointer.To(model.MaintenanceWindow[0].WeeksOfMonth),
 				}
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, param, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}
@@ -298,8 +300,7 @@ func (r ExadataInfraResource) Update() sdk.ResourceFunc {
 				update := &cloudexadatainfrastructures.CloudExadataInfrastructureUpdate{
 					Tags: pointer.To(model.Tags),
 				}
-				err = client.UpdateThenPoll(ctx, *id, *update)
-				if err != nil {
+				if err = client.UpdateThenPoll(ctx, *id, *update); err != nil {
 					return fmt.Errorf("updating %s: %v", id, err)
 				}
 			}

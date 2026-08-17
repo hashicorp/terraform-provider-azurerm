@@ -12,14 +12,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/rbacs"
 	"github.com/hashicorp/go-uuid"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceCosmosDbSQLRoleDefinition() *pluginsdk.Resource {
@@ -126,24 +127,26 @@ func resourceCosmosDbSQLRoleDefinitionCreate(d *pluginsdk.ResourceData, meta int
 	locks.ByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
 	defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
 
-	existing, err := client.SqlResourcesGetSqlRoleDefinition(ctx, id)
-	if !response.WasNotFound(existing.HttpResponse) {
-		if err != nil {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.SqlResourcesGetSqlRoleDefinition(ctx, id)
+		if !response.WasNotFound(existing.HttpResponse) {
+			if err != nil {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+			return tf.ImportAsExistsError("azurerm_cosmosdb_sql_role_definition", id.ID())
 		}
-		return tf.ImportAsExistsError("azurerm_cosmosdb_sql_role_definition", id.ID())
 	}
 
 	parameters := rbacs.SqlRoleDefinitionCreateUpdateParameters{
 		Properties: &rbacs.SqlRoleDefinitionResource{
 			RoleName:         pointer.To(d.Get("name").(string)),
-			AssignableScopes: utils.ExpandStringSlice(d.Get("assignable_scopes").(*pluginsdk.Set).List()),
+			AssignableScopes: helpers.ExpandStringSlice(d.Get("assignable_scopes").(*pluginsdk.Set).List()),
 			Permissions:      expandSqlRoleDefinitionPermissions(d.Get("permissions").(*pluginsdk.Set).List()),
 			Type:             pointer.ToEnum[rbacs.RoleDefinitionType](d.Get("type").(string)),
 		},
 	}
 
-	if err := client.SqlResourcesCreateUpdateSqlRoleDefinitionThenPoll(ctx, id, parameters); err != nil {
+	if err := client.SqlResourcesCreateUpdateSqlRoleDefinitionCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -178,7 +181,7 @@ func resourceCosmosDbSQLRoleDefinitionRead(d *pluginsdk.ResourceData, meta inter
 
 	if resp.Model != nil {
 		if props := resp.Model.Properties; props != nil {
-			d.Set("assignable_scopes", utils.FlattenStringSlice(props.AssignableScopes))
+			d.Set("assignable_scopes", helpers.FlattenStringSlice(props.AssignableScopes))
 			d.Set("name", props.RoleName)
 			d.Set("type", pointer.FromEnum(props.Type))
 
@@ -223,7 +226,7 @@ func resourceCosmosDbSQLRoleDefinitionUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if d.HasChange("assignable_scopes") {
-		parameters.Properties.AssignableScopes = utils.ExpandStringSlice(d.Get("assignable_scopes").(*pluginsdk.Set).List())
+		parameters.Properties.AssignableScopes = helpers.ExpandStringSlice(d.Get("assignable_scopes").(*pluginsdk.Set).List())
 	}
 
 	if d.HasChange("name") {
@@ -269,7 +272,7 @@ func expandSqlRoleDefinitionPermissions(input []interface{}) *[]rbacs.Permission
 		v := item.(map[string]interface{})
 
 		results = append(results, rbacs.Permission{
-			DataActions: utils.ExpandStringSlice(v["data_actions"].(*pluginsdk.Set).List()),
+			DataActions: helpers.ExpandStringSlice(v["data_actions"].(*pluginsdk.Set).List()),
 		})
 	}
 
@@ -284,7 +287,7 @@ func flattenSqlRoleDefinitionPermissions(input *[]rbacs.Permission) []interface{
 
 	for _, item := range *input {
 		results = append(results, map[string]interface{}{
-			"data_actions": utils.FlattenStringSlice(item.DataActions),
+			"data_actions": helpers.FlattenStringSlice(item.DataActions),
 		})
 	}
 

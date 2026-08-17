@@ -37,8 +37,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Application Gateway.
 
-* `authentication_certificate` - One or more `authentication_certificate` blocks as defined below.
-
 * `autoscale_configuration` - An `autoscale_configuration` block as defined below.
 
 * `backend` - One or more `backend` blocks as defined below.
@@ -107,14 +105,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ---
 
-An `authentication_certificate` block exports the following:
-
-* `id` - The ID of the Authentication Certificate.
-
-* `name` - The Name of the Authentication Certificate in use.
-
----
-
 A `trusted_root_certificate` block exports the following:
 
 * `id` - The ID of the Trusted Root Certificate in use.
@@ -122,14 +112,6 @@ A `trusted_root_certificate` block exports the following:
 * `name` - The Name of the Trusted Root Certificate in use.
 
 * `key_vault_secret_id` - The Secret ID of (base-64 encoded unencrypted pfx) `Secret` or `Certificate` object stored in Azure KeyVault.
-
----
-
-A `authentication_certificate` block, within the `backend_http_settings` block exports the following:
-
-* `id` - The ID of the Authentication Certificate.
-
-* `name` - The name of the Authentication Certificate.
 
 ---
 
@@ -173,35 +155,39 @@ A `backend_http_settings` block exports the following:
 
 * `id` - The ID of the Backend HTTP Settings Configuration.
 
-* `probe_id` - The ID of the associated Probe.
-
-* `cookie_based_affinity` - Is Cookie-Based Affinity enabled?
-
 * `affinity_cookie_name` - The name of the affinity cookie.
+
+* `certificate_chain_validation_enabled` - Whether certificate chain and expiry validation on the backend HTTPS servers is enabled.
+
+* `connection_draining` - A `connection_draining` block as defined below.
+
+* `cookie_based_affinity` - Whether Cookie-Based Affinity is enabled.
 
 * `dedicated_backend_connection_enabled` - Whether a dedicated backend connection is used.
 
+* `host_name` - The host header sent to the backend servers.
+
 * `name` - The name of the Backend HTTP Settings Collection.
 
-* `path` - The path which is used as a prefix for all HTTP requests.
+* `path` - The path used as a prefix for all HTTP requests.
 
-* `port` - The port which is used for this Backend HTTP Settings Collection.
+* `pick_host_name_from_backend_address` - Whether the host header is picked from the host name of the backend server.
 
-* `probe_name` - The name of the associated HTTP Probe.
+* `port` - The port used for this Backend HTTP Settings Collection.
 
-* `protocol` - The protocol which will be used.
+* `probe_id` - The ID of the associated Probe.
+
+* `probe_name` - The name of the associated Probe.
+
+* `protocol` - The protocol used.
 
 * `request_timeout` - The request timeout in seconds.
 
-* `host_name` - Host header to be sent to the backend servers.
+* `sni_name` - The Server Name Indication (SNI) hostname sent to the backend servers.
 
-* `pick_host_name_from_backend_address` - Whether host header will be picked from the host name of the backend server.
-
-* `authentication_certificate` - One or more `authentication_certificate` blocks as defined below.
+* `sni_validation_enabled` - Whether Server Name Indication (SNI) validation on the backend HTTPS servers is enabled.
 
 * `trusted_root_certificate_names` - A list of `trusted_root_certificate` names.
-
-* `connection_draining` - A `connection_draining` block as defined below.
 
 ---
 
@@ -553,7 +539,7 @@ A `ssl_profile` block exports the following:
 
 * `trusted_client_certificate_names` - The name of the Trusted Client Certificate that will be used to authenticate requests from clients.
 
-* `verify_client_cert_issuer_dn` - Will the client certificate issuer DN be verified?
+* `verify_client_certificate_issuer_dn` - Will the client certificate issuer DN be verified?
 
 * `verify_client_certificate_revocation` - The method used to check client certificate revocation status.
 

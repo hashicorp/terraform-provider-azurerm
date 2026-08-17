@@ -90,20 +90,23 @@ func (r ApiManagementWorkspacePolicyFragmentResource) Create() sdk.ResourceFunc 
 			}
 
 			id := policyfragment.NewWorkspacePolicyFragmentID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.ServiceName, workspaceId.WorkspaceId, model.Name)
-			existing, err := client.WorkspacePolicyFragmentGet(ctx, id, policyfragment.WorkspacePolicyFragmentGetOperationOptions{
-				Format: pointer.To(policyfragment.PolicyFragmentContentFormat(model.XmlFormat)),
-			})
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.WorkspacePolicyFragmentGet(ctx, id, policyfragment.WorkspacePolicyFragmentGetOperationOptions{
+					Format: pointer.ToEnum[policyfragment.PolicyFragmentContentFormat](model.XmlFormat),
+				})
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := policyfragment.PolicyFragmentContract{
 				Properties: &policyfragment.PolicyFragmentContractProperties{
-					Format: pointer.To(policyfragment.PolicyFragmentContentFormat(model.XmlFormat)),
+					Format: pointer.ToEnum[policyfragment.PolicyFragmentContentFormat](model.XmlFormat),
 					Value:  model.XmlContent,
 				},
 			}
@@ -112,7 +115,7 @@ func (r ApiManagementWorkspacePolicyFragmentResource) Create() sdk.ResourceFunc 
 				parameters.Properties.Description = pointer.To(model.Description)
 			}
 
-			if err := client.WorkspacePolicyFragmentCreateOrUpdateThenPoll(ctx, id, parameters, policyfragment.WorkspacePolicyFragmentCreateOrUpdateOperationOptions{}); err != nil {
+			if err := client.WorkspacePolicyFragmentCreateOrUpdateCallbackThenPoll(ctx, id, parameters, policyfragment.WorkspacePolicyFragmentCreateOrUpdateOperationOptions{}, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -139,7 +142,7 @@ func (r ApiManagementWorkspacePolicyFragmentResource) Update() sdk.ResourceFunc 
 			}
 
 			resp, err := client.WorkspacePolicyFragmentGet(ctx, *id, policyfragment.WorkspacePolicyFragmentGetOperationOptions{
-				Format: pointer.To(policyfragment.PolicyFragmentContentFormat(model.XmlFormat)),
+				Format: pointer.ToEnum[policyfragment.PolicyFragmentContentFormat](model.XmlFormat),
 			})
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
@@ -163,7 +166,7 @@ func (r ApiManagementWorkspacePolicyFragmentResource) Update() sdk.ResourceFunc 
 			}
 
 			if metadata.ResourceData.HasChange("xml_format") {
-				payload.Properties.Format = pointer.To(policyfragment.PolicyFragmentContentFormat(model.XmlFormat))
+				payload.Properties.Format = pointer.ToEnum[policyfragment.PolicyFragmentContentFormat](model.XmlFormat)
 			}
 
 			if err := client.WorkspacePolicyFragmentCreateOrUpdateThenPoll(ctx, *id, *payload, policyfragment.WorkspacePolicyFragmentCreateOrUpdateOperationOptions{}); err != nil {
@@ -191,7 +194,7 @@ func (r ApiManagementWorkspacePolicyFragmentResource) Read() sdk.ResourceFunc {
 				format = string(policyfragment.PolicyFragmentContentFormatXml)
 			}
 			resp, err := client.WorkspacePolicyFragmentGet(ctx, *id, policyfragment.WorkspacePolicyFragmentGetOperationOptions{
-				Format: pointer.To(policyfragment.PolicyFragmentContentFormat(format)),
+				Format: pointer.ToEnum[policyfragment.PolicyFragmentContentFormat](format),
 			})
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {

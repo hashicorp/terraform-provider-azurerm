@@ -24,7 +24,8 @@ func CosmosEntityName(v interface{}, k string) (warnings []string, errors []erro
 
 	if len(value) < 1 || len(value) > 255 {
 		errors = append(errors, fmt.Errorf(
-			"%q must be between 1 and 255 characters: %q", k, value))
+			"%q must be between 1 and 255 characters: %q", k, value,
+		))
 	}
 
 	return warnings, errors
@@ -35,12 +36,14 @@ func CosmosThroughput(v interface{}, k string) (warnings []string, errors []erro
 
 	if value < 400 {
 		errors = append(errors, fmt.Errorf(
-			"%s must be a minimum of 400", k))
+			"%s must be a minimum of 400", k,
+		))
 	}
 
 	if value%100 != 0 {
 		errors = append(errors, fmt.Errorf(
-			"%q must be set in increments of 100", k))
+			"%q must be set in increments of 100", k,
+		))
 	}
 
 	return warnings, errors
@@ -55,12 +58,14 @@ func CosmosMaxThroughput(i interface{}, k string) (warnings []string, errors []e
 
 	if v < 1000 {
 		errors = append(errors, fmt.Errorf(
-			"%s must be a minimum of 1000", k))
+			"%s must be a minimum of 1000", k,
+		))
 	}
 
 	if v%1000 != 0 {
 		errors = append(errors, fmt.Errorf(
-			"%q must be set in increments of 1000", k))
+			"%q must be set in increments of 1000", k,
+		))
 	}
 
 	return warnings, errors

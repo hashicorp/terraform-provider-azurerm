@@ -262,6 +262,7 @@ resource "azurerm_key_vault" "test" {
   name                        = "acctestvg${var.random_string}"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
+  rbac_authorization_enabled  = false
   enabled_for_disk_encryption = true
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days  = 7
@@ -330,6 +331,7 @@ resource "azurerm_key_vault" "test" {
   name                        = "acctestvg${var.random_string}"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
+  rbac_authorization_enabled  = false
   enabled_for_disk_encryption = true
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days  = 7
@@ -417,7 +419,9 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.1.0/24"]
-  service_endpoints    = ["Microsoft.Storage.Global"]
+  service_endpoint {
+    service = "Microsoft.Storage.Global"
+  }
 
 }
 
@@ -425,6 +429,7 @@ resource "azurerm_key_vault" "test" {
   name                        = "acctestvg${var.random_string}"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
+  rbac_authorization_enabled  = false
   enabled_for_disk_encryption = true
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days  = 7
@@ -519,7 +524,9 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.1.0/24"]
-  service_endpoints    = ["Microsoft.Storage.Global"]
+  service_endpoint {
+    service = "Microsoft.Storage.Global"
+  }
 
 }
 
@@ -527,6 +534,7 @@ resource "azurerm_key_vault" "test" {
   name                        = "acctestvg${var.random_string}"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
+  rbac_authorization_enabled  = false
   enabled_for_disk_encryption = true
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days  = 7
@@ -621,7 +629,9 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.1.0/24"]
-  service_endpoints    = ["Microsoft.Storage.Global"]
+  service_endpoint {
+    service = "Microsoft.Storage.Global"
+  }
 
 }
 
@@ -630,7 +640,9 @@ resource "azurerm_subnet" "test2" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
-  service_endpoints    = ["Microsoft.Storage.Global"]
+  service_endpoint {
+    service = "Microsoft.Storage.Global"
+  }
 
 }
 
@@ -638,6 +650,7 @@ resource "azurerm_key_vault" "test" {
   name                        = "acctestvg${var.random_string}"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
+  rbac_authorization_enabled  = false
   enabled_for_disk_encryption = true
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days  = 7

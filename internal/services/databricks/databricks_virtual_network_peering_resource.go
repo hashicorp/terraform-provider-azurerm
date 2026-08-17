@@ -5,7 +5,6 @@ package databricks
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -15,13 +14,14 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/vnetpeering"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name databricks_virtual_network_peering -service-package-name databricks -properties "name" -compare-values "subscription_id:workspace_id,resource_group_name:workspace_id,workspace_name:workspace_id"
@@ -129,7 +129,6 @@ func resourceDatabricksVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure ARM databricks virtual network peering creation.")
 	var id vnetpeering.VirtualNetworkPeeringId
 
 	// I need to include the workspace ID in the properties because I need the name
@@ -144,15 +143,17 @@ func resourceDatabricksVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, me
 	locks.ByID(databricksVnetPeeringsResourceType)
 	defer locks.UnlockByID(databricksVnetPeeringsResourceType)
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing Databricks %s: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing Databricks %s: %s", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_databricks_virtual_network_peering", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_databricks_virtual_network_peering", id.ID())
+		}
 	}
 
 	allowForwardedTraffic := d.Get("allow_forwarded_traffic").(bool)
@@ -160,8 +161,8 @@ func resourceDatabricksVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, me
 	allowVirtualNetworkAccess := d.Get("allow_virtual_network_access").(bool)
 	useRemoteGateways := d.Get("use_remote_gateways").(bool)
 	remoteVirtualNetwork := d.Get("remote_virtual_network_id").(string)
-	databricksAddressSpace := utils.ExpandStringSlice(d.Get("address_space_prefixes").([]interface{}))
-	remoteAddressSpace := utils.ExpandStringSlice(d.Get("remote_address_space_prefixes").([]interface{}))
+	databricksAddressSpace := helpers.ExpandStringSlice(d.Get("address_space_prefixes").([]interface{}))
+	remoteAddressSpace := helpers.ExpandStringSlice(d.Get("remote_address_space_prefixes").([]interface{}))
 
 	props := vnetpeering.VirtualNetworkPeeringPropertiesFormat{
 		DatabricksAddressSpace: &vnetpeering.AddressSpace{
@@ -189,7 +190,7 @@ func resourceDatabricksVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, me
 		Properties: props,
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, peer); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, peer, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating Databricks %s: %+v", id, err)
 	}
 
@@ -249,11 +250,7 @@ func resourceDatabricksVirtualNetworkPeeringRead(d *pluginsdk.ResourceData, meta
 		}
 		d.Set("virtual_network_id", databricksVirtualNetworkId)
 
-		remoteVirtualNetworkId := ""
-		if model.Properties.RemoteVirtualNetwork.Id != nil {
-			remoteVirtualNetworkId = *model.Properties.RemoteVirtualNetwork.Id
-		}
-		d.Set("remote_virtual_network_id", remoteVirtualNetworkId)
+		d.Set("remote_virtual_network_id", pointer.From(model.Properties.RemoteVirtualNetwork.Id))
 	}
 
 	return pluginsdk.SetResourceIdentityData(d, id)
@@ -263,8 +260,6 @@ func resourceDatabricksVirtualNetworkPeeringUpdate(d *pluginsdk.ResourceData, me
 	client := meta.(*clients.Client).DataBricks.VnetPeeringClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Azure ARM databricks virtual network peering update.")
 
 	id, err := vnetpeering.ParseVirtualNetworkPeeringID(d.Id())
 	if err != nil {

@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/managedapplications/2021-07-01/applications"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications/validate"
 	resourcesParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -52,7 +53,7 @@ func resourceManagedApplication() *pluginsdk.Resource {
 }
 
 func resourceManagedApplicationSchema() map[string]*pluginsdk.Schema {
-	schema := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -141,8 +142,6 @@ func resourceManagedApplicationSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 	}
-
-	return schema
 }
 
 func resourceManagedApplicationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -153,7 +152,7 @@ func resourceManagedApplicationCreate(d *pluginsdk.ResourceData, meta interface{
 
 	id := applications.NewApplicationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -192,11 +191,9 @@ func resourceManagedApplicationCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 	parameters.Properties.Parameters = pointer.To(interface{}(params))
 
-	err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
-	if err != nil {
-		return fmt.Errorf("failed to create %s: %+v", id, err)
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-
 	d.SetId(id.ID())
 
 	return resourceManagedApplicationRead(d, meta)
@@ -233,8 +230,7 @@ func resourceManagedApplicationUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 	payload.Properties.Parameters = pointer.To(interface{}(params))
 
-	err = client.CreateOrUpdateThenPoll(ctx, *id, *payload)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 

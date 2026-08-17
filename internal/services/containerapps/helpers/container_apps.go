@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/containerapps"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/daprcomponents"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -1638,7 +1637,8 @@ func ContainerVolumeSchema() *pluginsdk.Schema {
 					Default:  "EmptyDir",
 					ValidateFunc: validation.StringInSlice(
 						containerapps.PossibleValuesForStorageType(),
-						false),
+						false,
+					),
 					Description: "The type of storage volume. Possible values include `AzureFile` and `EmptyDir`. Defaults to `EmptyDir`.",
 				},
 
@@ -2263,7 +2263,7 @@ type ContainerAppLivenessProbe struct {
 }
 
 func ContainerAppLivenessProbeSchema() *pluginsdk.Schema {
-	schema := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MinItems: 1,
@@ -2355,20 +2355,10 @@ func ContainerAppLivenessProbeSchema() *pluginsdk.Schema {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		schema.Elem.(*pluginsdk.Resource).Schema["termination_grace_period_seconds"] = &pluginsdk.Schema{
-			Type:        pluginsdk.TypeInt,
-			Computed:    true,
-			Description: "The time in seconds after the container is sent the termination signal before the process if forcibly killed.",
-		}
-	}
-
-	return schema
 }
 
 func ContainerAppLivenessProbeSchemaComputed() *pluginsdk.Schema {
-	schema := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
 		Elem: &pluginsdk.Resource{
@@ -2443,16 +2433,6 @@ func ContainerAppLivenessProbeSchemaComputed() *pluginsdk.Schema {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		schema.Elem.(*pluginsdk.Resource).Schema["termination_grace_period_seconds"] = &pluginsdk.Schema{
-			Type:        pluginsdk.TypeInt,
-			Computed:    true,
-			Description: "The time in seconds after the container is sent the termination signal before the process if forcibly killed.",
-		}
-	}
-
-	return schema
 }
 
 func expandContainerAppLivenessProbe(input ContainerAppLivenessProbe) containerapps.ContainerAppProbe {
@@ -2550,7 +2530,7 @@ type ContainerAppStartupProbe struct {
 }
 
 func ContainerAppStartupProbeSchema() *pluginsdk.Schema {
-	schema := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MinItems: 1,
@@ -2642,20 +2622,10 @@ func ContainerAppStartupProbeSchema() *pluginsdk.Schema {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		schema.Elem.(*pluginsdk.Resource).Schema["termination_grace_period_seconds"] = &pluginsdk.Schema{
-			Type:        pluginsdk.TypeInt,
-			Computed:    true,
-			Description: "The time in seconds after the container is sent the termination signal before the process if forcibly killed.",
-		}
-	}
-
-	return schema
 }
 
 func ContainerAppStartupProbeSchemaComputed() *pluginsdk.Schema {
-	schema := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
 		Elem: &pluginsdk.Resource{
@@ -2726,16 +2696,6 @@ func ContainerAppStartupProbeSchemaComputed() *pluginsdk.Schema {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		schema.Elem.(*pluginsdk.Resource).Schema["termination_grace_period_seconds"] = &pluginsdk.Schema{
-			Type:        pluginsdk.TypeInt,
-			Computed:    true,
-			Description: "The time in seconds after the container is sent the termination signal before the process if forcibly killed.",
-		}
-	}
-
-	return schema
 }
 
 func expandContainerAppStartupProbe(input ContainerAppStartupProbe) containerapps.ContainerAppProbe {
@@ -2851,7 +2811,7 @@ type Secret struct {
 }
 
 func SecretsSchema() *pluginsdk.Schema {
-	s := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:      pluginsdk.TypeSet,
 		Optional:  true,
 		Sensitive: true,
@@ -2890,12 +2850,6 @@ func SecretsSchema() *pluginsdk.Schema {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		s.Elem.(*pluginsdk.Resource).Schema["key_vault_secret_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
-	}
-
-	return s
 }
 
 func SecretsDataSourceSchema() *pluginsdk.Schema {
@@ -3043,21 +2997,21 @@ func ContainerAppProbesRemoved(metadata sdk.ResourceMetaData) bool {
 	var hasLiveness, hasReadiness, hasStartup bool
 
 	if metadata.ResourceData.HasChange("template.0.container.0.liveness_probe") {
-		_, newLivenessRaw := metadata.ResourceData.GetChange("template.0.container.0.liveness_probe")
+		newLivenessRaw := metadata.ResourceData.Get("template.0.container.0.liveness_probe")
 		if newLiveness, ok := newLivenessRaw.([]interface{}); ok && len(newLiveness) > 0 {
 			hasLiveness = true
 		}
 	}
 
 	if metadata.ResourceData.HasChange("template.0.container.0.readiness_probe") {
-		_, newReadinessRaw := metadata.ResourceData.GetChange("template.0.container.0.readiness_probe")
+		newReadinessRaw := metadata.ResourceData.Get("template.0.container.0.readiness_probe")
 		if newReadiness, ok := newReadinessRaw.([]interface{}); ok && len(newReadiness) > 0 {
 			hasReadiness = true
 		}
 	}
 
 	if metadata.ResourceData.HasChange("template.0.container.0.startup_probe") {
-		_, newStartupRaw := metadata.ResourceData.GetChange("template.0.container.0.startup_probe")
+		newStartupRaw := metadata.ResourceData.Get("template.0.container.0.startup_probe")
 		if newStartup, ok := newStartupRaw.([]interface{}); ok && len(newStartup) > 0 {
 			hasStartup = true
 		}

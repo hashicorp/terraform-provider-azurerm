@@ -12,15 +12,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceCosmosDbMongoCollection() *pluginsdk.Resource {
@@ -154,12 +155,14 @@ func resourceCosmosDbMongoCollectionCreate(d *pluginsdk.ResourceData, meta inter
 
 	id := cosmosdb.NewMongodbDatabaseCollectionID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("database_name").(string), d.Get("name").(string))
 
-	existing, err := client.MongoDBResourcesGetMongoDBCollection(ctx, id)
-	if !response.WasNotFound(existing.HttpResponse) {
-		if err != nil {
-			return fmt.Errorf("checking for presence of %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.MongoDBResourcesGetMongoDBCollection(ctx, id)
+		if !response.WasNotFound(existing.HttpResponse) {
+			if err != nil {
+				return fmt.Errorf("checking for presence of %s: %+v", id, err)
+			}
+			return tf.ImportAsExistsError("azurerm_cosmosdb_mongo_collection", id.ID())
 		}
-		return tf.ImportAsExistsError("azurerm_cosmosdb_mongo_collection", id.ID())
 	}
 
 	var ttl *int
@@ -202,7 +205,7 @@ func resourceCosmosDbMongoCollectionCreate(d *pluginsdk.ResourceData, meta inter
 		})
 	}
 
-	if err := client.MongoDBResourcesCreateUpdateMongoDBCollectionThenPoll(ctx, id, db); err != nil {
+	if err := client.MongoDBResourcesCreateUpdateMongoDBCollectionCallbackThenPoll(ctx, id, db, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -417,7 +420,7 @@ func expandCosmosMongoCollectionIndex(indexes []interface{}, defaultTtl *int) (*
 
 			results = append(results, cosmosdb.MongoIndex{
 				Key: &cosmosdb.MongoIndexKeys{
-					Keys: utils.ExpandStringSlice(index["keys"].([]interface{})),
+					Keys: helpers.ExpandStringSlice(index["keys"].([]interface{})),
 				},
 				Options: &cosmosdb.MongoIndexOptions{
 					Unique: pointer.To(index["unique"].(bool)),
@@ -458,21 +461,21 @@ func flattenCosmosMongoCollectionIndex(input *[]cosmosdb.MongoIndex, accountIsVe
 			switch key {
 			// As `DocumentDBDefaultIndex` and `_id` cannot be updated, so they would be moved into `system_indexes`.
 			case "_id":
-				systemIndex["keys"] = utils.FlattenStringSlice(v.Key.Keys)
+				systemIndex["keys"] = helpers.FlattenStringSlice(v.Key.Keys)
 				// The system index `_id` is always unique but api returns nil and it would be converted to `false` by zero-value. So it has to be manually set as `true`.
 				systemIndex["unique"] = true
 
 				systemIndexes = append(systemIndexes, systemIndex)
 
 				if accountIsVersion36 {
-					index["keys"] = utils.FlattenStringSlice(v.Key.Keys)
+					index["keys"] = helpers.FlattenStringSlice(v.Key.Keys)
 					index["unique"] = true
 					indexes = append(indexes, index)
 				}
 
 			case "DocumentDBDefaultIndex":
 				// Updating system index `DocumentDBDefaultIndex` is not a supported scenario.
-				systemIndex["keys"] = utils.FlattenStringSlice(v.Key.Keys)
+				systemIndex["keys"] = helpers.FlattenStringSlice(v.Key.Keys)
 
 				isUnique := false
 				if v.Options != nil && v.Options.Unique != nil {
@@ -488,7 +491,7 @@ func flattenCosmosMongoCollectionIndex(input *[]cosmosdb.MongoIndex, accountIsVe
 				}
 			default:
 				// The other settable indexes would be set in `index`
-				index["keys"] = utils.FlattenStringSlice(v.Key.Keys)
+				index["keys"] = helpers.FlattenStringSlice(v.Key.Keys)
 
 				isUnique := false
 				if v.Options != nil && v.Options.Unique != nil {

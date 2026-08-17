@@ -10,11 +10,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -26,7 +25,7 @@ func TestAccAzureRMLoadBalancerNatRule_basic(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, "Basic"),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -122,7 +121,7 @@ func TestAccAzureRMLoadBalancerNatRule_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, "Standard"),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -136,7 +135,7 @@ func TestAccAzureRMLoadBalancerNatRule_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data, "Standard"),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -151,7 +150,7 @@ func TestAccAzureRMLoadBalancerNatRule_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, "Basic"),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -166,9 +165,7 @@ func TestAccAzureRMLoadBalancerNatRule_disappears(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
-			Config: func(data acceptance.TestData) string {
-				return r.basic(data, "Basic")
-			},
+			Config:       r.basic,
 			TestResource: r,
 		}),
 	})
@@ -281,15 +278,14 @@ func (r LoadBalancerNatRule) Destroy(ctx context.Context, client *clients.Client
 	}
 	lb.Model.Properties.InboundNatRules = &inboundNatRules
 
-	err = client.LoadBalancers.LoadBalancersClient.CreateOrUpdateThenPoll(ctx, plbId, *lb.Model)
-	if err != nil {
+	if err = client.LoadBalancers.LoadBalancersClient.CreateOrUpdateThenPoll(ctx, plbId, *lb.Model); err != nil {
 		return nil, fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	return pointer.To(true), nil
 }
 
-func (r LoadBalancerNatRule) template(data acceptance.TestData, sku string) string {
+func (r LoadBalancerNatRule) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -305,24 +301,24 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
-  sku                 = "%[3]s"
+  sku                 = "Standard"
 }
 
 resource "azurerm_lb" "test" {
   name                = "acctest-loadbalancer-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "%[3]s"
+  sku                 = "Standard"
 
   frontend_ip_configuration {
     name                 = "acctest-fe-%[1]d"
     public_ip_address_id = azurerm_public_ip.test.id
   }
 }
-`, data.RandomInteger, data.Locations.Primary, sku)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r LoadBalancerNatRule) basic(data acceptance.TestData, sku string) string {
+func (r LoadBalancerNatRule) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -335,31 +331,10 @@ resource "azurerm_lb_nat_rule" "test" {
   backend_port                   = 3389
   frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
 }
-`, r.template(data, sku), data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r LoadBalancerNatRule) complete(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-%s
-
-resource "azurerm_lb_nat_rule" "test" {
-  name                = "acctestnatrule-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  loadbalancer_id     = "${azurerm_lb.test.id}"
-
-  protocol      = "Tcp"
-  frontend_port = 3389
-  backend_port  = 3389
-
-  enable_floating_ip      = true
-  enable_tcp_reset        = true
-  idle_timeout_in_minutes = 10
-
-  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
-}
-`, r.template(data, "Standard"), data.RandomInteger)
-	}
 	return fmt.Sprintf(`
 %s
 
@@ -378,7 +353,7 @@ resource "azurerm_lb_nat_rule" "test" {
 
   frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
 }
-`, r.template(data, "Standard"), data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r LoadBalancerNatRule) completeUpdate(data acceptance.TestData) string {
@@ -400,11 +375,11 @@ resource "azurerm_lb_nat_rule" "test" {
 
   frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
 }
-`, r.template(data, "Standard"), data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r LoadBalancerNatRule) requiresImport(data acceptance.TestData) string {
-	template := r.basic(data, "Basic")
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -421,7 +396,7 @@ resource "azurerm_lb_nat_rule" "import" {
 }
 
 func (r LoadBalancerNatRule) multipleRules(data, data2 acceptance.TestData) string {
-	template := r.template(data, "Basic")
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -448,7 +423,7 @@ resource "azurerm_lb_nat_rule" "test2" {
 }
 
 func (r LoadBalancerNatRule) multipleRulesUpdate(data, data2 acceptance.TestData) string {
-	template := r.template(data, "Basic")
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 resource "azurerm_lb_nat_rule" "test" {
@@ -474,7 +449,7 @@ resource "azurerm_lb_nat_rule" "test2" {
 }
 
 func (r LoadBalancerNatRule) mapToBackendAddressPool(data acceptance.TestData) string {
-	template := r.template(data, "Standard")
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 resource "azurerm_virtual_network" "test" {
@@ -533,60 +508,6 @@ resource "azurerm_lb_nat_rule" "test1" {
 }
 
 func (r LoadBalancerNatRule) zeroPortNumber(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-lb-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctest-vnet-%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctest-subnet-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-}
-
-resource "azurerm_lb" "test" {
-  name                = "acctest-lb-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard"
-
-  frontend_ip_configuration {
-    name                          = "Internal"
-    private_ip_address_allocation = "Static"
-    private_ip_address_version    = "IPv4"
-    private_ip_address            = "10.0.2.7"
-    subnet_id                     = azurerm_subnet.test.id
-  }
-}
-
-resource "azurerm_lb_nat_rule" "test" {
-  resource_group_name            = azurerm_resource_group.test.name
-  loadbalancer_id                = azurerm_lb.test.id
-  name                           = "acctestnatrule-%[1]d"
-  protocol                       = "All"
-  frontend_port                  = 0
-  backend_port                   = 0
-  idle_timeout_in_minutes        = 4
-  enable_floating_ip             = false
-  enable_tcp_reset               = false
-  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
-}
-`, data.RandomInteger, data.Locations.Primary)
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
