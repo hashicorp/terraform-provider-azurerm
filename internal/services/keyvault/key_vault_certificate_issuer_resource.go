@@ -316,31 +316,11 @@ func flattenKeyVaultCertificateIssuerAdmins(input *[]keyvault.AdministratorDetai
 	}
 
 	for _, admin := range *input {
-		emailAddress := ""
-		if admin.EmailAddress != nil {
-			emailAddress = *admin.EmailAddress
-		}
-
-		firstName := ""
-		if admin.FirstName != nil {
-			firstName = *admin.FirstName
-		}
-
-		lastName := ""
-		if admin.LastName != nil {
-			lastName = *admin.LastName
-		}
-
-		phone := ""
-		if admin.Phone != nil {
-			phone = *admin.Phone
-		}
-
 		results = append(results, map[string]interface{}{
-			"email_address": emailAddress,
-			"first_name":    firstName,
-			"last_name":     lastName,
-			"phone":         phone,
+			"email_address": pointer.From(admin.EmailAddress),
+			"first_name":    pointer.From(admin.FirstName),
+			"last_name":     pointer.From(admin.LastName),
+			"phone":         pointer.From(admin.Phone),
 		})
 	}
 

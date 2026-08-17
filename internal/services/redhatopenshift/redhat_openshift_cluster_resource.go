@@ -1161,7 +1161,7 @@ func expandOpenshiftIngressProfiles(input []IngressProfile) *[]openshiftclusters
 
 	profile := openshiftclusters.IngressProfile{
 		Name:       pointer.To("default"),
-		Visibility: pointer.To(openshiftclusters.Visibility(input[0].Visibility)),
+		Visibility: pointer.ToEnum[openshiftclusters.Visibility](input[0].Visibility),
 	}
 
 	profiles = append(profiles, profile)

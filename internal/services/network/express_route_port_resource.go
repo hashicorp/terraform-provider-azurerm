@@ -9,8 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -21,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -218,14 +217,14 @@ func resourceArmExpressRoutePortCreate(d *pluginsdk.ResourceData, meta interface
 		Properties: &expressrouteports.ExpressRoutePortPropertiesFormat{
 			PeeringLocation: pointer.To(d.Get("peering_location").(string)),
 			BandwidthInGbps: pointer.To(int64(d.Get("bandwidth_in_gbps").(int))),
-			Encapsulation:   pointer.To(expressrouteports.ExpressRoutePortsEncapsulation(d.Get("encapsulation").(string))),
+			Encapsulation:   pointer.ToEnum[expressrouteports.ExpressRoutePortsEncapsulation](d.Get("encapsulation").(string)),
 		},
 		Identity: expandedIdentity,
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if v, ok := d.GetOk("billing_type"); ok {
-		param.Properties.BillingType = pointer.To(expressrouteports.ExpressRoutePortsBillingType(v.(string)))
+		param.Properties.BillingType = pointer.ToEnum[expressrouteports.ExpressRoutePortsBillingType](v.(string))
 	}
 
 	// a lock is needed here for subresource express_route_port_authorization needs a lock.
@@ -299,7 +298,7 @@ func resourceArmExpressRoutePortUpdate(d *pluginsdk.ResourceData, meta interface
 
 	if d.HasChange("billing_type") {
 		if v, ok := d.GetOk("billing_type"); ok {
-			payload.Properties.BillingType = pointer.To(expressrouteports.ExpressRoutePortsBillingType(v.(string)))
+			payload.Properties.BillingType = pointer.ToEnum[expressrouteports.ExpressRoutePortsBillingType](v.(string))
 		}
 	}
 
@@ -440,7 +439,7 @@ func expandExpressRoutePortLink(idx int, input []interface{}) *expressrouteports
 		Properties: &expressrouteports.ExpressRouteLinkPropertiesFormat{
 			AdminState: pointer.To(adminState),
 			MacSecConfig: &expressrouteports.ExpressRouteLinkMacSecConfig{
-				Cipher:   pointer.To(expressrouteports.ExpressRouteLinkMacSecCipher(b["macsec_cipher"].(string))),
+				Cipher:   pointer.ToEnum[expressrouteports.ExpressRouteLinkMacSecCipher](b["macsec_cipher"].(string)),
 				SciState: pointer.To(sciState),
 			},
 		},
@@ -468,11 +467,6 @@ func flattenExpressRoutePortLinks(links *[]expressrouteports.ExpressRouteLink) (
 }
 
 func flattenExpressRoutePortLink(link expressrouteports.ExpressRouteLink) []interface{} {
-	var id string
-	if link.Id != nil {
-		id = *link.Id
-	}
-
 	var (
 		routerName    string
 		interfaceName string
@@ -515,7 +509,7 @@ func flattenExpressRoutePortLink(link expressrouteports.ExpressRouteLink) []inte
 
 	return []interface{}{
 		map[string]interface{}{
-			"id":                            id,
+			"id":                            pointer.From(link.Id),
 			"router_name":                   routerName,
 			"interface_name":                interfaceName,
 			"patch_panel_id":                patchPanelId,

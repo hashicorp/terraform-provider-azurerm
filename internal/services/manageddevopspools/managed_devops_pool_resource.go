@@ -116,13 +116,12 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								// "CreatorOnly" is excluded because it silently behaves as "Inherit" when authenticated via Service Principal.
-								// Ref: https://github.com/Azure/azure-rest-api-specs/issues/41786
 								"kind": {
 									Type:     pluginsdk.TypeString,
 									Required: true,
 									ForceNew: true,
 									ValidateFunc: validation.StringInSlice([]string{
+										string(pools.AzureDevOpsPermissionTypeCreatorOnly),
 										string(pools.AzureDevOpsPermissionTypeInherit),
 										string(pools.AzureDevOpsPermissionTypeSpecificAccounts),
 									}, false),

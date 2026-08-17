@@ -324,7 +324,12 @@ func resourceAttestationProviderUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	if d.HasChanges("open_enclave_policy_base64", "sgx_enclave_policy_base64", "tpm_policy_base64", "sev_snp_policy_base64") {
+	if d.HasChanges(
+		"open_enclave_policy_base64",
+		"sgx_enclave_policy_base64",
+		"tpm_policy_base64",
+		"sev_snp_policy_base64",
+	) {
 		dataPlaneUri, err := attestationClients.DataPlaneEndpointForProvider(ctx, *id)
 		if err != nil {
 			return fmt.Errorf("determining Data Plane URI for %s: %+v", *id, err)
