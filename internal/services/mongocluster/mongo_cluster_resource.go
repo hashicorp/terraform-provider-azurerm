@@ -369,21 +369,6 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			storageTypeConfigured := !metadata.ResourceData.GetRawConfig().AsValueMap()["storage_type"].IsNull()
-
-			switch state.CreateMode {
-			case string(mongoclusters.CreateModePointInTimeRestore), string(mongoclusters.CreateModeGeoReplica):
-				if state.SourceServerId != "" && storageTypeConfigured {
-					source, err := retrieveMongoClusterSource(ctx, client, state.SourceServerId)
-					if err != nil {
-						return err
-					}
-					if err := preventSourceStorageDowngrade(source, state.StorageType); err != nil {
-						return err
-					}
-				}
-			}
-
 			identityVal, err := identity.ExpandUserAssignedMapFromModel(state.Identity)
 			if err != nil {
 				return fmt.Errorf(`expanding "identity": %v`, err)
@@ -948,38 +933,6 @@ func updateMongoClusterNetworkBypassMode(ctx context.Context, client *mongoclust
 	}
 
 	return client.UpdateThenPoll(ctx, id, payload)
-}
-
-func retrieveMongoClusterSource(ctx context.Context, client *mongoclusters.MongoClustersClient, sourceIdRaw string) (*mongoclusters.MongoCluster, error) {
-	sourceId, err := mongoclusters.ParseMongoClusterID(sourceIdRaw)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := client.Get(ctx, *sourceId)
-	if err != nil {
-		return nil, fmt.Errorf("retrieving source %s: %+v", *sourceId, err)
-	}
-	if resp.Model == nil {
-		return nil, fmt.Errorf("retrieving source %s: `model` was nil", *sourceId)
-	}
-
-	return resp.Model, nil
-}
-
-func sourceStorageType(source *mongoclusters.MongoCluster) string {
-	if source.Properties == nil || source.Properties.Storage == nil {
-		return ""
-	}
-	return pointer.FromEnum(source.Properties.Storage.Type)
-}
-
-func preventSourceStorageDowngrade(source *mongoclusters.MongoCluster, targetStorageType string) error {
-	sourceType := sourceStorageType(source)
-	if sourceType == string(mongoclusters.StorageTypePremiumSSDvTwo) && targetStorageType == string(mongoclusters.StorageTypePremiumSSD) {
-		return fmt.Errorf("`storage_type` cannot be downgraded from the source cluster's storage type `%s` to `%s`", mongoclusters.StorageTypePremiumSSDvTwo, mongoclusters.StorageTypePremiumSSD)
-	}
-	return nil
 }
 
 func expandPreviewFeatures(input []string) *[]mongoclusters.PreviewFeature {
