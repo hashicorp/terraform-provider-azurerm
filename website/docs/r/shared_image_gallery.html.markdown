@@ -32,7 +32,7 @@ resource "azurerm_shared_image_gallery" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

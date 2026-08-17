@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"unicode/utf8"
 
-	"github.com/apparentlymart/go-textseg/v15/textseg"
 	"golang.org/x/text/unicode/norm"
+
+	"github.com/zclconf/go-cty/cty/internal/graphemes"
 )
 
 // SafeKnownPrefix takes a string intended to represent a known prefix of
@@ -65,19 +66,29 @@ func SafeKnownPrefix(prefix string) string {
 	prevBoundary := 0
 	thisBoundary := 0
 	for len(remain) > 0 {
-		advance, _, err := textseg.ScanGraphemeClusters(remain, false)
+		advance, _, err := graphemes.ScanGraphemeClusters(remain, false)
 		if err != nil {
 			// ScanGraphemeClusters should never return an error because
 			// any sequence of valid UTF-8 encodings is valid input.
-			panic(fmt.Sprintf("textseg.ScanGraphemeClusters returned error: %s", err))
+			panic(fmt.Sprintf("graphemes.ScanGraphemeClusters returned error: %s", err))
 		}
 		if advance == 0 {
 			// If we have at least one byte remaining but the scanner cannot
 			// advance then that means the remainder might be an incomplete
 			// grapheme cluster and so we need to stop here, discarding the
-			// rest of the input. However, we do now know that we can safely
-			// include what we found on the previous iteration of this loop.
+			// rest of the input. However, there are some characters that we
+			// just assume will never become a prefix for something that can
+			// be transformed by normalization and so we'll consider including
+			// whatever the next grapheme cluster would be if we pretend we're
+			// at the end of input.
+			advance, _, err := graphemes.ScanGraphemeClusters(remain, true)
+			if err != nil {
+				// ScanGraphemeClusters should never return an error because
+				// any sequence of valid UTF-8 encodings is valid input.
+				panic(fmt.Sprintf("graphemes.ScanGraphemeClusters returned error: %s", err))
+			}
 			prevBoundary = thisBoundary
+			thisBoundary += advance
 			break
 		}
 		prevBoundary = thisBoundary

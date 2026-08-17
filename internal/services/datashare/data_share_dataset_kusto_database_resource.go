@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datashare
@@ -12,12 +12,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/dataset"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/share"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_share_dataset_kusto_database -service-package-name datashare -properties "name" -compare-values "subscription_id:share_id,resource_group_name:share_id,account_name:share_id,share_name:share_id"
 
 func resourceDataShareDataSetKustoDatabase() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -31,10 +34,10 @@ func resourceDataShareDataSetKustoDatabase() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := dataset.ParseDataSetID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&dataset.DataSetId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&dataset.DataSetId{}),
+		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -82,14 +85,16 @@ func resourceDataShareDataSetKustoDatabaseCreate(d *pluginsdk.ResourceData, meta
 	}
 	id := dataset.NewDataSetID(shareId.SubscriptionId, shareId.ResourceGroupName, shareId.AccountName, shareId.ShareName, d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for present of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for present of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_data_share_dataset_kusto_database", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_data_share_dataset_kusto_database", id.ID())
+		}
 	}
 
 	dataSet := dataset.KustoDatabaseDataSet{
@@ -103,6 +108,9 @@ func resourceDataShareDataSetKustoDatabaseCreate(d *pluginsdk.ResourceData, meta
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceDataShareDataSetKustoDatabaseRead(d, meta)
 }
@@ -143,7 +151,7 @@ func resourceDataShareDataSetKustoDatabaseRead(d *pluginsdk.ResourceData, meta i
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceDataShareDataSetKustoDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) error {

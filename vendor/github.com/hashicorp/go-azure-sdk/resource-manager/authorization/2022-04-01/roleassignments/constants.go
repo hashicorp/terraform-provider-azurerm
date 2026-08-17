@@ -12,15 +12,19 @@ import (
 type PrincipalType string
 
 const (
-	PrincipalTypeDevice           PrincipalType = "Device"
-	PrincipalTypeForeignGroup     PrincipalType = "ForeignGroup"
-	PrincipalTypeGroup            PrincipalType = "Group"
-	PrincipalTypeServicePrincipal PrincipalType = "ServicePrincipal"
-	PrincipalTypeUser             PrincipalType = "User"
+	PrincipalTypeAgentServicePrincipal PrincipalType = "AgentServicePrincipal"
+	PrincipalTypeAgentUser             PrincipalType = "AgentUser"
+	PrincipalTypeDevice                PrincipalType = "Device"
+	PrincipalTypeForeignGroup          PrincipalType = "ForeignGroup"
+	PrincipalTypeGroup                 PrincipalType = "Group"
+	PrincipalTypeServicePrincipal      PrincipalType = "ServicePrincipal"
+	PrincipalTypeUser                  PrincipalType = "User"
 )
 
 func PossibleValuesForPrincipalType() []string {
 	return []string{
+		string(PrincipalTypeAgentServicePrincipal),
+		string(PrincipalTypeAgentUser),
 		string(PrincipalTypeDevice),
 		string(PrincipalTypeForeignGroup),
 		string(PrincipalTypeGroup),
@@ -44,11 +48,13 @@ func (s *PrincipalType) UnmarshalJSON(bytes []byte) error {
 
 func parsePrincipalType(input string) (*PrincipalType, error) {
 	vals := map[string]PrincipalType{
-		"device":           PrincipalTypeDevice,
-		"foreigngroup":     PrincipalTypeForeignGroup,
-		"group":            PrincipalTypeGroup,
-		"serviceprincipal": PrincipalTypeServicePrincipal,
-		"user":             PrincipalTypeUser,
+		"agentserviceprincipal": PrincipalTypeAgentServicePrincipal,
+		"agentuser":             PrincipalTypeAgentUser,
+		"device":                PrincipalTypeDevice,
+		"foreigngroup":          PrincipalTypeForeignGroup,
+		"group":                 PrincipalTypeGroup,
+		"serviceprincipal":      PrincipalTypeServicePrincipal,
+		"user":                  PrincipalTypeUser,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil

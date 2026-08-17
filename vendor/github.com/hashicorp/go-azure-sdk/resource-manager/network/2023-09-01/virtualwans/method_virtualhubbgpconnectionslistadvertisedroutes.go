@@ -59,9 +59,20 @@ func (c VirtualWANsClient) VirtualHubBgpConnectionsListAdvertisedRoutes(ctx cont
 
 // VirtualHubBgpConnectionsListAdvertisedRoutesThenPoll performs VirtualHubBgpConnectionsListAdvertisedRoutes then polls until it's completed
 func (c VirtualWANsClient) VirtualHubBgpConnectionsListAdvertisedRoutesThenPoll(ctx context.Context, id commonids.VirtualHubBGPConnectionId) error {
+	return c.VirtualHubBgpConnectionsListAdvertisedRoutesCallbackThenPoll(ctx, id, nil)
+}
+
+// VirtualHubBgpConnectionsListAdvertisedRoutesCallbackThenPoll performs VirtualHubBgpConnectionsListAdvertisedRoutes, runs the optional callback function, then polls until it's completed
+func (c VirtualWANsClient) VirtualHubBgpConnectionsListAdvertisedRoutesCallbackThenPoll(ctx context.Context, id commonids.VirtualHubBGPConnectionId, callback func() error) error {
 	result, err := c.VirtualHubBgpConnectionsListAdvertisedRoutes(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing VirtualHubBgpConnectionsListAdvertisedRoutes: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

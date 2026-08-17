@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2018, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package typehelpers
@@ -21,7 +21,7 @@ func AttributeTypes[T any](ctx context.Context) (map[string]attr.Type, diag.Diag
 	val := reflect.ValueOf(t)
 	typ := val.Type()
 
-	if typ.Kind() == reflect.Ptr && typ.Elem().Kind() == reflect.Struct {
+	if typ.Kind() == reflect.Pointer && typ.Elem().Kind() == reflect.Struct {
 		val = reflect.New(typ.Elem()).Elem()
 		typ = typ.Elem()
 	}

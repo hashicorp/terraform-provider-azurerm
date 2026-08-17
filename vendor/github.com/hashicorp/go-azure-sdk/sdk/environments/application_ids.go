@@ -112,6 +112,7 @@ var PublishedApis = map[string]string{
 	"PowerBiService":              powerBiServiceAppId,
 	"Purview":                     purviewAppId,
 	"RightsManagementServices":    rightsManagementServiceAppId,
+	"Search":                      searchAppId,
 	"ServiceTrust":                serviceTrustAppId,
 	"Signup":                      signupAppId,
 	"SkypeForBusinessOnline":      skypeForBusinessOnlineAppId,

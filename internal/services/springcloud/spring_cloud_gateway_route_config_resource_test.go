@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud_test
@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -117,11 +118,11 @@ func (r SpringCloudGatewayRouteConfigResource) Exists(ctx context.Context, clien
 	resp, err := client.AppPlatform.GatewayRouteConfigClient.Get(ctx, id.ResourceGroup, id.SpringName, id.GatewayName, id.RouteConfigName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r SpringCloudGatewayRouteConfigResource) template(data acceptance.TestData) string {
@@ -208,7 +209,7 @@ resource "azurerm_spring_cloud_gateway_route_config" "test" {
     classification_tags    = ["tag1", "tag2"]
   }
   open_api {
-    uri = "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/main/examples/v3.0/petstore.json"
+    uri = "https://raw.githubusercontent.com/OAI/learn.openapis.org/main/examples/v3.0/petstore.json"
   }
 }
 `, template, data.RandomInteger)
@@ -247,7 +248,7 @@ resource "azurerm_spring_cloud_gateway_route_config" "test" {
     classification_tags    = ["route2_tag1", "route2_tag2"]
   }
   open_api {
-    uri = "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/main/examples/v3.0/petstore.json"
+    uri = "https://raw.githubusercontent.com/OAI/learn.openapis.org/main/examples/v3.0/petstore.json"
   }
 }
 `, template, data.RandomInteger)

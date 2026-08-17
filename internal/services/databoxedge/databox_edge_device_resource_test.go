@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package databoxedge_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2022-03-01/devices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type DataboxEdgeDeviceResource struct{}
@@ -22,15 +22,16 @@ func TestAccDataboxEdgeDevice_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databox_edge_device", "test")
 	r := DataboxEdgeDeviceResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
+	data.ResourceTest(
+		t, r, []acceptance.TestStep{
+			{
+				Config: r.basic(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep(),
 		},
-		data.ImportStep(),
-	},
 	)
 }
 
@@ -38,18 +39,19 @@ func TestAccDataboxEdgeDevice_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databox_edge_device", "test")
 	r := DataboxEdgeDeviceResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
+	data.ResourceTest(
+		t, r, []acceptance.TestStep{
+			{
+				Config: r.basic(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			{
+				Config:      r.requiresImport(data),
+				ExpectError: acceptance.RequiresImportError("azurerm_databox_edge_device"),
+			},
 		},
-		{
-			Config:      r.requiresImport(data),
-			ExpectError: acceptance.RequiresImportError("azurerm_databox_edge_device"),
-		},
-	},
 	)
 }
 
@@ -57,15 +59,16 @@ func TestAccDataboxEdgeDevice_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databox_edge_device", "test")
 	r := DataboxEdgeDeviceResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
+	data.ResourceTest(
+		t, r, []acceptance.TestStep{
+			{
+				Config: r.complete(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep(),
 		},
-		data.ImportStep(),
-	},
 	)
 }
 
@@ -73,29 +76,30 @@ func TestAccDataboxEdgeDevice_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databox_edge_device", "test")
 	r := DataboxEdgeDeviceResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
+	data.ResourceTest(
+		t, r, []acceptance.TestStep{
+			{
+				Config: r.basic(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: r.complete(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: r.basic(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep(),
 		},
-		data.ImportStep(),
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	},
 	)
 }
 
@@ -110,7 +114,7 @@ func (DataboxEdgeDeviceResource) Exists(ctx context.Context, clients *clients.Cl
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 // Location has to be hard coded due to limited support of locations for this resource

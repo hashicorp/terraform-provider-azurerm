@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers
@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/applicationgateways"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
@@ -47,7 +47,7 @@ var unsupportedAddonsForEnvironment = map[string][]string{
 }
 
 func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"aci_connector_linux": {
 			Type:     pluginsdk.TypeList,
 			MaxItems: 1,
@@ -278,8 +278,6 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 			},
 		},
 	}
-
-	return out
 }
 
 func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interface{}, env environments.Environment) (*map[string]managedclusters.ManagedClusterAddonProfile, error) {
@@ -354,15 +352,13 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 		addonProfiles[aciConnectorKey] = disabled
 	}
 
-	if ok := d.HasChange("azure_policy_enabled"); ok {
-		v := input["azure_policy_enabled"].(bool)
-		props := managedclusters.ManagedClusterAddonProfile{
-			Enabled: v,
-			Config: pointer.To(map[string]string{
-				"version": "v2",
-			}),
-		}
-		addonProfiles[azurePolicyKey] = props
+	// Always set the azure_policy addon profile to ensure it's synchronized with Azure on every update
+	azurePolicyEnabled := input["azure_policy_enabled"].(bool)
+	addonProfiles[azurePolicyKey] = managedclusters.ManagedClusterAddonProfile{
+		Enabled: azurePolicyEnabled,
+		Config: pointer.To(map[string]string{
+			"version": "v2",
+		}),
 	}
 
 	ingressApplicationGateway := input["ingress_application_gateway"].([]interface{})
@@ -406,8 +402,7 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 		value := azureKeyVaultSecretsProvider[0].(map[string]interface{})
 		config := make(map[string]string)
 
-		enableSecretRotation := fmt.Sprintf("%t", value["secret_rotation_enabled"].(bool))
-		config["enableSecretRotation"] = enableSecretRotation
+		config["enableSecretRotation"] = fmt.Sprintf("%t", value["secret_rotation_enabled"].(bool))
 		config["rotationPollInterval"] = value["secret_rotation_interval"].(string)
 
 		addonProfiles[azureKeyvaultSecretsProviderKey] = managedclusters.ManagedClusterAddonProfile{
@@ -610,20 +605,11 @@ func flattenKubernetesClusterAddOnIdentityProfile(profile *managedclusters.UserA
 	}
 
 	identity := make([]interface{}, 0)
-	clientID := ""
-	if clientid := profile.ClientId; clientid != nil {
-		clientID = *clientid
-	}
+	clientID := pointer.From(profile.ClientId)
 
-	objectID := ""
-	if objectid := profile.ObjectId; objectid != nil {
-		objectID = *objectid
-	}
+	objectID := pointer.From(profile.ObjectId)
 
-	userAssignedIdentityID := ""
-	if resourceid := profile.ResourceId; resourceid != nil {
-		userAssignedIdentityID = *resourceid
-	}
+	userAssignedIdentityID := pointer.From(profile.ResourceId)
 
 	identity = append(identity, map[string]interface{}{
 		"client_id":                 clientID,

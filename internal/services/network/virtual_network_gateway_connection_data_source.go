@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualnetworkgatewayconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworkgatewayconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -57,8 +57,7 @@ func dataSourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_bgp": {
+			"bgp_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
@@ -234,7 +233,7 @@ func dataSourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, me
 		props := model.Properties
 
 		d.Set("authorization_key", props.AuthorizationKey)
-		d.Set("enable_bgp", props.EnableBgp)
+		d.Set("bgp_enabled", props.EnableBgp)
 		d.Set("ingress_bytes_transferred", props.IngressBytesTransferred)
 		d.Set("egress_bytes_transferred", props.EgressBytesTransferred)
 		d.Set("use_policy_based_traffic_selectors", props.UsePolicyBasedTrafficSelectors)

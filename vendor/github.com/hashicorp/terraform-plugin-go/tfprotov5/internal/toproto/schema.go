@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2020, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package toproto
@@ -27,12 +27,13 @@ func Schema_Block(in *tfprotov5.SchemaBlock) *tfplugin5.Schema_Block {
 	}
 
 	resp := &tfplugin5.Schema_Block{
-		Attributes:      Schema_Attributes(in.Attributes),
-		BlockTypes:      Schema_NestedBlocks(in.BlockTypes),
-		Deprecated:      in.Deprecated,
-		Description:     in.Description,
-		DescriptionKind: StringKind(in.DescriptionKind),
-		Version:         in.Version,
+		Attributes:         Schema_Attributes(in.Attributes),
+		BlockTypes:         Schema_NestedBlocks(in.BlockTypes),
+		Deprecated:         in.Deprecated,
+		DeprecationMessage: in.DeprecationMessage,
+		Description:        in.Description,
+		DescriptionKind:    StringKind(in.DescriptionKind),
+		Version:            in.Version,
 	}
 
 	return resp
@@ -44,16 +45,17 @@ func Schema_Attribute(in *tfprotov5.SchemaAttribute) *tfplugin5.Schema_Attribute
 	}
 
 	resp := &tfplugin5.Schema_Attribute{
-		Computed:        in.Computed,
-		Deprecated:      in.Deprecated,
-		Description:     in.Description,
-		DescriptionKind: StringKind(in.DescriptionKind),
-		Name:            in.Name,
-		Optional:        in.Optional,
-		Required:        in.Required,
-		Sensitive:       in.Sensitive,
-		Type:            CtyType(in.Type),
-		WriteOnly:       in.WriteOnly,
+		Computed:           in.Computed,
+		Deprecated:         in.Deprecated,
+		DeprecationMessage: in.DeprecationMessage,
+		Description:        in.Description,
+		DescriptionKind:    StringKind(in.DescriptionKind),
+		Name:               in.Name,
+		Optional:           in.Optional,
+		Required:           in.Required,
+		Sensitive:          in.Sensitive,
+		Type:               CtyType(in.Type),
+		WriteOnly:          in.WriteOnly,
 	}
 
 	return resp

@@ -39,6 +39,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `applies_to_group` - An `applies_to_group` block as defined below.
 
+* `connected_group_address_overlap_enabled` - Whether connected group address overlap is enabled.
+
+* `connected_group_private_endpoints_scale` - The scale of private endpoints allowed in the connected group.
+
 * `connectivity_topology` - The connectivity topology type.
 
 * `delete_existing_peering_enabled` - Whether to current existing Virtual Network Peering in the Connectivity Configuration affected scope.
@@ -48,6 +52,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `global_mesh_enabled` - Whether global mesh is supported.
 
 * `hub` - A `hub` block as defined below.
+
+* `peering_enforcement_enabled` - Whether peering enforcement is enabled.
 
 ---
 
@@ -79,4 +85,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2024-05-01
+* `Microsoft.Network` - 2025-01-01

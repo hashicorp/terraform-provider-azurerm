@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package iothub_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type IotHubRouteResource struct{}
@@ -89,12 +89,12 @@ func (t IotHubRouteResource) Exists(ctx context.Context, clients *clients.Client
 	if routes := resp.Properties.Routing.Routes; routes != nil {
 		for _, route := range *routes {
 			if route.Name != nil {
-				return utils.Bool(true), nil
+				return pointer.To(true), nil
 			}
 		}
 	}
 
-	return utils.Bool(false), nil
+	return pointer.To(false), nil
 }
 
 func (r IotHubRouteResource) requiresImport(data acceptance.TestData) string {
@@ -135,7 +135,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "test%[1]d"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -177,7 +177,7 @@ resource "azurerm_iothub_route" "test" {
   endpoint_names = [azurerm_iothub_endpoint_storage_container.test.name]
   enabled        = true
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (IotHubRouteResource) update(data acceptance.TestData) string {
@@ -201,7 +201,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "test%[1]d"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -243,5 +243,5 @@ resource "azurerm_iothub_route" "test" {
   endpoint_names = [azurerm_iothub_endpoint_storage_container.test.name]
   enabled        = false
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

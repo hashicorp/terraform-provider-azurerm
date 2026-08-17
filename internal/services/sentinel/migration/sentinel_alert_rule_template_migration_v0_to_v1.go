@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -7,7 +7,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/alertruletemplates"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -126,7 +126,7 @@ func (s SentinelAlertRuleTemplateV0ToV1) Schema() map[string]*pluginsdk.Schema {
 func (s SentinelAlertRuleTemplateV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 		oldId := rawState["id"].(string)
-		newId, err := parse.SentinelAlertRuleTemplateIDInsensitively(oldId)
+		newId, err := alertruletemplates.ParseAlertRuleTemplateIDInsensitively(oldId)
 		if err != nil {
 			return nil, err
 		}

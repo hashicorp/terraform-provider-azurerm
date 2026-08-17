@@ -26,9 +26,9 @@ func (s BaseStaticRoutingEnrichmentImpl) StaticRoutingEnrichment() BaseStaticRou
 
 var _ StaticRoutingEnrichment = RawStaticRoutingEnrichmentImpl{}
 
-// RawStaticRoutingEnrichmentImpl is returned when the Discriminated Value doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+// RawStaticRoutingEnrichmentImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawStaticRoutingEnrichmentImpl struct {
 	staticRoutingEnrichment BaseStaticRoutingEnrichmentImpl
 	Type                    string
@@ -37,6 +37,10 @@ type RawStaticRoutingEnrichmentImpl struct {
 
 func (s RawStaticRoutingEnrichmentImpl) StaticRoutingEnrichment() BaseStaticRoutingEnrichmentImpl {
 	return s.staticRoutingEnrichment
+}
+
+func (s RawStaticRoutingEnrichmentImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
 }
 
 func UnmarshalStaticRoutingEnrichmentImplementation(input []byte) (StaticRoutingEnrichment, error) {

@@ -31,17 +31,17 @@ resource "azurerm_data_factory_integration_runtime_azure" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Managed Integration Runtime. Changing this forces a new resource to be created. Must be globally unique. See the [Microsoft documentation](https://docs.microsoft.com/azure/data-factory/naming-rules) for all restrictions.
 
-* `data_factory_id` - (Required) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
+* `data_factory_id` - (Required) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Use `AutoResolve` to create an auto-resolve integration runtime. Changing this forces a new resource to be created.
 
-* `description` - (Optional) Integration runtime description.
+---
 
 * `cleanup_enabled` - (Optional) Cluster will not be recycled and it will be used in next data flow activity run until TTL (time to live) is reached if this is set as `false`. Defaults to `true`.
 
@@ -49,11 +49,21 @@ The following arguments are supported:
 
 * `core_count` - (Optional) Core count of the cluster which will execute data flow job. Valid values are `8`, `16`, `32`, `48`, `80`, `144` and `272`. Defaults to `8`.
 
+* `description` - (Optional) Integration runtime description.
+
+* `interactive_authoring_time_to_live_in_minutes` - (Optional) The time to live in minutes for the interactive authoring feature, setting this enables interactive authoring. Possible values are `10`, `30`, `60`, and `120`.
+
+~> **Note:** `interactive_authoring_time_to_live_in_minutes` can only be set when `virtual_network_enabled` is `true`.
+
 * `time_to_live_min` - (Optional) Time to live (in minutes) setting of the cluster which will execute data flow job. Defaults to `0`.
 
 * `virtual_network_enabled` - (Optional) Is Integration Runtime compute provisioned within Managed Virtual Network? Changing this forces a new resource to be created.
 
----
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the Data Factory Integration Runtime.
 
 ## Timeouts
 

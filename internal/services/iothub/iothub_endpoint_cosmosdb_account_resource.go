@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package iothub
@@ -250,7 +250,9 @@ func (r IotHubEndpointCosmosDBAccountResource) Create() sdk.ResourceFunc {
 
 			for _, existingEndpoint := range pointer.From(routing.Endpoints.CosmosDBSQLCollections) {
 				if strings.EqualFold(pointer.From(existingEndpoint.Name), id.EndpointName) {
-					return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+					if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+						return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+					}
 				}
 				endpoints = append(endpoints, existingEndpoint)
 			}
@@ -263,11 +265,12 @@ func (r IotHubEndpointCosmosDBAccountResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
+			metadata.SetID(id)
+
 			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 				return fmt.Errorf("waiting for the completion of the creation of %s: %+v", id, err)
 			}
 
-			metadata.SetID(id)
 			return nil
 		},
 		Timeout: 30 * time.Minute,

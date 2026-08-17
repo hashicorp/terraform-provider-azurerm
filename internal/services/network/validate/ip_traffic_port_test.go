@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -84,6 +84,10 @@ func TestIpTrafficPort(t *testing.T) {
 		hasError := len(errors) > 0
 		if tc.ExpectError && !hasError {
 			t.Fatalf("Expected the IP Traffic Port to trigger a validation error for '%s'", tc.Input)
+		}
+
+		if !tc.ExpectError && hasError {
+			t.Fatalf("Encountered unexpected validation error for IP Traffic Port '%s'", tc.Input)
 		}
 	}
 }

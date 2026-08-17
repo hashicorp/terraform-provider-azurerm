@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package streamanalytics
@@ -147,23 +147,11 @@ func dataSourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{
 			}
 			d.Set("compatibility_level", compatibilityLevel)
 
-			dataLocale := ""
-			if v := props.DataLocale; v != nil {
-				dataLocale = *v
-			}
-			d.Set("data_locale", dataLocale)
+			d.Set("data_locale", pointer.From(props.DataLocale))
 
-			var lateArrival int64
-			if v := props.EventsLateArrivalMaxDelayInSeconds; v != nil {
-				lateArrival = *v
-			}
-			d.Set("events_late_arrival_max_delay_in_seconds", lateArrival)
+			d.Set("events_late_arrival_max_delay_in_seconds", pointer.From(props.EventsLateArrivalMaxDelayInSeconds))
 
-			var maxDelay int64
-			if v := props.EventsLateArrivalMaxDelayInSeconds; v != nil {
-				maxDelay = *v
-			}
-			d.Set("events_out_of_order_max_delay_in_seconds", maxDelay)
+			d.Set("events_out_of_order_max_delay_in_seconds", pointer.From(props.EventsLateArrivalMaxDelayInSeconds))
 
 			orderPolicy := ""
 			if v := props.EventsOutOfOrderPolicy; v != nil {
@@ -177,17 +165,9 @@ func dataSourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{
 			}
 			d.Set("output_error_policy", outputPolicy)
 
-			lastOutputTime := ""
-			if v := props.LastOutputEventTime; v != nil {
-				lastOutputTime = *v
-			}
-			d.Set("last_output_time", lastOutputTime)
+			d.Set("last_output_time", pointer.From(props.LastOutputEventTime))
 
-			startTime := ""
-			if v := props.OutputStartTime; v != nil {
-				startTime = *v
-			}
-			d.Set("start_time", startTime)
+			d.Set("start_time", pointer.From(props.OutputStartTime))
 
 			startMode := ""
 			if v := props.OutputStartMode; v != nil {
@@ -195,11 +175,7 @@ func dataSourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{
 			}
 			d.Set("start_mode", startMode)
 
-			jobId := ""
-			if v := props.JobId; v != nil {
-				jobId = *v
-			}
-			d.Set("job_id", jobId)
+			d.Set("job_id", pointer.From(props.JobId))
 
 			sku := ""
 			if props.Sku != nil && props.Sku.Name != nil {
@@ -208,17 +184,9 @@ func dataSourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{
 			d.Set("sku_name", sku)
 
 			if props.Transformation != nil && props.Transformation.Properties != nil {
-				var streamingUnits int64
-				if v := props.Transformation.Properties.StreamingUnits; v != nil {
-					streamingUnits = *v
-				}
-				d.Set("streaming_units", streamingUnits)
+				d.Set("streaming_units", pointer.From(props.Transformation.Properties.StreamingUnits))
 
-				query := ""
-				if v := props.Transformation.Properties.Query; v != nil {
-					query = *v
-				}
-				d.Set("transformation_query", query)
+				d.Set("transformation_query", pointer.From(props.Transformation.Properties.Query))
 			}
 		}
 	}

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -10,11 +10,10 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/flowlogs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/flowlogs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -378,30 +377,6 @@ resource "azurerm_storage_account" "test" {
 }
 
 func (r NetworkWatcherFlowLogResource) basicWithNSG(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_network_watcher_flow_log" "test" {
-  network_watcher_name = azurerm_network_watcher.test.name
-  resource_group_name  = azurerm_resource_group.test.name
-  name                 = "flowlog-%[2]d"
-
-  network_security_group_id = azurerm_network_security_group.test.id
-  storage_account_id        = azurerm_storage_account.test.id
-  enabled                   = true
-
-  retention_policy {
-    enabled = false
-    days    = 0
-  }
-}
-`, r.template(data), data.RandomInteger)
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

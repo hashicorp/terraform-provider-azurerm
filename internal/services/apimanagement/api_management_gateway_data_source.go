@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -89,8 +89,7 @@ func dataSourceApiManagementGatewayRead(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if resp.Model != nil {
-		_, err = gateway.ParseGatewayID(*resp.Model.Id)
-		if err != nil {
+		if _, err = gateway.ParseGatewayID(*resp.Model.Id); err != nil {
 			return fmt.Errorf("parsing Gateway ID %q", *resp.Model.Id)
 		}
 	}

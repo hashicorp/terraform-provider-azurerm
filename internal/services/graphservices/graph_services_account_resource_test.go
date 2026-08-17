@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package graphservices_test
@@ -9,15 +9,15 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/graphservices/2023-04-13/graphservicesprods"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func TestAccGraphServicesAccount(t *testing.T) {
+func TestAccGraphServicesAccount_sequential(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests due to
 	// the account need a pre-existing AD application, here we use the service principal.
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
@@ -117,7 +117,7 @@ func (r AccountTestResource) Exists(ctx context.Context, clients *clients.Client
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r AccountTestResource) basic(data acceptance.TestData) string {

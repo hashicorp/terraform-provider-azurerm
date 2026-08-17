@@ -22,6 +22,7 @@ resource "azurerm_key_vault" "example" {
   name                       = "example"
   location                   = azurerm_resource_group.example.location
   resource_group_name        = azurerm_resource_group.example.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.example.tenant_id
   sku_name                   = "example-value"
   soft_delete_retention_days = "example-value"
@@ -127,4 +128,4 @@ terraform import azurerm_kubernetes_cluster_trusted_access_role_binding.example 
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ContainerService` - 2025-07-01
+* `Microsoft.ContainerService` - 2025-10-01

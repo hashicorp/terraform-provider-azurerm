@@ -23,7 +23,7 @@ output "azurerm_healthcare_medtech_service_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the Healthcare Med Tech Service.
 

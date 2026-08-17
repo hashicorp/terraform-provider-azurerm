@@ -60,7 +60,7 @@ resource "azurerm_spring_cloud_app_mysql_association" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

@@ -62,9 +62,20 @@ func (c LicensesClient) ValidateLicense(ctx context.Context, id commonids.Subscr
 
 // ValidateLicenseThenPoll performs ValidateLicense then polls until it's completed
 func (c LicensesClient) ValidateLicenseThenPoll(ctx context.Context, id commonids.SubscriptionId, input License) error {
+	return c.ValidateLicenseCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ValidateLicenseCallbackThenPoll performs ValidateLicense, runs the optional callback function, then polls until it's completed
+func (c LicensesClient) ValidateLicenseCallbackThenPoll(ctx context.Context, id commonids.SubscriptionId, input License, callback func() error) error {
 	result, err := c.ValidateLicense(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ValidateLicense: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

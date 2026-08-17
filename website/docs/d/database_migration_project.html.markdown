@@ -28,7 +28,7 @@ output "name" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

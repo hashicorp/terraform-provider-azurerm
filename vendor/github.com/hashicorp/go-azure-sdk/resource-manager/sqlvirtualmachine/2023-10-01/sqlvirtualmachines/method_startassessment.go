@@ -56,9 +56,20 @@ func (c SqlVirtualMachinesClient) StartAssessment(ctx context.Context, id SqlVir
 
 // StartAssessmentThenPoll performs StartAssessment then polls until it's completed
 func (c SqlVirtualMachinesClient) StartAssessmentThenPoll(ctx context.Context, id SqlVirtualMachineId) error {
+	return c.StartAssessmentCallbackThenPoll(ctx, id, nil)
+}
+
+// StartAssessmentCallbackThenPoll performs StartAssessment, runs the optional callback function, then polls until it's completed
+func (c SqlVirtualMachinesClient) StartAssessmentCallbackThenPoll(ctx context.Context, id SqlVirtualMachineId, callback func() error) error {
 	result, err := c.StartAssessment(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing StartAssessment: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

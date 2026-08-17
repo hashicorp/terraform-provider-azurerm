@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storagemover
@@ -11,12 +11,15 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/jobdefinitions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/projects"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/jobdefinitions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/projects"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_mover_job_definition -service-package-name storagemover -properties "name" -compare-values "subscription_id:storage_mover_project_id,resource_group_name:storage_mover_project_id,storage_mover_name:storage_mover_project_id,project_name:storage_mover_project_id"
 
 type StorageMoverJobDefinitionResourceModel struct {
 	Name                  string                  `tfschema:"name"`
@@ -32,7 +35,14 @@ type StorageMoverJobDefinitionResourceModel struct {
 
 type StorageMoverJobDefinitionResource struct{}
 
-var _ sdk.ResourceWithUpdate = StorageMoverJobDefinitionResource{}
+var (
+	_ sdk.ResourceWithIdentity = StorageMoverJobDefinitionResource{}
+	_ sdk.ResourceWithUpdate   = StorageMoverJobDefinitionResource{}
+)
+
+func (r StorageMoverJobDefinitionResource) Identity() resourceids.ResourceId {
+	return &jobdefinitions.JobDefinitionId{}
+}
 
 func (r StorageMoverJobDefinitionResource) ResourceType() string {
 	return "azurerm_storage_mover_job_definition"
@@ -136,13 +146,16 @@ func (r StorageMoverJobDefinitionResource) Create() sdk.ResourceFunc {
 			}
 
 			id := jobdefinitions.NewJobDefinitionID(projectId.SubscriptionId, projectId.ResourceGroupName, projectId.StorageMoverName, projectId.ProjectName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			properties := jobdefinitions.JobDefinition{
@@ -174,6 +187,9 @@ func (r StorageMoverJobDefinitionResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -254,29 +270,32 @@ func (r StorageMoverJobDefinitionResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			state := StorageMoverJobDefinitionResourceModel{
-				Name:                  id.JobDefinitionName,
-				StorageMoverProjectId: projects.NewProjectID(id.SubscriptionId, id.ResourceGroupName, id.StorageMoverName, id.ProjectName).ID(),
-			}
-
-			if v := resp.Model; v != nil {
-				state.AgentName = pointer.From(v.Properties.AgentName)
-
-				state.CopyMode = v.Properties.CopyMode
-
-				state.Description = pointer.From(v.Properties.Description)
-
-				state.SourceName = v.Properties.SourceName
-
-				state.SourceSubpath = pointer.From(v.Properties.SourceSubpath)
-
-				state.TargetName = v.Properties.TargetName
-
-				state.TargetSubpath = pointer.From(v.Properties.TargetSubpath)
-			}
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
+}
+
+func (r StorageMoverJobDefinitionResource) flatten(metadata sdk.ResourceMetaData, id *jobdefinitions.JobDefinitionId, model *jobdefinitions.JobDefinition) error {
+	state := StorageMoverJobDefinitionResourceModel{
+		Name:                  id.JobDefinitionName,
+		StorageMoverProjectId: projects.NewProjectID(id.SubscriptionId, id.ResourceGroupName, id.StorageMoverName, id.ProjectName).ID(),
+	}
+
+	if model != nil {
+		state.AgentName = pointer.From(model.Properties.AgentName)
+		state.CopyMode = model.Properties.CopyMode
+		state.Description = pointer.From(model.Properties.Description)
+		state.SourceName = model.Properties.SourceName
+		state.SourceSubpath = pointer.From(model.Properties.SourceSubpath)
+		state.TargetName = model.Properties.TargetName
+		state.TargetSubpath = pointer.From(model.Properties.TargetSubpath)
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }
 
 func (r StorageMoverJobDefinitionResource) Delete() sdk.ResourceFunc {

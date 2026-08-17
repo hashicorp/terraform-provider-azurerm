@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement_test
@@ -82,8 +82,7 @@ func (ApiManagementEmailTemplateResource) Exists(ctx context.Context, clients *c
 	templateName := emailtemplates.TemplateName(azure.TitleCase(string(id.TemplateName)))
 	newId := emailtemplates.NewTemplateID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, templateName)
 
-	_, err = clients.ApiManagement.EmailTemplatesClient.EmailTemplateGet(ctx, newId)
-	if err != nil {
+	if _, err = clients.ApiManagement.EmailTemplatesClient.EmailTemplateGet(ctx, newId); err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", newId, err)
 	}
 

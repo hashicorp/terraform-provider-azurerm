@@ -58,9 +58,20 @@ func (c AppPlatformClient) ServiceRegistriesCreateOrUpdate(ctx context.Context, 
 
 // ServiceRegistriesCreateOrUpdateThenPoll performs ServiceRegistriesCreateOrUpdate then polls until it's completed
 func (c AppPlatformClient) ServiceRegistriesCreateOrUpdateThenPoll(ctx context.Context, id ServiceRegistryId) error {
+	return c.ServiceRegistriesCreateOrUpdateCallbackThenPoll(ctx, id, nil)
+}
+
+// ServiceRegistriesCreateOrUpdateCallbackThenPoll performs ServiceRegistriesCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) ServiceRegistriesCreateOrUpdateCallbackThenPoll(ctx context.Context, id ServiceRegistryId, callback func() error) error {
 	result, err := c.ServiceRegistriesCreateOrUpdate(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ServiceRegistriesCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

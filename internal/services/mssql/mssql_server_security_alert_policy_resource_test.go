@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssql_test
@@ -255,7 +255,8 @@ resource "azurerm_mssql_server_security_alert_policy" "test" {
 }
 
 func (MsSqlServerSecurityAlertPolicyResource) server(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	return fmt.Sprintf(
+		`
 provider "azurerm" {
   features {}
 }

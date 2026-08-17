@@ -58,9 +58,20 @@ func (c WebAppsClient) InstallSiteExtensionSlot(ctx context.Context, id SlotSite
 
 // InstallSiteExtensionSlotThenPoll performs InstallSiteExtensionSlot then polls until it's completed
 func (c WebAppsClient) InstallSiteExtensionSlotThenPoll(ctx context.Context, id SlotSiteExtensionId) error {
+	return c.InstallSiteExtensionSlotCallbackThenPoll(ctx, id, nil)
+}
+
+// InstallSiteExtensionSlotCallbackThenPoll performs InstallSiteExtensionSlot, runs the optional callback function, then polls until it's completed
+func (c WebAppsClient) InstallSiteExtensionSlotCallbackThenPoll(ctx context.Context, id SlotSiteExtensionId, callback func() error) error {
 	result, err := c.InstallSiteExtensionSlot(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing InstallSiteExtensionSlot: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

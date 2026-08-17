@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package resource_test
@@ -13,7 +13,7 @@ import (
 
 type TenantTemplateDeploymentDataSource struct{}
 
-func TestAccDataSourceTenantTemplateDeployment(t *testing.T) {
+func TestAccDataSourceTenantTemplateDeployment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_tenant_template_deployment", "test")
 	if data.Client().IsServicePrincipal {
 		t.Skip("Skipping due to permissions unavailable on tenant scope")

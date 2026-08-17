@@ -62,9 +62,20 @@ func (c ApiManagementServiceClient) MigrateToStv2(ctx context.Context, id Servic
 
 // MigrateToStv2ThenPoll performs MigrateToStv2 then polls until it's completed
 func (c ApiManagementServiceClient) MigrateToStv2ThenPoll(ctx context.Context, id ServiceId, input MigrateToStv2Contract) error {
+	return c.MigrateToStv2CallbackThenPoll(ctx, id, input, nil)
+}
+
+// MigrateToStv2CallbackThenPoll performs MigrateToStv2, runs the optional callback function, then polls until it's completed
+func (c ApiManagementServiceClient) MigrateToStv2CallbackThenPoll(ctx context.Context, id ServiceId, input MigrateToStv2Contract, callback func() error) error {
 	result, err := c.MigrateToStv2(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing MigrateToStv2: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

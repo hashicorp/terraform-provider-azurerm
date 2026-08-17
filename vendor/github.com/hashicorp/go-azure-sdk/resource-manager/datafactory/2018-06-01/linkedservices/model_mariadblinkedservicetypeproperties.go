@@ -9,9 +9,9 @@ type MariaDBLinkedServiceTypeProperties struct {
 	DriverVersion       *interface{}                  `json:"driverVersion,omitempty"`
 	EncryptedCredential *string                       `json:"encryptedCredential,omitempty"`
 	Password            *AzureKeyVaultSecretReference `json:"password,omitempty"`
-	Port                *int64                        `json:"port,omitempty"`
+	Port                *interface{}                  `json:"port,omitempty"`
 	Server              *interface{}                  `json:"server,omitempty"`
-	SslMode             *int64                        `json:"sslMode,omitempty"`
-	UseSystemTrustStore *int64                        `json:"useSystemTrustStore,omitempty"`
+	SslMode             *interface{}                  `json:"sslMode,omitempty"`
+	UseSystemTrustStore *interface{}                  `json:"useSystemTrustStore,omitempty"`
 	Username            *interface{}                  `json:"username,omitempty"`
 }

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sdk
@@ -8,13 +8,14 @@ import (
 	"os"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-func TestAccPluginSDKAndDecoder(t *testing.T) {
+func TestAccPluginSDK_decoder(t *testing.T) {
 	os.Setenv("TF_ACC", "1") // nolint:tenv // plugin testing harness prevents this
 
 	type NestedType struct {
@@ -153,7 +154,7 @@ func TestAccPluginSDKAndDecoder(t *testing.T) {
 									},
 								},
 							},
-							Create: func(d *schema.ResourceData, i interface{}) error {
+							Create: func(d *schema.ResourceData, meta interface{}) error {
 								d.SetId("some-id")
 								d.Set("hello", "world")
 								d.Set("random_number", 42)
@@ -215,7 +216,7 @@ func TestAccPluginSDKAndDecoder(t *testing.T) {
 	})
 }
 
-func TestAccPluginSDKAndDecoderOptionalComputed(t *testing.T) {
+func TestAccPluginSDK_decoderOptionalComputed(t *testing.T) {
 	os.Setenv("TF_ACC", "1") // nolint:tenv // plugin testing harness prevents this
 
 	type MyType struct {
@@ -272,7 +273,7 @@ func TestAccPluginSDKAndDecoderOptionalComputed(t *testing.T) {
 					ResourcesMap: map[string]*schema.Resource{
 						"validator_decoder_specified": {
 							Schema: commonSchema,
-							Create: func(d *schema.ResourceData, i interface{}) error { //nolint:staticcheck
+							Create: func(d *schema.ResourceData, meta interface{}) error { //nolint:staticcheck
 								d.SetId("some-id")
 								return nil
 							},
@@ -288,7 +289,7 @@ func TestAccPluginSDKAndDecoderOptionalComputed(t *testing.T) {
 
 						"validator_decoder_unspecified": {
 							Schema: commonSchema,
-							Create: func(d *schema.ResourceData, i interface{}) error { //nolint:staticcheck
+							Create: func(d *schema.ResourceData, meta interface{}) error { //nolint:staticcheck
 								d.SetId("some-id")
 								d.Set("hello", "value-from-create")
 								d.Set("number", 42)
@@ -339,7 +340,7 @@ resource "validator_decoder_unspecified" "test" {}
 	})
 }
 
-func TestAccPluginSDKAndDecoderOptionalComputedOverride(t *testing.T) {
+func TestAccPluginSDK_decoderOptionalComputedOverride(t *testing.T) {
 	os.Setenv("TF_ACC", "1") // nolint:tenv // plugin testing harness prevents this
 
 	type MyType struct {
@@ -374,7 +375,7 @@ func TestAccPluginSDKAndDecoderOptionalComputedOverride(t *testing.T) {
 									Computed: true,
 								},
 							},
-							Create: func(d *schema.ResourceData, i interface{}) error { //nolint:staticcheck
+							Create: func(d *schema.ResourceData, meta interface{}) error { //nolint:staticcheck
 								d.SetId("some-id")
 								d.Set("hello", "value-from-create")
 								d.Set("number", 42)
@@ -443,7 +444,7 @@ resource "validator_decoder_override" "test" {
 	})
 }
 
-func TestAccPluginSDKAndDecoderSets(t *testing.T) {
+func TestAccPluginSDK_decoderSets(t *testing.T) {
 	os.Setenv("TF_ACC", "1") // nolint:tenv // plugin testing harness prevents this
 
 	type MyType struct {
@@ -493,7 +494,7 @@ func TestAccPluginSDKAndDecoderSets(t *testing.T) {
 									},
 								},
 							},
-							Create: func(d *schema.ResourceData, i interface{}) error { //nolint:staticcheck
+							Create: func(d *schema.ResourceData, meta interface{}) error { //nolint:staticcheck
 								d.SetId("some-id")
 								d.Set("set_of_strings", []string{
 									"some",
@@ -623,7 +624,7 @@ func TestAccPluginSDKAndDecoderSets(t *testing.T) {
 	})
 }
 
-func TestAccPluginSDKAndEncoder(t *testing.T) {
+func TestAccPluginSDK_encoder(t *testing.T) {
 	os.Setenv("TF_ACC", "1") // nolint:tenv // plugin testing harness prevents this
 
 	type NestedType struct {
@@ -766,7 +767,7 @@ func TestAccPluginSDKAndEncoder(t *testing.T) {
 									},
 								},
 							},
-							Create: func(d *schema.ResourceData, i interface{}) error { //nolint:staticcheck
+							Create: func(d *schema.ResourceData, meta interface{}) error { //nolint:staticcheck
 								wrapper := ResourceMetaData{
 									ResourceData:             d,
 									Logger:                   ConsoleLogger{},
@@ -862,7 +863,7 @@ func TestAccPluginSDKAndEncoder(t *testing.T) {
 	})
 }
 
-func TestAccPluginSDKReturnsComputedFields(t *testing.T) {
+func TestAccPluginSDK_returnsComputedFields(t *testing.T) {
 	os.Setenv("TF_ACC", "1") // nolint:tenv // plugin sdk always is
 
 	resourceName := "validator_computed.test"
@@ -883,7 +884,7 @@ func TestAccPluginSDKReturnsComputedFields(t *testing.T) {
 				Config: `resource "validator_computed" "test" {}`,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckResourceStateMatches(resourceName, map[string]interface{}{
-						"%":                   "9",
+						"%":                   "10", // the 8 computed fields, id, and the timeouts block
 						"id":                  "does-not-matter",
 						"hello":               "world",
 						"random_number":       "42",
@@ -982,6 +983,14 @@ func computedFieldsResource() *schema.Resource {
 					},
 				},
 			},
+		},
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 		Create: func(d *schema.ResourceData, meta interface{}) error { //nolint:staticcheck
 			d.SetId("does-not-matter")

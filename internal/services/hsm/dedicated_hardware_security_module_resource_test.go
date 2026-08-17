@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package hsm_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hardwaresecuritymodules/2021-11-30/dedicatedhsms"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type DedicatedHardwareSecurityModuleResource struct{}
@@ -115,7 +115,7 @@ func (DedicatedHardwareSecurityModuleResource) Exists(ctx context.Context, clien
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (DedicatedHardwareSecurityModuleResource) template(data acceptance.TestData) string {
@@ -163,14 +163,6 @@ resource "azurerm_subnet" "test3" {
   address_prefixes     = ["10.2.255.0/26"]
 }
 
-resource "azurerm_public_ip" "test" {
-  name                = "acctest-pip-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard"
-  allocation_method   = "Static"
-}
-
 resource "azurerm_virtual_network_gateway" "test" {
   name                = "acctest-vnetgateway-%d"
   location            = azurerm_resource_group.test.location
@@ -181,12 +173,11 @@ resource "azurerm_virtual_network_gateway" "test" {
   sku      = "Standard"
 
   ip_configuration {
-    public_ip_address_id          = azurerm_public_ip.test.id
     private_ip_address_allocation = "Dynamic"
     subnet_id                     = azurerm_subnet.test3.id
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (DedicatedHardwareSecurityModuleResource) basic(data acceptance.TestData) string {

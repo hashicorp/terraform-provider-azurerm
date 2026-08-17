@@ -62,9 +62,20 @@ func (c AppPlatformClient) ApmsCreateOrUpdate(ctx context.Context, id ApmId, inp
 
 // ApmsCreateOrUpdateThenPoll performs ApmsCreateOrUpdate then polls until it's completed
 func (c AppPlatformClient) ApmsCreateOrUpdateThenPoll(ctx context.Context, id ApmId, input ApmResource) error {
+	return c.ApmsCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ApmsCreateOrUpdateCallbackThenPoll performs ApmsCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) ApmsCreateOrUpdateCallbackThenPoll(ctx context.Context, id ApmId, input ApmResource, callback func() error) error {
 	result, err := c.ApmsCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ApmsCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

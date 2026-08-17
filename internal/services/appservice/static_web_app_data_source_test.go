@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice_test
@@ -27,7 +27,7 @@ func TestAccAzureStaticWebAppDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("basic_auth.#").HasValue("1"),
 				check.That(data.ResourceName).Key("basic_auth.0.environments").HasValue("AllEnvironments"),
 				check.That(data.ResourceName).Key("identity.#").Exists(),
-				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned, UserAssigned"),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
 			),
 		},
 	})

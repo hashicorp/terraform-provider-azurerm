@@ -131,7 +131,7 @@ resource "azurerm_network_interface_application_gateway_backend_address_pool_ass
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -169,4 +169,4 @@ terraform import azurerm_network_interface_application_gateway_backend_address_p
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2024-05-01
+* `Microsoft.Network` - 2025-01-01

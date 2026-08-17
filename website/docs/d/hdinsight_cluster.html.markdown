@@ -28,7 +28,7 @@ output "cluster_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of this HDInsight Cluster.
 

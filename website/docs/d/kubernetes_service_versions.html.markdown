@@ -26,7 +26,7 @@ output "latest_version" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `location` - Specifies the location in which to query for versions.
 

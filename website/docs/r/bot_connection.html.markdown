@@ -39,7 +39,7 @@ resource "azurerm_bot_connection" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

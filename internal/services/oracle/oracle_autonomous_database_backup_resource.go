@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package oracle
@@ -10,8 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/autonomousdatabasebackups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/autonomousdatabases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/autonomousdatabasebackups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/autonomousdatabases"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -109,27 +109,29 @@ func (r AutonomousDatabaseBackupResource) Create() sdk.ResourceFunc {
 				model.Name,
 			)
 
-			existingBackup, err := getBackupFromOCI(ctx, client, dbId, id)
-			if err != nil {
-				return fmt.Errorf("checking for existing backup: %+v", err)
-			}
-			if existingBackup != nil {
-				return metadata.ResourceRequiresImport(r.ResourceType(), &id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existingBackup, err := getBackupFromOCI(ctx, client, dbId, id)
+				if err != nil {
+					return fmt.Errorf("checking for existing backup: %+v", err)
+				}
+				if existingBackup != nil {
+					return metadata.ResourceRequiresImport(r.ResourceType(), &id)
+				}
 			}
 
 			param := autonomousdatabasebackups.AutonomousDatabaseBackup{
 				Name: pointer.To(model.Name),
 				Properties: &autonomousdatabasebackups.AutonomousDatabaseBackupProperties{
 					RetentionPeriodInDays: pointer.To(model.RetentionPeriodInDays),
-					BackupType:            pointer.To(autonomousdatabasebackups.AutonomousDatabaseBackupType(model.Type)),
+					BackupType:            pointer.ToEnum[autonomousdatabasebackups.AutonomousDatabaseBackupType](model.Type),
 				},
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, param, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}
@@ -159,8 +161,7 @@ func (r AutonomousDatabaseBackupResource) Read() sdk.ResourceFunc {
 			}
 
 			if backup == nil {
-				err := metadata.MarkAsGone(id)
-				if err != nil {
+				if err := metadata.MarkAsGone(id); err != nil {
 					return err
 				}
 				return nil
@@ -207,8 +208,7 @@ func (r AutonomousDatabaseBackupResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", backupId, err)
 			}
 
-			_, err = getBackupFromOCI(ctx, client, adbId, backupId)
-			if err != nil {
+			if _, err = getBackupFromOCI(ctx, client, adbId, backupId); err != nil {
 				return fmt.Errorf("retrieving %s: %+v", backupId, err)
 			}
 

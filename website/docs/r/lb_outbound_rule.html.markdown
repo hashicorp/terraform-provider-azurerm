@@ -55,7 +55,7 @@ resource "azurerm_lb_outbound_rule" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -101,4 +101,4 @@ terraform import azurerm_lb_outbound_rule.example /subscriptions/00000000-0000-0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2023-09-01
+* `Microsoft.Network` - 2025-01-01

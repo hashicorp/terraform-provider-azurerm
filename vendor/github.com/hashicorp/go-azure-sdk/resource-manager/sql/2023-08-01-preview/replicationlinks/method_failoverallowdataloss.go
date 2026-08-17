@@ -58,9 +58,20 @@ func (c ReplicationLinksClient) FailoverAllowDataLoss(ctx context.Context, id Re
 
 // FailoverAllowDataLossThenPoll performs FailoverAllowDataLoss then polls until it's completed
 func (c ReplicationLinksClient) FailoverAllowDataLossThenPoll(ctx context.Context, id ReplicationLinkId) error {
+	return c.FailoverAllowDataLossCallbackThenPoll(ctx, id, nil)
+}
+
+// FailoverAllowDataLossCallbackThenPoll performs FailoverAllowDataLoss, runs the optional callback function, then polls until it's completed
+func (c ReplicationLinksClient) FailoverAllowDataLossCallbackThenPoll(ctx context.Context, id ReplicationLinkId, callback func() error) error {
 	result, err := c.FailoverAllowDataLoss(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing FailoverAllowDataLoss: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

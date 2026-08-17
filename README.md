@@ -6,12 +6,12 @@
 
 The AzureRM Terraform Provider allows managing resources within Azure Resource Manager.
 
-When using version 4.0 of the AzureRM Provider we recommend using the latest version of Terraform Core ([the latest version can be found here](https://developer.hashicorp.com/terraform/install)). 
+When using version 5.0 of the AzureRM Provider we recommend using the latest version of Terraform Core ([the latest version can be found here](https://developer.hashicorp.com/terraform/install)). 
 
 * [Terraform Website](https://www.terraform.io)
 * [AzureRM Provider Documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs)
 * [AzureRM Provider Usage Examples](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples)
-* [Slack Workspace for Contributors](https://terraform-azure.slack.com) ([Request Invite](https://join.slack.com/t/terraform-azure/shared_invite/enQtNDMzNjQ5NzcxMDc3LWNiY2ZhNThhNDgzNmY0MTM0N2MwZjE4ZGU0MjcxYjUyMzRmN2E5NjZhZmQ0ZTA1OTExMGNjYzA4ZDkwZDYxNDE))
+* [Slack Workspace for Contributors](https://terraform-azure.slack.com) ([Request Invite](https://join.slack.com/t/terraform-azure/shared_invite/zt-3qcv2dj6v-aKas6O6FSBZaxSSZph~Uvg))
 
 ## Usage Example
 
@@ -21,7 +21,7 @@ terraform {
   required_providers {
     azurerm = {
       source = "hashicorp/azurerm"
-      version = "=4.0.0"
+      version = "=5.0.0"
     }
   }
 }

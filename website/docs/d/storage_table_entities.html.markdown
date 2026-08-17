@@ -19,7 +19,7 @@ data "azurerm_storage_table_entities" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

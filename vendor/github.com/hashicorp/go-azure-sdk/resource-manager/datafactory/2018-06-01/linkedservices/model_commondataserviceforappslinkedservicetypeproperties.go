@@ -16,7 +16,7 @@ type CommonDataServiceForAppsLinkedServiceTypeProperties struct {
 	HostName                       *interface{} `json:"hostName,omitempty"`
 	OrganizationName               *interface{} `json:"organizationName,omitempty"`
 	Password                       SecretBase   `json:"password"`
-	Port                           *int64       `json:"port,omitempty"`
+	Port                           *interface{} `json:"port,omitempty"`
 	ServicePrincipalCredential     SecretBase   `json:"servicePrincipalCredential"`
 	ServicePrincipalCredentialType *interface{} `json:"servicePrincipalCredentialType,omitempty"`
 	ServicePrincipalId             *interface{} `json:"servicePrincipalId,omitempty"`
@@ -34,7 +34,7 @@ func (s *CommonDataServiceForAppsLinkedServiceTypeProperties) UnmarshalJSON(byte
 		EncryptedCredential            *string      `json:"encryptedCredential,omitempty"`
 		HostName                       *interface{} `json:"hostName,omitempty"`
 		OrganizationName               *interface{} `json:"organizationName,omitempty"`
-		Port                           *int64       `json:"port,omitempty"`
+		Port                           *interface{} `json:"port,omitempty"`
 		ServicePrincipalCredentialType *interface{} `json:"servicePrincipalCredentialType,omitempty"`
 		ServicePrincipalId             *interface{} `json:"servicePrincipalId,omitempty"`
 		ServiceUri                     *interface{} `json:"serviceUri,omitempty"`

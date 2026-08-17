@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package domainservices_test
@@ -9,6 +9,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -16,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type DomainServiceTrustResource struct {
@@ -124,7 +124,7 @@ func (r DomainServiceTrustResource) Exists(ctx context.Context, clients *clients
 	resp, err := client.Get(ctx, idsdk)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, err
 	}
@@ -144,11 +144,11 @@ func (r DomainServiceTrustResource) Exists(ctx context.Context, clients *clients
 	}
 	for _, setting := range existingTrusts {
 		if setting.FriendlyName != nil && *setting.FriendlyName == id.TrustName {
-			return utils.Bool(true), nil
+			return pointer.To(true), nil
 		}
 	}
 
-	return utils.Bool(false), nil
+	return pointer.To(false), nil
 }
 
 func (r DomainServiceTrustResource) basic(data acceptance.TestData) string {

@@ -57,9 +57,20 @@ func (c ReplicationFabricsClient) Purge(ctx context.Context, id ReplicationFabri
 
 // PurgeThenPoll performs Purge then polls until it's completed
 func (c ReplicationFabricsClient) PurgeThenPoll(ctx context.Context, id ReplicationFabricId) error {
+	return c.PurgeCallbackThenPoll(ctx, id, nil)
+}
+
+// PurgeCallbackThenPoll performs Purge, runs the optional callback function, then polls until it's completed
+func (c ReplicationFabricsClient) PurgeCallbackThenPoll(ctx context.Context, id ReplicationFabricId, callback func() error) error {
 	result, err := c.Purge(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Purge: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

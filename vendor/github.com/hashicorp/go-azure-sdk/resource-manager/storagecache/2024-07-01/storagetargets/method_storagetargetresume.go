@@ -58,9 +58,20 @@ func (c StorageTargetsClient) StorageTargetResume(ctx context.Context, id Storag
 
 // StorageTargetResumeThenPoll performs StorageTargetResume then polls until it's completed
 func (c StorageTargetsClient) StorageTargetResumeThenPoll(ctx context.Context, id StorageTargetId) error {
+	return c.StorageTargetResumeCallbackThenPoll(ctx, id, nil)
+}
+
+// StorageTargetResumeCallbackThenPoll performs StorageTargetResume, runs the optional callback function, then polls until it's completed
+func (c StorageTargetsClient) StorageTargetResumeCallbackThenPoll(ctx context.Context, id StorageTargetId, callback func() error) error {
 	result, err := c.StorageTargetResume(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing StorageTargetResume: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

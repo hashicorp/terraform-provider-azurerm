@@ -16,12 +16,12 @@ type CopySink interface {
 var _ CopySink = BaseCopySinkImpl{}
 
 type BaseCopySinkImpl struct {
-	DisableMetricsCollection *bool        `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64       `json:"maxConcurrentConnections,omitempty"`
-	SinkRetryCount           *int64       `json:"sinkRetryCount,omitempty"`
+	DisableMetricsCollection *interface{} `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *interface{} `json:"maxConcurrentConnections,omitempty"`
+	SinkRetryCount           *interface{} `json:"sinkRetryCount,omitempty"`
 	SinkRetryWait            *interface{} `json:"sinkRetryWait,omitempty"`
 	Type                     string       `json:"type"`
-	WriteBatchSize           *int64       `json:"writeBatchSize,omitempty"`
+	WriteBatchSize           *interface{} `json:"writeBatchSize,omitempty"`
 	WriteBatchTimeout        *interface{} `json:"writeBatchTimeout,omitempty"`
 }
 
@@ -31,9 +31,9 @@ func (s BaseCopySinkImpl) CopySink() BaseCopySinkImpl {
 
 var _ CopySink = RawCopySinkImpl{}
 
-// RawCopySinkImpl is returned when the Discriminated Value doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+// RawCopySinkImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawCopySinkImpl struct {
 	copySink BaseCopySinkImpl
 	Type     string
@@ -42,6 +42,10 @@ type RawCopySinkImpl struct {
 
 func (s RawCopySinkImpl) CopySink() BaseCopySinkImpl {
 	return s.copySink
+}
+
+func (s RawCopySinkImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
 }
 
 func UnmarshalCopySinkImplementation(input []byte) (CopySink, error) {

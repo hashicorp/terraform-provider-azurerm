@@ -110,7 +110,7 @@ resource "azurerm_stream_analytics_job_schedule" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

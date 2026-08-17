@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SourceControlSlotResource struct{}
@@ -161,12 +160,14 @@ func (r SourceControlSlotResource) Create() sdk.ResourceFunc {
 			locks.ByID(appId)
 			defer locks.UnlockByID(appId)
 
-			existing, err := client.GetConfigurationSlot(ctx, *id)
-			if err != nil || existing.Model == nil || existing.Model.Properties == nil {
-				return fmt.Errorf("checking for existing Source Control configuration on %s: %+v", id, err)
-			}
-			if pointer.From(existing.Model.Properties.ScmType) != webapps.ScmTypeNone {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetConfigurationSlot(ctx, *id)
+				if err != nil || existing.Model == nil || existing.Model.Properties == nil {
+					return fmt.Errorf("checking for existing Source Control configuration on %s: %+v", id, err)
+				}
+				if pointer.From(existing.Model.Properties.ScmType) != webapps.ScmTypeNone {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			if appSourceControlSlot.LocalGitSCM {
@@ -201,19 +202,18 @@ func (r SourceControlSlotResource) Create() sdk.ResourceFunc {
 				}
 
 				if appSourceControlSlot.RepoURL != "" {
-					sourceControl.Properties.RepoURL = utils.String(appSourceControlSlot.RepoURL)
+					sourceControl.Properties.RepoURL = pointer.To(appSourceControlSlot.RepoURL)
 				}
 
 				if appSourceControlSlot.Branch != "" {
-					sourceControl.Properties.Branch = utils.String(appSourceControlSlot.Branch)
+					sourceControl.Properties.Branch = pointer.To(appSourceControlSlot.Branch)
 				}
 
 				if ghaConfig := expandGithubActionConfig(appSourceControlSlot.GithubActionConfiguration, usesLinux); ghaConfig != nil {
 					sourceControl.Properties.GitHubActionConfiguration = ghaConfig
 				}
 
-				_, err = client.UpdateSourceControlSlot(ctx, *id, sourceControl)
-				if err != nil {
+				if _, err = client.UpdateSourceControlSlot(ctx, *id, sourceControl); err != nil {
 					return fmt.Errorf("creating Source Control configuration for %s: %v", id, err)
 				}
 			}

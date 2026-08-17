@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -6,23 +6,24 @@ package network_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/connectivityconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/connectivityconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ManagerConnectivityConfigurationResource struct{}
 
-func testAccNetworkManagerConnectivityConfiguration_basic(t *testing.T) {
+func TestAccNetworkManagerConnectivityConfiguration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_connectivity_configuration", "test")
 	r := ManagerConnectivityConfigurationResource{}
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -33,10 +34,10 @@ func testAccNetworkManagerConnectivityConfiguration_basic(t *testing.T) {
 	})
 }
 
-func testAccNetworkManagerConnectivityConfiguration_basicTopologyMesh(t *testing.T) {
+func TestAccNetworkManagerConnectivityConfiguration_basicTopologyMesh(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_connectivity_configuration", "test")
 	r := ManagerConnectivityConfigurationResource{}
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicTopologyMesh(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -47,10 +48,10 @@ func testAccNetworkManagerConnectivityConfiguration_basicTopologyMesh(t *testing
 	})
 }
 
-func testAccNetworkManagerConnectivityConfiguration_requiresImport(t *testing.T) {
+func TestAccNetworkManagerConnectivityConfiguration_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_connectivity_configuration", "test")
 	r := ManagerConnectivityConfigurationResource{}
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -61,10 +62,10 @@ func testAccNetworkManagerConnectivityConfiguration_requiresImport(t *testing.T)
 	})
 }
 
-func testAccNetworkManagerConnectivityConfiguration_complete(t *testing.T) {
+func TestAccNetworkManagerConnectivityConfiguration_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_connectivity_configuration", "test")
 	r := ManagerConnectivityConfigurationResource{}
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -75,10 +76,10 @@ func testAccNetworkManagerConnectivityConfiguration_complete(t *testing.T) {
 	})
 }
 
-func testAccNetworkManagerConnectivityConfiguration_update(t *testing.T) {
+func TestAccNetworkManagerConnectivityConfiguration_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_connectivity_configuration", "test")
 	r := ManagerConnectivityConfigurationResource{}
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -103,6 +104,39 @@ func testAccNetworkManagerConnectivityConfiguration_update(t *testing.T) {
 	})
 }
 
+func TestAccNetworkManagerConnectivityConfiguration_connectivityCapabilityUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_manager_connectivity_configuration", "test")
+	r := ManagerConnectivityConfigurationResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.connectivityCapabilityUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.connectivityCapabilityUpdateToAllowed(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetworkManagerConnectivityConfiguration_peeringEnforcementValidation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_manager_connectivity_configuration", "test")
+	r := ManagerConnectivityConfigurationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.peeringEnforcementWithMeshTopology(data),
+			ExpectError: regexp.MustCompile("`peering_enforcement_enabled` can only be set to `true` when `connectivity_topology` is `HubAndSpoke`"),
+		},
+	})
+}
+
 func (r ManagerConnectivityConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := connectivityconfigurations.ParseConnectivityConfigurationID(state.ID)
 	if err != nil {
@@ -113,11 +147,11 @@ func (r ManagerConnectivityConfigurationResource) Exists(ctx context.Context, cl
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r ManagerConnectivityConfigurationResource) template(data acceptance.TestData) string {
@@ -229,12 +263,15 @@ resource "azurerm_network_manager_network_group" "test2" {
 }
 
 resource "azurerm_network_manager_connectivity_configuration" "test" {
-  name                            = "acctest-nmcc-%[2]d"
-  network_manager_id              = azurerm_network_manager.test.id
-  connectivity_topology           = "HubAndSpoke"
-  delete_existing_peering_enabled = false
-  global_mesh_enabled             = false
-  description                     = "test connectivity configuration"
+  name                                    = "acctest-nmcc-%[2]d"
+  network_manager_id                      = azurerm_network_manager.test.id
+  connectivity_topology                   = "HubAndSpoke"
+  delete_existing_peering_enabled         = false
+  global_mesh_enabled                     = false
+  description                             = "test connectivity configuration"
+  connected_group_address_overlap_enabled = true
+  connected_group_private_endpoints_scale = "HighScale"
+  peering_enforcement_enabled             = true
   applies_to_group {
     group_connectivity  = "None"
     network_group_id    = azurerm_network_manager_network_group.test.id
@@ -261,11 +298,14 @@ func (r ManagerConnectivityConfigurationResource) update(data acceptance.TestDat
 %s
 
 resource "azurerm_network_manager_connectivity_configuration" "test" {
-  name                  = "acctest-nmcc-%d"
-  network_manager_id    = azurerm_network_manager.test.id
-  connectivity_topology = "HubAndSpoke"
-  description           = "test"
-  global_mesh_enabled   = true
+  name                                    = "acctest-nmcc-%d"
+  network_manager_id                      = azurerm_network_manager.test.id
+  connectivity_topology                   = "HubAndSpoke"
+  description                             = "test"
+  global_mesh_enabled                     = true
+  connected_group_address_overlap_enabled = true
+  connected_group_private_endpoints_scale = "Standard"
+  peering_enforcement_enabled             = false
   applies_to_group {
     group_connectivity = "DirectlyConnected"
     network_group_id   = azurerm_network_manager_network_group.test.id
@@ -273,6 +313,66 @@ resource "azurerm_network_manager_connectivity_configuration" "test" {
   hub {
     resource_id   = azurerm_virtual_network.test.id
     resource_type = "Microsoft.Network/virtualNetworks"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r ManagerConnectivityConfigurationResource) connectivityCapabilityUpdate(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_manager_connectivity_configuration" "test" {
+  name                                    = "acctest-nmcc-%d"
+  network_manager_id                      = azurerm_network_manager.test.id
+  connectivity_topology                   = "Mesh"
+  global_mesh_enabled                     = true
+  connected_group_address_overlap_enabled = false
+  connected_group_private_endpoints_scale = "HighScale"
+  applies_to_group {
+    group_connectivity  = "DirectlyConnected"
+    network_group_id    = azurerm_network_manager_network_group.test.id
+    global_mesh_enabled = true
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r ManagerConnectivityConfigurationResource) connectivityCapabilityUpdateToAllowed(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_manager_connectivity_configuration" "test" {
+  name                                    = "acctest-nmcc-%d"
+  network_manager_id                      = azurerm_network_manager.test.id
+  connectivity_topology                   = "Mesh"
+  global_mesh_enabled                     = true
+  connected_group_address_overlap_enabled = true
+  connected_group_private_endpoints_scale = "Standard"
+  applies_to_group {
+    group_connectivity  = "DirectlyConnected"
+    network_group_id    = azurerm_network_manager_network_group.test.id
+    global_mesh_enabled = true
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r ManagerConnectivityConfigurationResource) peeringEnforcementWithMeshTopology(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_manager_connectivity_configuration" "test" {
+  name                        = "acctest-nmcc-%d"
+  network_manager_id          = azurerm_network_manager.test.id
+  connectivity_topology       = "Mesh"
+  peering_enforcement_enabled = true
+  applies_to_group {
+    group_connectivity = "DirectlyConnected"
+    network_group_id   = azurerm_network_manager_network_group.test.id
   }
 }
 `, template, data.RandomInteger)

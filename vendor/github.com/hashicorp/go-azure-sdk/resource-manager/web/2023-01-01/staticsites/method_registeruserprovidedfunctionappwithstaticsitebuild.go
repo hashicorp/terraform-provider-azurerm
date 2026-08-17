@@ -91,9 +91,20 @@ func (c StaticSitesClient) RegisterUserProvidedFunctionAppWithStaticSiteBuild(ct
 
 // RegisterUserProvidedFunctionAppWithStaticSiteBuildThenPoll performs RegisterUserProvidedFunctionAppWithStaticSiteBuild then polls until it's completed
 func (c StaticSitesClient) RegisterUserProvidedFunctionAppWithStaticSiteBuildThenPoll(ctx context.Context, id BuildUserProvidedFunctionAppId, input StaticSiteUserProvidedFunctionAppARMResource, options RegisterUserProvidedFunctionAppWithStaticSiteBuildOperationOptions) error {
+	return c.RegisterUserProvidedFunctionAppWithStaticSiteBuildCallbackThenPoll(ctx, id, input, options, nil)
+}
+
+// RegisterUserProvidedFunctionAppWithStaticSiteBuildCallbackThenPoll performs RegisterUserProvidedFunctionAppWithStaticSiteBuild, runs the optional callback function, then polls until it's completed
+func (c StaticSitesClient) RegisterUserProvidedFunctionAppWithStaticSiteBuildCallbackThenPoll(ctx context.Context, id BuildUserProvidedFunctionAppId, input StaticSiteUserProvidedFunctionAppARMResource, options RegisterUserProvidedFunctionAppWithStaticSiteBuildOperationOptions, callback func() error) error {
 	result, err := c.RegisterUserProvidedFunctionAppWithStaticSiteBuild(ctx, id, input, options)
 	if err != nil {
 		return fmt.Errorf("performing RegisterUserProvidedFunctionAppWithStaticSiteBuild: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

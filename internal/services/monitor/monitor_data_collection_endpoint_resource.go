@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor
@@ -8,15 +8,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionendpoints"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var (
@@ -68,7 +68,8 @@ func (r DataCollectionEndpointResource) Arguments() map[string]*pluginsdk.Schema
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ValidateFunc: validation.StringInSlice(
-				datacollectionendpoints.PossibleValuesForKnownDataCollectionEndpointResourceKind(), false),
+				datacollectionendpoints.PossibleValuesForKnownDataCollectionEndpointResourceKind(), false,
+			),
 		},
 
 		"tags": commonschema.Tags(),
@@ -114,7 +115,6 @@ func (r DataCollectionEndpointResource) ModelObject() interface{} {
 func (r DataCollectionEndpointResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			metadata.Logger.Info("Decoding state..")
 			var state DataCollectionEndpoint
 			if err := metadata.Decode(&state); err != nil {
 				return err
@@ -124,22 +124,23 @@ func (r DataCollectionEndpointResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := datacollectionendpoints.NewDataCollectionEndpointID(subscriptionId, state.ResourceGroupName, state.Name)
-			metadata.Logger.Infof("creating %s", id)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			input := datacollectionendpoints.DataCollectionEndpointResource{
 				Kind:     expandDataCollectionEndpointKind(state.Kind),
-				Location: azure.NormalizeLocation(state.Location),
-				Name:     utils.String(state.Name),
+				Location: location.Normalize(state.Location),
+				Name:     pointer.To(state.Name),
 				Properties: &datacollectionendpoints.DataCollectionEndpoint{
-					Description: utils.String(state.Description),
+					Description: pointer.To(state.Description),
 					NetworkAcls: &datacollectionendpoints.NetworkRuleSet{
 						PublicNetworkAccess: expandDataCollectionEndpointPublicNetworkAccess(state.PublicNetworkAccessEnabled),
 					},
@@ -177,11 +178,11 @@ func (r DataCollectionEndpointResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 			var publicNetWorkAccessEnabled bool
-			var description, kind, location, configurationAccessEndpoint, logsIngestionEndpoint, metricsIngestionEndpoint, immutableId string
+			var description, kind, loc, configurationAccessEndpoint, logsIngestionEndpoint, metricsIngestionEndpoint, immutableId string
 			var tag map[string]interface{}
 			if model := resp.Model; model != nil {
 				kind = flattenDataCollectionEndpointKind(model.Kind)
-				location = azure.NormalizeLocation(model.Location)
+				loc = location.Normalize(model.Location)
 				tag = tags.Flatten(model.Tags)
 				if prop := model.Properties; prop != nil {
 					description = flattenDataCollectionEndpointDescription(prop.Description)
@@ -212,7 +213,7 @@ func (r DataCollectionEndpointResource) Read() sdk.ResourceFunc {
 				Description:                 description,
 				Kind:                        kind,
 				ImmutableId:                 immutableId,
-				Location:                    location,
+				Location:                    loc,
 				LogsIngestionEndpoint:       logsIngestionEndpoint,
 				MetricsIngestionEndpoint:    metricsIngestionEndpoint,
 				Name:                        id.DataCollectionEndpointName,
@@ -233,7 +234,6 @@ func (r DataCollectionEndpointResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("updating %s..", *id)
 			client := metadata.Client.Monitor.DataCollectionEndpointsClient
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
@@ -253,7 +253,7 @@ func (r DataCollectionEndpointResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("description") {
-				existing.Properties.Description = utils.String(state.Description)
+				existing.Properties.Description = pointer.To(state.Description)
 			}
 
 			if metadata.ResourceData.HasChange("kind") {
@@ -288,7 +288,6 @@ func (r DataCollectionEndpointResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("deleting %s..", *id)
 			resp, err := client.Delete(ctx, *id)
 			if err != nil && !response.WasNotFound(resp.HttpResponse) {
 				return fmt.Errorf("deleting %s: %+v", *id, err)

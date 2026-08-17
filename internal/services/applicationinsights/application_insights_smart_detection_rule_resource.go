@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package applicationinsights
@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	smartdetection "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/componentproactivedetectionapis"
 	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceApplicationInsightsSmartDetectionRule() *pluginsdk.Resource {
@@ -100,8 +100,6 @@ func resourceApplicationInsightsSmartDetectionRuleUpdate(d *pluginsdk.ResourceDa
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Application Insights Smart Detection Rule update.")
-
 	// The Smart Detection Rule name from the UI doesn't match what the API accepts.
 	// We'll have the user submit what the name looks like in the UI and convert it behind the scenes to match what the API accepts
 	name := convertUiNameToApiName(d.Get("name"))
@@ -117,11 +115,10 @@ func resourceApplicationInsightsSmartDetectionRuleUpdate(d *pluginsdk.ResourceDa
 		Name:                           &name,
 		Enabled:                        pointer.To(d.Get("enabled").(bool)),
 		SendEmailsToSubscriptionOwners: pointer.To(d.Get("send_emails_to_subscription_owners").(bool)),
-		CustomEmails:                   utils.ExpandStringSlice(d.Get("additional_email_recipients").(*pluginsdk.Set).List()),
+		CustomEmails:                   helpers.ExpandStringSlice(d.Get("additional_email_recipients").(*pluginsdk.Set).List()),
 	}
 
-	_, err = client.ProactiveDetectionConfigurationsUpdate(ctx, id, smartDetectionRuleProperties)
-	if err != nil {
+	if _, err = client.ProactiveDetectionConfigurationsUpdate(ctx, id, smartDetectionRuleProperties); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -140,8 +137,6 @@ func resourceApplicationInsightsSmartDetectionRuleRead(d *pluginsdk.ResourceData
 		return err
 	}
 
-	log.Printf("[DEBUG] Reading AzureRM Application Insights Smart Detection Rule %s", id)
-
 	resp, err := client.ProactiveDetectionConfigurationsGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
@@ -158,7 +153,7 @@ func resourceApplicationInsightsSmartDetectionRuleRead(d *pluginsdk.ResourceData
 		d.Set("name", model.Name)
 		d.Set("enabled", model.Enabled)
 		d.Set("send_emails_to_subscription_owners", model.SendEmailsToSubscriptionOwners)
-		d.Set("additional_email_recipients", utils.FlattenStringSlice(model.CustomEmails))
+		d.Set("additional_email_recipients", helpers.FlattenStringSlice(model.CustomEmails))
 	}
 	return nil
 }
@@ -192,12 +187,11 @@ func resourceApplicationInsightsSmartDetectionRuleDelete(d *pluginsdk.ResourceDa
 		Name:                           pointer.To(id.ConfigurationId),
 		Enabled:                        resp.Model.RuleDefinitions.IsEnabledByDefault,
 		SendEmailsToSubscriptionOwners: resp.Model.RuleDefinitions.SupportsEmailNotifications,
-		CustomEmails:                   utils.ExpandStringSlice([]interface{}{}),
+		CustomEmails:                   helpers.ExpandStringSlice([]interface{}{}),
 	}
 
 	// Application Insights defaults all the Smart Detection Rules so if a user wants to delete a rule, we'll update it back to it's default values.
-	_, err = client.ProactiveDetectionConfigurationsUpdate(ctx, *id, smartDetectionRuleProperties)
-	if err != nil {
+	if _, err = client.ProactiveDetectionConfigurationsUpdate(ctx, *id, smartDetectionRuleProperties); err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return nil
 		}

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mysql
@@ -289,23 +289,11 @@ func flattenDataSourceArmServerMaintenanceWindow(input *servers.MaintenanceWindo
 		return make([]interface{}, 0)
 	}
 
-	var dayOfWeek int64
-	if input.DayOfWeek != nil {
-		dayOfWeek = *input.DayOfWeek
-	}
-	var startHour int64
-	if input.StartHour != nil {
-		startHour = *input.StartHour
-	}
-	var startMinute int64
-	if input.StartMinute != nil {
-		startMinute = *input.StartMinute
-	}
 	return []interface{}{
 		map[string]interface{}{
-			"day_of_week":  dayOfWeek,
-			"start_hour":   startHour,
-			"start_minute": startMinute,
+			"day_of_week":  pointer.From(input.DayOfWeek),
+			"start_hour":   pointer.From(input.StartHour),
+			"start_minute": pointer.From(input.StartMinute),
 		},
 	}
 }
@@ -315,15 +303,10 @@ func flattenDataSourceFlexibleServerHighAvailability(ha *servers.HighAvailabilit
 		return []interface{}{}
 	}
 
-	var zone string
-	if ha.StandbyAvailabilityZone != nil {
-		zone = *ha.StandbyAvailabilityZone
-	}
-
 	return []interface{}{
 		map[string]interface{}{
 			"mode":                      string(*ha.Mode),
-			"standby_availability_zone": zone,
+			"standby_availability_zone": pointer.From(ha.StandbyAvailabilityZone),
 		},
 	}
 }

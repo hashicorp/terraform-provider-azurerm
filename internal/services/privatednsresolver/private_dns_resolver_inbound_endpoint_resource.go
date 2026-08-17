@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package privatednsresolver
@@ -76,18 +76,21 @@ func (r PrivateDNSResolverInboundEndpointResource) Arguments() map[string]*plugi
 					"subnet_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
+						ForceNew:     true,
 						ValidateFunc: commonids.ValidateSubnetID,
 					},
 
 					"private_ip_address": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
+						ForceNew: true,
 						Computed: true,
 					},
 
 					"private_ip_allocation_method": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
+						ForceNew:     true,
 						Default:      string(inboundendpoints.IPAllocationMethodDynamic),
 						ValidateFunc: validation.StringInSlice(inboundendpoints.PossibleValuesForIPAllocationMethod(), false),
 					},
@@ -121,13 +124,16 @@ func (r PrivateDNSResolverInboundEndpointResource) Create() sdk.ResourceFunc {
 			}
 
 			id := inboundendpoints.NewInboundEndpointID(dnsResolverId.SubscriptionId, dnsResolverId.ResourceGroupName, dnsResolverId.DnsResolverName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			properties := &inboundendpoints.InboundEndpoint{
@@ -145,11 +151,11 @@ func (r PrivateDNSResolverInboundEndpointResource) Create() sdk.ResourceFunc {
 				properties.Properties.IPConfigurations = *iPConfigurationsValue
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties, inboundendpoints.CreateOrUpdateOperationOptions{}); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, *properties, inboundendpoints.CreateOrUpdateOperationOptions{}, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}

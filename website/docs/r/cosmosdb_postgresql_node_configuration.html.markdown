@@ -37,7 +37,7 @@ resource "azurerm_cosmosdb_postgresql_node_configuration" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

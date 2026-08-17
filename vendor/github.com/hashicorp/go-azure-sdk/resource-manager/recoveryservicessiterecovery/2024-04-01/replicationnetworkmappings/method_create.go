@@ -62,9 +62,20 @@ func (c ReplicationNetworkMappingsClient) Create(ctx context.Context, id Replica
 
 // CreateThenPoll performs Create then polls until it's completed
 func (c ReplicationNetworkMappingsClient) CreateThenPoll(ctx context.Context, id ReplicationNetworkMappingId, input CreateNetworkMappingInput) error {
+	return c.CreateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CreateCallbackThenPoll performs Create, runs the optional callback function, then polls until it's completed
+func (c ReplicationNetworkMappingsClient) CreateCallbackThenPoll(ctx context.Context, id ReplicationNetworkMappingId, input CreateNetworkMappingInput, callback func() error) error {
 	result, err := c.Create(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Create: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

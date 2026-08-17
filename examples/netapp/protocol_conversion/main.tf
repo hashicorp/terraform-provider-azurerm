@@ -80,7 +80,7 @@ resource "azurerm_netapp_volume" "example" {
   export_policy_rule {
     rule_index          = 1
     allowed_clients     = ["0.0.0.0/0"]
-    protocols_enabled   = [var.protocol_type]
+    protocol            = [var.protocol_type]
     unix_read_only      = false
     unix_read_write     = true
     root_access_enabled = true

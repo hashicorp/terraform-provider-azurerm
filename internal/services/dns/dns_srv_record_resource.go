@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dns
@@ -121,15 +121,17 @@ func resourceDnsSrvRecordCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	id := recordsets.NewRecordTypeID(subscriptionId, resGroup, zoneName, recordsets.RecordTypeSRV, name)
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_dns_srv_record", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_dns_srv_record", id.ID())
+		}
 	}
 
 	ttl := int64(d.Get("ttl").(int))
@@ -262,31 +264,11 @@ func flattenAzureRmDnsSrvRecords(records *[]recordsets.SrvRecord) []map[string]i
 
 	if records != nil {
 		for _, record := range *records {
-			port := int64(0)
-			if record.Port != nil {
-				port = *record.Port
-			}
-
-			priority := int64(0)
-			if record.Priority != nil {
-				priority = *record.Priority
-			}
-
-			target := ""
-			if record.Target != nil {
-				target = *record.Target
-			}
-
-			weight := int64(0)
-			if record.Weight != nil {
-				weight = *record.Weight
-			}
-
 			results = append(results, map[string]interface{}{
-				"port":     port,
-				"priority": priority,
-				"target":   target,
-				"weight":   weight,
+				"port":     pointer.From(record.Port),
+				"priority": pointer.From(record.Priority),
+				"target":   pointer.From(record.Target),
+				"weight":   pointer.From(record.Weight),
 			})
 		}
 	}
@@ -320,10 +302,10 @@ func resourceDnsSrvRecordHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%d-", m["priority"].(int)))
-		buf.WriteString(fmt.Sprintf("%d-", m["weight"].(int)))
-		buf.WriteString(fmt.Sprintf("%d-", m["port"].(int)))
-		buf.WriteString(fmt.Sprintf("%s-", m["target"].(string)))
+		fmt.Fprintf(&buf, "%d-", m["priority"].(int))
+		fmt.Fprintf(&buf, "%d-", m["weight"].(int))
+		fmt.Fprintf(&buf, "%d-", m["port"].(int))
+		fmt.Fprintf(&buf, "%s-", m["target"].(string))
 	}
 
 	return pluginsdk.HashString(buf.String())

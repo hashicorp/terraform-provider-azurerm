@@ -62,9 +62,20 @@ func (c VirtualWANsClient) Generatevirtualwanvpnserverconfigurationvpnprofile(ct
 
 // GeneratevirtualwanvpnserverconfigurationvpnprofileThenPoll performs Generatevirtualwanvpnserverconfigurationvpnprofile then polls until it's completed
 func (c VirtualWANsClient) GeneratevirtualwanvpnserverconfigurationvpnprofileThenPoll(ctx context.Context, id VirtualWANId, input VirtualWanVpnProfileParameters) error {
+	return c.GeneratevirtualwanvpnserverconfigurationvpnprofileCallbackThenPoll(ctx, id, input, nil)
+}
+
+// GeneratevirtualwanvpnserverconfigurationvpnprofileCallbackThenPoll performs Generatevirtualwanvpnserverconfigurationvpnprofile, runs the optional callback function, then polls until it's completed
+func (c VirtualWANsClient) GeneratevirtualwanvpnserverconfigurationvpnprofileCallbackThenPoll(ctx context.Context, id VirtualWANId, input VirtualWanVpnProfileParameters, callback func() error) error {
 	result, err := c.Generatevirtualwanvpnserverconfigurationvpnprofile(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Generatevirtualwanvpnserverconfigurationvpnprofile: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

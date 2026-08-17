@@ -58,9 +58,20 @@ func (c CosmosDBClient) TableResourcesMigrateTableToManualThroughput(ctx context
 
 // TableResourcesMigrateTableToManualThroughputThenPoll performs TableResourcesMigrateTableToManualThroughput then polls until it's completed
 func (c CosmosDBClient) TableResourcesMigrateTableToManualThroughputThenPoll(ctx context.Context, id TableId) error {
+	return c.TableResourcesMigrateTableToManualThroughputCallbackThenPoll(ctx, id, nil)
+}
+
+// TableResourcesMigrateTableToManualThroughputCallbackThenPoll performs TableResourcesMigrateTableToManualThroughput, runs the optional callback function, then polls until it's completed
+func (c CosmosDBClient) TableResourcesMigrateTableToManualThroughputCallbackThenPoll(ctx context.Context, id TableId, callback func() error) error {
 	result, err := c.TableResourcesMigrateTableToManualThroughput(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing TableResourcesMigrateTableToManualThroughput: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

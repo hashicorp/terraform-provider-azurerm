@@ -40,7 +40,7 @@ resource "azurerm_bot_channel_directline" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -79,6 +79,10 @@ A `site` block has the following properties:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The Bot Channel ID.
+
+* `extension_key_1` - The first key for Directline App Service Extension.
+
+* `extension_key_2` - The second key for Directline App Service Extension.
 
 ---
 

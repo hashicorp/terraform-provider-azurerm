@@ -91,9 +91,20 @@ func (c ClustersClient) Update(ctx context.Context, id ClusterId, input Cluster,
 
 // UpdateThenPoll performs Update then polls until it's completed
 func (c ClustersClient) UpdateThenPoll(ctx context.Context, id ClusterId, input Cluster, options UpdateOperationOptions) error {
+	return c.UpdateCallbackThenPoll(ctx, id, input, options, nil)
+}
+
+// UpdateCallbackThenPoll performs Update, runs the optional callback function, then polls until it's completed
+func (c ClustersClient) UpdateCallbackThenPoll(ctx context.Context, id ClusterId, input Cluster, options UpdateOperationOptions, callback func() error) error {
 	result, err := c.Update(ctx, id, input, options)
 	if err != nil {
 		return fmt.Errorf("performing Update: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

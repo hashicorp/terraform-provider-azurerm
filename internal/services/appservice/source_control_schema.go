@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -167,35 +167,25 @@ func flattenGitHubActionConfiguration(input *webapps.GitHubActionConfiguration) 
 		return output
 	}
 
-	isLinux := false
-	if v := input.IsLinux; v != nil {
-		isLinux = *v
-	}
-	genWorkflow := false
-	if v := input.GenerateWorkflowFile; v != nil {
-		genWorkflow = *v
-	}
 	ghConfig := GithubActionConfiguration{
-		UsesLinux:            isLinux,
-		GenerateWorkflowFile: genWorkflow,
+		UsesLinux:            pointer.From(input.IsLinux),
+		GenerateWorkflowFile: pointer.From(input.GenerateWorkflowFile),
 	}
 
 	if codeConfig := input.CodeConfiguration; codeConfig != nil {
-		ghCodeConfig := []GitHubActionCodeConfig{{
+		ghConfig.CodeConfig = []GitHubActionCodeConfig{{
 			RuntimeStack:   pointer.From(codeConfig.RuntimeStack),
 			RuntimeVersion: pointer.From(codeConfig.RuntimeVersion),
 		}}
-		ghConfig.CodeConfig = ghCodeConfig
 	}
 
 	if containerConfig := input.ContainerConfiguration; containerConfig != nil {
-		ghContainerConfig := []GitHubActionContainerConfig{{
+		ghConfig.ContainerConfig = []GitHubActionContainerConfig{{
 			RegistryPassword: pointer.From(containerConfig.Password),
 			RegistryUsername: pointer.From(containerConfig.Username),
 			RegistryURL:      pointer.From(containerConfig.ServerURL),
 			ImageName:        pointer.From(containerConfig.ImageName),
 		}}
-		ghConfig.ContainerConfig = ghContainerConfig
 	}
 
 	output = append(output, ghConfig)

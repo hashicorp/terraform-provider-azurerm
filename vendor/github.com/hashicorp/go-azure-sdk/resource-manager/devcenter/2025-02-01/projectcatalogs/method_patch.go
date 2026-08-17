@@ -62,9 +62,20 @@ func (c ProjectCatalogsClient) Patch(ctx context.Context, id CatalogId, input Ca
 
 // PatchThenPoll performs Patch then polls until it's completed
 func (c ProjectCatalogsClient) PatchThenPoll(ctx context.Context, id CatalogId, input CatalogUpdate) error {
+	return c.PatchCallbackThenPoll(ctx, id, input, nil)
+}
+
+// PatchCallbackThenPoll performs Patch, runs the optional callback function, then polls until it's completed
+func (c ProjectCatalogsClient) PatchCallbackThenPoll(ctx context.Context, id CatalogId, input CatalogUpdate, callback func() error) error {
 	result, err := c.Patch(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Patch: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -85,7 +85,7 @@ resource "azurerm_spring_cloud_connection" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -117,7 +117,7 @@ An `authentication` block supports the following:
 
 ---
 
-* `client_type` - (Optional) The application client type. Possible values are `none`, `dotnet`, `java`, `python`, `go`, `php`, `ruby`, `django`, `nodejs` and `springBoot`. Defaults to `none`.
+* `client_type` - (Optional) The application client type. Possible values are `dotnet`, `java`, `python`, `go`, `php`, `ruby`, `django`, `nodejs` and `springBoot`.
 
 * `vnet_solution` - (Optional) The type of the VNet solution. Possible values are `serviceEndpoint`, `privateLink`.
 
@@ -130,7 +130,7 @@ An `secret_store` block supports the following:
 * `key_vault_id` - (Required) The key vault id to store secret.
 
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 

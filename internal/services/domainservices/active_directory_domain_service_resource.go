@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package domainservices
@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -25,7 +26,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 const DomainServiceResourceName = "azurerm_active_directory_domain_service"
@@ -319,32 +319,34 @@ func resourceActiveDirectoryDomainServiceCreateUpdate(d *pluginsdk.ResourceData,
 	idsdk := domainservices.NewDomainServiceID(subscriptionId, resourceGroup, name)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, idsdk)
-		if err != nil {
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, idsdk)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", resourceErrorName, err)
+				}
+			}
+
 			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", resourceErrorName, err)
-			}
-		}
+				// Parse the replica sets and assume the first one returned to be the initial replica set
+				// This is a best effort and the user can choose any replica set if they structure their config accordingly
+				model := existing.Model
+				if model == nil {
+					return fmt.Errorf("checking for presence of existing %s: API response contained nil or missing model", resourceErrorName)
+				}
+				props := model.Properties
+				if props == nil {
+					return fmt.Errorf("checking for presence of existing %s: API response contained nil or missing properties", resourceErrorName)
+				}
+				replicaSets := flattenDomainServiceReplicaSets(props.ReplicaSets)
+				if len(replicaSets) == 0 {
+					return fmt.Errorf("checking for presence of existing %s: API response contained nil or missing replica set details", resourceErrorName)
+				}
+				initialReplicaSetId := replicaSets[0].(map[string]interface{})["id"].(string)
+				id := parse.NewDomainServiceID(subscriptionId, resourceGroup, name, initialReplicaSetId)
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			// Parse the replica sets and assume the first one returned to be the initial replica set
-			// This is a best effort and the user can choose any replica set if they structure their config accordingly
-			model := existing.Model
-			if model == nil {
-				return fmt.Errorf("checking for presence of existing %s: API response contained nil or missing model", resourceErrorName)
+				return tf.ImportAsExistsError(DomainServiceResourceName, id.ID())
 			}
-			props := model.Properties
-			if props == nil {
-				return fmt.Errorf("checking for presence of existing %s: API response contained nil or missing properties", resourceErrorName)
-			}
-			replicaSets := flattenDomainServiceReplicaSets(props.ReplicaSets)
-			if len(replicaSets) == 0 {
-				return fmt.Errorf("checking for presence of existing %s: API response contained nil or missing replica set details", resourceErrorName)
-			}
-			initialReplicaSetId := replicaSets[0].(map[string]interface{})["id"].(string)
-			id := parse.NewDomainServiceID(subscriptionId, resourceGroup, name, initialReplicaSetId)
-
-			return tf.ImportAsExistsError(DomainServiceResourceName, id.ID())
 		}
 	} else {
 		var err error
@@ -365,14 +367,14 @@ func resourceActiveDirectoryDomainServiceCreateUpdate(d *pluginsdk.ResourceData,
 
 	domainService := domainservices.DomainService{
 		Properties: &domainservices.DomainServiceProperties{
-			DomainName:             utils.String(d.Get("domain_name").(string)),
+			DomainName:             pointer.To(d.Get("domain_name").(string)),
 			DomainSecuritySettings: expandDomainServiceSecurity(d.Get("security").([]interface{})),
 			FilteredSync:           &filteredSync,
 			LdapsSettings:          expandDomainServiceLdaps(d.Get("secure_ldap").([]interface{})),
 			NotificationSettings:   expandDomainServiceNotifications(d.Get("notifications").([]interface{})),
-			Sku:                    utils.String(d.Get("sku").(string)),
+			Sku:                    pointer.To(d.Get("sku").(string)),
 		},
-		Location: utils.String(loc),
+		Location: pointer.To(loc),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
@@ -385,13 +387,14 @@ func resourceActiveDirectoryDomainServiceCreateUpdate(d *pluginsdk.ResourceData,
 		// No provision is made for changing the initial replica set, it should remain intact for the resource to function properly
 		replicaSets := []domainservices.ReplicaSet{
 			{
-				Location: utils.String(loc),
-				SubnetId: utils.String(d.Get("initial_replica_set.0.subnet_id").(string)),
+				Location: pointer.To(loc),
+				SubnetId: pointer.To(d.Get("initial_replica_set.0.subnet_id").(string)),
 			},
 		}
 		domainService.Properties.ReplicaSets = &replicaSets
 	}
 
+	// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
 	if err := client.CreateOrUpdateThenPoll(ctx, idsdk, domainService); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", resourceErrorName, err)
 	}
@@ -601,8 +604,8 @@ func expandDomainServiceLdaps(input []interface{}) (ldaps *domainservices.LdapsS
 		if v["enabled"].(bool) {
 			*ldaps.Ldaps = domainservices.LdapsEnabled
 		}
-		ldaps.PfxCertificate = utils.String(v["pfx_certificate"].(string))
-		ldaps.PfxCertificatePassword = utils.String(v["pfx_certificate_password"].(string))
+		ldaps.PfxCertificate = pointer.To(v["pfx_certificate"].(string))
+		ldaps.PfxCertificatePassword = pointer.To(v["pfx_certificate_password"].(string))
 		access := domainservices.ExternalAccessDisabled
 		if v["external_access_enabled"].(bool) {
 			access = domainservices.ExternalAccessEnabled

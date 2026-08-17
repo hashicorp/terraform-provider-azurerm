@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -24,7 +24,24 @@ import (
 )
 
 func resourceStorageShareDirectory() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	schema := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.StorageShareDirectoryName,
+		},
+
+		"storage_share_url": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.StorageShareDataPlaneID,
+		},
+
+		"metadata": MetaDataSchema(),
+	}
+	return &pluginsdk.Resource{
 		Create: resourceStorageShareDirectoryCreate,
 		Read:   resourceStorageShareDirectoryRead,
 		Update: resourceStorageShareDirectoryUpdate,
@@ -42,26 +59,8 @@ func resourceStorageShareDirectory() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.StorageShareDirectoryName,
-			},
-
-			"storage_share_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.StorageShareDataPlaneID,
-			},
-
-			"metadata": MetaDataSchema(),
-		},
+		Schema: schema,
 	}
-
-	return resource
 }
 
 func resourceStorageShareDirectoryCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -74,13 +73,13 @@ func resourceStorageShareDirectoryCreate(d *pluginsdk.ResourceData, meta interfa
 	metaDataRaw := d.Get("metadata").(map[string]interface{})
 	metaData := ExpandMetaData(metaDataRaw)
 
-	var storageShareId *shares.ShareId
-	var err error
-	if v, ok := d.GetOk("storage_share_id"); ok && v.(string) != "" {
-		storageShareId, err = shares.ParseShareID(v.(string), storageClient.StorageDomainSuffix)
-		if err != nil {
-			return err
-		}
+	var (
+		storageShareId *shares.ShareId
+		err            error
+	)
+	storageShareId, err = shares.ParseShareID(d.Get("storage_share_url").(string), storageClient.StorageDomainSuffix)
+	if err != nil {
+		return err
 	}
 
 	if storageShareId == nil {
@@ -107,15 +106,17 @@ func resourceStorageShareDirectoryCreate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("building File Share Directories Client: %v", err)
 	}
 
-	existing, err := client.Get(ctx, storageShareId.ShareName, directoryName)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, storageShareId.ShareName, directoryName)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %s", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_storage_share_directory", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_storage_share_directory", id.ID())
+		}
 	}
 
 	input := directories.CreateDirectoryInput{
@@ -124,6 +125,7 @@ func resourceStorageShareDirectoryCreate(d *pluginsdk.ResourceData, meta interfa
 	if _, err = client.Create(ctx, storageShareId.ShareName, directoryName, input); err != nil {
 		return fmt.Errorf("creating %s: %v", id, err)
 	}
+	d.SetId(id.ID())
 
 	// Storage Share Directories are eventually consistent
 	log.Printf("[DEBUG] Waiting for %s to become available", id)
@@ -139,8 +141,6 @@ func resourceStorageShareDirectoryCreate(d *pluginsdk.ResourceData, meta interfa
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to become available: %v", id, err)
 	}
-
-	d.SetId(id.ID())
 
 	return resourceStorageShareDirectoryRead(d, meta)
 }
@@ -225,7 +225,7 @@ func resourceStorageShareDirectoryRead(d *pluginsdk.ResourceData, meta interface
 	}
 
 	d.Set("name", id.DirectoryPath)
-	d.Set("storage_share_id", storageShareId.ID())
+	d.Set("storage_share_url", storageShareId.ID())
 
 	if err = d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
 		return fmt.Errorf("setting `metadata`: %v", err)
@@ -268,8 +268,12 @@ func resourceStorageShareDirectoryDelete(d *pluginsdk.ResourceData, meta interfa
 func storageShareDirectoryRefreshFunc(ctx context.Context, client *directories.Client, id directories.DirectoryId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, id.ShareName, id.DirectoryPath)
-		if err != nil {
-			return nil, strconv.Itoa(res.HttpResponse.StatusCode), fmt.Errorf("retrieving %s: %v", id, err)
+		if err != nil && !response.WasNotFound(res.HttpResponse) {
+			state := "unknown"
+			if res.HttpResponse != nil {
+				state = strconv.Itoa(res.HttpResponse.StatusCode)
+			}
+			return nil, state, fmt.Errorf("retrieving %s: %v", id, err)
 		}
 
 		return res, strconv.Itoa(res.HttpResponse.StatusCode), nil

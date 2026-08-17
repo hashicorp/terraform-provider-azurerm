@@ -86,7 +86,7 @@ A `job_target` block supports the following:
 
 * `job_credential_id` - (Optional) The ID of the job credential to use during execution of jobs.
 
-~> **Note:** This is required when `membership_type` is `Include`, unless `database_name` is set.
+~> **Note:** This is required when `membership_type` is `Include`, unless `database_name` is set or the target resource is configured to use a managed identity for authentication.
 
 * `membership_type` - (Optional) The membership type for this job target. Possible values are `Include` and `Exclude`. Defaults to `Include`.
 

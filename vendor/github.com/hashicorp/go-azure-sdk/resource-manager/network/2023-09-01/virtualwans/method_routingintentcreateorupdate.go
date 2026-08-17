@@ -62,9 +62,20 @@ func (c VirtualWANsClient) RoutingIntentCreateOrUpdate(ctx context.Context, id R
 
 // RoutingIntentCreateOrUpdateThenPoll performs RoutingIntentCreateOrUpdate then polls until it's completed
 func (c VirtualWANsClient) RoutingIntentCreateOrUpdateThenPoll(ctx context.Context, id RoutingIntentId, input RoutingIntent) error {
+	return c.RoutingIntentCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// RoutingIntentCreateOrUpdateCallbackThenPoll performs RoutingIntentCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c VirtualWANsClient) RoutingIntentCreateOrUpdateCallbackThenPoll(ctx context.Context, id RoutingIntentId, input RoutingIntent, callback func() error) error {
 	result, err := c.RoutingIntentCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing RoutingIntentCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -58,9 +58,20 @@ func (c VirtualWANsClient) VpnServerConfigurationsAssociatedWithVirtualWanList(c
 
 // VpnServerConfigurationsAssociatedWithVirtualWanListThenPoll performs VpnServerConfigurationsAssociatedWithVirtualWanList then polls until it's completed
 func (c VirtualWANsClient) VpnServerConfigurationsAssociatedWithVirtualWanListThenPoll(ctx context.Context, id VirtualWANId) error {
+	return c.VpnServerConfigurationsAssociatedWithVirtualWanListCallbackThenPoll(ctx, id, nil)
+}
+
+// VpnServerConfigurationsAssociatedWithVirtualWanListCallbackThenPoll performs VpnServerConfigurationsAssociatedWithVirtualWanList, runs the optional callback function, then polls until it's completed
+func (c VirtualWANsClient) VpnServerConfigurationsAssociatedWithVirtualWanListCallbackThenPoll(ctx context.Context, id VirtualWANId, callback func() error) error {
 	result, err := c.VpnServerConfigurationsAssociatedWithVirtualWanList(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing VpnServerConfigurationsAssociatedWithVirtualWanList: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

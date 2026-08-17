@@ -62,9 +62,20 @@ func (c ManagedCassandrasClient) CassandraClustersCreateUpdate(ctx context.Conte
 
 // CassandraClustersCreateUpdateThenPoll performs CassandraClustersCreateUpdate then polls until it's completed
 func (c ManagedCassandrasClient) CassandraClustersCreateUpdateThenPoll(ctx context.Context, id CassandraClusterId, input ClusterResource) error {
+	return c.CassandraClustersCreateUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CassandraClustersCreateUpdateCallbackThenPoll performs CassandraClustersCreateUpdate, runs the optional callback function, then polls until it's completed
+func (c ManagedCassandrasClient) CassandraClustersCreateUpdateCallbackThenPoll(ctx context.Context, id CassandraClusterId, input ClusterResource, callback func() error) error {
 	result, err := c.CassandraClustersCreateUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CassandraClustersCreateUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

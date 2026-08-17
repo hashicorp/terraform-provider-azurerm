@@ -40,7 +40,7 @@ resource "azurerm_analysis_services_server" "server" {
 
 -> **Note:** The server resource will automatically be started and stopped during an update if it is in `paused` state.
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -59,6 +59,8 @@ The following arguments are supported:
 * `backup_blob_container_uri` - (Optional) URI and SAS token for a blob container to store backups.
 
 * `power_bi_service_enabled` - (Optional) Indicates if the Power BI service is allowed to access or not.
+
+~> **Note:** `power_bi_service_enabled` is required when `ipv4_firewall_rule` is defined.
 
 * `ipv4_firewall_rule` - (Optional) One or more `ipv4_firewall_rule` block(s) as defined below.
 

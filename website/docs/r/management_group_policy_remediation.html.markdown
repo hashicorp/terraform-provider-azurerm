@@ -39,7 +39,7 @@ resource "azurerm_management_group_policy_remediation" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

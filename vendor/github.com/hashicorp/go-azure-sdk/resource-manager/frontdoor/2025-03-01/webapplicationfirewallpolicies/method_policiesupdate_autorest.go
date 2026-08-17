@@ -38,9 +38,20 @@ func (c WebApplicationFirewallPoliciesClient) PoliciesUpdate(ctx context.Context
 
 // PoliciesUpdateThenPoll performs PoliciesUpdate then polls until it's completed
 func (c WebApplicationFirewallPoliciesClient) PoliciesUpdateThenPoll(ctx context.Context, id FrontDoorWebApplicationFirewallPolicyId, input TagsObject) error {
+	return c.PoliciesUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// PoliciesUpdateCallbackThenPoll performs PoliciesUpdate, runs the optional callback function, then polls until it's completed
+func (c WebApplicationFirewallPoliciesClient) PoliciesUpdateCallbackThenPoll(ctx context.Context, id FrontDoorWebApplicationFirewallPolicyId, input TagsObject, callback func() error) error {
 	result, err := c.PoliciesUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing PoliciesUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(); err != nil {

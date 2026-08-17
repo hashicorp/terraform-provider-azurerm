@@ -30,7 +30,7 @@ resource "azurerm_availability_set" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

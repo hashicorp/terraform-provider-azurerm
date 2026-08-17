@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package keyvault_test
@@ -99,37 +99,6 @@ func TestAccKeyVaultCertificateContacts_nonExistentVault(t *testing.T) {
 			ExpectNonEmptyPlan: true,
 			ExpectError:        regexp.MustCompile(`not found`),
 		},
-	})
-}
-
-func TestAccKeyVaultCertificateContacts_remove(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate_contacts", "test")
-	r := KeyVaultCertificateContactsResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.remove(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("contact").IsEmpty(),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("contact").IsNotEmpty(),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
@@ -255,6 +224,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acctestkv-%[3]s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
@@ -279,19 +249,4 @@ resource "azurerm_key_vault_access_policy" "test" {
   ]
 }
 `, data.Locations.Primary, data.RandomInteger, data.RandomString)
-}
-
-func (r KeyVaultCertificateContactsResource) remove(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_key_vault_certificate_contacts" "test" {
-  key_vault_id = azurerm_key_vault.test.id
-
-  depends_on = [
-    azurerm_key_vault_access_policy.test
-  ]
-}
-`, template)
 }

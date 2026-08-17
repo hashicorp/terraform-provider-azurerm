@@ -62,9 +62,20 @@ func (c SnapshotsClient) VolumeSnapshotsCreate(ctx context.Context, id SnapshotI
 
 // VolumeSnapshotsCreateThenPoll performs VolumeSnapshotsCreate then polls until it's completed
 func (c SnapshotsClient) VolumeSnapshotsCreateThenPoll(ctx context.Context, id SnapshotId, input Snapshot) error {
+	return c.VolumeSnapshotsCreateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// VolumeSnapshotsCreateCallbackThenPoll performs VolumeSnapshotsCreate, runs the optional callback function, then polls until it's completed
+func (c SnapshotsClient) VolumeSnapshotsCreateCallbackThenPoll(ctx context.Context, id SnapshotId, input Snapshot, callback func() error) error {
 	result, err := c.VolumeSnapshotsCreate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing VolumeSnapshotsCreate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

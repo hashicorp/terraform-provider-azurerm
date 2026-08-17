@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package lighthouse
@@ -8,17 +8,19 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/managedservices/2022-10-01/registrationdefinitions"
 	"github.com/hashicorp/go-uuid"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceLighthouseDefinition() *pluginsdk.Resource {
@@ -234,24 +236,26 @@ func resourceLighthouseDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	id := registrationdefinitions.NewScopedRegistrationDefinitionID(d.Get("scope").(string), lighthouseDefinitionID)
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_lighthouse_definition", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_lighthouse_definition", id.ID())
+			}
 		}
 	}
 	authorizations := expandLighthouseDefinitionAuthorization(d.Get("authorization").(*pluginsdk.Set).List())
 	parameters := registrationdefinitions.RegistrationDefinition{
 		Plan: expandLighthouseDefinitionPlan(d.Get("plan").([]interface{})),
 		Properties: &registrationdefinitions.RegistrationDefinitionProperties{
-			Description:                utils.String(d.Get("description").(string)),
+			Description:                pointer.To(d.Get("description").(string)),
 			Authorizations:             authorizations,
-			RegistrationDefinitionName: utils.String(d.Get("name").(string)),
+			RegistrationDefinitionName: pointer.To(d.Get("name").(string)),
 			ManagedByTenantId:          d.Get("managing_tenant_id").(string),
 		},
 	}
@@ -261,11 +265,17 @@ func resourceLighthouseDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	// NOTE: this API call uses DefinitionId then Scope - check in the future
-	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
-	d.SetId(id.ID())
 	return resourceLighthouseDefinitionRead(d, meta)
 }
 
@@ -334,16 +344,11 @@ func resourceLighthouseDefinitionDelete(d *pluginsdk.ResourceData, meta interfac
 func flattenLighthouseDefinitionAuthorization(input []registrationdefinitions.Authorization) []interface{} {
 	results := make([]interface{}, 0)
 	for _, item := range input {
-		principalIDDisplayName := ""
-		if item.PrincipalIdDisplayName != nil {
-			principalIDDisplayName = *item.PrincipalIdDisplayName
-		}
-
 		results = append(results, map[string]interface{}{
 			"role_definition_id":            item.RoleDefinitionId,
 			"principal_id":                  item.PrincipalId,
-			"principal_display_name":        principalIDDisplayName,
-			"delegated_role_definition_ids": utils.FlattenStringSlice(item.DelegatedRoleDefinitionIds),
+			"principal_display_name":        pointer.From(item.PrincipalIdDisplayName),
+			"delegated_role_definition_ids": helpers.FlattenStringSlice(item.DelegatedRoleDefinitionIds),
 		})
 	}
 
@@ -354,11 +359,11 @@ func expandLighthouseDefinitionAuthorization(input []interface{}) []registration
 	results := make([]registrationdefinitions.Authorization, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		delegatedRoleDefinitionIds := utils.ExpandStringSlice(v["delegated_role_definition_ids"].(*pluginsdk.Set).List())
+		delegatedRoleDefinitionIds := helpers.ExpandStringSlice(v["delegated_role_definition_ids"].(*pluginsdk.Set).List())
 		result := registrationdefinitions.Authorization{
 			RoleDefinitionId:           v["role_definition_id"].(string),
 			PrincipalId:                v["principal_id"].(string),
-			PrincipalIdDisplayName:     utils.String(v["principal_display_name"].(string)),
+			PrincipalIdDisplayName:     pointer.To(v["principal_display_name"].(string)),
 			DelegatedRoleDefinitionIds: delegatedRoleDefinitionIds,
 		}
 		results = append(results, result)
@@ -411,7 +416,7 @@ func expandLighthouseDefinitionEligibleAuthorization(input []interface{}) *[]reg
 		}
 
 		if principalDisplayName := v["principal_display_name"].(string); principalDisplayName != "" {
-			result.PrincipalIdDisplayName = utils.String(principalDisplayName)
+			result.PrincipalIdDisplayName = pointer.To(principalDisplayName)
 		}
 
 		results = append(results, result)
@@ -428,7 +433,7 @@ func expandLighthouseDefinitionJustInTimeAccessPolicy(input []interface{}) *regi
 	justInTimeAccessPolicy := input[0].(map[string]interface{})
 
 	result := registrationdefinitions.JustInTimeAccessPolicy{
-		MaximumActivationDuration: utils.String(justInTimeAccessPolicy["maximum_activation_duration"].(string)),
+		MaximumActivationDuration: pointer.To(justInTimeAccessPolicy["maximum_activation_duration"].(string)),
 		ManagedByTenantApprovers:  expandLighthouseDefinitionApprover(justInTimeAccessPolicy["approver"].(*pluginsdk.Set).List()),
 	}
 
@@ -455,7 +460,7 @@ func expandLighthouseDefinitionApprover(input []interface{}) *[]registrationdefi
 		}
 
 		if principalDisplayName := eligibleApprover["principal_display_name"].(string); principalDisplayName != "" {
-			result.PrincipalIdDisplayName = utils.String(principalDisplayName)
+			result.PrincipalIdDisplayName = pointer.To(principalDisplayName)
 		}
 
 		results = append(results, result)

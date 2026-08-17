@@ -8,7 +8,7 @@ Azure Resource Manager: The Features Block
 
 # The Features Block
 
-The Azure Provider allows the behaviour of certain resources to be configured using the `features` block.
+The Azure Provider allows users to configure the behaviour of certain functionalities using the `features` block.
 
 This allows different users to select the behaviour they require, for example some users may wish for the OS Disks for a Virtual Machine to be removed automatically when the Virtual Machine is destroyed - whereas other users may wish for these OS Disks to be detached but not deleted.
 
@@ -27,6 +27,9 @@ Each of the blocks defined below can be optionally specified to configure the be
 ```hcl
 provider "azurerm" {
   features {
+    persist_id_on_create_before_polling_for_completion                   = true
+    skip_import_check_on_create_and_allow_overwriting_existing_resources = true
+
     api_management {
       purge_soft_delete_on_destroy = true
       recover_soft_deleted         = true
@@ -47,6 +50,17 @@ provider "azurerm" {
 
     databricks_workspace {
       force_delete = false
+    }
+
+    enhanced_validation {
+      locations                   = true
+      resource_providers          = true
+      preflight_enabled           = true
+      preflight_location_fallback = "westeurope"
+    }
+
+    servicebus {
+      auto_delete_subscription_default_rule = false
     }
 
     key_vault {
@@ -81,12 +95,16 @@ provider "azurerm" {
       purge_protected_items_from_vault_on_destroy             = true
     }
 
+    recovery_services_vault {
+      recover_soft_deleted_backup_protected_vm = true
+    }
+
     resource_group {
       prevent_deletion_if_contains_resources = true
     }
 
-    recovery_services_vault {
-      recover_soft_deleted_backup_protected_vm = true
+    storage {
+      data_plane_available = false
     }
 
     subscription {
@@ -117,6 +135,14 @@ provider "azurerm" {
 
 The `features` block supports the following:
 
+* `persist_id_on_create_before_polling_for_completion` - (Optional) Whether to set the resource ID into state before polling asynchronous operations for completion. Defaults to `false`.
+
+~> **Note:** A deployment failure taints the resource, and in most cases a subsequent run would replace it. However, in rare cases, this could lead to Terraform tracking failed resources in state that cannot be deleted via the API, which may require manual clean up and/or state manipulation.
+
+* `skip_import_check_on_create_and_allow_overwriting_existing_resources` - (Optional) Whether to skip the import check and allow the provider to overwrite existing remote resources if present. Defaults to `false`.
+
+!> **Note:** The majority of the resources within this provider use `PUT` operations for creation, meaning enabling `skip_import_check_on_create_and_allow_overwriting_existing_resources` could lead to Terraform overwriting existing resources without any warning. Use this at your own risk.
+
 * `api_management` - (Optional) An `api_management` block as defined below.
 
 * `app_configuration` - (Optional) An `app_configuration` block as defined below.
@@ -126,6 +152,10 @@ The `features` block supports the following:
 * `cognitive_account` - (Optional) A `cognitive_account` block as defined below.
 
 * `databricks_workspace` - (Optional) A `databricks_workspace` block as defined below.
+
+* `enhanced_validation` - (Optional) An `enhanced_validation` block as defined below.
+
+* `servicebus` - (Optional) A `servicebus` block as defined below.
 
 * `key_vault` - (Optional) A `key_vault` block as defined below.
 
@@ -137,11 +167,17 @@ The `features` block supports the following:
 
 * `netapp` - (Optional) A `netapp` block as defined below.
 
+* `postgresql_flexible_server` - (Optional) A `postgresql_flexible_server` block as defined below.
+
 * `recovery_service` - (Optional) A `recovery_service` block as defined below.
+
+* `recovery_services_vault` - (Optional) A `recovery_services_vault` block as defined below.
 
 * `resource_group` - (Optional) A `resource_group` block as defined below.
 
-* `recovery_services_vault` - (Optional) A `recovery_services_vault` block as defined below.
+* `storage` - (Optional) A `storage` block as defined below.
+
+* `subscription` - (Optional) A `subscription` block as defined below.
 
 * `template_deployment` - (Optional) A `template_deployment` block as defined below.
 
@@ -182,6 +218,26 @@ The `cognitive_account` block supports the following:
 The `databricks_workspace` block supports the following:
 
 * `force_delete` - (Optional) Should the managed resource group that contains the Unity Catalog data be forcibly deleted when the `azurerm_databricks_workspace` is destroyed? Defaults to `false`.
+
+---
+
+The `enhanced_validation` block supports the following:
+
+* `locations` - (Optional) Whether the AzureRM Provider should validate location arguments against the list of supported Azure Locations. When enabled, invalid locations are caught at `terraform plan` time; when disabled, they are caught at `terraform apply` time when Azure rejects the request. This can also be sourced from the `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` Environment Variable. Defaults to `false`.
+
+* `preflight_enabled` - (Optional) Whether the AzureRM Provider should call the Azure Preflight Validation API at plan time to check the request payload for each supported resource is valid. Requires valid credentials and external Azure API access at plan time. This can also be sourced from the `ARM_PROVIDER_ENHANCED_VALIDATION_PREFLIGHT_ENABLED` Environment Variable. Defaults to `false`.
+
+~> **Note:** Preflight Validation is a "Best Effort" feature and is not guaranteed to be 100% accurate. Terraform will attempt to validate the request payload against the Azure API based on known values for the resource from the configuration. References to resources or values that is not known at plan time are sent as empty or null values.
+
+* `preflight_location_fallback` - (Optional) The Azure location to use as a fallback when Preflight Validation is enabled and a resource does not specify a location. This is typically used for resources that derive their location from a dependency that has not yet been created. This can also be sourced from the `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATION_FALLBACK` Environment Variable.
+
+* `resource_providers` - (Optional) Whether the AzureRM Provider should validate Resource Provider arguments against the list of supported Resource Providers. When enabled, invalid resource providers are caught at `terraform plan` time; when disabled, they are caught at `terraform apply` time when Azure rejects the request. This can also be sourced from the `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS` Environment Variable. Defaults to `false`.
+
+---
+
+The `servicebus` block supports the following:
+
+* `auto_delete_subscription_default_rule` - (Optional) Should the `$Default` rule be automatically deleted after creating an `azurerm_servicebus_subscription`? This prevents unfiltered messages from being delivered during the window between subscription creation and custom rule application. Defaults to `false`.
 
 ---
 
@@ -258,15 +314,23 @@ The `recovery_service` block supports the following:
 
 ---
 
+The `recovery_services_vault` block supports the following:
+
+* `recover_soft_deleted_backup_protected_vm` - (Optional) Should the `azurerm_backup_protected_vm` resource recover a Soft-Deleted protected VM? Defaults to `false`.
+
+---
+
 The `resource_group` block supports the following:
 
 * `prevent_deletion_if_contains_resources` - (Optional) Should the `azurerm_resource_group` resource check that there are no Resources within the Resource Group during deletion? This means that all Resources within the Resource Group must be deleted prior to deleting the Resource Group. Defaults to `true`.
 
 ---
 
-The `recovery_services_vault` block supports the following:
+The `storage` block supports the following:
 
-* `recover_soft_deleted_backup_protected_vm` - (Optional) Should the `azurerm_backup_protected_vm` resource recover a Soft-Deleted protected VM? Defaults to `false`.
+* `data_plane_available` - Should the `azurerm_storage_account` resource use data plane APIs? Defaults to `true`.
+
+-> **Note:** This feature flag is intended for use with `azurerm_storage_account` resources that will not use the `queue_properties` and `static_website` blocks. Setting this to `false` will bypass availability checks.
 
 ---
 
@@ -289,10 +353,6 @@ The `virtual_machine` block supports the following:
 * `delete_os_disk_on_deletion` - (Optional) Should the `azurerm_linux_virtual_machine` and `azurerm_windows_virtual_machine` resources delete the OS Disk attached to the Virtual Machine when the Virtual Machine is destroyed? Defaults to `true`.
 
 ~> **Note:** This does not affect the older `azurerm_virtual_machine` resource, which has its own flags for managing this within the resource.
-
-* `graceful_shutdown` - (Optional) Should the `azurerm_linux_virtual_machine` and `azurerm_windows_virtual_machine` request a graceful shutdown when the Virtual Machine is destroyed? Defaults to `false`.
-
-!> **Note:** Due to a breaking API change `graceful_shutdown` is no longer effective and has been deprecated. This feature will be removed from v5.0 of the AzureRM provider.
 
 * `skip_shutdown_and_force_delete` - Should the `azurerm_linux_virtual_machine` and `azurerm_windows_virtual_machine` skip the shutdown command and `Force Delete`, this provides the ability to forcefully and immediately delete the VM and detach all sub-resources associated with the virtual machine. This allows those freed resources to be reattached to another VM instance or deleted. Defaults to `false`.
 

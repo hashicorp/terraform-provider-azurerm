@@ -62,9 +62,20 @@ func (c AppPlatformClient) CustomizedAcceleratorsCreateOrUpdate(ctx context.Cont
 
 // CustomizedAcceleratorsCreateOrUpdateThenPoll performs CustomizedAcceleratorsCreateOrUpdate then polls until it's completed
 func (c AppPlatformClient) CustomizedAcceleratorsCreateOrUpdateThenPoll(ctx context.Context, id CustomizedAcceleratorId, input CustomizedAcceleratorResource) error {
+	return c.CustomizedAcceleratorsCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CustomizedAcceleratorsCreateOrUpdateCallbackThenPoll performs CustomizedAcceleratorsCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) CustomizedAcceleratorsCreateOrUpdateCallbackThenPoll(ctx context.Context, id CustomizedAcceleratorId, input CustomizedAcceleratorResource, callback func() error) error {
 	result, err := c.CustomizedAcceleratorsCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CustomizedAcceleratorsCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

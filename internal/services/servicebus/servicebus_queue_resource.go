@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package servicebus
@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceServiceBusQueue() *pluginsdk.Resource {
@@ -198,15 +197,17 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	id := queues.NewQueueID(namespaceId.SubscriptionId, namespaceId.ResourceGroupName, namespaceId.NamespaceName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_servicebus_queue", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_servicebus_queue", id.ID())
+			}
 		}
 	}
 
@@ -255,16 +256,16 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	userConfig["enableBatchOps"] = enableBatchedOperations
 
 	parameters := queues.SBQueue{
-		Name: utils.String(id.QueueName),
+		Name: pointer.To(id.QueueName),
 		Properties: &queues.SBQueueProperties{
-			DeadLetteringOnMessageExpiration: utils.Bool(deadLetteringOnMesExp),
-			EnableBatchedOperations:          utils.Bool(enableBatchedOperations),
-			EnableExpress:                    utils.Bool(enableExpress),
-			EnablePartitioning:               utils.Bool(enablePartitioning),
-			MaxDeliveryCount:                 utils.Int64(int64(maxDeliveryCount)),
-			MaxSizeInMegabytes:               utils.Int64(int64(maxSizeInMB)),
-			RequiresDuplicateDetection:       utils.Bool(requireDuplicateDetection),
-			RequiresSession:                  utils.Bool(requireSession),
+			DeadLetteringOnMessageExpiration: pointer.To(deadLetteringOnMesExp),
+			EnableBatchedOperations:          pointer.To(enableBatchedOperations),
+			EnableExpress:                    pointer.To(enableExpress),
+			EnablePartitioning:               pointer.To(enablePartitioning),
+			MaxDeliveryCount:                 pointer.To(int64(maxDeliveryCount)),
+			MaxSizeInMegabytes:               pointer.To(int64(maxSizeInMB)),
+			RequiresDuplicateDetection:       pointer.To(requireDuplicateDetection),
+			RequiresSession:                  pointer.To(requireSession),
 			Status:                           &status,
 		},
 	}
@@ -324,14 +325,16 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		if sku != namespaces.SkuNamePremium {
 			return fmt.Errorf("%s does not support input on `max_message_size_in_kilobytes` in %s SKU and should be removed", id, sku)
 		}
-		parameters.Properties.MaxMessageSizeInKilobytes = utils.Int64(int64(v.(int)))
+		parameters.Properties.MaxMessageSizeInKilobytes = pointer.To(int64(v.(int)))
 	}
 
 	if _, err = client.CreateOrUpdate(ctx, id, parameters); err != nil {
 		return err
 	}
 
-	if !d.IsNewResource() {
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	} else {
 		// wait for property update, api issue is being tracked:https://github.com/Azure/azure-rest-api-specs/issues/21445
 		log.Printf("[DEBUG] Waiting for %s status to become ready", id)
 		deadline, ok := ctx.Deadline()
@@ -352,7 +355,6 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	d.SetId(id.ID())
 	return resourceServiceBusQueueRead(d, meta)
 }
 

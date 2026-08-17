@@ -58,10 +58,9 @@ resource "azurerm_virtual_network" "primary" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "primary" {
-  name                  = "primary-link"
-  resource_group_name   = azurerm_resource_group.primary.name
-  private_dns_zone_name = azurerm_private_dns_zone.example.name
-  virtual_network_id    = azurerm_virtual_network.primary.id
+  name                = "primary-link"
+  private_dns_zone_id = azurerm_private_dns_zone.example.id
+  virtual_network_id  = azurerm_virtual_network.primary.id
 }
 
 resource "azurerm_subnet" "primary" {
@@ -142,10 +141,9 @@ resource "azurerm_virtual_network" "failover" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "failover" {
-  name                  = "failover-link"
-  resource_group_name   = azurerm_private_dns_zone.example.resource_group_name
-  private_dns_zone_name = azurerm_private_dns_zone.example.name
-  virtual_network_id    = azurerm_virtual_network.failover.id
+  name                = "failover-link"
+  private_dns_zone_id = azurerm_private_dns_zone.example.id
+  virtual_network_id  = azurerm_virtual_network.failover.id
 }
 
 resource "azurerm_subnet" "default" {

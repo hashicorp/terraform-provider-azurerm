@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package keyvault
@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-02-01/vaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/vaults"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -256,10 +256,7 @@ func flattenAccessPolicies(input *[]vaults.AccessPolicyEntry) []map[string]inter
 	}
 
 	for _, policy := range *input {
-		applicationId := ""
-		if policy.ApplicationId != nil {
-			applicationId = *policy.ApplicationId
-		}
+		applicationId := pointer.From(policy.ApplicationId)
 
 		certs := flattenCertificatePermissions(policy.Permissions.Certificates)
 		keys := flattenKeyPermissions(policy.Permissions.Keys)

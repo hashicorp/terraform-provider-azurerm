@@ -62,9 +62,20 @@ func (c VirtualMachinesClient) InstallPatches(ctx context.Context, id VirtualMac
 
 // InstallPatchesThenPoll performs InstallPatches then polls until it's completed
 func (c VirtualMachinesClient) InstallPatchesThenPoll(ctx context.Context, id VirtualMachineId, input VirtualMachineInstallPatchesParameters) error {
+	return c.InstallPatchesCallbackThenPoll(ctx, id, input, nil)
+}
+
+// InstallPatchesCallbackThenPoll performs InstallPatches, runs the optional callback function, then polls until it's completed
+func (c VirtualMachinesClient) InstallPatchesCallbackThenPoll(ctx context.Context, id VirtualMachineId, input VirtualMachineInstallPatchesParameters, callback func() error) error {
 	result, err := c.InstallPatches(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing InstallPatches: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

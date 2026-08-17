@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package fwschema
@@ -142,6 +142,33 @@ func SchemaAttributeAtTerraformPath(ctx context.Context, s Schema, p *tftypes.At
 		return typ, nil
 	case Block:
 		return nil, ErrPathIsBlock
+	case NestedAttributeObject:
+		return nil, ErrPathInsideAtomicAttribute
+	case NestedBlockObject:
+		return nil, ErrPathInsideAtomicAttribute
+	case UnderlyingAttributes:
+		return nil, ErrPathInsideAtomicAttribute
+	default:
+		return nil, fmt.Errorf("got unexpected type %T", rawType)
+	}
+}
+
+// SchemaBlockAtTerraformPath is a helper function to perform base type
+// handling using the tftypes.AttributePathStepper interface.
+func SchemaBlockAtTerraformPath(ctx context.Context, s Schema, p *tftypes.AttributePath) (Block, error) {
+	rawType, remaining, err := tftypes.WalkAttributePath(s, p)
+
+	if err != nil {
+		return nil, checkErrForDynamic(rawType, remaining, err)
+	}
+
+	switch typ := rawType.(type) {
+	case attr.Type:
+		return nil, ErrPathInsideAtomicAttribute
+	case Attribute:
+		return nil, ErrPathIsAttribute
+	case Block:
+		return typ, nil
 	case NestedAttributeObject:
 		return nil, ErrPathInsideAtomicAttribute
 	case NestedBlockObject:

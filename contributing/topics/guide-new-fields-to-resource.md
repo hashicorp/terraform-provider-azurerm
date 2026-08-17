@@ -14,7 +14,11 @@ Building on the example found in [adding a new resource](guide-new-resource.md) 
 
 Our hypothetical property `logging_enabled` will be user configurable and thus will need to be added to the `Arguments` list.
 
-The position of the new property is determined based on the order found in [adding a new resource](guide-new-resource.md#step-3-scaffold-an-emptynew-resource) and will end up looking like the code block below. Here is an example for a typed resource:
+The position of the new property is determined based on the order found in [adding a new resource](guide-new-resource.md#step-3-scaffold-an-emptynew-resource).
+
+> **Warning:** do not reorder existing properties in the same PR, as doing so degrades diff readability. Make any reordering changes in a separate follow-up PR instead.
+
+Once added, the schema will end up looking like the code block below. Here is an example for a typed resource:
 
 ```go
 func (ResourceGroupExampleResource) Arguments() map[string]*pluginsdk.Schema {

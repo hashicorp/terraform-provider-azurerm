@@ -45,7 +45,7 @@ PARAMETERS
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -123,5 +123,3 @@ terraform import azurerm_policy_set_definition.example /subscriptions/00000000-0
 This resource uses the following Azure API Providers:
 
 * `Microsoft.Authorization` - 2025-01-01
-
-* `Microsoft.Management` - 2025-01-01

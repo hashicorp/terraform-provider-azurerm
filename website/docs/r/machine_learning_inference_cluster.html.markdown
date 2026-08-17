@@ -33,10 +33,11 @@ resource "azurerm_application_insights" "example" {
 }
 
 resource "azurerm_key_vault" "example" {
-  name                = "example-kv"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
+  name                       = "example-kv"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
 
   sku_name = "standard"
 
@@ -159,7 +160,7 @@ A `ssl` block supports the following:
 
 * `leaf_domain_label` - (Optional) The leaf domain label for the SSL configuration. Conflicts with `ssl[0].cert`,`ssl[0].key`,`ssl[0].cname`. Changing this forces a new Machine Learning Inference Cluster to be created. Defaults to `""`.
 
-* `overwrite_existing_domain` - (Optional) Whether or not to overwrite existing leaf domain. Conflicts with `ssl[0].cert`,`ssl[0].key`,`ssl[0].cname` Changing this forces a new Machine Learning Inference Cluster to be created. Defaults to `""`.
+* `overwrite_existing_domain` - (Optional) Whether or not to overwrite existing leaf domain. Conflicts with `ssl[0].cert`,`ssl[0].key`,`ssl[0].cname` Changing this forces a new Machine Learning Inference Cluster to be created.
 
 ## Attributes Reference
 
@@ -197,6 +198,6 @@ terraform import azurerm_machine_learning_inference_cluster.example /subscriptio
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ContainerService` - 2025-07-01
+* `Microsoft.ContainerService` - 2025-10-01
 
 * `Microsoft.MachineLearningServices` - 2025-06-01

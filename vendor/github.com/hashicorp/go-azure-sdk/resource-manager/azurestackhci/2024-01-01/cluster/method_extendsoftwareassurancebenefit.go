@@ -62,9 +62,20 @@ func (c ClusterClient) ExtendSoftwareAssuranceBenefit(ctx context.Context, id Cl
 
 // ExtendSoftwareAssuranceBenefitThenPoll performs ExtendSoftwareAssuranceBenefit then polls until it's completed
 func (c ClusterClient) ExtendSoftwareAssuranceBenefitThenPoll(ctx context.Context, id ClusterId, input SoftwareAssuranceChangeRequest) error {
+	return c.ExtendSoftwareAssuranceBenefitCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ExtendSoftwareAssuranceBenefitCallbackThenPoll performs ExtendSoftwareAssuranceBenefit, runs the optional callback function, then polls until it's completed
+func (c ClusterClient) ExtendSoftwareAssuranceBenefitCallbackThenPoll(ctx context.Context, id ClusterId, input SoftwareAssuranceChangeRequest, callback func() error) error {
 	result, err := c.ExtendSoftwareAssuranceBenefit(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ExtendSoftwareAssuranceBenefit: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

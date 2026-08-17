@@ -21,7 +21,7 @@ data "azurerm_site_recovery_protection_container" "container" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

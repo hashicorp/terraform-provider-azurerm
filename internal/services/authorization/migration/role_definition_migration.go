@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -104,9 +104,7 @@ func (RoleDefinitionV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 			return nil, fmt.Errorf("failed to migrate state: scope missing")
 		}
 
-		newID := fmt.Sprintf("%s|%s", oldID, scope)
-
-		rawState["id"] = newID
+		rawState["id"] = fmt.Sprintf("%s|%s", oldID, scope)
 
 		return rawState, nil
 	}

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestAccessConnectorName(t *testing.T) {
+func TestValidateAccessConnectorName(t *testing.T) {
 	const errEmpty = "cannot be an empty string"
 	const errMaxLen = "must be no more than 64 characters"
 	const errAllowList = "can contain only alphanumeric characters, underscores, and hyphens"

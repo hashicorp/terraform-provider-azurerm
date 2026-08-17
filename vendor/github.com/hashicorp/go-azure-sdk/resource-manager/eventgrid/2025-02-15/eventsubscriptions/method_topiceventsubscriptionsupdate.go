@@ -61,9 +61,20 @@ func (c EventSubscriptionsClient) TopicEventSubscriptionsUpdate(ctx context.Cont
 
 // TopicEventSubscriptionsUpdateThenPoll performs TopicEventSubscriptionsUpdate then polls until it's completed
 func (c EventSubscriptionsClient) TopicEventSubscriptionsUpdateThenPoll(ctx context.Context, id EventSubscriptionId, input EventSubscriptionUpdateParameters) error {
+	return c.TopicEventSubscriptionsUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// TopicEventSubscriptionsUpdateCallbackThenPoll performs TopicEventSubscriptionsUpdate, runs the optional callback function, then polls until it's completed
+func (c EventSubscriptionsClient) TopicEventSubscriptionsUpdateCallbackThenPoll(ctx context.Context, id EventSubscriptionId, input EventSubscriptionUpdateParameters, callback func() error) error {
 	result, err := c.TopicEventSubscriptionsUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing TopicEventSubscriptionsUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

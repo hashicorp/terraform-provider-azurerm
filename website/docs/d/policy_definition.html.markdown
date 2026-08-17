@@ -22,7 +22,7 @@ output "id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Policy Definition. Conflicts with `display_name`.
 

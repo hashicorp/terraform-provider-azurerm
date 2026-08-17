@@ -62,9 +62,20 @@ func (c NetworkWatchersClient) GetFlowLogStatus(ctx context.Context, id NetworkW
 
 // GetFlowLogStatusThenPoll performs GetFlowLogStatus then polls until it's completed
 func (c NetworkWatchersClient) GetFlowLogStatusThenPoll(ctx context.Context, id NetworkWatcherId, input FlowLogStatusParameters) error {
+	return c.GetFlowLogStatusCallbackThenPoll(ctx, id, input, nil)
+}
+
+// GetFlowLogStatusCallbackThenPoll performs GetFlowLogStatus, runs the optional callback function, then polls until it's completed
+func (c NetworkWatchersClient) GetFlowLogStatusCallbackThenPoll(ctx context.Context, id NetworkWatcherId, input FlowLogStatusParameters, callback func() error) error {
 	result, err := c.GetFlowLogStatus(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing GetFlowLogStatus: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

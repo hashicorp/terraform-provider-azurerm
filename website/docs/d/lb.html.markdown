@@ -24,7 +24,7 @@ output "loadbalancer_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Load Balancer.
 
@@ -71,4 +71,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2023-09-01
+* `Microsoft.Network` - 2025-01-01

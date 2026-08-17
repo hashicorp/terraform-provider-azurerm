@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package iothub_test
@@ -9,12 +9,12 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type IoTHubSharedAccessPolicyResource struct{}
@@ -46,7 +46,7 @@ func TestAccIotHubSharedAccessPolicy_writeWithoutRead(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.writeWithoutRead(data),
-			ExpectError: regexp.MustCompile("If `registry_write` is set to true, `registry_read` must also be set to true"),
+			ExpectError: regexp.MustCompile("if `registry_write` is set to true, `registry_read` must also be set to true"),
 		},
 	})
 }
@@ -168,5 +168,5 @@ func (t IoTHubSharedAccessPolicyResource) Exists(ctx context.Context, clients *c
 		return nil, fmt.Errorf("loading IotHub Shared Access Policy %q: %+v", id, err)
 	}
 
-	return utils.Bool(accessPolicy.PrimaryKey != nil), nil
+	return pointer.To(accessPolicy.PrimaryKey != nil), nil
 }

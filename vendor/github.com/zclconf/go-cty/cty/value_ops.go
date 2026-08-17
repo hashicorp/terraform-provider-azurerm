@@ -131,9 +131,35 @@ func (val Value) GoString() string {
 // short-circuit rules and the exception for null values.
 func (val Value) Equals(other Value) Value {
 	if val.ContainsMarked() || other.ContainsMarked() {
-		val, valMarks := val.UnmarkDeep()
-		other, otherMarks := other.UnmarkDeep()
-		return val.Equals(other).WithMarks(valMarks, otherMarks)
+		unmarkedVal, valMarks := val.UnmarkDeep()
+		unmarkedOther, otherMarks := other.UnmarkDeep()
+
+		// As a special case, if we have one null and one non-null value then
+		// we only preserve top-level marks from either value. This is a simplistic
+		// approximation of the idea that nested marks should be preserved only if
+		// they were relevant to the decision, and ideally this would be implemented
+		// more generally so that e.g. comparing an empty list with a one-element
+		// list whose element is marked would not preserve that nested mark either.
+		// Perhaps a future version will improve this, but for now this just deals
+		// with the common case of comparing something with a null value as a more
+		// general alternative to calling [Value.IsNull].
+		nullCount := 0
+		if val.IsNull() {
+			nullCount++
+		}
+		if other.IsNull() {
+			nullCount++
+		}
+		if nullCount == 1 {
+			// The following is an okay simplification because the rest of this
+			// function, which we'll access through the recursive call below,
+			// has early returns for various cases where one operand is null
+			// that all avoid interacting with nested values.
+			_, valMarks = val.Unmark()
+			_, otherMarks = other.Unmark()
+		}
+
+		return unmarkedVal.Equals(unmarkedOther).WithMarks(valMarks, otherMarks)
 	}
 
 	// Some easy cases with comparisons to null.

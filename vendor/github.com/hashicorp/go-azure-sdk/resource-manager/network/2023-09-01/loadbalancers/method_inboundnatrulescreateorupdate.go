@@ -62,9 +62,20 @@ func (c LoadBalancersClient) InboundNatRulesCreateOrUpdate(ctx context.Context, 
 
 // InboundNatRulesCreateOrUpdateThenPoll performs InboundNatRulesCreateOrUpdate then polls until it's completed
 func (c LoadBalancersClient) InboundNatRulesCreateOrUpdateThenPoll(ctx context.Context, id InboundNatRuleId, input InboundNatRule) error {
+	return c.InboundNatRulesCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// InboundNatRulesCreateOrUpdateCallbackThenPoll performs InboundNatRulesCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c LoadBalancersClient) InboundNatRulesCreateOrUpdateCallbackThenPoll(ctx context.Context, id InboundNatRuleId, input InboundNatRule, callback func() error) error {
 	result, err := c.InboundNatRulesCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing InboundNatRulesCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

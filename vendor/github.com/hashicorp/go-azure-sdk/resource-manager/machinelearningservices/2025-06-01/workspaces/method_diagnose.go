@@ -62,9 +62,20 @@ func (c WorkspacesClient) Diagnose(ctx context.Context, id WorkspaceId, input Di
 
 // DiagnoseThenPoll performs Diagnose then polls until it's completed
 func (c WorkspacesClient) DiagnoseThenPoll(ctx context.Context, id WorkspaceId, input DiagnoseWorkspaceParameters) error {
+	return c.DiagnoseCallbackThenPoll(ctx, id, input, nil)
+}
+
+// DiagnoseCallbackThenPoll performs Diagnose, runs the optional callback function, then polls until it's completed
+func (c WorkspacesClient) DiagnoseCallbackThenPoll(ctx context.Context, id WorkspaceId, input DiagnoseWorkspaceParameters, callback func() error) error {
 	result, err := c.Diagnose(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Diagnose: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

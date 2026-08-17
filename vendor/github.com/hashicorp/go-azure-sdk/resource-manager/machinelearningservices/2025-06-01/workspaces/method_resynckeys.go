@@ -57,9 +57,20 @@ func (c WorkspacesClient) ResyncKeys(ctx context.Context, id WorkspaceId) (resul
 
 // ResyncKeysThenPoll performs ResyncKeys then polls until it's completed
 func (c WorkspacesClient) ResyncKeysThenPoll(ctx context.Context, id WorkspaceId) error {
+	return c.ResyncKeysCallbackThenPoll(ctx, id, nil)
+}
+
+// ResyncKeysCallbackThenPoll performs ResyncKeys, runs the optional callback function, then polls until it's completed
+func (c WorkspacesClient) ResyncKeysCallbackThenPoll(ctx context.Context, id WorkspaceId, callback func() error) error {
 	result, err := c.ResyncKeys(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ResyncKeys: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

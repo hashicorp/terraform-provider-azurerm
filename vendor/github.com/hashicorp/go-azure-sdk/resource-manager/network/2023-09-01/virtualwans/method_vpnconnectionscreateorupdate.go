@@ -63,9 +63,20 @@ func (c VirtualWANsClient) VpnConnectionsCreateOrUpdate(ctx context.Context, id 
 
 // VpnConnectionsCreateOrUpdateThenPoll performs VpnConnectionsCreateOrUpdate then polls until it's completed
 func (c VirtualWANsClient) VpnConnectionsCreateOrUpdateThenPoll(ctx context.Context, id commonids.VPNConnectionId, input VpnConnection) error {
+	return c.VpnConnectionsCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// VpnConnectionsCreateOrUpdateCallbackThenPoll performs VpnConnectionsCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c VirtualWANsClient) VpnConnectionsCreateOrUpdateCallbackThenPoll(ctx context.Context, id commonids.VPNConnectionId, input VpnConnection, callback func() error) error {
 	result, err := c.VpnConnectionsCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing VpnConnectionsCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -1,11 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package iothub
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -74,14 +73,13 @@ func resourceIotHubConsumerGroupCreate(d *pluginsdk.ResourceData, meta interface
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for AzureRM IoTHub Consumer Group creation.")
 
 	id := parse.NewConsumerGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("iothub_name").(string), d.Get("eventhub_endpoint_name").(string), d.Get("name").(string))
 
 	locks.ByName(id.IotHubName, IothubResourceName)
 	defer locks.UnlockByName(id.IotHubName, IothubResourceName)
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.GetEventHubConsumerGroup(ctx, id.ResourceGroup, id.IotHubName, id.EventHubEndpointName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -108,15 +106,6 @@ func resourceIotHubConsumerGroupCreate(d *pluginsdk.ResourceData, meta interface
 
 	if _, err := client.CreateEventHubConsumerGroup(ctx, id.ResourceGroup, id.IotHubName, id.EventHubEndpointName, id.Name, consumerGroupBody); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-
-	read, err := client.GetEventHubConsumerGroup(ctx, id.ResourceGroup, id.IotHubName, id.EventHubEndpointName, id.Name)
-	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", id, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("cannot read %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())

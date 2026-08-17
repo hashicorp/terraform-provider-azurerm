@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualnetworks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworks"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceVirtualNetwork() *pluginsdk.Resource {
@@ -113,13 +113,13 @@ func dataSourceVnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.Set("guid", props.ResourceGuid)
 
 			if as := props.AddressSpace; as != nil {
-				if err := d.Set("address_space", utils.FlattenStringSlice(as.AddressPrefixes)); err != nil {
+				if err := d.Set("address_space", helpers.FlattenStringSlice(as.AddressPrefixes)); err != nil {
 					return fmt.Errorf("setting `address_space`: %v", err)
 				}
 			}
 
 			if options := props.DhcpOptions; options != nil {
-				if err := d.Set("dns_servers", utils.FlattenStringSlice(options.DnsServers)); err != nil {
+				if err := d.Set("dns_servers", helpers.FlattenStringSlice(options.DnsServers)); err != nil {
 					return fmt.Errorf("setting `dns_servers`: %v", err)
 				}
 			}

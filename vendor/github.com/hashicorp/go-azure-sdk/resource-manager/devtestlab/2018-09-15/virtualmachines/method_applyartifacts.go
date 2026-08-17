@@ -61,9 +61,20 @@ func (c VirtualMachinesClient) ApplyArtifacts(ctx context.Context, id VirtualMac
 
 // ApplyArtifactsThenPoll performs ApplyArtifacts then polls until it's completed
 func (c VirtualMachinesClient) ApplyArtifactsThenPoll(ctx context.Context, id VirtualMachineId, input ApplyArtifactsRequest) error {
+	return c.ApplyArtifactsCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ApplyArtifactsCallbackThenPoll performs ApplyArtifacts, runs the optional callback function, then polls until it's completed
+func (c VirtualMachinesClient) ApplyArtifactsCallbackThenPoll(ctx context.Context, id VirtualMachineId, input ApplyArtifactsRequest, callback func() error) error {
 	result, err := c.ApplyArtifacts(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ApplyArtifacts: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

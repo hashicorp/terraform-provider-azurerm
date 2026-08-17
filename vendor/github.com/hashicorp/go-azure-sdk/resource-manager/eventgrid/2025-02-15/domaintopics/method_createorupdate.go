@@ -57,9 +57,20 @@ func (c DomainTopicsClient) CreateOrUpdate(ctx context.Context, id DomainTopicId
 
 // CreateOrUpdateThenPoll performs CreateOrUpdate then polls until it's completed
 func (c DomainTopicsClient) CreateOrUpdateThenPoll(ctx context.Context, id DomainTopicId) error {
+	return c.CreateOrUpdateCallbackThenPoll(ctx, id, nil)
+}
+
+// CreateOrUpdateCallbackThenPoll performs CreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c DomainTopicsClient) CreateOrUpdateCallbackThenPoll(ctx context.Context, id DomainTopicId, callback func() error) error {
 	result, err := c.CreateOrUpdate(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

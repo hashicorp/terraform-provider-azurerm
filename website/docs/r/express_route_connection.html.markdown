@@ -94,7 +94,7 @@ The following arguments are supported:
 
 * `authorization_key` - (Optional) The authorization key to establish the Express Route Connection.
 
-* `enable_internet_security` - (Optional) Is Internet security enabled for this Express Route Connection?
+* `internet_security_enabled` - (Optional) Is Internet security enabled for this Express Route Connection? Defaults to `false`.
 
 * `express_route_gateway_bypass_enabled` - (Optional) Specified whether Fast Path is enabled for Virtual Wan Firewall Hub. Defaults to `false`.
 
@@ -149,4 +149,4 @@ terraform import azurerm_express_route_connection.example /subscriptions/0000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2024-05-01
+* `Microsoft.Network` - 2025-01-01

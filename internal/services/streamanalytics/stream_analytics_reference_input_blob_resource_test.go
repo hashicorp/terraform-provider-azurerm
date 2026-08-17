@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package streamanalytics_test
@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type StreamAnalyticsReferenceInputBlobResource struct{}
@@ -124,15 +124,14 @@ func (r StreamAnalyticsReferenceInputBlobResource) Exists(ctx context.Context, c
 	resp, err := client.StreamAnalytics.InputsClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r StreamAnalyticsReferenceInputBlobResource) avro(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -151,11 +150,10 @@ resource "azurerm_stream_analytics_reference_input_blob" "test" {
     type = "Avro"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsReferenceInputBlobResource) csv(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -176,11 +174,10 @@ resource "azurerm_stream_analytics_reference_input_blob" "test" {
     field_delimiter = ","
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsReferenceInputBlobResource) json(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -200,11 +197,10 @@ resource "azurerm_stream_analytics_reference_input_blob" "test" {
     encoding = "UTF8"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsReferenceInputBlobResource) updated(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -218,7 +214,7 @@ resource "azurerm_storage_account" "updated" {
 
 resource "azurerm_storage_container" "updated" {
   name                  = "example2"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -237,11 +233,10 @@ resource "azurerm_stream_analytics_reference_input_blob" "test" {
     type = "Avro"
   }
 }
-`, template, data.RandomString, data.RandomInteger)
+`, r.template(data), data.RandomString, data.RandomInteger)
 }
 
 func (r StreamAnalyticsReferenceInputBlobResource) authenticationMode(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -261,11 +256,10 @@ resource "azurerm_stream_analytics_reference_input_blob" "test" {
     encoding = "UTF8"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsReferenceInputBlobResource) requiresImport(data acceptance.TestData) string {
-	template := r.json(data)
 	return fmt.Sprintf(`
 %s
 
@@ -287,7 +281,7 @@ resource "azurerm_stream_analytics_reference_input_blob" "import" {
     }
   }
 }
-`, template)
+`, r.json(data))
 }
 
 func (r StreamAnalyticsReferenceInputBlobResource) template(data acceptance.TestData) string {
@@ -312,7 +306,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "example"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -329,10 +323,10 @@ resource "azurerm_stream_analytics_job" "test" {
   streaming_units                          = 3
 
   transformation_query = <<QUERY
-   SELECT *
-   INTO [YourOutputAlias]
-   FROM [YourInputAlias]
-QUERY
+	   SELECT *
+	   INTO [YourOutputAlias]
+	   FROM [YourInputAlias]
+	QUERY
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }

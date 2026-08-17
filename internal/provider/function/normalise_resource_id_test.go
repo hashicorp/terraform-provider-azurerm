@@ -1,14 +1,14 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package function_test
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -31,7 +31,11 @@ func TestProviderFunctionNormaliseResourceID_multiple(t *testing.T) {
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(version.Must(version.NewVersion("1.8.0-beta1"))),
 		},
-		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		ProtoV5ProviderFactories: map[string]func() (tfprotov5.ProviderServer, error){
+			"azurerm": func() (tfprotov5.ProviderServer, error) { // nolint:unparam
+				return framework.V5ProviderWithoutPluginSDK()(), nil
+			},
+		},
 		Steps: []resource.TestStep{
 			{
 				Config: testOutputMultiple(cases),

@@ -62,9 +62,20 @@ func (c AppPlatformClient) ApiPortalCustomDomainsCreateOrUpdate(ctx context.Cont
 
 // ApiPortalCustomDomainsCreateOrUpdateThenPoll performs ApiPortalCustomDomainsCreateOrUpdate then polls until it's completed
 func (c AppPlatformClient) ApiPortalCustomDomainsCreateOrUpdateThenPoll(ctx context.Context, id ApiPortalDomainId, input ApiPortalCustomDomainResource) error {
+	return c.ApiPortalCustomDomainsCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ApiPortalCustomDomainsCreateOrUpdateCallbackThenPoll performs ApiPortalCustomDomainsCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) ApiPortalCustomDomainsCreateOrUpdateCallbackThenPoll(ctx context.Context, id ApiPortalDomainId, input ApiPortalCustomDomainResource, callback func() error) error {
 	result, err := c.ApiPortalCustomDomainsCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ApiPortalCustomDomainsCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

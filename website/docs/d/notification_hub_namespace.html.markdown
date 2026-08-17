@@ -23,7 +23,7 @@ output "servicebus_endpoint" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the Name of the Notification Hub Namespace.
 

@@ -57,9 +57,20 @@ func (c VirtualMachinesClient) Reapply(ctx context.Context, id VirtualMachineId)
 
 // ReapplyThenPoll performs Reapply then polls until it's completed
 func (c VirtualMachinesClient) ReapplyThenPoll(ctx context.Context, id VirtualMachineId) error {
+	return c.ReapplyCallbackThenPoll(ctx, id, nil)
+}
+
+// ReapplyCallbackThenPoll performs Reapply, runs the optional callback function, then polls until it's completed
+func (c VirtualMachinesClient) ReapplyCallbackThenPoll(ctx context.Context, id VirtualMachineId, callback func() error) error {
 	result, err := c.Reapply(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Reapply: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

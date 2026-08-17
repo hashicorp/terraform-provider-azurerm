@@ -13,9 +13,9 @@ type SynapseSparkJobActivityTypeProperties struct {
 	File                     *interface{}                                `json:"file,omitempty"`
 	Files                    *[]interface{}                              `json:"files,omitempty"`
 	FilesV2                  *[]interface{}                              `json:"filesV2,omitempty"`
-	NumExecutors             *int64                                      `json:"numExecutors,omitempty"`
+	NumExecutors             *interface{}                                `json:"numExecutors,omitempty"`
 	PythonCodeReference      *[]interface{}                              `json:"pythonCodeReference,omitempty"`
-	ScanFolder               *bool                                       `json:"scanFolder,omitempty"`
+	ScanFolder               *interface{}                                `json:"scanFolder,omitempty"`
 	SparkConfig              *map[string]interface{}                     `json:"sparkConfig,omitempty"`
 	SparkJob                 SynapseSparkJobReference                    `json:"sparkJob"`
 	TargetBigDataPool        *BigDataPoolParametrizationReference        `json:"targetBigDataPool,omitempty"`

@@ -28,7 +28,7 @@ output "azurerm_marketplace_agreement_accepted" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

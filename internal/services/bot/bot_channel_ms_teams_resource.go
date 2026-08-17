@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package bot
@@ -8,10 +8,10 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
@@ -73,8 +73,7 @@ func resourceBotChannelMsTeams() *pluginsdk.Resource {
 				}, false),
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_calling": {
+			"calling_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -90,7 +89,8 @@ func resourceBotChannelMsTeamsCreate(d *pluginsdk.ResourceData, meta interface{}
 	defer cancel()
 
 	resourceId := parse.NewBotChannelID(subscriptionId, d.Get("resource_group_name").(string), d.Get("bot_name").(string), string(botservice.ChannelNameMsTeamsChannel))
-	if d.IsNewResource() {
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.BotServiceName, resourceId.ChannelName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -105,20 +105,20 @@ func resourceBotChannelMsTeamsCreate(d *pluginsdk.ResourceData, meta interface{}
 	channel := botservice.BotChannel{
 		Properties: botservice.MsTeamsChannel{
 			Properties: &botservice.MsTeamsChannelProperties{
-				AcceptedTerms:         utils.Bool(true),
-				DeploymentEnvironment: utils.String(d.Get("deployment_environment").(string)),
-				EnableCalling:         utils.Bool(d.Get("enable_calling").(bool)),
-				IsEnabled:             utils.Bool(true),
+				AcceptedTerms:         pointer.To(true),
+				DeploymentEnvironment: pointer.To(d.Get("deployment_environment").(string)),
+				EnableCalling:         pointer.To(d.Get("calling_enabled").(bool)),
+				IsEnabled:             pointer.To(true),
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameMsTeamsChannel,
 		},
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
 	}
 
 	if v, ok := d.GetOk("calling_web_hook"); ok {
 		channel, _ := channel.Properties.AsMsTeamsChannel()
-		channel.Properties.CallingWebhook = utils.String(v.(string))
+		channel.Properties.CallingWebhook = pointer.To(v.(string))
 	}
 
 	if _, err := client.Create(ctx, resourceId.ResourceGroup, resourceId.BotServiceName, botservice.ChannelNameMsTeamsChannel, channel); err != nil {
@@ -159,7 +159,7 @@ func resourceBotChannelMsTeamsRead(d *pluginsdk.ResourceData, meta interface{}) 
 			if channelProps := channel.Properties; channelProps != nil {
 				d.Set("calling_web_hook", channelProps.CallingWebhook)
 				d.Set("deployment_environment", channelProps.DeploymentEnvironment)
-				d.Set("enable_calling", channelProps.EnableCalling)
+				d.Set("calling_enabled", channelProps.EnableCalling)
 			}
 		}
 	}
@@ -180,15 +180,15 @@ func resourceBotChannelMsTeamsUpdate(d *pluginsdk.ResourceData, meta interface{}
 	channel := botservice.BotChannel{
 		Properties: botservice.MsTeamsChannel{
 			Properties: &botservice.MsTeamsChannelProperties{
-				AcceptedTerms:         utils.Bool(true),
-				DeploymentEnvironment: utils.String(d.Get("deployment_environment").(string)),
-				EnableCalling:         utils.Bool(d.Get("enable_calling").(bool)),
-				CallingWebhook:        utils.String(d.Get("calling_web_hook").(string)),
-				IsEnabled:             utils.Bool(true),
+				AcceptedTerms:         pointer.To(true),
+				DeploymentEnvironment: pointer.To(d.Get("deployment_environment").(string)),
+				EnableCalling:         pointer.To(d.Get("calling_enabled").(bool)),
+				CallingWebhook:        pointer.To(d.Get("calling_web_hook").(string)),
+				IsEnabled:             pointer.To(true),
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameMsTeamsChannel,
 		},
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
 	}
 

@@ -32,11 +32,12 @@ resource "azurerm_application_insights" "example" {
 }
 
 resource "azurerm_key_vault" "example" {
-  name                = "workspaceexamplekeyvault"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "premium"
+  name                       = "workspaceexamplekeyvault"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
 }
 
 resource "azurerm_storage_account" "example" {
@@ -80,7 +81,7 @@ resource "azurerm_machine_learning_workspace_network_outbound_rule_private_endpo
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

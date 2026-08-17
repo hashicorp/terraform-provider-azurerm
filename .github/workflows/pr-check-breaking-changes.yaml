@@ -1,0 +1,47 @@
+---
+name: Breaking Schema Changes
+
+# Standalone PR check (custom runner): detects breaking provider schema changes
+# that are not gated behind a feature flag (scripts/checks/breaking-change-detection.sh).
+# Display name is matched by the workflow_run list in pr-waiting-response-on-ci-fail.yaml.
+
+permissions:
+  contents: read
+  pull-requests: read
+
+
+on:
+  pull_request:
+    types: ['opened', 'synchronize']
+    paths:
+      - '.github/workflows/pr-check-breaking-changes.yaml'
+      - 'vendor/**'
+      - 'internal/**.go'
+
+concurrency:
+  group: 'breakingChange-${{ github.head_ref }}'
+  cancel-in-progress: true
+
+jobs:
+  detect:
+    runs-on: custom-linux-small
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: ./.go-version
+      - run: bash ./scripts/checks/breaking-change-detection.sh
+      - name: Guidance on failure
+        if: failure()
+        run: |
+          echo "::error::Breaking Schema Changes detected."
+          echo ""
+          echo "Your changes contain breaking schema changes (e.g. removing or renaming"
+          echo "a property, changing a property type, or making an optional property required)."
+          echo "Breaking changes must be gated behind the appropriate feature flag (e.g. features.FivePointOh())."
+          echo "Please review the breaking changes guide: contributing/topics/guide-breaking-changes.md"
+
+  save-artifacts-on-fail:
+    needs: detect
+    if: ${{ failure() }}
+    uses: ./.github/workflows/pr-save-artifacts.yaml

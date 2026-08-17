@@ -8,3 +8,7 @@ const defaultApiVersion = "2023-07-03"
 func userAgent() string {
 	return "hashicorp/go-azure-sdk/galleryimageversions/2023-07-03"
 }
+
+func AzureAPIVersion() string {
+	return defaultApiVersion
+}

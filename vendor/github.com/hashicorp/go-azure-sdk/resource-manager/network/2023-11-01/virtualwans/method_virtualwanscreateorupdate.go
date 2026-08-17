@@ -62,9 +62,20 @@ func (c VirtualWANsClient) VirtualWansCreateOrUpdate(ctx context.Context, id Vir
 
 // VirtualWansCreateOrUpdateThenPoll performs VirtualWansCreateOrUpdate then polls until it's completed
 func (c VirtualWANsClient) VirtualWansCreateOrUpdateThenPoll(ctx context.Context, id VirtualWANId, input VirtualWAN) error {
+	return c.VirtualWansCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// VirtualWansCreateOrUpdateCallbackThenPoll performs VirtualWansCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c VirtualWANsClient) VirtualWansCreateOrUpdateCallbackThenPoll(ctx context.Context, id VirtualWANId, input VirtualWAN, callback func() error) error {
 	result, err := c.VirtualWansCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing VirtualWansCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

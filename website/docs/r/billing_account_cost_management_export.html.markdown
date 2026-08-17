@@ -73,7 +73,7 @@ The following arguments are supported:
 
 * `active` - (Optional) Is the cost management export active? Default is `true`.
 
-* * `file_format` - (Optional) Format for export. Valid values are `Csv` only. Default is `Csv`.
+* `file_format` - (Optional) Format for export. Valid values are `Csv` only. Default is `Csv`.
 
 ---
 

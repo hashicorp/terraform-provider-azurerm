@@ -62,9 +62,20 @@ func (c ClustersClient) RemoveLanguageExtensions(ctx context.Context, id commoni
 
 // RemoveLanguageExtensionsThenPoll performs RemoveLanguageExtensions then polls until it's completed
 func (c ClustersClient) RemoveLanguageExtensionsThenPoll(ctx context.Context, id commonids.KustoClusterId, input LanguageExtensionsList) error {
+	return c.RemoveLanguageExtensionsCallbackThenPoll(ctx, id, input, nil)
+}
+
+// RemoveLanguageExtensionsCallbackThenPoll performs RemoveLanguageExtensions, runs the optional callback function, then polls until it's completed
+func (c ClustersClient) RemoveLanguageExtensionsCallbackThenPoll(ctx context.Context, id commonids.KustoClusterId, input LanguageExtensionsList, callback func() error) error {
 	result, err := c.RemoveLanguageExtensions(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing RemoveLanguageExtensions: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

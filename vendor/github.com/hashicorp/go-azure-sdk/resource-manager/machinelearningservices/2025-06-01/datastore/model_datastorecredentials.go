@@ -25,9 +25,9 @@ func (s BaseDatastoreCredentialsImpl) DatastoreCredentials() BaseDatastoreCreden
 
 var _ DatastoreCredentials = RawDatastoreCredentialsImpl{}
 
-// RawDatastoreCredentialsImpl is returned when the Discriminated Value doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+// RawDatastoreCredentialsImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawDatastoreCredentialsImpl struct {
 	datastoreCredentials BaseDatastoreCredentialsImpl
 	Type                 string
@@ -36,6 +36,10 @@ type RawDatastoreCredentialsImpl struct {
 
 func (s RawDatastoreCredentialsImpl) DatastoreCredentials() BaseDatastoreCredentialsImpl {
 	return s.datastoreCredentials
+}
+
+func (s RawDatastoreCredentialsImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
 }
 
 func UnmarshalDatastoreCredentialsImplementation(input []byte) (DatastoreCredentials, error) {

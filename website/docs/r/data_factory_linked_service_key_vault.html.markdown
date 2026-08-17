@@ -22,11 +22,12 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_key_vault" "example" {
-  name                = "example"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "example"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 }
 
 resource "azurerm_data_factory" "example" {
@@ -42,7 +43,7 @@ resource "azurerm_data_factory_linked_service_key_vault" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

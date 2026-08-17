@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package provider
@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/statestore"
 )
 
 // Provider is the core interface that all Terraform providers must implement.
@@ -163,4 +164,20 @@ type ProviderWithValidateConfig interface {
 
 	// ValidateConfig performs the validation.
 	ValidateConfig(context.Context, ValidateConfigRequest, *ValidateConfigResponse)
+}
+
+// ProviderWithStateStores is an interface type that extends Provider to include state stores.
+//
+// NOTE: State store support is experimental and exposed without compatibility promises until
+// these notices are removed.
+type ProviderWithStateStores interface {
+	Provider
+
+	// StateStores returns a slice of functions to instantiate each
+	// StateStore implementation.
+	//
+	// The state store type name is determined by the
+	// StateStore implementing the Metadata method. All state
+	// stores must have unique names.
+	StateStores(context.Context) []func() statestore.StateStore
 }

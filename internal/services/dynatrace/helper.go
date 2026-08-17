@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dynatrace
@@ -28,13 +28,21 @@ func ExpandDynatraceUserInfo(input []UserInfo) *monitors.UserInfo {
 	}
 	v := input[0]
 
-	return pointer.To(monitors.UserInfo{
-		Country:      pointer.To(v.Country),
+	userInfo := monitors.UserInfo{
 		EmailAddress: pointer.To(v.EmailAddress),
 		FirstName:    pointer.To(v.FirstName),
 		LastName:     pointer.To(v.LastName),
-		PhoneNumber:  pointer.To(v.PhoneNumber),
-	})
+	}
+
+	if v.Country != "" {
+		userInfo.Country = pointer.To(v.Country)
+	}
+
+	if v.PhoneNumber != "" {
+		userInfo.PhoneNumber = pointer.To(v.PhoneNumber)
+	}
+
+	return pointer.To(userInfo)
 }
 
 func ExpandDynatraceEnvironmentProperties(input []EnvironmentProperties) *monitors.DynatraceEnvironmentProperties {
@@ -134,8 +142,7 @@ func FlattenLogRules(input *tagrules.LogRules) []LogRule {
 	var sendSubscriptionLogs bool
 
 	if input.FilteringTags != nil {
-		filteringTags := FlattenFilteringTags(input.FilteringTags)
-		logRule.FilteringTags = filteringTags
+		logRule.FilteringTags = FlattenFilteringTags(input.FilteringTags)
 	}
 
 	if input.SendActivityLogs != nil {
@@ -192,8 +199,7 @@ func FlattenMetricRules(input *tagrules.MetricRules) []MetricRule {
 	var metricRule MetricRule
 
 	if input.FilteringTags != nil {
-		filteringTags := FlattenFilteringTags(input.FilteringTags)
-		metricRule.FilteringTags = filteringTags
+		metricRule.FilteringTags = FlattenFilteringTags(input.FilteringTags)
 	}
 
 	if input.SendingMetrics != nil {

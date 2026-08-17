@@ -10,12 +10,12 @@ import (
 
 type FtpServerLinkedServiceTypeProperties struct {
 	AuthenticationType                *FtpAuthenticationType `json:"authenticationType,omitempty"`
-	EnableServerCertificateValidation *bool                  `json:"enableServerCertificateValidation,omitempty"`
-	EnableSsl                         *bool                  `json:"enableSsl,omitempty"`
+	EnableServerCertificateValidation *interface{}           `json:"enableServerCertificateValidation,omitempty"`
+	EnableSsl                         *interface{}           `json:"enableSsl,omitempty"`
 	EncryptedCredential               *string                `json:"encryptedCredential,omitempty"`
 	Host                              interface{}            `json:"host"`
 	Password                          SecretBase             `json:"password"`
-	Port                              *int64                 `json:"port,omitempty"`
+	Port                              *interface{}           `json:"port,omitempty"`
 	UserName                          *interface{}           `json:"userName,omitempty"`
 }
 
@@ -24,11 +24,11 @@ var _ json.Unmarshaler = &FtpServerLinkedServiceTypeProperties{}
 func (s *FtpServerLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
 		AuthenticationType                *FtpAuthenticationType `json:"authenticationType,omitempty"`
-		EnableServerCertificateValidation *bool                  `json:"enableServerCertificateValidation,omitempty"`
-		EnableSsl                         *bool                  `json:"enableSsl,omitempty"`
+		EnableServerCertificateValidation *interface{}           `json:"enableServerCertificateValidation,omitempty"`
+		EnableSsl                         *interface{}           `json:"enableSsl,omitempty"`
 		EncryptedCredential               *string                `json:"encryptedCredential,omitempty"`
 		Host                              interface{}            `json:"host"`
-		Port                              *int64                 `json:"port,omitempty"`
+		Port                              *interface{}           `json:"port,omitempty"`
 		UserName                          *interface{}           `json:"userName,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {

@@ -70,3 +70,9 @@ Office Power BI Data Connectors can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_sentinel_data_connector_office_power_bi.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.OperationalInsights/workspaces/workspace1/providers/Microsoft.SecurityInsights/dataConnectors/dc1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.OperationalInsights` - 2022-10-01-preview

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -132,18 +132,24 @@ func (r VirtualMachineGalleryApplicationAssignmentResource) Create() sdk.Resourc
 			}
 
 			applications := virtualMachine.Properties.ApplicationProfile.GalleryApplications
+			exists := false
 			for _, application := range pointer.From(applications) {
 				if strings.EqualFold(galleryApplicationVersionId.ID(), application.PackageReferenceId) {
-					return tf.ImportAsExistsError(r.ResourceType(), virtualMachineID.ID())
+					exists = true
+					if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+						return tf.ImportAsExistsError(r.ResourceType(), virtualMachineID.ID())
+					}
 				}
 			}
 
-			*applications = append(pointer.From(applications), virtualmachines.VMGalleryApplication{
-				PackageReferenceId:     galleryApplicationVersionId.ID(),
-				ConfigurationReference: pointer.To(state.ConfigurationBlobUri),
-				Order:                  pointer.To(state.Order),
-				Tags:                   pointer.To(state.Tag),
-			})
+			if !exists {
+				*applications = append(pointer.From(applications), virtualmachines.VMGalleryApplication{
+					PackageReferenceId:     galleryApplicationVersionId.ID(),
+					ConfigurationReference: pointer.To(state.ConfigurationBlobUri),
+					Order:                  pointer.To(state.Order),
+					Tags:                   pointer.To(state.Tag),
+				})
+			}
 
 			virtualMachineUpdate := &virtualmachines.VirtualMachineUpdate{
 				Properties: &virtualmachines.VirtualMachineProperties{
@@ -153,6 +159,7 @@ func (r VirtualMachineGalleryApplicationAssignmentResource) Create() sdk.Resourc
 				},
 			}
 
+			// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
 			if err = client.UpdateThenPoll(ctx, *virtualMachineID, pointer.From(virtualMachineUpdate), virtualmachines.DefaultUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("creating Gallery Application Assignment %q: %+v", virtualMachineID, err)
 			}

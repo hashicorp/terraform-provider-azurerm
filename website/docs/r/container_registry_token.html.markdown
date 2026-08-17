@@ -27,10 +27,12 @@ resource "azurerm_container_registry" "example" {
   admin_enabled       = false
 
   georeplications {
-    location = "East US"
+    location                        = "East US"
+    global_endpoint_routing_enabled = true
   }
   georeplications {
-    location = "West Europe"
+    location                        = "West Europe"
+    global_endpoint_routing_enabled = true
   }
 }
 
@@ -52,7 +54,7 @@ resource "azurerm_container_registry_token" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -95,4 +97,4 @@ terraform import azurerm_container_registry_token.example /subscriptions/0000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ContainerRegistry` - 2023-11-01-preview
+* `Microsoft.ContainerRegistry` - 2025-11-01

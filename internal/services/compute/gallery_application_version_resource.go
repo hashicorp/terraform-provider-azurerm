@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name gallery_application_version -properties "name" -service-package-name compute -compare-values "subscription_id:gallery_application_id,resource_group_name:gallery_application_id,gallery_name:gallery_application_id,application_name:gallery_application_id"
@@ -242,20 +241,23 @@ func (r GalleryApplicationVersionResource) Create() sdk.ResourceFunc {
 			}
 
 			id := galleryapplicationversions.NewApplicationVersionID(subscriptionId, galleryApplicationId.ResourceGroupName, galleryApplicationId.GalleryName, galleryApplicationId.ApplicationName, state.Name)
-			existing, err := client.Get(ctx, id, galleryapplicationversions.DefaultGetOperationOptions())
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for the presence of existing %q: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id, galleryapplicationversions.DefaultGetOperationOptions())
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for the presence of existing %q: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			payload := galleryapplicationversions.GalleryApplicationVersion{
 				Location: location.Normalize(state.Location),
 				Properties: &galleryapplicationversions.GalleryApplicationVersionProperties{
 					PublishingProfile: galleryapplicationversions.GalleryApplicationVersionPublishingProfile{
-						EnableHealthCheck: utils.Bool(state.EnableHealthCheck),
-						ExcludeFromLatest: utils.Bool(state.ExcludeFromLatest),
+						EnableHealthCheck: pointer.To(state.EnableHealthCheck),
+						ExcludeFromLatest: pointer.To(state.ExcludeFromLatest),
 						ManageActions:     expandGalleryApplicationVersionManageAction(state.ManageAction),
 						Source:            expandGalleryApplicationVersionSource(state.Source),
 						TargetRegions:     expandGalleryApplicationVersionTargetRegion(state.TargetRegion),
@@ -288,12 +290,12 @@ func (r GalleryApplicationVersionResource) Create() sdk.ResourceFunc {
 				payload.Properties.PublishingProfile.Settings.PackageFileName = &state.PackageFile
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
-			return nil
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id)
 		},
 		Timeout: 30 * time.Minute,
 	}
@@ -342,11 +344,7 @@ func (r GalleryApplicationVersionResource) Read() sdk.ResourceFunc {
 						state.EndOfLifeDate = d.Format(time.RFC3339)
 					}
 
-					excludeFromLatest := false
-					if props.PublishingProfile.ExcludeFromLatest != nil {
-						excludeFromLatest = *props.PublishingProfile.ExcludeFromLatest
-					}
-					state.ExcludeFromLatest = excludeFromLatest
+					state.ExcludeFromLatest = pointer.From(props.PublishingProfile.ExcludeFromLatest)
 
 					state.ConfigFile = ""
 					state.PackageFile = ""
@@ -388,13 +386,21 @@ func (r GalleryApplicationVersionResource) Update() sdk.ResourceFunc {
 
 			payload := galleryapplicationversions.GalleryApplicationVersionUpdate{}
 
-			if metadata.ResourceData.HasChanges("enable_health_check", "end_of_life_date", "exclude_from_latest", "manage_actions", "source", "target_region") {
+			// lintignore:R019 // deliberate subset: only the fields feeding payload.Properties; tags are applied separately below
+			if metadata.ResourceData.HasChanges(
+				"enable_health_check",
+				"end_of_life_date",
+				"exclude_from_latest",
+				"manage_actions",
+				"source",
+				"target_region",
+			) {
 				if payload.Properties == nil {
 					payload.Properties = &galleryapplicationversions.GalleryApplicationVersionProperties{}
 				}
 
 				if metadata.ResourceData.HasChange("enable_health_check") {
-					payload.Properties.PublishingProfile.EnableHealthCheck = utils.Bool(state.EnableHealthCheck)
+					payload.Properties.PublishingProfile.EnableHealthCheck = pointer.To(state.EnableHealthCheck)
 				}
 
 				if metadata.ResourceData.HasChange("end_of_life_date") {
@@ -403,7 +409,7 @@ func (r GalleryApplicationVersionResource) Update() sdk.ResourceFunc {
 				}
 
 				if metadata.ResourceData.HasChange("exclude_from_latest") {
-					payload.Properties.PublishingProfile.ExcludeFromLatest = utils.Bool(state.ExcludeFromLatest)
+					payload.Properties.PublishingProfile.ExcludeFromLatest = pointer.To(state.ExcludeFromLatest)
 				}
 
 				if metadata.ResourceData.HasChange("manage_actions") {
@@ -446,7 +452,6 @@ func (r GalleryApplicationVersionResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
-			metadata.Logger.Infof("Waiting for %s to be eventually deleted", *id)
 			timeout, _ := ctx.Deadline()
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending: []string{"Exists"},
@@ -504,7 +509,7 @@ func expandGalleryApplicationVersionManageAction(input []ManageAction) *gallerya
 	return &galleryapplicationversions.UserArtifactManage{
 		Install: v.Install,
 		Remove:  v.Remove,
-		Update:  utils.String(v.Update),
+		Update:  pointer.To(v.Update),
 	}
 }
 
@@ -534,7 +539,7 @@ func expandGalleryApplicationVersionSource(input []Source) galleryapplicationver
 	v := input[0]
 	return galleryapplicationversions.UserArtifactSource{
 		MediaLink:                v.MediaLink,
-		DefaultConfigurationLink: utils.String(v.DefaultConfigurationLink),
+		DefaultConfigurationLink: pointer.To(v.DefaultConfigurationLink),
 	}
 }
 
@@ -556,7 +561,7 @@ func expandGalleryApplicationVersionTargetRegion(input []TargetRegion) *[]galler
 		targetRegion := galleryapplicationversions.TargetRegion{
 			Name:                 location.Normalize(item.Name),
 			RegionalReplicaCount: pointer.To(item.RegionalReplicaCount),
-			StorageAccountType:   pointer.To(galleryapplicationversions.StorageAccountType(item.StorageAccountType)),
+			StorageAccountType:   pointer.ToEnum[galleryapplicationversions.StorageAccountType](item.StorageAccountType),
 		}
 
 		if item.ExcludeFromLatest {

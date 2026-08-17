@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cdnfrontdoorruleconditions
@@ -7,11 +7,11 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-09-01/rules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rules"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	helperValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CdnFrontDoorConditionParameters struct {
@@ -203,7 +203,7 @@ func flattenCdnFrontDoorNormalizedCondition(condition normalizedCondition) map[s
 	}
 
 	if condition.matchValues != nil {
-		matchValues = utils.FlattenStringSlice(condition.matchValues)
+		matchValues = helpers.FlattenStringSlice(condition.matchValues)
 	}
 
 	flattened := map[string]interface{}{
@@ -260,7 +260,7 @@ func ExpandCdnFrontDoorRemoteAddressCondition(input []interface{}) (*[]rules.Del
 				TypeName:        conditionMapping.TypeName,
 				Operator:        rules.RemoteAddressOperator(item["operator"].(string)),
 				NegateCondition: pointer.To(item["negate_condition"].(bool)),
-				MatchValues:     utils.ExpandStringSlice(item["match_values"].([]interface{})),
+				MatchValues:     helpers.ExpandStringSlice(item["match_values"].([]interface{})),
 			},
 		}
 
@@ -283,8 +283,7 @@ func ExpandCdnFrontDoorRemoteAddressCondition(input []interface{}) (*[]rules.Del
 			}
 
 			// Check for CIDR overlap and CIDR duplicates in the match values
-			_, err := validate.FrontDoorRuleCidrOverlap(item["match_values"].([]interface{}), "match_values")
-			if err != nil {
+			if _, err := validate.FrontDoorRuleCidrOverlap(item["match_values"].([]interface{}), "match_values"); err != nil {
 				return nil, fmt.Errorf("%q is invalid: %+v", conditionMapping.ConfigName, err)
 			}
 		}
@@ -318,7 +317,7 @@ func ExpandCdnFrontDoorRequestMethodCondition(input []interface{}) (*[]rules.Del
 			},
 		}
 
-		if err := validateCdnFrontDoorExpandConditionOperatorValues(string(condition.Parameters.Operator), utils.ExpandStringSlice(matchValuesRaw), conditionMapping); err != nil {
+		if err := validateCdnFrontDoorExpandConditionOperatorValues(string(condition.Parameters.Operator), helpers.ExpandStringSlice(matchValuesRaw), conditionMapping); err != nil {
 			return nil, err
 		}
 
@@ -341,7 +340,7 @@ func ExpandCdnFrontDoorQueryStringCondition(input []interface{}) (*[]rules.Deliv
 				TypeName:        conditionMapping.TypeName,
 				Operator:        rules.QueryStringOperator(item["operator"].(string)),
 				NegateCondition: pointer.To(item["negate_condition"].(bool)),
-				MatchValues:     utils.ExpandStringSlice(item["match_values"].([]interface{})),
+				MatchValues:     helpers.ExpandStringSlice(item["match_values"].([]interface{})),
 			},
 		}
 
@@ -375,7 +374,7 @@ func ExpandCdnFrontDoorPostArgsCondition(input []interface{}) (*[]rules.Delivery
 				Selector:        pointer.To(item["post_args_name"].(string)),
 				Operator:        rules.PostArgsOperator(item["operator"].(string)),
 				NegateCondition: pointer.To(item["negate_condition"].(bool)),
-				MatchValues:     utils.ExpandStringSlice(item["match_values"].([]interface{})),
+				MatchValues:     helpers.ExpandStringSlice(item["match_values"].([]interface{})),
 			},
 		}
 
@@ -408,7 +407,7 @@ func ExpandCdnFrontDoorRequestUriCondition(input []interface{}) (*[]rules.Delive
 				TypeName:        conditionMapping.TypeName,
 				Operator:        rules.RequestUriOperator(item["operator"].(string)),
 				NegateCondition: pointer.To(item["negate_condition"].(bool)),
-				MatchValues:     utils.ExpandStringSlice(item["match_values"].([]interface{})),
+				MatchValues:     helpers.ExpandStringSlice(item["match_values"].([]interface{})),
 			},
 		}
 
@@ -442,7 +441,7 @@ func ExpandCdnFrontDoorRequestHeaderCondition(input []interface{}) (*[]rules.Del
 				Selector:        pointer.To(item["header_name"].(string)),
 				Operator:        rules.RequestHeaderOperator(item["operator"].(string)),
 				NegateCondition: pointer.To(item["negate_condition"].(bool)),
-				MatchValues:     utils.ExpandStringSlice(item["match_values"].([]interface{})),
+				MatchValues:     helpers.ExpandStringSlice(item["match_values"].([]interface{})),
 			},
 		}
 
@@ -475,7 +474,7 @@ func ExpandCdnFrontDoorRequestBodyCondition(input []interface{}) (*[]rules.Deliv
 				TypeName:        conditionMapping.TypeName,
 				Operator:        rules.RequestBodyOperator(item["operator"].(string)),
 				NegateCondition: pointer.To(item["negate_condition"].(bool)),
-				MatchValues:     utils.ExpandStringSlice(item["match_values"].([]interface{})),
+				MatchValues:     helpers.ExpandStringSlice(item["match_values"].([]interface{})),
 			},
 		}
 
@@ -508,13 +507,13 @@ func ExpandCdnFrontDoorRequestSchemeCondition(input []interface{}) (*[]rules.Del
 			Name: conditionMapping.Name,
 			Parameters: rules.RequestSchemeMatchConditionParameters{
 				TypeName:        conditionMapping.TypeName,
-				Operator:        rules.Operator(item["operator"].(string)),
+				Operator:        rules.RequestSchemeMatchConditionParametersOperator(item["operator"].(string)),
 				NegateCondition: pointer.To(item["negate_condition"].(bool)),
 				MatchValues:     expandRequestSchemeMatchValues(matchValuesRaw),
 			},
 		}
 
-		if err := validateCdnFrontDoorExpandConditionOperatorValues(string(condition.Parameters.Operator), utils.ExpandStringSlice(matchValuesRaw), conditionMapping); err != nil {
+		if err := validateCdnFrontDoorExpandConditionOperatorValues(string(condition.Parameters.Operator), helpers.ExpandStringSlice(matchValuesRaw), conditionMapping); err != nil {
 			return nil, err
 		}
 
@@ -537,7 +536,7 @@ func ExpandCdnFrontDoorUrlPathCondition(input []interface{}) (*[]rules.DeliveryR
 				TypeName:        conditionMapping.TypeName,
 				Operator:        rules.URLPathOperator(item["operator"].(string)),
 				NegateCondition: pointer.To(item["negate_condition"].(bool)),
-				MatchValues:     utils.ExpandStringSlice(item["match_values"].([]interface{})),
+				MatchValues:     helpers.ExpandStringSlice(item["match_values"].([]interface{})),
 			},
 		}
 
@@ -570,7 +569,7 @@ func ExpandCdnFrontDoorUrlFileExtensionCondition(input []interface{}) (*[]rules.
 				TypeName:        conditionMapping.TypeName,
 				Operator:        rules.URLFileExtensionOperator(item["operator"].(string)),
 				NegateCondition: pointer.To(item["negate_condition"].(bool)),
-				MatchValues:     utils.ExpandStringSlice(item["match_values"].([]interface{})),
+				MatchValues:     helpers.ExpandStringSlice(item["match_values"].([]interface{})),
 			},
 		}
 
@@ -603,7 +602,7 @@ func ExpandCdnFrontDoorUrlFileNameCondition(input []interface{}) (*[]rules.Deliv
 				TypeName:        conditionMapping.TypeName,
 				Operator:        rules.URLFileNameOperator(item["operator"].(string)),
 				NegateCondition: pointer.To(item["negate_condition"].(bool)),
-				MatchValues:     utils.ExpandStringSlice(item["match_values"].([]interface{})),
+				MatchValues:     helpers.ExpandStringSlice(item["match_values"].([]interface{})),
 			},
 		}
 
@@ -638,7 +637,7 @@ func ExpandCdnFrontDoorHttpVersionCondition(input []interface{}) (*[]rules.Deliv
 				TypeName:        conditionMapping.TypeName,
 				Operator:        rules.HTTPVersionOperator(item["operator"].(string)),
 				NegateCondition: pointer.To(item["negate_condition"].(bool)),
-				MatchValues:     utils.ExpandStringSlice(matchValuesRaw),
+				MatchValues:     helpers.ExpandStringSlice(matchValuesRaw),
 			},
 		}
 
@@ -666,7 +665,7 @@ func ExpandCdnFrontDoorCookiesCondition(input []interface{}) (*[]rules.DeliveryR
 				Selector:        pointer.To(item["cookie_name"].(string)),
 				Operator:        rules.CookiesOperator(item["operator"].(string)),
 				NegateCondition: pointer.To(item["negate_condition"].(bool)),
-				MatchValues:     utils.ExpandStringSlice(item["match_values"].([]interface{})),
+				MatchValues:     helpers.ExpandStringSlice(item["match_values"].([]interface{})),
 			},
 		}
 
@@ -705,7 +704,7 @@ func ExpandCdnFrontDoorIsDeviceCondition(input []interface{}) (*[]rules.Delivery
 			},
 		}
 
-		if err := validateCdnFrontDoorExpandConditionOperatorValues(string(condition.Parameters.Operator), utils.ExpandStringSlice(matchValuesRaw), conditionMapping); err != nil {
+		if err := validateCdnFrontDoorExpandConditionOperatorValues(string(condition.Parameters.Operator), helpers.ExpandStringSlice(matchValuesRaw), conditionMapping); err != nil {
 			return nil, err
 		}
 
@@ -728,7 +727,7 @@ func ExpandCdnFrontDoorSocketAddressCondition(input []interface{}) (*[]rules.Del
 				TypeName:        conditionMapping.TypeName,
 				Operator:        rules.SocketAddrOperator(item["operator"].(string)),
 				NegateCondition: pointer.To(item["negate_condition"].(bool)),
-				MatchValues:     utils.ExpandStringSlice(item["match_values"].([]interface{})),
+				MatchValues:     helpers.ExpandStringSlice(item["match_values"].([]interface{})),
 			},
 		}
 
@@ -741,8 +740,7 @@ func ExpandCdnFrontDoorSocketAddressCondition(input []interface{}) (*[]rules.Del
 			}
 
 			// Check for CIDR overlap and CIDR duplicates in the match values
-			_, err := validate.FrontDoorRuleCidrOverlap(item["match_values"].([]interface{}), "match_values")
-			if err != nil {
+			if _, err := validate.FrontDoorRuleCidrOverlap(item["match_values"].([]interface{}), "match_values"); err != nil {
 				return nil, fmt.Errorf("%q is invalid: %+v", conditionMapping.ConfigName, err)
 			}
 		}
@@ -770,7 +768,7 @@ func ExpandCdnFrontDoorClientPortCondition(input []interface{}) (*[]rules.Delive
 				TypeName:        conditionMapping.TypeName,
 				Operator:        rules.ClientPortOperator(item["operator"].(string)),
 				NegateCondition: pointer.To(item["negate_condition"].(bool)),
-				MatchValues:     utils.ExpandStringSlice(item["match_values"].([]interface{})),
+				MatchValues:     helpers.ExpandStringSlice(item["match_values"].([]interface{})),
 			},
 		}
 
@@ -799,7 +797,7 @@ func ExpandCdnFrontDoorServerPortCondition(input []interface{}) (*[]rules.Delive
 				TypeName:        conditionMapping.TypeName,
 				Operator:        rules.ServerPortOperator(item["operator"].(string)),
 				NegateCondition: pointer.To(item["negate_condition"].(bool)),
-				MatchValues:     utils.ExpandStringSlice(matchValuesRaw),
+				MatchValues:     helpers.ExpandStringSlice(matchValuesRaw),
 			},
 		}
 
@@ -826,7 +824,7 @@ func ExpandCdnFrontDoorHostNameCondition(input []interface{}) (*[]rules.Delivery
 				TypeName:        conditionMapping.TypeName,
 				Operator:        rules.HostNameOperator(item["operator"].(string)),
 				NegateCondition: pointer.To(item["negate_condition"].(bool)),
-				MatchValues:     utils.ExpandStringSlice(item["match_values"].([]interface{})),
+				MatchValues:     helpers.ExpandStringSlice(item["match_values"].([]interface{})),
 			},
 		}
 

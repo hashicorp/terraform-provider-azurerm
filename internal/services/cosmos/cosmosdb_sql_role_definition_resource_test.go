@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos_test
@@ -9,12 +9,12 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/rbacs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CosmosDbSQLRoleDefinitionResource struct{}
@@ -111,19 +111,16 @@ func TestAccCosmosDbSQLRoleDefinition_multiple(t *testing.T) {
 }
 
 func (r CosmosDbSQLRoleDefinitionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.SqlRoleDefinitionID(state.ID)
+	id, err := rbacs.ParseSqlRoleDefinitionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Cosmos.SqlResourceClient.GetSQLRoleDefinition(ctx, id.Name, id.ResourceGroup, id.DatabaseAccountName)
+	resp, err := client.Cosmos.RbacsClient.SqlResourcesGetSqlRoleDefinition(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
-		}
-		return nil, fmt.Errorf("retrieving %q: %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r CosmosDbSQLRoleDefinitionResource) template(data acceptance.TestData) string {

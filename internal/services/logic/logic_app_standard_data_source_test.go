@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package logic_test
@@ -42,4 +42,29 @@ data "azurerm_logic_app_standard" "test" {
   resource_group_name = azurerm_logic_app_standard.test.resource_group_name
 }
 `, LogicAppStandardResource{}.basic(data))
+}
+
+func TestAccLogicAppStandardDataSource_storageKeyVaultSecret(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_logic_app_standard", "test")
+	r := LogicAppStandardDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.storageKeyVaultSecret(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("storage_key_vault_secret_id").Exists(),
+			),
+		},
+	})
+}
+
+func (r LogicAppStandardDataSource) storageKeyVaultSecret(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_logic_app_standard" "test" {
+  name                = azurerm_logic_app_standard.test.name
+  resource_group_name = azurerm_logic_app_standard.test.resource_group_name
+}
+`, LogicAppStandardResource{}.storageKeyVaultSecret(data))
 }

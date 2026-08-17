@@ -57,9 +57,20 @@ func (c JobsClient) StopExecution(ctx context.Context, id ExecutionId) (result S
 
 // StopExecutionThenPoll performs StopExecution then polls until it's completed
 func (c JobsClient) StopExecutionThenPoll(ctx context.Context, id ExecutionId) error {
+	return c.StopExecutionCallbackThenPoll(ctx, id, nil)
+}
+
+// StopExecutionCallbackThenPoll performs StopExecution, runs the optional callback function, then polls until it's completed
+func (c JobsClient) StopExecutionCallbackThenPoll(ctx context.Context, id ExecutionId, callback func() error) error {
 	result, err := c.StopExecution(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing StopExecution: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

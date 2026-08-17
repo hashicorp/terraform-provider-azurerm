@@ -62,9 +62,20 @@ func (c DigitalTwinsInstanceClient) DigitalTwinsUpdate(ctx context.Context, id D
 
 // DigitalTwinsUpdateThenPoll performs DigitalTwinsUpdate then polls until it's completed
 func (c DigitalTwinsInstanceClient) DigitalTwinsUpdateThenPoll(ctx context.Context, id DigitalTwinsInstanceId, input DigitalTwinsPatchDescription) error {
+	return c.DigitalTwinsUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// DigitalTwinsUpdateCallbackThenPoll performs DigitalTwinsUpdate, runs the optional callback function, then polls until it's completed
+func (c DigitalTwinsInstanceClient) DigitalTwinsUpdateCallbackThenPoll(ctx context.Context, id DigitalTwinsInstanceId, input DigitalTwinsPatchDescription, callback func() error) error {
 	result, err := c.DigitalTwinsUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing DigitalTwinsUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

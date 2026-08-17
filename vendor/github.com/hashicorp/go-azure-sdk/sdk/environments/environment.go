@@ -116,6 +116,7 @@ type Environment struct {
 	PowerBiService                                    Api
 	Purview                                           Api
 	RightsManagement                                  Api
+	Search                                            Api
 	SecurityInsights                                  Api
 	ServiceBus                                        Api
 	ServiceDeploy                                     Api

@@ -57,9 +57,20 @@ func (c UpdatesClient) Post(ctx context.Context, id UpdateId) (result PostOperat
 
 // PostThenPoll performs Post then polls until it's completed
 func (c UpdatesClient) PostThenPoll(ctx context.Context, id UpdateId) error {
+	return c.PostCallbackThenPoll(ctx, id, nil)
+}
+
+// PostCallbackThenPoll performs Post, runs the optional callback function, then polls until it's completed
+func (c UpdatesClient) PostCallbackThenPoll(ctx context.Context, id UpdateId, callback func() error) error {
 	result, err := c.Post(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Post: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

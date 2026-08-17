@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation
@@ -12,11 +12,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/hybridrunbookworker"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/hybridrunbookworker"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type HybridRunbookWorkerModel struct {
@@ -110,28 +109,33 @@ func (m HybridRunbookWorkerResource) ResourceType() string {
 func (m HybridRunbookWorkerResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.Automation.HybridRunbookWorker
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Automation.HybridRunbookWorker
 
 			var model HybridRunbookWorkerModel
-			if err := meta.Decode(&model); err != nil {
+			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
 
-			subscriptionID := meta.Client.Account.SubscriptionId
+			subscriptionID := metadata.Client.Account.SubscriptionId
 			id := hybridrunbookworker.NewHybridRunbookWorkerID(subscriptionID, model.ResourceGroupName,
 				model.AutomationAccountName, model.WorkerGroupName, model.WorkerId)
-			existing, err := client.Get(ctx, id)
-			if !response.WasNotFound(existing.HttpResponse) {
-				if err != nil {
-					return fmt.Errorf("retreiving %s: %v", id, err)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					if err != nil {
+						return fmt.Errorf("retreiving %s: %v", id, err)
+					}
+					return metadata.ResourceRequiresImport(m.ResourceType(), id)
 				}
-				return meta.ResourceRequiresImport(m.ResourceType(), id)
 			}
 
-			req := hybridrunbookworker.HybridRunbookWorkerCreateParameters{}
+			req := hybridrunbookworker.HybridRunbookWorkerCreateParameters{
+				Properties: &hybridrunbookworker.HybridRunbookWorkerCreateOrUpdateParameters{},
+			}
 			if model.VmResourceId != "" {
-				req.Properties.VMResourceId = utils.String(model.VmResourceId)
+				req.Properties.VMResourceId = pointer.To(model.VmResourceId)
 			}
 
 			future, err := client.Create(ctx, id, req)
@@ -143,7 +147,7 @@ func (m HybridRunbookWorkerResource) Create() sdk.ResourceFunc {
 			}
 			_ = future
 
-			meta.SetID(id)
+			metadata.SetID(id)
 			return nil
 		},
 	}

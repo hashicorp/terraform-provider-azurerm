@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package privatedns_test
@@ -27,7 +27,7 @@ func TestAccDataSourcePrivateDnsZoneVirtualNetworkLink_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("id").MatchesOtherKey(check.That(resourceName).Key("id")),
 				check.That(data.ResourceName).Key("name").MatchesOtherKey(check.That(resourceName).Key("name")),
-				check.That(data.ResourceName).Key("resource_group_name").MatchesOtherKey(check.That(resourceName).Key("resource_group_name")),
+				check.That(data.ResourceName).Key("resource_group_name").MatchesOtherKey(check.That(zoneName).Key("resource_group_name")),
 				check.That(data.ResourceName).Key("virtual_network_id").MatchesOtherKey(check.That(vnetName).Key("id")),
 				check.That(data.ResourceName).Key("private_dns_zone_name").MatchesOtherKey(check.That(zoneName).Key("name")),
 				check.That(data.ResourceName).Key("registration_enabled").HasValue("false"),
@@ -51,7 +51,7 @@ func TestAccDataSourcePrivateDnsZoneVirtualNetworkLink_resolutionPolicy(t *testi
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("id").MatchesOtherKey(check.That(resourceName).Key("id")),
 				check.That(data.ResourceName).Key("name").MatchesOtherKey(check.That(resourceName).Key("name")),
-				check.That(data.ResourceName).Key("resource_group_name").MatchesOtherKey(check.That(resourceName).Key("resource_group_name")),
+				check.That(data.ResourceName).Key("resource_group_name").MatchesOtherKey(check.That(zoneName).Key("resource_group_name")),
 				check.That(data.ResourceName).Key("virtual_network_id").MatchesOtherKey(check.That(vnetName).Key("id")),
 				check.That(data.ResourceName).Key("private_dns_zone_name").MatchesOtherKey(check.That(zoneName).Key("name")),
 				check.That(data.ResourceName).Key("resolution_policy").HasValue("NxDomainRedirect"),

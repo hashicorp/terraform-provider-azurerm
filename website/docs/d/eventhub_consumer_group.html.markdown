@@ -21,7 +21,7 @@ data "azurerm_eventhub_consumer_group" "test" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the EventHub Consumer Group resource.
 

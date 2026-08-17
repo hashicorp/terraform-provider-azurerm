@@ -28,7 +28,7 @@ output "hostname" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the Redis cache
 

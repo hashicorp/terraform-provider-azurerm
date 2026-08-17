@@ -57,9 +57,20 @@ func (c ServerFailoverClient) ServersFailover(ctx context.Context, id FlexibleSe
 
 // ServersFailoverThenPoll performs ServersFailover then polls until it's completed
 func (c ServerFailoverClient) ServersFailoverThenPoll(ctx context.Context, id FlexibleServerId) error {
+	return c.ServersFailoverCallbackThenPoll(ctx, id, nil)
+}
+
+// ServersFailoverCallbackThenPoll performs ServersFailover, runs the optional callback function, then polls until it's completed
+func (c ServerFailoverClient) ServersFailoverCallbackThenPoll(ctx context.Context, id FlexibleServerId, callback func() error) error {
 	result, err := c.ServersFailover(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ServersFailover: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

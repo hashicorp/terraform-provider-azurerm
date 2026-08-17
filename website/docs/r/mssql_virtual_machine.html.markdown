@@ -37,7 +37,7 @@ resource "azurerm_mssql_virtual_machine" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

@@ -24,7 +24,7 @@ output "elasticpool_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the elastic pool.
 
@@ -41,6 +41,8 @@ output "elasticpool_id" {
 * `license_type` - The license type to apply for this elastic pool.
 
 * `location` - Specifies the supported Azure location where the resource exists.
+
+* `high_availability_replica_count` - Specifies the number of high availability replicas for the elastic pool.
 
 * `max_size_gb` - The max data size of the elastic pool in gigabytes.
 

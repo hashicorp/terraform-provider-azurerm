@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -46,8 +46,7 @@ func (QueueV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 
 		queueName := rawState["name"]
 		storageAccountName := rawState["storage_account_name"]
-		newID := fmt.Sprintf("https://%s.queue.%s/%s", storageAccountName, *storageDomainSuffix, queueName)
-		rawState["id"] = newID
+		rawState["id"] = fmt.Sprintf("https://%s.queue.%s/%s", storageAccountName, *storageDomainSuffix, queueName)
 
 		return rawState, nil
 	}

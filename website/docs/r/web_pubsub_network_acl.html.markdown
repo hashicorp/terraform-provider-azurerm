@@ -75,7 +75,7 @@ resource "azurerm_web_pubsub_network_acl" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

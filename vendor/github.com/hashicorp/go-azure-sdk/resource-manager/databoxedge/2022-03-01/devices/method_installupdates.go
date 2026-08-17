@@ -57,9 +57,20 @@ func (c DevicesClient) InstallUpdates(ctx context.Context, id DataBoxEdgeDeviceI
 
 // InstallUpdatesThenPoll performs InstallUpdates then polls until it's completed
 func (c DevicesClient) InstallUpdatesThenPoll(ctx context.Context, id DataBoxEdgeDeviceId) error {
+	return c.InstallUpdatesCallbackThenPoll(ctx, id, nil)
+}
+
+// InstallUpdatesCallbackThenPoll performs InstallUpdates, runs the optional callback function, then polls until it's completed
+func (c DevicesClient) InstallUpdatesCallbackThenPoll(ctx context.Context, id DataBoxEdgeDeviceId, callback func() error) error {
 	result, err := c.InstallUpdates(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing InstallUpdates: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

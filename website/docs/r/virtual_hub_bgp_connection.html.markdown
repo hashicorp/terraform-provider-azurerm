@@ -78,7 +78,7 @@ The following arguments are supported:
 
 * `peer_ip` - (Required) The peer IP address for the Virtual Hub Bgp Connection. Changing this forces a new resource to be created.
 
-* `virtual_network_connection_id` - (Optional) The ID of virtual network connection.
+* `virtual_network_connection_id` - (Optional) The ID of virtual network connection. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
@@ -92,7 +92,6 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 * `create` - (Defaults to 30 minutes) Used when creating the Virtual Hub Bgp Connection.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Hub Bgp Connection.
-* `update` - (Defaults to 30 minutes) Used when updating the Virtual Hub Bgp Connection.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Virtual Hub Bgp Connection.
 
 ## Import
@@ -107,4 +106,4 @@ terraform import azurerm_virtual_hub_bgp_connection.example /subscriptions/00000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2024-05-01
+* `Microsoft.Network` - 2025-01-01

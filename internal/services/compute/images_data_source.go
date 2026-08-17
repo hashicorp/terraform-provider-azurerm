@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -8,6 +8,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -211,10 +212,7 @@ func filterToImagesMatchingTags(input []images.Image, filterTags map[string]stri
 }
 
 func flattenImage(input images.Image) map[string]interface{} {
-	name := ""
-	if input.Name != nil {
-		name = *input.Name
-	}
+	name := pointer.From(input.Name)
 
 	zoneResilient := false
 	osDisk := make([]interface{}, 0)
@@ -243,10 +241,7 @@ func flattenImagesOSDisk(input *images.ImageStorageProfile) []interface{} {
 
 	if input != nil {
 		if v := input.OsDisk; v != nil {
-			blobUri := ""
-			if uri := v.BlobUri; uri != nil {
-				blobUri = *uri
-			}
+			blobUri := pointer.From(v.BlobUri)
 			caching := ""
 			if v.Caching != nil {
 				caching = string(*v.Caching)
@@ -284,10 +279,7 @@ func flattenImagesDataDisks(input *images.ImageStorageProfile) []interface{} {
 	if input != nil {
 		if v := input.DataDisks; v != nil {
 			for _, disk := range *input.DataDisks {
-				blobUri := ""
-				if disk.BlobUri != nil {
-					blobUri = *disk.BlobUri
-				}
+				blobUri := pointer.From(disk.BlobUri)
 				caching := ""
 				if disk.Caching != nil {
 					caching = string(*disk.Caching)

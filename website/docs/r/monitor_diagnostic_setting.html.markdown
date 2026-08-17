@@ -33,6 +33,7 @@ resource "azurerm_key_vault" "example" {
   name                       = "examplekeyvault"
   location                   = azurerm_resource_group.example.location
   resource_group_name        = azurerm_resource_group.example.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days = 7
   purge_protection_enabled   = false
@@ -54,7 +55,7 @@ resource "azurerm_monitor_diagnostic_setting" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
@@ -187,8 +187,7 @@ func checkZipDeploymentStatusRefresh(r *http.Request) pluginsdk.StateRefreshFunc
 		}
 
 		body := make(map[string]interface{})
-		err = json.Unmarshal(respBody, &body)
-		if err != nil {
+		if err = json.Unmarshal(respBody, &body); err != nil {
 			return nil, "", fmt.Errorf("could not parse status response for Zip Deploy")
 		}
 

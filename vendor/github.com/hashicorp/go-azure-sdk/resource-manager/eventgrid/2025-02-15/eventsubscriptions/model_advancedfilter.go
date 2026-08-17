@@ -26,9 +26,9 @@ func (s BaseAdvancedFilterImpl) AdvancedFilter() BaseAdvancedFilterImpl {
 
 var _ AdvancedFilter = RawAdvancedFilterImpl{}
 
-// RawAdvancedFilterImpl is returned when the Discriminated Value doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+// RawAdvancedFilterImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawAdvancedFilterImpl struct {
 	advancedFilter BaseAdvancedFilterImpl
 	Type           string
@@ -37,6 +37,10 @@ type RawAdvancedFilterImpl struct {
 
 func (s RawAdvancedFilterImpl) AdvancedFilter() BaseAdvancedFilterImpl {
 	return s.advancedFilter
+}
+
+func (s RawAdvancedFilterImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
 }
 
 func UnmarshalAdvancedFilterImplementation(input []byte) (AdvancedFilter, error) {

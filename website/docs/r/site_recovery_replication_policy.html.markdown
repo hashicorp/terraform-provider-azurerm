@@ -34,7 +34,7 @@ resource "azurerm_site_recovery_replication_policy" "policy" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

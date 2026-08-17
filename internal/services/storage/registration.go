@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -6,7 +6,6 @@ package storage
 import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
-	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -89,6 +88,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		AccountQueuePropertiesResource{},
+		AccountTablePropertiesResource{},
 		AccountStaticWebsiteResource{},
 		LocalUserResource{},
 		StorageContainerImmutabilityPolicyResource{},
@@ -112,8 +112,11 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 	return []func() ephemeral.EphemeralResource{}
 }
 
-func (r Registration) ListResources() []func() list.ListResource {
-	return []func() list.ListResource{
-		NewStorageAccountListResource,
+func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
+	return []sdk.FrameworkListWrappedResource{
+		StorageAccountCustomerManagedKeyListResource{},
+		StorageAccountListResource{},
+		StorageSyncListResource{},
+		SyncServerEndpointListResource{},
 	}
 }

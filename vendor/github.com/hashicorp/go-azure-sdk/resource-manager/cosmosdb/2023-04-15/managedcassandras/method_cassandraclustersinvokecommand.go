@@ -61,9 +61,20 @@ func (c ManagedCassandrasClient) CassandraClustersInvokeCommand(ctx context.Cont
 
 // CassandraClustersInvokeCommandThenPoll performs CassandraClustersInvokeCommand then polls until it's completed
 func (c ManagedCassandrasClient) CassandraClustersInvokeCommandThenPoll(ctx context.Context, id CassandraClusterId, input CommandPostBody) error {
+	return c.CassandraClustersInvokeCommandCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CassandraClustersInvokeCommandCallbackThenPoll performs CassandraClustersInvokeCommand, runs the optional callback function, then polls until it's completed
+func (c ManagedCassandrasClient) CassandraClustersInvokeCommandCallbackThenPoll(ctx context.Context, id CassandraClusterId, input CommandPostBody, callback func() error) error {
 	result, err := c.CassandraClustersInvokeCommand(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CassandraClustersInvokeCommand: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

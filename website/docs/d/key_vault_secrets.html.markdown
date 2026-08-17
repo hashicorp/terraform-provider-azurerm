@@ -25,7 +25,7 @@ data "azurerm_key_vault_secret" "example" {
 
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

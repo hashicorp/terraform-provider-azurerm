@@ -73,7 +73,7 @@ resource "azurerm_synapse_managed_private_endpoint" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -88,6 +88,12 @@ The following arguments are supported:
 * `subresource_name` - (Required) Specifies the sub resource name which the Synapse Private Endpoint is able to connect to. Changing this forces a new resource to be created.
 
 -> **Note:** Possible values are listed in [documentation](https://docs.microsoft.com/azure/private-link/private-endpoint-overview#dns-configuration).
+
+---
+
+* `fully_qualified_domain_names` - (Optional) A list of fully qualified domain names to assign to the Synapse Private Endpoint. Changing this forces a new resource to be created.
+
+~> **Note:** `fully_qualified_domain_names` must be specified when the `target_resource_id` is a Private Link Service.
 
 ## Attributes Reference
 
@@ -110,3 +116,9 @@ Synapse Managed Private Endpoint can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_synapse_managed_private_endpoint.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Synapse/workspaces/workspace1/managedVirtualNetworks/default/managedPrivateEndpoints/endpoint1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Synapse` - 2021-06-01

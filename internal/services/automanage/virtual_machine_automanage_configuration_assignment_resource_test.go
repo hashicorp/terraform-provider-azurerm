@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automanage_test
@@ -15,14 +15,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VirtualMachineConfigurationAssignmentResource struct{}
+type VirtualMachineAutomanageConfigurationAssignmentResource struct{}
 
 func TestAccVirtualMachineConfigurationAssignment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_automanage_configuration_assignment", "test")
-	r := VirtualMachineConfigurationAssignmentResource{}
+	r := VirtualMachineAutomanageConfigurationAssignmentResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -36,7 +35,7 @@ func TestAccVirtualMachineConfigurationAssignment_basic(t *testing.T) {
 
 func TestAccVirtualMachineConfigurationAssignment_requireImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_automanage_configuration_assignment", "test")
-	r := VirtualMachineConfigurationAssignmentResource{}
+	r := VirtualMachineAutomanageConfigurationAssignmentResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -48,7 +47,7 @@ func TestAccVirtualMachineConfigurationAssignment_requireImport(t *testing.T) {
 	})
 }
 
-func (r VirtualMachineConfigurationAssignmentResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r VirtualMachineAutomanageConfigurationAssignmentResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	client := clients.Automanage.ConfigurationProfileVMAssignmentsClient
 
 	id, err := configurationprofileassignments.ParseVirtualMachineProviders2ConfigurationProfileAssignmentID(state.ID)
@@ -59,14 +58,14 @@ func (r VirtualMachineConfigurationAssignmentResource) Exists(ctx context.Contex
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r VirtualMachineConfigurationAssignmentResource) basic(data acceptance.TestData) string {
+func (r VirtualMachineAutomanageConfigurationAssignmentResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -143,7 +142,7 @@ resource "azurerm_virtual_machine_automanage_configuration_assignment" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r VirtualMachineConfigurationAssignmentResource) requiresImport(data acceptance.TestData) string {
+func (r VirtualMachineAutomanageConfigurationAssignmentResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 			%s

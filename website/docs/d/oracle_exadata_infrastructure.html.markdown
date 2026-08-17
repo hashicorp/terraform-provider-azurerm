@@ -169,4 +169,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Oracle.Database` - 2025-03-01
+* `Oracle.Database` - 2025-09-01

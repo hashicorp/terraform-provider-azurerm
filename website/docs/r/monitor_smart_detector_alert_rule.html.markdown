@@ -45,7 +45,7 @@ resource "azurerm_monitor_smart_detector_alert_rule" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

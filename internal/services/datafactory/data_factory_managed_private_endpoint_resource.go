@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory
@@ -9,20 +9,20 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/managedprivateendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/privatelinkservices"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDataFactoryManagedPrivateEndpoint() *pluginsdk.Resource {
@@ -32,7 +32,7 @@ func resourceDataFactoryManagedPrivateEndpoint() *pluginsdk.Resource {
 		Delete: resourceDataFactoryManagedPrivateEndpointDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ManagedPrivateEndpointID(id)
+			_, err := managedprivateendpoints.ParseManagedPrivateEndpointID(id)
 			return err
 		}),
 
@@ -106,12 +106,15 @@ func resourceDataFactoryManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, 
 	}
 
 	id := managedprivateendpoints.NewManagedPrivateEndpointID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, *managedVirtualNetworkName, d.Get("name").(string))
-	existing, err := getManagedPrivateEndpoint(ctx, client, id.SubscriptionId, id.ResourceGroupName, id.FactoryName, id.ManagedVirtualNetworkName, id.ManagedPrivateEndpointName)
-	if err != nil {
-		return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-	}
-	if existing != nil {
-		return tf.ImportAsExistsError("azurerm_data_factory_managed_private_endpoint", id.ID())
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := getManagedPrivateEndpoint(ctx, client, id.SubscriptionId, id.ResourceGroupName, id.FactoryName, id.ManagedVirtualNetworkName, id.ManagedPrivateEndpointName)
+		if err != nil {
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		}
+		if existing != nil {
+			return tf.ImportAsExistsError("azurerm_data_factory_managed_private_endpoint", id.ID())
+		}
 	}
 
 	targetResourceId := d.Get("target_resource_id").(string)
@@ -128,7 +131,7 @@ func resourceDataFactoryManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, 
 		}
 	} else {
 		if len(strings.TrimSpace(subResourceName)) < 3 {
-			return fmt.Errorf("`subresource_name` must be at least 3 character in length")
+			return fmt.Errorf("`subresource_name` must be at least 3 characters in length")
 		}
 
 		if len(fqdns) > 0 {
@@ -138,21 +141,23 @@ func resourceDataFactoryManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, 
 
 	payload := managedprivateendpoints.ManagedPrivateEndpointResource{
 		Properties: managedprivateendpoints.ManagedPrivateEndpoint{
-			PrivateLinkResourceId: utils.String(targetResourceId),
+			PrivateLinkResourceId: pointer.To(targetResourceId),
 		},
 	}
 
 	if len(subResourceName) > 0 {
-		payload.Properties.GroupId = utils.String(subResourceName)
+		payload.Properties.GroupId = pointer.To(subResourceName)
 	}
 
 	if len(fqdns) > 0 {
-		payload.Properties.Fqdns = utils.ExpandStringSlice(fqdns)
+		payload.Properties.Fqdns = helpers.ExpandStringSlice(fqdns)
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, payload, managedprivateendpoints.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
+
+	d.SetId(id.ID())
 
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{"Provisioning"},
@@ -164,8 +169,6 @@ func resourceDataFactoryManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to be created: %+v", id.ID(), err)
 	}
-
-	d.SetId(id.ID())
 
 	return resourceDataFactoryManagedPrivateEndpointRead(d, meta)
 }
@@ -198,7 +201,7 @@ func resourceDataFactoryManagedPrivateEndpointRead(d *pluginsdk.ResourceData, me
 		props := model.Properties
 		d.Set("target_resource_id", props.PrivateLinkResourceId)
 		d.Set("subresource_name", props.GroupId)
-		d.Set("fqdns", utils.FlattenStringSlice(props.Fqdns))
+		d.Set("fqdns", helpers.FlattenStringSlice(props.Fqdns))
 	}
 
 	return nil

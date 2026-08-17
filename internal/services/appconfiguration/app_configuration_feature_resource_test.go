@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appconfiguration_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/appconfiguration/1.0/appconfiguration"
 )
 
@@ -44,6 +44,9 @@ func TestAccAppConfigurationFeature_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("targeting_filter.0.groups.0.rollout_percentage").HasValue("50"),
 				check.That(data.ResourceName).Key("targeting_filter.0.groups.1.name").HasValue("testgroup2"),
 				check.That(data.ResourceName).Key("targeting_filter.0.groups.1.rollout_percentage").HasValue("30"),
+				check.That(data.ResourceName).Key("custom_filter.0.name").HasValue("custom-filter"),
+				check.That(data.ResourceName).Key("custom_filter.0.parameters.param1").HasValue("123"),
+				check.That(data.ResourceName).Key("custom_filter.0.parameters.param2").HasValue("321"),
 			),
 		},
 		data.ImportStep(),
@@ -246,6 +249,34 @@ func TestAccAppConfigurationFeature_basicAddTargetingFilter(t *testing.T) {
 	})
 }
 
+func TestAccAppConfigurationFeature_basicAddCustomFilter(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_configuration_feature", "test")
+	r := AppConfigurationFeatureResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicNoFilters(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicCustomFilter(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicNoFilters(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t AppConfigurationFeatureResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	nestedItemId, err := parse.ParseNestedItemID(state.ID)
 	if err != nil {
@@ -262,7 +293,7 @@ func (t AppConfigurationFeatureResource) Exists(ctx context.Context, clients *cl
 		return nil, fmt.Errorf("while checking for key's %q existence: %+v", nestedItemId.Key, err)
 	}
 
-	return utils.Bool(res.StatusCode == 200), nil
+	return pointer.To(res.StatusCode == 200), nil
 }
 
 func (t AppConfigurationFeatureResource) basic(data acceptance.TestData) string {
@@ -295,6 +326,14 @@ resource "azurerm_app_configuration_feature" "test" {
     groups {
       name               = "testgroup2"
       rollout_percentage = 30
+    }
+  }
+
+  custom_filter {
+    name = "custom-filter"
+    parameters = {
+      param1 = "123"
+      param2 = "321"
     }
   }
 }
@@ -518,6 +557,28 @@ resource "azurerm_app_configuration_feature" "test" {
     users = [
       "random", "user"
     ]
+  }
+}
+`, t.template(data), data.RandomInteger)
+}
+
+func (t AppConfigurationFeatureResource) basicCustomFilter(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_configuration_feature" "test" {
+  configuration_store_id = azurerm_app_configuration.test.id
+  description            = "test description"
+  name                   = "acctest-ackey-%[2]d"
+  label                  = "acctest-ackeylabel-%[2]d"
+  enabled                = true
+
+  custom_filter {
+    name = "custom-filter"
+    parameters = {
+      param1 = "123"
+      param2 = "321"
+    }
   }
 }
 `, t.template(data), data.RandomInteger)

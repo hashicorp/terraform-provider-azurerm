@@ -62,9 +62,20 @@ func (c AppPlatformClient) ContainerRegistriesCreateOrUpdate(ctx context.Context
 
 // ContainerRegistriesCreateOrUpdateThenPoll performs ContainerRegistriesCreateOrUpdate then polls until it's completed
 func (c AppPlatformClient) ContainerRegistriesCreateOrUpdateThenPoll(ctx context.Context, id ContainerRegistryId, input ContainerRegistryResource) error {
+	return c.ContainerRegistriesCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ContainerRegistriesCreateOrUpdateCallbackThenPoll performs ContainerRegistriesCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) ContainerRegistriesCreateOrUpdateCallbackThenPoll(ctx context.Context, id ContainerRegistryId, input ContainerRegistryResource, callback func() error) error {
 	result, err := c.ContainerRegistriesCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ContainerRegistriesCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

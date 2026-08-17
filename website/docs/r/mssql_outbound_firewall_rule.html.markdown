@@ -35,7 +35,7 @@ resource "azurerm_mssql_outbound_firewall_rule" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

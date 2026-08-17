@@ -65,7 +65,7 @@ resource "azurerm_backup_policy_vm_workload" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

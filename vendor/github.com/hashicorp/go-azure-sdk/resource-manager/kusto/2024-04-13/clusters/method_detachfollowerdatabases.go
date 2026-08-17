@@ -62,9 +62,20 @@ func (c ClustersClient) DetachFollowerDatabases(ctx context.Context, id commonid
 
 // DetachFollowerDatabasesThenPoll performs DetachFollowerDatabases then polls until it's completed
 func (c ClustersClient) DetachFollowerDatabasesThenPoll(ctx context.Context, id commonids.KustoClusterId, input FollowerDatabaseDefinition) error {
+	return c.DetachFollowerDatabasesCallbackThenPoll(ctx, id, input, nil)
+}
+
+// DetachFollowerDatabasesCallbackThenPoll performs DetachFollowerDatabases, runs the optional callback function, then polls until it's completed
+func (c ClustersClient) DetachFollowerDatabasesCallbackThenPoll(ctx context.Context, id commonids.KustoClusterId, input FollowerDatabaseDefinition, callback func() error) error {
 	result, err := c.DetachFollowerDatabases(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing DetachFollowerDatabases: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -90,4 +90,4 @@ terraform import azurerm_storage_mover_target_endpoint.example /subscriptions/00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.StorageMover` - 2023-03-01
+* `Microsoft.StorageMover` - 2025-07-01

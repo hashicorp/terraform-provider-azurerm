@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package pluginsdk
@@ -44,8 +44,7 @@ func CustomDiffWithAll(funcs ...CustomizeDiffFunc) schema.CustomizeDiffFunc {
 func CustomDiffInSequence(funcs ...CustomizeDiffFunc) schema.CustomizeDiffFunc {
 	return func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
 		for _, f := range funcs {
-			err := f(ctx, d, meta)
-			if err != nil {
+			if err := f(ctx, d, meta); err != nil {
 				return err
 			}
 		}

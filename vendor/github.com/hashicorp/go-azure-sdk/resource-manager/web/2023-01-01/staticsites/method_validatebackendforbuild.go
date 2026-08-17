@@ -61,9 +61,20 @@ func (c StaticSitesClient) ValidateBackendForBuild(ctx context.Context, id Build
 
 // ValidateBackendForBuildThenPoll performs ValidateBackendForBuild then polls until it's completed
 func (c StaticSitesClient) ValidateBackendForBuildThenPoll(ctx context.Context, id BuildLinkedBackendId, input StaticSiteLinkedBackendARMResource) error {
+	return c.ValidateBackendForBuildCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ValidateBackendForBuildCallbackThenPoll performs ValidateBackendForBuild, runs the optional callback function, then polls until it's completed
+func (c StaticSitesClient) ValidateBackendForBuildCallbackThenPoll(ctx context.Context, id BuildLinkedBackendId, input StaticSiteLinkedBackendARMResource, callback func() error) error {
 	result, err := c.ValidateBackendForBuild(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ValidateBackendForBuild: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

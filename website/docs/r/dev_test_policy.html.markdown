@@ -43,7 +43,7 @@ resource "azurerm_dev_test_policy" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

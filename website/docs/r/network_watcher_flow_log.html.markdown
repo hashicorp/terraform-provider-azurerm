@@ -75,7 +75,7 @@ resource "azurerm_network_watcher_flow_log" "test" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -85,7 +85,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which the Network Watcher was deployed. Changing this forces a new resource to be created.
 
-* `target_resource_id` - (Required) The ID of the Resource for which to enable flow logs for.
+* `target_resource_id` - (Optional) The ID of the Resource for which to enable flow logs for.
 
 ~> **Note:** As of July 30, 2025, it is no longer possible to create new flow logs for Network Security Groups.
 
@@ -154,4 +154,4 @@ terraform import azurerm_network_watcher_flow_log.watcher1 /subscriptions/000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2024-05-01
+* `Microsoft.Network` - 2025-01-01

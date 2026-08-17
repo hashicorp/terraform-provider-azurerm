@@ -15,7 +15,7 @@ type HDInsightLinkedServiceTypeProperties struct {
 	EncryptedCredential       *string                             `json:"encryptedCredential,omitempty"`
 	FileSystem                *interface{}                        `json:"fileSystem,omitempty"`
 	HcatalogLinkedServiceName *LinkedServiceReference             `json:"hcatalogLinkedServiceName,omitempty"`
-	IsEspEnabled              *bool                               `json:"isEspEnabled,omitempty"`
+	IsEspEnabled              *interface{}                        `json:"isEspEnabled,omitempty"`
 	LinkedServiceName         *LinkedServiceReference             `json:"linkedServiceName,omitempty"`
 	Password                  SecretBase                          `json:"password"`
 	UserName                  *interface{}                        `json:"userName,omitempty"`
@@ -31,7 +31,7 @@ func (s *HDInsightLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error
 		EncryptedCredential       *string                             `json:"encryptedCredential,omitempty"`
 		FileSystem                *interface{}                        `json:"fileSystem,omitempty"`
 		HcatalogLinkedServiceName *LinkedServiceReference             `json:"hcatalogLinkedServiceName,omitempty"`
-		IsEspEnabled              *bool                               `json:"isEspEnabled,omitempty"`
+		IsEspEnabled              *interface{}                        `json:"isEspEnabled,omitempty"`
 		LinkedServiceName         *LinkedServiceReference             `json:"linkedServiceName,omitempty"`
 		UserName                  *interface{}                        `json:"userName,omitempty"`
 	}

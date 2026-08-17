@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2020, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package tf5muxserver
@@ -12,6 +12,7 @@ var serverCapabilities = &tfprotov5.ServerCapabilities{
 	GetProviderSchemaOptional: true,
 	MoveResourceState:         true,
 	PlanDestroy:               true,
+	GenerateResourceConfig:    true,
 }
 
 // serverSupportsPlanDestroy returns true if the given ServerCapabilities is not

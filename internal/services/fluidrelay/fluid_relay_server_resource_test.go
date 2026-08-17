@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package fluidrelay_test
@@ -8,18 +8,18 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26/fluidrelayservers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type FluidRelayResource struct{}
 
-func TestAccFluidRelay_basic(t *testing.T) {
+func TestAccFluidRelayServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_fluid_relay_server", "test")
 	f := FluidRelayResource{}
 
@@ -37,7 +37,7 @@ func TestAccFluidRelay_basic(t *testing.T) {
 	})
 }
 
-func TestAccFluidRelay_storageBasic(t *testing.T) {
+func TestAccFluidRelayServer_storageBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_fluid_relay_server", "test")
 	f := FluidRelayResource{}
 
@@ -53,7 +53,7 @@ func TestAccFluidRelay_storageBasic(t *testing.T) {
 	})
 }
 
-func TestAccFluidRelay_ami(t *testing.T) {
+func TestAccFluidRelayServer_ami(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_fluid_relay_server", "test")
 	f := FluidRelayResource{}
 
@@ -185,12 +185,12 @@ func (f FluidRelayResource) Exists(ctx context.Context, client *clients.Client, 
 	resp, err := client.FluidRelay.FluidRelayServers.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %v", id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (f FluidRelayResource) template(data acceptance.TestData) string {
@@ -236,6 +236,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acctestkv-%[3]s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7

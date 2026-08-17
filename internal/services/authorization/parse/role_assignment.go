@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -171,8 +171,7 @@ func RoleAssignmentID(input string) (*RoleAssignmentId, error) {
 		if strings.Contains(input, "/aliases/") {
 			roleAssignmentId.IsSubscriptionAliasLevel = true
 			aliasParts := strings.Split(idParts[0], "/")
-			alias := aliasParts[len(aliasParts)-1]
-			roleAssignmentId.SubscriptionAlias = alias
+			roleAssignmentId.SubscriptionAlias = aliasParts[len(aliasParts)-1]
 		} else {
 			roleAssignmentId.IsSubscriptionLevel = true
 		}

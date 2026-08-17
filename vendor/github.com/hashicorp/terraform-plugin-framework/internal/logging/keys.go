@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package logging
@@ -42,6 +42,9 @@ const (
 
 	// The type of list resource being operated on, such as "random_pet"
 	KeyListResourceType = "tf_list_resource_type"
+
+	// The type of state store in use, such as "examplecloud_fs"
+	KeyStateStoreType = "tf_state_store_type"
 
 	// The type of value being operated on, such as "JSONStringValue".
 	KeyValueType = "tf_value_type"

@@ -59,9 +59,20 @@ func (c ClustersClient) DiagnoseVirtualNetwork(ctx context.Context, id commonids
 
 // DiagnoseVirtualNetworkThenPoll performs DiagnoseVirtualNetwork then polls until it's completed
 func (c ClustersClient) DiagnoseVirtualNetworkThenPoll(ctx context.Context, id commonids.KustoClusterId) error {
+	return c.DiagnoseVirtualNetworkCallbackThenPoll(ctx, id, nil)
+}
+
+// DiagnoseVirtualNetworkCallbackThenPoll performs DiagnoseVirtualNetwork, runs the optional callback function, then polls until it's completed
+func (c ClustersClient) DiagnoseVirtualNetworkCallbackThenPoll(ctx context.Context, id commonids.KustoClusterId, callback func() error) error {
 	result, err := c.DiagnoseVirtualNetwork(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing DiagnoseVirtualNetwork: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -23,7 +23,7 @@ output "availability_set_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

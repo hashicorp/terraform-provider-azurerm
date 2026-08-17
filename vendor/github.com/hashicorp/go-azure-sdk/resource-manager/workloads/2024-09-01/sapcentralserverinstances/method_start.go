@@ -62,9 +62,20 @@ func (c SAPCentralServerInstancesClient) Start(ctx context.Context, id CentralIn
 
 // StartThenPoll performs Start then polls until it's completed
 func (c SAPCentralServerInstancesClient) StartThenPoll(ctx context.Context, id CentralInstanceId, input StartRequest) error {
+	return c.StartCallbackThenPoll(ctx, id, input, nil)
+}
+
+// StartCallbackThenPoll performs Start, runs the optional callback function, then polls until it's completed
+func (c SAPCentralServerInstancesClient) StartCallbackThenPoll(ctx context.Context, id CentralInstanceId, input StartRequest, callback func() error) error {
 	result, err := c.Start(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Start: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

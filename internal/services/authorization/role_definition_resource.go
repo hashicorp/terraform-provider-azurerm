@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package authorization
@@ -181,16 +181,18 @@ func (r RoleDefinitionResource) Create() sdk.ResourceFunc {
 
 			id := roledefinitions.NewScopedRoleDefinitionID(config.Scope, roleId)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing Role Definition ID for %q (Scope %q)", config.Name, config.Scope)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				importID := parse.RoleDefinitionID{
-					RoleID: roleId,
-					Scope:  config.Scope,
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing Role Definition ID for %q (Scope %q)", config.Name, config.Scope)
 				}
-				return metadata.ResourceRequiresImport(r.ResourceType(), importID)
+				if !response.WasNotFound(existing.HttpResponse) {
+					importID := parse.RoleDefinitionID{
+						RoleID: roleId,
+						Scope:  config.Scope,
+					}
+					return metadata.ResourceRequiresImport(r.ResourceType(), importID)
+				}
 			}
 
 			properties := roledefinitions.RoleDefinition{
@@ -340,9 +342,6 @@ func (r RoleDefinitionResource) Update() sdk.ResourceFunc {
 			updatedOn := resp.Model.Properties.UpdatedOn
 			if updatedOn == nil {
 				return fmt.Errorf("updating Role Definition %q (Scope %q): `properties.UpdatedOn` was nil", stateId.RoleID, stateId.Scope)
-			}
-			if updatedOn == nil {
-				return fmt.Errorf("updating %s: `properties.UpdatedOn` was nil", stateId)
 			}
 
 			// "Updating" a role definition actually creates a new one and these get consolidated a few seconds later

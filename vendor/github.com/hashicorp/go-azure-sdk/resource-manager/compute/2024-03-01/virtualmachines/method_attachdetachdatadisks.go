@@ -62,9 +62,20 @@ func (c VirtualMachinesClient) AttachDetachDataDisks(ctx context.Context, id Vir
 
 // AttachDetachDataDisksThenPoll performs AttachDetachDataDisks then polls until it's completed
 func (c VirtualMachinesClient) AttachDetachDataDisksThenPoll(ctx context.Context, id VirtualMachineId, input AttachDetachDataDisksRequest) error {
+	return c.AttachDetachDataDisksCallbackThenPoll(ctx, id, input, nil)
+}
+
+// AttachDetachDataDisksCallbackThenPoll performs AttachDetachDataDisks, runs the optional callback function, then polls until it's completed
+func (c VirtualMachinesClient) AttachDetachDataDisksCallbackThenPoll(ctx context.Context, id VirtualMachineId, input AttachDetachDataDisksRequest, callback func() error) error {
 	result, err := c.AttachDetachDataDisks(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing AttachDetachDataDisks: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

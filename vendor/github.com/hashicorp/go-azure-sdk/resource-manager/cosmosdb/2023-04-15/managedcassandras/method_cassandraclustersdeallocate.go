@@ -56,9 +56,20 @@ func (c ManagedCassandrasClient) CassandraClustersDeallocate(ctx context.Context
 
 // CassandraClustersDeallocateThenPoll performs CassandraClustersDeallocate then polls until it's completed
 func (c ManagedCassandrasClient) CassandraClustersDeallocateThenPoll(ctx context.Context, id CassandraClusterId) error {
+	return c.CassandraClustersDeallocateCallbackThenPoll(ctx, id, nil)
+}
+
+// CassandraClustersDeallocateCallbackThenPoll performs CassandraClustersDeallocate, runs the optional callback function, then polls until it's completed
+func (c ManagedCassandrasClient) CassandraClustersDeallocateCallbackThenPoll(ctx context.Context, id CassandraClusterId, callback func() error) error {
 	result, err := c.CassandraClustersDeallocate(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing CassandraClustersDeallocate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

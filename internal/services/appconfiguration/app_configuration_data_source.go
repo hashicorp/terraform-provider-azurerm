@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appconfiguration
@@ -274,11 +274,7 @@ func dataSourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{})
 			}
 
 			d.Set("local_auth_enabled", localAuthEnabled)
-			purgeProtectionEnabled := false
-			if props.EnablePurgeProtection != nil {
-				purgeProtectionEnabled = *props.EnablePurgeProtection
-			}
-			d.Set("purge_protection_enabled", purgeProtectionEnabled)
+			d.Set("purge_protection_enabled", pointer.From(props.EnablePurgeProtection))
 		}
 
 		accessKeys := flattenAppConfigurationAccessKeys(resultPage.Items)
