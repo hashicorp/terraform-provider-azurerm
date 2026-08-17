@@ -125,7 +125,7 @@ func (r LogAnalyticsWorkspaceTableResource) Create() sdk.ResourceFunc {
 
 			updateInput := tables.Table{
 				Properties: &tables.TableProperties{
-					Plan: pointer.To(tables.TablePlanEnum(model.Plan)),
+					Plan: pointer.ToEnum[tables.TablePlanEnum](model.Plan),
 				},
 			}
 
@@ -181,7 +181,7 @@ func (r LogAnalyticsWorkspaceTableResource) Update() sdk.ResourceFunc {
 					}
 
 					if metadata.ResourceData.HasChange("plan") {
-						updateInput.Properties.Plan = pointer.To(tables.TablePlanEnum(state.Plan))
+						updateInput.Properties.Plan = pointer.ToEnum[tables.TablePlanEnum](state.Plan)
 					}
 
 					if state.Plan == string(tables.TablePlanEnumAnalytics) {

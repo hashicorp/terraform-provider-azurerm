@@ -16,10 +16,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/capacitypools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/volumegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/volumes"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func expandNetAppVolumeGroupVolumeExportPolicyRule(input []netAppModels.ExportPolicyRule) *volumegroups.VolumePropertiesExportPolicy {
@@ -126,16 +126,16 @@ func expandNetAppVolumeGroupSAPHanaVolumes(input []netAppModels.NetAppVolumeGrou
 			Properties: volumegroups.VolumeProperties{
 				CapacityPoolResourceId:   pointer.To(item.CapacityPoolId),
 				CreationToken:            item.VolumePath,
-				ServiceLevel:             pointer.To(volumegroups.ServiceLevel(item.ServiceLevel)),
+				ServiceLevel:             pointer.ToEnum[volumegroups.ServiceLevel](item.ServiceLevel),
 				SubnetId:                 item.SubnetId,
 				ProtocolTypes:            pointer.To(item.Protocols),
-				SecurityStyle:            pointer.To(volumegroups.SecurityStyle(item.SecurityStyle)),
+				SecurityStyle:            pointer.ToEnum[volumegroups.SecurityStyle](item.SecurityStyle),
 				UsageThreshold:           storageQuotaInGB,
 				ExportPolicy:             expandNetAppVolumeGroupVolumeExportPolicyRule(item.ExportPolicy),
 				SnapshotDirectoryVisible: pointer.To(item.SnapshotDirectoryVisible),
 				ThroughputMibps:          pointer.To(item.ThroughputInMibps),
 				VolumeSpecName:           pointer.To(item.VolumeSpecName),
-				NetworkFeatures:          pointer.To(volumegroups.NetworkFeatures(item.NetworkFeatures)),
+				NetworkFeatures:          pointer.ToEnum[volumegroups.NetworkFeatures](item.NetworkFeatures),
 				DataProtection:           dataProtection,
 			},
 			Tags: &item.Tags,
@@ -150,7 +150,7 @@ func expandNetAppVolumeGroupSAPHanaVolumes(input []netAppModels.NetAppVolumeGrou
 		}
 
 		if v := item.EncryptionKeySource; v != "" {
-			volumeProperties.Properties.EncryptionKeySource = pointer.To(volumegroups.EncryptionKeySource(v))
+			volumeProperties.Properties.EncryptionKeySource = pointer.ToEnum[volumegroups.EncryptionKeySource](v)
 		}
 
 		if v := item.KeyVaultPrivateEndpointId; v != "" {
@@ -195,16 +195,16 @@ func expandNetAppVolumeGroupOracleVolumes(input []netAppModels.NetAppVolumeGroup
 			Properties: volumegroups.VolumeProperties{
 				CapacityPoolResourceId:   pointer.To(item.CapacityPoolId),
 				CreationToken:            item.VolumePath,
-				ServiceLevel:             pointer.To(volumegroups.ServiceLevel(item.ServiceLevel)),
+				ServiceLevel:             pointer.ToEnum[volumegroups.ServiceLevel](item.ServiceLevel),
 				SubnetId:                 item.SubnetId,
 				ProtocolTypes:            pointer.To(item.Protocols),
-				SecurityStyle:            pointer.To(volumegroups.SecurityStyle(item.SecurityStyle)),
+				SecurityStyle:            pointer.ToEnum[volumegroups.SecurityStyle](item.SecurityStyle),
 				UsageThreshold:           storageQuotaInGB,
 				ExportPolicy:             expandNetAppVolumeGroupVolumeExportPolicyRule(item.ExportPolicy),
 				SnapshotDirectoryVisible: pointer.To(item.SnapshotDirectoryVisible),
 				ThroughputMibps:          pointer.To(item.ThroughputInMibps),
 				VolumeSpecName:           pointer.To(item.VolumeSpecName),
-				NetworkFeatures:          pointer.To(volumegroups.NetworkFeatures(item.NetworkFeatures)),
+				NetworkFeatures:          pointer.ToEnum[volumegroups.NetworkFeatures](item.NetworkFeatures),
 				DataProtection:           dataProtection,
 			},
 			Tags: &item.Tags,
@@ -219,7 +219,7 @@ func expandNetAppVolumeGroupOracleVolumes(input []netAppModels.NetAppVolumeGroup
 		}
 
 		if v := item.EncryptionKeySource; v != "" {
-			volumeProperties.Properties.EncryptionKeySource = pointer.To(volumegroups.EncryptionKeySource(v))
+			volumeProperties.Properties.EncryptionKeySource = pointer.ToEnum[volumegroups.EncryptionKeySource](v)
 		}
 
 		if v := item.KeyVaultPrivateEndpointId; v != "" {
@@ -1055,7 +1055,7 @@ func netappVolumeReplicationMirrorStateRefreshFunc(ctx context.Context, client *
 		// Possible Mirror States to be used as desiredStates:
 		// mirrored, broken or uninitialized
 
-		if !utils.SliceContainsValue(validStates, strings.ToLower(desiredState)) {
+		if !helpers.SliceContainsValue(validStates, strings.ToLower(desiredState)) {
 			return nil, "", fmt.Errorf("invalid desired mirror state was passed to check mirror replication state (%s), possible values: (%+v)", desiredState, volumes.PossibleValuesForMirrorState())
 		}
 

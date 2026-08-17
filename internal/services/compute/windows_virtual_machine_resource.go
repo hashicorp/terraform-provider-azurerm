@@ -571,7 +571,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 				GalleryApplications: expandVirtualMachineGalleryApplication(d.Get("gallery_application").([]interface{})),
 			},
 			HardwareProfile: &virtualmachines.HardwareProfile{
-				VMSize: pointer.To(virtualmachines.VirtualMachineSizeTypes(size)),
+				VMSize: pointer.ToEnum[virtualmachines.VirtualMachineSizeTypes](size),
 			},
 			NetworkProfile: &virtualmachines.NetworkProfile{
 				NetworkInterfaces: &networkInterfaceIds,
@@ -684,9 +684,9 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 
 		params.Properties.OsProfile.WindowsConfiguration.PatchSettings = &virtualmachines.PatchSettings{
-			PatchMode:         pointer.To(virtualmachines.WindowsVMGuestPatchMode(patchMode)),
+			PatchMode:         pointer.ToEnum[virtualmachines.WindowsVMGuestPatchMode](patchMode),
 			EnableHotpatching: pointer.To(hotPatch),
-			AssessmentMode:    pointer.To(virtualmachines.WindowsPatchAssessmentMode(assessmentMode)),
+			AssessmentMode:    pointer.ToEnum[virtualmachines.WindowsPatchAssessmentMode](assessmentMode),
 		}
 
 		if d.Get("bypass_platform_safety_checks_on_user_schedule_enabled").(bool) {
@@ -710,7 +710,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 				params.Properties.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings = &virtualmachines.WindowsVMGuestPatchAutomaticByPlatformSettings{}
 			}
 
-			params.Properties.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings.RebootSetting = pointer.To(virtualmachines.WindowsVMGuestPatchAutomaticByPlatformRebootSetting(v.(string)))
+			params.Properties.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings.RebootSetting = pointer.ToEnum[virtualmachines.WindowsVMGuestPatchAutomaticByPlatformRebootSetting](v.(string))
 		}
 
 		if v, ok := d.GetOk("custom_data"); ok {
@@ -733,7 +733,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	params.Properties.StorageProfile.OsDisk = osDisk
 
 	if diskControllerType, ok := d.GetOk("disk_controller_type"); ok {
-		params.Properties.StorageProfile.DiskControllerType = pointer.To(virtualmachines.DiskControllerTypes(diskControllerType.(string)))
+		params.Properties.StorageProfile.DiskControllerType = pointer.ToEnum[virtualmachines.DiskControllerTypes](diskControllerType.(string))
 	}
 
 	if v, ok := d.GetOk("availability_set_id"); ok {
@@ -763,12 +763,6 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
-		if encryptionAtHostEnabled.(bool) {
-			if virtualmachines.SecurityEncryptionTypesDiskWithVMGuestState == virtualmachines.SecurityEncryptionTypes(securityEncryptionType) {
-				return fmt.Errorf("`encryption_at_host_enabled` cannot be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
-			}
-		}
-
 		if params.Properties.SecurityProfile == nil {
 			params.Properties.SecurityProfile = &virtualmachines.SecurityProfile{}
 		}
@@ -824,7 +818,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 			return fmt.Errorf("an `eviction_policy` can only be specified when `priority` is set to `Spot`")
 		}
 
-		params.Properties.EvictionPolicy = pointer.To(virtualmachines.VirtualMachineEvictionPolicyTypes(evictionPolicyRaw.(string)))
+		params.Properties.EvictionPolicy = pointer.ToEnum[virtualmachines.VirtualMachineEvictionPolicyTypes](evictionPolicyRaw.(string))
 	} else if priority == virtualmachines.VirtualMachinePriorityTypesSpot {
 		return fmt.Errorf("an `eviction_policy` must be specified when `priority` is set to `Spot`")
 	}
@@ -1266,7 +1260,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 			update.Properties.OsProfile.WindowsConfiguration.PatchSettings = &virtualmachines.PatchSettings{}
 		}
 
-		update.Properties.OsProfile.WindowsConfiguration.PatchSettings.PatchMode = pointer.To(virtualmachines.WindowsVMGuestPatchMode(d.Get("patch_mode").(string)))
+		update.Properties.OsProfile.WindowsConfiguration.PatchSettings.PatchMode = pointer.ToEnum[virtualmachines.WindowsVMGuestPatchMode](d.Get("patch_mode").(string))
 	}
 
 	if d.HasChange("patch_assessment_mode") {
@@ -1289,7 +1283,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 			update.Properties.OsProfile.WindowsConfiguration.PatchSettings = &virtualmachines.PatchSettings{}
 		}
 
-		update.Properties.OsProfile.WindowsConfiguration.PatchSettings.AssessmentMode = pointer.To(virtualmachines.WindowsPatchAssessmentMode(assessmentMode))
+		update.Properties.OsProfile.WindowsConfiguration.PatchSettings.AssessmentMode = pointer.ToEnum[virtualmachines.WindowsPatchAssessmentMode](assessmentMode)
 	}
 
 	isPatchModeAutomaticByPlatform := d.Get("patch_mode") == string(virtualmachines.WindowsVMGuestPatchModeAutomaticByPlatform)
@@ -1345,7 +1339,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 				update.Properties.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings = &virtualmachines.WindowsVMGuestPatchAutomaticByPlatformSettings{}
 			}
 
-			update.Properties.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings.RebootSetting = pointer.To(virtualmachines.WindowsVMGuestPatchAutomaticByPlatformRebootSetting(rebootSetting))
+			update.Properties.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings.RebootSetting = pointer.ToEnum[virtualmachines.WindowsVMGuestPatchAutomaticByPlatformRebootSetting](rebootSetting)
 		}
 	}
 
@@ -1479,7 +1473,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 			update.Properties.StorageProfile = &virtualmachines.StorageProfile{}
 		}
 
-		update.Properties.StorageProfile.DiskControllerType = pointer.To(virtualmachines.DiskControllerTypes(d.Get("disk_controller_type").(string)))
+		update.Properties.StorageProfile.DiskControllerType = pointer.ToEnum[virtualmachines.DiskControllerTypes](d.Get("disk_controller_type").(string))
 	}
 
 	if d.HasChange("os_disk") {
@@ -1573,7 +1567,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 
 		update.Properties.HardwareProfile = &virtualmachines.HardwareProfile{
-			VMSize: pointer.To(virtualmachines.VirtualMachineSizeTypes(vmSize)),
+			VMSize: pointer.ToEnum[virtualmachines.VirtualMachineSizeTypes](vmSize),
 		}
 	}
 
@@ -1618,14 +1612,6 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if d.HasChange("encryption_at_host_enabled") {
-		if d.Get("encryption_at_host_enabled").(bool) {
-			osDiskRaw := d.Get("os_disk").([]interface{})
-			securityEncryptionType := osDiskRaw[0].(map[string]interface{})["security_encryption_type"].(string)
-			if virtualmachines.SecurityEncryptionTypesDiskWithVMGuestState == virtualmachines.SecurityEncryptionTypes(securityEncryptionType) {
-				return fmt.Errorf("`encryption_at_host_enabled` cannot be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
-			}
-		}
-
 		shouldUpdate = true
 		shouldDeallocate = true // API returns the following error if not deallocate: 'securityProfile.encryptionAtHost' can be updated only when VM is in deallocated state
 		if update.Properties.SecurityProfile == nil {

@@ -12,8 +12,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -21,17 +19,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	validate2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/legacy/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // NOTE: the `azurerm_virtual_machine_scale_set` resource has been superseded by the
@@ -841,7 +840,7 @@ func resourceVirtualMachineScaleSetCreateUpdate(d *pluginsdk.ResourceData, meta 
 
 	scaleSetProps := virtualmachinescalesets.VirtualMachineScaleSetProperties{
 		UpgradePolicy: &virtualmachinescalesets.UpgradePolicy{
-			Mode: pointer.To(virtualmachinescalesets.UpgradeMode(upgradePolicy)),
+			Mode: pointer.ToEnum[virtualmachinescalesets.UpgradeMode](upgradePolicy),
 			AutomaticOSUpgradePolicy: &virtualmachinescalesets.AutomaticOSUpgradePolicy{
 				EnableAutomaticOSUpgrade: pointer.To(automaticOsUpgrade),
 			},
@@ -852,7 +851,7 @@ func resourceVirtualMachineScaleSetCreateUpdate(d *pluginsdk.ResourceData, meta 
 			StorageProfile:   &storageProfile,
 			OsProfile:        osProfile,
 			ExtensionProfile: extensions,
-			Priority:         pointer.To(virtualmachinescalesets.VirtualMachinePriorityTypes(priority)),
+			Priority:         pointer.ToEnum[virtualmachinescalesets.VirtualMachinePriorityTypes](priority),
 		},
 		// OrchestrationMode needs to be hardcoded to Uniform, for the
 		// standard VMSS resource, since virtualMachineProfile is now supported
@@ -863,7 +862,7 @@ func resourceVirtualMachineScaleSetCreateUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	if strings.EqualFold(priority, string(virtualmachinescalesets.VirtualMachinePriorityTypesLow)) {
-		scaleSetProps.VirtualMachineProfile.EvictionPolicy = pointer.To(virtualmachinescalesets.VirtualMachineEvictionPolicyTypes(evictionPolicy))
+		scaleSetProps.VirtualMachineProfile.EvictionPolicy = pointer.ToEnum[virtualmachinescalesets.VirtualMachineEvictionPolicyTypes](evictionPolicy)
 	}
 
 	if _, ok := d.GetOk("boot_diagnostics"); ok {
@@ -1378,7 +1377,7 @@ func flattenAzureRMVirtualMachineScaleSetOsProfile(d *pluginsdk.ResourceData, pr
 		result["custom_data"] = *profile.CustomData
 	} else {
 		// look up the current custom data
-		result["custom_data"] = utils.Base64EncodeIfNot(d.Get("os_profile.0.custom_data").(string))
+		result["custom_data"] = helpers.Base64EncodeIfNot(d.Get("os_profile.0.custom_data").(string))
 	}
 
 	return []interface{}{result}
@@ -1879,7 +1878,7 @@ func expandAzureRMVirtualMachineScaleSetsOsProfile(d *pluginsdk.ResourceData) *v
 	}
 
 	if customData != "" {
-		customData = utils.Base64EncodeIfNot(customData)
+		customData = helpers.Base64EncodeIfNot(customData)
 		osProfile.CustomData = &customData
 	}
 
@@ -1941,8 +1940,8 @@ func expandAzureRMVirtualMachineScaleSetsStorageProfileOsDisk(d *pluginsdk.Resou
 
 	osDisk := &virtualmachinescalesets.VirtualMachineScaleSetOSDisk{
 		Name:         &name,
-		Caching:      pointer.To(virtualmachinescalesets.CachingTypes(caching)),
-		OsType:       pointer.To(virtualmachinescalesets.OperatingSystemTypes(osType)),
+		Caching:      pointer.ToEnum[virtualmachinescalesets.CachingTypes](caching),
+		OsType:       pointer.ToEnum[virtualmachinescalesets.OperatingSystemTypes](osType),
 		CreateOption: virtualmachinescalesets.DiskCreateOptionTypes(createOption),
 	}
 
@@ -1969,7 +1968,7 @@ func expandAzureRMVirtualMachineScaleSetsStorageProfileOsDisk(d *pluginsdk.Resou
 		}
 
 		osDisk.Name = nil
-		managedDisk.StorageAccountType = pointer.To(virtualmachinescalesets.StorageAccountTypes(managedDiskType))
+		managedDisk.StorageAccountType = pointer.ToEnum[virtualmachinescalesets.StorageAccountTypes](managedDiskType)
 		osDisk.ManagedDisk = managedDisk
 	}
 
@@ -2000,7 +1999,7 @@ func expandAzureRMVirtualMachineScaleSetsStorageProfileDataDisk(d *pluginsdk.Res
 		managedDiskVMSS := &virtualmachinescalesets.VirtualMachineScaleSetManagedDiskParameters{}
 
 		if managedDiskType != "" {
-			managedDiskVMSS.StorageAccountType = pointer.To(virtualmachinescalesets.StorageAccountTypes(managedDiskType))
+			managedDiskVMSS.StorageAccountType = pointer.ToEnum[virtualmachinescalesets.StorageAccountTypes](managedDiskType)
 		} else {
 			managedDiskVMSS.StorageAccountType = pointer.To(virtualmachinescalesets.StorageAccountTypesStandardLRS)
 		}
@@ -2008,7 +2007,7 @@ func expandAzureRMVirtualMachineScaleSetsStorageProfileDataDisk(d *pluginsdk.Res
 		// assume that data disks in VMSS can only be Managed Disks
 		dataDisk.ManagedDisk = managedDiskVMSS
 		if v := config["caching"].(string); v != "" {
-			dataDisk.Caching = pointer.To(virtualmachinescalesets.CachingTypes(v))
+			dataDisk.Caching = pointer.ToEnum[virtualmachinescalesets.CachingTypes](v)
 		}
 
 		if v := config["disk_size_gb"]; v != nil {
@@ -2111,7 +2110,7 @@ func expandAzureRmVirtualMachineScaleSetOsProfileWindowsConfig(d *pluginsdk.Reso
 
 				protocol := config["protocol"].(string)
 				winRmListener := virtualmachinescalesets.WinRMListener{
-					Protocol: pointer.To(virtualmachinescalesets.ProtocolTypes(protocol)),
+					Protocol: pointer.ToEnum[virtualmachinescalesets.ProtocolTypes](protocol),
 				}
 				if v := config["certificate_url"].(string); v != "" {
 					winRmListener.CertificateURL = &v
@@ -2136,9 +2135,9 @@ func expandAzureRmVirtualMachineScaleSetOsProfileWindowsConfig(d *pluginsdk.Reso
 				content := config["content"].(string)
 
 				addContent := virtualmachinescalesets.AdditionalUnattendContent{
-					PassName:      pointer.To(virtualmachinescalesets.PassName(pass)),
-					ComponentName: pointer.To(virtualmachinescalesets.ComponentName(component)),
-					SettingName:   pointer.To(virtualmachinescalesets.SettingNames(settingName)),
+					PassName:      pointer.ToEnum[virtualmachinescalesets.PassName](pass),
+					ComponentName: pointer.ToEnum[virtualmachinescalesets.ComponentName](component),
+					SettingName:   pointer.ToEnum[virtualmachinescalesets.SettingNames](settingName),
 				}
 
 				if content != "" {

@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
@@ -59,7 +58,7 @@ type SshAuthModel struct {
 type SpringCloudCustomizedAcceleratorResource struct{}
 
 func (s SpringCloudCustomizedAcceleratorResource) DeprecationMessage() string {
-	return features.DeprecatedInFivePointOh("Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_customized_accelerator` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information.")
+	return "Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_customized_accelerator` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information."
 }
 
 var (
@@ -280,7 +279,7 @@ func (s SpringCloudCustomizedAcceleratorResource) Create() sdk.ResourceFunc {
 
 			CustomizedAcceleratorResource := appplatform.CustomizedAcceleratorResource{
 				Properties: &appplatform.CustomizedAcceleratorProperties{
-					AcceleratorType: pointer.To(appplatform.CustomizedAcceleratorType(model.AcceleratorType)),
+					AcceleratorType: pointer.ToEnum[appplatform.CustomizedAcceleratorType](model.AcceleratorType),
 					DisplayName:     pointer.To(model.DisplayName),
 					Description:     pointer.To(model.Description),
 					IconURL:         pointer.To(model.IconURL),
@@ -334,7 +333,7 @@ func (s SpringCloudCustomizedAcceleratorResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("accelerator_type") {
-				properties.AcceleratorType = pointer.To(appplatform.CustomizedAcceleratorType(model.AcceleratorType))
+				properties.AcceleratorType = pointer.ToEnum[appplatform.CustomizedAcceleratorType](model.AcceleratorType)
 			}
 
 			if metadata.ResourceData.HasChange("description") {
@@ -516,44 +515,19 @@ func flattenSpringCloudCustomizedAcceleratorGitRepository(state []GitRepositoryM
 		sshAuth = append(sshAuth, sshAuthState)
 	}
 
-	branch := ""
-	if input.Branch != nil {
-		branch = *input.Branch
-	}
-
-	commit := ""
-	if input.Commit != nil {
-		commit = *input.Commit
-	}
-
-	gitTag := ""
-	if input.GitTag != nil {
-		gitTag = *input.GitTag
-	}
-
-	var intervalInSeconds int64
-	if input.IntervalInSeconds != nil {
-		intervalInSeconds = *input.IntervalInSeconds
-	}
-
-	subPath := ""
-	if input.SubPath != nil {
-		subPath = *input.SubPath
-	}
-
 	url := input.Url
 
 	return []GitRepositoryModel{
 		{
 			BasicAuth:         basicAuth,
 			SshAuth:           sshAuth,
-			Branch:            branch,
+			Branch:            pointer.From(input.Branch),
 			CaCertificateId:   caCertificateId,
-			Commit:            commit,
-			GitTag:            gitTag,
-			IntervalInSeconds: intervalInSeconds,
+			Commit:            pointer.From(input.Commit),
+			GitTag:            pointer.From(input.GitTag),
+			IntervalInSeconds: pointer.From(input.IntervalInSeconds),
 			Url:               url,
-			Path:              subPath,
+			Path:              pointer.From(input.SubPath),
 		},
 	}
 }

@@ -172,26 +172,14 @@ func resourceKustoClusterPrincipalAssignmentRead(d *pluginsdk.ResourceData, meta
 		if props != nil {
 			d.Set("principal_id", props.PrincipalId)
 
-			principalName := ""
-			if props.PrincipalName != nil {
-				principalName = *props.PrincipalName
-			}
-			d.Set("principal_name", principalName)
+			d.Set("principal_name", pointer.From(props.PrincipalName))
 
 			d.Set("principal_type", string(props.PrincipalType))
 			d.Set("role", string(props.Role))
 
-			tenantID := ""
-			if props.TenantId != nil {
-				tenantID = *props.TenantId
-			}
-			d.Set("tenant_id", tenantID)
+			d.Set("tenant_id", pointer.From(props.TenantId))
 
-			tenantName := ""
-			if props.TenantName != nil {
-				tenantName = *props.TenantName
-			}
-			d.Set("tenant_name", tenantName)
+			d.Set("tenant_name", pointer.From(props.TenantName))
 		}
 	}
 

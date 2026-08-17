@@ -216,11 +216,7 @@ func resourceContainerRegistryWebhookRead(d *pluginsdk.ResourceData, meta interf
 			}
 			d.Set("status", status)
 
-			scope := ""
-			if v := props.Scope; v != nil {
-				scope = *v
-			}
-			d.Set("scope", scope)
+			d.Set("scope", pointer.From(props.Scope))
 
 			webhookActions := make([]string, len(props.Actions))
 			for i, action := range props.Actions {
@@ -278,7 +274,7 @@ func expandWebhookPropertiesCreateParameters(d *pluginsdk.ResourceData) *webhook
 		CustomHeaders: &customHeaders,
 		Actions:       expandWebhookActions(d),
 		Scope:         pointer.To(d.Get("scope").(string)),
-		Status:        pointer.To(webhooks.WebhookStatus(d.Get("status").(string))),
+		Status:        pointer.ToEnum[webhooks.WebhookStatus](d.Get("status").(string)),
 	}
 
 	return &webhookProperties
@@ -295,7 +291,7 @@ func expandWebhookPropertiesUpdateParameters(d *pluginsdk.ResourceData) *webhook
 		CustomHeaders: &customHeaders,
 		Actions:       pointer.To(expandWebhookActions(d)),
 		Scope:         pointer.To(d.Get("scope").(string)),
-		Status:        pointer.To(webhooks.WebhookStatus(d.Get("status").(string))),
+		Status:        pointer.ToEnum[webhooks.WebhookStatus](d.Get("status").(string)),
 	}
 
 	return &webhookProperties

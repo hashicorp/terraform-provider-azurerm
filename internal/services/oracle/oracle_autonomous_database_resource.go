@@ -308,16 +308,16 @@ func (r AutonomousDatabaseRegularResource) Create() sdk.ResourceFunc {
 				BackupRetentionPeriodInDays:    pointer.To(model.BackupRetentionPeriodInDays),
 				CharacterSet:                   pointer.To(model.CharacterSet),
 				ComputeCount:                   pointer.To(model.ComputeCount),
-				ComputeModel:                   pointer.To(autonomousdatabases.ComputeModel(model.ComputeModel)),
+				ComputeModel:                   pointer.ToEnum[autonomousdatabases.ComputeModel](model.ComputeModel),
 				DataBaseType:                   "Regular",
 				DataStorageSizeInTbs:           pointer.To(model.DataStorageSizeInTbs),
-				DbWorkload:                     pointer.To(autonomousdatabases.WorkloadType(model.DbWorkload)),
+				DbWorkload:                     pointer.ToEnum[autonomousdatabases.WorkloadType](model.DbWorkload),
 				DbVersion:                      pointer.To(model.DbVersion),
 				DisplayName:                    pointer.To(model.DisplayName),
 				IsAutoScalingEnabled:           pointer.To(model.AutoScalingEnabled),
 				IsAutoScalingForStorageEnabled: pointer.To(model.AutoScalingForStorageEnabled),
 				IsMtlsConnectionRequired:       pointer.To(model.MtlsConnectionRequired),
-				LicenseModel:                   pointer.To(autonomousdatabases.LicenseModel(model.LicenseModel)),
+				LicenseModel:                   pointer.ToEnum[autonomousdatabases.LicenseModel](model.LicenseModel),
 				NcharacterSet:                  pointer.To(model.NationalCharacterSet),
 				WhitelistedIPs:                 pointer.To(model.AllowedIps),
 			}
@@ -572,7 +572,7 @@ func expandLongTermBackupSchedule(input []LongTermBackUpScheduleDetails) *autono
 	}
 	schedule := input[0]
 	return &autonomousdatabases.LongTermBackUpScheduleDetails{
-		RepeatCadence:         pointer.To(autonomousdatabases.RepeatCadenceType(schedule.RepeatCadence)),
+		RepeatCadence:         pointer.ToEnum[autonomousdatabases.RepeatCadenceType](schedule.RepeatCadence),
 		TimeOfBackup:          pointer.To(schedule.TimeOfBackup),
 		RetentionPeriodInDays: pointer.To(schedule.RetentionPeriodInDays),
 		IsDisabled:            pointer.To(!schedule.Enabled),
@@ -580,11 +580,14 @@ func expandLongTermBackupSchedule(input []LongTermBackUpScheduleDetails) *autono
 }
 
 func (r AutonomousDatabaseRegularResource) hasGeneralUpdates(metadata sdk.ResourceMetaData) bool {
-	return metadata.ResourceData.HasChange("tags") ||
-		metadata.ResourceData.HasChange("data_storage_size_in_tbs") ||
-		metadata.ResourceData.HasChange("compute_count") ||
-		metadata.ResourceData.HasChange("auto_scaling_enabled") ||
-		metadata.ResourceData.HasChange("auto_scaling_for_storage_enabled") ||
-		metadata.ResourceData.HasChange("allowed_ips") ||
+	// lintignore:R019 // deliberate subset: only the fields covered by the general update payload; the remaining attributes are updated via separate calls
+	return metadata.ResourceData.HasChanges(
+		"tags",
+		"data_storage_size_in_tbs",
+		"compute_count",
+		"auto_scaling_enabled",
+		"auto_scaling_for_storage_enabled",
+		"allowed_ips",
+	) ||
 		metadata.ResourceData.HasChange("database_edition")
 }

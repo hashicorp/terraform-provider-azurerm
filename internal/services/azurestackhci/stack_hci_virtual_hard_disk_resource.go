@@ -192,11 +192,11 @@ func (r StackHCIVirtualHardDiskResource) Create() sdk.ResourceFunc {
 			}
 
 			if config.DiskFileFormat != "" {
-				payload.Properties.DiskFileFormat = pointer.To(virtualharddisks.DiskFileFormat(config.DiskFileFormat))
+				payload.Properties.DiskFileFormat = pointer.ToEnum[virtualharddisks.DiskFileFormat](config.DiskFileFormat)
 			}
 
 			if config.HypervGeneration != "" {
-				payload.Properties.HyperVGeneration = pointer.To(virtualharddisks.HyperVGeneration(config.HypervGeneration))
+				payload.Properties.HyperVGeneration = pointer.ToEnum[virtualharddisks.HyperVGeneration](config.HypervGeneration)
 			}
 
 			if config.LogicalSectorInBytes != 0 {
