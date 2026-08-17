@@ -15,9 +15,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/capacitypools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/volumegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/capacitypools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/volumegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
@@ -515,8 +515,7 @@ func (r NetAppVolumeGroupOracleResource) Update() sdk.ResourceFunc {
 								}
 							}
 
-							exportPolicyRule := expandNetAppVolumeGroupVolumeExportPolicyRulePatchWithProtocolConversion(exportPolicyRuleRaw, protocolOverride)
-							update.Properties.ExportPolicy = exportPolicyRule
+							update.Properties.ExportPolicy = expandNetAppVolumeGroupVolumeExportPolicyRulePatchWithProtocolConversion(exportPolicyRuleRaw, protocolOverride)
 						}
 
 						if metadata.ResourceData.HasChange(fmt.Sprintf("%v.protocols", volumeItem)) {

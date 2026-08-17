@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-06-01/tables"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
@@ -19,8 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
-	"github.com/jackofallops/giovanni/storage/2023-11-03/table/tables"
+	legacyTables "github.com/jackofallops/giovanni/storage/2023-11-03/table/tables"
 )
 
 func resourceStorageTable() *pluginsdk.Resource {
@@ -31,14 +32,15 @@ func resourceStorageTable() *pluginsdk.Resource {
 		Update: resourceStorageTableUpdate,
 
 		Importer: helpers.ImporterValidatingStorageResourceId(func(id, storageDomainSuffix string) error {
-			_, err := tables.ParseTableID(id, storageDomainSuffix)
+			_, err := tables.ParseTableID(id)
 			return err
 		}),
 
-		SchemaVersion: 2,
+		SchemaVersion: 3,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.TableV0ToV1{},
 			1: migration.TableV1ToV2{},
+			2: migration.TableV2ToV3{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -56,11 +58,11 @@ func resourceStorageTable() *pluginsdk.Resource {
 				ValidateFunc: validate.StorageTableName,
 			},
 
-			"storage_account_name": {
+			"storage_account_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.StorageAccountName,
+				ValidateFunc: commonids.ValidateStorageAccountID,
 			},
 
 			"acl": {
@@ -116,9 +118,14 @@ func resourceStorageTableCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	defer cancel()
 
 	tableName := d.Get("name").(string)
-	accountName := d.Get("storage_account_name").(string)
 	aclsRaw := d.Get("acl").(*pluginsdk.Set).List()
 	acls := expandStorageTableACLs(aclsRaw)
+
+	accountId, err := commonids.ParseStorageAccountID(d.Get("storage_account_id").(string))
+	if err != nil {
+		return err
+	}
+	accountName := accountId.StorageAccountName
 
 	account, err := storageClient.FindAccount(ctx, subscriptionId, accountName)
 	if err != nil {
@@ -133,19 +140,7 @@ func resourceStorageTableCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("building Tables Client: %s", err)
 	}
 
-	// Determine the table endpoint, so we can build a data plane ID
-	endpoint, err := account.DataPlaneEndpoint(client.EndpointTypeTable)
-	if err != nil {
-		return fmt.Errorf("determining Tables endpoint: %v", err)
-	}
-
-	// Parse the table endpoint as a data plane account ID
-	accountId, err := accounts.ParseAccountID(*endpoint, storageClient.StorageDomainSuffix)
-	if err != nil {
-		return fmt.Errorf("parsing Account ID: %v", err)
-	}
-
-	id := tables.NewTableID(*accountId, tableName)
+	id := parse.NewStorageTableResourceManagerID(subscriptionId, accountId.ResourceGroupName, accountName, "default", tableName)
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		exists, err := tablesDataPlaneClient.Exists(ctx, tableName)
@@ -158,7 +153,7 @@ func resourceStorageTableCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if err = tablesDataPlaneClient.Create(ctx, tableName); err != nil {
-		return fmt.Errorf("creating %s: %v", id, err)
+		return fmt.Errorf("creating %s: %v", id.ID(), err)
 	}
 
 	d.SetId(id.ID())
@@ -170,7 +165,7 @@ func resourceStorageTableCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if err = aclClient.UpdateACLs(ctx, tableName, acls); err != nil {
-		return fmt.Errorf("setting ACLs for %s: %v", id, err)
+		return fmt.Errorf("setting ACLs for %s: %v", id.ID(), err)
 	}
 
 	return resourceStorageTableRead(d, meta)
@@ -178,21 +173,23 @@ func resourceStorageTableCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 func resourceStorageTableRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := tables.ParseTableID(d.Id(), storageClient.StorageDomainSuffix)
+	rmId, err := parse.StorageTableResourceManagerID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
+	tableName := rmId.TableName
+	accountName := rmId.StorageAccountName
+
+	account, err := storageClient.GetAccount(ctx, commonids.NewStorageAccountID(rmId.SubscriptionId, rmId.ResourceGroup, rmId.StorageAccountName))
 	if err != nil {
-		return fmt.Errorf("retrieving Storage Account %q for Table %q: %v", id.AccountId.AccountName, id.TableName, err)
+		return fmt.Errorf("retrieving Storage Account %q for Table %q: %v", accountName, tableName, err)
 	}
 	if account == nil {
-		log.Printf("Unable to determine Resource Group for Storage Table %q (Account %s) - assuming removed & removing from state", id.TableName, id.AccountId.AccountName)
+		log.Printf("Unable to determine Resource Group for Storage Table %q (Account %s) - assuming removed & removing from state", tableName, accountName)
 		d.SetId("")
 		return nil
 	}
@@ -202,12 +199,12 @@ func resourceStorageTableRead(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("building Tables Client: %v", err)
 	}
 
-	exists, err := client.Exists(ctx, id.TableName)
+	exists, err := client.Exists(ctx, tableName)
 	if err != nil {
-		return fmt.Errorf("retrieving %s: %v", id, err)
+		return fmt.Errorf("retrieving table %q: %v", tableName, err)
 	}
 	if exists == nil || !*exists {
-		log.Printf("[DEBUG] %s not found, removing from state", id)
+		log.Printf("[DEBUG] table %q not found, removing from state", tableName)
 		d.SetId("")
 		return nil
 	}
@@ -218,14 +215,13 @@ func resourceStorageTableRead(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("building Tables Client: %v", err)
 	}
 
-	acls, err := aclClient.GetACLs(ctx, id.TableName)
+	acls, err := aclClient.GetACLs(ctx, tableName)
 	if err != nil {
-		return fmt.Errorf("retrieving ACLs for %s: %v", id, err)
+		return fmt.Errorf("retrieving ACLs for table %q: %v", tableName, err)
 	}
 
-	d.Set("name", id.TableName)
-	d.Set("storage_account_name", id.AccountId.AccountName)
-	d.Set("resource_manager_id", parse.NewStorageTableResourceManagerID(subscriptionId, account.StorageAccountId.ResourceGroupName, id.AccountId.AccountName, "default", id.TableName).ID())
+	d.Set("name", tableName)
+	d.Set("storage_account_id", commonids.NewStorageAccountID(rmId.SubscriptionId, rmId.ResourceGroup, rmId.StorageAccountName).ID())
 
 	if err = d.Set("acl", flattenStorageTableACLs(acls)); err != nil {
 		return fmt.Errorf("setting `acl`: %v", err)
@@ -236,21 +232,27 @@ func resourceStorageTableRead(d *pluginsdk.ResourceData, meta interface{}) error
 
 func resourceStorageTableDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := tables.ParseTableID(d.Id(), storageClient.StorageDomainSuffix)
+	rmId, err := parse.StorageTableResourceManagerID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
-	if err != nil {
-		return fmt.Errorf("retrieving Storage Account %q for Table %q: %v", id.AccountId.AccountName, id.TableName, err)
+	var account *client.AccountDetails
+	if meta.(*clients.Client).Storage.StorageUseAzureAD {
+		account = &client.AccountDetails{
+			StorageAccountId: commonids.NewStorageAccountID(rmId.SubscriptionId, rmId.ResourceGroup, rmId.StorageAccountName),
+		}
+	} else {
+		account, err = storageClient.GetAccount(ctx, commonids.NewStorageAccountID(rmId.SubscriptionId, rmId.ResourceGroup, rmId.StorageAccountName))
+		if err != nil {
+			return fmt.Errorf("retrieving Storage Account %q for Table %q: %v", rmId.StorageAccountName, rmId.TableName, err)
+		}
 	}
 	if account == nil {
-		return fmt.Errorf("locating Storage Account %q", id.AccountId.AccountName)
+		return fmt.Errorf("locating Storage Account %q", rmId.StorageAccountName)
 	}
 
 	client, err := storageClient.TablesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
@@ -258,11 +260,11 @@ func resourceStorageTableDelete(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("building Tables Client: %v", err)
 	}
 
-	if err = client.Delete(ctx, id.TableName); err != nil {
-		if strings.Contains(err.Error(), "unexpected status 404") {
+	if err = client.Delete(ctx, rmId.TableName); err != nil {
+		if strings.Contains(err.Error(), "unexpected status 40") {
 			return nil
 		}
-		return fmt.Errorf("deleting %s: %v", id, err)
+		return fmt.Errorf("deleting table %q: %v", rmId.TableName, err)
 	}
 
 	return nil
@@ -274,17 +276,17 @@ func resourceStorageTableUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := tables.ParseTableID(d.Id(), storageClient.StorageDomainSuffix)
+	rmId, err := tables.ParseTableID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
+	account, err := storageClient.FindAccount(ctx, subscriptionId, rmId.StorageAccountName)
 	if err != nil {
-		return fmt.Errorf("retrieving Storage Account %q for Table %q: %v", id.AccountId.AccountName, id.TableName, err)
+		return fmt.Errorf("retrieving Storage Account %q for Table %q: %v", rmId.StorageAccountName, rmId.TableName, err)
 	}
 	if account == nil {
-		return fmt.Errorf("locating Storage Account %q", id.AccountId.AccountName)
+		return fmt.Errorf("locating Storage Account %q", rmId.StorageAccountName)
 	}
 
 	if d.HasChange("acl") {
@@ -297,16 +299,16 @@ func resourceStorageTableUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("building Tables Client: %v", err)
 		}
 
-		if err = aclClient.UpdateACLs(ctx, id.TableName, acls); err != nil {
-			return fmt.Errorf("updating ACLs for %s: %v", id, err)
+		if err = aclClient.UpdateACLs(ctx, rmId.TableName, acls); err != nil {
+			return fmt.Errorf("updating ACLs for table %q: %v", rmId.TableName, err)
 		}
 	}
 
 	return resourceStorageTableRead(d, meta)
 }
 
-func expandStorageTableACLs(input []interface{}) []tables.SignedIdentifier {
-	results := make([]tables.SignedIdentifier, 0)
+func expandStorageTableACLs(input []interface{}) []legacyTables.SignedIdentifier {
+	results := make([]legacyTables.SignedIdentifier, 0)
 
 	for _, v := range input {
 		vals := v.(map[string]interface{})
@@ -314,9 +316,9 @@ func expandStorageTableACLs(input []interface{}) []tables.SignedIdentifier {
 		policies := vals["access_policy"].([]interface{})
 		policy := policies[0].(map[string]interface{})
 
-		identifier := tables.SignedIdentifier{
+		identifier := legacyTables.SignedIdentifier{
 			Id: vals["id"].(string),
-			AccessPolicy: tables.AccessPolicy{
+			AccessPolicy: legacyTables.AccessPolicy{
 				Start:      policy["start"].(string),
 				Expiry:     policy["expiry"].(string),
 				Permission: policy["permissions"].(string),
@@ -328,7 +330,7 @@ func expandStorageTableACLs(input []interface{}) []tables.SignedIdentifier {
 	return results
 }
 
-func flattenStorageTableACLs(input *[]tables.SignedIdentifier) []interface{} {
+func flattenStorageTableACLs(input *[]legacyTables.SignedIdentifier) []interface{} {
 	result := make([]interface{}, 0)
 	if input == nil {
 		return result

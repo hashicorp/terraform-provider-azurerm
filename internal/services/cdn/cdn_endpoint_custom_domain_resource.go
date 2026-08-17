@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
@@ -26,114 +25,6 @@ import (
 )
 
 func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
-	schema := map[string]*pluginsdk.Schema{
-		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.CdnEndpointCustomDomainName(),
-		},
-
-		"cdn_endpoint_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.EndpointID,
-		},
-
-		"host_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-		"cdn_managed_https": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MinItems: 1,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"certificate_type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(cdn.CertificateTypeShared),
-							string(cdn.CertificateTypeDedicated),
-						}, false),
-					},
-					"protocol_type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(cdn.ProtocolTypeServerNameIndication),
-							string(cdn.ProtocolTypeIPBased),
-						}, false),
-					},
-					"tls_version": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(cdn.MinimumTLSVersionTLS12),
-						}, false),
-						Default: string(cdn.MinimumTLSVersionTLS12),
-					},
-				},
-			},
-			ConflictsWith: []string{"user_managed_https"},
-		},
-
-		"user_managed_https": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MinItems: 1,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"tls_version": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(cdn.MinimumTLSVersionTLS12),
-						}, false),
-						Default: string(cdn.MinimumTLSVersionTLS12),
-					},
-
-					"key_vault_secret_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny),
-					},
-				},
-			},
-			ConflictsWith: []string{"cdn_managed_https"},
-		},
-	}
-
-	if !features.FivePointOh() {
-		schema["cdn_managed_https"].Elem.(*pluginsdk.Resource).Schema["tls_version"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(cdn.MinimumTLSVersionNone),
-				string(cdn.MinimumTLSVersionTLS10),
-				string(cdn.MinimumTLSVersionTLS12),
-			}, false),
-			Default: string(cdn.MinimumTLSVersionTLS12),
-		}
-
-		schema["user_managed_https"].Elem.(*pluginsdk.Resource).Schema["tls_version"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(cdn.MinimumTLSVersionNone),
-				string(cdn.MinimumTLSVersionTLS10),
-				string(cdn.MinimumTLSVersionTLS12),
-			}, false),
-			Default: string(cdn.MinimumTLSVersionTLS12),
-		}
-	}
-
 	return &pluginsdk.Resource{
 		Create: resourceArmCdnEndpointCustomDomainCreate,
 		Read:   resourceArmCdnEndpointCustomDomainRead,
@@ -152,7 +43,89 @@ func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(12 * time.Hour),
 		},
 
-		Schema: schema,
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.CdnEndpointCustomDomainName(),
+			},
+
+			"cdn_endpoint_id": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.EndpointID,
+			},
+
+			"host_name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+			"cdn_managed_https": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MinItems: 1,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"certificate_type": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(cdn.CertificateTypeShared),
+								string(cdn.CertificateTypeDedicated),
+							}, false),
+						},
+						"protocol_type": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(cdn.ProtocolTypeServerNameIndication),
+								string(cdn.ProtocolTypeIPBased),
+							}, false),
+						},
+						"tls_version": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(cdn.MinimumTLSVersionTLS12),
+							}, false),
+							Default: string(cdn.MinimumTLSVersionTLS12),
+						},
+					},
+				},
+				ConflictsWith: []string{"user_managed_https"},
+			},
+
+			"user_managed_https": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MinItems: 1,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"tls_version": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(cdn.MinimumTLSVersionTLS12),
+							}, false),
+							Default: string(cdn.MinimumTLSVersionTLS12),
+						},
+
+						"key_vault_secret_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny),
+						},
+					},
+				},
+				ConflictsWith: []string{"cdn_managed_https"},
+			},
+		},
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
 			if IsCdnFullyRetired() {
@@ -444,7 +417,7 @@ func expandArmCdnEndpointCustomDomainCdnManagedHttpsSettings(input []interface{}
 	}
 
 	raw := input[0].(map[string]interface{})
-	output := &cdn.ManagedHTTPSParameters{
+	return &cdn.ManagedHTTPSParameters{
 		CertificateSourceParameters: &cdn.CertificateSourceParameters{
 			OdataType:       pointer.To("#Microsoft.Azure.Cdn.Models.CdnCertificateSourceParameters"),
 			CertificateType: cdn.CertificateType(raw["certificate_type"].(string)),
@@ -453,8 +426,6 @@ func expandArmCdnEndpointCustomDomainCdnManagedHttpsSettings(input []interface{}
 		ProtocolType:      cdn.ProtocolType(raw["protocol_type"].(string)),
 		MinimumTLSVersion: cdn.MinimumTLSVersion(raw["tls_version"].(string)),
 	}
-
-	return output
 }
 
 func expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx context.Context, input []interface{}, clients *clients.Client) (cdn.BasicCustomDomainHTTPSParameters, error) {
@@ -550,10 +521,7 @@ func flattenArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx context.Conte
 	}
 	secretName := *params.SecretName
 
-	var secretVersion string
-	if params.SecretVersion != nil {
-		secretVersion = *params.SecretVersion
-	}
+	secretVersion := pointer.From(params.SecretVersion)
 
 	keyVaultId := commonids.NewKeyVaultID(subscriptionId, resourceGroupName, vaultName)
 	keyVaultBaseUrl, err := keyVaultsClient.BaseUriForKeyVault(ctx, keyVaultId)

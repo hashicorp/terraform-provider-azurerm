@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/objectreplicationpolicyoperationgroup"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
@@ -20,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // TODO: @tombuildsstuff: this wants a state migration to move the ID to `{id1}|{id2}` to match other resources
@@ -101,6 +101,12 @@ func resourceStorageObjectReplication() *pluginsdk.Resource {
 				},
 			},
 
+			"metrics_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"source_object_replication_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -160,6 +166,9 @@ func resourceStorageObjectReplicationCreate(d *pluginsdk.ResourceData, meta inte
 			SourceAccount:      srcAccount.ID(),
 			DestinationAccount: dstAccount.ID(),
 			Rules:              expandArmObjectReplicationRuleArray(d.Get("rules").(*pluginsdk.Set).List()),
+			Metrics: &objectreplicationpolicyoperationgroup.ObjectReplicationPolicyPropertiesMetrics{
+				Enabled: pointer.To(d.Get("metrics_enabled").(bool)),
+			},
 		},
 	}
 
@@ -215,6 +224,9 @@ func resourceStorageObjectReplicationUpdate(d *pluginsdk.ResourceData, meta inte
 			SourceAccount:      srcAccount.ID(),
 			DestinationAccount: dstAccount.ID(),
 			Rules:              expandArmObjectReplicationRuleArray(d.Get("rules").(*pluginsdk.Set).List()),
+			Metrics: &objectreplicationpolicyoperationgroup.ObjectReplicationPolicyPropertiesMetrics{
+				Enabled: pointer.To(d.Get("metrics_enabled").(bool)),
+			},
 		},
 	}
 
@@ -280,6 +292,13 @@ func resourceStorageObjectReplicationRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("destination_object_replication_id", id.Dst.ID())
 		}
 	}
+
+	if model := srcResp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("metrics_enabled", props.Metrics != nil && pointer.From(props.Metrics.Enabled))
+		}
+	}
+
 	return nil
 }
 
@@ -320,7 +339,7 @@ func expandArmObjectReplicationRuleArray(input []interface{}) *[]objectreplicati
 		}
 
 		if f, ok := v["filter_out_blobs_with_prefix"]; ok {
-			result.Filters.PrefixMatch = utils.ExpandStringSlice(f.(*pluginsdk.Set).List())
+			result.Filters.PrefixMatch = helpers.ExpandStringSlice(f.(*pluginsdk.Set).List())
 		}
 
 		results = append(results, result)
@@ -349,10 +368,7 @@ func flattenObjectReplicationRules(input *[]objectreplicationpolicyoperationgrou
 		destinationContainer := item.DestinationContainer
 		sourceContainer := item.SourceContainer
 
-		var ruleId string
-		if item.RuleId != nil {
-			ruleId = *item.RuleId
-		}
+		ruleId := pointer.From(item.RuleId)
 
 		var minCreationTime string
 		if item.Filters != nil && item.Filters.MinCreationTime != nil {
@@ -361,7 +377,7 @@ func flattenObjectReplicationRules(input *[]objectreplicationpolicyoperationgrou
 
 		var prefix []interface{}
 		if item.Filters != nil && item.Filters.PrefixMatch != nil {
-			prefix = utils.FlattenStringSlice(item.Filters.PrefixMatch)
+			prefix = helpers.FlattenStringSlice(item.Filters.PrefixMatch)
 		}
 
 		v := map[string]interface{}{

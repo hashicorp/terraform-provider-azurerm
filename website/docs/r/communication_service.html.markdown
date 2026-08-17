@@ -33,9 +33,9 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Communication Service should exist. Changing this forces a new Communication Service to be created.
 
----
+* `data_location` - (Required) The location where the Communication service stores its data at rest. Possible values are `Africa`, `Asia Pacific`, `Australia`, `Brazil`, `Canada`, `Europe`, `France`, `Germany`, `India`, `Japan`, `Korea`, `Norway`, `Switzerland`, `UAE`, `UK`, `usgov` and `United States`. Changing this forces a new Communication Service to be created.
 
-* `data_location` - (Optional) The location where the Communication service stores its data at rest. Possible values are `Africa`, `Asia Pacific`, `Australia`, `Brazil`, `Canada`, `Europe`, `France`, `Germany`, `India`, `Japan`, `Korea`, `Norway`, `Switzerland`, `UAE`, `UK`, `usgov` and `United States`. Defaults to `United States`. Changing this forces a new Communication Service to be created.
+---
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Communication Service.
 

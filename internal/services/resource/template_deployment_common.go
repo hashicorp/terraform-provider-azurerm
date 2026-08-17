@@ -231,8 +231,7 @@ func deleteItemsProvisionedByTemplate(ctx context.Context, client *client.Client
 				continue
 			}
 
-			err = deleteNestedResource(ctx, resourcesClient, resourceProviderApiVersions, nestedResource)
-			if err != nil {
+			if err = deleteNestedResource(ctx, resourcesClient, resourceProviderApiVersions, nestedResource); err != nil {
 				errorList = append(errorList, err)
 			} else {
 				deletedResources[*nestedResource.ID] = true

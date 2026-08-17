@@ -255,16 +255,15 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "test"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "blob"
 }
 
 resource "azurerm_storage_blob" "test" {
-  name                   = "example.pac"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-  source_content         = "function FindProxyForURL(url, host) { return \"DIRECT\"; }"
+  name                 = "example.pac"
+  storage_container_id = azurerm_storage_container.test.id
+  type                 = "Block"
+  source_content       = "function FindProxyForURL(url, host) { return \"DIRECT\"; }"
 }
 
 data "azurerm_storage_account_sas" "test" {
@@ -489,6 +488,7 @@ resource "azurerm_key_vault" "test" {
   name                            = "tlskv%d"
   location                        = azurerm_resource_group.test.location
   resource_group_name             = azurerm_resource_group.test.name
+  rbac_authorization_enabled      = false
   enabled_for_disk_encryption     = true
   enabled_for_deployment          = true
   enabled_for_template_deployment = true

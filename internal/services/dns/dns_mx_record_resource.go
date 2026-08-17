@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -218,14 +219,9 @@ func flattenAzureRmDnsMxRecords(records *[]recordsets.MxRecord) []map[string]int
 				preference = strconv.Itoa(int(*record.Preference))
 			}
 
-			exchange := ""
-			if record.Exchange != nil {
-				exchange = *record.Exchange
-			}
-
 			results = append(results, map[string]interface{}{
 				"preference": preference,
-				"exchange":   exchange,
+				"exchange":   pointer.From(record.Exchange),
 			})
 		}
 	}
@@ -259,8 +255,8 @@ func resourceDnsMxRecordHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%s-", m["preference"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["exchange"].(string)))
+		fmt.Fprintf(&buf, "%s-", m["preference"].(string))
+		fmt.Fprintf(&buf, "%s-", m["exchange"].(string))
 	}
 
 	return pluginsdk.HashString(buf.String())

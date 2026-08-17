@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkwatchers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/packetcaptures"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -21,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceVirtualMachineScaleSetPacketCapture() *pluginsdk.Resource {
@@ -356,7 +356,7 @@ func expandVirtualMachineScaleSetPacketCaptureFilters(input []interface{}) *[]pa
 		filters = append(filters, packetcaptures.PacketCaptureFilter{
 			LocalIPAddress:  pointer.To(localIPAddress),
 			LocalPort:       pointer.To(localPort),
-			Protocol:        pointer.To(packetcaptures.PcProtocol(protocol)),
+			Protocol:        pointer.ToEnum[packetcaptures.PcProtocol](protocol),
 			RemoteIPAddress: pointer.To(remoteIPAddress),
 			RemotePort:      pointer.To(remotePort),
 		})
@@ -397,11 +397,11 @@ func expandVirtualMachineScaleSetPacketCaptureMachineScope(input []interface{}) 
 	output := &packetcaptures.PacketCaptureMachineScope{}
 
 	if exclude := raw["exclude_instance_ids"].([]interface{}); len(exclude) > 0 {
-		output.Exclude = utils.ExpandStringSlice(exclude)
+		output.Exclude = helpers.ExpandStringSlice(exclude)
 	}
 
 	if include := raw["include_instance_ids"].([]interface{}); len(include) > 0 {
-		output.Include = utils.ExpandStringSlice(include)
+		output.Include = helpers.ExpandStringSlice(include)
 	}
 
 	return output

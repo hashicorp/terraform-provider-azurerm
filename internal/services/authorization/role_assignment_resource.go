@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roleassignments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-05-01-preview/roledefinitions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/applicationgroup"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/applicationgroup"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-12-01/subscriptions"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -263,7 +263,7 @@ func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if principalType := d.Get("principal_type").(string); principalType != "" {
-		props.PrincipalType = pointer.To(roleassignments.PrincipalType(principalType))
+		props.PrincipalType = pointer.ToEnum[roleassignments.PrincipalType](principalType)
 	}
 
 	// LinkedAuthorizationFailed may occur in cross tenant setup because of replication lag.

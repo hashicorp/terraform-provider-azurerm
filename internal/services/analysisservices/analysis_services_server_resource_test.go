@@ -143,7 +143,7 @@ func TestAccAnalysisServicesServer_firewallSettings(t *testing.T) {
 }
 
 // ARM_ACC_EMAIL1 and ARM_ACC_EMAIL2 must be set and existing emails in the tenant's AD to work properly
-func TestAccAzureRMAnalysisServicesServer_adminUsers(t *testing.T) {
+func TestAccAnalysisServicesServer_adminUsers(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
 
 	const ArmAccAdminEmail1 = "ARM_ACCTEST_ADMIN_EMAIL1"
@@ -178,7 +178,7 @@ func TestAccAzureRMAnalysisServicesServer_adminUsers(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAnalysisServicesServer_serverFullName(t *testing.T) {
+func TestAccAnalysisServicesServer_serverFullName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
 	r := AnalysisServicesServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -193,7 +193,7 @@ func TestAccAzureRMAnalysisServicesServer_serverFullName(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAnalysisServicesServer_backupBlobContainerUri(t *testing.T) {
+func TestAccAnalysisServicesServer_backupBlobContainerUri(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
 	r := AnalysisServicesServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -208,7 +208,7 @@ func TestAccAzureRMAnalysisServicesServer_backupBlobContainerUri(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAnalysisServicesServer_suspended(t *testing.T) {
+func TestAccAnalysisServicesServer_suspended(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
 	r := AnalysisServicesServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -517,7 +517,7 @@ resource "azurerm_analysis_services_server" "test" {
 
   backup_blob_container_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}${data.azurerm_storage_account_blob_container_sas.test.sas}"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
 func (t AnalysisServicesServerResource) scale(data acceptance.TestData) string {
