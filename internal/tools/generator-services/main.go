@@ -256,19 +256,8 @@ func (websiteCategoriesGenerator) run(outputFileName string, _ map[string]struct
 	return writeToFile(outputFileName, fileContents)
 }
 
-const githubIssueLabelsTemplate = `# NOTE: this file is generated via 'make generate'
-bug:
-  - 'panic:'
-crash:
-  - 'panic:'
-v/1.x (legacy):
-  - '### AzureRM Provider Version\s+(|azurerm |AzureRM )(|v|V)1\.\d+'
-v/2.x (legacy):
-  - '### AzureRM Provider Version\s+(|azurerm |AzureRM )(|v|V)2\.\d+'
-v/3.x:
-  - '### AzureRM Provider Version\s+(|azurerm |AzureRM )(|v|V)3\.\d+'
-v/4.x:
-  - '### AzureRM Provider Version\s+(|azurerm |AzureRM )(|v|V)4\.\d+'
+const githubIssueLabelsTemplate = `# NOTE: this file is generated from the Service Registrations via 'make generate' - manual changes will be lost
+# static triage labels live in labeler-issue-triage.yml
 `
 
 const azurerm = "azurerm_"
@@ -276,7 +265,7 @@ const azurerm = "azurerm_"
 type githubIssueLabelsGenerator struct{}
 
 func (g githubIssueLabelsGenerator) outputPath(rootDirectory string) string {
-	return fmt.Sprintf("%s/.github/labeler-issue-triage.yml", rootDirectory)
+	return fmt.Sprintf("%s/.github/labeler-issue-triage-generated.yml", rootDirectory)
 }
 
 type Prefix struct {

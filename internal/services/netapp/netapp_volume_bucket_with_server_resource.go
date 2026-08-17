@@ -119,7 +119,7 @@ func (r NetAppVolumeBucketWithServerResource) Create() sdk.ResourceFunc {
 			payload := buckets.Bucket{
 				Properties: &buckets.BucketProperties{
 					Path:        pointer.To(model.Path),
-					Permissions: pointer.To(buckets.BucketPermissions(model.Permissions)),
+					Permissions: pointer.ToEnum[buckets.BucketPermissions](model.Permissions),
 					FileSystemUser: &buckets.FileSystemUser{
 						NfsUser:  expandNetAppBucketNfsUser(model.FileSystemNfsUser),
 						CifsUser: expandNetAppBucketCifsUser(model.FileSystemCifsUsername),
@@ -226,10 +226,10 @@ func (r NetAppVolumeBucketWithServerResource) Update() sdk.ResourceFunc {
 			patchProps := &buckets.BucketPatchProperties{}
 
 			if metadata.ResourceData.HasChange("permissions") {
-				patchProps.Permissions = pointer.To(buckets.BucketPatchPermissions(state.Permissions))
+				patchProps.Permissions = pointer.ToEnum[buckets.BucketPatchPermissions](state.Permissions)
 			}
 
-			if metadata.ResourceData.HasChange("file_system_nfs_user") || metadata.ResourceData.HasChange("file_system_cifs_username") {
+			if metadata.ResourceData.HasChanges("file_system_nfs_user", "file_system_cifs_username") {
 				patchProps.FileSystemUser = &buckets.FileSystemUser{
 					NfsUser:  expandNetAppBucketNfsUser(state.FileSystemNfsUser),
 					CifsUser: expandNetAppBucketCifsUser(state.FileSystemCifsUsername),

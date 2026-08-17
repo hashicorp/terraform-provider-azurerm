@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
+	"regexp"
 	"strings"
 	"text/template"
 
@@ -27,6 +29,8 @@ type ResourceIdentityCommand struct {
 type resourceIdentityData struct {
 	ResourceName           string
 	IdentityProperties     string
+	ResourceID             string
+	ParentID               string
 	PropertyNameMap        map[string]string
 	ServicePackageName     string
 	BasicTestParams        string
@@ -39,6 +43,7 @@ type resourceIdentityData struct {
 	TestName               string
 	TestExpectNonEmptyPlan bool
 	TestSequential         bool
+	RewriteTag             bool
 }
 
 var _ cli.Command = &ResourceIdentityCommand{}
@@ -109,9 +114,11 @@ func (c *ResourceIdentityCommand) Run(args []string) int {
 func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 	argSet := flag.NewFlagSet("ri", flag.ExitOnError)
 
-	argSet.StringVar(&d.ResourceName, "resource-name", "", "(Required) the name of the resource to generate the resource identity test for.")
-	argSet.StringVar(&d.IdentityProperties, "properties", "", "(Required) a comma separated list of schema property names that make up the resource identity for this resource. Do not include 'known' values here, only schema comparisons are supported.")
-	argSet.StringVar(&d.ServicePackageName, "service-package-name", "", "(Optional) the path to the directory containing the service package to write the generated test to. For Go generate this will be picked up from the current working directory.")
+	argSet.StringVar(&d.ResourceName, "resource-name", "", "(Optional) the name of the resource to generate the resource identity test for. Defaults to parsing $GOFILE.")
+	argSet.StringVar(&d.IdentityProperties, "properties", "", "(Optional) a comma separated list of schema property names that make up the resource identity for this resource. Do not include 'known' values here, only schema comparisons are supported.")
+	argSet.StringVar(&d.ResourceID, "id", "", "(Optional) the Azure Resource ID string with placeholders in curly braces, e.g. /subscriptions/{subscription_id}/resourceGroups/{resource_group_name}/providers/Microsoft.Web/sites/{name}. This is a simpler alternative to -properties.")
+	argSet.StringVar(&d.ParentID, "parent-id", "", "(Optional) for sub-resources with a virtual identity, specify the schema property name of the parent ID (e.g. `workspace_id`). This automatically expands into compare-values.")
+	argSet.StringVar(&d.ServicePackageName, "service-package-name", "", "(Optional) the path to the directory containing the service package to write the generated test to. For Go generate this will be picked up from $GOPACKAGE or current working directory.")
 	argSet.StringVar(&d.BasicTestParams, "test-params", "", "(Optional) comma separated list of additional properties that need to be passed to the basic test config for this resource.")
 	argSet.StringVar(&d.KnownValues, "known-values", "", "(Optional) comma separated list of known (aka discriminated) value names and their values for this resource type, formatted as [attribute_name]:[attribute value]. e.g. `kind:linux;functionapp,foo:bar`")
 	argSet.StringVar(&d.CompareValues, "compare-values", "", "(Optional) comma separated list of resource identity names that are contained within a schema property value, formatted as [attribute_name]:[attribute value]. e.g. `parent_name:parent_resource_id;resource_group_name,parent_resource_id`")
@@ -125,16 +132,53 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 		return
 	}
 
+	if d.ResourceName == "" {
+		if goFile := os.Getenv("GOFILE"); goFile != "" {
+			d.ResourceName = strings.TrimSuffix(goFile, "_resource.go")
+		}
+	}
+
 	// check we have the essentials
 	if d.ResourceName == "" {
-		errors = append(errors, fmt.Errorf("`resource-name` is required"))
+		errors = append(errors, fmt.Errorf("`resource-name` is required (or must be run via go:generate to infer from $GOFILE)"))
 	}
 
 	// remove accidental provider prefix
 	d.ResourceName = strings.TrimPrefix(d.ResourceName, "azurerm_")
 
-	// d.PropertyNameMap = strings.Split(d.IdentityProperties, ",")
-	if len(d.IdentityProperties) > 0 {
+	if d.ResourceID != "" && d.IdentityProperties == "" {
+		d.PropertyNameMap = map[string]string{}
+
+		// Extract placeholders like {name} or {subscription_id}
+		re := regexp.MustCompile(`\{([^}]+)\}`)
+		matches := re.FindAllStringSubmatch(d.ResourceID, -1)
+
+		hasSubscriptionId := false
+		for _, match := range matches {
+			if len(match) > 1 {
+				propName := match[1]
+				// Handle property overrides like {group_id:name}
+				parts := strings.Split(propName, ":")
+				if len(parts) == 2 {
+					d.PropertyNameMap[parts[0]] = parts[1]
+				} else {
+					if propName == "subscription_id" {
+						hasSubscriptionId = true
+					} else {
+						d.PropertyNameMap[propName] = propName
+					}
+				}
+			}
+		}
+
+		if hasSubscriptionId {
+			if d.KnownValues != "" {
+				d.KnownValues += ",subscription_id:data.Subscriptions.Primary"
+			} else {
+				d.KnownValues = "subscription_id:data.Subscriptions.Primary"
+			}
+		}
+	} else if len(d.IdentityProperties) > 0 {
 		d.PropertyNameMap = map[string]string{}
 		propertiesList := strings.Split(d.IdentityProperties, ",")
 		for _, property := range propertiesList {
@@ -151,6 +195,152 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 		}
 	}
 
+	if len(d.CompareValues) > 0 {
+		d.CompareValueMap = make(map[string]string)
+		kv := strings.Split(d.CompareValues, ",")
+
+		for _, v := range kv {
+			vParts := strings.Split(v, ":")
+			if len(vParts) != 2 {
+				errors = append(errors, fmt.Errorf("invalid property format in compare-values: '%s'", v))
+				return
+			}
+
+			name := vParts[0]
+			if name == "subscription_id" {
+				// prevent duplicate `subscription_id` check
+				d.NoSubscriptionID = true
+			}
+			d.CompareValueMap[vParts[0]] = strings.ReplaceAll(vParts[1], ";", ",")
+		}
+	}
+
+	// AST Inference & Self-Healing
+	d.RewriteTag = false
+	goFile := os.Getenv("GOFILE")
+	if goFile != "" {
+		inferred, err := InferIdentityProperties(goFile)
+		if err == nil {
+			inferredMap := map[string]string{}
+			for _, prop := range inferred.Properties {
+				inferredMap[prop] = prop
+			}
+
+			if !inferred.IsVirtual && len(d.CompareValueMap) > 0 && len(d.PropertyNameMap) == 0 {
+				allSameValue := true
+				var commonValue string
+				for k, v := range d.CompareValueMap {
+					if _, ok := inferredMap[k]; ok || k == "subscription_id" {
+						if commonValue == "" {
+							commonValue = v
+						} else if commonValue != v {
+							allSameValue = false
+							break
+						}
+					}
+				}
+				if allSameValue && commonValue != "" {
+					inferred.IsVirtual = true
+				}
+			}
+
+			if d.ParentID != "" {
+				inferred.IsVirtual = true
+			}
+
+			if inferred.IsVirtual {
+				if d.CompareValueMap == nil {
+					d.CompareValueMap = make(map[string]string)
+				}
+
+				// If they provided -parent-id, auto-expand it!
+				if d.ParentID != "" {
+					for _, prop := range inferred.Properties {
+						d.CompareValueMap[prop] = d.ParentID
+					}
+					if inferred.HasSubscriptionID {
+						d.CompareValueMap["subscription_id"] = d.ParentID
+						d.NoSubscriptionID = true
+					}
+				}
+
+				// If they provided -compare-values (legacy), see if it perfectly matches a single parent ID
+				if len(d.CompareValueMap) > 0 {
+					allSameValue := true
+					var commonValue string
+					for k, v := range d.CompareValueMap {
+						// Only check properties that belong to the identity
+						if _, ok := inferredMap[k]; ok || k == "subscription_id" {
+							if commonValue == "" {
+								commonValue = v
+							} else if commonValue != v {
+								allSameValue = false
+								break
+							}
+						}
+					}
+
+					// We can safely rewrite -compare-values "..." to -parent-id "commonValue"
+					if allSameValue && commonValue != "" && d.ParentID == "" {
+						d.RewriteTag = true
+						d.ParentID = commonValue // act as if it was provided
+
+						// Re-expand everything just to be safe
+						for _, prop := range inferred.Properties {
+							d.CompareValueMap[prop] = d.ParentID
+						}
+						if inferred.HasSubscriptionID {
+							d.CompareValueMap["subscription_id"] = d.ParentID
+						}
+					}
+				} else if d.ParentID != "" {
+					// they already used -parent-id, we can still rewrite to drop -compare-values if it exists
+					d.RewriteTag = true
+				}
+
+				// Ensure PropertyNameMap is empty so generator uses compare-values exclusively
+				d.PropertyNameMap = map[string]string{}
+			} else {
+				if len(d.PropertyNameMap) == 0 {
+					// We had no properties/id provided, use inferred
+					d.PropertyNameMap = inferredMap
+					if inferred.HasSubscriptionID {
+						if d.KnownValues != "" {
+							d.KnownValues += ",subscription_id:data.Subscriptions.Primary"
+						} else {
+							d.KnownValues = "subscription_id:data.Subscriptions.Primary"
+						}
+					}
+					// We don't need to rewrite if it's already clean, but we could
+				} else {
+					// We had properties/id provided. Do they match inferred?
+					match := true
+					if len(d.PropertyNameMap) != len(inferredMap) {
+						match = false
+					} else {
+						for k, v := range d.PropertyNameMap {
+							if infV, ok := inferredMap[k]; !ok || infV != v {
+								match = false
+								break
+							}
+						}
+					}
+
+					if match {
+						// We can safely drop -properties and -id from the go:generate tag
+						d.RewriteTag = true
+					}
+				}
+			}
+		} else if len(d.PropertyNameMap) == 0 && d.ParentID == "" && d.CompareValues == "" {
+			errors = append(errors, fmt.Errorf("neither -properties, -id, -parent-id, -compare-values nor $GOFILE AST inference succeeded: %w", err))
+			return
+		}
+	} else if len(d.PropertyNameMap) == 0 && d.ParentID == "" && d.CompareValues == "" {
+		errors = append(errors, fmt.Errorf("neither -properties, -id, -parent-id, -compare-values nor $GOFILE were provided to determine identity properties"))
+		return
+	}
+
 	if len(d.BasicTestParams) > 0 {
 		d.TestParams = strings.Split(d.BasicTestParams, ",")
 	}
@@ -158,9 +348,6 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 	if len(d.KnownValues) > 0 {
 		d.KnownValueMap = make(map[string]string)
 		kv := strings.Split(d.KnownValues, ",")
-		// if len(kv)%2 != 0 {
-		// 	errors = append(errors, fmt.Errorf("known-values must be a list of an even number of name/values (comma separated values should be represented with semi-colon for replacement later) e.g. 'var1:val1,var2:val2;val3'"))
-		// }
 
 		for _, v := range kv {
 			vParts := strings.Split(v, ":")
@@ -175,26 +362,6 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 				d.NoSubscriptionID = true
 			}
 			d.KnownValueMap[name] = strings.ReplaceAll(vParts[1], ";", ",")
-		}
-	}
-
-	if len(d.CompareValues) > 0 {
-		d.CompareValueMap = make(map[string]string)
-		kv := strings.Split(d.CompareValues, ",")
-
-		for _, v := range kv {
-			vParts := strings.Split(v, ":")
-			if len(vParts) != 2 {
-				errors = append(errors, fmt.Errorf("invalid property format in known-values: '%s'", v))
-				return
-			}
-
-			name := vParts[0]
-			if name == "subscription_id" {
-				// prevent duplicate `subscription_id` check
-				d.NoSubscriptionID = true
-			}
-			d.CompareValueMap[vParts[0]] = strings.ReplaceAll(vParts[1], ";", ",")
 		}
 	}
 
@@ -217,8 +384,7 @@ func (d *resourceIdentityData) exec() error {
 		return fmt.Errorf("failed opening output resource file for writing: %+v", err.Error())
 	}
 	defer func(f *os.File) {
-		err := f.Close()
-		if err != nil {
+		if err := f.Close(); err != nil {
 			log.Println("failed closing output resource file for writing:", err.Error())
 			os.Exit(3)
 		}
@@ -230,6 +396,60 @@ func (d *resourceIdentityData) exec() error {
 
 	if err := templatehelpers.GoImports(outputPath); err != nil {
 		return fmt.Errorf("failed to run goimports: %w", err)
+	}
+
+	if d.RewriteTag {
+		goFile := os.Getenv("GOFILE")
+		if goFile != "" {
+			content, err := os.ReadFile(goFile)
+			if err != nil {
+				return fmt.Errorf("failed reading %s for self-healing: %w", goFile, err)
+			}
+
+			// Remove -properties "...", -id "...", and redundant flags
+			reProp := regexp.MustCompile(`[ \t]*-properties[ \t]+"[^"]+"`)
+			reId := regexp.MustCompile(`[ \t]*-id[ \t]+"[^"]+"`)
+			reResName := regexp.MustCompile(`[ \t]*-resource-name[ \t]+[^ \t\n]+`)
+			rePkgName := regexp.MustCompile(`[ \t]*-service-package-name[ \t]+[^ \t\n]+`)
+			reKnownSub := regexp.MustCompile(`[ \t]*-known-values[ \t]+"subscription_id:data\.Subscriptions\.Primary"`)
+
+			newContent := reProp.ReplaceAllString(string(content), "")
+			newContent = reId.ReplaceAllString(newContent, "")
+			newContent = reResName.ReplaceAllString(newContent, "")
+			newContent = rePkgName.ReplaceAllString(newContent, "")
+			newContent = reKnownSub.ReplaceAllString(newContent, "")
+
+			// Clean up double spaces if any on the go generate line
+			reSpaces := regexp.MustCompile(`(go run ../../tools/generator-tests resourceidentity)[ \t]+`)
+			newContent = reSpaces.ReplaceAllString(newContent, "$1 ")
+			newContent = strings.ReplaceAll(newContent, "  ", " ")
+
+			// Inject -parent-id if we inferred a virtual identity
+			if d.ParentID != "" {
+				// strip out the old compare-values first just to be sure
+				reComp := regexp.MustCompile(`[ \t]*-compare-values[ \t]+"[^"]+"`)
+				newContent = reComp.ReplaceAllString(newContent, "")
+
+				// Check if -parent-id is already there
+				if !strings.Contains(newContent, "-parent-id") {
+					newContent = strings.ReplaceAll(newContent, "generator-tests resourceidentity", fmt.Sprintf("generator-tests resourceidentity -parent-id \"%s\"", d.ParentID))
+				}
+			}
+
+			// Clean up any trailing space before a newline on the go generate line
+			reTrailing := regexp.MustCompile(`(go run ../../tools/generator-tests resourceidentity.*?)[ \t]+\n`)
+			newContent = reTrailing.ReplaceAllString(newContent, "$1\n")
+
+			if err := os.WriteFile(goFile, []byte(newContent), 0o644); err != nil {
+				return fmt.Errorf("failed writing %s for self-healing: %w", goFile, err)
+			}
+
+			// Run gofumpt
+			cmd := exec.Command("gofumpt", "-w", goFile)
+			if err := cmd.Run(); err != nil {
+				return fmt.Errorf("failed running gofumpt on %s: %w", goFile, err)
+			}
+		}
 	}
 
 	return nil

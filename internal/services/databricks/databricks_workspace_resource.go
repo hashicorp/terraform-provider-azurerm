@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/accessconnector"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/workspaces"
 	mlworkspace "github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/subnets"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -36,7 +36,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name databricks_workspace -service-package-name databricks -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basicForResourceIdentity
+//go:generate go run ../../tools/generator-tests resourceidentity -test-name basicForResourceIdentity
 
 func resourceDatabricksWorkspace() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
@@ -851,17 +851,8 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 			return fmt.Errorf("setting `managed_disk_identity`: %+v", err)
 		}
 
-		var workspaceUrl string
-		if model.Properties.WorkspaceURL != nil {
-			workspaceUrl = *model.Properties.WorkspaceURL
-		}
-		d.Set("workspace_url", workspaceUrl)
-
-		var workspaceId string
-		if model.Properties.WorkspaceId != nil {
-			workspaceId = *model.Properties.WorkspaceId
-		}
-		d.Set("workspace_id", workspaceId)
+		d.Set("workspace_url", pointer.From(model.Properties.WorkspaceURL))
+		d.Set("workspace_id", pointer.From(model.Properties.WorkspaceId))
 
 		// customer managed key for managed services
 		var servicesKeyId string
@@ -893,11 +884,7 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 
 		d.Set("enhanced_security_compliance", flattenWorkspaceEnhancedSecurity(model.Properties.EnhancedSecurityCompliance))
 
-		var encryptDiskEncryptionSetId string
-		if model.Properties.DiskEncryptionSetId != nil {
-			encryptDiskEncryptionSetId = *model.Properties.DiskEncryptionSetId
-		}
-		d.Set("disk_encryption_set_id", encryptDiskEncryptionSetId)
+		d.Set("disk_encryption_set_id", pointer.From(model.Properties.DiskEncryptionSetId))
 
 		// Always set these even if they are empty to keep the state file
 		// consistent with the configuration file...
@@ -1042,7 +1029,7 @@ func resourceDatabricksWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("network_security_group_rules_required") {
-		props.RequiredNsgRules = pointer.To(workspaces.RequiredNsgRules(d.Get("network_security_group_rules_required").(string)))
+		props.RequiredNsgRules = pointer.ToEnum[workspaces.RequiredNsgRules](d.Get("network_security_group_rules_required").(string))
 	}
 
 	if d.HasChange("custom_parameters") {

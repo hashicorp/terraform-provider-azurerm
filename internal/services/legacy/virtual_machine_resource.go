@@ -14,8 +14,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -27,9 +25,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkinterfaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/publicipaddresses"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	compute2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	intStor "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
@@ -37,7 +37,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/blobs"
 )
 
@@ -48,7 +47,7 @@ func userDataDiffSuppressFunc(_, old, new string, _ *pluginsdk.ResourceData) boo
 func userDataStateFunc(v interface{}) string {
 	switch s := v.(type) {
 	case string:
-		s = utils.Base64EncodeIfNot(s)
+		s = helpers.Base64EncodeIfNot(s)
 		hash := sha1.Sum([]byte(s))
 		return hex.EncodeToString(hash[:])
 	default:
@@ -663,7 +662,7 @@ func resourceVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	properties := virtualmachines.VirtualMachineProperties{
 		NetworkProfile: &networkProfile,
 		HardwareProfile: &virtualmachines.HardwareProfile{
-			VMSize: pointer.To(virtualmachines.VirtualMachineSizeTypes(vmSize)),
+			VMSize: pointer.ToEnum[virtualmachines.VirtualMachineSizeTypes](vmSize),
 		},
 		StorageProfile: &storageProfile,
 	}
@@ -1025,10 +1024,6 @@ func resourceVirtualMachineDeleteVhd(ctx context.Context, storageClient *intStor
 	}
 	if account == nil {
 		return fmt.Errorf("unable to locate Storage Account %q (Disk %q)", id.AccountId.AccountName, uri)
-	}
-
-	if err != nil {
-		return fmt.Errorf("building Blobs Client: %s", err)
 	}
 
 	blobsClient, err := storageClient.BlobsDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
@@ -1425,7 +1420,7 @@ func expandAzureRmVirtualMachineOsProfile(d *pluginsdk.ResourceData) (*virtualma
 	}
 
 	if v := osProfile["custom_data"].(string); v != "" {
-		v = utils.Base64EncodeIfNot(v)
+		v = helpers.Base64EncodeIfNot(v)
 		profile.CustomData = &v
 	}
 
@@ -1544,7 +1539,7 @@ func expandAzureRmVirtualMachineOsProfileWindowsConfig(d *pluginsdk.ResourceData
 
 				protocol := config["protocol"].(string)
 				winRmListener := virtualmachines.WinRMListener{
-					Protocol: pointer.To(virtualmachines.ProtocolTypes(protocol)),
+					Protocol: pointer.ToEnum[virtualmachines.ProtocolTypes](protocol),
 				}
 				if v := config["certificate_url"].(string); v != "" {
 					winRmListener.CertificateURL = &v
@@ -1569,9 +1564,9 @@ func expandAzureRmVirtualMachineOsProfileWindowsConfig(d *pluginsdk.ResourceData
 				content := config["content"].(string)
 
 				addContent := virtualmachines.AdditionalUnattendContent{
-					PassName:      pointer.To(virtualmachines.PassNames(pass)),
-					ComponentName: pointer.To(virtualmachines.ComponentNames(component)),
-					SettingName:   pointer.To(virtualmachines.SettingNames(settingName)),
+					PassName:      pointer.ToEnum[virtualmachines.PassNames](pass),
+					ComponentName: pointer.ToEnum[virtualmachines.ComponentNames](component),
+					SettingName:   pointer.ToEnum[virtualmachines.SettingNames](settingName),
 				}
 
 				if content != "" {
@@ -1614,7 +1609,7 @@ func expandAzureRmVirtualMachineDataDisk(d *pluginsdk.ResourceData) ([]virtualma
 		managedDisk := &virtualmachines.ManagedDiskParameters{}
 
 		if managedDiskType != "" {
-			managedDisk.StorageAccountType = pointer.To(virtualmachines.StorageAccountTypes(managedDiskType))
+			managedDisk.StorageAccountType = pointer.ToEnum[virtualmachines.StorageAccountTypes](managedDiskType)
 			data_disk.ManagedDisk = managedDisk
 		}
 
@@ -1634,7 +1629,7 @@ func expandAzureRmVirtualMachineDataDisk(d *pluginsdk.ResourceData) ([]virtualma
 		}
 
 		if v := config["caching"].(string); v != "" {
-			data_disk.Caching = pointer.To(virtualmachines.CachingTypes(v))
+			data_disk.Caching = pointer.ToEnum[virtualmachines.CachingTypes](v)
 		}
 
 		if v, ok := config["disk_size_gb"].(int); ok {
@@ -1769,7 +1764,7 @@ func expandAzureRmVirtualMachineOsDisk(d *pluginsdk.ResourceData) (*virtualmachi
 	managedDisk := &virtualmachines.ManagedDiskParameters{}
 
 	if managedDiskType != "" {
-		managedDisk.StorageAccountType = pointer.To(virtualmachines.StorageAccountTypes(managedDiskType))
+		managedDisk.StorageAccountType = pointer.ToEnum[virtualmachines.StorageAccountTypes](managedDiskType)
 		osDisk.ManagedDisk = managedDisk
 	}
 
@@ -1797,11 +1792,11 @@ func expandAzureRmVirtualMachineOsDisk(d *pluginsdk.ResourceData) (*virtualmachi
 	}
 
 	if v := config["os_type"].(string); v != "" {
-		osDisk.OsType = pointer.To(virtualmachines.OperatingSystemTypes(v))
+		osDisk.OsType = pointer.ToEnum[virtualmachines.OperatingSystemTypes](v)
 	}
 
 	if v := config["caching"].(string); v != "" {
-		osDisk.Caching = pointer.To(virtualmachines.CachingTypes(v))
+		osDisk.Caching = pointer.ToEnum[virtualmachines.CachingTypes](v)
 	}
 
 	if v := config["disk_size_gb"].(int); v != 0 {

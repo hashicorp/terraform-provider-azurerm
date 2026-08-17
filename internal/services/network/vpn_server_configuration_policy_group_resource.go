@@ -260,7 +260,7 @@ func expandVPNServerConfigurationPolicyGroupPolicyMembers(input []interface{}) *
 
 		results = append(results, virtualwans.VpnServerConfigurationPolicyGroupMember{
 			Name:           pointer.To(v["name"].(string)),
-			AttributeType:  pointer.To(virtualwans.VpnPolicyMemberAttributeType(v["type"].(string))),
+			AttributeType:  pointer.ToEnum[virtualwans.VpnPolicyMemberAttributeType](v["type"].(string)),
 			AttributeValue: pointer.To(v["value"].(string)),
 		})
 	}

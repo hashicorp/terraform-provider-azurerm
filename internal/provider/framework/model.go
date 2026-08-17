@@ -39,10 +39,6 @@ type ProviderModel struct {
 	Features                       types.List   `tfsdk:"features"`
 	ResourceProviderRegistrations  types.String `tfsdk:"resource_provider_registrations"`
 	ResourceProvidersToRegister    types.List   `tfsdk:"resource_providers_to_register"`
-
-	EnhancedValidation types.List `tfsdk:"enhanced_validation"` // TODO - Remove in 5.0
-
-	SkipProviderRegistration types.Bool `tfsdk:"skip_provider_registration"` // TODO - Remove in 5.0
 }
 
 type Features struct {
@@ -69,6 +65,7 @@ type Features struct {
 	TemplateDeployment       types.List `tfsdk:"template_deployment"`
 	VirtualMachine           types.List `tfsdk:"virtual_machine"`
 	VirtualMachineScaleSet   types.List `tfsdk:"virtual_machine_scale_set"`
+	ServiceBus               types.List `tfsdk:"servicebus"`
 }
 
 // FeaturesAttributes and the other block attribute vars are required for unit testing on the Load func
@@ -97,6 +94,7 @@ var FeaturesAttributes = map[string]attr.Type{
 	"template_deployment":        types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(TemplateDeploymentAttributes)),
 	"virtual_machine":            types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(VirtualMachineAttributes)),
 	"virtual_machine_scale_set":  types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(VirtualMachineScaleSetAttributes)),
+	"servicebus":                 types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(ServiceBusAttributes)),
 }
 
 type APIManagement struct {
@@ -183,16 +181,12 @@ type VirtualMachine struct {
 	DeleteOsDiskOnDeletion           types.Bool `tfsdk:"delete_os_disk_on_deletion"`
 	SkipShutdownAndForceDelete       types.Bool `tfsdk:"skip_shutdown_and_force_delete"`
 	DetachImplicitDataDiskOnDeletion types.Bool `tfsdk:"detach_implicit_data_disk_on_deletion"`
-
-	GracefulShutdown types.Bool `tfsdk:"graceful_shutdown"` // TODO: Remove in 5.0 - Currently not possible to deprecate feature block struct items via feature flagging. Feature made redundant/ineffective by a breaking API change.
 }
 
 var VirtualMachineAttributes = map[string]attr.Type{
 	"delete_os_disk_on_deletion":            types.BoolType,
 	"detach_implicit_data_disk_on_deletion": types.BoolType,
 	"skip_shutdown_and_force_delete":        types.BoolType,
-
-	"graceful_shutdown": types.BoolType, // TODO: Remove in 5.0 - Currently not possible to deprecate feature block struct items via feature flagging. Feature made redundant/ineffective by a breaking API change.
 }
 
 type VirtualMachineScaleSet struct {
@@ -295,6 +289,14 @@ type DatabricksWorkspace struct {
 
 var DatabricksWorkspaceAttributes = map[string]attr.Type{
 	"force_delete": types.BoolType,
+}
+
+type ServiceBus struct {
+	AutoDeleteSubscriptionDefaultRule types.Bool `tfsdk:"auto_delete_subscription_default_rule"`
+}
+
+var ServiceBusAttributes = map[string]attr.Type{
+	"auto_delete_subscription_default_rule": types.BoolType,
 }
 
 type EnhancedValidationModel struct {

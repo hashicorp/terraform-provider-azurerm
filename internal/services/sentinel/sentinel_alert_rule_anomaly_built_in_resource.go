@@ -10,15 +10,13 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2023-09-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/securitymlanalyticssettings"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/azuresdkhacks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	securityinsight "github.com/jackofallops/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
 type AlertRuleAnomalyBuiltInModel struct {
@@ -54,7 +52,7 @@ func (r AlertRuleAnomalyBuiltInResource) ResourceType() string {
 }
 
 func (r AlertRuleAnomalyBuiltInResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.MLAnalyticsSettingsID
+	return securitymlanalyticssettings.ValidateSecurityMLAnalyticsSettingID
 }
 
 func (r AlertRuleAnomalyBuiltInResource) Arguments() map[string]*schema.Schema {
@@ -63,6 +61,7 @@ func (r AlertRuleAnomalyBuiltInResource) Arguments() map[string]*schema.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 			ExactlyOneOf: []string{"name", "display_name"},
 		},
@@ -71,6 +70,7 @@ func (r AlertRuleAnomalyBuiltInResource) Arguments() map[string]*schema.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 			ExactlyOneOf: []string{"name", "display_name"},
 		},
@@ -91,8 +91,8 @@ func (r AlertRuleAnomalyBuiltInResource) Arguments() map[string]*schema.Schema {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(securityinsight.SettingsStatusProduction),
-				string(securityinsight.SettingsStatusFlighting),
+				string(securitymlanalyticssettings.SettingsStatusProduction),
+				string(securitymlanalyticssettings.SettingsStatusFlighting),
 			}, false),
 		},
 	}
@@ -176,64 +176,78 @@ func (r AlertRuleAnomalyBuiltInResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var metaModel AlertRuleAnomalyBuiltInModel
-			if err := metadata.Decode(&metaModel); err != nil {
+			var config AlertRuleAnomalyBuiltInModel
+			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			client := metadata.Client.Sentinel.AnalyticsSettingsClient
 
-			workspaceId, err := workspaces.ParseWorkspaceID(metaModel.WorkspaceId)
+			workspaceId, err := workspaces.ParseWorkspaceID(config.WorkspaceId)
 			if err != nil {
-				return fmt.Errorf("parsing workspace id: %+v", err)
+				return err
 			}
 
-			builtinRule, err := AlertRuleAnomalyReadWithPredicate(ctx, client.BaseClient, *workspaceId, func(v *azuresdkhacks.AnomalySecurityMLAnalyticsSettings) bool {
-				if v.Name != nil && strings.EqualFold(*v.Name, metaModel.Name) {
-					return true
+			items, err := client.ListComplete(ctx, securitymlanalyticssettings.WorkspaceId(*workspaceId))
+			if err != nil {
+				return fmt.Errorf("listing alerts rules on %s: %+v", workspaceId, err)
+			}
+
+			var builtInAnomalyRule *securitymlanalyticssettings.AnomalySecurityMLAnalyticsSettings
+			var builtInRuleName string
+			for _, item := range items.Items {
+				v, ok := item.(securitymlanalyticssettings.AnomalySecurityMLAnalyticsSettings)
+				if !ok {
+					continue
 				}
 
-				if v.DisplayName != nil && strings.EqualFold(*v.DisplayName, metaModel.DisplayName) {
-					return true
+				switch {
+				case config.Name != "":
+					if strings.EqualFold(pointer.From(v.Name), config.Name) {
+						builtInRuleName = config.Name
+						builtInAnomalyRule = &v
+						break
+					}
+				case config.DisplayName != "":
+					if v.Properties != nil && strings.EqualFold(v.Properties.DisplayName, config.DisplayName) {
+						builtInRuleName = config.DisplayName
+						builtInAnomalyRule = &v
+						break
+					}
 				}
-
-				return false
-			})
-			if err != nil {
-				return fmt.Errorf("reading: %+v", err)
-			}
-			if builtinRule == nil {
-				if metaModel.DisplayName != "" {
-					return fmt.Errorf("built in rule (Display Name %q) was not found", metaModel.DisplayName)
-				}
-				return fmt.Errorf("built in rule (Display Name %q) was not found", metaModel.Name)
 			}
 
-			id, err := parse.MLAnalyticsSettingsID(AlertRuleAnomalyIdFromWorkspaceId(*workspaceId, *builtinRule.Name))
-			if err != nil {
-				return fmt.Errorf("parsing: %+v", err)
+			if builtInAnomalyRule == nil {
+				return fmt.Errorf("retrieving built-in anomaly rule (%s): not found", builtInRuleName)
 			}
 
-			param := securityinsight.AnomalySecurityMLAnalyticsSettings{
-				Kind: securityinsight.KindBasicSecurityMLAnalyticsSettingKindAnomaly,
-				AnomalySecurityMLAnalyticsSettingsProperties: &securityinsight.AnomalySecurityMLAnalyticsSettingsProperties{
-					Description:              builtinRule.Description,
-					DisplayName:              builtinRule.DisplayName,
-					RequiredDataConnectors:   builtinRule.RequiredDataConnectors,
-					Tactics:                  builtinRule.Tactics,
-					Techniques:               builtinRule.Techniques,
-					AnomalyVersion:           builtinRule.AnomalyVersion,
-					Frequency:                builtinRule.Frequency,
-					IsDefaultSettings:        builtinRule.IsDefaultSettings,
-					AnomalySettingsVersion:   builtinRule.AnomalySettingsVersion,
-					SettingsDefinitionID:     builtinRule.SettingsDefinitionID,
-					Enabled:                  pointer.To(metaModel.Enabled),
-					SettingsStatus:           securityinsight.SettingsStatus(metaModel.Mode),
-					CustomizableObservations: builtinRule.CustomizableObservations,
+			if builtInAnomalyRule.Properties == nil {
+				return fmt.Errorf("retrieving built-in anomaly rule (%s): `properties` was nil", builtInRuleName)
+			}
+			builtInAnomalyRuleProps := builtInAnomalyRule.Properties
+
+			id := securitymlanalyticssettings.NewSecurityMLAnalyticsSettingID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, pointer.From(builtInAnomalyRule.Name))
+
+			param := securitymlanalyticssettings.AnomalySecurityMLAnalyticsSettings{
+				Kind: securitymlanalyticssettings.SecurityMLAnalyticsSettingsKindAnomaly,
+				Properties: &securitymlanalyticssettings.AnomalySecurityMLAnalyticsSettingsProperties{
+					Description:              builtInAnomalyRuleProps.Description,
+					DisplayName:              builtInAnomalyRuleProps.DisplayName,
+					RequiredDataConnectors:   builtInAnomalyRuleProps.RequiredDataConnectors,
+					Tactics:                  builtInAnomalyRuleProps.Tactics,
+					Techniques:               builtInAnomalyRuleProps.Techniques,
+					AnomalyVersion:           builtInAnomalyRuleProps.AnomalyVersion,
+					Frequency:                builtInAnomalyRuleProps.Frequency,
+					IsDefaultSettings:        builtInAnomalyRuleProps.IsDefaultSettings,
+					AnomalySettingsVersion:   builtInAnomalyRuleProps.AnomalySettingsVersion,
+					SettingsDefinitionId:     builtInAnomalyRuleProps.SettingsDefinitionId,
+					Enabled:                  config.Enabled,
+					SettingsStatus:           securitymlanalyticssettings.SettingsStatus(config.Mode),
+					CustomizableObservations: builtInAnomalyRuleProps.CustomizableObservations,
 				},
 			}
 
-			if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.SecurityMLAnalyticsSettingName, param); err != nil {
+			if _, err = client.CreateOrUpdate(ctx, id, param); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -249,75 +263,47 @@ func (r AlertRuleAnomalyBuiltInResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Sentinel.AnalyticsSettingsClient
 
-			id, err := parse.MLAnalyticsSettingsID(metadata.ResourceData.Id())
+			id, err := securitymlanalyticssettings.ParseSecurityMLAnalyticsSettingID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing %s: %+v", metadata.ResourceData.Id(), err)
+				return err
 			}
-			workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
 
-			resp, err := AlertRuleAnomalyReadWithPredicate(ctx, client.BaseClient, workspaceId, func(v *azuresdkhacks.AnomalySecurityMLAnalyticsSettings) bool {
-				if v.ID != nil && strings.EqualFold(*v.ID, id.ID()) {
-					return true
-				}
-				return false
-			})
+			resp, err := client.Get(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", *id, err)
-			}
-			if resp == nil {
-				return metadata.MarkAsGone(id)
+				if response.WasNotFound(resp.HttpResponse) {
+					return metadata.MarkAsGone(id)
+				}
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
 			state := AlertRuleAnomalyBuiltInModel{
-				WorkspaceId: workspaceId.ID(),
-				Mode:        string(resp.SettingsStatus),
+				WorkspaceId: workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName).ID(),
 			}
 
-			if resp.Name != nil {
-				state.Name = *resp.Name
-			}
+			if model := resp.Model; model != nil {
+				state.Name = pointer.From(model.SecurityMLAnalyticsSetting().Name)
+				if v, ok := model.(securitymlanalyticssettings.AnomalySecurityMLAnalyticsSettings); ok && v.Properties != nil {
+					props := v.Properties
 
-			if resp.DisplayName != nil {
-				state.DisplayName = *resp.DisplayName
-			}
+					state.Mode = string(props.SettingsStatus)
+					state.DisplayName = props.DisplayName
+					state.AnomalyVersion = props.AnomalyVersion
+					state.AnomalySettingsVersion = pointer.From(props.AnomalySettingsVersion)
+					state.Description = pointer.From(props.Description)
+					state.Enabled = props.Enabled
+					state.Frequency = props.Frequency
+					state.RequiredDataConnectors = flattenSentinelAlertRuleAnomalyRequiredDataConnectors(props.RequiredDataConnectors)
+					state.SettingsDefinitionId = pointer.From(props.SettingsDefinitionId)
+					state.Tactics = pointer.FromEnumSlice(props.Tactics)
+					state.Techniques = pointer.From(props.Techniques)
 
-			if resp.AnomalyVersion != nil {
-				state.AnomalyVersion = *resp.AnomalyVersion
-			}
-
-			if resp.AnomalySettingsVersion != nil {
-				state.AnomalySettingsVersion = int64(*resp.AnomalySettingsVersion)
-			}
-
-			if resp.Description != nil {
-				state.Description = *resp.Description
-			}
-
-			if resp.Enabled != nil {
-				state.Enabled = *resp.Enabled
-			}
-
-			if resp.Frequency != nil {
-				state.Frequency = *resp.Frequency
-			}
-
-			state.RequiredDataConnectors = flattenSentinelAlertRuleAnomalyRequiredDataConnectors(resp.RequiredDataConnectors)
-
-			if resp.SettingsDefinitionID != nil {
-				state.SettingsDefinitionId = resp.SettingsDefinitionID.String()
-			}
-
-			state.Tactics = flattenSentinelAlertRuleAnomalyTactics(resp.Tactics)
-
-			if resp.Techniques != nil {
-				state.Techniques = *resp.Techniques
-			}
-
-			if resp.CustomizableObservations != nil {
-				state.MultiSelectObservation = flattenSentinelAlertRuleAnomalyMultiSelect(resp.CustomizableObservations.MultiSelectObservations)
-				state.SingleSelectObservation = flattenSentinelAlertRuleAnomalySingleSelect(resp.CustomizableObservations.SingleSelectObservations)
-				state.PrioritizeExcludeObservation = flattenSentinelAlertRuleAnomalyPriority(resp.CustomizableObservations.PrioritizeExcludeObservations)
-				state.ThresholdObservation = flattenSentinelAlertRuleAnomalyThreshold(resp.CustomizableObservations.ThresholdObservations)
+					if co := props.CustomizableObservations; co != nil {
+						state.MultiSelectObservation = flattenSentinelAlertRuleAnomalyMultiSelect(co.MultiSelectObservations)
+						state.SingleSelectObservation = flattenSentinelAlertRuleAnomalySingleSelect(co.SingleSelectObservations)
+						state.PrioritizeExcludeObservation = flattenSentinelAlertRuleAnomalyPriority(co.PrioritizeExcludeObservations)
+						state.ThresholdObservation = flattenSentinelAlertRuleAnomalyThreshold(co.ThresholdObservations)
+					}
+				}
 			}
 
 			return metadata.Encode(&state)
@@ -329,56 +315,48 @@ func (r AlertRuleAnomalyBuiltInResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var metaModel AlertRuleAnomalyBuiltInModel
-			if err := metadata.Decode(&metaModel); err != nil {
+			var config AlertRuleAnomalyBuiltInModel
+			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			client := metadata.Client.Sentinel.AnalyticsSettingsClient
 
-			id, err := parse.MLAnalyticsSettingsID(metadata.ResourceData.Id())
+			id, err := securitymlanalyticssettings.ParseSecurityMLAnalyticsSettingID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing: %+v", err)
+				return err
 			}
 
-			workspaceId, err := workspaces.ParseWorkspaceID(metaModel.WorkspaceId)
+			existing, err := client.Get(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("parsing workspace id: %+v", err)
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			existing, err := AlertRuleAnomalyReadWithPredicate(ctx, client.BaseClient, *workspaceId, func(v *azuresdkhacks.AnomalySecurityMLAnalyticsSettings) bool {
-				if v.ID != nil && strings.EqualFold(*v.ID, id.ID()) {
-					return true
-				}
-				return false
-			})
-			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", *id, err)
-			}
-			if existing == nil {
-				return fmt.Errorf("retrieving %s: not found", *id)
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", *id)
 			}
 
-			param := securityinsight.AnomalySecurityMLAnalyticsSettings{
-				Kind: securityinsight.KindBasicSecurityMLAnalyticsSettingKindAnomaly,
-				AnomalySecurityMLAnalyticsSettingsProperties: &securityinsight.AnomalySecurityMLAnalyticsSettingsProperties{
-					Description:              existing.Description,
-					DisplayName:              existing.DisplayName,
-					RequiredDataConnectors:   existing.RequiredDataConnectors,
-					Tactics:                  existing.Tactics,
-					Techniques:               existing.Techniques,
-					AnomalyVersion:           existing.AnomalyVersion,
-					Frequency:                existing.Frequency,
-					IsDefaultSettings:        existing.IsDefaultSettings,
-					AnomalySettingsVersion:   existing.AnomalySettingsVersion,
-					SettingsDefinitionID:     existing.SettingsDefinitionID,
-					Enabled:                  pointer.To(metaModel.Enabled),
-					SettingsStatus:           securityinsight.SettingsStatus(metaModel.Mode),
-					CustomizableObservations: existing.CustomizableObservations,
-				},
+			v, ok := existing.Model.(securitymlanalyticssettings.AnomalySecurityMLAnalyticsSettings)
+			if !ok {
+				return fmt.Errorf("retrieving %s: expected type `%T`, got `%T`", id, securitymlanalyticssettings.AnomalySecurityMLAnalyticsSettings{}, existing.Model)
 			}
 
-			if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.SecurityMLAnalyticsSettingName, param); err != nil {
+			if v.Properties == nil {
+				return fmt.Errorf("retrieving %s: `properties` was nil", id)
+			}
+			props := v.Properties
+
+			rd := metadata.ResourceData
+
+			if rd.HasChange("enabled") {
+				props.Enabled = config.Enabled
+			}
+
+			if rd.HasChange("mode") {
+				props.SettingsStatus = securitymlanalyticssettings.SettingsStatus(config.Mode)
+			}
+
+			if _, err = client.CreateOrUpdate(ctx, *id, v); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -392,57 +370,53 @@ func (r AlertRuleAnomalyBuiltInResource) Delete() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			// it's not able to delete built-in rules.
-			var metaModel AlertRuleAnomalyBuiltInModel
-			if err := metadata.Decode(&metaModel); err != nil {
-				return fmt.Errorf("decoding: %+v", err)
-			}
-
 			client := metadata.Client.Sentinel.AnalyticsSettingsClient
 
-			id, err := parse.MLAnalyticsSettingsID(metadata.ResourceData.Id())
+			id, err := securitymlanalyticssettings.ParseSecurityMLAnalyticsSettingID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing: %+v", err)
+				return err
 			}
 
-			workspaceId, err := workspaces.ParseWorkspaceID(metaModel.WorkspaceId)
+			existing, err := client.Get(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("parsing workspace id: %+v", err)
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			existing, err := AlertRuleAnomalyReadWithPredicate(ctx, client.BaseClient, *workspaceId, func(v *azuresdkhacks.AnomalySecurityMLAnalyticsSettings) bool {
-				if v.ID != nil && strings.EqualFold(*v.ID, id.ID()) {
-					return true
-				}
-				return false
-			})
-			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", *id, err)
-			}
-			if existing == nil {
-				return fmt.Errorf("retrieving %s: not found", *id)
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", *id)
 			}
 
-			param := securityinsight.AnomalySecurityMLAnalyticsSettings{
-				Kind: securityinsight.KindBasicSecurityMLAnalyticsSettingKindAnomaly,
-				AnomalySecurityMLAnalyticsSettingsProperties: &securityinsight.AnomalySecurityMLAnalyticsSettingsProperties{
-					Description:              existing.Description,
-					DisplayName:              existing.DisplayName,
-					RequiredDataConnectors:   existing.RequiredDataConnectors,
-					Tactics:                  existing.Tactics,
-					Techniques:               existing.Techniques,
-					AnomalyVersion:           existing.AnomalyVersion,
-					Frequency:                existing.Frequency,
-					IsDefaultSettings:        existing.IsDefaultSettings,
-					AnomalySettingsVersion:   existing.AnomalySettingsVersion,
-					SettingsDefinitionID:     existing.SettingsDefinitionID,
-					Enabled:                  pointer.To(false),
-					SettingsStatus:           securityinsight.SettingsStatus(metaModel.Mode),
-					CustomizableObservations: existing.CustomizableObservations,
+			v, ok := existing.Model.(securitymlanalyticssettings.AnomalySecurityMLAnalyticsSettings)
+			if !ok {
+				return fmt.Errorf("retrieving %s: expected type `%T`, got `%T`", id, securitymlanalyticssettings.AnomalySecurityMLAnalyticsSettings{}, existing.Model)
+			}
+
+			if v.Properties == nil {
+				return fmt.Errorf("retrieving %s: `properties` was nil", id)
+			}
+			props := v.Properties
+
+			param := securitymlanalyticssettings.AnomalySecurityMLAnalyticsSettings{
+				Kind: securitymlanalyticssettings.SecurityMLAnalyticsSettingsKindAnomaly,
+				Properties: &securitymlanalyticssettings.AnomalySecurityMLAnalyticsSettingsProperties{
+					Description:              props.Description,
+					DisplayName:              props.DisplayName,
+					RequiredDataConnectors:   props.RequiredDataConnectors,
+					Tactics:                  props.Tactics,
+					Techniques:               props.Techniques,
+					AnomalyVersion:           props.AnomalyVersion,
+					Frequency:                props.Frequency,
+					IsDefaultSettings:        props.IsDefaultSettings,
+					AnomalySettingsVersion:   props.AnomalySettingsVersion,
+					SettingsDefinitionId:     props.SettingsDefinitionId,
+					Enabled:                  false,
+					SettingsStatus:           props.SettingsStatus,
+					CustomizableObservations: props.CustomizableObservations,
 				},
 			}
 
-			if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.SecurityMLAnalyticsSettingName, param); err != nil {
-				return fmt.Errorf("updating %s: %+v", id, err)
+			if _, err = client.CreateOrUpdate(ctx, *id, param); err != nil {
+				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
 			return nil

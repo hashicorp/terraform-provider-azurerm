@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2020-10-01/activitylogalertsapis"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -23,10 +24,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name monitor_activity_log_alert -service-package-name monitor -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -470,7 +470,7 @@ func resourceMonitorActivityLogAlertCreateUpdate(d *pluginsdk.ResourceData, meta
 			Condition:   expandMonitorActivityLogAlertCriteria(criteriaRaw),
 			Actions:     expandMonitorActivityLogAlertAction(actionRaw),
 		},
-		Tags: utils.ExpandPtrMapStringString(t),
+		Tags: helpers.ExpandPtrMapStringString(t),
 	}
 
 	if _, err := client.ActivityLogAlertsCreateOrUpdate(ctx, id, parameters); err != nil {
@@ -521,7 +521,7 @@ func resourceMonitorActivityLogAlertFlatten(d *pluginsdk.ResourceData, id *activ
 
 			var scopes []interface{}
 			if props.Scopes != nil {
-				scopes = utils.FlattenStringSlice(&props.Scopes)
+				scopes = helpers.FlattenStringSlice(&props.Scopes)
 			}
 			if err := d.Set("scopes", scopes); err != nil {
 				return fmt.Errorf("setting `scopes`: %+v", err)
@@ -534,7 +534,7 @@ func resourceMonitorActivityLogAlertFlatten(d *pluginsdk.ResourceData, id *activ
 				return fmt.Errorf("setting `action`: %+v", err)
 			}
 		}
-		if err := d.Set("tags", utils.FlattenPtrMapStringString(model.Tags)); err != nil {
+		if err := d.Set("tags", helpers.FlattenPtrMapStringString(model.Tags)); err != nil {
 			return err
 		}
 	}
@@ -787,7 +787,7 @@ func expandServiceHealth(serviceHealth []interface{}, conditions []activitylogal
 		if len(rv.List()) > 0 {
 			conditions = append(conditions, activitylogalertsapis.AlertRuleAnyOfOrLeafCondition{
 				Field:       pointer.To("properties.impactedServices[*].ImpactedRegions[*].RegionName"),
-				ContainsAny: utils.ExpandStringSlice(rv.List()),
+				ContainsAny: helpers.ExpandStringSlice(rv.List()),
 			})
 		}
 
@@ -810,7 +810,7 @@ func expandServiceHealth(serviceHealth []interface{}, conditions []activitylogal
 		if len(sv.List()) > 0 {
 			conditions = append(conditions, activitylogalertsapis.AlertRuleAnyOfOrLeafCondition{
 				Field:       pointer.To("properties.impactedServices[*].ServiceName"),
-				ContainsAny: utils.ExpandStringSlice(sv.List()),
+				ContainsAny: helpers.ExpandStringSlice(sv.List()),
 			})
 		}
 	}
