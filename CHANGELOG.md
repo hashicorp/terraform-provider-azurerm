@@ -7,6 +7,7 @@ ENHANCEMENTS:
 * dependencies: `go-azure-sdk` - update to `v0.20260811.1225050` [GH-33079]
 
 FEATURES:
+* **New List Resource**: `azurerm_user_assigned_identity` [GH-32667]
 
 BUG FIXES:
 
