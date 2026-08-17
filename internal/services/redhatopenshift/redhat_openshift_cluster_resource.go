@@ -9,7 +9,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -593,9 +592,7 @@ func (r RedHatOpenShiftCluster) Create() sdk.ResourceFunc {
 				parameters.Identity = expandedIdentity
 			}
 
-			if err := retryRedHatOpenShiftClusterCreateOrUpdate(func() error {
-				return client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, metadata.SetIDAndIdentityCallback(&id))
-			}); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -689,9 +686,7 @@ func (r RedHatOpenShiftCluster) Update() sdk.ResourceFunc {
 				parameters.Tags = pointer.To(state.Tags)
 			}
 
-			if err := retryRedHatOpenShiftClusterCreateOrUpdate(func() error {
-				return client.CreateOrUpdateThenPoll(ctx, *id, parameters)
-			}); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, parameters); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -802,31 +797,6 @@ func (r RedHatOpenShiftCluster) Delete() sdk.ResourceFunc {
 			return nil
 		},
 	}
-}
-
-func retryRedHatOpenShiftClusterCreateOrUpdate(operation func() error) error {
-	const maximumRetries = 2
-
-	var err error
-	for attempt := 0; attempt <= maximumRetries; attempt++ {
-		err = operation()
-		if err == nil {
-			return err
-		}
-
-		retryable := false
-		for _, code := range []string{"DeploymentFailed", "InternalServerError"} {
-			if strings.Contains(err.Error(), fmt.Sprintf("\nCode: %q\n", code)) {
-				retryable = true
-				break
-			}
-		}
-		if !retryable {
-			return err
-		}
-	}
-
-	return err
 }
 
 func expandOpenshiftClusterProfile(input []ClusterProfile, subscriptionId string) *openshiftclusters.ClusterProfile {
