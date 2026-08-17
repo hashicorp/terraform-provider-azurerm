@@ -110,7 +110,6 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 			"ip_version_type": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ForceNew:     true,
 				Default:      string(privateendpoints.PrivateEndpointIPVersionTypeIPvFour),
 				ValidateFunc: validation.StringInSlice(privateendpoints.PossibleValuesForPrivateEndpointIPVersionType(), false),
 			},
