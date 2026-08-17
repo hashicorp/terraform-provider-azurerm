@@ -31,7 +31,7 @@ type AutomationRunbookDataSourceModel struct {
 	RunbookType            string            `tfschema:"runbook_type"`
 	LogActivityTrace       int64             `tfschema:"log_activity_trace_level"`
 	Content                string            `tfschema:"content"`
-	RuntimeEnvironmentName string            `tfschema:"runtime_enviroment_name"`
+	RuntimeEnvironmentName string            `tfschema:"runtime_environment_name"`
 	Tags                   map[string]string `tfschema:"tags "`
 }
 
