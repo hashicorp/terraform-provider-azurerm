@@ -452,6 +452,12 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 			}
 			metadata.SetID(id)
 
+			if state.NetworkBypassMode != "" {
+				if err := updateMongoClusterNetworkBypassMode(ctx, client, id, mongoclusters.NetworkBypassMode(state.NetworkBypassMode)); err != nil {
+					return fmt.Errorf("enabling `network_bypass_mode` for %s: %+v", id, err)
+				}
+			}
+
 			// `data_api_mode_enabled` can only be enabled after the resource is created
 			if state.CreateMode == string(mongoclusters.CreateModeDefault) && state.DataApiModeEnabled {
 				updatePayload := mongoclusters.MongoClusterUpdate{
