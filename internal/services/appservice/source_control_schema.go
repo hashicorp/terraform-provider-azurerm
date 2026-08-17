@@ -173,21 +173,19 @@ func flattenGitHubActionConfiguration(input *webapps.GitHubActionConfiguration) 
 	}
 
 	if codeConfig := input.CodeConfiguration; codeConfig != nil {
-		ghCodeConfig := []GitHubActionCodeConfig{{
+		ghConfig.CodeConfig = []GitHubActionCodeConfig{{
 			RuntimeStack:   pointer.From(codeConfig.RuntimeStack),
 			RuntimeVersion: pointer.From(codeConfig.RuntimeVersion),
 		}}
-		ghConfig.CodeConfig = ghCodeConfig
 	}
 
 	if containerConfig := input.ContainerConfiguration; containerConfig != nil {
-		ghContainerConfig := []GitHubActionContainerConfig{{
+		ghConfig.ContainerConfig = []GitHubActionContainerConfig{{
 			RegistryPassword: pointer.From(containerConfig.Password),
 			RegistryUsername: pointer.From(containerConfig.Username),
 			RegistryURL:      pointer.From(containerConfig.ServerURL),
 			ImageName:        pointer.From(containerConfig.ImageName),
 		}}
-		ghConfig.ContainerConfig = ghContainerConfig
 	}
 
 	output = append(output, ghConfig)
