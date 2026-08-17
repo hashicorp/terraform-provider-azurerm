@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2025-09-01/containerinstance"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -29,7 +30,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceContainerGroup() *pluginsdk.Resource {
@@ -696,12 +696,12 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		Location: &location,
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		Properties: containerinstance.ContainerGroupPropertiesProperties{
-			Sku:                      pointer.To(containerinstance.ContainerGroupSku(d.Get("sku").(string))),
+			Sku:                      pointer.ToEnum[containerinstance.ContainerGroupSku](d.Get("sku").(string)),
 			InitContainers:           initContainers,
 			Containers:               containers,
 			Diagnostics:              diagnostics,
 			RestartPolicy:            &restartPolicy,
-			OsType:                   pointer.To(containerinstance.OperatingSystemTypes(OSType)),
+			OsType:                   pointer.ToEnum[containerinstance.OperatingSystemTypes](OSType),
 			Volumes:                  &containerGroupVolumes,
 			ImageRegistryCredentials: expandContainerImageRegistryCredentials(d),
 			DnsConfig:                expandContainerGroupDnsConfig(dnsConfig),
@@ -1136,14 +1136,9 @@ func flattenContainerSecurityContext(input *containerinstance.SecurityContextDef
 		return []interface{}{}
 	}
 
-	var privileged bool
-	if v := input.Privileged; v != nil {
-		privileged = *v
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"privilege_enabled": privileged,
+			"privilege_enabled": pointer.From(input.Privileged),
 		},
 	}
 }
@@ -1530,7 +1525,7 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 		commands := probeConfig["exec"].([]interface{})
 		if len(commands) > 0 {
 			exec := containerinstance.ContainerExec{
-				Command: utils.ExpandStringSlice(commands),
+				Command: helpers.ExpandStringSlice(commands),
 			}
 			probe.Exec = &exec
 		}
@@ -1584,14 +1579,8 @@ func flattenContainerProbeHttpHeaders(input *[]containerinstance.HTTPHeader) map
 
 	output := map[string]interface{}{}
 	for _, header := range *input {
-		name := ""
-		if header.Name != nil {
-			name = *header.Name
-		}
-		value := ""
-		if header.Value != nil {
-			value = *header.Value
-		}
+		name := pointer.From(header.Name)
+		value := pointer.From(header.Value)
 		output[name] = value
 	}
 	return output

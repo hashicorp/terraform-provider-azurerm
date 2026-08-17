@@ -263,7 +263,7 @@ func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if principalType := d.Get("principal_type").(string); principalType != "" {
-		props.PrincipalType = pointer.To(roleassignments.PrincipalType(principalType))
+		props.PrincipalType = pointer.ToEnum[roleassignments.PrincipalType](principalType)
 	}
 
 	// LinkedAuthorizationFailed may occur in cross tenant setup because of replication lag.

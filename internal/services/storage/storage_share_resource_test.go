@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/jackofallops/giovanni/storage/2023-11-03/file/shares"
 )
 
 type StorageShareResource struct{}
@@ -268,32 +267,6 @@ func (r StorageShareResource) Exists(ctx context.Context, client *clients.Client
 	}
 
 	return pointer.To(existing.Model != nil), nil
-}
-
-// Destroy is deprecated for this resource. From 5.0 this will no longer use the Data Plane client.
-func (r StorageShareResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := shares.ParseShareID(state.ID, client.Storage.StorageDomainSuffix)
-	if err != nil {
-		return nil, err
-	}
-
-	account, err := client.Storage.FindAccount(ctx, client.Account.SubscriptionId, id.AccountId.AccountName)
-	if err != nil {
-		return nil, fmt.Errorf("retrieving Account %q for Share %q: %+v", id.AccountId.AccountName, id.ShareName, err)
-	}
-	if account == nil {
-		return nil, fmt.Errorf("unable to determine Account %q for Storage Share %q", id.AccountId.AccountName, id.ShareName)
-	}
-
-	sharesClient, err := client.Storage.FileSharesDataPlaneClient(ctx, *account, client.Storage.DataPlaneOperationSupportingAnyAuthMethod())
-	if err != nil {
-		return nil, fmt.Errorf("building File Share Client for %s: %+v", account.StorageAccountId, err)
-	}
-	if err := sharesClient.Delete(ctx, id.ShareName); err != nil {
-		return nil, fmt.Errorf("deleting File Share %q in %s: %+v", id.ShareName, account.StorageAccountId, err)
-	}
-
-	return pointer.To(true), nil
 }
 
 func (r StorageShareResource) basic(data acceptance.TestData) string {

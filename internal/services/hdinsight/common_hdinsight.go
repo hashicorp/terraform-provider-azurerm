@@ -95,8 +95,7 @@ func hdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) plu
 				}
 
 				if newEdgeNodeInt != 0 {
-					err = createHDInsightEdgeNodes(ctx, applicationsClient, applicationId, edgeNodeConfig)
-					if err != nil {
+					if err = createHDInsightEdgeNodes(ctx, applicationsClient, applicationId, edgeNodeConfig); err != nil {
 						return err
 					}
 				}

@@ -523,10 +523,7 @@ func flattenArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx context.Conte
 	}
 	secretName := *params.SecretName
 
-	var secretVersion string
-	if params.SecretVersion != nil {
-		secretVersion = *params.SecretVersion
-	}
+	secretVersion := pointer.From(params.SecretVersion)
 
 	keyVaultId := commonids.NewKeyVaultID(subscriptionId, resourceGroupName, vaultName)
 	keyVaultBaseUrl, err := keyVaultsClient.BaseUriForKeyVault(ctx, keyVaultId)

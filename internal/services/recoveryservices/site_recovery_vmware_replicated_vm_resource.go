@@ -386,7 +386,7 @@ func (r VMWareReplicatedVmResource) Create() sdk.ResourceFunc {
 			}
 
 			providerSpecificDetail := replicationprotecteditems.InMageRcmEnableProtectionInput{
-				LicenseType:              pointer.To(replicationprotecteditems.LicenseType(model.LicenseType)),
+				LicenseType:              pointer.ToEnum[replicationprotecteditems.LicenseType](model.LicenseType),
 				TargetVMName:             &model.TargetVmName,
 				TargetResourceGroupId:    model.TargetResourceGroupId,
 				FabricDiscoveryMachineId: discoveryMachineId,
@@ -612,9 +612,9 @@ func (r VMWareReplicatedVmResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("license_type") {
-				updateInput.LicenseType = pointer.To(replicationprotecteditems.LicenseType(model.LicenseType))
+				updateInput.LicenseType = pointer.ToEnum[replicationprotecteditems.LicenseType](model.LicenseType)
 			} else if existingDetails.LicenseType != nil {
-				updateInput.LicenseType = pointer.To(replicationprotecteditems.LicenseType(*existingDetails.LicenseType))
+				updateInput.LicenseType = pointer.ToEnum[replicationprotecteditems.LicenseType](*existingDetails.LicenseType)
 			}
 
 			if metadata.ResourceData.HasChange("target_vm_name") {
@@ -699,8 +699,7 @@ func (r VMWareReplicatedVmResource) Update() sdk.ResourceFunc {
 				Properties: &props,
 			}
 
-			err = client.UpdateThenPoll(ctx, *id, parameters)
-			if err != nil {
+			if err = client.UpdateThenPoll(ctx, *id, parameters); err != nil {
 				return fmt.Errorf("updating %q: %+v", id, err)
 			}
 
@@ -853,8 +852,7 @@ func (r VMWareReplicatedVmResource) Delete() sdk.ResourceFunc {
 				},
 			}
 
-			err = client.DeleteThenPoll(ctx, *id, disableProtectionInput)
-			if err != nil {
+			if err = client.DeleteThenPoll(ctx, *id, disableProtectionInput); err != nil {
 				return fmt.Errorf("deleting %s : %+v", id.String(), err)
 			}
 

@@ -240,10 +240,10 @@ func resourceArmLoadBalancerBackendAddressPoolCreateUpdate(d *pluginsdk.Resource
 	if v, ok := d.GetOk("synchronous_mode"); ok {
 		if param.Properties == nil {
 			param.Properties = &loadbalancers.BackendAddressPoolPropertiesFormat{
-				SyncMode: pointer.To(loadbalancers.SyncMode(v.(string))),
+				SyncMode: pointer.ToEnum[loadbalancers.SyncMode](v.(string)),
 			}
 		} else {
-			param.Properties.SyncMode = pointer.To(loadbalancers.SyncMode(v.(string)))
+			param.Properties.SyncMode = pointer.ToEnum[loadbalancers.SyncMode](v.(string))
 		}
 	}
 
@@ -460,13 +460,11 @@ func resourceArmLoadBalancerBackendAddressPoolDelete(d *pluginsdk.ResourceData, 
 		backEndPools = append(backEndPools[:index], backEndPools[index+1:]...)
 		lb.Model.Properties.BackendAddressPools = &backEndPools
 
-		err := lbClient.CreateOrUpdateThenPoll(ctx, plbId, *lb.Model)
-		if err != nil {
+		if err := lbClient.CreateOrUpdateThenPoll(ctx, plbId, *lb.Model); err != nil {
 			return fmt.Errorf("updating %s: %+v", loadBalancerId, err)
 		}
 	} else {
-		err := lbClient.LoadBalancerBackendAddressPoolsDeleteThenPoll(ctx, *id)
-		if err != nil {
+		if err := lbClient.LoadBalancerBackendAddressPoolsDeleteThenPoll(ctx, *id); err != nil {
 			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
@@ -485,8 +483,8 @@ func expandGatewayLoadBalancerTunnelInterfaces(input []interface{}) *[]loadbalan
 		e := e.(map[string]interface{})
 		result = append(result, loadbalancers.GatewayLoadBalancerTunnelInterface{
 			Identifier: pointer.To(int64(e["identifier"].(int))),
-			Type:       pointer.To(loadbalancers.GatewayLoadBalancerTunnelInterfaceType(e["type"].(string))),
-			Protocol:   pointer.To(loadbalancers.GatewayLoadBalancerTunnelProtocol(e["protocol"].(string))),
+			Type:       pointer.ToEnum[loadbalancers.GatewayLoadBalancerTunnelInterfaceType](e["type"].(string)),
+			Protocol:   pointer.ToEnum[loadbalancers.GatewayLoadBalancerTunnelProtocol](e["protocol"].(string)),
 			Port:       pointer.To(int64(e["port"].(int))),
 		})
 	}
