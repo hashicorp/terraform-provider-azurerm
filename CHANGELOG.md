@@ -1,6 +1,7 @@
 ## 5.2.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_snapshot`: `create_option` now supports `CopyStart` [GH-32834]
 * `azurerm_mongo_cluster` - `administrator_password` is no longer required when `create_mode` is `Default` to support Entra ID-only authentication [GH-32092]
 * `azurerm_cdn_frontdoor_batch_rule_set` - allow `/` as an input to `rule.conditions.request_path.values` [GH-33023]
 * `azurerm_logic_app_standard` - add support for `v10.0` to `site_config.dotnet_framework_version` [GH-33116]
