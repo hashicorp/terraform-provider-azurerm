@@ -24,7 +24,7 @@ import (
 )
 
 func dataSourceStorageAccount() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Read: dataSourceStorageAccountRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -540,8 +540,6 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
-
-	return resource
 }
 
 func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
