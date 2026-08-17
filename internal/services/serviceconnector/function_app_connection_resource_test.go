@@ -35,7 +35,7 @@ func (r FunctionAppConnectorResource) Exists(ctx context.Context, client *client
 	return pointer.To(true), nil
 }
 
-func TestAccServiceConnectorFunctionAppCosmosdb_basic(t *testing.T) {
+func TestAccServiceConnectorFunctionApp_cosmosdbBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_connection", "test")
 	r := FunctionAppConnectorResource{}
 
@@ -50,7 +50,7 @@ func TestAccServiceConnectorFunctionAppCosmosdb_basic(t *testing.T) {
 	})
 }
 
-func TestAccServiceConnectorFunctionAppCosmosdb_secretAuth(t *testing.T) {
+func TestAccServiceConnectorFunctionApp_cosmosdbSecretAuth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_connection", "test")
 	r := FunctionAppConnectorResource{}
 
@@ -65,7 +65,7 @@ func TestAccServiceConnectorFunctionAppCosmosdb_secretAuth(t *testing.T) {
 	})
 }
 
-func TestAccServiceConnectorFunctionAppCosmosdb_servicePrincipalSecretAuth(t *testing.T) {
+func TestAccServiceConnectorFunctionApp_cosmosdbServicePrincipalSecretAuth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_connection", "test")
 	r := FunctionAppConnectorResource{}
 
@@ -80,7 +80,7 @@ func TestAccServiceConnectorFunctionAppCosmosdb_servicePrincipalSecretAuth(t *te
 	})
 }
 
-func TestAccServiceConnectorFunctionAppCosmosdb_userAssignedIdentity(t *testing.T) {
+func TestAccServiceConnectorFunctionApp_cosmosdbUserAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_connection", "test")
 	r := FunctionAppConnectorResource{}
 
@@ -95,7 +95,7 @@ func TestAccServiceConnectorFunctionAppCosmosdb_userAssignedIdentity(t *testing.
 	})
 }
 
-func TestAccServiceConnectorFunctionAppStorageBlob_basic(t *testing.T) {
+func TestAccServiceConnectorFunctionApp_storageBlobBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_connection", "test")
 	r := FunctionAppConnectorResource{}
 
@@ -110,7 +110,7 @@ func TestAccServiceConnectorFunctionAppStorageBlob_basic(t *testing.T) {
 	})
 }
 
-func TestAccServiceConnectorFunctionAppStorageBlob_secretStore(t *testing.T) {
+func TestAccServiceConnectorFunctionApp_storageBlobSecretStore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_connection", "test")
 	r := FunctionAppConnectorResource{}
 
@@ -125,7 +125,7 @@ func TestAccServiceConnectorFunctionAppStorageBlob_secretStore(t *testing.T) {
 	})
 }
 
-func TestAccServiceConnectorFunctionAppCosmosdb_update(t *testing.T) {
+func TestAccServiceConnectorFunctionApp_cosmosdbUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_connection", "test")
 	r := FunctionAppConnectorResource{}
 
@@ -247,6 +247,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acctest-%[3]s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   purge_protection_enabled   = true

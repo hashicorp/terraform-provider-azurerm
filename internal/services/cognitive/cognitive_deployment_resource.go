@@ -297,7 +297,7 @@ func (r CognitiveDeploymentResource) Update() sdk.ResourceFunc {
 				properties.Properties.Model.Version = pointer.To(model.Model[0].Version)
 			}
 
-			properties.Properties.VersionUpgradeOption = pointer.To(deployments.DeploymentModelVersionUpgradeOption(model.VersionUpgradeOption))
+			properties.Properties.VersionUpgradeOption = pointer.ToEnum[deployments.DeploymentModelVersionUpgradeOption](model.VersionUpgradeOption)
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -426,29 +426,15 @@ func expandDeploymentSkuModel(inputList []DeploymentSkuModel) *deployments.Sku {
 }
 
 func flattenDeploymentModelModel(input *deployments.DeploymentModel) []DeploymentModelModel {
-	var outputList []DeploymentModelModel
+	outputList := make([]DeploymentModelModel, 0, 1)
 	if input == nil {
 		return outputList
 	}
 
 	output := DeploymentModelModel{}
-	format := ""
-	if input.Format != nil {
-		format = *input.Format
-	}
-	output.Format = format
-
-	name := ""
-	if input.Name != nil {
-		name = *input.Name
-	}
-	output.Name = name
-
-	version := ""
-	if input.Version != nil {
-		version = *input.Version
-	}
-	output.Version = version
+	output.Format = pointer.From(input.Format)
+	output.Name = pointer.From(input.Name)
+	output.Version = pointer.From(input.Version)
 
 	return append(outputList, output)
 }

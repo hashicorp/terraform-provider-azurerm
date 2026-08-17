@@ -20,7 +20,7 @@ type NetworkDdosProtectionPlanResource struct{}
 
 // NOTE: this is a test group to avoid each test case to run in parallel, since Azure only allows one DDoS Protection
 // Plan per region.
-func TestAccNetworkDDoSProtectionPlan(t *testing.T) {
+func TestAccNetworkDDoSProtectionPlan_sequential(t *testing.T) {
 	testCases := map[string]map[string]func(t *testing.T){
 		"normal": {
 			"basic":          testAccNetworkDDoSProtectionPlan_basic,

@@ -13,6 +13,7 @@ import (
 
 var _ resourceids.Id = AccessPolicyApplicationId{}
 
+// lintignore:AT003 // unit test for a generated Resource ID whose Type Name begins with `Acc`
 func TestAccessPolicyApplicationIDFormatter(t *testing.T) {
 	actual := NewAccessPolicyApplicationID("12345678-1234-9876-4563-123456789012", "resGroup1", "vault1", "object1", "application1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.KeyVault/vaults/vault1/objectId/object1/applicationId/application1"
@@ -21,6 +22,7 @@ func TestAccessPolicyApplicationIDFormatter(t *testing.T) {
 	}
 }
 
+// lintignore:AT003 // unit test for a generated Resource ID whose Type Name begins with `Acc`
 func TestAccessPolicyApplicationID(t *testing.T) {
 	testData := []struct {
 		Input    string

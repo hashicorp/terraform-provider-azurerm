@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -34,7 +34,7 @@ func TestAccBackendAddressPool_basic(t *testing.T) {
 	})
 }
 
-func TestAccBackendAddressPoolSynchronousModeManual(t *testing.T) {
+func TestAccBackendAddressPool_synchronousModeManual(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
 	r := LoadBalancerBackendAddressPool{}
 
@@ -49,7 +49,7 @@ func TestAccBackendAddressPoolSynchronousModeManual(t *testing.T) {
 	})
 }
 
-func TestAccBackendAddressPoolSynchronousModeAutomatic(t *testing.T) {
+func TestAccBackendAddressPool_synchronousModeAutomatic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
 	r := LoadBalancerBackendAddressPool{}
 
@@ -91,7 +91,7 @@ func TestAccBackendAddressPool_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccBackendAddressPoolStandardSkuBasic(t *testing.T) {
+func TestAccBackendAddressPool_standardSkuBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
 	r := LoadBalancerBackendAddressPool{}
 
@@ -120,7 +120,7 @@ func TestAccBackendAddressPoolStandardSkuBasic(t *testing.T) {
 	})
 }
 
-func TestAccBackendAddressPoolStandardSkuDisappears(t *testing.T) {
+func TestAccBackendAddressPool_standardSkuDisappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
 	r := LoadBalancerBackendAddressPool{}
 
@@ -132,7 +132,7 @@ func TestAccBackendAddressPoolStandardSkuDisappears(t *testing.T) {
 	})
 }
 
-func TestAccBackendAddressPoolStandardSkuRequiresImport(t *testing.T) {
+func TestAccBackendAddressPool_standardSkuRequiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
 	r := LoadBalancerBackendAddressPool{}
 
@@ -256,8 +256,7 @@ func (r LoadBalancerBackendAddressPool) Destroy(ctx context.Context, client *cli
 	}
 	lb.Model.Properties.BackendAddressPools = &backendAddressPools
 
-	err = client.LoadBalancers.LoadBalancersClient.CreateOrUpdateThenPoll(ctx, plbId, *lb.Model)
-	if err != nil {
+	if err = client.LoadBalancers.LoadBalancersClient.CreateOrUpdateThenPoll(ctx, plbId, *lb.Model); err != nil {
 		return nil, fmt.Errorf("updating Load Balancer %q (Resource Group %q): %+v", id.LoadBalancerName, id.ResourceGroupName, err)
 	}
 

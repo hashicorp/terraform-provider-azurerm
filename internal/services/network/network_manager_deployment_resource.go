@@ -78,7 +78,7 @@ func (r ManagerDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		// TODO: look at removing this workaround in v4.0, see https://github.com/hashicorp/terraform-provider-azurerm/pull/20451#discussion_r1179646861 (manicminer)
+		// TODO: look at removing this workaround for v6.0, see https://github.com/hashicorp/terraform-provider-azurerm/pull/20451#discussion_r1179646861 (manicminer)
 		"triggers": {
 			Type:     pluginsdk.TypeMap,
 			Optional: true,

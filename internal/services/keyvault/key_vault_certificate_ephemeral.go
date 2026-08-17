@@ -272,8 +272,7 @@ func (e *KeyVaultCertificateEphemeralResource) Open(ctx context.Context, req eph
 	}
 
 	var keyPEM bytes.Buffer
-	err = pem.Encode(&keyPEM, keyBlock)
-	if err != nil {
+	if err = pem.Encode(&keyPEM, keyBlock); err != nil {
 		sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("encoding key for %q", id.Name), err)
 		return
 	}
@@ -287,8 +286,7 @@ func (e *KeyVaultCertificateEphemeralResource) Open(ctx context.Context, req eph
 		}
 
 		var certPEM bytes.Buffer
-		err = pem.Encode(&certPEM, certBlock)
-		if err != nil {
+		if err = pem.Encode(&certPEM, certBlock); err != nil {
 			sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("encoding PEM for %q", id.Name), err)
 			return
 		}
