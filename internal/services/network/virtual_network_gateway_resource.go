@@ -749,6 +749,7 @@ func expressRouteGatewaySkuIsAvailabilityZone(sku string) bool {
 		return false
 	}
 }
+
 func resourceVirtualNetworkGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualNetworkGateways
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
