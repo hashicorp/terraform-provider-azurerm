@@ -87,7 +87,7 @@ func (r MongoClusterResource) ResourceType() string {
 }
 
 func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
-	args := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			ForceNew: true,
 			Required: true,
@@ -300,12 +300,6 @@ func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 	}
-
-	if !features.FivePointOh() {
-		args["customer_managed_key"].Elem.(*pluginsdk.Resource).Schema["key_vault_key_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeAny)
-	}
-
-	return args
 }
 
 func (r MongoClusterResource) Attributes() map[string]*pluginsdk.Schema {
@@ -395,7 +389,7 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 			}
 
 			if state.CreateMode != "" {
-				parameter.Properties.CreateMode = pointer.To(mongoclusters.CreateMode(state.CreateMode))
+				parameter.Properties.CreateMode = pointer.ToEnum[mongoclusters.CreateMode](state.CreateMode)
 			}
 
 			parameter.Properties.PreviewFeatures = expandPreviewFeatures(state.PreviewFeatures)
@@ -425,11 +419,11 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 
 			if state.HighAvailabilityMode != "" {
 				parameter.Properties.HighAvailability = &mongoclusters.HighAvailabilityProperties{
-					TargetMode: pointer.To(mongoclusters.HighAvailabilityMode(state.HighAvailabilityMode)),
+					TargetMode: pointer.ToEnum[mongoclusters.HighAvailabilityMode](state.HighAvailabilityMode),
 				}
 			}
 
-			parameter.Properties.PublicNetworkAccess = pointer.To(mongoclusters.PublicNetworkAccess(state.PublicNetworkAccess))
+			parameter.Properties.PublicNetworkAccess = pointer.ToEnum[mongoclusters.PublicNetworkAccess](state.PublicNetworkAccess)
 
 			if state.StorageSizeInGb != 0 {
 				parameter.Properties.Storage = &mongoclusters.StorageProperties{
@@ -458,13 +452,6 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 			metadata.SetID(id)
-
-			// `network_bypass_mode` can only be configured after the resource is created
-			if state.NetworkBypassMode != "" {
-				if err := updateMongoClusterNetworkBypassMode(ctx, client, id, mongoclusters.NetworkBypassMode(state.NetworkBypassMode)); err != nil {
-					return fmt.Errorf("enabling `network_bypass_mode` for %s: %+v", id, err)
-				}
-			}
 
 			// `data_api_mode_enabled` can only be enabled after the resource is created
 			if state.CreateMode == string(mongoclusters.CreateModeDefault) && state.DataApiModeEnabled {
@@ -564,18 +551,18 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("high_availability_mode") {
 				payload.Properties.HighAvailability = &mongoclusters.HighAvailabilityProperties{
-					TargetMode: pointer.To(mongoclusters.HighAvailabilityMode(state.HighAvailabilityMode)),
+					TargetMode: pointer.ToEnum[mongoclusters.HighAvailabilityMode](state.HighAvailabilityMode),
 				}
 			}
 
 			if metadata.ResourceData.HasChange("public_network_access") {
-				payload.Properties.PublicNetworkAccess = pointer.To(mongoclusters.PublicNetworkAccess(state.PublicNetworkAccess))
+				payload.Properties.PublicNetworkAccess = pointer.ToEnum[mongoclusters.PublicNetworkAccess](state.PublicNetworkAccess)
 			}
 
 			if metadata.ResourceData.HasChange("storage_size_in_gb") {
 				payload.Properties.Storage = &mongoclusters.StorageProperties{
 					SizeGb: pointer.To(state.StorageSizeInGb),
-					Type:   pointer.To(mongoclusters.StorageType(state.StorageType)),
+					Type:   pointer.ToEnum[mongoclusters.StorageType](state.StorageType),
 				}
 			}
 
@@ -862,34 +849,6 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 			if oldVal, newVal := metadata.ResourceDiff.GetChange("identity"); (len(oldVal.([]interface{})) > 0 && len(newVal.([]interface{})) == 0) || (len(oldVal.([]interface{})) == 0 && len(newVal.([]interface{})) > 0) {
 				if err := metadata.ResourceDiff.ForceNew("identity"); err != nil {
 					return err
-				}
-			}
-
-			if metadata.ResourceDiff.Id() != "" {
-				if oldStorageType, newStorageType := metadata.ResourceDiff.GetChange("storage_type"); oldStorageType.(string) != newStorageType.(string) {
-					return fmt.Errorf("`storage_type` cannot be changed in place: online migration between `%s` and `%s` is not supported. To change the storage type, create a new cluster with `create_mode` `PointInTimeRestore` or `GeoReplica` and the desired `storage_type`", mongoclusters.StorageTypePremiumSSD, mongoclusters.StorageTypePremiumSSDvTwo)
-				}
-			}
-
-			if state.StorageType == string(mongoclusters.StorageTypePremiumSSDvTwo) {
-				if state.HighAvailabilityMode == string(mongoclusters.HighAvailabilityModeZoneRedundantPreferred) {
-					return fmt.Errorf("`high_availability_mode` cannot be `%s` when `storage_type` is `%s`", mongoclusters.HighAvailabilityModeZoneRedundantPreferred, mongoclusters.StorageTypePremiumSSDvTwo)
-				}
-
-				if len(state.CustomerManagedKey) > 0 {
-					return fmt.Errorf("`customer_managed_key` cannot be set when `storage_type` is `%s`", mongoclusters.StorageTypePremiumSSDvTwo)
-				}
-
-				if metadata.ResourceDiff.Id() != "" {
-					operations := 0
-					for _, field := range []string{"compute_tier", "storage_size_in_gb", "high_availability_mode"} {
-						if metadata.ResourceDiff.HasChange(field) {
-							operations++
-						}
-					}
-					if operations > 1 {
-						return fmt.Errorf("only one of `compute_tier`, `storage_size_in_gb` or `high_availability_mode` can be changed per update when `storage_type` is `%s`", mongoclusters.StorageTypePremiumSSDvTwo)
-					}
 				}
 			}
 

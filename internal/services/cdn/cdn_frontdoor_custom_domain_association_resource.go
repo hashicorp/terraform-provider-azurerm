@@ -4,22 +4,20 @@
 package cdn
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afddomains"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/routes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-var (
-	cdnFrontDoorCustomDomainResourceName = "azurerm_cdn_frontdoor_custom_domain"
-	cdnFrontDoorRouteResourceName        = "azurerm_cdn_frontdoor_route"
-)
+var cdnFrontDoorCustomDomainResourceName = "azurerm_cdn_frontdoor_custom_domain"
 
 func resourceCdnFrontDoorCustomDomainAssociation() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -45,7 +43,7 @@ func resourceCdnFrontDoorCustomDomainAssociation() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FrontDoorCustomDomainID,
+				ValidateFunc: afddomains.ValidateCustomDomainID,
 			},
 
 			"cdn_frontdoor_route_ids": {
@@ -54,7 +52,7 @@ func resourceCdnFrontDoorCustomDomainAssociation() *pluginsdk.Resource {
 
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
-					ValidateFunc: validate.FrontDoorRouteID,
+					ValidateFunc: routes.ValidateRouteID,
 				},
 			},
 		},
@@ -63,42 +61,39 @@ func resourceCdnFrontDoorCustomDomainAssociation() *pluginsdk.Resource {
 
 func resourceCdnFrontDoorCustomDomainAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.AFDCustomDomainsClient
+
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	cdId, err := parse.FrontDoorCustomDomainID(d.Get("cdn_frontdoor_custom_domain_id").(string))
+	cdId, err := afddomains.ParseCustomDomainID(d.Get("cdn_frontdoor_custom_domain_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewFrontDoorCustomDomainAssociationID(cdId.SubscriptionId, cdId.ResourceGroup, cdId.ProfileName, cdId.CustomDomainName)
+	// TODO: Composite ID?
+	id := parse.NewFrontDoorCustomDomainAssociationID(cdId.SubscriptionId, cdId.ResourceGroupName, cdId.ProfileName, cdId.CustomDomainName)
 
-	customDomainId := afddomains.NewCustomDomainID(cdId.SubscriptionId, cdId.ResourceGroup, cdId.ProfileName, cdId.CustomDomainName)
-	existing, err := client.AFDCustomDomainsGet(ctx, customDomainId)
-	if err != nil {
-		if response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("creating %s: %s was not found", id, cdId)
-		}
-
-		return fmt.Errorf("creating %s: %+v", id, err)
+	if _, err := client.AFDCustomDomainsGet(ctx, *cdId); err != nil {
+		return fmt.Errorf("retrieving %s: %+v", cdId, err)
 	}
 
 	// make sure the routes exist and are valid for this custom domain...
-	routes, err := validateRoutes(d, meta, cdId)
+	r, err := validateRoutes(ctx, d, meta, cdId)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
 	d.Set("cdn_frontdoor_custom_domain_id", cdId.ID())
-	d.Set("cdn_frontdoor_route_ids", routes)
+	d.Set("cdn_frontdoor_route_ids", r)
 
 	return resourceCdnFrontDoorCustomDomainAssociationRead(d, meta)
 }
 
 func resourceCdnFrontDoorCustomDomainAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.AFDCustomDomainsClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := parse.FrontDoorCustomDomainAssociationID(d.Id())
@@ -122,18 +117,19 @@ func resourceCdnFrontDoorCustomDomainAssociationRead(d *pluginsdk.ResourceData, 
 
 func resourceCdnFrontDoorCustomDomainAssociationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.AFDCustomDomainsClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	if d.HasChange("cdn_frontdoor_route_ids") {
-		cdId, err := parse.FrontDoorCustomDomainID(d.Get("cdn_frontdoor_custom_domain_id").(string))
+		cdId, err := afddomains.ParseCustomDomainID(d.Get("cdn_frontdoor_custom_domain_id").(string))
 		if err != nil {
 			return err
 		}
 
-		id := parse.NewFrontDoorCustomDomainAssociationID(cdId.SubscriptionId, cdId.ResourceGroup, cdId.ProfileName, cdId.CustomDomainName)
+		id := parse.NewFrontDoorCustomDomainAssociationID(cdId.SubscriptionId, cdId.ResourceGroupName, cdId.ProfileName, cdId.CustomDomainName)
 
-		customDomainId := afddomains.NewCustomDomainID(cdId.SubscriptionId, cdId.ResourceGroup, cdId.ProfileName, cdId.CustomDomainName)
+		customDomainId := afddomains.NewCustomDomainID(cdId.SubscriptionId, cdId.ResourceGroupName, cdId.ProfileName, cdId.CustomDomainName)
 		existing, err := client.AFDCustomDomainsGet(ctx, customDomainId)
 		if err != nil {
 			if response.WasNotFound(existing.HttpResponse) {
@@ -144,7 +140,7 @@ func resourceCdnFrontDoorCustomDomainAssociationUpdate(d *pluginsdk.ResourceData
 		}
 
 		// make sure the routes exist and are valid for this custom domain...
-		routes, err := validateRoutes(d, meta, cdId)
+		routes, err := validateRoutes(ctx, d, meta, cdId)
 		if err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
 		}
@@ -156,11 +152,14 @@ func resourceCdnFrontDoorCustomDomainAssociationUpdate(d *pluginsdk.ResourceData
 }
 
 func resourceCdnFrontDoorCustomDomainAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
 	// since you are deleting the resource you cannot grab the value from the config
 	// because it will be empty, you have to get it from the states old value...
 	oCdId, _ := d.GetChange("cdn_frontdoor_custom_domain_id")
 
-	cdId, err := parse.FrontDoorCustomDomainID(oCdId.(string))
+	cdId, err := afddomains.ParseCustomDomainID(oCdId.(string))
 	if err != nil {
 		return err
 	}
@@ -179,7 +178,7 @@ func resourceCdnFrontDoorCustomDomainAssociationDelete(d *pluginsdk.ResourceData
 	}
 
 	if len(*v) != 0 {
-		if err := removeCustomDomainAssociationFromRoutes(d, meta, v, cdId); err != nil {
+		if err := removeCustomDomainAssociationFromRoutes(ctx, meta, v, cdId); err != nil {
 			return fmt.Errorf("deleting %s: %+v", id, err)
 		}
 	}
@@ -189,13 +188,13 @@ func resourceCdnFrontDoorCustomDomainAssociationDelete(d *pluginsdk.ResourceData
 	return nil
 }
 
-func validateRoutes(d *pluginsdk.ResourceData, meta interface{}, id *parse.FrontDoorCustomDomainId) ([]interface{}, error) {
+func validateRoutes(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}, id *afddomains.CustomDomainId) ([]interface{}, error) {
 	out := make([]interface{}, 0)
 	o, n := d.GetChange("cdn_frontdoor_route_ids")
 	oRoutes := o.([]interface{})
 	nRoutes := n.([]interface{})
 
-	if len(nRoutes) == 0 || nRoutes == nil || id == nil {
+	if len(nRoutes) == 0 || id == nil {
 		return out, nil
 	}
 
@@ -213,7 +212,7 @@ func validateRoutes(d *pluginsdk.ResourceData, meta interface{}, id *parse.Front
 	if len(*nIds) != 0 {
 		for _, v := range *nIds {
 			// Make sure the route exists and get the routes custom domain association list...
-			associations, _, err := getRouteProperties(d, meta, &v, "cdn_frontdoor_custom_domain_association")
+			associations, _, err := getRouteProperties(ctx, meta, &v, "cdn_frontdoor_custom_domain_association")
 			if err != nil {
 				return out, err
 			}
@@ -233,7 +232,7 @@ func validateRoutes(d *pluginsdk.ResourceData, meta interface{}, id *parse.Front
 		// now get the delta between the old and the new list, if any custom domains were removed from
 		// the list we need to remove the custom domain association from those routes...
 		if delta, _ := routeDelta(oIds, nIds); len(*delta) != 0 {
-			if err = removeCustomDomainAssociationFromRoutes(d, meta, delta, id); err != nil {
+			if err = removeCustomDomainAssociationFromRoutes(ctx, meta, delta, id); err != nil {
 				return out, err
 			}
 		}

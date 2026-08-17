@@ -65,7 +65,13 @@ resource "azurerm_subnet" "main_subnet" {
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
   address_prefixes     = ["10.0.0.0/23"]
-  service_endpoints    = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
+  service_endpoint {
+    service = "Microsoft.Storage"
+  }
+
+  service_endpoint {
+    service = "Microsoft.ContainerRegistry"
+  }
 }
 
 resource "azurerm_subnet" "worker_subnet" {
@@ -73,7 +79,13 @@ resource "azurerm_subnet" "worker_subnet" {
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
   address_prefixes     = ["10.0.2.0/23"]
-  service_endpoints    = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
+  service_endpoint {
+    service = "Microsoft.Storage"
+  }
+
+  service_endpoint {
+    service = "Microsoft.ContainerRegistry"
+  }
 }
 
 resource "azurerm_redhat_openshift_cluster" "example" {

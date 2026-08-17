@@ -26,7 +26,7 @@ func resourceMsSqlOutboundFirewallRule() *pluginsdk.Resource {
 		Delete: resourceMsSqlOutboundFirewallRuleDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.OutboundFirewallRuleID(id)
+			_, err := outboundfirewallrules.ParseOutboundFirewallRuleID(id)
 			return err
 		}),
 
@@ -125,8 +125,7 @@ func resourceMsSqlOutboundFirewallRuleDelete(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("parsing ID %q: %+v", d.Id(), err)
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting MSSQL %s: %+v", id.String(), err)
 	}
 

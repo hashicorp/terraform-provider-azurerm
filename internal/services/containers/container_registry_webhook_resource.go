@@ -216,11 +216,7 @@ func resourceContainerRegistryWebhookRead(d *pluginsdk.ResourceData, meta interf
 			}
 			d.Set("status", status)
 
-			scope := ""
-			if v := props.Scope; v != nil {
-				scope = *v
-			}
-			d.Set("scope", scope)
+			d.Set("scope", pointer.From(props.Scope))
 
 			webhookActions := make([]string, len(props.Actions))
 			for i, action := range props.Actions {
@@ -235,17 +231,15 @@ func resourceContainerRegistryWebhookRead(d *pluginsdk.ResourceData, meta interf
 	}
 
 	if callbackModel := callbackConfig.Model; callbackModel != nil {
-		if props := callbackModel; props != nil {
-			d.Set("service_uri", props.ServiceUri)
+		d.Set("service_uri", callbackModel.ServiceUri)
 
-			customHeaders := make(map[string]string)
-			if props.CustomHeaders != nil {
-				for k, v := range *props.CustomHeaders {
-					customHeaders[k] = v
-				}
+		customHeaders := make(map[string]string)
+		if callbackModel.CustomHeaders != nil {
+			for k, v := range *callbackModel.CustomHeaders {
+				customHeaders[k] = v
 			}
-			d.Set("custom_headers", customHeaders)
 		}
+		d.Set("custom_headers", customHeaders)
 	}
 	return nil
 }
@@ -278,7 +272,7 @@ func expandWebhookPropertiesCreateParameters(d *pluginsdk.ResourceData) *webhook
 		CustomHeaders: &customHeaders,
 		Actions:       expandWebhookActions(d),
 		Scope:         pointer.To(d.Get("scope").(string)),
-		Status:        pointer.To(webhooks.WebhookStatus(d.Get("status").(string))),
+		Status:        pointer.ToEnum[webhooks.WebhookStatus](d.Get("status").(string)),
 	}
 
 	return &webhookProperties
@@ -295,7 +289,7 @@ func expandWebhookPropertiesUpdateParameters(d *pluginsdk.ResourceData) *webhook
 		CustomHeaders: &customHeaders,
 		Actions:       pointer.To(expandWebhookActions(d)),
 		Scope:         pointer.To(d.Get("scope").(string)),
-		Status:        pointer.To(webhooks.WebhookStatus(d.Get("status").(string))),
+		Status:        pointer.ToEnum[webhooks.WebhookStatus](d.Get("status").(string)),
 	}
 
 	return &webhookProperties

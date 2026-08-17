@@ -19,9 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-// @tombuildsstuff: in 4.0 consider inlining this within the `azurerm_datadog_monitors` resource
-// since this appears to be a 1:1 with it (given the name defaults to `default`)
-
 func resourceDatadogTagRules() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceDatadogTagRulesCreate,
@@ -298,7 +295,7 @@ func expandFilteringTag(input []interface{}) *[]rules.FilteringTag {
 		filteringTags = append(filteringTags, rules.FilteringTag{
 			Name:   pointer.To(config["name"].(string)),
 			Value:  pointer.To(config["value"].(string)),
-			Action: pointer.To(rules.TagAction(config["action"].(string))),
+			Action: pointer.ToEnum[rules.TagAction](config["action"].(string)),
 		})
 	}
 
@@ -309,26 +306,11 @@ func flattenLogRules(input *rules.LogRules) []interface{} {
 	results := make([]interface{}, 0)
 
 	if input != nil {
-		aadLogEnabled := false
-		if input.SendAadLogs != nil {
-			aadLogEnabled = *input.SendAadLogs
-		}
-
-		subscriptionLogEnabled := false
-		if input.SendSubscriptionLogs != nil {
-			subscriptionLogEnabled = *input.SendSubscriptionLogs
-		}
-
-		resourceLogEnabled := false
-		if input.SendResourceLogs != nil {
-			resourceLogEnabled = *input.SendResourceLogs
-		}
-
 		results = append(results, map[string]interface{}{
-			"aad_log_enabled":          aadLogEnabled,
+			"aad_log_enabled":          pointer.From(input.SendAadLogs),
 			"filter":                   flattenFilteringTags(input.FilteringTags),
-			"resource_log_enabled":     resourceLogEnabled,
-			"subscription_log_enabled": subscriptionLogEnabled,
+			"resource_log_enabled":     pointer.From(input.SendResourceLogs),
+			"subscription_log_enabled": pointer.From(input.SendSubscriptionLogs),
 		})
 	}
 
@@ -355,18 +337,10 @@ func flattenFilteringTags(input *[]rules.FilteringTag) []interface{} {
 			if filteringTagRules.Action != nil {
 				action = string(*filteringTagRules.Action)
 			}
-			name := ""
-			if filteringTagRules.Name != nil {
-				name = *filteringTagRules.Name
-			}
-			value := ""
-			if filteringTagRules.Value != nil {
-				value = *filteringTagRules.Value
-			}
 			results = append(results, map[string]interface{}{
 				"action": action,
-				"name":   name,
-				"value":  value,
+				"name":   pointer.From(filteringTagRules.Name),
+				"value":  pointer.From(filteringTagRules.Value),
 			})
 		}
 	}
