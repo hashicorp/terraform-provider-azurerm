@@ -16,7 +16,7 @@ import (
 )
 
 func dataSourceServiceBusNamespaceAuthorizationRule() *pluginsdk.Resource {
-	r := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Read: dataSourceServiceBusNamespaceAuthorizationRuleRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -72,8 +72,6 @@ func dataSourceServiceBusNamespaceAuthorizationRule() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	return r
 }
 
 func dataSourceServiceBusNamespaceAuthorizationRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
