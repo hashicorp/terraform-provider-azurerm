@@ -650,15 +650,14 @@ func (r MongoClusterResource) Read() sdk.ResourceFunc {
 				if err != nil {
 					return fmt.Errorf("flattening `identity`: %+v", err)
 				}
-				modelUserAssignedList := make([]identity.ModelUserAssigned, 0)
-				if identityVal != nil {
-					for _, assigned := range identityVal {
-						modelUserAssignedList = append(modelUserAssignedList, identity.ModelUserAssigned{
-							Type:        assigned.Type,
-							IdentityIds: assigned.IdentityIds,
-						})
-					}
+				modelUserAssignedList := make([]identity.ModelUserAssigned, 0, len(identityVal))
+				for _, assigned := range identityVal {
+					modelUserAssignedList = append(modelUserAssignedList, identity.ModelUserAssigned{
+						Type:        assigned.Type,
+						IdentityIds: assigned.IdentityIds,
+					})
 				}
+				state.Identity = modelUserAssignedList
 
 				if props := model.Properties; props != nil {
 					// API doesn't return the value of administrator_password
