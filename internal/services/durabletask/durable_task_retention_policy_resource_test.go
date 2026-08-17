@@ -18,7 +18,7 @@ import (
 
 type DurableTaskRetentionPolicyResource struct{}
 
-func testAccDurableTaskRetentionPolicy_basic(t *testing.T) {
+func TestAccDurableTaskRetentionPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_retention_policy", "test")
 	r := DurableTaskRetentionPolicyResource{}
 
@@ -33,7 +33,7 @@ func testAccDurableTaskRetentionPolicy_basic(t *testing.T) {
 	})
 }
 
-func testAccDurableTaskRetentionPolicy_requiresImport(t *testing.T) {
+func TestAccDurableTaskRetentionPolicy_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_retention_policy", "test")
 	r := DurableTaskRetentionPolicyResource{}
 
@@ -48,7 +48,7 @@ func testAccDurableTaskRetentionPolicy_requiresImport(t *testing.T) {
 	})
 }
 
-func testAccDurableTaskRetentionPolicy_complete(t *testing.T) {
+func TestAccDurableTaskRetentionPolicy_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_retention_policy", "test")
 	r := DurableTaskRetentionPolicyResource{}
 
@@ -63,7 +63,7 @@ func testAccDurableTaskRetentionPolicy_complete(t *testing.T) {
 	})
 }
 
-func testAccDurableTaskRetentionPolicy_update(t *testing.T) {
+func TestAccDurableTaskRetentionPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_retention_policy", "test")
 	r := DurableTaskRetentionPolicyResource{}
 

@@ -18,7 +18,7 @@ import (
 
 type DurableTaskHubResource struct{}
 
-func testAccDurableTaskHub_basic(t *testing.T) {
+func TestAccDurableTaskHub_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_hub", "test")
 	r := DurableTaskHubResource{}
 
@@ -33,7 +33,7 @@ func testAccDurableTaskHub_basic(t *testing.T) {
 	})
 }
 
-func testAccDurableTaskHub_requiresImport(t *testing.T) {
+func TestAccDurableTaskHub_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_hub", "test")
 	r := DurableTaskHubResource{}
 

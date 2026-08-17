@@ -13,7 +13,7 @@ import (
 
 type DurableTaskSchedulerDataSource struct{}
 
-func testAccDurableTaskSchedulerDataSource_basic(t *testing.T) {
+func TestAccDurableTaskSchedulerDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_durable_task_scheduler", "test")
 	r := DurableTaskSchedulerDataSource{}
 
@@ -32,7 +32,7 @@ func testAccDurableTaskSchedulerDataSource_basic(t *testing.T) {
 	})
 }
 
-func testAccDurableTaskSchedulerDataSource_complete(t *testing.T) {
+func TestAccDurableTaskSchedulerDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_durable_task_scheduler", "test")
 	r := DurableTaskSchedulerDataSource{}
 

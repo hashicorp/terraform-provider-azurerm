@@ -19,60 +19,7 @@ import (
 
 type DurableTaskSchedulerResource struct{}
 
-// TestAccDurableTask runs all of the Durable Task acceptance tests sequentially.
-//
-// NOTE: these tests are combined into a single sequential test rather than run in
-// parallel because the number of Durable Task Schedulers that can exist per
-// subscription and region is capped by a low quota, so provisioning multiple
-// schedulers concurrently exhausts that quota and causes the tests to fail.
-func TestAccDurableTask(t *testing.T) {
-	testCases := map[string]map[string]func(t *testing.T){
-		"scheduler": {
-			"basic":                    testAccDurableTaskScheduler_basic,
-			"requiresImport":           testAccDurableTaskScheduler_requiresImport,
-			"complete":                 testAccDurableTaskScheduler_complete,
-			"update":                   testAccDurableTaskScheduler_update,
-			"dedicatedWithCapacity":    testAccDurableTaskScheduler_dedicatedWithCapacity,
-			"dedicatedWithoutCapacity": testAccDurableTaskScheduler_dedicatedWithoutCapacityFails,
-			"consumptionWithCapacity":  testAccDurableTaskScheduler_consumptionWithCapacityFails,
-			"resourceIdentity":         testAccDurableTaskScheduler_resourceIdentity,
-		},
-		"schedulerDataSource": {
-			"basic":    testAccDurableTaskSchedulerDataSource_basic,
-			"complete": testAccDurableTaskSchedulerDataSource_complete,
-		},
-		"schedulerList": {
-			"basic": testAccDurableTaskSchedulerList_basic,
-		},
-		"hub": {
-			"basic":            testAccDurableTaskHub_basic,
-			"requiresImport":   testAccDurableTaskHub_requiresImport,
-			"resourceIdentity": testAccDurableTaskHub_resourceIdentity,
-		},
-		"hubList": {
-			"basic": testAccDurableTaskHubList_basic,
-		},
-		"retentionPolicy": {
-			"basic":            testAccDurableTaskRetentionPolicy_basic,
-			"requiresImport":   testAccDurableTaskRetentionPolicy_requiresImport,
-			"complete":         testAccDurableTaskRetentionPolicy_complete,
-			"update":           testAccDurableTaskRetentionPolicy_update,
-			"resourceIdentity": testAccDurableTaskRetentionPolicy_resourceIdentity,
-		},
-	}
-
-	for group, tests := range testCases {
-		t.Run(group, func(t *testing.T) {
-			for name, tc := range tests {
-				t.Run(name, func(t *testing.T) {
-					tc(t)
-				})
-			}
-		})
-	}
-}
-
-func testAccDurableTaskScheduler_basic(t *testing.T) {
+func TestAccDurableTaskScheduler_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_scheduler", "test")
 	r := DurableTaskSchedulerResource{}
 
@@ -87,7 +34,7 @@ func testAccDurableTaskScheduler_basic(t *testing.T) {
 	})
 }
 
-func testAccDurableTaskScheduler_requiresImport(t *testing.T) {
+func TestAccDurableTaskScheduler_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_scheduler", "test")
 	r := DurableTaskSchedulerResource{}
 
@@ -102,7 +49,7 @@ func testAccDurableTaskScheduler_requiresImport(t *testing.T) {
 	})
 }
 
-func testAccDurableTaskScheduler_complete(t *testing.T) {
+func TestAccDurableTaskScheduler_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_scheduler", "test")
 	r := DurableTaskSchedulerResource{}
 
@@ -117,7 +64,7 @@ func testAccDurableTaskScheduler_complete(t *testing.T) {
 	})
 }
 
-func testAccDurableTaskScheduler_update(t *testing.T) {
+func TestAccDurableTaskScheduler_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_scheduler", "test")
 	r := DurableTaskSchedulerResource{}
 
@@ -146,7 +93,7 @@ func testAccDurableTaskScheduler_update(t *testing.T) {
 	})
 }
 
-func testAccDurableTaskScheduler_dedicatedWithCapacity(t *testing.T) {
+func TestAccDurableTaskScheduler_dedicatedWithCapacity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_scheduler", "test")
 	r := DurableTaskSchedulerResource{}
 
@@ -161,7 +108,7 @@ func testAccDurableTaskScheduler_dedicatedWithCapacity(t *testing.T) {
 	})
 }
 
-func testAccDurableTaskScheduler_dedicatedWithoutCapacityFails(t *testing.T) {
+func TestAccDurableTaskScheduler_dedicatedWithoutCapacityFails(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_scheduler", "test")
 	r := DurableTaskSchedulerResource{}
 
@@ -180,7 +127,7 @@ func testAccDurableTaskScheduler_dedicatedWithoutCapacityFails(t *testing.T) {
 	})
 }
 
-func testAccDurableTaskScheduler_consumptionWithCapacityFails(t *testing.T) {
+func TestAccDurableTaskScheduler_consumptionWithCapacityFails(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_durable_task_scheduler", "test")
 	r := DurableTaskSchedulerResource{}
 
