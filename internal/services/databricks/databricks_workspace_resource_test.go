@@ -793,7 +793,7 @@ resource "azurerm_databricks_workspace" "test" {
   access_connector_id              = azurerm_databricks_access_connector.test2.id
   default_storage_firewall_enabled = true
 }
-`, r.template(data), data.RandomInteger, sku)
+`, r.templateVnetWithAccessConnectors(data), data.RandomInteger, sku)
 }
 
 func (r DatabricksWorkspaceResource) sameName(data acceptance.TestData, sku string) string {
@@ -2692,7 +2692,7 @@ resource "azurerm_databricks_access_connector" "test2" {
     type = "SystemAssigned"
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.templateVnet(data), data.RandomInteger)
 }
 
 func (r DatabricksWorkspaceResource) templateCMK(data acceptance.TestData) string {
