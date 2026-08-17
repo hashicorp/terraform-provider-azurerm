@@ -258,13 +258,11 @@ func resourceConfidentialLedgerUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("azuread_based_service_principal") {
-		aadBasedUsers := expandAADBasedSecurityPrincipal(d.Get("azuread_based_service_principal").([]interface{}))
-		ledger.Properties.AadBasedSecurityPrincipals = aadBasedUsers
+		ledger.Properties.AadBasedSecurityPrincipals = expandAADBasedSecurityPrincipal(d.Get("azuread_based_service_principal").([]interface{}))
 	}
 
 	if d.HasChange("certificate_based_security_principal") {
-		certBasedUsers := expandCertBasedSecurityPrincipal(d.Get("certificate_based_security_principal").([]interface{}))
-		ledger.Properties.CertBasedSecurityPrincipals = certBasedUsers
+		ledger.Properties.CertBasedSecurityPrincipals = expandCertBasedSecurityPrincipal(d.Get("certificate_based_security_principal").([]interface{}))
 	}
 
 	if d.HasChange("tags") {

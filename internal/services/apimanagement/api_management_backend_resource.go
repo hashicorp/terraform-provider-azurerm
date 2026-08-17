@@ -497,8 +497,7 @@ func expandApiManagementBackendCredentials(input []interface{}) *backend.Backend
 	v := input[0].(map[string]interface{})
 	contract := backend.BackendCredentialsContract{}
 	if authorizationRaw := v["authorization"]; authorizationRaw != nil {
-		authorization := expandApiManagementBackendCredentialsAuthorization(authorizationRaw.([]interface{}))
-		contract.Authorization = authorization
+		contract.Authorization = expandApiManagementBackendCredentialsAuthorization(authorizationRaw.([]interface{}))
 	}
 	if certificate := v["certificate"]; certificate != nil {
 		certificates := helpers.ExpandStringSlice(certificate.([]interface{}))
@@ -507,12 +506,10 @@ func expandApiManagementBackendCredentials(input []interface{}) *backend.Backend
 		}
 	}
 	if headerRaw := v["header"]; headerRaw != nil {
-		header := expandApiManagementBackendCredentialsObject(headerRaw.(map[string]interface{}))
-		contract.Header = header
+		contract.Header = expandApiManagementBackendCredentialsObject(headerRaw.(map[string]interface{}))
 	}
 	if queryRaw := v["query"]; queryRaw != nil {
-		query := expandApiManagementBackendCredentialsObject(queryRaw.(map[string]interface{}))
-		contract.Query = query
+		contract.Query = expandApiManagementBackendCredentialsObject(queryRaw.(map[string]interface{}))
 	}
 	return &contract
 }
