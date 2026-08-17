@@ -21,17 +21,18 @@ import (
 type AutomationRunbookDataSource struct{}
 
 type AutomationRunbookDataSourceModel struct {
-	RunbookName           string            `tfschema:"name"`
-	AutomationAccountName string            `tfschema:"automation_account_name"`
-	ResourceGroupName     string            `tfschema:"resource_group_name"`
-	Location              string            `tfschema:"location"`
-	Description           string            `tfschema:"description"`
-	LogProgress           bool              `tfschema:"log_progress"`
-	LogVerbose            bool              `tfschema:"log_verbose"`
-	RunbookType           string            `tfschema:"runbook_type"`
-	LogActivityTrace      int64             `tfschema:"log_activity_trace_level"`
-	Content               string            `tfschema:"content"`
-	Tags                  map[string]string `tfschema:"tags "`
+	RunbookName            string            `tfschema:"name"`
+	AutomationAccountName  string            `tfschema:"automation_account_name"`
+	ResourceGroupName      string            `tfschema:"resource_group_name"`
+	Location               string            `tfschema:"location"`
+	Description            string            `tfschema:"description"`
+	LogProgress            bool              `tfschema:"log_progress"`
+	LogVerbose             bool              `tfschema:"log_verbose"`
+	RunbookType            string            `tfschema:"runbook_type"`
+	LogActivityTrace       int64             `tfschema:"log_activity_trace_level"`
+	Content                string            `tfschema:"content"`
+	RuntimeEnvironmentName string            `tfschema:"runtime_enviroment_name"`
+	Tags                   map[string]string `tfschema:"tags "`
 }
 
 var _ sdk.DataSource = AutomationRunbookDataSource{}
@@ -84,6 +85,109 @@ func (d AutomationRunbookDataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"content": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"job_schedule": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"schedule_name": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"parameters": {
+						Type:     pluginsdk.TypeMap,
+						Computed: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+
+					"run_on": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"job_schedule_id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		},
+
+		"publish_content_link": contentLinkSchemaDataSource(),
+
+		"draft": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"creation_time": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"content_link": contentLinkSchemaDataSource(),
+
+					"edit_mode_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Computed: true,
+					},
+
+					"last_modified_time": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"output_types": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+
+					"parameters": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"key": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+
+								"type": {
+									Type:     pluginsdk.TypeString,
+									Computed: true},
+
+								"mandatory": {
+									Type:     pluginsdk.TypeBool,
+									Computed: true,
+								},
+
+								"position": {
+									Type:     pluginsdk.TypeInt,
+									Computed: true,
+								},
+
+								"default_value": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+
+		"runtime_environment_name": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -156,6 +260,10 @@ func (d AutomationRunbookDataSource) Read() sdk.ResourceFunc {
 				state.LogActivityTrace = pointer.From(model.Properties.LogActivityTrace)
 			}
 
+			if model.Properties.RuntimeEnvironment != nil {
+				state.RuntimeEnvironmentName = pointer.From(model.Properties.RuntimeEnvironment)
+			}
+
 			if contentResp.Model != nil {
 				state.Content = string(pointer.From(contentResp.Model))
 			}
@@ -165,6 +273,44 @@ func (d AutomationRunbookDataSource) Read() sdk.ResourceFunc {
 			metadata.SetID(id)
 
 			return metadata.Encode(&state)
+		},
+	}
+}
+
+func contentLinkSchemaDataSource() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"uri": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"hash": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"algorithm": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"value": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }
