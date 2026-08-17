@@ -108,7 +108,7 @@ func resourceStorageSyncCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	parameters := storagesyncservicesresource.StorageSyncServiceCreateParameters{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &storagesyncservicesresource.StorageSyncServiceCreateParametersProperties{
-			IncomingTrafficPolicy: pointer.To(storagesyncservicesresource.IncomingTrafficPolicy(d.Get("incoming_traffic_policy").(string))),
+			IncomingTrafficPolicy: pointer.ToEnum[storagesyncservicesresource.IncomingTrafficPolicy](d.Get("incoming_traffic_policy").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -207,7 +207,7 @@ func resourceStorageSyncUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	if d.HasChange("incoming_traffic_policy") {
 		update.Properties = &storagesyncservicesresource.StorageSyncServiceUpdateProperties{
-			IncomingTrafficPolicy: pointer.To(storagesyncservicesresource.IncomingTrafficPolicy(d.Get("incoming_traffic_policy").(string))),
+			IncomingTrafficPolicy: pointer.ToEnum[storagesyncservicesresource.IncomingTrafficPolicy](d.Get("incoming_traffic_policy").(string)),
 		}
 	}
 

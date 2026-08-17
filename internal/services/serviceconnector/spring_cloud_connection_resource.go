@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2024-04-01/servicelinker"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -35,7 +34,7 @@ type SpringCloudConnectorResourceModel struct {
 }
 
 func (r SpringCloudConnectorResource) Arguments() map[string]*schema.Schema {
-	args := map[string]*schema.Schema{
+	return map[string]*schema.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -86,28 +85,6 @@ func (r SpringCloudConnectorResource) Arguments() map[string]*schema.Schema {
 
 		"authentication": authInfoSchema(),
 	}
-
-	if !features.FivePointOh() {
-		args["client_type"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(servicelinker.ClientTypeNone),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(servicelinker.ClientTypeNone),
-				string(servicelinker.ClientTypeDotnet),
-				string(servicelinker.ClientTypeJava),
-				string(servicelinker.ClientTypePython),
-				string(servicelinker.ClientTypeGo),
-				string(servicelinker.ClientTypePhp),
-				string(servicelinker.ClientTypeRuby),
-				string(servicelinker.ClientTypeDjango),
-				string(servicelinker.ClientTypeNodejs),
-				string(servicelinker.ClientTypeSpringBoot),
-			}, false),
-		}
-	}
-
-	return args
 }
 
 func (r SpringCloudConnectorResource) Attributes() map[string]*schema.Schema {
@@ -168,8 +145,7 @@ func (r SpringCloudConnectorResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.SecretStore != nil {
-				secretStore := expandSecretStore(model.SecretStore)
-				serviceConnectorProperties.SecretStore = secretStore
+				serviceConnectorProperties.SecretStore = expandSecretStore(model.SecretStore)
 			}
 
 			if model.ClientType != "" {
@@ -232,9 +208,7 @@ func (r SpringCloudConnectorResource) Read() sdk.ResourceFunc {
 					AuthInfo:         flattenServiceConnectorAuthInfo(props.AuthInfo, pwd),
 				}
 
-				if !features.FivePointOh() {
-					state.ClientType = pointer.FromEnum(props.ClientType)
-				} else if v := pointer.From(props.ClientType); v != servicelinker.ClientTypeNone {
+				if v := pointer.From(props.ClientType); v != servicelinker.ClientTypeNone {
 					state.ClientType = string(v)
 				}
 

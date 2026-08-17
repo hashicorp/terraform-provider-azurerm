@@ -12,6 +12,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources" // nolint: staticcheck
 	"github.com/google/uuid"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
@@ -162,15 +163,9 @@ func filterResource(inputs []resources.GenericResourceExpanded, requiredTags map
 		}
 
 		if tagMatches == len(requiredTags) {
-			resName := ""
-			if res.Name != nil {
-				resName = *res.Name
-			}
+			resName := pointer.From(res.Name)
 
-			resID := ""
-			if res.ID != nil {
-				resID = *res.ID
-			}
+			resID := pointer.From(res.ID)
 
 			resResourceGroupName := ""
 			if res.ID != nil {
@@ -180,10 +175,7 @@ func filterResource(inputs []resources.GenericResourceExpanded, requiredTags map
 				}
 			}
 
-			resType := ""
-			if res.Type != nil {
-				resType = *res.Type
-			}
+			resType := pointer.From(res.Type)
 
 			resLocation := ""
 			if res.Location != nil {

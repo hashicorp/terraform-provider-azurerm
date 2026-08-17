@@ -96,10 +96,11 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 		}
 	}
 
-	if metadata.ResourceData.IsNewResource() ||
-		metadata.ResourceData.HasChange("active_assignment_rules.0.require_multifactor_authentication") ||
-		metadata.ResourceData.HasChange("active_assignment_rules.0.require_justification") ||
-		metadata.ResourceData.HasChange("active_assignment_rules.0.require_ticket_info") {
+	if metadata.ResourceData.IsNewResource() || metadata.ResourceData.HasChanges(
+		"active_assignment_rules.0.require_multifactor_authentication",
+		"active_assignment_rules.0.require_justification",
+		"active_assignment_rules.0.require_ticket_info",
+	) {
 		if enablementAdminEligibilityBase, ok := existingRules["Enablement_Admin_Assignment"]; ok {
 			if enablementAdminEligibility, ok := enablementAdminEligibilityBase.(rolemanagementpolicies.RoleManagementPolicyEnablementRule); ok {
 				enabledRules := make([]rolemanagementpolicies.EnablementRules, 0)
@@ -120,9 +121,7 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 		}
 	}
 
-	if metadata.ResourceData.IsNewResource() ||
-		metadata.ResourceData.HasChange("active_assignment_rules.0.expiration_required") ||
-		metadata.ResourceData.HasChange("active_assignment_rules.0.expire_after") {
+	if metadata.ResourceData.IsNewResource() || metadata.ResourceData.HasChanges("active_assignment_rules.0.expiration_required", "active_assignment_rules.0.expire_after") {
 		if expirationAdminAssignmentBase, ok := existingRules["Expiration_Admin_Assignment"]; ok {
 			if expirationAdminAssignment, ok := expirationAdminAssignmentBase.(rolemanagementpolicies.RoleManagementPolicyExpirationRule); ok {
 				expirationRequired := pointer.From(expirationAdminAssignment.IsExpirationRequired)
@@ -155,9 +154,7 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 		}
 	}
 
-	if metadata.ResourceData.IsNewResource() ||
-		metadata.ResourceData.HasChange("activation_rules.0.require_approval") ||
-		metadata.ResourceData.HasChange("activation_rules.0.approval_stage") {
+	if metadata.ResourceData.IsNewResource() || metadata.ResourceData.HasChanges("activation_rules.0.require_approval", "activation_rules.0.approval_stage") {
 		if approvalEndUserAssignmentBase, ok := existingRules["Approval_EndUser_Assignment"]; ok {
 			if approvalEndUserAssignment, ok := approvalEndUserAssignmentBase.(rolemanagementpolicies.RoleManagementPolicyApprovalRule); ok {
 				if len(model.ActivationRules) == 1 {
@@ -181,7 +178,7 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 								for ia, approver := range stage.PrimaryApprovers {
 									primaryApprovers[ia] = rolemanagementpolicies.UserSet{
 										Id:       pointer.To(approver.ID),
-										UserType: pointer.To(rolemanagementpolicies.UserType(approver.Type)),
+										UserType: pointer.ToEnum[rolemanagementpolicies.UserType](approver.Type),
 									}
 								}
 
@@ -214,10 +211,11 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 		}
 	}
 
-	if metadata.ResourceData.IsNewResource() ||
-		metadata.ResourceData.HasChange("activation_rules.0.require_multifactor_authentication") ||
-		metadata.ResourceData.HasChange("activation_rules.0.require_justification") ||
-		metadata.ResourceData.HasChange("activation_rules.0.require_ticket_info") {
+	if metadata.ResourceData.IsNewResource() || metadata.ResourceData.HasChanges(
+		"activation_rules.0.require_multifactor_authentication",
+		"activation_rules.0.require_justification",
+		"activation_rules.0.require_ticket_info",
+	) {
 		if enablementEndUserAssignmentBase, ok := existingRules["Enablement_EndUser_Assignment"]; ok {
 			if enablementEndUserAssignment, ok := enablementEndUserAssignmentBase.(rolemanagementpolicies.RoleManagementPolicyEnablementRule); ok {
 				enabledRules := make([]rolemanagementpolicies.EnablementRules, 0)
@@ -440,7 +438,7 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 
 func expandNotificationSettings(rule rolemanagementpolicies.RoleManagementPolicyNotificationRule, data RoleManagementPolicyNotificationSettings, recipientChange bool) rolemanagementpolicies.RoleManagementPolicyRule {
 	if pointer.From(rule.NotificationLevel) != rolemanagementpolicies.NotificationLevel(data.NotificationLevel) {
-		rule.NotificationLevel = pointer.To(rolemanagementpolicies.NotificationLevel(data.NotificationLevel))
+		rule.NotificationLevel = pointer.ToEnum[rolemanagementpolicies.NotificationLevel](data.NotificationLevel)
 	}
 
 	if pointer.From(rule.IsDefaultRecipientsEnabled) != data.DefaultRecipients {

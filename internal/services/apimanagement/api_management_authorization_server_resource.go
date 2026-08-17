@@ -253,14 +253,12 @@ func resourceApiManagementAuthorizationServerCreateUpdate(d *pluginsdk.ResourceD
 
 	authorizationMethodsRaw := d.Get("authorization_methods").(*pluginsdk.Set).List()
 	if len(authorizationMethodsRaw) > 0 {
-		authorizationMethods := expandApiManagementAuthorizationServerAuthorizationMethods(authorizationMethodsRaw)
-		params.Properties.AuthorizationMethods = authorizationMethods
+		params.Properties.AuthorizationMethods = expandApiManagementAuthorizationServerAuthorizationMethods(authorizationMethodsRaw)
 	}
 
 	bearerTokenSendingMethodsRaw := d.Get("bearer_token_sending_methods").(*pluginsdk.Set).List()
 	if len(bearerTokenSendingMethodsRaw) > 0 {
-		bearerTokenSendingMethods := expandApiManagementAuthorizationServerBearerTokenSendingMethods(bearerTokenSendingMethodsRaw)
-		params.Properties.BearerTokenSendingMethods = bearerTokenSendingMethods
+		params.Properties.BearerTokenSendingMethods = expandApiManagementAuthorizationServerBearerTokenSendingMethods(bearerTokenSendingMethodsRaw)
 	}
 
 	if tokenEndpoint := d.Get("token_endpoint").(string); tokenEndpoint != "" {

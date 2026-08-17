@@ -1,0 +1,50 @@
+---
+name: Check for new usages of deprecated functionality
+
+# Standalone PR check (own path filter): blocks new usages of deprecated
+# functions/patterns (scripts/checks/gradually-deprecated.sh).
+# Display name is matched by the workflow_run list in pr-waiting-response-on-ci-fail.yaml.
+
+permissions:
+  contents: read
+  pull-requests: write
+
+on:
+  pull_request:
+    types: ['opened', 'synchronize']
+    paths:
+      - '.github/workflows/pr-check-gradually-deprecated.yaml'
+      - './scripts/checks/gradually-deprecated.sh'
+      - '**.go'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: ./.go-version
+      - run: bash ./scripts/checks/gradually-deprecated.sh
+      - name: Guidance on failure
+        if: failure()
+        run: |
+          echo "::error::New usage of deprecated functionality detected."
+          echo ""
+          echo "Your changes introduce new usages of deprecated functions or patterns."
+          echo "Please use the recommended replacement instead. Check the output above"
+          echo "for details on which deprecated items were referenced."
+  save-artifacts-on-fail:
+    needs: test
+    if: ${{ failure() }}
+    uses: ./.github/workflows/pr-save-artifacts.yaml
+  comment-on-fail:
+    needs: test
+    if: ${{ failure() }}
+    uses: ./.github/workflows/pr-comment-failure.yaml
+  comment-outdated-on-pass:
+    needs: test
+    if: ${{ success() }}
+    uses: ./.github/workflows/pr-comment-failure-outdated.yaml

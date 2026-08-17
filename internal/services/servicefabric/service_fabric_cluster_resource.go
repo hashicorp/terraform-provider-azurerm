@@ -642,23 +642,19 @@ func resourceServiceFabricClusterCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if certificateRaw, ok := d.GetOk("certificate"); ok {
-		certificate := expandServiceFabricClusterCertificate(certificateRaw.([]interface{}))
-		clusterModel.Properties.Certificate = certificate
+		clusterModel.Properties.Certificate = expandServiceFabricClusterCertificate(certificateRaw.([]interface{}))
 	}
 
 	if reverseProxyCertificateRaw, ok := d.GetOk("reverse_proxy_certificate"); ok {
-		reverseProxyCertificate := expandServiceFabricClusterReverseProxyCertificate(reverseProxyCertificateRaw.([]interface{}))
-		clusterModel.Properties.ReverseProxyCertificate = reverseProxyCertificate
+		clusterModel.Properties.ReverseProxyCertificate = expandServiceFabricClusterReverseProxyCertificate(reverseProxyCertificateRaw.([]interface{}))
 	}
 
 	if clientCertificateThumbprintRaw, ok := d.GetOk("client_certificate_thumbprint"); ok {
-		clientCertificateThumbprints := expandServiceFabricClusterClientCertificateThumbprints(clientCertificateThumbprintRaw.([]interface{}))
-		clusterModel.Properties.ClientCertificateThumbprints = clientCertificateThumbprints
+		clusterModel.Properties.ClientCertificateThumbprints = expandServiceFabricClusterClientCertificateThumbprints(clientCertificateThumbprintRaw.([]interface{}))
 	}
 
 	if clientCertificateCommonNamesRaw, ok := d.GetOk("client_certificate_common_name"); ok {
-		clientCertificateCommonNames := expandServiceFabricClusterClientCertificateCommonNames(clientCertificateCommonNamesRaw.([]interface{}))
-		clusterModel.Properties.ClientCertificateCommonNames = clientCertificateCommonNames
+		clusterModel.Properties.ClientCertificateCommonNames = expandServiceFabricClusterClientCertificateCommonNames(clientCertificateCommonNamesRaw.([]interface{}))
 	}
 
 	if clusterCodeVersion != "" {

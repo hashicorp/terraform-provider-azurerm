@@ -256,10 +256,7 @@ func flattenAccessPolicies(input *[]vaults.AccessPolicyEntry) []map[string]inter
 	}
 
 	for _, policy := range *input {
-		applicationId := ""
-		if policy.ApplicationId != nil {
-			applicationId = *policy.ApplicationId
-		}
+		applicationId := pointer.From(policy.ApplicationId)
 
 		certs := flattenCertificatePermissions(policy.Permissions.Certificates)
 		keys := flattenKeyPermissions(policy.Permissions.Keys)
