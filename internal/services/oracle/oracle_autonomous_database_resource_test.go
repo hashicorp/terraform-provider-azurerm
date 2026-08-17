@@ -220,7 +220,7 @@ resource "azurerm_oracle_autonomous_database" "test" {
   allowed_ips                      = []
   long_term_backup_schedule {
     repeat_cadence           = "Monthly"
-    time_of_backup           = "2025-08-03T09:00:00Z"
+    time_of_backup           = "2026-10-30T09:00:00Z"
     retention_period_in_days = 200
     enabled                  = true
   }
