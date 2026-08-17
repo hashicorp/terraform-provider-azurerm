@@ -24,7 +24,7 @@ import (
 )
 
 func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceSentinelAlertRuleScheduledCreateUpdate,
 		Read:   resourceSentinelAlertRuleScheduledRead,
 		Update: resourceSentinelAlertRuleScheduledCreateUpdate,
@@ -347,8 +347,6 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	return resource
 }
 
 func resourceSentinelAlertRuleScheduledCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

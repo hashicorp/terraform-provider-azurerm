@@ -55,7 +55,7 @@ func resourceIotHubEndpointServiceBusQueue() *pluginsdk.Resource {
 }
 
 func resourceIothubEndpointServicebusQueue() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -129,8 +129,6 @@ func resourceIothubEndpointServicebusQueue() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.IsUUID,
 		},
 	}
-
-	return out
 }
 
 func resourceIotHubEndpointServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

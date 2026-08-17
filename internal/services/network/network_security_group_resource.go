@@ -34,7 +34,7 @@ import (
 var networkSecurityGroupResourceName = "azurerm_network_security_group"
 
 func resourceNetworkSecurityGroup() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceNetworkSecurityGroupCreate,
 		Read:   resourceNetworkSecurityGroupRead,
 		Update: resourceNetworkSecurityGroupUpdate,
@@ -194,8 +194,6 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	return resource
 }
 
 func resourceNetworkSecurityGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
