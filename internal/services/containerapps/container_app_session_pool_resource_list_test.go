@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/querycheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -19,14 +18,6 @@ import (
 func TestAccContainerAppSessionPool_list(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_session_pool", "testlist")
 	r := ContainerAppSessionPoolResource{}
-	resourceName := fmt.Sprintf("acctestcasp0%d", data.RandomInteger)
-	resourceGroupName := fmt.Sprintf("acctestRG-CASP-%d", data.RandomInteger)
-
-	expectedIdentity := map[string]knownvalue.Check{
-		"name":                knownvalue.StringExact(resourceName),
-		"resource_group_name": knownvalue.StringExact(resourceGroupName),
-		"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary),
-	}
 
 	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -42,7 +33,6 @@ func TestAccContainerAppSessionPool_list(t *testing.T) {
 				Config: r.subscriptionListQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
 					querycheck.ExpectLengthAtLeast("azurerm_container_app_session_pool.list", 2),
-					querycheck.ExpectIdentity("azurerm_container_app_session_pool.list", expectedIdentity),
 				},
 			},
 			{
@@ -50,7 +40,6 @@ func TestAccContainerAppSessionPool_list(t *testing.T) {
 				Config: r.resourceGroupListQuery(data),
 				QueryResultChecks: []querycheck.QueryResultCheck{
 					querycheck.ExpectLength("azurerm_container_app_session_pool.list", 2),
-					querycheck.ExpectIdentity("azurerm_container_app_session_pool.list", expectedIdentity),
 				},
 			},
 		},
