@@ -40,7 +40,7 @@ func (r Registration) Resources() []sdk.Resource {
 		SubscriptionAssignmentResource{},
 	}
 
-	if features.FivePointOh() {
+	if features.SixPointOh() {
 		resources = append(resources, PolicyDefinitionResource{})
 	}
 
@@ -83,7 +83,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_subscription_policy_remediation":                 resourceArmSubscriptionPolicyRemediation(),
 	}
 
-	if !features.FivePointOh() {
+	if !features.SixPointOh() {
 		resources["azurerm_policy_definition"] = resourceArmPolicyDefinition()
 	}
 

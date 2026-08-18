@@ -84,7 +84,7 @@ func TestAccPolicyDefinition_computedMetadata(t *testing.T) {
 }
 
 func TestAccPolicyDefinition_atMgmtGroup(t *testing.T) {
-	if features.FivePointOh() {
+	if features.SixPointOh() {
 		t.Skip("skipping test as `management_group_id` has been removed from the `azurerm_policy_definition` resource")
 	}
 
