@@ -6,6 +6,7 @@ package managedidentity
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -16,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2024-11-30/identities"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedidentity/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -149,6 +151,14 @@ func (r UserAssignedIdentityResource) Create() sdk.ResourceFunc {
 
 			if _, err := client.UserAssignedIdentitiesCreateOrUpdate(ctx, id, payload); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			poller := custompollers.NewEventualConsistencyPoller(5*time.Second, 5, func() (*http.Response, error) {
+				resp, err := client.UserAssignedIdentitiesGet(ctx, id)
+				return resp.HttpResponse, err
+			})
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("waiting for %s to become available: %+v", id, err)
 			}
 
 			metadata.SetID(id)
