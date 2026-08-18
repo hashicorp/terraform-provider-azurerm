@@ -28,6 +28,9 @@ func TestAccContainerAppSessionPool_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("container_type").HasValue("PythonLTS"),
+				check.That(data.ResourceName).Key("max_concurrent_sessions").HasValue("5"),
+				check.That(data.ResourceName).Key("lifecycle_type").HasValue("Timed"),
 			),
 		},
 		data.ImportStep(),
@@ -149,14 +152,9 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_container_app_session_pool" "test" {
-  name                    = "acctestcasp%[2]d"
-  resource_group_name     = azurerm_resource_group.test.name
-  location                = azurerm_resource_group.test.location
-  container_type          = "PythonLTS"
-  max_concurrent_sessions = 5
-
-  pool_management_type       = "Dynamic"
-  lifecycle_type             = "Timed"
+  name                       = "acctestcasp%[2]d"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
   cooldown_period_in_seconds = 300
 }
 `, r.template(data), data.RandomInteger)
@@ -167,14 +165,9 @@ func (r ContainerAppSessionPoolResource) requiresImport(data acceptance.TestData
 %[1]s
 
 resource "azurerm_container_app_session_pool" "import" {
-  name                    = azurerm_container_app_session_pool.test.name
-  resource_group_name     = azurerm_container_app_session_pool.test.resource_group_name
-  location                = azurerm_container_app_session_pool.test.location
-  container_type          = azurerm_container_app_session_pool.test.container_type
-  max_concurrent_sessions = azurerm_container_app_session_pool.test.max_concurrent_sessions
-
-  pool_management_type       = azurerm_container_app_session_pool.test.pool_management_type
-  lifecycle_type             = azurerm_container_app_session_pool.test.lifecycle_type
+  name                       = azurerm_container_app_session_pool.test.name
+  resource_group_name        = azurerm_container_app_session_pool.test.resource_group_name
+  location                   = azurerm_container_app_session_pool.test.location
   cooldown_period_in_seconds = azurerm_container_app_session_pool.test.cooldown_period_in_seconds
 }
 `, r.basic(data))
@@ -195,7 +188,6 @@ resource "azurerm_container_app_session_pool" "test" {
   container_type          = "PythonLTS"
   max_concurrent_sessions = 10
 
-  pool_management_type       = "Dynamic"
   lifecycle_type             = "Timed"
   cooldown_period_in_seconds = 600
   network_egress_enabled     = true
@@ -223,7 +215,6 @@ resource "azurerm_container_app_session_pool" "test" {
   container_type               = "CustomContainer"
   max_concurrent_sessions      = 10
 
-  pool_management_type       = "Dynamic"
   lifecycle_type             = "Timed"
   cooldown_period_in_seconds = 600
   ready_session_instances    = 2
@@ -296,7 +287,6 @@ resource "azurerm_container_app_session_pool" "test" {
   container_type               = "CustomContainer"
   max_concurrent_sessions      = 5
 
-  pool_management_type        = "Dynamic"
   lifecycle_type              = "OnContainerExit"
   max_alive_period_in_seconds = 600
   ready_session_instances     = 1

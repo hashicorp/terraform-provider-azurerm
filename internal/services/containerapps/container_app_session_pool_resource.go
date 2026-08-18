@@ -51,7 +51,6 @@ type ContainerAppSessionPoolModel struct {
 	ManagedIdentitySettings   []ManagedIdentitySettingModel              `tfschema:"managed_identity_setting"`
 	MaxAlivePeriodInSeconds   int64                                      `tfschema:"max_alive_period_in_seconds"`
 	NetworkEgressEnabled      bool                                       `tfschema:"network_egress_enabled"`
-	PoolManagementType        string                                     `tfschema:"pool_management_type"`
 	ReadySessionInstances     int64                                      `tfschema:"ready_session_instances"`
 	Secrets                   []SessionPoolSecretModel                   `tfschema:"secret"`
 	Tags                      map[string]string                          `tfschema:"tags"`
@@ -115,9 +114,14 @@ func (r ContainerAppSessionPoolResource) CustomizeDiff() sdk.ResourceFunc {
 				return err
 			}
 
-			rawConfig := metadata.ResourceDiff.GetRawConfig().AsValueMap()
+			rawConfig := metadata.ResourceDiff.GetRawConfig()
 			isConfigured := func(name string) bool {
-				value, ok := rawConfig[name]
+				// `AsValueMap` panics on a null raw config, which Terraform can send during a destroy plan
+				if rawConfig.IsNull() {
+					return false
+				}
+
+				value, ok := rawConfig.AsValueMap()[name]
 				return ok && !value.IsNull()
 			}
 
@@ -135,36 +139,34 @@ func (r ContainerAppSessionPoolResource) CustomizeDiff() sdk.ResourceFunc {
 					return errors.New("`custom_container_template` must be set when `container_type` is `CustomContainer`")
 				}
 
+				if config.ContainerAppEnvironmentId == "" {
+					return errors.New("`container_app_environment_id` must be set when `container_type` is `CustomContainer`")
+				}
+
 			default:
 				if len(config.CustomContainerTemplate) > 0 {
 					return errors.New("`custom_container_template` can only be set when `container_type` is `CustomContainer`")
 				}
 			}
 
-			if config.PoolManagementType == string(containerappssessionpools.PoolManagementTypeDynamic) {
-				if !isConfigured("lifecycle_type") {
-					return errors.New("`lifecycle_type` must be set when `pool_management_type` is `Dynamic`")
+			switch config.LifecycleType {
+			case string(containerappssessionpools.LifecycleTypeTimed):
+				if !isConfigured("cooldown_period_in_seconds") {
+					return errors.New("`cooldown_period_in_seconds` must be set when `lifecycle_type` is `Timed`")
+				}
+				if isConfigured("max_alive_period_in_seconds") {
+					return errors.New("`max_alive_period_in_seconds` cannot be set when `lifecycle_type` is `Timed`, use `cooldown_period_in_seconds` instead")
 				}
 
-				switch config.LifecycleType {
-				case string(containerappssessionpools.LifecycleTypeTimed):
-					if !isConfigured("cooldown_period_in_seconds") {
-						return errors.New("`cooldown_period_in_seconds` must be set when `lifecycle_type` is `Timed`")
-					}
-					if isConfigured("max_alive_period_in_seconds") {
-						return errors.New("`max_alive_period_in_seconds` cannot be set when `lifecycle_type` is `Timed`, use `cooldown_period_in_seconds` instead")
-					}
-
-				case string(containerappssessionpools.LifecycleTypeOnContainerExit):
-					if config.ContainerType != string(containerappssessionpools.ContainerTypeCustomContainer) {
-						return errors.New("`lifecycle_type` can only be set to `OnContainerExit` when `container_type` is `CustomContainer`")
-					}
-					if isConfigured("cooldown_period_in_seconds") {
-						return errors.New("`cooldown_period_in_seconds` cannot be set when `lifecycle_type` is `OnContainerExit`, use `max_alive_period_in_seconds` instead")
-					}
-					if !isConfigured("max_alive_period_in_seconds") {
-						return errors.New("`max_alive_period_in_seconds` must be set when `lifecycle_type` is `OnContainerExit`")
-					}
+			case string(containerappssessionpools.LifecycleTypeOnContainerExit):
+				if config.ContainerType != string(containerappssessionpools.ContainerTypeCustomContainer) {
+					return errors.New("`lifecycle_type` can only be set to `OnContainerExit` when `container_type` is `CustomContainer`")
+				}
+				if isConfigured("cooldown_period_in_seconds") {
+					return errors.New("`cooldown_period_in_seconds` cannot be set when `lifecycle_type` is `OnContainerExit`, use `max_alive_period_in_seconds` instead")
+				}
+				if !isConfigured("max_alive_period_in_seconds") {
+					return errors.New("`max_alive_period_in_seconds` must be set when `lifecycle_type` is `OnContainerExit`")
 				}
 			}
 
@@ -191,14 +193,16 @@ func (r ContainerAppSessionPoolResource) Arguments() map[string]*pluginsdk.Schem
 
 		"container_type": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
 			ForceNew:     true,
+			Default:      string(containerappssessionpools.ContainerTypePythonLTS),
 			ValidateFunc: validation.StringInSlice(containerappssessionpools.PossibleValuesForContainerType(), false),
 		},
 
 		"max_concurrent_sessions": {
 			Type:         pluginsdk.TypeInt,
-			Required:     true,
+			Optional:     true,
+			Default:      5,
 			ValidateFunc: validation.IntAtLeast(1),
 		},
 
@@ -323,6 +327,7 @@ func (r ContainerAppSessionPoolResource) Arguments() map[string]*pluginsdk.Schem
 		"lifecycle_type": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
+			Default:      string(containerappssessionpools.LifecycleTypeTimed),
 			ValidateFunc: validation.StringInSlice(containerappssessionpools.PossibleValuesForLifecycleType(), false),
 		},
 
@@ -367,16 +372,6 @@ func (r ContainerAppSessionPoolResource) Arguments() map[string]*pluginsdk.Schem
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
-		},
-
-		"pool_management_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			// The API enum includes `Manual`, but the service currently rejects creating Manual session pools.
-			ValidateFunc: validation.StringInSlice([]string{
-				string(containerappssessionpools.PoolManagementTypeDynamic),
-			}, false),
 		},
 
 		"ready_session_instances": {
@@ -472,7 +467,7 @@ func (r ContainerAppSessionPoolResource) Create() sdk.ResourceFunc {
 					CustomContainerTemplate:  customContainerTemplate,
 					DynamicPoolConfiguration: expandContainerAppSessionPoolDynamicPoolConfiguration(config),
 					ManagedIdentitySettings:  expandContainerAppSessionPoolManagedIdentitySettings(config.ManagedIdentitySettings),
-					PoolManagementType:       pointer.To(containerappssessionpools.PoolManagementType(config.PoolManagementType)),
+					PoolManagementType:       pointer.To(containerappssessionpools.PoolManagementTypeDynamic),
 					ScaleConfiguration:       expandContainerAppSessionPoolScaleConfiguration(config),
 					Secrets:                  expandContainerAppSessionPoolSecrets(config.Secrets),
 					SessionNetworkConfiguration: &containerappssessionpools.SessionNetworkConfiguration{
@@ -637,7 +632,6 @@ func (r ContainerAppSessionPoolResource) flatten(metadata sdk.ResourceMetaData, 
 			state.ManagedIdentitySettings = flattenContainerAppSessionPoolManagedIdentitySettings(props.ManagedIdentitySettings)
 			state.NodeCount = pointer.From(props.NodeCount)
 			state.PoolManagementEndpoint = pointer.From(props.PoolManagementEndpoint)
-			state.PoolManagementType = string(pointer.From(props.PoolManagementType))
 			state.Secrets = flattenContainerAppSessionPoolSecrets(props.Secrets, existing.Secrets)
 
 			if dynamicPool := props.DynamicPoolConfiguration; dynamicPool != nil && dynamicPool.LifecycleConfiguration != nil {
@@ -785,10 +779,6 @@ func expandContainerAppSessionPoolEnvironmentVars(input []helpers.ContainerEnvVa
 
 func expandContainerAppSessionPoolDynamicPoolConfiguration(input ContainerAppSessionPoolModel) *containerappssessionpools.DynamicPoolConfiguration {
 	// The API rejects a null `dynamicPoolConfiguration` when `poolManagementType` is `Dynamic`.
-	if input.PoolManagementType != string(containerappssessionpools.PoolManagementTypeDynamic) {
-		return nil
-	}
-
 	lifecycle := &containerappssessionpools.LifecycleConfiguration{
 		LifecycleType: pointer.To(containerappssessionpools.LifecycleType(input.LifecycleType)),
 	}

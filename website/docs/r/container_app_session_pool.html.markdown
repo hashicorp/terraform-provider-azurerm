@@ -19,14 +19,9 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_container_app_session_pool" "example" {
-  name                    = "examplesessionpool"
-  resource_group_name     = azurerm_resource_group.example.name
-  location                = azurerm_resource_group.example.location
-  container_type          = "PythonLTS"
-  max_concurrent_sessions = 5
-
-  pool_management_type       = "Dynamic"
-  lifecycle_type             = "Timed"
+  name                       = "examplesessionpool"
+  resource_group_name        = azurerm_resource_group.example.name
+  location                   = azurerm_resource_group.example.location
   cooldown_period_in_seconds = 300
 }
 ```
@@ -43,11 +38,9 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Container App Session Pool should exist. Changing this forces a new resource to be created.
 
-* `container_type` - (Required) The type of container used for the sessions in this Container App Session Pool. Possible values are `CustomContainer` and `PythonLTS`. Changing this forces a new resource to be created.
+* `container_type` - (Optional) The type of container used for the sessions in this Container App Session Pool. Possible values are `CustomContainer` and `PythonLTS`. Defaults to `PythonLTS`. Changing this forces a new resource to be created.
 
-* `max_concurrent_sessions` - (Required) The maximum number of sessions which can run concurrently in this Container App Session Pool.
-
-* `pool_management_type` - (Required) The management type of this Container App Session Pool. The Azure REST API defines `Dynamic` and `Manual`; however, Azure Container Apps currently supports creating session pools only with `Dynamic`, so `Manual` cannot be configured at this time. Changing this forces a new resource to be created.
+* `max_concurrent_sessions` - (Optional) The maximum number of sessions which can run concurrently in this Container App Session Pool. Defaults to `5`.
 
 * `container_app_environment_id` - (Optional) The ID of the Container App Environment used to host the sessions in this Container App Session Pool. Changing this forces a new resource to be created.
 
@@ -67,9 +60,7 @@ The following arguments are supported:
 
 ~> **Note:** `identity` may only be specified when `container_type` is set to `CustomContainer`.
 
-* `lifecycle_type` - (Optional) The lifecycle type of the sessions in this Container App Session Pool. Possible values are `OnContainerExit` and `Timed`.
-
-~> **Note:** `lifecycle_type` must be specified when `pool_management_type` is set to `Dynamic`.
+* `lifecycle_type` - (Optional) The lifecycle type of the sessions in this Container App Session Pool. Possible values are `OnContainerExit` and `Timed`. Defaults to `Timed`.
 
 ~> **Note:** `OnContainerExit` can only be used when `container_type` is set to `CustomContainer`.
 
