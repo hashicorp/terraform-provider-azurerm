@@ -18,6 +18,16 @@ import (
 
 type ApplicationInsightsWebTestResource struct{}
 
+func TestAccApplicationInsightsWebTests_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_insights_web_test", "test")
+	r := ApplicationInsightsWebTestResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccApplicationInsightsWebTests_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_web_test", "test")
 	r := ApplicationInsightsWebTestResource{}

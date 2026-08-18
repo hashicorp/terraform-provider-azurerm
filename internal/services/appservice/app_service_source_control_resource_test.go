@@ -22,6 +22,16 @@ import (
 
 type AppServiceSourceControlResource struct{}
 
+func TestAccSourceControlResource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control", "test")
+	r := AppServiceSourceControlResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.windowsExternalGit(data),
+		},
+	}, "")
+}
+
 func TestAccSourceControlResource_windowsExternalGit(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control", "test")
 	r := AppServiceSourceControlResource{}
