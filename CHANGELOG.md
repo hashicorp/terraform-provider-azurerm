@@ -1,6 +1,7 @@
 ## 5.2.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_role_assignment` - the `condition`, `condition_version`, and `description` properties can now be updated in-place [GH-32714]
 * `azurerm_snapshot`: `create_option` now supports `CopyStart` [GH-32834]
 * `azurerm_mongo_cluster` - `administrator_password` is no longer required when `create_mode` is `Default` to support Entra ID-only authentication [GH-32092]
 * `azurerm_cdn_frontdoor_batch_rule_set` - allow `/` as an input to `rule.conditions.request_path.values` [GH-33023]
