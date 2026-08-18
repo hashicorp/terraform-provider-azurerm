@@ -13,6 +13,16 @@ import (
 
 type CdnFrontDoorOriginGroupDataSource struct{}
 
+func TestAccCdnFrontDoorOriginGroupDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_cdn_frontdoor_origin_group", "test")
+	r := CdnFrontDoorOriginGroupDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccCdnFrontDoorOriginGroupDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_cdn_frontdoor_origin_group", "test")
 	d := CdnFrontDoorOriginGroupDataSource{}

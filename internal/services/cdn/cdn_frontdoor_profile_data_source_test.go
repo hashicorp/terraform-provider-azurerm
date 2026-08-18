@@ -13,6 +13,16 @@ import (
 
 type CdnFrontDoorProfileDataSource struct{}
 
+func TestAccCdnFrontDoorProfileDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_cdn_frontdoor_profile", "test")
+	r := CdnFrontDoorProfileDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccCdnFrontDoorProfileDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_cdn_frontdoor_profile", "test")
 	d := CdnFrontDoorProfileDataSource{}

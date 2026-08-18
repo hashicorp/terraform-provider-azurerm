@@ -18,6 +18,16 @@ import (
 
 type CdnFrontDoorOriginResource struct{}
 
+func TestAccCdnFrontDoorOrigin_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin", "test")
+	r := CdnFrontDoorOriginResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccCdnFrontDoorOrigin_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin", "test")
 	r := CdnFrontDoorOriginResource{}
