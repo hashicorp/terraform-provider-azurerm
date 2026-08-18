@@ -19,6 +19,16 @@ import (
 
 type AppConfigurationFeatureResource struct{}
 
+func TestAccAppConfigurationFeature_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_configuration_feature", "test")
+	r := AppConfigurationFeatureResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccAppConfigurationFeature_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration_feature", "test")
 	r := AppConfigurationFeatureResource{}

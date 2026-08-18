@@ -18,6 +18,16 @@ import (
 
 type ApiManagementIdentityProviderFacebookResource struct{}
 
+func TestAccApiManagementIdentityProviderFacebook_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_facebook", "test")
+	r := ApiManagementIdentityProviderFacebookResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccApiManagementIdentityProviderFacebook_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_facebook", "test")
 	r := ApiManagementIdentityProviderFacebookResource{}

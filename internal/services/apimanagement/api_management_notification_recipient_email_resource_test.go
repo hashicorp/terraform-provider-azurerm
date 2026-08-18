@@ -19,6 +19,16 @@ import (
 
 type ApiManagementNotificationRecipientEmailResource struct{}
 
+func TestAccApiManagementNotificationRecipientEmail_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_notification_recipient_email", "test")
+	r := ApiManagementNotificationRecipientEmailResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccApiManagementNotificationRecipientEmail_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_notification_recipient_email", "test")
 	r := ApiManagementNotificationRecipientEmailResource{}

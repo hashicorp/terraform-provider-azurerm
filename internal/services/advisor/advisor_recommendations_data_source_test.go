@@ -13,6 +13,16 @@ import (
 
 type AdvisorRecommendationsDataSourceTests struct{}
 
+func TestAccAdvisorRecommendationsDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_advisor_recommendations", "test")
+	r := AdvisorRecommendationsDataSourceTests{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.completeConfig(data),
+		},
+	}, "")
+}
+
 func TestAccAdvisorRecommendationsDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_advisor_recommendations", "test")
 

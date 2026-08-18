@@ -18,6 +18,16 @@ import (
 
 type ApiManagementGatewayCertificateAuthorityResource struct{}
 
+func TestAccApiManagementGatewayCertificateAuthority_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_gateway_certificate_authority", "test")
+	r := ApiManagementGatewayCertificateAuthorityResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccApiManagementGatewayCertificateAuthority_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_gateway_certificate_authority", "test")
 	r := ApiManagementGatewayCertificateAuthorityResource{}

@@ -19,6 +19,16 @@ import (
 
 type ApiManagementEmailTemplateResource struct{}
 
+func TestAccApiManagementEmailTemplate_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_email_template", "test")
+	r := ApiManagementEmailTemplateResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccApiManagementEmailTemplate_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_email_template", "test")
 	r := ApiManagementEmailTemplateResource{}
