@@ -154,7 +154,7 @@ A `secret` block supports the following:
 
 * `value` - (Required) The value for this secret.
 
-~> **Note:** `value` is not returned by the Azure API, so it is populated from the Terraform configuration. Changes made to a secret value outside of Terraform are not detected, and the value is not populated when importing this resource. For the same reason the configured value is always sent on update, meaning `ignore_changes` has no effect on `secret`.
+~> **Note:** `value` is not returned by the Azure API, so it is stored from the Terraform configuration. Changes made to a secret value outside of Terraform cannot be detected.
 
 ## Attributes Reference
 
