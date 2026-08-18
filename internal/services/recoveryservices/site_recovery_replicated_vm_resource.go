@@ -291,7 +291,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 	}
 }
 
-func resourceSiteRecoveryReplicatedVMCustomizeDiff(_ context.Context, diff *pluginsdk.ResourceDiff, _ interface{}) error {
+func resourceSiteRecoveryReplicatedVMCustomizeDiff(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
 	rawConfig := diff.GetRawConfig()
 	if !rawConfig.IsKnown() || rawConfig.IsNull() {
 		return nil
@@ -338,61 +338,15 @@ func resourceSiteRecoveryReplicatedVMCustomizeDiff(_ context.Context, diff *plug
 		}
 	}
 
-	if diff.Id() != "" && diff.HasChange("managed_disk") {
-		oldDisks, newDisks := diff.GetChange("managed_disk")
-		oldSet := oldDisks.(*pluginsdk.Set).List()
-		newSet := newDisks.(*pluginsdk.Set).List()
-
-		oldMap := make(map[string]map[string]interface{})
-		for _, raw := range oldSet {
-			diskInput := raw.(map[string]interface{})
-			diskId := diskInput["disk_id"].(string)
-			oldMap[diskId] = diskInput
-		}
-
-		for _, raw := range newSet {
-			diskInput := raw.(map[string]interface{})
-			diskId := diskInput["disk_id"].(string)
-
-			// Find matching disk ignoring case
-			var oldDiskInput map[string]interface{}
-			var exists bool
-			for oldId, oldInput := range oldMap {
-				if strings.EqualFold(oldId, diskId) {
-					oldDiskInput = oldInput
-					exists = true
-					break
-				}
-			}
-
-			if exists {
-				if !strings.EqualFold(diskInput["staging_storage_account_id"].(string), oldDiskInput["staging_storage_account_id"].(string)) ||
-					!strings.EqualFold(diskInput["target_resource_group_id"].(string), oldDiskInput["target_resource_group_id"].(string)) ||
-					!strings.EqualFold(diskInput["target_disk_encryption_set_id"].(string), oldDiskInput["target_disk_encryption_set_id"].(string)) {
-					for _, key := range diff.GetChangedKeysPrefix("managed_disk") {
-						if err := diff.ForceNew(key); err != nil {
-							return err
-						}
-					}
-					break
-				}
-			}
-		}
-
-		// Detect if a disk was removed
-		newMap := make(map[string]bool)
-		for _, raw := range newSet {
-			diskInput := raw.(map[string]interface{})
-			newMap[strings.ToLower(diskInput["disk_id"].(string))] = true
-		}
-
-		for diskId := range oldMap {
-			if !newMap[strings.ToLower(diskId)] {
-				if err := diff.ForceNew("managed_disk"); err != nil {
-					return err
-				}
-				break
-			}
+	if diff.Id() != "" {
+		managedDiskCustomDiff := pluginsdk.CustomDiffComputedSetCannotRemove(
+			"managed_disk",
+			resourceSiteRecoveryReplicatedVMDiskHash,
+			[]string{"staging_storage_account_id", "target_resource_group_id", "target_disk_encryption_set_id"},
+			[]string{"target_disk_type", "target_replica_disk_type"},
+		)
+		if err := managedDiskCustomDiff(ctx, diff, v); err != nil {
+			return err
 		}
 	}
 

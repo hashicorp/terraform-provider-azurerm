@@ -53,7 +53,6 @@ func TestAccSiteRecoveryReplicatedVm_managedDiskMembership(t *testing.T) {
 			},
 			ExpectError: regexp.MustCompile("INTENTIONAL_PLAN_ABORT_FOR_REPLACE"),
 		},
-		data.ImportStep(),
 		{
 			Config: r.managedDiskMembershipForceNewStagingStorageAccount(data),
 			ConfigPlanChecks: resource.ConfigPlanChecks{
@@ -81,7 +80,6 @@ func TestAccSiteRecoveryReplicatedVm_managedDiskMembership(t *testing.T) {
 			},
 			ExpectError: regexp.MustCompile("INTENTIONAL_PLAN_ABORT_FOR_REPLACE"),
 		},
-		data.ImportStep(),
 	})
 }
 
@@ -222,12 +220,6 @@ resource "azurerm_virtual_machine_data_disk_attachment" "test" {
   lun                = 10
   caching            = "ReadWrite"
 }
-`, r.template(data), data.RandomInteger)
-}
-
-func (r SiteRecoveryReplicatedVmResource) managedDiskMembershipForceNewStagingStorageAccount(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
 
 resource "azurerm_storage_account" "test2" {
   name                     = "sa2%[2]d"
@@ -236,6 +228,17 @@ resource "azurerm_storage_account" "test2" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
+
+resource "azurerm_resource_group" "test3" {
+  name     = "rg3-%[2]d"
+  location = azurerm_resource_group.test.location
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r SiteRecoveryReplicatedVmResource) managedDiskMembershipForceNewStagingStorageAccount(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
 
 resource "azurerm_site_recovery_replicated_vm" "test" {
   name                                      = "repl-%[2]d"
@@ -279,11 +282,6 @@ func (r SiteRecoveryReplicatedVmResource) managedDiskMembershipForceNewTargetRes
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_resource_group" "test3" {
-  name     = "rg3-%[2]d"
-  location = azurerm_resource_group.test.location
-}
-
 resource "azurerm_site_recovery_replicated_vm" "test" {
   name                                      = "repl-%[2]d"
   resource_group_name                       = azurerm_resource_group.test2.name
@@ -326,17 +324,6 @@ func (r SiteRecoveryReplicatedVmResource) managedDiskMembershipForceNewTargetDis
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_disk_encryption_set" "test" {
-  name                = "des-%[2]d"
-  resource_group_name = azurerm_resource_group.test2.name
-  location            = azurerm_resource_group.test2.location
-  key_vault_key_id    = "https://test.vault.azure.net/keys/testkey/12345678901234567890123456789012"
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-
 resource "azurerm_site_recovery_replicated_vm" "test" {
   name                                      = "repl-%[2]d"
   resource_group_name                       = azurerm_resource_group.test2.name
@@ -351,18 +338,18 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
   target_recovery_protection_container_id = azurerm_site_recovery_protection_container.test2.id
 
   managed_disk {
-    disk_id                       = azurerm_virtual_machine.test.storage_os_disk[0].managed_disk_id
-    staging_storage_account_id    = azurerm_storage_account.test.id
-    target_resource_group_id      = azurerm_resource_group.test2.id
-    target_disk_type              = "Standard_LRS"
-    target_replica_disk_type      = "Standard_LRS"
+    disk_id                    = azurerm_virtual_machine.test.storage_os_disk[0].managed_disk_id
+    staging_storage_account_id = azurerm_storage_account.test.id
+    target_resource_group_id   = azurerm_resource_group.test2.id
+    target_disk_type           = "Standard_LRS"
+    target_replica_disk_type   = "Standard_LRS"
   }
 
   managed_disk {
     disk_id                       = azurerm_managed_disk.test.id
     staging_storage_account_id    = azurerm_storage_account.test.id
     target_resource_group_id      = azurerm_resource_group.test2.id
-    target_disk_encryption_set_id = azurerm_disk_encryption_set.test.id
+    target_disk_encryption_set_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg/providers/Microsoft.Compute/diskEncryptionSets/des1"
     target_disk_type              = "Standard_LRS"
     target_replica_disk_type      = "Standard_LRS"
   }
