@@ -19,6 +19,16 @@ import (
 
 type StandbyPoolStandbyVirtualMachinePoolResource struct{}
 
+func TestAccStandbyPoolStandbyVirtualMachinePool_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_standby_pool", "test")
+	r := StandbyPoolStandbyVirtualMachinePoolResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccStandbyPoolStandbyVirtualMachinePool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_standby_pool", "test")
 	r := StandbyPoolStandbyVirtualMachinePoolResource{}

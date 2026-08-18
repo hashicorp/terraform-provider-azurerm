@@ -24,6 +24,16 @@ import (
 
 type VirtualMachineImplicitDataDiskFromSourceResource struct{}
 
+func TestAccVirtualMachineImplicitDataDiskFromSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_implicit_data_disk_from_source", "test")
+	r := VirtualMachineImplicitDataDiskFromSourceResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccVirtualMachineImplicitDataDiskFromSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_implicit_data_disk_from_source", "test")
 	r := VirtualMachineImplicitDataDiskFromSourceResource{}

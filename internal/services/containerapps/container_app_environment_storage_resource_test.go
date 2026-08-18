@@ -19,6 +19,16 @@ import (
 
 type ContainerAppEnvironmentStorageResource struct{}
 
+func TestAccContainerAppEnvironmentStorage_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_environment_storage", "test")
+	r := ContainerAppEnvironmentStorageResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccContainerAppEnvironmentStorage_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_environment_storage", "test")
 	r := ContainerAppEnvironmentStorageResource{}

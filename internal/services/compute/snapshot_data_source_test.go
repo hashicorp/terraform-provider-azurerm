@@ -13,6 +13,16 @@ import (
 
 type SnapshotDataSource struct{}
 
+func TestAccDataSourceSnapshot_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_snapshot", "test")
+	r := SnapshotDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceSnapshot_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_snapshot", "snapshot")
 	r := SnapshotDataSource{}

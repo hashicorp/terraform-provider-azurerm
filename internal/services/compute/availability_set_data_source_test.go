@@ -13,6 +13,16 @@ import (
 
 type AvailabilitySetDataSource struct{}
 
+func TestAccDataSourceAvailabilitySet_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_availability_set", "test")
+	r := AvailabilitySetDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceAvailabilitySet_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_availability_set", "test")
 	r := AvailabilitySetDataSource{}
