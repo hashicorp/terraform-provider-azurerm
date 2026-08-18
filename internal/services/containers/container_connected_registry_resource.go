@@ -247,7 +247,7 @@ func (r ContainerConnectedRegistryResource) Create() sdk.ResourceFunc {
 					},
 					ClientTokenIds: &model.ClientTokenIds,
 					Logging: &connectedregistries.LoggingProperties{
-						LogLevel:       pointer.To(connectedregistries.LogLevel(model.LogLevel)),
+						LogLevel:       pointer.ToEnum[connectedregistries.LogLevel](model.LogLevel),
 						AuditLogStatus: pointer.To(auditLogStatus),
 					},
 					NotificationsList: notifications,
@@ -430,7 +430,7 @@ func (r ContainerConnectedRegistryResource) Update() sdk.ResourceFunc {
 				}
 				if logging := props.Logging; logging != nil {
 					if metadata.ResourceData.HasChange("log_level") {
-						logging.LogLevel = pointer.To(connectedregistries.LogLevel(state.LogLevel))
+						logging.LogLevel = pointer.ToEnum[connectedregistries.LogLevel](state.LogLevel)
 					}
 					if metadata.ResourceData.HasChange("audit_log_enabled") {
 						logging.AuditLogStatus = pointer.To(connectedregistries.AuditLogStatusDisabled)

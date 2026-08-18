@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2021-06-01/assessmentsmetadata"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceArmSecurityCenterAssessmentPolicy() *pluginsdk.Resource {
@@ -185,7 +185,7 @@ func resourceArmSecurityCenterAssessmentPolicyCreate(d *pluginsdk.ResourceData, 
 	}
 
 	if v, ok := d.GetOk("implementation_effort"); ok {
-		params.Properties.ImplementationEffort = pointer.To(assessmentsmetadata.ImplementationEffort(v.(string)))
+		params.Properties.ImplementationEffort = pointer.ToEnum[assessmentsmetadata.ImplementationEffort](v.(string))
 	}
 
 	if v, ok := d.GetOk("remediation_description"); ok {
@@ -193,7 +193,7 @@ func resourceArmSecurityCenterAssessmentPolicyCreate(d *pluginsdk.ResourceData, 
 	}
 
 	if v, ok := d.GetOk("user_impact"); ok {
-		params.Properties.UserImpact = pointer.To(assessmentsmetadata.UserImpact(v.(string)))
+		params.Properties.UserImpact = pointer.ToEnum[assessmentsmetadata.UserImpact](v.(string))
 	}
 
 	if _, err := client.CreateInSubscription(ctx, id, params); err != nil {
@@ -242,7 +242,7 @@ func resourceArmSecurityCenterAssessmentPolicyRead(d *pluginsdk.ResourceData, me
 					categories = append(categories, string(item))
 				}
 			}
-			d.Set("categories", utils.FlattenStringSlice(&categories))
+			d.Set("categories", helpers.FlattenStringSlice(&categories))
 
 			threats := make([]string, 0)
 			if props.Threats != nil {
@@ -250,7 +250,7 @@ func resourceArmSecurityCenterAssessmentPolicyRead(d *pluginsdk.ResourceData, me
 					threats = append(threats, string(item))
 				}
 			}
-			d.Set("threats", utils.FlattenStringSlice(&threats))
+			d.Set("threats", helpers.FlattenStringSlice(&threats))
 		}
 	}
 
@@ -304,7 +304,7 @@ func resourceArmSecurityCenterAssessmentPolicyUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	if d.HasChange("implementation_effort") {
-		existing.Model.Properties.ImplementationEffort = pointer.To(assessmentsmetadata.ImplementationEffort(d.Get("implementation_effort").(string)))
+		existing.Model.Properties.ImplementationEffort = pointer.ToEnum[assessmentsmetadata.ImplementationEffort](d.Get("implementation_effort").(string))
 	}
 
 	if d.HasChange("remediation_description") {
@@ -312,7 +312,7 @@ func resourceArmSecurityCenterAssessmentPolicyUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	if d.HasChange("user_impact") {
-		existing.Model.Properties.UserImpact = pointer.To(assessmentsmetadata.UserImpact(d.Get("user_impact").(string)))
+		existing.Model.Properties.UserImpact = pointer.ToEnum[assessmentsmetadata.UserImpact](d.Get("user_impact").(string))
 	}
 
 	if _, err := client.CreateInSubscription(ctx, *id, *existing.Model); err != nil {

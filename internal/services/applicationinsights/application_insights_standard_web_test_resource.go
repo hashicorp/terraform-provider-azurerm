@@ -20,10 +20,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	webtests "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var (
@@ -575,7 +575,7 @@ func expandApplicationInsightsStandardWebTestRequest(input []RequestModel) (requ
 	request.Headers = expandApplicationInsightsStandardWebTestRequestHeaders(requestInput.Header)
 
 	if v := requestInput.Body; v != "" {
-		request.RequestBody = pointer.To(utils.Base64EncodeIfNot(v))
+		request.RequestBody = pointer.To(helpers.Base64EncodeIfNot(v))
 	}
 
 	if v := requestInput.URL; v != "" {

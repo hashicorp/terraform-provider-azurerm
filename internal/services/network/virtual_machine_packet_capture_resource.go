@@ -311,7 +311,7 @@ func expandVirtualMachinePacketCaptureFilters(input []interface{}) *[]packetcapt
 		filter := packetcaptures.PacketCaptureFilter{
 			LocalIPAddress:  pointer.To(localIPAddress),
 			LocalPort:       pointer.To(localPort),
-			Protocol:        pointer.To(packetcaptures.PcProtocol(protocol)),
+			Protocol:        pointer.ToEnum[packetcaptures.PcProtocol](protocol),
 			RemoteIPAddress: pointer.To(remoteIPAddress),
 			RemotePort:      pointer.To(remotePort),
 		}
