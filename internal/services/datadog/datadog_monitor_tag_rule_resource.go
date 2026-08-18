@@ -305,26 +305,11 @@ func flattenLogRules(input *tagrules.LogRules) []interface{} {
 	results := make([]interface{}, 0)
 
 	if input != nil {
-		aadLogEnabled := false
-		if input.SendAadLogs != nil {
-			aadLogEnabled = *input.SendAadLogs
-		}
-
-		subscriptionLogEnabled := false
-		if input.SendSubscriptionLogs != nil {
-			subscriptionLogEnabled = *input.SendSubscriptionLogs
-		}
-
-		resourceLogEnabled := false
-		if input.SendResourceLogs != nil {
-			resourceLogEnabled = *input.SendResourceLogs
-		}
-
 		results = append(results, map[string]interface{}{
-			"aad_log_enabled":          aadLogEnabled,
+			"aad_log_enabled":          pointer.From(input.SendAadLogs),
 			"filter":                   flattenFilteringTags(input.FilteringTags),
-			"resource_log_enabled":     resourceLogEnabled,
-			"subscription_log_enabled": subscriptionLogEnabled,
+			"resource_log_enabled":     pointer.From(input.SendResourceLogs),
+			"subscription_log_enabled": pointer.From(input.SendSubscriptionLogs),
 		})
 	}
 
@@ -351,18 +336,10 @@ func flattenFilteringTags(input *[]tagrules.FilteringTag) []interface{} {
 			if filteringTagRules.Action != nil {
 				action = string(*filteringTagRules.Action)
 			}
-			name := ""
-			if filteringTagRules.Name != nil {
-				name = *filteringTagRules.Name
-			}
-			value := ""
-			if filteringTagRules.Value != nil {
-				value = *filteringTagRules.Value
-			}
 			results = append(results, map[string]interface{}{
 				"action": action,
-				"name":   name,
-				"value":  value,
+				"name":   pointer.From(filteringTagRules.Name),
+				"value":  pointer.From(filteringTagRules.Value),
 			})
 		}
 	}
@@ -380,11 +357,9 @@ func isDefaultSettings(input *tagrules.MonitoringTagRules) bool {
 
 	logRules := input.Properties.LogRules
 	metricRules := input.Properties.MetricRules
-	result := (logRules.SendAadLogs != nil && !*logRules.SendAadLogs) &&
+	return (logRules.SendAadLogs != nil && !*logRules.SendAadLogs) &&
 		(logRules.SendSubscriptionLogs != nil && !*logRules.SendSubscriptionLogs) &&
 		(logRules.SendResourceLogs != nil && !*logRules.SendResourceLogs) &&
 		(logRules.FilteringTags != nil && len(*logRules.FilteringTags) == 0) &&
 		(metricRules.FilteringTags != nil && len(*metricRules.FilteringTags) == 0)
-
-	return result
 }

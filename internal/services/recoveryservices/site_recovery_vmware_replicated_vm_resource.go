@@ -699,8 +699,7 @@ func (r VMWareReplicatedVmResource) Update() sdk.ResourceFunc {
 				Properties: &props,
 			}
 
-			err = client.UpdateThenPoll(ctx, *id, parameters)
-			if err != nil {
+			if err = client.UpdateThenPoll(ctx, *id, parameters); err != nil {
 				return fmt.Errorf("updating %q: %+v", id, err)
 			}
 
@@ -853,8 +852,7 @@ func (r VMWareReplicatedVmResource) Delete() sdk.ResourceFunc {
 				},
 			}
 
-			err = client.DeleteThenPoll(ctx, *id, disableProtectionInput)
-			if err != nil {
+			if err = client.DeleteThenPoll(ctx, *id, disableProtectionInput); err != nil {
 				return fmt.Errorf("deleting %s : %+v", id.String(), err)
 			}
 

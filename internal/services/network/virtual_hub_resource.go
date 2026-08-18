@@ -447,15 +447,10 @@ func flattenVirtualHubRoute(input *virtualwans.VirtualHubRouteTable) []interface
 
 	for _, item := range *input.Routes {
 		addressPrefixes := helpers.FlattenStringSlice(item.AddressPrefixes)
-		nextHopIpAddress := ""
-
-		if item.NextHopIPAddress != nil {
-			nextHopIpAddress = *item.NextHopIPAddress
-		}
 
 		results = append(results, map[string]interface{}{
 			"address_prefixes":    addressPrefixes,
-			"next_hop_ip_address": nextHopIpAddress,
+			"next_hop_ip_address": pointer.From(item.NextHopIPAddress),
 		})
 	}
 

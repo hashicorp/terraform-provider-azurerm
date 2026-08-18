@@ -300,8 +300,7 @@ func (r ExadataInfraResource) Update() sdk.ResourceFunc {
 				update := &cloudexadatainfrastructures.CloudExadataInfrastructureUpdate{
 					Tags: pointer.To(model.Tags),
 				}
-				err = client.UpdateThenPoll(ctx, *id, *update)
-				if err != nil {
+				if err = client.UpdateThenPoll(ctx, *id, *update); err != nil {
 					return fmt.Errorf("updating %s: %v", id, err)
 				}
 			}

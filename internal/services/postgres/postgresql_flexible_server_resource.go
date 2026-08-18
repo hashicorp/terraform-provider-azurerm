@@ -713,8 +713,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if authRaw, ok := d.GetOk("authentication"); ok {
-		authConfig := expandFlexibleServerAuthConfig(authRaw.([]interface{}))
-		parameters.Properties.AuthConfig = authConfig
+		parameters.Properties.AuthConfig = expandFlexibleServerAuthConfig(authRaw.([]interface{}))
 	}
 
 	identity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
@@ -1296,18 +1295,9 @@ func flattenArmServerMaintenanceWindow(input *servers.MaintenanceWindow) []inter
 		return make([]interface{}, 0)
 	}
 
-	var dayOfWeek int64
-	if input.DayOfWeek != nil {
-		dayOfWeek = *input.DayOfWeek
-	}
-	var startHour int64
-	if input.StartHour != nil {
-		startHour = *input.StartHour
-	}
-	var startMinute int64
-	if input.StartMinute != nil {
-		startMinute = *input.StartMinute
-	}
+	dayOfWeek := pointer.From(input.DayOfWeek)
+	startHour := pointer.From(input.StartHour)
+	startMinute := pointer.From(input.StartMinute)
 	return []interface{}{
 		map[string]interface{}{
 			"day_of_week":  dayOfWeek,
@@ -1372,10 +1362,7 @@ func flattenFlexibleServerHighAvailability(ha *servers.HighAvailability) []inter
 		return []interface{}{}
 	}
 
-	var zone string
-	if ha.StandbyAvailabilityZone != nil {
-		zone = *ha.StandbyAvailabilityZone
-	}
+	zone := pointer.From(ha.StandbyAvailabilityZone)
 
 	return []interface{}{
 		map[string]interface{}{

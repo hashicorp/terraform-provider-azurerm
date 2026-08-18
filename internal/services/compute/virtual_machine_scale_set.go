@@ -61,14 +61,9 @@ func FlattenVirtualMachineScaleSetAdditionalCapabilities(input *virtualmachinesc
 		return []interface{}{}
 	}
 
-	ultraSsdEnabled := false
-	if input.UltraSSDEnabled != nil {
-		ultraSsdEnabled = *input.UltraSSDEnabled
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"ultra_ssd_enabled": ultraSsdEnabled,
+			"ultra_ssd_enabled": pointer.From(input.UltraSSDEnabled),
 		},
 	}
 }
@@ -357,20 +352,10 @@ func FlattenVirtualMachineScaleSetSpotRestorePolicy(input *virtualmachinescalese
 		return nil
 	}
 
-	var enabled bool
-	if input.Enabled != nil {
-		enabled = *input.Enabled
-	}
-
-	var restore string
-	if input.RestoreTimeout != nil {
-		restore = *input.RestoreTimeout
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"enabled": enabled,
-			"timeout": restore,
+			"enabled": pointer.From(input.Enabled),
+			"timeout": pointer.From(input.RestoreTimeout),
 		},
 	}
 }
@@ -810,8 +795,7 @@ func expandVirtualMachineScaleSetIPConfiguration(raw map[string]interface{}) (*v
 	publicIPConfigsRaw := raw["public_ip_address"].([]interface{})
 	if len(publicIPConfigsRaw) > 0 {
 		publicIPConfigRaw := publicIPConfigsRaw[0].(map[string]interface{})
-		publicIPAddressConfig := expandVirtualMachineScaleSetPublicIPAddress(publicIPConfigRaw)
-		ipConfiguration.Properties.PublicIPAddressConfiguration = publicIPAddressConfig
+		ipConfiguration.Properties.PublicIPAddressConfiguration = expandVirtualMachineScaleSetPublicIPAddress(publicIPConfigRaw)
 	}
 
 	return &ipConfiguration, nil
@@ -837,10 +821,9 @@ func expandVirtualMachineScaleSetPublicIPAddress(raw map[string]interface{}) *vi
 	}
 
 	if domainNameLabel := raw["domain_name_label"].(string); domainNameLabel != "" {
-		dns := &virtualmachinescalesets.VirtualMachineScaleSetPublicIPAddressConfigurationDnsSettings{
+		publicIPAddressConfig.Properties.DnsSettings = &virtualmachinescalesets.VirtualMachineScaleSetPublicIPAddressConfigurationDnsSettings{
 			DomainNameLabel: domainNameLabel,
 		}
-		publicIPAddressConfig.Properties.DnsSettings = dns
 	}
 
 	if idleTimeout := raw["idle_timeout_in_minutes"].(int); idleTimeout > 0 {
@@ -950,8 +933,7 @@ func expandVirtualMachineScaleSetIPConfigurationUpdate(raw map[string]interface{
 	publicIPConfigsRaw := raw["public_ip_address"].([]interface{})
 	if len(publicIPConfigsRaw) > 0 {
 		publicIPConfigRaw := publicIPConfigsRaw[0].(map[string]interface{})
-		publicIPAddressConfig := expandVirtualMachineScaleSetPublicIPAddressUpdate(publicIPConfigRaw)
-		ipConfiguration.Properties.PublicIPAddressConfiguration = publicIPAddressConfig
+		ipConfiguration.Properties.PublicIPAddressConfiguration = expandVirtualMachineScaleSetPublicIPAddressUpdate(publicIPConfigRaw)
 	}
 
 	return &ipConfiguration, nil
@@ -964,10 +946,9 @@ func expandVirtualMachineScaleSetPublicIPAddressUpdate(raw map[string]interface{
 	}
 
 	if domainNameLabel := raw["domain_name_label"].(string); domainNameLabel != "" {
-		dns := &virtualmachinescalesets.VirtualMachineScaleSetPublicIPAddressConfigurationDnsSettings{
+		publicIPAddressConfig.Properties.DnsSettings = &virtualmachinescalesets.VirtualMachineScaleSetPublicIPAddressConfigurationDnsSettings{
 			DomainNameLabel: domainNameLabel,
 		}
-		publicIPAddressConfig.Properties.DnsSettings = dns
 	}
 
 	if idleTimeout := raw["idle_timeout_in_minutes"].(int); idleTimeout > 0 {
@@ -1285,10 +1266,7 @@ func FlattenVirtualMachineScaleSetDataDisk(input *[]virtualmachinescalesets.Virt
 	output := make([]interface{}, 0)
 
 	for _, v := range *input {
-		var name string
-		if v.Name != nil {
-			name = *v.Name
-		}
+		name := pointer.From(v.Name)
 
 		diskSizeGb := 0
 		if v.DiskSizeGB != nil && *v.DiskSizeGB != 0 {
@@ -1304,10 +1282,7 @@ func FlattenVirtualMachineScaleSetDataDisk(input *[]virtualmachinescalesets.Virt
 			}
 		}
 
-		writeAcceleratorEnabled := false
-		if v.WriteAcceleratorEnabled != nil {
-			writeAcceleratorEnabled = *v.WriteAcceleratorEnabled
-		}
+		writeAcceleratorEnabled := pointer.From(v.WriteAcceleratorEnabled)
 
 		iops := 0
 		if v.DiskIOPSReadWrite != nil {
@@ -1560,10 +1535,7 @@ func FlattenVirtualMachineScaleSetOSDisk(input *virtualmachinescalesets.VirtualM
 		}
 	}
 
-	writeAcceleratorEnabled := false
-	if input.WriteAcceleratorEnabled != nil {
-		writeAcceleratorEnabled = *input.WriteAcceleratorEnabled
-	}
+	writeAcceleratorEnabled := pointer.From(input.WriteAcceleratorEnabled)
 
 	return []interface{}{
 		map[string]interface{}{
@@ -1706,10 +1678,7 @@ func FlattenVirtualMachineScaleSetRollingUpgradePolicy(input *virtualmachinescal
 		return []interface{}{}
 	}
 
-	enableCrossZoneUpgrade := false
-	if input.EnableCrossZoneUpgrade != nil {
-		enableCrossZoneUpgrade = *input.EnableCrossZoneUpgrade
-	}
+	enableCrossZoneUpgrade := pointer.From(input.EnableCrossZoneUpgrade)
 
 	maxBatchInstancePercent := 0
 	if input.MaxBatchInstancePercent != nil {
@@ -1726,20 +1695,11 @@ func FlattenVirtualMachineScaleSetRollingUpgradePolicy(input *virtualmachinescal
 		maxUnhealthyUpgradedInstancePercent = int(*input.MaxUnhealthyUpgradedInstancePercent)
 	}
 
-	pauseTimeBetweenBatches := ""
-	if input.PauseTimeBetweenBatches != nil {
-		pauseTimeBetweenBatches = *input.PauseTimeBetweenBatches
-	}
+	pauseTimeBetweenBatches := pointer.From(input.PauseTimeBetweenBatches)
 
-	prioritizeUnhealthyInstances := false
-	if input.PrioritizeUnhealthyInstances != nil {
-		prioritizeUnhealthyInstances = *input.PrioritizeUnhealthyInstances
-	}
+	prioritizeUnhealthyInstances := pointer.From(input.PrioritizeUnhealthyInstances)
 
-	maxSurge := false
-	if input.MaxSurge != nil {
-		maxSurge = *input.MaxSurge
-	}
+	maxSurge := pointer.From(input.MaxSurge)
 
 	return []interface{}{
 		map[string]interface{}{
@@ -1881,7 +1841,7 @@ func FlattenVirtualMachineScaleSetAutomaticRepairsPolicy(input *virtualmachinesc
 }
 
 func VirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
-	schema := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
 		Optional: true,
 		Computed: true,
@@ -1956,8 +1916,6 @@ func VirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 		},
 		Set: virtualMachineScaleSetExtensionHash,
 	}
-
-	return schema
 }
 
 func virtualMachineScaleSetExtensionHash(v interface{}) int {
@@ -2048,8 +2006,7 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (extensionProfi
 
 		if val, ok := extensionRaw["settings"]; ok && val.(string) != "" {
 			var result interface{}
-			err := json.Unmarshal([]byte(val.(string)), &result)
-			if err != nil {
+			if err := json.Unmarshal([]byte(val.(string)), &result); err != nil {
 				return nil, false, fmt.Errorf("unmarshaling `settings`: %+v", err)
 			}
 			extensionProps.Settings = pointer.To(result)
@@ -2064,8 +2021,7 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (extensionProfi
 			}
 
 			var result interface{}
-			err := json.Unmarshal([]byte(val.(string)), &result)
-			if err != nil {
+			if err := json.Unmarshal([]byte(val.(string)), &result); err != nil {
 				return nil, false, fmt.Errorf("unmarshaling `protected_settings`: %+v", err)
 			}
 			extensionProps.ProtectedSettings = pointer.To(result)
@@ -2100,10 +2056,7 @@ func flattenVirtualMachineScaleSetExtensions(input *virtualmachinescalesets.Virt
 	}
 
 	for _, v := range *input.Extensions {
-		name := ""
-		if v.Name != nil {
-			name = *v.Name
-		}
+		name := pointer.From(v.Name)
 
 		autoUpgradeMinorVersion := false
 		enableAutomaticUpgrade := false

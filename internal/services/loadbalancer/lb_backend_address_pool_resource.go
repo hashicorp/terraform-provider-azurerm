@@ -460,13 +460,11 @@ func resourceArmLoadBalancerBackendAddressPoolDelete(d *pluginsdk.ResourceData, 
 		backEndPools = append(backEndPools[:index], backEndPools[index+1:]...)
 		lb.Model.Properties.BackendAddressPools = &backEndPools
 
-		err := lbClient.CreateOrUpdateThenPoll(ctx, plbId, *lb.Model)
-		if err != nil {
+		if err := lbClient.CreateOrUpdateThenPoll(ctx, plbId, *lb.Model); err != nil {
 			return fmt.Errorf("updating %s: %+v", loadBalancerId, err)
 		}
 	} else {
-		err := lbClient.LoadBalancerBackendAddressPoolsDeleteThenPoll(ctx, *id)
-		if err != nil {
+		if err := lbClient.LoadBalancerBackendAddressPoolsDeleteThenPoll(ctx, *id); err != nil {
 			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}

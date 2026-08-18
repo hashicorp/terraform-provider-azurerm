@@ -821,13 +821,11 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		locks.ByName(virtualMachineId.VirtualMachineName, VirtualMachineResourceName)
 		defer locks.UnlockByName(virtualMachineId.VirtualMachineName, VirtualMachineResourceName)
 
-		err = resourceManagedDiskUpdateWithVmShutDown(ctx, meta.(*clients.Client), id, virtualMachineId, diskUpdate, shouldDetach)
-		if err != nil {
+		if err = resourceManagedDiskUpdateWithVmShutDown(ctx, meta.(*clients.Client), id, virtualMachineId, diskUpdate, shouldDetach); err != nil {
 			return err
 		}
 	} else { // otherwise, just update it
-		err := client.UpdateThenPoll(ctx, *id, diskUpdate)
-		if err != nil {
+		if err := client.UpdateThenPoll(ctx, *id, diskUpdate); err != nil {
 			return fmt.Errorf("expanding managed disk %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
@@ -939,11 +937,7 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			d.Set("security_type", securityType)
 			d.Set("secure_vm_disk_encryption_set_id", secureVMDiskEncryptionSetId)
 
-			onDemandBurstingEnabled := false
-			if props.BurstingEnabled != nil {
-				onDemandBurstingEnabled = *props.BurstingEnabled
-			}
-			d.Set("on_demand_bursting_enabled", onDemandBurstingEnabled)
+			d.Set("on_demand_bursting_enabled", pointer.From(props.BurstingEnabled))
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
@@ -964,8 +958,7 @@ func resourceManagedDiskDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting Managed Disk %q (Resource Group %q): %+v", id.DiskName, id.ResourceGroupName, err)
 	}
 

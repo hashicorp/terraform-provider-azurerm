@@ -489,8 +489,7 @@ func expandAppCustomPersistentDiskResourceArray(input []interface{}, id parse.Sp
 func expandSpringCloudAppAddon(input string) (map[string]interface{}, error) {
 	var addonConfig map[string]interface{}
 	if len(input) != 0 {
-		err := json.Unmarshal([]byte(input), &addonConfig)
-		if err != nil {
+		if err := json.Unmarshal([]byte(input), &addonConfig); err != nil {
 			return nil, fmt.Errorf("unable to unmarshal `addon_json`: %+v", err)
 		}
 	}
@@ -546,15 +545,10 @@ func flattenSpringCloudAppPersistentDisk(input *appplatform.PersistentDisk) []in
 		sizeInGB = int(*input.SizeInGB)
 	}
 
-	mountPath := ""
-	if input.MountPath != nil {
-		mountPath = *input.MountPath
-	}
-
 	return []interface{}{
 		map[string]interface{}{
 			"size_in_gb": sizeInGB,
-			"mount_path": mountPath,
+			"mount_path": pointer.From(input.MountPath),
 		},
 	}
 }

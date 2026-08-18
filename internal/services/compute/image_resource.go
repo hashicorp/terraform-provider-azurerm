@@ -382,10 +382,9 @@ func expandImageOSDisk(input []interface{}) *images.ImageOSDisk {
 		}
 		managedDiskID := config["managed_disk_id"].(string)
 		if managedDiskID != "" {
-			managedDisk := &images.SubResource{
+			out.ManagedDisk = &images.SubResource{
 				Id: &managedDiskID,
 			}
-			out.ManagedDisk = managedDisk
 		}
 
 		blobURI := config["blob_uri"].(string)
@@ -432,10 +431,9 @@ func expandImageDataDisks(disks []interface{}) *[]images.ImageDataDisk {
 		}
 
 		if managedDiskID := config["managed_disk_id"].(string); managedDiskID != "" {
-			managedDisk := &images.SubResource{
+			item.ManagedDisk = &images.SubResource{
 				Id: &managedDiskID,
 			}
-			item.ManagedDisk = managedDisk
 		}
 
 		if id := config["disk_encryption_set_id"].(string); id != "" {
@@ -457,10 +455,7 @@ func flattenImageOSDisk(input *images.ImageStorageProfile) []interface{} {
 
 	if input != nil {
 		if v := input.OsDisk; v != nil {
-			blobUri := ""
-			if uri := v.BlobUri; uri != nil {
-				blobUri = *uri
-			}
+			blobUri := pointer.From(v.BlobUri)
 			caching := ""
 			if v.Caching != nil {
 				caching = string(*v.Caching)
@@ -508,10 +503,7 @@ func flattenImageDataDisks(input *images.ImageStorageProfile) []interface{} {
 	if input != nil {
 		if v := input.DataDisks; v != nil {
 			for _, disk := range *input.DataDisks {
-				blobUri := ""
-				if disk.BlobUri != nil {
-					blobUri = *disk.BlobUri
-				}
+				blobUri := pointer.From(disk.BlobUri)
 				caching := ""
 				if disk.Caching != nil {
 					caching = string(*disk.Caching)

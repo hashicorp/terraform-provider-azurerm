@@ -366,10 +366,7 @@ func flattenPivotsToModel(input *[]views.PivotProperties) []CostManagementViewPi
 		if v := item.Type; v != nil {
 			pivotType = string(*v)
 		}
-		name := ""
-		if p := item.Name; p != nil {
-			name = *p
-		}
+		name := pointer.From(item.Name)
 		result = append(result, CostManagementViewPivotModel{
 			Name: name,
 			Type: pivotType,

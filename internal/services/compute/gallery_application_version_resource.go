@@ -344,11 +344,7 @@ func (r GalleryApplicationVersionResource) Read() sdk.ResourceFunc {
 						state.EndOfLifeDate = d.Format(time.RFC3339)
 					}
 
-					excludeFromLatest := false
-					if props.PublishingProfile.ExcludeFromLatest != nil {
-						excludeFromLatest = *props.PublishingProfile.ExcludeFromLatest
-					}
-					state.ExcludeFromLatest = excludeFromLatest
+					state.ExcludeFromLatest = pointer.From(props.PublishingProfile.ExcludeFromLatest)
 
 					state.ConfigFile = ""
 					state.PackageFile = ""

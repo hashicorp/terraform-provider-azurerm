@@ -219,8 +219,7 @@ func resourceMsSqlTransparentDataEncryptionDelete(d *pluginsdk.ResourceData, met
 		},
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, serverId, encryptionProtector)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, serverId, encryptionProtector); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 

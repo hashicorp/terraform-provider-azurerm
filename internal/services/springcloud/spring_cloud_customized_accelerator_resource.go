@@ -351,8 +351,7 @@ func (s SpringCloudCustomizedAcceleratorResource) Update() sdk.ResourceFunc {
 			CustomizedAcceleratorResource := appplatform.CustomizedAcceleratorResource{
 				Properties: properties,
 			}
-			err = client.CustomizedAcceleratorsCreateOrUpdateThenPoll(ctx, *id, CustomizedAcceleratorResource)
-			if err != nil {
+			if err = client.CustomizedAcceleratorsCreateOrUpdateThenPoll(ctx, *id, CustomizedAcceleratorResource); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -426,8 +425,7 @@ func (s SpringCloudCustomizedAcceleratorResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			err = client.CustomizedAcceleratorsDeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.CustomizedAcceleratorsDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
@@ -515,44 +513,19 @@ func flattenSpringCloudCustomizedAcceleratorGitRepository(state []GitRepositoryM
 		sshAuth = append(sshAuth, sshAuthState)
 	}
 
-	branch := ""
-	if input.Branch != nil {
-		branch = *input.Branch
-	}
-
-	commit := ""
-	if input.Commit != nil {
-		commit = *input.Commit
-	}
-
-	gitTag := ""
-	if input.GitTag != nil {
-		gitTag = *input.GitTag
-	}
-
-	var intervalInSeconds int64
-	if input.IntervalInSeconds != nil {
-		intervalInSeconds = *input.IntervalInSeconds
-	}
-
-	subPath := ""
-	if input.SubPath != nil {
-		subPath = *input.SubPath
-	}
-
 	url := input.Url
 
 	return []GitRepositoryModel{
 		{
 			BasicAuth:         basicAuth,
 			SshAuth:           sshAuth,
-			Branch:            branch,
+			Branch:            pointer.From(input.Branch),
 			CaCertificateId:   caCertificateId,
-			Commit:            commit,
-			GitTag:            gitTag,
-			IntervalInSeconds: intervalInSeconds,
+			Commit:            pointer.From(input.Commit),
+			GitTag:            pointer.From(input.GitTag),
+			IntervalInSeconds: pointer.From(input.IntervalInSeconds),
 			Url:               url,
-			Path:              subPath,
+			Path:              pointer.From(input.SubPath),
 		},
 	}
 }

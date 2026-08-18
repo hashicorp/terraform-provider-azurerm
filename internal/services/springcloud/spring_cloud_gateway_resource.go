@@ -592,8 +592,7 @@ func (s SpringCloudGatewayResource) Update() sdk.ResourceFunc {
 				Sku:        sku,
 			}
 
-			err = client.GatewaysCreateOrUpdateThenPoll(ctx, *id, resource)
-			if err != nil {
+			if err = client.GatewaysCreateOrUpdateThenPoll(ctx, *id, resource); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -677,8 +676,7 @@ func (s SpringCloudGatewayResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			err = client.GatewaysDeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.GatewaysDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
@@ -863,10 +861,7 @@ func flattenGatewaySsoProperties(input *appplatform.SsoProperties, old []Gateway
 		oldItems[item.IssuerUri] = item
 	}
 
-	var issuerUri string
-	if input.IssuerUri != nil {
-		issuerUri = *input.IssuerUri
-	}
+	issuerUri := pointer.From(input.IssuerUri)
 	var clientId string
 	var clientSecret string
 	if oldItem, ok := oldItems[issuerUri]; ok {

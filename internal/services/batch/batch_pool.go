@@ -105,11 +105,7 @@ func flattenBatchPoolStartTask(oldConfig *pluginsdk.ResourceData, startTask *poo
 	}
 
 	result := make(map[string]interface{})
-	commandLine := ""
-	if startTask.CommandLine != nil {
-		commandLine = *startTask.CommandLine
-	}
-	result["command_line"] = commandLine
+	result["command_line"] = pointer.From(startTask.CommandLine)
 
 	if startTask.ContainerSettings != nil {
 		containerSettings := make(map[string]interface{})
@@ -132,18 +128,9 @@ func flattenBatchPoolStartTask(oldConfig *pluginsdk.ResourceData, startTask *poo
 		}
 	}
 
-	waitForSuccess := false
-	if startTask.WaitForSuccess != nil {
-		waitForSuccess = *startTask.WaitForSuccess
-	}
-	result["wait_for_success"] = waitForSuccess
+	result["wait_for_success"] = pointer.From(startTask.WaitForSuccess)
 
-	maxTaskRetryCount := int64(0)
-	if startTask.MaxTaskRetryCount != nil {
-		maxTaskRetryCount = *startTask.MaxTaskRetryCount
-	}
-
-	result["task_retry_maximum"] = maxTaskRetryCount
+	result["task_retry_maximum"] = pointer.From(startTask.MaxTaskRetryCount)
 
 	if startTask.UserIdentity != nil {
 		userIdentity := make(map[string]interface{})
@@ -855,15 +842,13 @@ func expandBatchPoolExtension(ref map[string]interface{}) (*pool.VmExtension, er
 	}
 
 	if settings, ok := ref["settings_json"]; ok {
-		err := json.Unmarshal([]byte(settings.(string)), &result.Settings)
-		if err != nil {
+		if err := json.Unmarshal([]byte(settings.(string)), &result.Settings); err != nil {
 			return nil, fmt.Errorf("unmarshaling `settings_json`: %+v", err)
 		}
 	}
 
 	if protectedSettings, ok := ref["protected_settings"]; ok {
-		err := json.Unmarshal([]byte(protectedSettings.(string)), &result.ProtectedSettings)
-		if err != nil {
+		if err := json.Unmarshal([]byte(protectedSettings.(string)), &result.ProtectedSettings); err != nil {
 			return nil, fmt.Errorf("unmarshaling `protected_settings`: %+v", err)
 		}
 	}
@@ -1245,11 +1230,6 @@ func flattenBatchPoolNetworkConfiguration(input *pool.NetworkConfiguration) []in
 		return []interface{}{}
 	}
 
-	subnetId := ""
-	if input.SubnetId != nil {
-		subnetId = *input.SubnetId
-	}
-
 	publicIPAddressIds := make([]interface{}, 0)
 	publicAddressProvisioningType := ""
 	if config := input.PublicIPAddressConfiguration; config != nil {
@@ -1312,7 +1292,7 @@ func flattenBatchPoolNetworkConfiguration(input *pool.NetworkConfiguration) []in
 			"endpoint_configuration":           endpointConfigs,
 			"public_address_provisioning_type": publicAddressProvisioningType,
 			"public_ips":                       pluginsdk.NewSet(pluginsdk.HashString, publicIPAddressIds),
-			"subnet_id":                        subnetId,
+			"subnet_id":                        pointer.From(input.SubnetId),
 		},
 	}
 }

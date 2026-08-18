@@ -287,7 +287,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 }
 
 func schemaNodePoolKubeletConfig() *pluginsdk.Schema {
-	s := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
@@ -362,8 +362,6 @@ func schemaNodePoolKubeletConfig() *pluginsdk.Schema {
 			},
 		},
 	}
-
-	return s
 }
 
 func schemaNodePoolLinuxOSConfig() *pluginsdk.Schema {
@@ -1204,30 +1202,15 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		count = int(*agentPool.Count)
 	}
 
-	enableUltraSSD := false
-	if agentPool.EnableUltraSSD != nil {
-		enableUltraSSD = *agentPool.EnableUltraSSD
-	}
+	enableUltraSSD := pointer.From(agentPool.EnableUltraSSD)
 
-	enableAutoScaling := false
-	if agentPool.EnableAutoScaling != nil {
-		enableAutoScaling = *agentPool.EnableAutoScaling
-	}
+	enableAutoScaling := pointer.From(agentPool.EnableAutoScaling)
 
-	enableFIPS := false
-	if agentPool.EnableFIPS != nil {
-		enableFIPS = *agentPool.EnableFIPS
-	}
+	enableFIPS := pointer.From(agentPool.EnableFIPS)
 
-	enableNodePublicIP := false
-	if agentPool.EnableNodePublicIP != nil {
-		enableNodePublicIP = *agentPool.EnableNodePublicIP
-	}
+	enableNodePublicIP := pointer.From(agentPool.EnableNodePublicIP)
 
-	enableHostEncryption := false
-	if agentPool.EnableEncryptionAtHost != nil {
-		enableHostEncryption = *agentPool.EnableEncryptionAtHost
-	}
+	enableHostEncryption := pointer.From(agentPool.EnableEncryptionAtHost)
 
 	gpuInstanceProfile := ""
 	if agentPool.GpuInstanceProfile != nil {
@@ -1267,10 +1250,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		}
 	}
 
-	nodePublicIPPrefixID := ""
-	if agentPool.NodePublicIPPrefixID != nil {
-		nodePublicIPPrefixID = *agentPool.NodePublicIPPrefixID
-	}
+	nodePublicIPPrefixID := pointer.From(agentPool.NodePublicIPPrefixID)
 
 	criticalAddonsEnabled := false
 	if agentPool.NodeTaints != nil {
@@ -1291,20 +1271,11 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		osDiskType = *agentPool.OsDiskType
 	}
 
-	podSubnetId := ""
-	if agentPool.PodSubnetID != nil {
-		podSubnetId = *agentPool.PodSubnetID
-	}
+	podSubnetId := pointer.From(agentPool.PodSubnetID)
 
-	vnetSubnetId := ""
-	if agentPool.VnetSubnetID != nil {
-		vnetSubnetId = *agentPool.VnetSubnetID
-	}
+	vnetSubnetId := pointer.From(agentPool.VnetSubnetID)
 
-	hostGroupID := ""
-	if agentPool.HostGroupID != nil {
-		hostGroupID = *agentPool.HostGroupID
-	}
+	hostGroupID := pointer.From(agentPool.HostGroupID)
 
 	orchestratorVersion := ""
 	// NOTE: workaround for migration from 2022-01-02-preview (<3.12.0) to 2022-03-02-preview (>=3.12.0). Before terraform apply is run against the new API, Azure will respond only with currentOrchestratorVersion, orchestratorVersion will be absent. More details: https://github.com/hashicorp/terraform-provider-azurerm/issues/17833#issuecomment-1227583353
@@ -1314,10 +1285,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		orchestratorVersion = *agentPool.CurrentOrchestratorVersion
 	}
 
-	proximityPlacementGroupId := ""
-	if agentPool.ProximityPlacementGroupID != nil {
-		proximityPlacementGroupId = *agentPool.ProximityPlacementGroupID
-	}
+	proximityPlacementGroupId := pointer.From(agentPool.ProximityPlacementGroupID)
 
 	scaleDownMode := managedclusters.ScaleDownModeDelete
 	if agentPool.ScaleDownMode != nil {
@@ -1333,14 +1301,8 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		snapshotId = id.ID()
 	}
 
-	vmSize := ""
-	if agentPool.VMSize != nil {
-		vmSize = *agentPool.VMSize
-	}
-	capacityReservationGroupId := ""
-	if agentPool.CapacityReservationGroupID != nil {
-		capacityReservationGroupId = *agentPool.CapacityReservationGroupID
-	}
+	vmSize := pointer.From(agentPool.VMSize)
+	capacityReservationGroupId := pointer.From(agentPool.CapacityReservationGroupID)
 
 	workloadRunTime := ""
 	if agentPool.WorkloadRuntime != nil {
@@ -1478,7 +1440,7 @@ func flattenClusterNodePoolKubeletConfig(input *managedclusters.KubeletConfig) [
 		podMaxPids = int(*input.PodMaxPids)
 	}
 
-	result := []interface{}{
+	return []interface{}{
 		map[string]interface{}{
 			"cpu_manager_policy":        cpuManagerPolicy,
 			"cpu_cfs_quota_enabled":     cpuCfsQuotaEnabled,
@@ -1492,8 +1454,6 @@ func flattenClusterNodePoolKubeletConfig(input *managedclusters.KubeletConfig) [
 			"pod_max_pid":               podMaxPids,
 		},
 	}
-
-	return result
 }
 
 func flattenAgentPoolKubeletConfig(input *agentpools.KubeletConfig) []interface{} {
@@ -1533,7 +1493,7 @@ func flattenAgentPoolKubeletConfig(input *agentpools.KubeletConfig) []interface{
 		podMaxPids = int(*input.PodMaxPids)
 	}
 
-	result := []interface{}{
+	return []interface{}{
 		map[string]interface{}{
 			"cpu_manager_policy":        cpuManagerPolicy,
 			"cpu_cfs_quota_enabled":     cpuCfsQuotaEnabled,
@@ -1547,8 +1507,6 @@ func flattenAgentPoolKubeletConfig(input *agentpools.KubeletConfig) []interface{
 			"pod_max_pid":               podMaxPids,
 		},
 	}
-
-	return result
 }
 
 func flattenClusterNodePoolLinuxOSConfig(input *managedclusters.LinuxOSConfig) ([]interface{}, error) {
@@ -1560,14 +1518,8 @@ func flattenClusterNodePoolLinuxOSConfig(input *managedclusters.LinuxOSConfig) (
 	if input.SwapFileSizeMB != nil {
 		swapFileSizeMB = int(*input.SwapFileSizeMB)
 	}
-	var transparentHugePageDefrag string
-	if input.TransparentHugePageDefrag != nil {
-		transparentHugePageDefrag = *input.TransparentHugePageDefrag
-	}
-	var transparentHugePageEnabled string
-	if input.TransparentHugePageEnabled != nil {
-		transparentHugePageEnabled = *input.TransparentHugePageEnabled
-	}
+	transparentHugePageDefrag := pointer.From(input.TransparentHugePageDefrag)
+	transparentHugePageEnabled := pointer.From(input.TransparentHugePageEnabled)
 	sysctlConfig, err := flattenClusterNodePoolSysctlConfig(input.Sysctls)
 	if err != nil {
 		return nil, err
@@ -1690,10 +1642,7 @@ func flattenClusterNodePoolSysctlConfig(input *managedclusters.SysctlConfig) ([]
 	if input.NetIPv4TcpMaxTwBuckets != nil {
 		netIpv4TcpMaxTwBuckets = int(*input.NetIPv4TcpMaxTwBuckets)
 	}
-	var netIpv4TcpTwReuse bool
-	if input.NetIPv4TcpTwReuse != nil {
-		netIpv4TcpTwReuse = *input.NetIPv4TcpTwReuse
-	}
+	netIpv4TcpTwReuse := pointer.From(input.NetIPv4TcpTwReuse)
 	var netNetfilterNfConntrackBuckets int
 	if input.NetNetfilterNfConntrackBuckets != nil {
 		netNetfilterNfConntrackBuckets = int(*input.NetNetfilterNfConntrackBuckets)

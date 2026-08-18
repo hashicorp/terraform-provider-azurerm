@@ -313,11 +313,6 @@ func flattenEventHandler(input *[]webpubsub.EventHandler) []interface{} {
 	}
 
 	for _, item := range *input {
-		userEventPatten := ""
-		if item.UserEventPattern != nil {
-			userEventPatten = *item.UserEventPattern
-		}
-
 		sysEvents := make([]interface{}, 0)
 		if item.SystemEvents != nil {
 			sysEvents = helpers.FlattenStringSlice(item.SystemEvents)
@@ -330,7 +325,7 @@ func flattenEventHandler(input *[]webpubsub.EventHandler) []interface{} {
 
 		eventHandlerBlock = append(eventHandlerBlock, map[string]interface{}{
 			"url_template":       item.UrlTemplate,
-			"user_event_pattern": userEventPatten,
+			"user_event_pattern": pointer.From(item.UserEventPattern),
 			"system_events":      sysEvents,
 			"auth":               authBlock,
 		})

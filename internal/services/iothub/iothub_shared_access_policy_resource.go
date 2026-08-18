@@ -338,8 +338,7 @@ func expandAccessRights(d *pluginsdk.ResourceData) string {
 			actualRights = append(actualRights, possibleRight.right)
 		}
 	}
-	strRights := strings.Join(actualRights, ", ")
-	return strRights
+	return strings.Join(actualRights, ", ")
 }
 
 func flattenAccessRights(r devices.AccessRights) accessRights {

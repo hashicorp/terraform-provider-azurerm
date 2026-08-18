@@ -1678,8 +1678,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 			},
 		}
 
-		err := disksClient.UpdateThenPoll(ctx, id, update)
-		if err != nil {
+		if err := disksClient.UpdateThenPoll(ctx, id, update); err != nil {
 			return fmt.Errorf("resizing OS Disk %q for Linux Virtual Machine %q (Resource Group %q): %+v", diskName, id.DiskName, id.ResourceGroupName, err)
 		}
 
@@ -1708,8 +1707,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 				},
 			}
 
-			err = disksClient.UpdateThenPoll(ctx, id, update)
-			if err != nil {
+			if err = disksClient.UpdateThenPoll(ctx, id, update); err != nil {
 				return fmt.Errorf("updating encryption settings of OS Disk %q for Linux Virtual Machine %q (Resource Group %q): %+v", diskName, id.DiskName, id.ResourceGroupName, err)
 			}
 		} else {

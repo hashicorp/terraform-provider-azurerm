@@ -250,12 +250,8 @@ func flattenBuildServiceBuilderBuildPacksGroupPropertiesArray(input *[]appplatfo
 	}
 
 	for _, item := range *input {
-		var name string
-		if item.Name != nil {
-			name = *item.Name
-		}
 		results = append(results, map[string]interface{}{
-			"name":           name,
+			"name":           pointer.From(item.Name),
 			"build_pack_ids": flattenBuildServiceBuilderBuildPackPropertiesArray(item.Buildpacks),
 		})
 	}
@@ -267,18 +263,10 @@ func flattenBuildServiceBuilderStackProperties(input *appplatform.StackPropertie
 		return make([]interface{}, 0)
 	}
 
-	var id string
-	if input.ID != nil {
-		id = *input.ID
-	}
-	var version string
-	if input.Version != nil {
-		version = *input.Version
-	}
 	return []interface{}{
 		map[string]interface{}{
-			"id":      id,
-			"version": version,
+			"id":      pointer.From(input.ID),
+			"version": pointer.From(input.Version),
 		},
 	}
 }
@@ -290,11 +278,7 @@ func flattenBuildServiceBuilderBuildPackPropertiesArray(input *[]appplatform.Bui
 	}
 
 	for _, item := range *input {
-		var id string
-		if item.ID != nil {
-			id = *item.ID
-		}
-		results = append(results, id)
+		results = append(results, pointer.From(item.ID))
 	}
 	return results
 }

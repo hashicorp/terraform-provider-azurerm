@@ -316,8 +316,7 @@ func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta inte
 	if d.HasChange("enabled_metric") {
 		enabledMetrics := d.Get("enabled_metric").(*pluginsdk.Set).List()
 		if len(enabledMetrics) > 0 {
-			expandEnabledMetrics := expandMonitorDiagnosticsSettingsEnabledMetrics(enabledMetrics)
-			metrics = expandEnabledMetrics
+			metrics = expandMonitorDiagnosticsSettingsEnabledMetrics(enabledMetrics)
 			hasEnabledMetrics = true
 		} else if existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.Metrics != nil {
 			// if the enabled_metric is updated to empty, we disable the metric explicitly
@@ -561,17 +560,9 @@ func flattenMonitorDiagnosticEnabledLogs(input *[]diagnosticsettings.Diagnostics
 			continue
 		}
 
-		category := ""
-		if v.Category != nil {
-			category = *v.Category
-		}
-		output["category"] = category
+		output["category"] = pointer.From(v.Category)
 
-		categoryGroup := ""
-		if v.CategoryGroup != nil {
-			categoryGroup = *v.CategoryGroup
-		}
-		output["category_group"] = categoryGroup
+		output["category_group"] = pointer.From(v.CategoryGroup)
 
 		enabledLogs = append(enabledLogs, output)
 	}

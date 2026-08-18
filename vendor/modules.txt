@@ -11,7 +11,6 @@ github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse
 github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery
 github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-12-01/backup
 github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources
-github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web
 github.com/Azure/azure-sdk-for-go/version
 # github.com/Azure/go-autorest v14.2.0+incompatible
 ## explicit
@@ -1000,10 +999,6 @@ github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/ora
 github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/resourceanchors
 github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/systemversions
 github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/virtualnetworkaddresses
-github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-11-01/contact
-github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-11-01/contactprofile
-github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-11-01/groundstation
-github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-11-01/spacecraft
 github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08
 github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/certificateobjectglobalrulestackresources
 github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/certificateobjectlocalrulestackresources

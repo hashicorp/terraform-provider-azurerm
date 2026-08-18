@@ -143,11 +143,10 @@ func resourceDataFactoryLinkedServiceCosmosDbMongoAPICreateUpdate(d *pluginsdk.R
 
 	cosmosdbProperties := &datafactory.CosmosDbMongoDbAPILinkedServiceTypeProperties{}
 
-	connectionStringSecureString := datafactory.SecureString{
+	cosmosdbProperties.ConnectionString = datafactory.SecureString{
 		Value: pointer.To(d.Get("connection_string").(string)),
 		Type:  datafactory.TypeSecureString,
 	}
-	cosmosdbProperties.ConnectionString = connectionStringSecureString
 	cosmosdbProperties.Database = d.Get("database").(string)
 	cosmosdbProperties.IsServerVersionAbove32 = d.Get("server_version_is_32_or_higher").(bool)
 

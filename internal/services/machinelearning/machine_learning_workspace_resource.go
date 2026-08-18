@@ -681,7 +681,7 @@ func flattenMachineLearningWorkspaceIdentity(input *identity.LegacySystemAndUser
 			transform.TenantId = input.TenantId
 		}
 
-		if input != nil && input.IdentityIds != nil {
+		if input.IdentityIds != nil {
 			for k, v := range input.IdentityIds {
 				transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
 					ClientId:    v.ClientId,

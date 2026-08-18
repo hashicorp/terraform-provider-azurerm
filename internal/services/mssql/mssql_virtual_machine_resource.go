@@ -1187,11 +1187,6 @@ func flattenSqlVirtualMachineKeyVaultCredential(keyVault *sqlvirtualmachines.Key
 		return []interface{}{}
 	}
 
-	name := ""
-	if keyVault.CredentialName != nil {
-		name = *keyVault.CredentialName
-	}
-
 	keyVaultUrl := ""
 	if v, ok := d.GetOk("key_vault_credential.0.key_vault_url"); ok {
 		keyVaultUrl = v.(string)
@@ -1209,7 +1204,7 @@ func flattenSqlVirtualMachineKeyVaultCredential(keyVault *sqlvirtualmachines.Key
 
 	return []interface{}{
 		map[string]interface{}{
-			"name":                     name,
+			"name":                     pointer.From(keyVault.CredentialName),
 			"key_vault_url":            keyVaultUrl,
 			"service_principal_name":   servicePrincipalName,
 			"service_principal_secret": servicePrincipalSecret,
@@ -1257,15 +1252,10 @@ func flattenSqlVirtualMachineStorageConfigurationSettings(input *sqlvirtualmachi
 		diskType = string(*input.DiskConfigurationType)
 	}
 
-	systemDbOnDataDisk := false
-	if input.SqlSystemDbOnDataDisk != nil {
-		systemDbOnDataDisk = *input.SqlSystemDbOnDataDisk
-	}
-
 	output := map[string]interface{}{
 		"storage_workload_type":          storageWorkloadType,
 		"disk_type":                      diskType,
-		"system_db_on_data_disk_enabled": systemDbOnDataDisk,
+		"system_db_on_data_disk_enabled": pointer.From(input.SqlSystemDbOnDataDisk),
 		"data_settings":                  flattenSqlVirtualMachineStorageSettings(input.SqlDataSettings),
 		"log_settings":                   flattenSqlVirtualMachineStorageSettings(input.SqlLogSettings),
 		"temp_db_settings":               flattenSqlVirtualMachineTempDbSettings(input.SqlTempDbSettings),
@@ -1408,45 +1398,20 @@ func flattenSqlVirtualMachineSQLInstance(input *sqlvirtualmachines.SQLInstanceSe
 
 	collation := *input.Collation
 
-	isIfiEnabled := false
-	if input.IsIfiEnabled != nil {
-		isIfiEnabled = *input.IsIfiEnabled
-	}
-
-	isLpimEnabled := false
-	if input.IsLpimEnabled != nil {
-		isLpimEnabled = *input.IsLpimEnabled
-	}
-
-	isOptimizeForAdhocWorkloadsEnabled := false
-	if input.IsOptimizeForAdHocWorkloadsEnabled != nil {
-		isOptimizeForAdhocWorkloadsEnabled = *input.IsOptimizeForAdHocWorkloadsEnabled
-	}
-
-	var maxDop int64 = 0
-	if input.MaxDop != nil {
-		maxDop = *input.MaxDop
-	}
-
 	var maxServerMemoryMB int64 = math.MaxInt32
 	if input.MaxServerMemoryMB != nil {
 		maxServerMemoryMB = *input.MaxServerMemoryMB
 	}
 
-	var minServerMemoryMB int64 = 0
-	if input.MinServerMemoryMB != nil {
-		minServerMemoryMB = *input.MinServerMemoryMB
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"adhoc_workloads_optimization_enabled": isOptimizeForAdhocWorkloadsEnabled,
+			"adhoc_workloads_optimization_enabled": pointer.From(input.IsOptimizeForAdHocWorkloadsEnabled),
 			"collation":                            collation,
-			"instant_file_initialization_enabled":  isIfiEnabled,
-			"lock_pages_in_memory_enabled":         isLpimEnabled,
-			"max_dop":                              maxDop,
+			"instant_file_initialization_enabled":  pointer.From(input.IsIfiEnabled),
+			"lock_pages_in_memory_enabled":         pointer.From(input.IsLpimEnabled),
+			"max_dop":                              pointer.From(input.MaxDop),
 			"max_server_memory_mb":                 maxServerMemoryMB,
-			"min_server_memory_mb":                 minServerMemoryMB,
+			"min_server_memory_mb":                 pointer.From(input.MinServerMemoryMB),
 		},
 	}
 }

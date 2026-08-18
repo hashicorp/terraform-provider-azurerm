@@ -254,8 +254,7 @@ func resourceArmLoadBalancerRuleDelete(d *pluginsdk.ResourceData, meta interface
 				lbRules = append(lbRules[:index], lbRules[index+1:]...)
 				props.LoadBalancingRules = &lbRules
 
-				err := client.CreateOrUpdateThenPoll(ctx, plbId, *model)
-				if err != nil {
+				if err := client.CreateOrUpdateThenPoll(ctx, plbId, *model); err != nil {
 					return fmt.Errorf("Creating/Updating %s: %+v", id, err)
 				}
 			}

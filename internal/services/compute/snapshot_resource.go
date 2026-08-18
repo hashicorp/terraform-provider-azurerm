@@ -16,9 +16,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskaccesses"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/snapshots"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/custompoller"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -68,6 +70,7 @@ func resourceSnapshot() *pluginsdk.Resource {
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(snapshots.DiskCreateOptionCopy),
+					string(snapshots.DiskCreateOptionCopyStart),
 					string(snapshots.DiskCreateOptionImport),
 				}, false),
 			},
@@ -219,6 +222,21 @@ func resourceSnapshotCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("creating %s: %+v", id, err)
 		}
 		d.SetId(id.ID())
+
+		// When `create_option` is `CopyStart` the API returns as soon as the copy
+		// operation has been initiated, however the resulting snapshot is not usable
+		// until the background copy has completed. Wait for `CompletionPercent` to
+		// reach 100 so that downstream resources (e.g. `azurerm_managed_disk`) don't
+		// consume an incomplete snapshot.
+		if createOption == string(snapshots.DiskCreateOptionCopyStart) {
+			log.Printf("[DEBUG] Waiting for the copy of %s to complete", id)
+
+			pollerType := custompoller.NewSnapshotCopyStartPoller(client, id)
+			poller := pollers.NewPoller(pollerType, 30*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("waiting for the copy of %s to complete: %+v", id, err)
+			}
+		}
 	} else {
 		if err := client.CreateOrUpdateThenPoll(ctx, id, properties); err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
@@ -283,11 +301,7 @@ func resourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 			d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
 
-			incrementalEnabled := false
-			if props.Incremental != nil {
-				incrementalEnabled = *props.Incremental
-			}
-			d.Set("incremental_enabled", incrementalEnabled)
+			d.Set("incremental_enabled", pointer.From(props.Incremental))
 
 			trustedLaunchEnabled := false
 			if securityProfile := props.SecurityProfile; securityProfile != nil && securityProfile.SecurityType != nil {

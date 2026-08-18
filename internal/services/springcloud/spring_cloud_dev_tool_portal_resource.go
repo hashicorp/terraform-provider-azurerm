@@ -341,19 +341,9 @@ func flattenSpringCloudDevToolPortalSsoProperties(properties *appplatform.DevToo
 		return []SsoModel{}
 	}
 
-	clientId := ""
-	if properties.ClientID != nil {
-		clientId = *properties.ClientID
-	}
-
 	clientSecret := ""
 	if len(model.Sso) != 0 {
 		clientSecret = model.Sso[0].ClientSecret
-	}
-
-	metadataUrl := ""
-	if properties.MetadataURL != nil {
-		metadataUrl = *properties.MetadataURL
 	}
 
 	scopes := make([]string, 0)
@@ -363,9 +353,9 @@ func flattenSpringCloudDevToolPortalSsoProperties(properties *appplatform.DevToo
 
 	return []SsoModel{
 		{
-			ClientId:     clientId,
+			ClientId:     pointer.From(properties.ClientID),
 			ClientSecret: clientSecret,
-			MetadataUrl:  metadataUrl,
+			MetadataUrl:  pointer.From(properties.MetadataURL),
 			Scope:        scopes,
 		},
 	}

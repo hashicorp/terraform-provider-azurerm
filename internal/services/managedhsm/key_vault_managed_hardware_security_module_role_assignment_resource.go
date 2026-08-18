@@ -40,7 +40,7 @@ var _ sdk.ResourceWithStateMigration = KeyVaultManagedHSMRoleAssignmentResource{
 type KeyVaultManagedHSMRoleAssignmentResource struct{}
 
 func (r KeyVaultManagedHSMRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"managed_hsm_id": {
 			Type:         pluginsdk.TypeString,
 			ForceNew:     true,
@@ -76,8 +76,6 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) Arguments() map[string]*plugin
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
-
-	return s
 }
 
 func (r KeyVaultManagedHSMRoleAssignmentResource) Attributes() map[string]*pluginsdk.Schema {

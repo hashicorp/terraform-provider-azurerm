@@ -711,7 +711,7 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interfac
 		}
 
 		// retry to restore service since there is an API issue : https://github.com/Azure/azure-rest-api-specs/issues/25262
-		err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
+		if err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
 			resp, err := client.CreateOrUpdate(ctx, id, params)
 			if err != nil {
 				if response.WasBadRequest(resp.HttpResponse) {
@@ -723,8 +723,7 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interfac
 				return pluginsdk.NonRetryableError(err)
 			}
 			return nil
-		})
-		if err != nil {
+		}); err != nil {
 			return fmt.Errorf("recovering %s: %+v", id, err)
 		}
 	}

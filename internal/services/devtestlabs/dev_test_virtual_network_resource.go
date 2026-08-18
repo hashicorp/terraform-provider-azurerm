@@ -258,16 +258,14 @@ func resourceArmDevTestVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("subnet") {
-		subnets := expandDevTestVirtualNetworkSubnets(d.Get("subnet").([]interface{}), subscriptionId, id.ResourceGroupName, id.VirtualNetworkName)
-		payload.Properties.SubnetOverrides = subnets
+		payload.Properties.SubnetOverrides = expandDevTestVirtualNetworkSubnets(d.Get("subnet").([]interface{}), subscriptionId, id.ResourceGroupName, id.VirtualNetworkName)
 	}
 
 	if d.HasChange("tags") {
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, *id, *payload)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -297,8 +295,7 @@ func resourceArmDevTestVirtualNetworkDelete(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

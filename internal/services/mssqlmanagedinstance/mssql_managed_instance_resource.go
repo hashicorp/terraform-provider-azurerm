@@ -662,8 +662,7 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 							AzureADOnlyAuthentication: false,
 						},
 					}
-					err = azureADAuthenticationOnlyClient.CreateOrUpdateThenPoll(ctx, *id, aadAuthOnlyParams)
-					if err != nil {
+					if err = azureADAuthenticationOnlyClient.CreateOrUpdateThenPoll(ctx, *id, aadAuthOnlyParams); err != nil {
 						return fmt.Errorf("disabling `azuread_authentication_only` for %s: %+v", *id, err)
 					}
 
@@ -686,8 +685,7 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 						},
 					}
 
-					err := azureADAuthenticationOnlyClient.CreateOrUpdateThenPoll(ctx, *id, aadOnlyAuthenticationsProps)
-					if err != nil {
+					if err := azureADAuthenticationOnlyClient.CreateOrUpdateThenPoll(ctx, *id, aadOnlyAuthenticationsProps); err != nil {
 						return fmt.Errorf("setting `azuread_authentication_only_enabled` for %s: %+v", *id, err)
 					}
 				}
@@ -827,8 +825,7 @@ func (r MsSqlManagedInstanceResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			err = client.DeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 

@@ -396,8 +396,7 @@ func resourceArmLoadBalancerUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, loadbalancers.ProviderLoadBalancerId(*id), model)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, loadbalancers.ProviderLoadBalancerId(*id), model); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -416,8 +415,7 @@ func resourceArmLoadBalancerDelete(d *pluginsdk.ResourceData, meta interface{}) 
 
 	plbId := loadbalancers.ProviderLoadBalancerId{SubscriptionId: id.SubscriptionId, ResourceGroupName: id.ResourceGroupName, LoadBalancerName: id.LoadBalancerName}
 
-	err = client.DeleteThenPoll(ctx, plbId)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, plbId); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
@@ -497,15 +495,9 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]loadbalancers.Front
 	}
 
 	for _, config := range *ipConfigs {
-		name := ""
-		if config.Name != nil {
-			name = *config.Name
-		}
+		name := pointer.From(config.Name)
 
-		id := ""
-		if config.Id != nil {
-			id = *config.Id
-		}
+		id := pointer.From(config.Id)
 
 		var inboundNatRules []interface{}
 		var loadBalancingRules []interface{}

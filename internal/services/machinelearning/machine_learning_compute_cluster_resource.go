@@ -452,21 +452,11 @@ func flattenUserAccountCredentials(credentials *machinelearningcomputes.UserAcco
 		username = credentials.AdminUserName
 	}
 
-	var adminPassword string
-	if credentials.AdminUserPassword != nil {
-		adminPassword = *credentials.AdminUserPassword
-	}
-
-	var sshPublicKey string
-	if credentials.AdminUserSshPublicKey != nil {
-		sshPublicKey = *credentials.AdminUserSshPublicKey
-	}
-
 	return []interface{}{
 		map[string]interface{}{
 			"admin_username": username,
-			"admin_password": adminPassword,
-			"key_value":      sshPublicKey,
+			"admin_password": pointer.From(credentials.AdminUserPassword),
+			"key_value":      pointer.From(credentials.AdminUserSshPublicKey),
 		},
 	}
 }
