@@ -73,11 +73,13 @@ func dataSourceAutomationAccount() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"user_assigned_identity_id": {
 							Type:     pluginsdk.TypeString,
-							Computed: true},
+							Computed: true,
+						},
 
 						"key_vault_key_id": {
 							Type:     pluginsdk.TypeString,
-							Computed: true},
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -165,28 +167,14 @@ func dataSourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}
 		if props := model.Properties; props != nil {
 			d.Set("private_endpoint_connection", flattenPrivateEndpointConnectionsDataSource(props.PrivateEndpointConnections))
 			d.Set("hybrid_service_url", props.AutomationHybridServiceURL)
-
-			localAuthEnabled := true
-			if val := props.DisableLocalAuth; val != nil && *val {
-				localAuthEnabled = false
-			}
-			d.Set("local_authentication_enabled", localAuthEnabled)
+			d.Set("local_authentication_enabled", !pointer.From(props.DisableLocalAuth))
+			d.Set("public_network_access_enabled", pointer.From(props.PublicNetworkAccess))
+			d.Set("sku_name", pointer.From(props.Sku))
 
 			if err := d.Set("encryption", flattenEncryption(props.Encryption)); err != nil {
 				return fmt.Errorf("setting `encryption`: %+v", err)
 			}
 
-			publicNetworkAccessEnabled := true
-			if props.PublicNetworkAccess != nil {
-				publicNetworkAccessEnabled = *props.PublicNetworkAccess
-			}
-			d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
-
-			skuName := ""
-			if sku := props.Sku; sku != nil {
-				skuName = string(sku.Name)
-			}
-			d.Set("sku_name", skuName)
 		}
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
