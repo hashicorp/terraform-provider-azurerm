@@ -131,6 +131,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `connection_strings` - One or more `connection_strings` blocks as defined below.
 
+* `earliest_restore_time` - The earliest point in time (in UTC) to which the MongoDB Cluster can be restored.
+
 ---
 
 A `connection_strings` block exports the following:

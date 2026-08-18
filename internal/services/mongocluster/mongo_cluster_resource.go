@@ -19,7 +19,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2026-06-01/mongoclusters"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mongocluster/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -53,6 +55,7 @@ type MongoClusterResourceModel struct {
 	StorageSizeInGb       int64                          `tfschema:"storage_size_in_gb"`
 	StorageType           string                         `tfschema:"storage_type"`
 	ConnectionStrings     []MongoClusterConnectionString `tfschema:"connection_strings"`
+	EarliestRestoreTime   string                         `tfschema:"earliest_restore_time"`
 	Tags                  map[string]string              `tfschema:"tags"`
 	Version               string                         `tfschema:"version"`
 }
@@ -324,6 +327,11 @@ func (r MongoClusterResource) Attributes() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
+
+		"earliest_restore_time": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 	}
 }
 
@@ -471,6 +479,15 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 				if err := client.UpdateThenPoll(ctx, id, updatePayload); err != nil {
 					return fmt.Errorf("updating `data_api_mode_enabled`: %+v", err)
 				}
+			}
+
+			pollingCtx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+			defer cancel()
+
+			pollerType := custompollers.NewMongoClusterEarliestRestoreTimePoller(client, id)
+			poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(pollingCtx); err != nil {
+				return fmt.Errorf("waiting for `earliest_restore_time` for %s: %+v", id, err)
 			}
 
 			return nil
@@ -691,6 +708,10 @@ func (r MongoClusterResource) Read() sdk.ResourceFunc {
 					}
 
 					state.Restore = flattenMongoClusterRestore(props.RestoreParameters)
+
+					if v := props.Backup; v != nil {
+						state.EarliestRestoreTime = pointer.From(v.EarliestRestoreTime)
+					}
 
 					if v := props.Sharding; v != nil {
 						state.ShardCount = pointer.From(v.ShardCount)

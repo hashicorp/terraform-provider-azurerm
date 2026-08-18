@@ -125,13 +125,14 @@ func TestAccMongoCluster_geoReplica(t *testing.T) {
 }
 
 func TestAccMongoCluster_pointInTimeRestore(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster", "point_in_time_restore")
 	r := MongoClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.pointInTimeRestore(data),
 			Check: acceptance.ComposeTestCheckFunc(
+				check.That("azurerm_mongo_cluster.test").Key("earliest_restore_time").IsNotEmpty(),
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -184,13 +185,14 @@ func TestAccMongoCluster_premiumSSDv2(t *testing.T) {
 }
 
 func TestAccMongoCluster_pitrPremiumSSDv2(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster", "point_in_time_restore")
 	r := MongoClusterResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.pitrPremiumSSDv2(data),
 			Check: acceptance.ComposeTestCheckFunc(
+				check.That("azurerm_mongo_cluster.test").Key("earliest_restore_time").IsNotEmpty(),
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -346,10 +348,6 @@ func (r MongoClusterResource) pitrPremiumSSDv2(data acceptance.TestData) string 
 	return fmt.Sprintf(`
 %s
 
-resource "time_offset" "test" {
-  offset_minutes = 15
-}
-
 resource "azurerm_mongo_cluster" "point_in_time_restore" {
   name                   = "acctest-mc-restore%d"
   resource_group_name    = azurerm_resource_group.test.name
@@ -362,7 +360,7 @@ resource "azurerm_mongo_cluster" "point_in_time_restore" {
 
   restore {
     source_id         = azurerm_mongo_cluster.test.id
-    point_in_time_utc = time_offset.test.rfc3339
+    point_in_time_utc = azurerm_mongo_cluster.test.earliest_restore_time
   }
 
   lifecycle {
@@ -474,10 +472,6 @@ func (r MongoClusterResource) pointInTimeRestore(data acceptance.TestData) strin
 	return fmt.Sprintf(`
 %s
 
-resource "time_offset" "test" {
-  offset_minutes = 15
-}
-
 resource "azurerm_mongo_cluster" "point_in_time_restore" {
   name                   = "acctest-mc-restore%d"
   resource_group_name    = azurerm_resource_group.test.name
@@ -488,7 +482,7 @@ resource "azurerm_mongo_cluster" "point_in_time_restore" {
 
   restore {
     source_id         = azurerm_mongo_cluster.test.id
-    point_in_time_utc = time_offset.test.rfc3339
+    point_in_time_utc = azurerm_mongo_cluster.test.earliest_restore_time
   }
 
   lifecycle {
