@@ -18,6 +18,16 @@ import (
 
 type PowerShell72ModuleResource struct{}
 
+func TestAccAutomationPowerShell72Module_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_powershell72_module", "test")
+	r := PowerShell72ModuleResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccAutomationPowerShell72Module_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_powershell72_module", "test")
 	r := PowerShell72ModuleResource{}
