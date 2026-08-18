@@ -378,13 +378,9 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 			// Therefore, we have to use the customized function instead of the common one, since the common function always sets `userAssignedIdentities` to `nil` in the request payload.
 			// Service team confirmed that it will be more flexible, and we will allow `userAssignedIdentities = nil` in the future. Tracking issue: https://github.com/Azure/azure-rest-api-specs/issues/38575
 			if identityVal != nil && identityVal.Type != identity.TypeNone {
-				if identityVal.Type == identity.TypeNone {
-					parameter.Identity = nil
-				} else {
-					parameter.Identity = &identity.LegacySystemAndUserAssignedMap{
-						Type:        identityVal.Type,
-						IdentityIds: identityVal.IdentityIds,
-					}
+				parameter.Identity = &identity.LegacySystemAndUserAssignedMap{
+					Type:        identityVal.Type,
+					IdentityIds: identityVal.IdentityIds,
 				}
 			}
 
