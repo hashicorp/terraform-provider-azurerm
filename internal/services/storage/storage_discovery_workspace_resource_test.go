@@ -101,7 +101,7 @@ func TestAccStorageDiscoveryWorkspace_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scope.#").HasValue("2"),
 				check.That(data.ResourceName).Key("sku").HasValue("Free"),
-				check.That(data.ResourceName).Key("workspace_roots.#").HasValue("2"),
+				check.That(data.ResourceName).Key("workspace_roots.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -279,11 +279,6 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_resource_group" "alt" {
-  name     = "acctestRG-storage-alt-%[1]d"
-  location = "%[2]s"
-}
-
 data "azurerm_subscription" "current" {}
 
 resource "azurerm_storage_discovery_workspace" "test" {
@@ -293,10 +288,7 @@ resource "azurerm_storage_discovery_workspace" "test" {
   description         = "Updated Storage Discovery Workspace"
   sku                 = "Free"
 
-  workspace_roots = [
-    azurerm_resource_group.test.id,
-    azurerm_resource_group.alt.id,
-  ]
+  workspace_roots = [data.azurerm_subscription.current.id]
 
   scope {
     display_name   = "TestScope"
@@ -327,11 +319,6 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_resource_group" "alt" {
-  name     = "acctestRG-storage-alt-%[1]d"
-  location = "%[2]s"
-}
-
 data "azurerm_subscription" "current" {}
 
 resource "azurerm_storage_discovery_workspace" "test" {
@@ -341,10 +328,7 @@ resource "azurerm_storage_discovery_workspace" "test" {
   description         = "Updated Storage Discovery Workspace"
   sku                 = "Free"
 
-  workspace_roots = [
-    azurerm_resource_group.test.id,
-    azurerm_resource_group.alt.id,
-  ]
+  workspace_roots = [data.azurerm_subscription.current.id]
 
   scope {
     display_name   = "TestScope"

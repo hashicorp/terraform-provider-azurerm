@@ -58,7 +58,7 @@ The following arguments are supported:
 
 -> **Note:** A maximum of 10 scopes are supported.
 
-* `workspace_roots` - (Required) A set of top-level Azure resource identifiers (Subscription IDs or Resource Group IDs) where Storage Discovery initiates its scan for storage accounts. You cannot specify both a subscription and its child resource group.
+* `workspace_roots` - (Required) A set of top-level Azure resource identifiers (Subscription IDs or Resource Group IDs) where Storage Discovery initiates its scan for storage accounts. You cannot specify both a subscription and its child resource group. Changing this forces a new resource to be created.
 
 -> **Note:** A maximum of 100 workspace roots are supported.
 

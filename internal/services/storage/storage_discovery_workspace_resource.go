@@ -130,6 +130,7 @@ func (r StorageDiscoveryWorkspaceResource) Arguments() map[string]*pluginsdk.Sch
 		"workspace_roots": {
 			Type:     pluginsdk.TypeSet,
 			Required: true,
+			ForceNew: true,
 			MinItems: 1,
 			MaxItems: 100,
 			Elem: &pluginsdk.Schema{
@@ -342,10 +343,6 @@ func (r StorageDiscoveryWorkspaceResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("scope") {
 				payload.Properties.Scopes = pointer.To(expandStorageDiscoveryScopes(model.Scope))
-			}
-
-			if metadata.ResourceData.HasChange("workspace_roots") {
-				payload.Properties.WorkspaceRoots = pointer.To(model.WorkspaceRoots)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
