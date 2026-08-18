@@ -64,10 +64,6 @@ The following arguments are supported:
 
 ~> **Note:** `OnContainerExit` can only be used when `container_type` is set to `CustomContainer`.
 
-* `managed_identity_setting` - (Optional) One or more `managed_identity_setting` blocks as defined below. Changing this forces a new resource to be created.
-
-~> **Note:** Omitting `managed_identity_setting` is equivalent to the `None` lifecycle stage in the Azure API.
-
 * `max_alive_period_in_seconds` - (Optional) The maximum number of seconds a session remains alive.
 
 ~> **Note:** `max_alive_period_in_seconds` must be specified when `lifecycle_type` is set to `OnContainerExit`, cannot be specified otherwise, and conflicts with `cooldown_period_in_seconds`.
@@ -79,6 +75,10 @@ The following arguments are supported:
 ~> **Note:** `ready_session_instances` must be specified when `container_type` is set to `CustomContainer`.
 
 * `secret` - (Optional) One or more `secret` blocks as defined below.
+
+* `session_managed_identities` - (Optional) A list of Managed Identities which are made available to the code running inside the sessions. Each value should be the ID of a User Assigned Managed Identity, or `System` to use the System Assigned Identity.
+
+~> **Note:** Each Managed Identity listed here must also be assigned to this Container App Session Pool via the `identity` block. Listing it here grants the code running in a session access to that Managed Identity.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Container App Session Pool.
 
@@ -131,14 +131,6 @@ An `identity` block supports the following:
 * `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Container App Session Pool.
 
 ~> **Note:** `identity_ids` is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
-
----
-
-A `managed_identity_setting` block supports the following:
-
-* `identity` - (Required) The ID of a User Assigned Managed Identity, or `System` to use the System Assigned Identity. Changing this forces a new resource to be created.
-
-* `lifecycle` - (Optional) The lifecycle stage during which the Managed Identity is available. The only possible value is `Main`. Defaults to `Main`. Changing this forces a new resource to be created.
 
 ---
 

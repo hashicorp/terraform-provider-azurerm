@@ -48,7 +48,7 @@ type ContainerAppSessionPoolModel struct {
 	CustomContainerTemplate   []CustomContainerTemplateModel             `tfschema:"custom_container_template"`
 	Identity                  []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	LifecycleType             string                                     `tfschema:"lifecycle_type"`
-	ManagedIdentitySettings   []ManagedIdentitySettingModel              `tfschema:"managed_identity_setting"`
+	SessionManagedIdentities  []string                                   `tfschema:"session_managed_identities"`
 	MaxAlivePeriodInSeconds   int64                                      `tfschema:"max_alive_period_in_seconds"`
 	NetworkEgressEnabled      bool                                       `tfschema:"network_egress_enabled"`
 	ReadySessionInstances     int64                                      `tfschema:"ready_session_instances"`
@@ -73,11 +73,6 @@ type SessionContainerModel struct {
 	Cpu     float64                   `tfschema:"cpu"`
 	Env     []helpers.ContainerEnvVar `tfschema:"env"`
 	Memory  string                    `tfschema:"memory"`
-}
-
-type ManagedIdentitySettingModel struct {
-	Identity  string `tfschema:"identity"`
-	Lifecycle string `tfschema:"lifecycle"`
 }
 
 type SessionPoolSecretModel struct {
@@ -335,36 +330,6 @@ func (r ContainerAppSessionPoolResource) Arguments() map[string]*pluginsdk.Schem
 			ValidateFunc: validation.StringInSlice(containerappssessionpools.PossibleValuesForLifecycleType(), false),
 		},
 
-		"managed_identity_setting": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			ForceNew: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"identity": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ForceNew: true,
-						ValidateFunc: validation.Any(
-							commonids.ValidateUserAssignedIdentityID,
-							validation.StringInSlice([]string{"System"}, false),
-						),
-					},
-
-					// Note: the `None` value is represented by omitting this block, so it isn't exposed here.
-					"lifecycle": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
-						Default:  string(containerappssessionpools.IdentitySettingsLifeCycleMain),
-						ValidateFunc: validation.StringInSlice([]string{
-							string(containerappssessionpools.IdentitySettingsLifeCycleMain),
-						}, false),
-					},
-				},
-			},
-		},
-
 		"max_alive_period_in_seconds": {
 			Type:          pluginsdk.TypeInt,
 			Optional:      true,
@@ -403,6 +368,20 @@ func (r ContainerAppSessionPoolResource) Arguments() map[string]*pluginsdk.Schem
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
+			},
+		},
+
+		// these must already be assigned via `identity`; listing one here exposes it to the code
+		// running inside the sessions, which the API otherwise denies by default
+		"session_managed_identities": {
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+				ValidateFunc: validation.Any(
+					commonids.ValidateUserAssignedIdentityID,
+					validation.StringInSlice([]string{"System"}, false),
+				),
 			},
 		},
 
@@ -470,7 +449,7 @@ func (r ContainerAppSessionPoolResource) Create() sdk.ResourceFunc {
 					ContainerType:            pointer.To(containerappssessionpools.ContainerType(config.ContainerType)),
 					CustomContainerTemplate:  customContainerTemplate,
 					DynamicPoolConfiguration: expandContainerAppSessionPoolDynamicPoolConfiguration(config),
-					ManagedIdentitySettings:  expandContainerAppSessionPoolManagedIdentitySettings(config.ManagedIdentitySettings),
+					ManagedIdentitySettings:  expandContainerAppSessionPoolManagedIdentitySettings(config.SessionManagedIdentities),
 					PoolManagementType:       pointer.To(containerappssessionpools.PoolManagementTypeDynamic),
 					ScaleConfiguration:       expandContainerAppSessionPoolScaleConfiguration(config),
 					Secrets:                  expandContainerAppSessionPoolSecrets(config.Secrets),
@@ -540,6 +519,11 @@ func (r ContainerAppSessionPoolResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChanges("max_concurrent_sessions", "ready_session_instances") {
 				props.ScaleConfiguration = expandContainerAppSessionPoolScaleConfiguration(config)
+			}
+
+			// clearing this sends a null, which the API resets to the `None` lifecycle stage
+			if metadata.ResourceData.HasChange("session_managed_identities") {
+				props.ManagedIdentitySettings = expandContainerAppSessionPoolManagedIdentitySettings(config.SessionManagedIdentities)
 			}
 
 			if metadata.ResourceData.HasChange("network_egress_enabled") {
@@ -633,7 +617,7 @@ func (r ContainerAppSessionPoolResource) flatten(metadata sdk.ResourceMetaData, 
 			}
 			state.ContainerType = string(pointer.From(props.ContainerType))
 			state.CustomContainerTemplate = flattenContainerAppSessionPoolCustomContainerTemplate(props.CustomContainerTemplate)
-			state.ManagedIdentitySettings = flattenContainerAppSessionPoolManagedIdentitySettings(props.ManagedIdentitySettings)
+			state.SessionManagedIdentities = flattenContainerAppSessionPoolManagedIdentitySettings(props.ManagedIdentitySettings)
 			state.NodeCount = pointer.From(props.NodeCount)
 			state.PoolManagementEndpoint = pointer.From(props.PoolManagementEndpoint)
 			state.Secrets = flattenContainerAppSessionPoolSecrets(props.Secrets, existing.Secrets)
@@ -816,7 +800,7 @@ func expandContainerAppSessionPoolScaleConfiguration(input ContainerAppSessionPo
 	return result
 }
 
-func expandContainerAppSessionPoolManagedIdentitySettings(input []ManagedIdentitySettingModel) *[]containerappssessionpools.ManagedIdentitySetting {
+func expandContainerAppSessionPoolManagedIdentitySettings(input []string) *[]containerappssessionpools.ManagedIdentitySetting {
 	if len(input) == 0 {
 		return nil
 	}
@@ -824,8 +808,8 @@ func expandContainerAppSessionPoolManagedIdentitySettings(input []ManagedIdentit
 	result := make([]containerappssessionpools.ManagedIdentitySetting, 0, len(input))
 	for _, v := range input {
 		result = append(result, containerappssessionpools.ManagedIdentitySetting{
-			Identity:  v.Identity,
-			Lifecycle: pointer.To(containerappssessionpools.IdentitySettingsLifeCycle(v.Lifecycle)),
+			Identity:  v,
+			Lifecycle: pointer.To(containerappssessionpools.IdentitySettingsLifeCycleMain),
 		})
 	}
 
@@ -918,22 +902,19 @@ func flattenContainerAppSessionPoolEnvironmentVars(input *[]containerappssession
 	return result
 }
 
-func flattenContainerAppSessionPoolManagedIdentitySettings(input *[]containerappssessionpools.ManagedIdentitySetting) []ManagedIdentitySettingModel {
+func flattenContainerAppSessionPoolManagedIdentitySettings(input *[]containerappssessionpools.ManagedIdentitySetting) []string {
 	if input == nil {
-		return []ManagedIdentitySettingModel{}
+		return []string{}
 	}
 
-	result := make([]ManagedIdentitySettingModel, 0, len(*input))
+	result := make([]string, 0, len(*input))
 	for _, v := range *input {
-		// `None` means the identity isn't in use, which is represented by omitting the block.
+		// the API adds a `None` entry for every assigned identity that isn't exposed to the sessions
 		if pointer.From(v.Lifecycle) == containerappssessionpools.IdentitySettingsLifeCycleNone {
 			continue
 		}
 
-		result = append(result, ManagedIdentitySettingModel{
-			Identity:  normaliseContainerAppSessionPoolIdentity(v.Identity),
-			Lifecycle: string(pointer.From(v.Lifecycle)),
-		})
+		result = append(result, normaliseContainerAppSessionPoolIdentity(v.Identity))
 	}
 
 	return result

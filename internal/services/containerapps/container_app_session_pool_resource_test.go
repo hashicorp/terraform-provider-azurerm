@@ -223,10 +223,7 @@ resource "azurerm_container_app_session_pool" "test" {
     type = "SystemAssigned"
   }
 
-  managed_identity_setting {
-    identity  = "System"
-    lifecycle = "Main"
-  }
+  session_managed_identities = ["System"]
 
   custom_container_template {
     ingress_target_port = 80
