@@ -1756,6 +1756,7 @@ const (
 	UpgradeStateCancelled      UpgradeState = "Cancelled"
 	UpgradeStateCompleted      UpgradeState = "Completed"
 	UpgradeStateFaulted        UpgradeState = "Faulted"
+	UpgradeStateRollingBack    UpgradeState = "RollingBack"
 	UpgradeStateRollingForward UpgradeState = "RollingForward"
 )
 
@@ -1764,6 +1765,7 @@ func PossibleValuesForUpgradeState() []string {
 		string(UpgradeStateCancelled),
 		string(UpgradeStateCompleted),
 		string(UpgradeStateFaulted),
+		string(UpgradeStateRollingBack),
 		string(UpgradeStateRollingForward),
 	}
 }
@@ -1786,6 +1788,7 @@ func parseUpgradeState(input string) (*UpgradeState, error) {
 		"cancelled":      UpgradeStateCancelled,
 		"completed":      UpgradeStateCompleted,
 		"faulted":        UpgradeStateFaulted,
+		"rollingback":    UpgradeStateRollingBack,
 		"rollingforward": UpgradeStateRollingForward,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {

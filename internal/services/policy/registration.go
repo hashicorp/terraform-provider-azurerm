@@ -34,6 +34,7 @@ func (r Registration) Resources() []sdk.Resource {
 		ManagementGroupAssignmentResource{},
 		ManagementGroupPolicyDefinitionResource{},
 		ManagementGroupPolicySetDefinitionResource{},
+		PolicySetDefinitionResource{},
 		ResourceAssignmentResource{},
 		ResourceGroupAssignmentResource{},
 		SubscriptionAssignmentResource{},
@@ -41,7 +42,6 @@ func (r Registration) Resources() []sdk.Resource {
 
 	if features.FivePointOh() {
 		resources = append(resources, PolicyDefinitionResource{})
-		resources = append(resources, PolicySetDefinitionResource{})
 	}
 
 	return resources

@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -26,7 +25,7 @@ import (
 )
 
 func resourceKeyVaultManagedStorageAccountSasTokenDefinition() *pluginsdk.Resource {
-	r := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceKeyVaultManagedStorageAccountSasTokenDefinitionCreateUpdate,
 		Read:   resourceKeyVaultManagedStorageAccountSasTokenDefinitionRead,
 		Update: resourceKeyVaultManagedStorageAccountSasTokenDefinitionCreateUpdate,
@@ -86,12 +85,6 @@ func resourceKeyVaultManagedStorageAccountSasTokenDefinition() *pluginsdk.Resour
 			"tags": commonschema.TagsForceNew(),
 		},
 	}
-
-	if !features.FivePointOh() {
-		r.Schema["managed_storage_account_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeAny)
-	}
-
-	return r
 }
 
 func resourceKeyVaultManagedStorageAccountSasTokenDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -102,11 +95,7 @@ func resourceKeyVaultManagedStorageAccountSasTokenDefinitionCreateUpdate(d *plug
 	defer cancel()
 
 	name := d.Get("name").(string)
-	nestedItemType := keyvault.NestedItemTypeStorage
-	if !features.FivePointOh() {
-		nestedItemType = keyvault.NestedItemTypeAny
-	}
-	storageAccount, err := keyvault.ParseNestedItemID(d.Get("managed_storage_account_id").(string), keyvault.VersionTypeAny, nestedItemType)
+	storageAccount, err := keyvault.ParseNestedItemID(d.Get("managed_storage_account_id").(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeStorage)
 	if err != nil {
 		return err
 	}

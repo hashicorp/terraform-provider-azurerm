@@ -1134,7 +1134,7 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Create() sdk.ResourceFunc 
 				Location: location.Normalize(model.Location),
 				Properties: &sapvirtualinstances.SAPVirtualInstanceProperties{
 					Environment:                       sapvirtualinstances.SAPEnvironmentType(model.Environment),
-					ManagedResourcesNetworkAccessType: pointer.To(sapvirtualinstances.ManagedResourcesNetworkAccessType(model.ManagedResourcesNetworkAccessType)),
+					ManagedResourcesNetworkAccessType: pointer.ToEnum[sapvirtualinstances.ManagedResourcesNetworkAccessType](model.ManagedResourcesNetworkAccessType),
 					SapProduct:                        sapvirtualinstances.SAPProductType(model.SapProduct),
 				},
 				Tags: &model.Tags,
@@ -1204,7 +1204,7 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Update() sdk.ResourceFunc 
 			}
 
 			if metadata.ResourceData.HasChange("managed_resources_network_access_type") {
-				parameters.Properties.ManagedResourcesNetworkAccessType = pointer.To(sapvirtualinstances.ManagedResourcesNetworkAccessType(model.ManagedResourcesNetworkAccessType))
+				parameters.Properties.ManagedResourcesNetworkAccessType = pointer.ToEnum[sapvirtualinstances.ManagedResourcesNetworkAccessType](model.ManagedResourcesNetworkAccessType)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -1328,13 +1328,11 @@ func expandVirtualMachineConfiguration(input []VirtualMachineConfiguration) *sap
 
 	virtualMachineConfiguration := input[0]
 
-	result := &sapvirtualinstances.VirtualMachineConfiguration{
+	return &sapvirtualinstances.VirtualMachineConfiguration{
 		ImageReference: pointer.From(expandImageReference(virtualMachineConfiguration.ImageReference)),
 		OsProfile:      pointer.From(expandOsProfile(virtualMachineConfiguration.OSProfile)),
 		VMSize:         virtualMachineConfiguration.VmSize,
 	}
-
-	return result
 }
 
 func expandImageReference(input []ImageReference) *sapvirtualinstances.ImageReference {
@@ -1344,14 +1342,12 @@ func expandImageReference(input []ImageReference) *sapvirtualinstances.ImageRefe
 
 	imageReference := input[0]
 
-	result := &sapvirtualinstances.ImageReference{
+	return &sapvirtualinstances.ImageReference{
 		Offer:     pointer.To(imageReference.Offer),
 		Publisher: pointer.To(imageReference.Publisher),
 		Sku:       pointer.To(imageReference.Sku),
 		Version:   pointer.To(imageReference.Version),
 	}
-
-	return result
 }
 
 func expandOsProfile(input []OSProfile) *sapvirtualinstances.OSProfile {
@@ -1361,7 +1357,7 @@ func expandOsProfile(input []OSProfile) *sapvirtualinstances.OSProfile {
 
 	osProfile := input[0]
 
-	result := &sapvirtualinstances.OSProfile{
+	return &sapvirtualinstances.OSProfile{
 		AdminUsername: pointer.To(osProfile.AdminUsername),
 		OsConfiguration: &sapvirtualinstances.LinuxConfiguration{
 			DisablePasswordAuthentication: pointer.To(true),
@@ -1371,8 +1367,6 @@ func expandOsProfile(input []OSProfile) *sapvirtualinstances.OSProfile {
 			},
 		},
 	}
-
-	return result
 }
 
 func expandNetworkInterfaceNames(input []string) *[]sapvirtualinstances.NetworkInterfaceResourceNames {
@@ -1436,13 +1430,11 @@ func expandApplicationServer(input []ApplicationServerConfiguration) *sapvirtual
 
 	applicationServer := input[0]
 
-	result := &sapvirtualinstances.ApplicationServerConfiguration{
+	return &sapvirtualinstances.ApplicationServerConfiguration{
 		InstanceCount:               applicationServer.InstanceCount,
 		SubnetId:                    applicationServer.SubnetId,
 		VirtualMachineConfiguration: pointer.From(expandVirtualMachineConfiguration(applicationServer.VirtualMachineConfiguration)),
 	}
-
-	return result
 }
 
 func expandCentralServer(input []CentralServerConfiguration) *sapvirtualinstances.CentralServerConfiguration {
@@ -1452,13 +1444,11 @@ func expandCentralServer(input []CentralServerConfiguration) *sapvirtualinstance
 
 	centralServer := input[0]
 
-	result := &sapvirtualinstances.CentralServerConfiguration{
+	return &sapvirtualinstances.CentralServerConfiguration{
 		InstanceCount:               centralServer.InstanceCount,
 		SubnetId:                    centralServer.SubnetId,
 		VirtualMachineConfiguration: pointer.From(expandVirtualMachineConfiguration(centralServer.VirtualMachineConfiguration)),
 	}
-
-	return result
 }
 
 func expandDatabaseServer(input []DatabaseServerConfiguration) *sapvirtualinstances.DatabaseConfiguration {
@@ -1534,14 +1524,12 @@ func expandResourceNames(input []ResourceNames) *sapvirtualinstances.ThreeTierFu
 
 	resourceNames := input[0]
 
-	result := &sapvirtualinstances.ThreeTierFullResourceNames{
+	return &sapvirtualinstances.ThreeTierFullResourceNames{
 		ApplicationServer: expandApplicationServerResourceNames(resourceNames.ApplicationServer),
 		CentralServer:     expandCentralServerResourceNames(resourceNames.CentralServer),
 		DatabaseServer:    expandDatabaseServerResourceNames(resourceNames.DatabaseServer),
 		SharedStorage:     expandSharedStorage(resourceNames.SharedStorage),
 	}
-
-	return result
 }
 
 func expandApplicationServerResourceNames(input []ApplicationServerResourceNames) *sapvirtualinstances.ApplicationServerFullResourceNames {
