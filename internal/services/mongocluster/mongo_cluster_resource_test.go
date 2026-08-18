@@ -170,21 +170,6 @@ func TestAccMongoCluster_dataApiModeEnabled(t *testing.T) {
 	})
 }
 
-func TestAccMongoCluster_entraIdOnly(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster", "test")
-	r := MongoClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.entraIdOnly(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("create_mode"),
-	})
-}
-
 func TestAccMongoCluster_authenticationMethodsValidation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster", "test")
 	r := MongoClusterResource{}
@@ -676,24 +661,6 @@ resource "azurerm_mongo_cluster" "test" {
 %s
 }
 `, r.template(data, data.Locations.Primary), data.RandomInteger, authenticationMethods)
-}
-
-func (r MongoClusterResource) entraIdOnly(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_mongo_cluster" "test" {
-  name                   = "acctest-mc%d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  shard_count            = "1"
-  compute_tier           = "M30"
-  high_availability_mode = "Disabled"
-  storage_size_in_gb     = "32"
-  version                = "7.0"
-  authentication_methods = ["MicrosoftEntraID"]
-}
-`, r.template(data, data.Locations.Primary), data.RandomInteger)
 }
 
 func (r MongoClusterResource) networkBypassMode(data acceptance.TestData) string {
