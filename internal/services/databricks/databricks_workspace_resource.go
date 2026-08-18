@@ -39,7 +39,7 @@ import (
 //go:generate go run ../../tools/generator-tests resourceidentity -test-name basicForResourceIdentity
 
 func resourceDatabricksWorkspace() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceDatabricksWorkspaceCreate,
 		Read:   resourceDatabricksWorkspaceRead,
 		Update: resourceDatabricksWorkspaceUpdate,
@@ -453,8 +453,6 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 			}),
 		),
 	}
-
-	return resource
 }
 
 func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {

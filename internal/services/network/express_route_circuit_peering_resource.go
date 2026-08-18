@@ -316,8 +316,7 @@ func resourceExpressRouteCircuitPeeringCreate(d *pluginsdk.ResourceData, meta in
 			return fmt.Errorf("`primary_peer_address_prefix, secondary_peer_address_prefix` must be specified when config for Ipv4")
 		}
 
-		peeringConfig := expandExpressRouteCircuitPeeringMicrosoftConfig(peerings)
-		parameters.Properties.MicrosoftPeeringConfig = peeringConfig
+		parameters.Properties.MicrosoftPeeringConfig = expandExpressRouteCircuitPeeringMicrosoftConfig(peerings)
 
 		if routeFilterId != "" {
 			parameters.Properties.RouteFilter = &expressroutecircuitpeerings.SubResource{
@@ -442,8 +441,7 @@ func resourceExpressRouteCircuitPeeringUpdate(d *pluginsdk.ResourceData, meta in
 				return fmt.Errorf("`primary_peer_address_prefix, secondary_peer_address_prefix` must be specified when config for Ipv4")
 			}
 
-			peeringConfig := expandExpressRouteCircuitPeeringMicrosoftConfig(peerings)
-			payload.Properties.MicrosoftPeeringConfig = peeringConfig
+			payload.Properties.MicrosoftPeeringConfig = expandExpressRouteCircuitPeeringMicrosoftConfig(peerings)
 
 			if d.HasChange("route_filter_id") && routeFilterId != "" {
 				payload.Properties.RouteFilter = &expressroutecircuitpeerings.SubResource{

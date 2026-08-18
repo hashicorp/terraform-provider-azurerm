@@ -159,13 +159,11 @@ func resourceDevTestGlobalVMShutdownScheduleCreateUpdate(d *pluginsdk.ResourceDa
 	}
 
 	if v, ok := d.GetOk("daily_recurrence_time"); ok {
-		dailyRecurrence := expandDevTestGlobalVMShutdownScheduleRecurrenceDaily(v)
-		schedule.Properties.DailyRecurrence = dailyRecurrence
+		schedule.Properties.DailyRecurrence = expandDevTestGlobalVMShutdownScheduleRecurrenceDaily(v)
 	}
 
 	if _, ok := d.GetOk("notification_settings"); ok {
-		notificationSettings := expandDevTestGlobalVMShutdownScheduleNotificationSettings(d)
-		schedule.Properties.NotificationSettings = notificationSettings
+		schedule.Properties.NotificationSettings = expandDevTestGlobalVMShutdownScheduleNotificationSettings(d)
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, schedule); err != nil {

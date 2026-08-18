@@ -32,7 +32,7 @@ import (
 //go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourcePrivateLinkService() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create:   resourcePrivateLinkServiceCreate,
 		Read:     resourcePrivateLinkServiceRead,
 		Update:   resourcePrivateLinkServiceUpdate,
@@ -174,8 +174,6 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 			return nil
 		}),
 	}
-
-	return resource
 }
 
 func resourcePrivateLinkServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {

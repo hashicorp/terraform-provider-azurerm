@@ -1366,8 +1366,7 @@ func flattenAzureRMVirtualMachineScaleSetOsProfile(d *pluginsdk.ResourceData, pr
 
 	// admin password isn't returned, so let's look it up
 	if v, ok := d.GetOk("os_profile.0.admin_password"); ok {
-		password := v.(string)
-		result["admin_password"] = password
+		result["admin_password"] = v.(string)
 	}
 
 	if profile.CustomData != nil {
@@ -1912,11 +1911,9 @@ func expandAzureRMVirtualMachineScaleSetsDiagnosticProfile(d *pluginsdk.Resource
 		StorageUri: &storageUri,
 	}
 
-	diagnosticsProfile := virtualmachinescalesets.DiagnosticsProfile{
+	return virtualmachinescalesets.DiagnosticsProfile{
 		BootDiagnostics: bootDiagnostic,
 	}
-
-	return diagnosticsProfile
 }
 
 func expandAzureRMVirtualMachineScaleSetsStorageProfileOsDisk(d *pluginsdk.ResourceData) (*virtualmachinescalesets.VirtualMachineScaleSetOSDisk, error) {
@@ -2072,14 +2069,12 @@ func expandAzureRmVirtualMachineScaleSetOsProfileLinuxConfig(d *pluginsdk.Resour
 		sshPublicKeys = append(sshPublicKeys, sshPublicKey)
 	}
 
-	config := &virtualmachinescalesets.LinuxConfiguration{
+	return &virtualmachinescalesets.LinuxConfiguration{
 		DisablePasswordAuthentication: &disablePasswordAuth,
 		Ssh: &virtualmachinescalesets.SshConfiguration{
 			PublicKeys: &sshPublicKeys,
 		},
 	}
-
-	return config
 }
 
 func expandAzureRmVirtualMachineScaleSetOsProfileWindowsConfig(d *pluginsdk.ResourceData) *virtualmachinescalesets.WindowsConfiguration {
