@@ -27,7 +27,7 @@ resource "azurerm_storage_discovery_workspace" "example" {
   description         = "Example Storage Discovery Workspace"
   sku                 = "Standard"
 
-  workspace_root = [data.azurerm_subscription.current.id]
+  workspace_roots = [data.azurerm_subscription.current.id]
 
   scope {
     display_name   = "Production Storage"
@@ -58,7 +58,7 @@ The following arguments are supported:
 
 -> **Note:** A maximum of 10 scopes are supported.
 
-* `workspace_root` - (Required) A set of top-level Azure resource identifiers (Subscription IDs or Resource Group IDs) where Storage Discovery initiates its scan for storage accounts. You cannot specify both a subscription and its child resource group. Changing this forces a new resource to be created.
+* `workspace_roots` - (Required) A set of top-level Azure resource identifiers (Subscription IDs or Resource Group IDs) where Storage Discovery initiates its scan for storage accounts. You cannot specify both a subscription and its child resource group.
 
 -> **Note:** A maximum of 100 workspace roots are supported.
 
@@ -74,7 +74,7 @@ The following arguments are supported:
 
 A `scope` block supports the following:
 
-* `display_name` - (Required) The display name for this scope. Must be 4-64 characters long and can only contain letters, numbers, spaces, and hyphens. Cannot start or end with a number, space, or hyphen, and cannot contain consecutive hyphens or spaces.
+* `display_name` - (Required) The display name for this scope. Must be unique within the workspace, be 4-64 characters long, and can only contain letters, numbers, spaces, and hyphens. Cannot start or end with a number, space, or hyphen, and cannot contain consecutive hyphens or spaces.
 
 * `resource_types` - (Required) A set of Azure resource type strings to include in this scope. Possible values are `Microsoft.Storage/storageAccounts`.
 

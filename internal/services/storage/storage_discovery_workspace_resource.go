@@ -6,6 +6,7 @@ package storage
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -38,7 +39,7 @@ type StorageDiscoveryWorkspaceModel struct {
 	ResourceGroupName string                       `tfschema:"resource_group_name"`
 	Location          string                       `tfschema:"location"`
 	Scope             []StorageDiscoveryScopeModel `tfschema:"scope"`
-	WorkspaceRoot     []string                     `tfschema:"workspace_root"`
+	WorkspaceRoots    []string                     `tfschema:"workspace_roots"`
 	Description       string                       `tfschema:"description"`
 	Sku               string                       `tfschema:"sku"`
 	Tags              map[string]string            `tfschema:"tags"`
@@ -126,10 +127,9 @@ func (r StorageDiscoveryWorkspaceResource) Arguments() map[string]*pluginsdk.Sch
 			},
 		},
 
-		"workspace_root": {
+		"workspace_roots": {
 			Type:     pluginsdk.TypeSet,
 			Required: true,
-			ForceNew: true,
 			MinItems: 1,
 			MaxItems: 100,
 			Elem: &pluginsdk.Schema{
@@ -167,7 +167,21 @@ func (r StorageDiscoveryWorkspaceResource) CustomizeDiff() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			diff := metadata.ResourceDiff
-			workspaceRootsRaw := diff.Get("workspace_root")
+
+			if err := validateStorageDiscoveryScopes(diff.Get("scope")); err != nil {
+				return err
+			}
+
+			if diff.HasChange("scope") {
+				oldScopes, newScopes := diff.GetChange("scope")
+				if storageDiscoveryScopesRequireReplacement(oldScopes, newScopes) {
+					if err := diff.ForceNew("scope"); err != nil {
+						return err
+					}
+				}
+			}
+
+			workspaceRootsRaw := diff.Get("workspace_roots")
 			if workspaceRootsRaw == nil {
 				return nil
 			}
@@ -194,7 +208,7 @@ func (r StorageDiscoveryWorkspaceResource) CustomizeDiff() sdk.ResourceFunc {
 
 			for _, rgID := range resourceGroupIDs {
 				if subscriptionIDs[rgID.SubscriptionId] {
-					return fmt.Errorf("cannot specify both subscription ID `/subscriptions/%s` and its child resource group ID `%s` in `workspace_root`", rgID.SubscriptionId, rgID.ID())
+					return fmt.Errorf("cannot specify both subscription ID `/subscriptions/%s` and its child resource group ID `%s` in `workspace_roots`", rgID.SubscriptionId, rgID.ID())
 				}
 			}
 
@@ -230,7 +244,7 @@ func (r StorageDiscoveryWorkspaceResource) Create() sdk.ResourceFunc {
 			payload := storagediscoveryworkspaces.StorageDiscoveryWorkspace{
 				Location: location.Normalize(model.Location),
 				Properties: &storagediscoveryworkspaces.StorageDiscoveryWorkspaceProperties{
-					WorkspaceRoots: model.WorkspaceRoot,
+					WorkspaceRoots: model.WorkspaceRoots,
 					Scopes:         expandStorageDiscoveryScopes(model.Scope),
 					Sku:            pointer.ToEnum[storagediscoveryworkspaces.StorageDiscoverySku](model.Sku),
 				},
@@ -284,7 +298,7 @@ func (r StorageDiscoveryWorkspaceResource) Read() sdk.ResourceFunc {
 
 				if props := resp.Model.Properties; props != nil {
 					state.Description = pointer.From(props.Description)
-					state.WorkspaceRoot = props.WorkspaceRoots
+					state.WorkspaceRoots = props.WorkspaceRoots
 					state.Sku = pointer.FromEnum(props.Sku)
 					state.Scope = flattenStorageDiscoveryScopes(props.Scopes)
 				}
@@ -328,6 +342,10 @@ func (r StorageDiscoveryWorkspaceResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("scope") {
 				payload.Properties.Scopes = pointer.To(expandStorageDiscoveryScopes(model.Scope))
+			}
+
+			if metadata.ResourceData.HasChange("workspace_roots") {
+				payload.Properties.WorkspaceRoots = pointer.To(model.WorkspaceRoots)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -405,18 +423,73 @@ func flattenStorageDiscoveryScopes(input []storagediscoveryworkspaces.StorageDis
 			ResourceTypes: flattenStorageDiscoveryResourceTypes(scope.ResourceTypes),
 		}
 
-		if scope.TagKeysOnly != nil {
-			model.TagKeysOnly = pointer.From(scope.TagKeysOnly)
-		}
-
-		if scope.Tags != nil {
-			model.Tags = pointer.From(scope.Tags)
-		}
+		model.TagKeysOnly = pointer.From(scope.TagKeysOnly)
+		model.Tags = pointer.From(scope.Tags)
 
 		result = append(result, model)
 	}
 
 	return result
+}
+
+func storageDiscoveryScopesRequireReplacement(oldRaw, newRaw interface{}) bool {
+	oldScopes := oldRaw.([]interface{})
+	newScopes := newRaw.([]interface{})
+
+	oldScopesByName := make(map[string]map[string]interface{}, len(oldScopes))
+	for _, item := range oldScopes {
+		if item == nil {
+			continue
+		}
+
+		scope := item.(map[string]interface{})
+		oldScopesByName[scope["display_name"].(string)] = scope
+	}
+
+	for _, item := range newScopes {
+		if item == nil {
+			continue
+		}
+
+		newScope := item.(map[string]interface{})
+		oldScope, exists := oldScopesByName[newScope["display_name"].(string)]
+		if !exists {
+			continue
+		}
+
+		if !oldScope["resource_types"].(*pluginsdk.Set).Equal(newScope["resource_types"]) ||
+			!oldScope["tag_keys_only"].(*pluginsdk.Set).Equal(newScope["tag_keys_only"]) ||
+			!reflect.DeepEqual(oldScope["tags"], newScope["tags"]) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func validateStorageDiscoveryScopes(raw interface{}) error {
+	scopes := raw.([]interface{})
+	displayNames := make(map[string]struct{}, len(scopes))
+
+	for _, item := range scopes {
+		if item == nil {
+			continue
+		}
+
+		scope := item.(map[string]interface{})
+		displayName := scope["display_name"].(string)
+		if displayName == "" {
+			continue
+		}
+
+		if _, exists := displayNames[displayName]; exists {
+			return fmt.Errorf("the `display_name` %q must be unique across all `scope` blocks", displayName)
+		}
+
+		displayNames[displayName] = struct{}{}
+	}
+
+	return nil
 }
 
 func flattenStorageDiscoveryResourceTypes(input []storagediscoveryworkspaces.StorageDiscoveryResourceType) []string {

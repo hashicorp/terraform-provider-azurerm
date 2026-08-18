@@ -20,6 +20,6 @@ func StorageDiscoveryWorkspaceRoot(v interface{}, _ string) (warnings []string, 
 		return warnings, errors
 	}
 
-	errors = append(errors, stderrors.New("each value in `workspace_root` must be a valid Subscription ID (e.g. `/subscriptions/00000000-0000-0000-0000-000000000000`) or Resource Group ID (e.g. `/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-rg`)"))
+	errors = append(errors, stderrors.New("each value in `workspace_roots` must be a valid Subscription ID (e.g. `/subscriptions/00000000-0000-0000-0000-000000000000`) or Resource Group ID (e.g. `/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-rg`)"))
 	return warnings, errors
 }

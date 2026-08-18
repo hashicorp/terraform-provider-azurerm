@@ -10,6 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagediscovery/2025-09-01/storagediscoveryworkspaces"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -78,47 +80,18 @@ func TestAccStorageDiscoveryWorkspace_resourceGroupRoots(t *testing.T) {
 	})
 }
 
-func TestAccStorageDiscoveryWorkspace_scopeUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_discovery_workspace", "test")
-	r := StorageDiscoveryWorkspaceResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.scopeUpdateOne(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("scope.#").HasValue("1"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.scopeUpdateTwo(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("scope.#").HasValue("2"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.scopeUpdateOne(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("scope.#").HasValue("1"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccStorageDiscoveryWorkspace_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_discovery_workspace", "test")
 	r := StorageDiscoveryWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.updateBasic(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("scope.#").HasValue("1"),
+				check.That(data.ResourceName).Key("sku").HasValue("Standard"),
+				check.That(data.ResourceName).Key("workspace_roots.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -126,13 +99,30 @@ func TestAccStorageDiscoveryWorkspace_update(t *testing.T) {
 			Config: r.updateComplete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("scope.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sku").HasValue("Free"),
+				check.That(data.ResourceName).Key("workspace_roots.#").HasValue("2"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.updateBasic(data),
+			Config: r.updateScopeProperties(data),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("scope.#").HasValue("1"),
+				check.That(data.ResourceName).Key("sku").HasValue("Standard"),
+				check.That(data.ResourceName).Key("workspace_roots.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -171,7 +161,7 @@ resource "azurerm_storage_discovery_workspace" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
-  workspace_root = [data.azurerm_subscription.current.id]
+  workspace_roots = [data.azurerm_subscription.current.id]
 
   scope {
     display_name   = "TestScope"
@@ -191,7 +181,7 @@ resource "azurerm_storage_discovery_workspace" "import" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
-  workspace_root = [data.azurerm_subscription.current.id]
+  workspace_roots = [data.azurerm_subscription.current.id]
 
   scope {
     display_name   = "TestScope"
@@ -221,7 +211,7 @@ resource "azurerm_storage_discovery_workspace" "test" {
   description         = "Test Storage Discovery Workspace"
   sku                 = "Standard"
 
-  workspace_root = [data.azurerm_subscription.current.id]
+  workspace_roots = [data.azurerm_subscription.current.id]
 
   scope {
     display_name   = "TestScopeOne"
@@ -239,34 +229,6 @@ resource "azurerm_storage_discovery_workspace" "test" {
 
   tags = {
     environment = "test"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary)
-}
-
-func (r StorageDiscoveryWorkspaceResource) updateBasic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-storage-%[1]d"
-  location = "%[2]s"
-}
-
-data "azurerm_subscription" "current" {}
-
-resource "azurerm_storage_discovery_workspace" "test" {
-  name                = "acctestsdw-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-
-  workspace_root = [data.azurerm_subscription.current.id]
-
-  scope {
-    display_name   = "TestScope"
-    resource_types = ["Microsoft.Storage/storageAccounts"]
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -293,7 +255,7 @@ resource "azurerm_storage_discovery_workspace" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
-  workspace_root = [
+  workspace_roots = [
     azurerm_resource_group.test.id,
     azurerm_resource_group.alt.id,
   ]
@@ -317,6 +279,11 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
+resource "azurerm_resource_group" "alt" {
+  name     = "acctestRG-storage-alt-%[1]d"
+  location = "%[2]s"
+}
+
 data "azurerm_subscription" "current" {}
 
 resource "azurerm_storage_discovery_workspace" "test" {
@@ -324,12 +291,22 @@ resource "azurerm_storage_discovery_workspace" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   description         = "Updated Storage Discovery Workspace"
+  sku                 = "Free"
 
-  workspace_root = [data.azurerm_subscription.current.id]
+  workspace_roots = [
+    azurerm_resource_group.test.id,
+    azurerm_resource_group.alt.id,
+  ]
 
   scope {
     display_name   = "TestScope"
     resource_types = ["Microsoft.Storage/storageAccounts"]
+  }
+
+  scope {
+    display_name   = "AdditionalScope"
+    resource_types = ["Microsoft.Storage/storageAccounts"]
+    tag_keys_only  = ["environment"]
   }
 
   tags = {
@@ -339,7 +316,7 @@ resource "azurerm_storage_discovery_workspace" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r StorageDiscoveryWorkspaceResource) scopeUpdateOne(data acceptance.TestData) string {
+func (r StorageDiscoveryWorkspaceResource) updateScopeProperties(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -350,35 +327,8 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-data "azurerm_subscription" "current" {}
-
-resource "azurerm_storage_discovery_workspace" "test" {
-  name                = "acctestsdw-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-
-  workspace_root = [data.azurerm_subscription.current.id]
-
-  scope {
-    display_name   = "StableScopeName"
-    resource_types = ["Microsoft.Storage/storageAccounts"]
-    tag_keys_only  = ["env", "team"]
-    tags = {
-      tier = "gold"
-    }
-  }
-}
-`, data.RandomInteger, data.Locations.Primary)
-}
-
-func (r StorageDiscoveryWorkspaceResource) scopeUpdateTwo(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-storage-%[1]d"
+resource "azurerm_resource_group" "alt" {
+  name     = "acctestRG-storage-alt-%[1]d"
   location = "%[2]s"
 }
 
@@ -388,21 +338,31 @@ resource "azurerm_storage_discovery_workspace" "test" {
   name                = "acctestsdw-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+  description         = "Updated Storage Discovery Workspace"
+  sku                 = "Free"
 
-  workspace_root = [data.azurerm_subscription.current.id]
+  workspace_roots = [
+    azurerm_resource_group.test.id,
+    azurerm_resource_group.alt.id,
+  ]
 
   scope {
-    display_name   = "StableScopeName"
+    display_name   = "TestScope"
     resource_types = ["Microsoft.Storage/storageAccounts"]
-    tag_keys_only  = ["costcenter", "project", "owner"]
+    tag_keys_only  = ["environment", "team"]
     tags = {
-      compliance = "required"
+      tier = "production"
     }
   }
 
   scope {
     display_name   = "AdditionalScope"
     resource_types = ["Microsoft.Storage/storageAccounts"]
+    tag_keys_only  = ["environment"]
+  }
+
+  tags = {
+    environment = "test"
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
