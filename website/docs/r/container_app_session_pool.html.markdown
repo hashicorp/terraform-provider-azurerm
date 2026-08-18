@@ -76,6 +76,8 @@ The following arguments are supported:
 
 * `ready_session_instances` - (Optional) The minimum number of sessions which are kept ready in this Container App Session Pool. This must be greater than `0` and less than `max_concurrent_sessions`.
 
+~> **Note:** `ready_session_instances` must be specified when `container_type` is set to `CustomContainer`.
+
 * `secret` - (Optional) One or more `secret` blocks as defined below.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Container App Session Pool.

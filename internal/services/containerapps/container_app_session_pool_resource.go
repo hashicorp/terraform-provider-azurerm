@@ -139,8 +139,12 @@ func (r ContainerAppSessionPoolResource) CustomizeDiff() sdk.ResourceFunc {
 					return errors.New("`custom_container_template` must be set when `container_type` is `CustomContainer`")
 				}
 
-				if config.ContainerAppEnvironmentId == "" {
+				if !isConfigured("container_app_environment_id") {
 					return errors.New("`container_app_environment_id` must be set when `container_type` is `CustomContainer`")
+				}
+
+				if !isConfigured("ready_session_instances") {
+					return errors.New("`ready_session_instances` must be set when `container_type` is `CustomContainer`")
 				}
 
 			default:
