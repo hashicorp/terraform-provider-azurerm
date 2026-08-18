@@ -35,7 +35,9 @@ resource "azurerm_container_app_session_pool" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Container App Session Pool. Must be between 3 and 63 characters long, begin with a lowercase letter and contain only lowercase letters and numbers. Changing this forces a new resource to be created.
+* `name` - (Required) The name which should be used for this Container App Session Pool. Changing this forces a new resource to be created.
+
+~> **Note:** `name` must be between 3 and 63 characters long, begin with a lowercase letter and contain only lowercase letters and numbers.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Container App Session Pool should exist. Changing this forces a new resource to be created.
 
@@ -47,7 +49,9 @@ The following arguments are supported:
 
 * `pool_management_type` - (Required) The management type of this Container App Session Pool. The Azure REST API defines `Dynamic` and `Manual`; however, Azure Container Apps currently supports creating session pools only with `Dynamic`, so `Manual` cannot be configured at this time. Changing this forces a new resource to be created.
 
-* `container_app_environment_id` - (Optional) The ID of the Container App Environment in which this Container App Session Pool should exist. Changing this forces a new resource to be created.
+* `container_app_environment_id` - (Optional) The ID of the Container App Environment used to host the sessions in this Container App Session Pool. Changing this forces a new resource to be created.
+
+~> **Note:** `container_app_environment_id` is required when `container_type` is set to `CustomContainer`.
 
 ~> **Note:** The Container App Environment must be of type `Workload profile`. `Consumption only` environments are not supported.
 
