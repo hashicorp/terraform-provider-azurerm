@@ -1,6 +1,7 @@
 ## 5.2.0 (Unreleased)
 
 ENHANCEMENTS:
+* dependencies: `go` - update to `1.26.6` [GH-33141]
 * `azurerm_role_assignment` - the `condition`, `condition_version`, and `description` properties can now be updated in-place [GH-32714]
 * `azurerm_snapshot`: `create_option` now supports `CopyStart` [GH-32834]
 * `azurerm_mongo_cluster` - `administrator_password` is no longer required when `create_mode` is `Default` to support Entra ID-only authentication [GH-32092]
