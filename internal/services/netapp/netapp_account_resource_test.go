@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/netappaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/netappaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -18,7 +18,7 @@ import (
 
 type NetAppAccountResource struct{}
 
-func TestAccNetAppAccountResource(t *testing.T) {
+func TestAccNetAppAccount_sequential(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests since
 	// Azure allows only one active directory can be joined to a single subscription at a time for NetApp Account.
 	// The CI system runs all tests in parallel, so the tests need to be changed to run one at a time.

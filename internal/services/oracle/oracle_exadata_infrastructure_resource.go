@@ -261,8 +261,8 @@ func (r ExadataInfraResource) Create() sdk.ResourceFunc {
 					HoursOfDay:      pointer.To(model.MaintenanceWindow[0].HoursOfDay),
 					LeadTimeInWeeks: pointer.To(model.MaintenanceWindow[0].LeadTimeInWeeks),
 					Months:          pointer.To(ExpandMonths(model.MaintenanceWindow[0].Months)),
-					PatchingMode:    pointer.To(cloudexadatainfrastructures.PatchingMode(model.MaintenanceWindow[0].PatchingMode)),
-					Preference:      pointer.To(cloudexadatainfrastructures.Preference(model.MaintenanceWindow[0].Preference)),
+					PatchingMode:    pointer.ToEnum[cloudexadatainfrastructures.PatchingMode](model.MaintenanceWindow[0].PatchingMode),
+					Preference:      pointer.ToEnum[cloudexadatainfrastructures.Preference](model.MaintenanceWindow[0].Preference),
 					WeeksOfMonth:    pointer.To(model.MaintenanceWindow[0].WeeksOfMonth),
 				}
 			}
@@ -300,8 +300,7 @@ func (r ExadataInfraResource) Update() sdk.ResourceFunc {
 				update := &cloudexadatainfrastructures.CloudExadataInfrastructureUpdate{
 					Tags: pointer.To(model.Tags),
 				}
-				err = client.UpdateThenPoll(ctx, *id, *update)
-				if err != nil {
+				if err = client.UpdateThenPoll(ctx, *id, *update); err != nil {
 					return fmt.Errorf("updating %s: %v", id, err)
 				}
 			}

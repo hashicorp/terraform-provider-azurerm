@@ -1,6 +1,10 @@
 ---
 name: TeamCity Run Tests on Comment
 
+# Lets maintainers trigger TeamCity acceptance test runs by commenting
+# '/test [-b] [-s service] <TestPrefix>' on a PR. Verifies terraform-azure team
+# membership (or the allow-list) before dispatching via katbyte/tctest.
+
 on:
   issue_comment:
     types: [created]
@@ -93,7 +97,7 @@ jobs:
       TCTEST_FILEREGEX: 'internal/services/[a-z]*/[_a-zA-Z]*(resource|data_source)'
       TCTEST_SKIP_QUEUE: 'true'
       TCTEST_TOKEN_TC: ${{ secrets.TCTEST_TOKEN_TC }}
-      TCTEST_BUILDTYPEID: TF_AzureRM_AZURERM_SERVICE_PUBLIC
+      TCTEST_BUILD_TYPE_ID: TF_AzureRM_AZURERM_SERVICE_PUBLIC
       TCTEST_REPO: terraform-providers/terraform-provider-azurerm
     steps:
       - name: Setup Go
@@ -101,24 +105,18 @@ jobs:
         with:
           go-version: '1.26'
 
-      - name: Get tctest version
-        id: tctest-version
-        run: |
-          LATEST_RELEASE=$(curl -s https://api.github.com/repos/katbyte/tctest/releases/latest | grep "tag_name" | cut -d '"' -f 4)
-          echo "version=${LATEST_RELEASE}" >> $GITHUB_OUTPUT
-          echo "Latest tctest release: $LATEST_RELEASE"
-
       - name: Cache tctest binary
         id: cache-tctest
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
           path: ~/go/bin/tctest
-          key: tctest-${{ runner.os }}-${{ steps.tctest-version.outputs.version }}
+          # keep this key in sync with the pinned version installed below
+          key: tctest-${{ runner.os }}-v1.0.0
 
       - name: Install tctest
         if: steps.cache-tctest.outputs.cache-hit != 'true'
         run: |
-          go install github.com/katbyte/tctest@latest
+          go install github.com/katbyte/tctest@v1.0.0
 
       - name: Get PR commit SHA
         id: get-pr-sha
@@ -138,9 +136,12 @@ jobs:
 
       - name: Run tctest
         id: run-tctest
+        env:
+          # Passed via env rather than interpolated into the script to prevent
+          # shell injection from untrusted comment text (OpenSSF Dangerous-Workflow)
+          COMMENT_BODY: ${{ github.event.comment.body }}
         run: |
           PR_NUMBER=${{ github.event.issue.number }}
-          COMMENT_BODY="${{ github.event.comment.body }}"
           PR_SHA="${{ steps.get-pr-sha.outputs.sha }}"
 
           # Parse flags from comment
@@ -152,8 +153,10 @@ jobs:
           service=""
 
           # Parse flags using getopts
-          # Convert FLAGS_STRING to array for getopts
-          eval set -- $FLAGS_STRING
+          # Split FLAGS_STRING on whitespace WITHOUT eval - eval would execute
+          # command substitutions embedded in the (untrusted) comment text
+          read -ra FLAGS <<< "$FLAGS_STRING"
+          set -- "${FLAGS[@]}"
 
           while getopts ":bs:" opt; do
             case "$opt" in
@@ -173,22 +176,36 @@ jobs:
           echo "Beta version: ${beta}"
           echo "Service: ${service:-all}"
 
-          # Run tctest with parsed flags
+          service_flag=()
           if [ "$service" != "" ]; then
-            tctest pr ${PR_NUMBER} -c --reappend-split-character --service "$service" --properties "TRACKING_ID=${PR_SHA}"
-            if [ "$beta" = true ]; then
-              tctest pr ${PR_NUMBER} -c --reappend-split-character --service "$service" --buildtypeid TF_AzureRM_AZURERM_BETA_VERSION_SERVICE_PUBLIC --properties "TRACKING_ID=${PR_SHA}"
-            fi
-          else
-            tctest pr ${PR_NUMBER} -c --reappend-split-character --properties "TRACKING_ID=${PR_SHA}"
-            if [ "$beta" = true ]; then
-              tctest pr ${PR_NUMBER} -c --reappend-split-character --buildtypeid TF_AzureRM_AZURERM_BETA_VERSION_SERVICE_PUBLIC --properties "TRACKING_ID=${PR_SHA}"
-            fi
+            service_flag=(--service "$service")
           fi
+
+          builds='[]'
+
+          run_tctest() {
+            local out
+            out=$(tctest pr "${PR_NUMBER}" -c -q --reappend-split-character --build-type-id-add-service-suffix --properties "TRACKING_ID=${PR_SHA}" "$@" --json)
+            echo "$out"
+            builds=$(printf '%s\n%s\n' "$builds" "${out:-[]}" | jq -s 'add')
+          }
+
+          run_tctest "${service_flag[@]}"
+          if [ "$beta" = true ]; then
+            run_tctest "${service_flag[@]}" --build-type-id TF_AzureRM_AZURERM_BETA_VERSION_SERVICE_PUBLIC
+          fi
+
+          {
+            echo "builds<<TCTEST_BUILDS_EOF"
+            echo "$builds"
+            echo "TCTEST_BUILDS_EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Comment on success
         if: success()
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        env:
+          BUILDS_JSON: ${{ steps.run-tctest.outputs.builds }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -198,6 +215,27 @@ jobs:
               comment_id: context.payload.comment.id,
               content: 'rocket'
             });
+
+            let builds = [];
+            try {
+              builds = JSON.parse(process.env.BUILDS_JSON || '[]');
+            } catch (error) {
+              core.warning(`Unable to parse tctest build results: ${error.message}`);
+            }
+
+            if (Array.isArray(builds) && builds.length > 0) {
+              const lines = builds.map(b => {
+                const label = b.service ? `\`${b.service}\`` : 'build';
+                return `- ${label}: [#${b.build_number}](${b.url})`;
+              });
+              const appended = `\n\n---\n**TeamCity build${builds.length > 1 ? 's' : ''} triggered:**\n${lines.join('\n')}`;
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: context.payload.comment.id,
+                body: `${context.payload.comment.body}${appended}`
+              });
+            }
 
       - name: Comment on failure
         if: failure()

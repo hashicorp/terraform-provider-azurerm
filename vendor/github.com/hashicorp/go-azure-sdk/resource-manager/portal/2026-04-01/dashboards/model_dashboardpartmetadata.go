@@ -25,9 +25,9 @@ func (s BaseDashboardPartMetadataImpl) DashboardPartMetadata() BaseDashboardPart
 
 var _ DashboardPartMetadata = RawDashboardPartMetadataImpl{}
 
-// RawDashboardPartMetadataImpl is returned when the Discriminated Value doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+// RawDashboardPartMetadataImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawDashboardPartMetadataImpl struct {
 	dashboardPartMetadata BaseDashboardPartMetadataImpl
 	Type                  string
@@ -36,6 +36,10 @@ type RawDashboardPartMetadataImpl struct {
 
 func (s RawDashboardPartMetadataImpl) DashboardPartMetadata() BaseDashboardPartMetadataImpl {
 	return s.dashboardPartMetadata
+}
+
+func (s RawDashboardPartMetadataImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
 }
 
 func UnmarshalDashboardPartMetadataImplementation(input []byte) (DashboardPartMetadata, error) {

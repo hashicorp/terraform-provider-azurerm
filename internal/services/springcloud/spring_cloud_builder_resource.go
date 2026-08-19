@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
@@ -24,7 +23,7 @@ import (
 
 func resourceSpringCloudBuildServiceBuilder() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		DeprecationMessage: features.DeprecatedInFivePointOh("Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_builder` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information."),
+		DeprecationMessage: "Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_builder` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information.",
 
 		Create: resourceSpringCloudBuildServiceBuilderCreateUpdate,
 		Read:   resourceSpringCloudBuildServiceBuilderRead,
@@ -251,12 +250,8 @@ func flattenBuildServiceBuilderBuildPacksGroupPropertiesArray(input *[]appplatfo
 	}
 
 	for _, item := range *input {
-		var name string
-		if item.Name != nil {
-			name = *item.Name
-		}
 		results = append(results, map[string]interface{}{
-			"name":           name,
+			"name":           pointer.From(item.Name),
 			"build_pack_ids": flattenBuildServiceBuilderBuildPackPropertiesArray(item.Buildpacks),
 		})
 	}
@@ -268,18 +263,10 @@ func flattenBuildServiceBuilderStackProperties(input *appplatform.StackPropertie
 		return make([]interface{}, 0)
 	}
 
-	var id string
-	if input.ID != nil {
-		id = *input.ID
-	}
-	var version string
-	if input.Version != nil {
-		version = *input.Version
-	}
 	return []interface{}{
 		map[string]interface{}{
-			"id":      id,
-			"version": version,
+			"id":      pointer.From(input.ID),
+			"version": pointer.From(input.Version),
 		},
 	}
 }
@@ -291,11 +278,7 @@ func flattenBuildServiceBuilderBuildPackPropertiesArray(input *[]appplatform.Bui
 	}
 
 	for _, item := range *input {
-		var id string
-		if item.ID != nil {
-			id = *item.ID
-		}
-		results = append(results, id)
+		results = append(results, pointer.From(item.ID))
 	}
 	return results
 }

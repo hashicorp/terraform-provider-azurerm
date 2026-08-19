@@ -159,10 +159,7 @@ func resourceIotHubCertificateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("reading %s: %v", id, err)
 	}
 
-	etag := ""
-	if existing.Etag != nil {
-		etag = *existing.Etag
-	}
+	etag := pointer.From(existing.Etag)
 
 	if d.HasChange("is_verified") {
 		existing.Properties.IsVerified = pointer.To(d.Get("is_verified").(bool))

@@ -27,8 +27,8 @@ resource "azurerm_storage_account" "example" {
 }
 
 resource "azurerm_storage_queue" "example" {
-  name                 = "mysamplequeue"
-  storage_account_name = azurerm_storage_account.example.name
+  name               = "mysamplequeue"
+  storage_account_id = azurerm_storage_account.example.id
 }
 ```
 
@@ -38,13 +38,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Queue which should be created within the Storage Account. Must be unique within the storage account the queue is located. Changing this forces a new resource to be created.
 
-* `storage_account_name` - (Optional) The name of the Storage Account where the Storage Queue should be created. This property is deprecated in favour of `storage_account_id`.
-
-~> **Note:** Migrating from the deprecated `storage_account_name` to `storage_account_id` is supported without recreation. Any other change to either property will result in the resource being recreated.
-
-* `storage_account_id` - (Optional) The name of the Storage Account where the Storage Queue should be created.
-
-~> **Note:** One of `storage_account_name` or `storage_account_id` must be specified. When specifying `storage_account_id` the resource will use the Resource Manager API, rather than the Data Plane API.
+* `storage_account_id` - (Required) The ID of the Storage Account where the Storage Queue should be created. Changing this forces a new resource to be created.
 
 * `metadata` - (Optional) A mapping of MetaData which should be assigned to this Storage Queue.
 
@@ -53,8 +47,6 @@ The following arguments are supported:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Storage Queue.
-
-* `resource_manager_id` - The Resource Manager ID of this Storage Queue.
 
 * `url` - The data plane URL of the Storage Queue in the format of `<storage queue endpoint>/<queue name>`. E.g. `https://example.queue.core.windows.net/queue1`.
 
@@ -70,14 +62,6 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 ## Import
 
 Storage Queue's can be imported using the `resource id`, e.g.
-
-If `storage_account_name` is used:
-
-```shell
-terraform import azurerm_storage_queue.queue1 https://example.queue.core.windows.net/queue1
-```
-
-If `storage_account_id` is used:
 
 ```shell
 terraform import azurerm_storage_queue.queue1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Storage/storageAccounts/myaccount/queueServices/default/queues/queue1

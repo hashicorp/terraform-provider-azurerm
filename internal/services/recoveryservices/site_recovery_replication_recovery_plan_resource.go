@@ -472,9 +472,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Update() sdk.ResourceFunc {
 
 			groupValue = *resp.Model.Properties.Groups
 
-			if metadata.ResourceData.HasChange("boot_recovery_group") ||
-				metadata.ResourceData.HasChange("failover_recovery_group") ||
-				metadata.ResourceData.HasChange("shutdown_recovery_group") {
+			if metadata.ResourceData.HasChanges("boot_recovery_group", "failover_recovery_group", "shutdown_recovery_group") {
 				groupValue, err = expandRecoveryGroup(model.ShutdownRecoveryGroup, model.FailoverRecoveryGroup, model.BootRecoveryGroup)
 			}
 
@@ -488,8 +486,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Update() sdk.ResourceFunc {
 				},
 			}
 
-			err = client.UpdateThenPoll(ctx, *id, parameters)
-			if err != nil {
+			if err = client.UpdateThenPoll(ctx, *id, parameters); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -509,8 +506,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			err = client.DeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting site recovery protection replication plan %q : %+v", id, err)
 			}
 
