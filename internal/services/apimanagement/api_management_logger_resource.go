@@ -212,8 +212,7 @@ func resourceApiManagementLoggerCreate(d *pluginsdk.ResourceData, meta interface
 
 	if len(eventHubRaw) > 0 {
 		parameters.Properties.LoggerType = logger.LoggerTypeAzureEventHub
-		credentials := expandApiManagementLoggerEventHub(eventHubRaw)
-		parameters.Properties.Credentials = credentials
+		parameters.Properties.Credentials = expandApiManagementLoggerEventHub(eventHubRaw)
 	} else if len(appInsightsRaw) > 0 {
 		parameters.Properties.LoggerType = logger.LoggerTypeApplicationInsights
 		parameters.Properties.Credentials = expandApiManagementLoggerApplicationInsights(appInsightsRaw)
@@ -290,8 +289,7 @@ func resourceApiManagementLoggerUpdate(d *pluginsdk.ResourceData, meta interface
 
 	if hasEventHub {
 		parameters.Properties.LoggerType = pointer.To(logger.LoggerTypeAzureEventHub)
-		credentials := expandApiManagementLoggerEventHub(eventHubRaw.([]interface{}))
-		parameters.Properties.Credentials = credentials
+		parameters.Properties.Credentials = expandApiManagementLoggerEventHub(eventHubRaw.([]interface{}))
 	} else if hasAppInsights {
 		parameters.Properties.LoggerType = pointer.To(logger.LoggerTypeApplicationInsights)
 		parameters.Properties.Credentials = expandApiManagementLoggerApplicationInsights(appInsightsRaw.([]interface{}))

@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
@@ -87,7 +86,7 @@ func (r WindowsWebAppSlotResource) IDValidationFunc() pluginsdk.SchemaValidateFu
 }
 
 func (r WindowsWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -225,16 +224,6 @@ func (r WindowsWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: commonids.ValidateSubnetID,
 		},
 	}
-
-	if !features.FivePointOh() {
-		s["virtual_network_image_pull_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Computed: true,
-		}
-	}
-
-	return s
 }
 
 func (r WindowsWebAppSlotResource) Attributes() map[string]*pluginsdk.Schema {
@@ -374,25 +363,14 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 					SiteConfig:               siteConfig,
 					ClientAffinityEnabled:    pointer.To(webAppSlot.ClientAffinityEnabled),
 					ClientCertEnabled:        pointer.To(webAppSlot.ClientCertEnabled),
-					ClientCertMode:           pointer.To(webapps.ClientCertMode(webAppSlot.ClientCertMode)),
+					ClientCertMode:           pointer.ToEnum[webapps.ClientCertMode](webAppSlot.ClientCertMode),
 					ClientCertExclusionPaths: pointer.To(webAppSlot.ClientCertExclusionPaths),
 					VnetBackupRestoreEnabled: pointer.To(webAppSlot.VirtualNetworkBackupRestoreEnabled),
 					VnetRouteAllEnabled:      siteConfig.VnetRouteAllEnabled,
 				},
 			}
 
-			if !features.FivePointOh() {
-				rawVnetImagePullEnabled, err := metadata.GetRawConfigAt("virtual_network_image_pull_enabled")
-				if err != nil {
-					return err
-				}
-
-				if !rawVnetImagePullEnabled.IsNull() {
-					siteEnvelope.Properties.VnetImagePullEnabled = pointer.To(webAppSlot.VirtualNetworkImagePullEnabled)
-				}
-			} else {
-				siteEnvelope.Properties.VnetImagePullEnabled = pointer.To(webAppSlot.VirtualNetworkImagePullEnabled)
-			}
+			siteEnvelope.Properties.VnetImagePullEnabled = pointer.To(webAppSlot.VirtualNetworkImagePullEnabled)
 
 			if differentServicePlanToParent {
 				siteEnvelope.Properties.ServerFarmId = pointer.To(servicePlanId.ID())
@@ -839,7 +817,7 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 				model.Properties.ClientCertEnabled = pointer.To(state.ClientCertEnabled)
 			}
 			if metadata.ResourceData.HasChange("client_certificate_mode") {
-				model.Properties.ClientCertMode = pointer.To(webapps.ClientCertMode(state.ClientCertMode))
+				model.Properties.ClientCertMode = pointer.ToEnum[webapps.ClientCertMode](state.ClientCertMode)
 			}
 			if metadata.ResourceData.HasChange("client_certificate_exclusion_paths") {
 				model.Properties.ClientCertExclusionPaths = pointer.To(state.ClientCertExclusionPaths)

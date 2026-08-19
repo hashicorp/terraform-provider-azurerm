@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01/amlfilesystems"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storagecache/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -129,7 +128,7 @@ func (r ManagedLustreFileSystemResource) IDValidationFunc() pluginsdk.SchemaVali
 }
 
 func (r ManagedLustreFileSystemResource) Arguments() map[string]*pluginsdk.Schema {
-	args := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -275,12 +274,6 @@ func (r ManagedLustreFileSystemResource) Arguments() map[string]*pluginsdk.Schem
 
 		"tags": commonschema.Tags(),
 	}
-
-	if !features.FivePointOh() {
-		args["encryption_key"].Elem.(*pluginsdk.Resource).Schema["key_url"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny)
-	}
-
-	return args
 }
 
 func (r ManagedLustreFileSystemResource) Attributes() map[string]*pluginsdk.Schema {
@@ -564,7 +557,7 @@ func expandRootSquashSettings(input []RootSquashSetting) *amlfilesystems.AmlFile
 	rootSquashSetting := &input[0]
 
 	return &amlfilesystems.AmlFilesystemRootSquashSettings{
-		Mode:             pointer.To(amlfilesystems.AmlFilesystemSquashMode(rootSquashSetting.Mode)),
+		Mode:             pointer.ToEnum[amlfilesystems.AmlFilesystemSquashMode](rootSquashSetting.Mode),
 		NoSquashNidLists: pointer.To(rootSquashSetting.NoSquashNidList),
 		SquashGID:        pointer.To(rootSquashSetting.SquashGID),
 		SquashUID:        pointer.To(rootSquashSetting.SquashUID),

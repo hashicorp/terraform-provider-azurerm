@@ -160,7 +160,7 @@ Many Azure APIs and services will accept the values like `None`, `Off`, or `Defa
       ],
 ```
 
-Whilst it isn't uncommon to stumble across older resources in the provider that expose and accept these as a valid values, the provider is moving away from this pattern, since Terraform has its own null type i.e. by omitting the field. Existing `None`, `Off` or `Default` values within the provider are planned for removal in version 4.0.
+Whilst it isn't uncommon to stumble across older resources in the provider that expose and accept these as a valid values, the provider is moving away from this pattern, since Terraform has its own null type i.e. by omitting the field. Existing `None`, `Off` or `Default` values within the provider are planned for removal in a future major version.
 
 This ultimately means that the end user doesn't need to bloat their configuration with superfluous information that is implied through the omission of information.
 

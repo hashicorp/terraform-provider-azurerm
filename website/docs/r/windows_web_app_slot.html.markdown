@@ -188,7 +188,7 @@ An `application_stack` block supports the following:
 
 ~> **Note:** For compatible combinations of `java_version`, `java_container` and `java_container_version` users can use `az webapp list-runtimes` from command line.
 
-* `node_version` - (Optional) The version of node to use when `current_stack` is set to `node`. Possible values include `~12`, `~14`, `~16`, `~18`, `~20` and `~22`.
+* `node_version` - (Optional) The version of node to use when `current_stack` is set to `node`. Possible values include `~12`, `~14`, `~16`, `~18`, `~20`, `~22` and `~24`.
 
 ~> **Note:** This property conflicts with `java_version`.
 

@@ -333,7 +333,7 @@ func expandEmissionPolicyDestinationModelArray(inputList []string) *[]collectorp
 	outputList := make([]collectorpolicies.EmissionPolicyDestination, 0, len(inputList))
 	for _, v := range inputList {
 		output := collectorpolicies.EmissionPolicyDestination{
-			DestinationType: pointer.To(collectorpolicies.DestinationType(v)),
+			DestinationType: pointer.ToEnum[collectorpolicies.DestinationType](v),
 		}
 
 		outputList = append(outputList, output)

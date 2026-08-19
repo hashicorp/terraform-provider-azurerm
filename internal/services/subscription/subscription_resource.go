@@ -384,10 +384,7 @@ func resourceSubscriptionDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	if err != nil || alias.Model == nil || alias.Model.Properties == nil {
 		return fmt.Errorf("could not read Alias %q for Subscription: %+v", id.AliasName, err)
 	}
-	subscriptionId := ""
-	if subscriptionIdRaw := alias.Model.Properties.SubscriptionId; subscriptionIdRaw != nil {
-		subscriptionId = *subscriptionIdRaw
-	}
+	subscriptionId := pointer.From(alias.Model.Properties.SubscriptionId)
 	locks.ByID(subscriptionId)
 	defer locks.UnlockByID(subscriptionId)
 
