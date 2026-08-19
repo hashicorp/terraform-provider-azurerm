@@ -139,6 +139,9 @@ func (r CognitiveAccountProjectResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
+			locks.ByID(accountId.ID())
+			defer locks.UnlockByID(accountId.ID())
+
 			id := cognitiveservicesprojects.NewProjectID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.AccountName, model.Name)
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
@@ -188,6 +191,10 @@ func (r CognitiveAccountProjectResource) Update() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
+
+			accountId := cognitiveservicesprojects.NewAccountID(id.SubscriptionId, id.ResourceGroupName, id.AccountName)
+			locks.ByID(accountId.ID())
+			defer locks.UnlockByID(accountId.ID())
 
 			var model CognitiveAccountProjectModel
 			if err := metadata.Decode(&model); err != nil {
@@ -300,9 +307,9 @@ func (r CognitiveAccountProjectResource) Delete() sdk.ResourceFunc {
 
 			// lock by parent account id
 			// deletion of multiple projects or other account sub-resource in same account must be made in serial
-			acctId := cognitiveservicesprojects.NewAccountID(id.SubscriptionId, id.ResourceGroupName, id.AccountName)
-			locks.ByID(acctId.ID())
-			defer locks.UnlockByID(acctId.ID())
+			accountId := cognitiveservicesprojects.NewAccountID(id.SubscriptionId, id.ResourceGroupName, id.AccountName)
+			locks.ByID(accountId.ID())
+			defer locks.UnlockByID(accountId.ID())
 
 			if err := client.ProjectsDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
