@@ -238,7 +238,7 @@ func resourceFirewall() *pluginsdk.Resource {
 						"max_capacity": {
 							Type:         pluginsdk.TypeInt,
 							Required:     true,
-							ValidateFunc: validation.IntAtLeast(2),
+							ValidateFunc: validation.IntBetween(2, 50),
 						},
 					},
 				},
