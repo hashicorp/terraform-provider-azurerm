@@ -33,36 +33,25 @@ func dataSourceAutomationAccount() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
-
-			"primary_key": {
+			"dsc_server_endpoint": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
-			"secondary_key": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+			"dsc_primary_access_key": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
-			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
+			"dsc_secondary_access_key": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
 
 			"endpoint": {
 				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"location": commonschema.LocationComputed(),
-
-			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"tags": commonschema.TagsDataSource(),
-
-			"public_network_access_enabled": {
-				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
@@ -84,26 +73,23 @@ func dataSourceAutomationAccount() *pluginsdk.Resource {
 				},
 			},
 
+			"hybrid_service_url": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
+
+			"location": commonschema.LocationComputed(),
+
 			"local_authentication_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
-			"dsc_server_endpoint": {
+			"primary_key": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
-			},
-
-			"dsc_primary_access_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
-			"dsc_secondary_access_key": {
-				Type:      pluginsdk.TypeString,
-				Computed:  true,
-				Sensitive: true,
 			},
 
 			"private_endpoint_connection": {
@@ -123,10 +109,24 @@ func dataSourceAutomationAccount() *pluginsdk.Resource {
 				},
 			},
 
-			"hybrid_service_url": {
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+
+			"secondary_key": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+
+			"sku_name": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
@@ -174,7 +174,6 @@ func dataSourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}
 			if err := d.Set("encryption", flattenEncryption(props.Encryption)); err != nil {
 				return fmt.Errorf("setting `encryption`: %+v", err)
 			}
-
 		}
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err

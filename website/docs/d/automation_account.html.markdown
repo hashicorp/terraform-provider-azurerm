@@ -31,40 +31,38 @@ output "automation_account_id" {
 
 ## Attributes Reference
 
-* `id` - The ID of the Automation Account
-
-* `primary_key` - The Primary Access Key for the Automation Account.
-
-* `secondary_key` - The Secondary Access Key for the Automation Account.
-
-* `identity` -  An `identity` block as defined below.
-
-* `endpoint` - The Endpoint for this Automation Account.
-
-* `hybrid_service_url` - The URL of automation hybrid service which is used for 
-hybrid worker on-boarding With this Automation Account.
-
-* `location` -  Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
-
-* `sku_name` -  The SKU of the account. Possible values are `Basic` and `Free`.
-
----
-
-* `local_authentication_enabled` - (Optional) Whether requests using non-AAD authentication are blocked. Defaults to `true`.
-
-* `public_network_access_enabled` - (Optional) Whether public network access is allowed for the automation account. Defaults to `true`.
-
-* `identity` -  An `identity` block as defined below.
-
-* `tags` -  A mapping of tags to assign to the resource.
-
-* `encryption` -  An `encryption` block as defined below.
-
 * `dsc_server_endpoint` - The DSC Server Endpoint associated with this Automation Account.
 
 * `dsc_primary_access_key` - The Primary Access Key for the DSC Endpoint associated with this Automation Account.
 
 * `dsc_secondary_access_key` - The Secondary Access Key for the DSC Endpoint associated with this Automation Account.
+
+* `encryption` -  An `encryption` block as defined below.
+
+* `endpoint` - The Endpoint for this Automation Account.
+
+
+* `hybrid_service_url` - The URL of automation hybrid service which is used for 
+hybrid worker on-boarding With this Automation Account.
+
+* `id` - The ID of the Automation Account
+
+* `identity` -  An `identity` block as defined below.
+
+* `location` -  Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
+
+* `local_authentication_enabled` -  Whether requests using non-AAD authentication are blocked. Defaults to `true`.
+
+* `primary_key` - The Primary Access Key for the Automation Account.
+
+* `public_network_access_enabled` -  Whether public network access is allowed for the automation account. Defaults to `true`.
+
+* `secondary_key` - The Secondary Access Key for the Automation Account.
+
+* `sku_name` -  The SKU of the account. Possible values are `Basic` and `Free`.
+
+* `tags` -  A mapping of tags to assign to the resource.
+
 ---
 
 An `identity` block exports the following:
