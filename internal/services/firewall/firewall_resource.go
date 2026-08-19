@@ -280,6 +280,10 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("validating %s: %+v", id, err)
 	}
 
+	if err := validateFirewallAutoscaleConfiguration(d.Get("sku_tier").(string), d.Get("autoscale_configuration").([]interface{})); err != nil {
+		return fmt.Errorf("validating %s: %+v", id, err)
+	}
+
 	location := location.Normalize(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 	i := d.Get("ip_configuration").([]interface{})
@@ -884,6 +888,18 @@ func flattenFirewallVirtualHubSetting(props *azurefirewalls.AzureFirewallPropert
 			"private_ip_address":  privateIp,
 		},
 	}
+}
+
+func validateFirewallAutoscaleConfiguration(skuTier string, configs []interface{}) error {
+	if len(configs) == 0 {
+		return nil
+	}
+
+	if skuTier == string(azurefirewalls.AzureFirewallSkuTierBasic) {
+		return fmt.Errorf("`autoscale_configuration` cannot be configured when `sku_tier` is set to `Basic`")
+	}
+
+	return nil
 }
 
 func validateFirewallIPConfigurationSettings(configs []interface{}) error {
