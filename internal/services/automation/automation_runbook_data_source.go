@@ -70,68 +70,15 @@ func (d AutomationRunbookDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
 
-		"description": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"log_progress": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		},
-
-		"log_verbose": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		},
-
-		"runbook_type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"log_activity_trace_level": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
-		},
-
 		"content": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
-		"job_schedule": {
-			Type:     pluginsdk.TypeList,
+		"description": {
+			Type:     pluginsdk.TypeString,
 			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"schedule_name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"parameters": {
-						Type:     pluginsdk.TypeMap,
-						Computed: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-						},
-					},
-
-					"run_on": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"job_schedule_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
-			},
 		},
-
-		"publish_content_link": contentLinkSchemaDataSource(),
 
 		"draft": {
 			Type:     pluginsdk.TypeList,
@@ -197,6 +144,59 @@ func (d AutomationRunbookDataSource) Attributes() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
+
+		"job_schedule": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"schedule_name": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"parameters": {
+						Type:     pluginsdk.TypeMap,
+						Computed: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+
+					"run_on": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"job_schedule_id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		},
+
+		"log_progress": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
+		"log_verbose": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
+		"log_activity_trace_level": {
+			Type:     pluginsdk.TypeInt,
+			Computed: true,
+		},
+
+		"runbook_type": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"publish_content_link": contentLinkSchemaDataSource(),
 
 		"runtime_environment_name": {
 			Type:     pluginsdk.TypeString,
