@@ -689,6 +689,18 @@ A `response_header_configuration` block exports the following:
 
 * `header_value` - Header value of the header configuration.
 
+* `header_value_matcher` - A `header_value_matcher` block as defined below.
+
+---
+
+A `header_value_matcher` block exports the following:
+
+* `pattern` - The regular expression that evaluates the truthfulness of the header value match.
+
+* `ignore_case` - Whether a case insensitive comparison is performed.
+
+* `negate` - Whether the result of the pattern evaluation is negated.
+
 ---
 
 A `url` block exports the following:
