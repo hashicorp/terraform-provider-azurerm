@@ -1,6 +1,7 @@
 ## 5.2.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_databricks_workspace` - remove a redundant key vault existence check [GH-33136]
 * `azurerm_redhat_openshift_cluster` - add support for the `network_profile.load_balancer_profile` block [GH-32473]
 * `azurerm_redhat_openshift_cluster` - add support for the `platform_workload_identity_profile` block [GH-32473]
 * dependencies: `go` - update to `1.26.6` [GH-33141]
