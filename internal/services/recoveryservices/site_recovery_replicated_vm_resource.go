@@ -637,7 +637,7 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 		},
 	}
 
-	if err = client.UpdateThenPoll(ctx, id, updateParameters);err != nil {
+	if err = client.UpdateThenPoll(ctx, id, updateParameters); err != nil {
 		return fmt.Errorf("updating replicated vm %s (vault %s): %+v", name, vaultName, err)
 	}
 
@@ -737,7 +737,7 @@ func resourceSiteRecoveryReplicatedItemUpdate(d *pluginsdk.ResourceData, meta in
 
 			vmManagedDisks = append(vmManagedDisks, diskInputDetails)
 		}
-		
+
 		if err = client.AddDisksThenPoll(ctx, id, replicationprotecteditems.AddDisksInput{
 			Properties: &replicationprotecteditems.AddDisksInputProperties{
 				ProviderSpecificDetails: replicationprotecteditems.A2AAddDisksInput{
