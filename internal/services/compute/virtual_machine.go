@@ -117,13 +117,9 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"caching": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(virtualmachines.CachingTypesNone),
-						string(virtualmachines.CachingTypesReadOnly),
-						string(virtualmachines.CachingTypesReadWrite),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForCachingTypes(), false),
 				},
 
 				"storage_account_type": {
@@ -163,23 +159,17 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"option": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-								ForceNew: true,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(virtualmachines.DiffDiskOptionsLocal),
-								}, false),
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ForceNew:     true,
+								ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForDiffDiskOptions(), false),
 							},
 							"placement": {
-								Type:     pluginsdk.TypeString,
-								Optional: true,
-								ForceNew: true,
-								Default:  string(virtualmachines.DiffDiskPlacementCacheDisk),
-								ValidateFunc: validation.StringInSlice([]string{
-									string(virtualmachines.DiffDiskPlacementCacheDisk),
-									string(virtualmachines.DiffDiskPlacementResourceDisk),
-									string(virtualmachines.DiffDiskPlacementNVMeDisk),
-								}, false),
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								ForceNew:     true,
+								Default:      string(virtualmachines.DiffDiskPlacementCacheDisk),
+								ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForDiffDiskPlacement(), false),
 							},
 						},
 					},

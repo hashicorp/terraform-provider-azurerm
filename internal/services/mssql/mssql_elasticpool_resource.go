@@ -185,22 +185,16 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 			// DC skus, where elasticpools allows 'Default' but will error if you try to set the
 			// 'enclave_type' to 'VBS' for DC skus...
 			"enclave_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(databases.AlwaysEncryptedEnclaveTypeVBS),
-					string(databases.AlwaysEncryptedEnclaveTypeDefault),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(databases.PossibleValuesForAlwaysEncryptedEnclaveType(), false),
 			},
 
 			"license_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(elasticpools.ElasticPoolLicenseTypeBasePrice),
-					string(elasticpools.ElasticPoolLicenseTypeLicenseIncluded),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(elasticpools.PossibleValuesForElasticPoolLicenseType(), false),
 			},
 
 			"high_availability_replica_count": {

@@ -50,12 +50,9 @@ func dataSourcePublicIPSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"allocation_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(publicipaddresses.IPAllocationMethodDynamic),
-				string(publicipaddresses.IPAllocationMethodStatic),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(publicipaddresses.PossibleValuesForIPAllocationMethod(), false),
 		},
 
 		"public_ips": {

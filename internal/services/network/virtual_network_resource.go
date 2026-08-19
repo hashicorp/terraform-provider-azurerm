@@ -134,12 +134,9 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"enforcement": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(virtualnetworks.VirtualNetworkEncryptionEnforcementDropUnencrypted),
-							string(virtualnetworks.VirtualNetworkEncryptionEnforcementAllowUnencrypted),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(virtualnetworks.PossibleValuesForVirtualNetworkEncryptionEnforcement(), false),
 					},
 				},
 			},

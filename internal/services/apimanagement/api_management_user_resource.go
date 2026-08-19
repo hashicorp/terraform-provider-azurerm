@@ -64,13 +64,10 @@ func resourceApiManagementUser() *pluginsdk.Resource {
 			},
 
 			"confirmation": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(user.ConfirmationInvite),
-					string(user.ConfirmationSignup),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(user.PossibleValuesForConfirmation(), false),
 			},
 
 			"note": {

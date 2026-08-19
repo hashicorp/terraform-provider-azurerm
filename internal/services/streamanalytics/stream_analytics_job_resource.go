@@ -75,13 +75,8 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				// NOTE: O+C Best Practice from MSFT is to use the latest version 1.2, but API uses 1.0 as the default
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					// values found in the other API the portal uses
-					string(streamingjobs.CompatibilityLevelOnePointZero),
-					"1.1",
-					string(streamingjobs.CompatibilityLevelOnePointTwo),
-				}, false),
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(streamingjobs.PossibleValuesForCompatibilityLevel(), false),
 			},
 
 			"data_locale": {
@@ -108,34 +103,25 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 			},
 
 			"events_out_of_order_policy": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(streamingjobs.EventsOutOfOrderPolicyAdjust),
-					string(streamingjobs.EventsOutOfOrderPolicyDrop),
-				}, false),
-				Default: string(streamingjobs.EventsOutOfOrderPolicyAdjust),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(streamingjobs.PossibleValuesForEventsOutOfOrderPolicy(), false),
+				Default:      string(streamingjobs.EventsOutOfOrderPolicyAdjust),
 			},
 
 			"type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(streamingjobs.JobTypeCloud),
-					string(streamingjobs.JobTypeEdge),
-				}, false),
-				Default: string(streamingjobs.JobTypeCloud),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(streamingjobs.PossibleValuesForJobType(), false),
+				Default:      string(streamingjobs.JobTypeCloud),
 			},
 
 			"output_error_policy": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(streamingjobs.OutputErrorPolicyDrop),
-					string(streamingjobs.OutputErrorPolicyStop),
-				}, false),
-				Default: string(streamingjobs.OutputErrorPolicyDrop),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(streamingjobs.PossibleValuesForOutputErrorPolicy(), false),
+				Default:      string(streamingjobs.OutputErrorPolicyDrop),
 			},
 
 			"streaming_units": {
@@ -145,13 +131,10 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 			},
 
 			"content_storage_policy": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(streamingjobs.ContentStoragePolicySystemAccount),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(streamingjobs.ContentStoragePolicySystemAccount),
-					string(streamingjobs.ContentStoragePolicyJobStorageAccount),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(streamingjobs.ContentStoragePolicySystemAccount),
+				ValidateFunc: validation.StringInSlice(streamingjobs.PossibleValuesForContentStoragePolicy(), false),
 			},
 
 			"job_storage_account": {
@@ -200,13 +183,10 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 			},
 
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(streamingjobs.SkuNameStandard),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(streamingjobs.SkuNameStandard),
-					"StandardV2", // missing from swagger as described here https://github.com/Azure/azure-rest-api-specs/issues/27506
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(streamingjobs.SkuNameStandard),
+				ValidateFunc: validation.StringInSlice(streamingjobs.PossibleValuesForSkuName(), false),
 			},
 
 			"tags": commonschema.Tags(),

@@ -54,9 +54,5 @@ func DevTestVirtualMachineName(maxLength int) pluginsdk.SchemaValidateFunc {
 }
 
 func DevTestVirtualNetworkUsagePermissionType() pluginsdk.SchemaValidateFunc {
-	return validation.StringInSlice([]string{
-		string(virtualnetworks.UsagePermissionTypeAllow),
-		string(virtualnetworks.UsagePermissionTypeDefault),
-		string(virtualnetworks.UsagePermissionTypeDeny),
-	}, false)
+	return validation.StringInSlice(virtualnetworks.PossibleValuesForUsagePermissionType(), false)
 }

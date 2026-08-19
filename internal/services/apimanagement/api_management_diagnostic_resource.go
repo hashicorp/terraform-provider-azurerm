@@ -77,14 +77,10 @@ func resourceApiManagementDiagnostic() *pluginsdk.Resource {
 			},
 
 			"verbosity": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(diagnostic.VerbosityVerbose),
-					string(diagnostic.VerbosityInformation),
-					string(diagnostic.VerbosityError),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(diagnostic.PossibleValuesForVerbosity(), false),
 			},
 
 			"log_client_ip": {
@@ -94,14 +90,10 @@ func resourceApiManagementDiagnostic() *pluginsdk.Resource {
 			},
 
 			"http_correlation_protocol": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(diagnostic.HTTPCorrelationProtocolNone),
-					string(diagnostic.HTTPCorrelationProtocolLegacy),
-					string(diagnostic.HTTPCorrelationProtocolWThreeC),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(diagnostic.PossibleValuesForHTTPCorrelationProtocol(), false),
 			},
 
 			"frontend_request": resourceApiManagementApiDiagnosticAdditionalContentSchema(),
@@ -113,12 +105,9 @@ func resourceApiManagementDiagnostic() *pluginsdk.Resource {
 			"backend_response": resourceApiManagementApiDiagnosticAdditionalContentSchema(),
 
 			"operation_name_format": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(diagnostic.OperationNameFormatName),
-					string(diagnostic.OperationNameFormatURL),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(diagnostic.PossibleValuesForOperationNameFormat(), false),
 			},
 		},
 

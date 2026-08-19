@@ -75,12 +75,9 @@ func resourceHealthcareApisMedTechServiceFhirDestination() *pluginsdk.Resource {
 			},
 
 			"destination_identity_resolution_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(iotconnectors.IotIdentityResolutionTypeCreate),
-					string(iotconnectors.IotIdentityResolutionTypeLookup),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(iotconnectors.PossibleValuesForIotIdentityResolutionType(), false),
 			},
 
 			"destination_fhir_mapping_json": {

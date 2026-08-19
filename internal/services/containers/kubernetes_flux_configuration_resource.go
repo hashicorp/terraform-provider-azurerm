@@ -586,14 +586,11 @@ func (r KubernetesFluxConfigurationResource) Arguments() map[string]*pluginsdk.S
 		},
 
 		"scope": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(fluxconfiguration.ScopeTypeNamespace),
-				string(fluxconfiguration.ScopeTypeCluster),
-			}, false),
-			Default: string(fluxconfiguration.ScopeTypeNamespace),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(fluxconfiguration.PossibleValuesForScopeType(), false),
+			Default:      string(fluxconfiguration.ScopeTypeNamespace),
 		},
 
 		"continuous_reconciliation_enabled": {

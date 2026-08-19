@@ -112,14 +112,10 @@ func resourceSharedImageVersion() *pluginsdk.Resource {
 						// And `CustomizeDiff` also cannot be used since it doesn't support in a `Set`.
 						// So currently terraform would directly return the error message from Service API while updating this property. If this property needs to be updated, please recreate this pluginsdk.
 						"storage_account_type": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(galleryimageversions.StorageAccountTypePremiumLRS),
-								string(galleryimageversions.StorageAccountTypeStandardLRS),
-								string(galleryimageversions.StorageAccountTypeStandardZRS),
-							}, false),
-							Default: string(galleryimageversions.StorageAccountTypeStandardLRS),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(galleryimageversions.PossibleValuesForStorageAccountType(), false),
+							Default:      string(galleryimageversions.StorageAccountTypeStandardLRS),
 						},
 					},
 				},
@@ -169,14 +165,11 @@ func resourceSharedImageVersion() *pluginsdk.Resource {
 			},
 
 			"replication_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(galleryimageversions.ReplicationModeFull),
-					string(galleryimageversions.ReplicationModeShallow),
-				}, false),
-				Default: galleryimageversions.ReplicationModeFull,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(galleryimageversions.PossibleValuesForReplicationMode(), false),
+				Default:      galleryimageversions.ReplicationModeFull,
 			},
 
 			"exclude_from_latest": {

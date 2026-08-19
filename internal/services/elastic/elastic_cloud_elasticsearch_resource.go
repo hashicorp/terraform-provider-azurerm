@@ -97,12 +97,9 @@ func resourceElasticsearch() *pluginsdk.Resource {
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"action": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(rules.TagActionExclude),
-											string(rules.TagActionInclude),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(rules.PossibleValuesForTagAction(), false),
 									},
 								},
 							},

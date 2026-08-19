@@ -172,32 +172,19 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"os": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(tasks.OSWindows),
-							string(tasks.OSLinux),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(tasks.PossibleValuesForOS(), false),
 					},
 					"architecture": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(tasks.ArchitectureAmdSixFour),
-							string(tasks.ArchitectureArm),
-							string(tasks.ArchitectureArmSixFour),
-							string(tasks.ArchitectureThreeEightSix),
-							string(tasks.ArchitectureXEightSix),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringInSlice(tasks.PossibleValuesForArchitecture(), false),
 					},
 					"variant": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(tasks.VariantVSix),
-							string(tasks.VariantVSeven),
-							string(tasks.VariantVEight),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringInSlice(tasks.PossibleValuesForVariant(), false),
 					},
 				},
 			},
@@ -371,12 +358,9 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(tasks.BaseImageTriggerTypeAll),
-							string(tasks.BaseImageTriggerTypeRuntime),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(tasks.PossibleValuesForBaseImageTriggerType(), false),
 					},
 					"enabled": {
 						Type:     pluginsdk.TypeBool,
@@ -390,12 +374,9 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"update_trigger_payload_type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(tasks.UpdateTriggerPayloadTypeDefault),
-							string(tasks.UpdateTriggerPayloadTypeToken),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringInSlice(tasks.PossibleValuesForUpdateTriggerPayloadType(), false),
 					},
 				},
 			},
@@ -414,20 +395,14 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 						Type:     pluginsdk.TypeList,
 						Required: true,
 						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(tasks.SourceTriggerEventCommit),
-								string(tasks.SourceTriggerEventPullrequest),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.StringInSlice(tasks.PossibleValuesForSourceTriggerEvent(), false),
 						},
 					},
 					"source_type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(tasks.SourceControlTypeGithub),
-							string(tasks.SourceControlTypeVisualStudioTeamService),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(tasks.PossibleValuesForSourceControlType(), false),
 					},
 					"repository_url": {
 						Type:         pluginsdk.TypeString,
@@ -445,12 +420,9 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"token_type": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										string(tasks.TokenTypePAT),
-										string(tasks.TokenTypeOAuth),
-									}, false),
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(tasks.PossibleValuesForTokenType(), false),
 								},
 								"token": {
 									Type:         pluginsdk.TypeString,
@@ -522,12 +494,9 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"login_mode": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										string(tasks.SourceRegistryLoginModeNone),
-										string(tasks.SourceRegistryLoginModeDefault),
-									}, false),
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(tasks.PossibleValuesForSourceRegistryLoginMode(), false),
 								},
 							},
 						},

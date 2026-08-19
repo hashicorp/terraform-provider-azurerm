@@ -172,19 +172,10 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			},
 
 			"version": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(servers.PostgresMajorVersionOneOne),
-					string(servers.PostgresMajorVersionOneTwo),
-					string(servers.PostgresMajorVersionOneThree),
-					string(servers.PostgresMajorVersionOneFour),
-					string(servers.PostgresMajorVersionOneFive),
-					string(servers.PostgresMajorVersionOneSix),
-					string(servers.PostgresMajorVersionOneSeven),
-					string(servers.PostgresMajorVersionOneEight),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(servers.PossibleValuesForPostgresMajorVersion(), false),
 			},
 
 			"zone": commonschema.ZoneSingleOptional(),
@@ -286,12 +277,9 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"mode": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(servers.HighAvailabilityModeZoneRedundant),
-								string(servers.HighAvailabilityModeSameZone),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(servers.PossibleValuesForHighAvailabilityMode(), false),
 						},
 
 						"standby_availability_zone": commonschema.ZoneSingleOptional(),

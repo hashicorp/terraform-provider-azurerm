@@ -96,13 +96,9 @@ func resourceRedisCache() *pluginsdk.Resource {
 			},
 
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(redisresources.SkuNameBasic),
-					string(redisresources.SkuNameStandard),
-					string(redisresources.SkuNamePremium),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(redisresources.PossibleValuesForSkuName(), false),
 			},
 
 			"minimum_tls_version": {

@@ -1605,12 +1605,9 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"enclave_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(databases.AlwaysEncryptedEnclaveTypeVBS),
-				string(databases.AlwaysEncryptedEnclaveTypeDefault),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(databases.PossibleValuesForAlwaysEncryptedEnclaveType(), false),
 		},
 
 		"license_type": {

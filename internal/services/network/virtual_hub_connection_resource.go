@@ -136,14 +136,11 @@ func resourceVirtualHubConnection() *pluginsdk.Resource {
 						},
 
 						"static_vnet_local_route_override_criteria": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ForceNew: true,
-							Default:  string(virtualwans.VnetLocalRouteOverrideCriteriaContains),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(virtualwans.VnetLocalRouteOverrideCriteriaContains),
-								string(virtualwans.VnetLocalRouteOverrideCriteriaEqual),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							Default:      string(virtualwans.VnetLocalRouteOverrideCriteriaContains),
+							ValidateFunc: validation.StringInSlice(virtualwans.PossibleValuesForVnetLocalRouteOverrideCriteria(), false),
 						},
 
 						"static_vnet_propagate_static_routes_enabled": {
