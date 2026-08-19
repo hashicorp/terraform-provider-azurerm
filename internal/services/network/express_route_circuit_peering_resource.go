@@ -281,7 +281,7 @@ func resourceExpressRouteCircuitPeeringCreate(d *pluginsdk.ResourceData, meta in
 
 	parameters := expressroutecircuitpeerings.ExpressRouteCircuitPeering{
 		Properties: &expressroutecircuitpeerings.ExpressRouteCircuitPeeringPropertiesFormat{
-			PeeringType:        pointer.To(expressroutecircuitpeerings.ExpressRoutePeeringType(id.PeeringName)),
+			PeeringType:        pointer.ToEnum[expressroutecircuitpeerings.ExpressRoutePeeringType](id.PeeringName),
 			SharedKey:          pointer.To(d.Get("shared_key").(string)),
 			AzureASN:           pointer.To(int64(d.Get("azure_asn").(int))),
 			PeerASN:            pointer.To(int64(d.Get("peer_asn").(int))),
@@ -316,8 +316,7 @@ func resourceExpressRouteCircuitPeeringCreate(d *pluginsdk.ResourceData, meta in
 			return fmt.Errorf("`primary_peer_address_prefix, secondary_peer_address_prefix` must be specified when config for Ipv4")
 		}
 
-		peeringConfig := expandExpressRouteCircuitPeeringMicrosoftConfig(peerings)
-		parameters.Properties.MicrosoftPeeringConfig = peeringConfig
+		parameters.Properties.MicrosoftPeeringConfig = expandExpressRouteCircuitPeeringMicrosoftConfig(peerings)
 
 		if routeFilterId != "" {
 			parameters.Properties.RouteFilter = &expressroutecircuitpeerings.SubResource{
@@ -442,8 +441,7 @@ func resourceExpressRouteCircuitPeeringUpdate(d *pluginsdk.ResourceData, meta in
 				return fmt.Errorf("`primary_peer_address_prefix, secondary_peer_address_prefix` must be specified when config for Ipv4")
 			}
 
-			peeringConfig := expandExpressRouteCircuitPeeringMicrosoftConfig(peerings)
-			payload.Properties.MicrosoftPeeringConfig = peeringConfig
+			payload.Properties.MicrosoftPeeringConfig = expandExpressRouteCircuitPeeringMicrosoftConfig(peerings)
 
 			if d.HasChange("route_filter_id") && routeFilterId != "" {
 				payload.Properties.RouteFilter = &expressroutecircuitpeerings.SubResource{
@@ -642,14 +640,6 @@ func flattenExpressRouteCircuitIpv6PeeringConfig(input *expressroutecircuitpeeri
 		return make([]interface{}, 0)
 	}
 
-	var primaryPeerAddressPrefix string
-	if input.PrimaryPeerAddressPrefix != nil {
-		primaryPeerAddressPrefix = *input.PrimaryPeerAddressPrefix
-	}
-	var secondaryPeerAddressPrefix string
-	if input.SecondaryPeerAddressPrefix != nil {
-		secondaryPeerAddressPrefix = *input.SecondaryPeerAddressPrefix
-	}
 	routeFilterId := ""
 	if input.RouteFilter != nil && input.RouteFilter.Id != nil {
 		routeFilterId = *input.RouteFilter.Id
@@ -657,8 +647,8 @@ func flattenExpressRouteCircuitIpv6PeeringConfig(input *expressroutecircuitpeeri
 	return []interface{}{
 		map[string]interface{}{
 			"microsoft_peering":             flattenExpressRouteCircuitPeeringMicrosoftConfig(input.MicrosoftPeeringConfig),
-			"primary_peer_address_prefix":   primaryPeerAddressPrefix,
-			"secondary_peer_address_prefix": secondaryPeerAddressPrefix,
+			"primary_peer_address_prefix":   pointer.From(input.PrimaryPeerAddressPrefix),
+			"secondary_peer_address_prefix": pointer.From(input.SecondaryPeerAddressPrefix),
 			"route_filter_id":               routeFilterId,
 			"enabled":                       pointer.From(input.State) == expressroutecircuitpeerings.ExpressRouteCircuitPeeringStateEnabled,
 		},

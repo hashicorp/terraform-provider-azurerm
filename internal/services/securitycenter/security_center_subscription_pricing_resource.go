@@ -172,8 +172,7 @@ func resourceSecurityCenterSubscriptionPricingCreate(d *pluginsdk.ResourceData, 
 
 	// can not set any extension for free tier in the same request.
 	if pricing.Properties.PricingTier == pricings.PricingTierStandard {
-		extensions := expandSecurityCenterSubscriptionPricingExtensions(realCfgExtensions, &extensionsStatusFromBackend)
-		pricing.Properties.Extensions = extensions
+		pricing.Properties.Extensions = expandSecurityCenterSubscriptionPricingExtensions(realCfgExtensions, &extensionsStatusFromBackend)
 	}
 
 	if len(realCfgExtensions) > 0 && pricing.Properties.PricingTier == pricings.PricingTierFree {
@@ -190,8 +189,7 @@ func resourceSecurityCenterSubscriptionPricingCreate(d *pluginsdk.ResourceData, 
 		extensionsStatusFromBackend = *updateResponse.Model.Properties.Extensions
 	}
 
-	extensions := expandSecurityCenterSubscriptionPricingExtensions(realCfgExtensions, &extensionsStatusFromBackend)
-	pricing.Properties.Extensions = extensions
+	pricing.Properties.Extensions = expandSecurityCenterSubscriptionPricingExtensions(realCfgExtensions, &extensionsStatusFromBackend)
 
 	_, updateErr = client.Update(ctx, id, pricing)
 	if updateErr != nil {
@@ -257,8 +255,7 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 	// Then do an additional update for the `extensions`
 	requiredAdditionalUpdate := false
 	if d.HasChange("extension") && update.Properties.PricingTier == pricings.PricingTierStandard {
-		extensions := expandSecurityCenterSubscriptionPricingExtensions(realCfgExtensions, &extensionsStatusFromBackend)
-		update.Properties.Extensions = extensions
+		update.Properties.Extensions = expandSecurityCenterSubscriptionPricingExtensions(realCfgExtensions, &extensionsStatusFromBackend)
 		requiredAdditionalUpdate = currentlyFreeTier
 	}
 
@@ -275,8 +272,7 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	if requiredAdditionalUpdate {
-		extensions := expandSecurityCenterSubscriptionPricingExtensions(realCfgExtensions, &extensionsStatusFromBackend)
-		update.Properties.Extensions = extensions
+		update.Properties.Extensions = expandSecurityCenterSubscriptionPricingExtensions(realCfgExtensions, &extensionsStatusFromBackend)
 		if _, err := client.Update(ctx, *id, update); err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
 		}
@@ -312,8 +308,7 @@ func resourceSecurityCenterSubscriptionPricingRead(d *pluginsdk.ResourceData, me
 		if properties := resp.Model.Properties; properties != nil {
 			d.Set("tier", properties.PricingTier)
 			d.Set("subplan", properties.SubPlan)
-			err = d.Set("extension", flattenExtensions(properties.Extensions))
-			if err != nil {
+			if err = d.Set("extension", flattenExtensions(properties.Extensions)); err != nil {
 				return fmt.Errorf("setting `extension`: %+v", err)
 			}
 		}

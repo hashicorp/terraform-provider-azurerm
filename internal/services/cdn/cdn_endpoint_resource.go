@@ -270,8 +270,7 @@ func resourceCdnEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if _, ok := d.GetOk("geo_filter"); ok {
-		geoFilters := expandCdnEndpointGeoFilters(d)
-		endpoint.GeoFilters = geoFilters
+		endpoint.GeoFilters = expandCdnEndpointGeoFilters(d)
 	}
 
 	if v, ok := d.GetOk("is_compression_enabled"); ok {
@@ -400,8 +399,7 @@ func resourceCdnEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 
 		if _, ok := d.GetOk("geo_filter"); ok {
-			geoFilters := expandCdnEndpointGeoFilters(d)
-			endpoint.GeoFilters = geoFilters
+			endpoint.GeoFilters = expandCdnEndpointGeoFilters(d)
 		}
 
 		if v, ok := d.GetOk("is_compression_enabled"); ok {
@@ -495,11 +493,7 @@ func resourceCdnEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("probe_path", props.ProbePath)
 		d.Set("optimization_type", string(props.OptimizationType))
 
-		compressionEnabled := false
-		if v := props.IsCompressionEnabled; v != nil {
-			compressionEnabled = *v
-		}
-		d.Set("is_compression_enabled", compressionEnabled)
+		d.Set("is_compression_enabled", pointer.From(props.IsCompressionEnabled))
 
 		contentTypes := flattenAzureRMCdnEndpointContentTypes(props.ContentTypesToCompress)
 		if err := d.Set("content_types_to_compress", contentTypes); err != nil {
@@ -588,11 +582,6 @@ func flattenCdnEndpointGeoFilters(input *[]cdn.GeoFilter) []interface{} {
 
 	if filters := input; filters != nil {
 		for _, filter := range *filters {
-			relativePath := ""
-			if filter.RelativePath != nil {
-				relativePath = *filter.RelativePath
-			}
-
 			outputCodes := make([]interface{}, 0)
 			if codes := filter.CountryCodes; codes != nil {
 				for _, code := range *codes {
@@ -603,7 +592,7 @@ func flattenCdnEndpointGeoFilters(input *[]cdn.GeoFilter) []interface{} {
 			results = append(results, map[string]interface{}{
 				"action":        string(filter.Action),
 				"country_codes": outputCodes,
-				"relative_path": relativePath,
+				"relative_path": pointer.From(filter.RelativePath),
 			})
 		}
 	}
@@ -673,11 +662,6 @@ func flattenAzureRMCdnEndpointOrigin(input *[]cdn.DeepCreatedOrigin) []interface
 
 	if list := input; list != nil {
 		for _, i := range *list {
-			name := ""
-			if i.Name != nil {
-				name = *i.Name
-			}
-
 			hostName := ""
 			httpPort := 80
 			httpsPort := 443
@@ -694,7 +678,7 @@ func flattenAzureRMCdnEndpointOrigin(input *[]cdn.DeepCreatedOrigin) []interface
 			}
 
 			results = append(results, map[string]interface{}{
-				"name":       name,
+				"name":       pointer.From(i.Name),
 				"host_name":  hostName,
 				"http_port":  httpPort,
 				"https_port": httpsPort,

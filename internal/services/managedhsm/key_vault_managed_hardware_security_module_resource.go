@@ -25,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/custompollers"
 	managedHSMValidation "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
@@ -36,7 +35,7 @@ import (
 )
 
 func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
-	r := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceArmKeyVaultManagedHardwareSecurityModuleCreate,
 		Read:   resourceArmKeyVaultManagedHardwareSecurityModuleRead,
 		Delete: resourceArmKeyVaultManagedHardwareSecurityModuleDelete,
@@ -175,12 +174,6 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	if !features.FivePointOh() {
-		r.Schema["security_domain_key_vault_certificate_ids"].Elem.(*pluginsdk.Schema).ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny)
-	}
-
-	return r
 }
 
 func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -353,11 +346,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleRead(d *pluginsdk.ResourceD
 		d.Set("location", location.NormalizeNilable(model.Location))
 
 		if props := model.Properties; props != nil {
-			tenantId := ""
-			if props.TenantId != nil {
-				tenantId = *props.TenantId
-			}
-			d.Set("tenant_id", tenantId)
+			d.Set("tenant_id", pointer.From(props.TenantId))
 			d.Set("admin_object_ids", helpers.FlattenStringSlice(props.InitialAdminObjectIds))
 			d.Set("hsm_uri", props.HsmUri)
 			d.Set("soft_delete_retention_days", props.SoftDeleteRetentionInDays)
@@ -448,12 +437,10 @@ func expandMHSMNetworkAcls(input []interface{}) *managedhsms.MHSMNetworkRuleSet 
 		return nil
 	}
 	v := input[0].(map[string]interface{})
-	res := &managedhsms.MHSMNetworkRuleSet{
-		Bypass:        pointer.To(managedhsms.NetworkRuleBypassOptions(v["bypass"].(string))),
-		DefaultAction: pointer.To(managedhsms.NetworkRuleAction(v["default_action"].(string))),
+	return &managedhsms.MHSMNetworkRuleSet{
+		Bypass:        pointer.ToEnum[managedhsms.NetworkRuleBypassOptions](v["bypass"].(string)),
+		DefaultAction: pointer.ToEnum[managedhsms.NetworkRuleAction](v["default_action"].(string)),
 	}
-
-	return res
 }
 
 func flattenMHSMNetworkAcls(acl *managedhsms.MHSMNetworkRuleSet) []interface{} {
@@ -488,12 +475,7 @@ func securityDomainDownload(ctx context.Context, sdClient *kv74.HSMSecurityDomai
 			continue
 		}
 
-		nestedItemType := keyvault.NestedItemTypeCertificate
-		if !features.FivePointOh() {
-			nestedItemType = keyvault.NestedItemTypeAny
-		}
-
-		keyID, err := keyvault.ParseNestedItemID(certIDStr, keyvault.VersionTypeVersioned, nestedItemType)
+		keyID, err := keyvault.ParseNestedItemID(certIDStr, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeCertificate)
 		if err != nil {
 			return "", fmt.Errorf("parsing %q: %+v", certIDStr, err)
 		}
@@ -540,8 +522,7 @@ func securityDomainDownload(ctx context.Context, sdClient *kv74.HSMSecurityDomai
 		Value string `json:"value"`
 	}
 
-	err = json.Unmarshal(data, &encData)
-	if err != nil {
+	if err = json.Unmarshal(data, &encData); err != nil {
 		return "", fmt.Errorf("unmarshal EncData: %v", err)
 	}
 

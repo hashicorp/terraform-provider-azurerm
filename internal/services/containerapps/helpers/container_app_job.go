@@ -290,13 +290,11 @@ func ExpandContainerAppJobTemplate(input []JobTemplateModel) *jobs.JobTemplate {
 		return nil
 	}
 	v := input[0]
-	template := &jobs.JobTemplate{
+	return &jobs.JobTemplate{
 		Containers:     expandContainerAppJobContainers(v.Containers),
 		InitContainers: expandInitContainerAppJobContainers(v.InitContainers),
 		Volumes:        expandContainerAppJobVolumes(v.Volumes),
 	}
-
-	return template
 }
 
 func FlattenContainerAppJobTemplate(input *jobs.JobTemplate) []JobTemplateModel {
@@ -720,11 +718,10 @@ func flattenContainerJobVolumeMounts(input *[]jobs.VolumeMount) []ContainerVolum
 func flattenContainerAppJobLivenessProbe(input jobs.ContainerAppProbe) []ContainerAppLivenessProbe {
 	result := make([]ContainerAppLivenessProbe, 0)
 	probe := ContainerAppLivenessProbe{
-		InitialDelay:           pointer.From(input.InitialDelaySeconds),
-		Interval:               pointer.From(input.PeriodSeconds),
-		Timeout:                pointer.From(input.TimeoutSeconds),
-		FailureThreshold:       pointer.From(input.FailureThreshold),
-		TerminationGracePeriod: pointer.From(input.TerminationGracePeriodSeconds),
+		InitialDelay:     pointer.From(input.InitialDelaySeconds),
+		Interval:         pointer.From(input.PeriodSeconds),
+		Timeout:          pointer.From(input.TimeoutSeconds),
+		FailureThreshold: pointer.From(input.FailureThreshold),
 	}
 	if httpGet := input.HTTPGet; httpGet != nil {
 		if httpGet.Scheme != nil {
@@ -801,11 +798,10 @@ func flattenContainerAppJobReadinessProbe(input jobs.ContainerAppProbe) []Contai
 func flattenContainerAppJobStartupProbe(input jobs.ContainerAppProbe) []ContainerAppStartupProbe {
 	result := make([]ContainerAppStartupProbe, 0)
 	probe := ContainerAppStartupProbe{
-		InitialDelay:           pointer.From(input.InitialDelaySeconds),
-		Interval:               pointer.From(input.PeriodSeconds),
-		Timeout:                pointer.From(input.TimeoutSeconds),
-		FailureThreshold:       pointer.From(input.FailureThreshold),
-		TerminationGracePeriod: pointer.From(input.TerminationGracePeriodSeconds),
+		InitialDelay:     pointer.From(input.InitialDelaySeconds),
+		Interval:         pointer.From(input.PeriodSeconds),
+		Timeout:          pointer.From(input.TimeoutSeconds),
+		FailureThreshold: pointer.From(input.FailureThreshold),
 	}
 
 	if httpGet := input.HTTPGet; httpGet != nil {
@@ -895,8 +891,7 @@ func FlattenContainerAppJobConfigurationEventTriggerConfig(input *jobs.JobConfig
 	}
 
 	if input.Scale != nil {
-		scale := flattenContainerAppJobScale(input.Scale)
-		eventTriggerConfig.Scale = scale
+		eventTriggerConfig.Scale = flattenContainerAppJobScale(input.Scale)
 	}
 
 	result = append(result, eventTriggerConfig)
@@ -956,8 +951,7 @@ func flattenContainerAppJobScale(input *jobs.JobScale) []ScaleModel {
 	}
 
 	if input.Rules != nil {
-		rules := flattenContainerAppJobScaleRules(input.Rules)
-		scale.Rules = rules
+		scale.Rules = flattenContainerAppJobScaleRules(input.Rules)
 	}
 
 	result = append(result, scale)
@@ -987,8 +981,7 @@ func flattenContainerAppJobScaleRules(input *[]jobs.JobScaleRule) []ScaleRule {
 		}
 
 		if v.Auth != nil {
-			auth := flattenContainerAppJobScaleRulesAuth(v.Auth)
-			rule.Auth = auth
+			rule.Auth = flattenContainerAppJobScaleRulesAuth(v.Auth)
 		}
 
 		result = append(result, rule)

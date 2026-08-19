@@ -46,7 +46,7 @@ func resourceSecurityCenterAssessment() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: assessmentsmetadata.ValidateProviderAssessmentMetadataID,
+				ValidateFunc: validation.AsGeneratedID(assessmentsmetadata.ParseProviderAssessmentMetadataIDInsensitively),
 			},
 
 			"target_resource_id": {
@@ -103,7 +103,10 @@ func resourceSecurityCenterAssessmentCreateUpdate(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	metadataID, err := assessmentsmetadata.ParseProviderAssessmentMetadataID(d.Get("assessment_policy_id").(string))
+	// todo 6.0 - move to the case-sensitive parser when validation.AsGeneratedID is removed: this parses a config
+	// value which the paired AsGeneratedID validator accepts with legacy casing, and configs cannot be migrated.
+	// The stored attribute needs no state migration as Read rewrites it with the canonical casing.
+	metadataID, err := assessmentsmetadata.ParseProviderAssessmentMetadataIDInsensitively(d.Get("assessment_policy_id").(string))
 	if err != nil {
 		return err
 	}

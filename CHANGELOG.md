@@ -1,3 +1,30 @@
+## 5.1.0 (August 13, 2026)
+
+ENHANCEMENTS:
+
+* dependencies: `azurerm_linux_virtual_machine_scale_set` - update to API version `2025-04-01` ([#31586](https://github.com/hashicorp/terraform-provider-azurerm/issues/31586))
+* dependencies: `azurerm_orchestrated_virtual_machine_scale_set` - update to API version `2025-04-01` ([#31586](https://github.com/hashicorp/terraform-provider-azurerm/issues/31586))
+* dependencies: `azurerm_virtual_machine_scale_set` - update to API version `2025-04-01` ([#31586](https://github.com/hashicorp/terraform-provider-azurerm/issues/31586))
+* dependencies: `azurerm_virtual_machine_scale_set_extension` - update to API version `2025-04-01` ([#31586](https://github.com/hashicorp/terraform-provider-azurerm/issues/31586))
+* dependencies: `azurerm_windows_virtual_machine_scale_set` - update to API version `2025-04-01` ([#31586](https://github.com/hashicorp/terraform-provider-azurerm/issues/31586))
+* dependencies: `codesigning` - update to API version `2025-10-13` ([#31714](https://github.com/hashicorp/terraform-provider-azurerm/issues/31714))
+* `azurerm_linux_virtual_machine` - `encryption_at_host_enabled` can now be set to `true` when `os_disk.security_encryption_type` is set to `DiskWithVMGuestState` ([#32885](https://github.com/hashicorp/terraform-provider-azurerm/issues/32885))
+* `azurerm_linux_virtual_machine_scale_set` - `encryption_at_host_enabled` can now be set to `true` when `os_disk.security_encryption_type` is set to `DiskWithVMGuestState` ([#32885](https://github.com/hashicorp/terraform-provider-azurerm/issues/32885))
+* `azurerm_managed_devops_pool` - add support for the `CreatorOnly` value to `azure_devops_organization.permission.kind` property ([#32753](https://github.com/hashicorp/terraform-provider-azurerm/issues/32753))
+* `azurerm_windows_virtual_machine` - `encryption_at_host_enabled` can now be set to `true` when `os_disk.security_encryption_type` is set to `DiskWithVMGuestState` ([#32885](https://github.com/hashicorp/terraform-provider-azurerm/issues/32885))
+* `azurerm_windows_virtual_machine_scale_set` - `encryption_at_host_enabled` can now be set to `true` when `os_disk.security_encryption_type` is set to `DiskWithVMGuestState` ([#32885](https://github.com/hashicorp/terraform-provider-azurerm/issues/32885))
+
+BUG FIXES:
+
+* `azurerm_cdn_frontdoor_batch_ruleset` - parse `rule.actions.route_configuration_override.origin_group.cdn_frontdoor_origin_group_id` case-insensitively and normalize the resulting value to prevent diffs ([#32980](https://github.com/hashicorp/terraform-provider-azurerm/issues/32980))
+* `azurerm_cdn_frontdoor_route` - parse `cdn_frontdoor_origin_group_id` case-insensitively and normalize the resulting value to prevent diffs ([#32980](https://github.com/hashicorp/terraform-provider-azurerm/issues/32980))
+* `azurerm_cdn_frontdoor_secret` - fix an incorrect type assertion ([#32982](https://github.com/hashicorp/terraform-provider-azurerm/issues/32982))
+* `azurerm_dev_center_project` - parse `dev_center_id` case-insensitively and normalize the resulting value to prevent diffs ([#32798](https://github.com/hashicorp/terraform-provider-azurerm/issues/32798))
+* `azurerm_eventhub` - now prevents the `status` property from being set to `SendDisabled` on create  ([#33071](https://github.com/hashicorp/terraform-provider-azurerm/issues/33071))
+* `azurerm_storage_container` - add a state migration for the `id` field, fixing the upgrade path from 4.x to 5.x ([#32978](https://github.com/hashicorp/terraform-provider-azurerm/issues/32978))
+* `azurerm_storage_queue` - extend state migration to handle a malformed `resource_manager_id` ([#32979](https://github.com/hashicorp/terraform-provider-azurerm/issues/32979))
+* `azurerm_storage_share` - add a state migration for the `id` field, fixing the upgrade path from 4.x to 5.x ([#33075](https://github.com/hashicorp/terraform-provider-azurerm/issues/33075))
+
 ## 5.0.1 (July 30, 2026)
 
 NOTES:

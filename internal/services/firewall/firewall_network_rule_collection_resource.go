@@ -181,7 +181,7 @@ func resourceFirewallNetworkRuleCollectionCreateUpdate(d *pluginsdk.ResourceData
 		Name: pointer.To(name),
 		Properties: &azurefirewalls.AzureFirewallNetworkRuleCollectionPropertiesFormat{
 			Action: &azurefirewalls.AzureFirewallRCAction{
-				Type: pointer.To(azurefirewalls.AzureFirewallRCActionType(d.Get("action").(string))),
+				Type: pointer.ToEnum[azurefirewalls.AzureFirewallRCActionType](d.Get("action").(string)),
 			},
 			Priority: pointer.To(int64(priority)),
 			Rules:    networkRules,
