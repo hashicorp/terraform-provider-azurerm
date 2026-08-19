@@ -268,9 +268,10 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 			},
 
 			"target_capacity_reservation_group_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: capacityreservationgroups.ValidateCapacityReservationGroupID,
+				Type:             pluginsdk.TypeString,
+				Optional:         true,
+				DiffSuppressFunc: suppress.CaseDifference,
+				ValidateFunc:     capacityreservationgroups.ValidateCapacityReservationGroupID,
 			},
 
 			"target_virtual_machine_scale_set_id": {
