@@ -684,8 +684,7 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 		},
 	}
 
-	err = client.UpdateThenPoll(ctx, id, parameters)
-	if err != nil {
+	if err = client.UpdateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("updating replicated vm %s (vault %s): %+v", name, vaultName, err)
 	}
 
@@ -909,17 +908,9 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 					}
 					diskOutput["target_resource_group_id"] = recoveryResourceGroupID
 
-					recoveryReplicaDiskAccountType := ""
-					if disk.RecoveryReplicaDiskAccountType != nil {
-						recoveryReplicaDiskAccountType = *disk.RecoveryReplicaDiskAccountType
-					}
-					diskOutput["target_replica_disk_type"] = recoveryReplicaDiskAccountType
+					diskOutput["target_replica_disk_type"] = pointer.From(disk.RecoveryReplicaDiskAccountType)
 
-					recoveryTargetDiskAccountType := ""
-					if disk.RecoveryTargetDiskAccountType != nil {
-						recoveryTargetDiskAccountType = *disk.RecoveryTargetDiskAccountType
-					}
-					diskOutput["target_disk_type"] = recoveryTargetDiskAccountType
+					diskOutput["target_disk_type"] = pointer.From(disk.RecoveryTargetDiskAccountType)
 
 					recoveryEncryptionSetId := ""
 					if respDESId := pointer.From(disk.RecoveryDiskEncryptionSetId); respDESId != "" {
@@ -983,8 +974,7 @@ func resourceSiteRecoveryReplicatedItemDelete(d *pluginsdk.ResourceData, meta in
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	err = client.DeleteThenPoll(ctx, *id, disableProtectionInput)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id, disableProtectionInput); err != nil {
 		return fmt.Errorf("deleting site recovery replicated vm %s : %+v", id.String(), err)
 	}
 

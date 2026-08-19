@@ -421,7 +421,7 @@ func resourceServiceBusNamespaceUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("minimum_tls_version") {
-		payload.Properties.MinimumTlsVersion = pointer.To(namespaces.TlsVersion(d.Get("minimum_tls_version").(string)))
+		payload.Properties.MinimumTlsVersion = pointer.ToEnum[namespaces.TlsVersion](d.Get("minimum_tls_version").(string))
 	}
 
 	if d.HasChange("capacity") {
@@ -764,17 +764,12 @@ func flattenServiceBusNamespaceNetworkRuleSet(networkRuleSet namespaces.NetworkR
 		publicNetworkAccess = *v
 	}
 
-	trustedServiceEnabled := false
-	if networkRuleSet.TrustedServiceAccessEnabled != nil {
-		trustedServiceEnabled = *networkRuleSet.TrustedServiceAccessEnabled
-	}
-
 	networkRules := flattenServiceBusNamespaceVirtualNetworkRules(networkRuleSet.VirtualNetworkRules)
 	ipRules := flattenServiceBusNamespaceIPRules(networkRuleSet.IPRules)
 
 	return []interface{}{map[string]interface{}{
 		"default_action":                defaultAction,
-		"trusted_services_allowed":      trustedServiceEnabled,
+		"trusted_services_allowed":      pointer.From(networkRuleSet.TrustedServiceAccessEnabled),
 		"public_network_access_enabled": publicNetworkAccess == namespaces.PublicNetworkAccessFlagEnabled,
 		"network_rules":                 pluginsdk.NewSet(networkRuleHash, networkRules),
 		"ip_rules":                      ipRules,
@@ -820,14 +815,9 @@ func flattenServiceBusNamespaceVirtualNetworkRules(input *[]namespaces.NWRuleSet
 			subnetId = v.Subnet.Id
 		}
 
-		ignore := false
-		if v.IgnoreMissingVnetServiceEndpoint != nil {
-			ignore = *v.IgnoreMissingVnetServiceEndpoint
-		}
-
 		result = append(result, map[string]interface{}{
 			"subnet_id":                            subnetId,
-			"ignore_missing_vnet_service_endpoint": ignore,
+			"ignore_missing_vnet_service_endpoint": pointer.From(v.IgnoreMissingVnetServiceEndpoint),
 		})
 	}
 

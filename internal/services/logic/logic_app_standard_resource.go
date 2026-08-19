@@ -81,7 +81,7 @@ var (
 )
 
 func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -278,8 +278,6 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
-
-	return s
 }
 
 func (r LogicAppResource) Attributes() map[string]*pluginsdk.Schema {
@@ -1042,17 +1040,9 @@ func flattenLogicAppStandardIpRestriction(input *[]webapps.IPSecurityRestriction
 			}
 		}
 
-		subnetId := ""
-		if subnetIdRaw := v.VnetSubnetResourceId; subnetIdRaw != nil {
-			subnetId = *subnetIdRaw
-		}
-		restriction["virtual_network_subnet_id"] = subnetId
+		restriction["virtual_network_subnet_id"] = pointer.From(v.VnetSubnetResourceId)
 
-		name := ""
-		if nameRaw := v.Name; nameRaw != nil {
-			name = *nameRaw
-		}
-		restriction["name"] = name
+		restriction["name"] = pointer.From(v.Name)
 
 		priority := 0
 		if priorityRaw := v.Priority; priorityRaw != nil {
@@ -1060,11 +1050,7 @@ func flattenLogicAppStandardIpRestriction(input *[]webapps.IPSecurityRestriction
 		}
 		restriction["priority"] = priority
 
-		action := ""
-		if actionRaw := v.Action; actionRaw != nil {
-			action = *actionRaw
-		}
-		restriction["action"] = action
+		restriction["action"] = pointer.From(v.Action)
 
 		if headers := v.Headers; headers != nil {
 			restriction["headers"] = flattenHeaders(*headers)
@@ -1089,7 +1075,7 @@ func expandLogicAppStandardSiteConfigForCreate(d []helpers.LogicAppSiteConfig, m
 	siteConfig.FunctionsRuntimeScaleMonitoringEnabled = pointer.To(config.RuntimeScaleMonitoringEnabled)
 	siteConfig.Use32BitWorkerProcess = pointer.To(config.Use32BitWorkerProcess)
 	siteConfig.WebSocketsEnabled = pointer.To(config.WebSocketsEnabled)
-	siteConfig.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(config.SCMIpRestrictionDefaultAction))
+	siteConfig.ScmIPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](config.SCMIpRestrictionDefaultAction)
 
 	if config.LinuxFxVersion != "" {
 		siteConfig.LinuxFxVersion = pointer.To(config.LinuxFxVersion)
@@ -1191,7 +1177,7 @@ func expandLogicAppStandardSiteConfigForUpdate(d []helpers.LogicAppSiteConfig, m
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction_default_action") {
-		siteConfig.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(config.SCMIpRestrictionDefaultAction))
+		siteConfig.ScmIPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](config.SCMIpRestrictionDefaultAction)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_min_tls_version") {

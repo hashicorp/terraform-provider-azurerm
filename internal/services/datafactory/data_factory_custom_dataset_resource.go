@@ -399,14 +399,9 @@ func flattenDataFactoryLinkedService(input *datafactory.LinkedServiceReference) 
 		return []interface{}{}
 	}
 
-	name := ""
-	if input.ReferenceName != nil {
-		name = *input.ReferenceName
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"name":       name,
+			"name":       pointer.From(input.ReferenceName),
 			"parameters": input.Parameters,
 		},
 	}

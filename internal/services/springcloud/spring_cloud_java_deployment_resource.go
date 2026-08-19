@@ -305,20 +305,10 @@ func flattenSpringCloudDeploymentResourceRequests(input *appplatform.ResourceReq
 		return []interface{}{}
 	}
 
-	cpu := ""
-	if input.CPU != nil {
-		cpu = *input.CPU
-	}
-
-	memory := ""
-	if input.Memory != nil {
-		memory = *input.Memory
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"cpu":    cpu,
-			"memory": memory,
+			"cpu":    pointer.From(input.CPU),
+			"memory": pointer.From(input.Memory),
 		},
 	}
 }

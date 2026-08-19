@@ -26,7 +26,7 @@ import (
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_policy_blob_storage -service-package-name dataprotection -properties "name" -compare-values "subscription_id:vault_id,resource_group_name:vault_id,backup_vault_name:vault_id"
 
 func resourceDataProtectionBackupPolicyBlobStorage() *schema.Resource {
-	resource := &schema.Resource{
+	return &schema.Resource{
 		Create: resourceDataProtectionBackupPolicyBlobStorageCreate,
 		Read:   resourceDataProtectionBackupPolicyBlobStorageRead,
 		Delete: resourceDataProtectionBackupPolicyBlobStorageDelete,
@@ -221,8 +221,6 @@ func resourceDataProtectionBackupPolicyBlobStorage() *schema.Resource {
 			},
 		},
 	}
-
-	return resource
 }
 
 func resourceDataProtectionBackupPolicyBlobStorageCreate(d *schema.ResourceData, meta interface{}) error {

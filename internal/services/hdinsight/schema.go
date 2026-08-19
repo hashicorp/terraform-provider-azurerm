@@ -634,7 +634,7 @@ func ExpandHDInsightPrivateLinkConfigurationIpConfigurationProperties(input []in
 
 	props := clusters.IPConfigurationProperties{
 		Primary:                   pointer.To(v["primary"].(bool)),
-		PrivateIPAllocationMethod: pointer.To(clusters.PrivateIPAllocationMethod(v["private_ip_allocation_method"].(string))),
+		PrivateIPAllocationMethod: pointer.ToEnum[clusters.PrivateIPAllocationMethod](v["private_ip_allocation_method"].(string)),
 	}
 	if v["private_ip_address"] != nil && v["private_ip_address"].(string) != "" {
 		props.PrivateIPAddress = pointer.To(v["private_ip_address"].(string))
@@ -1030,7 +1030,7 @@ func ExpandHDInsightsDiskEncryptionProperties(input []interface{}) (*clusters.Di
 	keyVaultManagedIdentityId := v["key_vault_managed_identity_id"].(string)
 
 	diskEncryptionProps := &clusters.DiskEncryptionProperties{
-		EncryptionAlgorithm: pointer.To(clusters.JsonWebKeyEncryptionAlgorithm(encryptionAlgorithm)),
+		EncryptionAlgorithm: pointer.ToEnum[clusters.JsonWebKeyEncryptionAlgorithm](encryptionAlgorithm),
 		EncryptionAtHost:    &encryptionAtHost,
 		MsiResourceId:       &keyVaultManagedIdentityId,
 	}
@@ -1333,7 +1333,7 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 		}
 	}
 
-	s := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		MaxItems: 1,
 		Required: required,
@@ -1342,8 +1342,6 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 			Schema: result,
 		},
 	}
-
-	return s
 }
 
 func SchemaHDInsightNodeDefinitionKafka(schemaLocation string, definition HDInsightNodeDefinition, required bool) *pluginsdk.Schema {
@@ -1520,7 +1518,7 @@ func SchemaHDInsightNodeDefinitionKafka(schemaLocation string, definition HDInsi
 		}
 	}
 
-	s := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		MaxItems: 1,
 		Required: required,
@@ -1529,8 +1527,6 @@ func SchemaHDInsightNodeDefinitionKafka(schemaLocation string, definition HDInsi
 			Schema: result,
 		},
 	}
-
-	return s
 }
 
 func ExpandHDInsightNodeDefinition(name string, input []interface{}, definition HDInsightNodeDefinition) (*clusters.Role, error) {
@@ -1695,12 +1691,10 @@ func ExpandHDInsightAutoscaleRecurrenceDefinition(input []interface{}) *clusters
 		})
 	}
 
-	result := &clusters.AutoscaleRecurrence{
+	return &clusters.AutoscaleRecurrence{
 		TimeZone: pointer.To(vs["timezone"].(string)),
 		Schedule: &schedules,
 	}
-
-	return result
 }
 
 func ExpandHDInsightSecurityProfile(input []interface{}) *clusters.SecurityProfile {
@@ -1763,11 +1757,9 @@ func FlattenHDInsightNodeDefinition(input *clusters.Role, existing []interface{}
 		// after extensive experimentation it appears multiple instance sizes fit `extralarge`, as such
 		// unfortunately we can't transform these; since it can't be changed
 		// we should be "safe" to try and pull it from the state instead, but clearly this isn't ideal
-		vmSize := existingV["vm_size"].(string)
-		output["vm_size"] = vmSize
+		output["vm_size"] = existingV["vm_size"].(string)
 
-		scriptActions := existingV["script_actions"].([]interface{})
-		output["script_actions"] = scriptActions
+		output["script_actions"] = existingV["script_actions"].([]interface{})
 	}
 
 	if profile := input.VirtualNetworkProfile; profile != nil {
@@ -1918,35 +1910,15 @@ func flattenHDInsightSecurityProfile(input *clusters.SecurityProfile, d *plugins
 		return make([]interface{}, 0)
 	}
 
-	var aaddsResourceId string
-	if input.AaddsResourceId != nil {
-		aaddsResourceId = *input.AaddsResourceId
-	}
-
-	var domain string
-	if input.Domain != nil {
-		domain = *input.Domain
-	}
-
-	var domainUsername string
-	if input.DomainUsername != nil {
-		domainUsername = *input.DomainUsername
-	}
-
-	var msiResourceId string
-	if input.MsiResourceId != nil {
-		msiResourceId = *input.MsiResourceId
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"aadds_resource_id":       aaddsResourceId,
+			"aadds_resource_id":       pointer.From(input.AaddsResourceId),
 			"cluster_users_group_dns": helpers.FlattenStringSlice(input.ClusterUsersGroupDNs),
-			"domain_name":             domain,
-			"domain_username":         domainUsername,
+			"domain_name":             pointer.From(input.Domain),
+			"domain_username":         pointer.From(input.DomainUsername),
 			"domain_user_password":    d.Get("security_profile.0.domain_user_password"),
 			"ldaps_urls":              helpers.FlattenStringSlice(input.LdapsURLs),
-			"msi_resource_id":         msiResourceId,
+			"msi_resource_id":         pointer.From(input.MsiResourceId),
 		},
 	}
 }

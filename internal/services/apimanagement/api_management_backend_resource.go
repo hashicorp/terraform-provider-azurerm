@@ -257,7 +257,7 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: certificate.ValidateCertificateID,
+							ValidateFunc: validation.AsGeneratedID(certificate.ParseCertificateIDInsensitively),
 						},
 
 						"client_certificate_thumbprint": {
@@ -380,7 +380,7 @@ func resourceApiManagementBackendCreateUpdate(d *pluginsdk.ResourceData, meta in
 	backendContract := backend.BackendContract{
 		Properties: &backend.BackendContractProperties{
 			Credentials: credentials,
-			Protocol:    pointer.To(backend.BackendProtocol(protocol)),
+			Protocol:    pointer.ToEnum[backend.BackendProtocol](protocol),
 			Proxy:       proxy,
 			Tls:         tls,
 			Url:         pointer.To(url),
@@ -497,8 +497,7 @@ func expandApiManagementBackendCredentials(input []interface{}) *backend.Backend
 	v := input[0].(map[string]interface{})
 	contract := backend.BackendCredentialsContract{}
 	if authorizationRaw := v["authorization"]; authorizationRaw != nil {
-		authorization := expandApiManagementBackendCredentialsAuthorization(authorizationRaw.([]interface{}))
-		contract.Authorization = authorization
+		contract.Authorization = expandApiManagementBackendCredentialsAuthorization(authorizationRaw.([]interface{}))
 	}
 	if certificate := v["certificate"]; certificate != nil {
 		certificates := helpers.ExpandStringSlice(certificate.([]interface{}))
@@ -507,12 +506,10 @@ func expandApiManagementBackendCredentials(input []interface{}) *backend.Backend
 		}
 	}
 	if headerRaw := v["header"]; headerRaw != nil {
-		header := expandApiManagementBackendCredentialsObject(headerRaw.(map[string]interface{}))
-		contract.Header = header
+		contract.Header = expandApiManagementBackendCredentialsObject(headerRaw.(map[string]interface{}))
 	}
 	if queryRaw := v["query"]; queryRaw != nil {
-		query := expandApiManagementBackendCredentialsObject(queryRaw.(map[string]interface{}))
-		contract.Query = query
+		contract.Query = expandApiManagementBackendCredentialsObject(queryRaw.(map[string]interface{}))
 	}
 	return &contract
 }

@@ -521,10 +521,7 @@ func flattenSynapseLinkedServiceIntegrationRuntimeV2(input *artifacts.Integratio
 		return []interface{}{}
 	}
 
-	name := ""
-	if input.ReferenceName != nil {
-		name = *input.ReferenceName
-	}
+	name := pointer.From(input.ReferenceName)
 
 	return []interface{}{
 		map[string]interface{}{
@@ -546,8 +543,7 @@ func checkLinkedServiceResponse(response *http.Response) error {
 	defer response.Body.Close()
 
 	body := make(map[string]interface{})
-	err = json.Unmarshal(respBody, &body)
-	if err != nil {
+	if err = json.Unmarshal(respBody, &body); err != nil {
 		return fmt.Errorf("could not parse status response: %+v", err)
 	}
 

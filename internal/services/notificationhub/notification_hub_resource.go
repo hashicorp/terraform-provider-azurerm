@@ -397,8 +397,7 @@ func flattenNotificationHubsAPNSCredentials(input *hubs.ApnsCredential) []interf
 		apnsProductionEndpoint: apnsProductionName,
 		apnsSandboxEndpoint:    apnsSandboxName,
 	}
-	applicationMode := applicationEndpoints[input.Properties.Endpoint]
-	output["application_mode"] = applicationMode
+	output["application_mode"] = applicationEndpoints[input.Properties.Endpoint]
 
 	if keyId := input.Properties.KeyId; keyId != nil {
 		output["key_id"] = *keyId

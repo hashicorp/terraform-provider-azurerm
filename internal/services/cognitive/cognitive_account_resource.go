@@ -688,12 +688,8 @@ func resourceCognitiveAccountFlatten(ctx context.Context, client *cognitiveservi
 			if err := d.Set("storage", flattenCognitiveAccountStorage(props.UserOwnedStorage)); err != nil {
 				return fmt.Errorf("setting `storages` for Cognitive Account %q: %+v", id, err)
 			}
-			outboundNetworkAccessRestricted := false
-			if props.RestrictOutboundNetworkAccess != nil {
-				outboundNetworkAccessRestricted = *props.RestrictOutboundNetworkAccess
-			}
 			// lintignore:R001
-			d.Set("outbound_network_access_restricted", outboundNetworkAccessRestricted)
+			d.Set("outbound_network_access_restricted", pointer.From(props.RestrictOutboundNetworkAccess))
 
 			localAuthEnabled := !pointer.From(props.DisableLocalAuth)
 			d.Set("local_auth_enabled", localAuthEnabled)
