@@ -480,11 +480,6 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validate.ClusterVersion,
-						DiffSuppressFunc: func(_, old, new string, _ *pluginsdk.ResourceData) bool {
-							// The backend does not support clearing upgradeable_to via update;
-							// suppress the diff so removing it from config is a no-op.
-							return old != "" && new == ""
-						},
 					},
 				},
 			},
