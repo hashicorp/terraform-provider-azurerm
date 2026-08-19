@@ -159,8 +159,7 @@ func resourceAutomationJobScheduleCreate(d *pluginsdk.ResourceData, meta interfa
 	if v, ok := d.GetOk("parameters"); ok {
 		jsParameters := make(map[string]string)
 		for k, v := range v.(map[string]interface{}) {
-			value := v.(string)
-			jsParameters[k] = value
+			jsParameters[k] = v.(string)
 		}
 		parameters.Properties.Parameters = &jsParameters
 	}

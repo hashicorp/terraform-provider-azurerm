@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var _ pluginsdk.StateUpgrade = TemplateDeploymentV0ToV1{}
@@ -35,7 +35,7 @@ func (t TemplateDeploymentV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Type:      pluginsdk.TypeString,
 			Optional:  true,
 			Computed:  true,
-			StateFunc: utils.NormalizeJson,
+			StateFunc: helpers.NormalizeJson,
 		},
 
 		"parameters": {
@@ -50,7 +50,7 @@ func (t TemplateDeploymentV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		"parameters_body": {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
-			StateFunc:     utils.NormalizeJson,
+			StateFunc:     helpers.NormalizeJson,
 			ConflictsWith: []string{"parameters"},
 		},
 

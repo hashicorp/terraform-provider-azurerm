@@ -57,7 +57,7 @@ var hdInsightKafkaClusterKafkaManagementNodeDefinition = HDInsightNodeDefinition
 }
 
 func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceHDInsightKafkaClusterCreate,
 		Read:   resourceHDInsightKafkaClusterRead,
 		Update: hdinsightClusterUpdate("Kafka", resourceHDInsightKafkaClusterRead),
@@ -190,8 +190,6 @@ func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
 			"extension": SchemaHDInsightsExtension(),
 		},
 	}
-
-	return resource
 }
 
 func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -522,20 +520,10 @@ func flattenKafkaRestProxyProperty(input *clusters.KafkaRestProperties) []interf
 
 	groupInfo := input.ClientGroupInfo
 
-	groupId := ""
-	if groupInfo.GroupId != nil {
-		groupId = *groupInfo.GroupId
-	}
-
-	groupName := ""
-	if groupInfo.GroupName != nil {
-		groupName = *groupInfo.GroupName
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"security_group_id":   groupId,
-			"security_group_name": groupName,
+			"security_group_id":   pointer.From(groupInfo.GroupId),
+			"security_group_name": pointer.From(groupInfo.GroupName),
 		},
 	}
 }

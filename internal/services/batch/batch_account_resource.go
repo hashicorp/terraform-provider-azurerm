@@ -278,7 +278,7 @@ func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 		parameters.Properties.AutoStorage = &batchaccount.AutoStorageBaseProperties{
 			StorageAccountId:   storageAccountId,
-			AuthenticationMode: pointer.To(batchaccount.AutoStorageAuthenticationMode(authMode)),
+			AuthenticationMode: pointer.ToEnum[batchaccount.AutoStorageAuthenticationMode](authMode),
 		}
 	}
 
@@ -458,7 +458,7 @@ func resourceBatchAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	if storageAccountId != "" {
 		parameters.Properties.AutoStorage = &batchaccount.AutoStorageBaseProperties{
 			StorageAccountId:   storageAccountId,
-			AuthenticationMode: pointer.To(batchaccount.AutoStorageAuthenticationMode(authMode)),
+			AuthenticationMode: pointer.ToEnum[batchaccount.AutoStorageAuthenticationMode](authMode),
 		}
 	}
 

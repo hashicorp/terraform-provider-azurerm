@@ -384,8 +384,7 @@ func (d *resourceIdentityData) exec() error {
 		return fmt.Errorf("failed opening output resource file for writing: %+v", err.Error())
 	}
 	defer func(f *os.File) {
-		err := f.Close()
-		if err != nil {
+		if err := f.Close(); err != nil {
 			log.Println("failed closing output resource file for writing:", err.Error())
 			os.Exit(3)
 		}
