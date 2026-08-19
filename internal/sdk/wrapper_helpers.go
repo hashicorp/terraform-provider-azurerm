@@ -49,12 +49,10 @@ func combineSchema(arguments map[string]*schema.Schema, attributes map[string]*s
 
 func runArgs(d *schema.ResourceData, meta interface{}, logger Logger) ResourceMetaData {
 	client := meta.(*clients.Client)
-	metaData := ResourceMetaData{
+	return ResourceMetaData{
 		Client:                   client,
 		Logger:                   logger,
 		ResourceData:             d,
 		serializationDebugLogger: NullLogger{},
 	}
-
-	return metaData
 }

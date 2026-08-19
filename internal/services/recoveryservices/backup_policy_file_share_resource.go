@@ -292,7 +292,7 @@ func expandBackupProtectionPolicyFileShareSchedule(d *pluginsdk.ResourceData, ti
 		}
 
 		if v, ok := block["frequency"].(string); ok {
-			schedule.ScheduleRunFrequency = pointer.To(protectionpolicies.ScheduleRunType(v))
+			schedule.ScheduleRunFrequency = pointer.ToEnum[protectionpolicies.ScheduleRunType](v)
 		}
 
 		if v, ok := block["hourly"].([]interface{}); ok && len(v) > 0 {

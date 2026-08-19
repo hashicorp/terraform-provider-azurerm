@@ -8,9 +8,9 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func RequestScheme() *pluginsdk.Resource {
@@ -58,7 +58,7 @@ func ExpandArmCdnEndpointConditionRequestScheme(input []interface{}) []cdn.Basic
 			Parameters: &cdn.RequestSchemeMatchConditionParameters{
 				OdataType:       pointer.To("Microsoft.Azure.Cdn.Models.DeliveryRuleRequestSchemeConditionParameters"),
 				NegateCondition: pointer.To(item["negate_condition"].(bool)),
-				MatchValues:     utils.ExpandStringSlice(item["match_values"].(*pluginsdk.Set).List()),
+				MatchValues:     helpers.ExpandStringSlice(item["match_values"].(*pluginsdk.Set).List()),
 			},
 		}
 
@@ -91,7 +91,7 @@ func FlattenArmCdnEndpointConditionRequestScheme(input cdn.BasicDeliveryRuleCond
 		}
 
 		if params.MatchValues != nil {
-			matchValues = utils.FlattenStringSlice(params.MatchValues)
+			matchValues = helpers.FlattenStringSlice(params.MatchValues)
 		}
 	}
 

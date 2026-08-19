@@ -10,6 +10,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -256,7 +257,7 @@ func expandIotSecurityDeviceGroupAllowRule(input []interface{}) *[]security.Basi
 
 	if connectionFromIPNotAllowed := v["connection_from_ips_not_allowed"].(*pluginsdk.Set).List(); len(connectionFromIPNotAllowed) > 0 {
 		result = append(result, security.ConnectionFromIPNotAllowed{
-			AllowlistValues: utils.ExpandStringSlice(connectionFromIPNotAllowed),
+			AllowlistValues: helpers.ExpandStringSlice(connectionFromIPNotAllowed),
 			IsEnabled:       pointer.To(true),
 		})
 	}
@@ -264,7 +265,7 @@ func expandIotSecurityDeviceGroupAllowRule(input []interface{}) *[]security.Basi
 	var connectionToIPListNotAllowed *security.ConnectionToIPNotAllowed
 	if connectionToIPsNotAllowed := v["connection_to_ips_not_allowed"].(*pluginsdk.Set).List(); len(connectionToIPsNotAllowed) > 0 {
 		connectionToIPListNotAllowed = &security.ConnectionToIPNotAllowed{
-			AllowlistValues: utils.ExpandStringSlice(connectionToIPsNotAllowed),
+			AllowlistValues: helpers.ExpandStringSlice(connectionToIPsNotAllowed),
 			IsEnabled:       pointer.To(true),
 		}
 	}
@@ -275,7 +276,7 @@ func expandIotSecurityDeviceGroupAllowRule(input []interface{}) *[]security.Basi
 	var localUserListNotAllowed *security.LocalUserNotAllowed
 	if LocalUsersNotAllowed := v["local_users_not_allowed"].(*pluginsdk.Set).List(); len(LocalUsersNotAllowed) > 0 {
 		localUserListNotAllowed = &security.LocalUserNotAllowed{
-			AllowlistValues: utils.ExpandStringSlice(LocalUsersNotAllowed),
+			AllowlistValues: helpers.ExpandStringSlice(LocalUsersNotAllowed),
 			IsEnabled:       pointer.To(true),
 		}
 	}
@@ -286,7 +287,7 @@ func expandIotSecurityDeviceGroupAllowRule(input []interface{}) *[]security.Basi
 	var processListNotAllowed *security.ProcessNotAllowed
 	if processesNotAllowed := v["processes_not_allowed"].(*pluginsdk.Set).List(); len(processesNotAllowed) > 0 {
 		processListNotAllowed = &security.ProcessNotAllowed{
-			AllowlistValues: utils.ExpandStringSlice(processesNotAllowed),
+			AllowlistValues: helpers.ExpandStringSlice(processesNotAllowed),
 			IsEnabled:       pointer.To(true),
 		}
 	}
@@ -453,17 +454,17 @@ func flattenIotSecurityDeviceGroupAllowRule(input *[]security.BasicAllowlistCust
 		case security.ConnectionToIPNotAllowed:
 			if v, ok := d.GetOk("allow_rule.0.connection_to_ips_not_allowed"); ok {
 				flag = true
-				connectionToIPsNotAllowed = utils.ExpandStringSlice(v.(*pluginsdk.Set).List())
+				connectionToIPsNotAllowed = helpers.ExpandStringSlice(v.(*pluginsdk.Set).List())
 			}
 		case security.LocalUserNotAllowed:
 			if v, ok := d.GetOk("allow_rule.0.local_users_not_allowed"); ok {
 				flag = true
-				localUsersNotAllowed = utils.ExpandStringSlice(v.(*pluginsdk.Set).List())
+				localUsersNotAllowed = helpers.ExpandStringSlice(v.(*pluginsdk.Set).List())
 			}
 		case security.ProcessNotAllowed:
 			if v, ok := d.GetOk("allow_rule.0.processes_not_allowed"); ok {
 				flag = true
-				processesNotAllowed = utils.ExpandStringSlice(v.(*pluginsdk.Set).List())
+				processesNotAllowed = helpers.ExpandStringSlice(v.(*pluginsdk.Set).List())
 			}
 		}
 	}
@@ -472,10 +473,10 @@ func flattenIotSecurityDeviceGroupAllowRule(input *[]security.BasicAllowlistCust
 	}
 	return []interface{}{
 		map[string]interface{}{
-			"connection_from_ips_not_allowed": utils.FlattenStringSlice(connectionFromIPsNotAllowed),
-			"connection_to_ips_not_allowed":   utils.FlattenStringSlice(connectionToIPsNotAllowed),
-			"local_users_not_allowed":         utils.FlattenStringSlice(localUsersNotAllowed),
-			"processes_not_allowed":           utils.FlattenStringSlice(processesNotAllowed),
+			"connection_from_ips_not_allowed": helpers.FlattenStringSlice(connectionFromIPsNotAllowed),
+			"connection_to_ips_not_allowed":   helpers.FlattenStringSlice(connectionToIPsNotAllowed),
+			"local_users_not_allowed":         helpers.FlattenStringSlice(localUsersNotAllowed),
+			"processes_not_allowed":           helpers.FlattenStringSlice(processesNotAllowed),
 		},
 	}
 }

@@ -147,13 +147,8 @@ func flattenCosmosDBIndexingPolicyCompositeIndex(input []cosmosdb.CompositePath)
 
 	indexPairs := make([]interface{}, 0)
 	for _, v := range input {
-		path := ""
-		if v.Path != nil {
-			path = *v.Path
-		}
-
 		block := make(map[string]interface{})
-		block["path"] = path
+		block["path"] = pointer.From(v.Path)
 		block["order"] = v.Order
 		indexPairs = append(indexPairs, block)
 	}
@@ -201,10 +196,7 @@ func FlattenCosmosDBIndexingPolicySpatialIndexes(input *[]cosmosdb.SpatialSpec) 
 	indexes := make([]interface{}, 0)
 
 	for _, v := range *input {
-		var path string
-		if v.Path != nil {
-			path = *v.Path
-		}
+		path := pointer.From(v.Path)
 		indexes = append(indexes, map[string]interface{}{
 			"path":  path,
 			"types": flattenCosmosDBIndexingPolicySpatialIndexesTypes(v.Types),

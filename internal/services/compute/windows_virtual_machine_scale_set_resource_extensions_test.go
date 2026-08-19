@@ -756,6 +756,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
       requestPath = "/"
     })
   }
+
 }
 `, r.template(data))
 }

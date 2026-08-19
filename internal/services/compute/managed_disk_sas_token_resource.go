@@ -183,8 +183,7 @@ func resourceManagedDiskSasTokenDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	err = client.RevokeAccessThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.RevokeAccessThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("revoking access to %s: %+v", *id, err)
 	}
 

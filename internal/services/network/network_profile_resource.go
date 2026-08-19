@@ -16,13 +16,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkprofiles"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity
@@ -365,11 +365,11 @@ func expandNetworkProfileVirtualNetworkSubnetNames(input *[]networkprofiles.Cont
 
 				vnetId := commonids.NewVirtualNetworkID(subnetId.SubscriptionId, subnetId.ResourceGroupName, subnetId.VirtualNetworkName)
 
-				if !utils.SliceContainsValue(subnetIds, subnetId.ID()) {
+				if !helpers.SliceContainsValue(subnetIds, subnetId.ID()) {
 					subnetIds = append(subnetIds, subnetId.ID())
 				}
 
-				if !utils.SliceContainsValue(vnetIds, vnetId.ID()) {
+				if !helpers.SliceContainsValue(vnetIds, vnetId.ID()) {
 					vnetIds = append(vnetIds, vnetId.ID())
 				}
 			}
