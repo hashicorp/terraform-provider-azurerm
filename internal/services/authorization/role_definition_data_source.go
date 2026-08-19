@@ -175,7 +175,7 @@ func (a RoleDefinitionDataSource) Read() sdk.ResourceFunc {
 				if !ok {
 					return fmt.Errorf("internal error: context had no deadline")
 				}
-				err := pluginsdk.Retry(time.Until(deadline), func() *pluginsdk.RetryError {
+				if err := pluginsdk.Retry(time.Until(deadline), func() *pluginsdk.RetryError {
 					roleDefinitions, err := client.List(ctx, commonids.NewScopeID(config.Scope), roledefinitions.ListOperationOptions{
 						Filter: pointer.To(fmt.Sprintf("roleName eq '%s'", config.Name)),
 					})
@@ -192,11 +192,11 @@ func (a RoleDefinitionDataSource) Read() sdk.ResourceFunc {
 						return pluginsdk.NonRetryableError(fmt.Errorf("loading Role Definition List: values[0].NameD is nil '%s'", config.Name))
 					}
 
-					defId = *(*roleDefinitions.Model)[0].Id
-					id = roledefinitions.NewScopedRoleDefinitionID(config.Scope, *(*roleDefinitions.Model)[0].Name)
+					defId = *(*roleDefinitions.Model)[0].Name
+					id = roledefinitions.NewScopedRoleDefinitionID(config.Scope, defId)
+
 					return nil
-				})
-				if err != nil {
+				}); err != nil {
 					return err
 				}
 			} else {
@@ -232,7 +232,7 @@ func (a RoleDefinitionDataSource) Read() sdk.ResourceFunc {
 			// The sdk managed id start with two "/" when scope is tenant level (empty).
 			// So we use the id from response without parsing and reformatting it.
 			// Tracked on https://github.com/hashicorp/pandora/issues/3257
-			metadata.ResourceData.SetId(*role.Id)
+			metadata.ResourceData.SetId(*role.Id) // azignore:AZR001
 			return metadata.Encode(&state)
 		},
 	}

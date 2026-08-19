@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -260,19 +259,6 @@ func (r StorageAccountCustomerManagedKeyResource) Exists(ctx context.Context, cl
 }
 
 func (r StorageAccountCustomerManagedKeyResource) basic(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-%s
-
-resource "azurerm_storage_account_customer_managed_key" "test" {
-  storage_account_id = azurerm_storage_account.test.id
-  key_vault_id       = azurerm_key_vault.test.id
-  key_name           = azurerm_key_vault_key.first.name
-  key_version        = azurerm_key_vault_key.first.version
-}
-`, r.template(data))
-	}
-
 	return fmt.Sprintf(`
 %s
 
@@ -284,19 +270,6 @@ resource "azurerm_storage_account_customer_managed_key" "test" {
 }
 
 func (r StorageAccountCustomerManagedKeyResource) requiresImport(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-%s
-
-resource "azurerm_storage_account_customer_managed_key" "import" {
-  storage_account_id = azurerm_storage_account_customer_managed_key.test.storage_account_id
-  key_vault_id       = azurerm_storage_account_customer_managed_key.test.key_vault_id
-  key_name           = azurerm_storage_account_customer_managed_key.test.key_name
-  key_version        = azurerm_storage_account_customer_managed_key.test.key_version
-}
-`, r.basic(data))
-	}
-
 	return fmt.Sprintf(`
 %s
 
@@ -308,32 +281,6 @@ resource "azurerm_storage_account_customer_managed_key" "import" {
 }
 
 func (r StorageAccountCustomerManagedKeyResource) updated(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-%s
-
-resource "azurerm_key_vault_key" "second" {
-  name         = "second"
-  key_vault_id = azurerm_key_vault.test.id
-  key_type     = "RSA"
-  key_size     = 2048
-  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
-
-  depends_on = [
-    azurerm_key_vault_access_policy.client,
-    azurerm_key_vault_access_policy.storage,
-  ]
-}
-
-resource "azurerm_storage_account_customer_managed_key" "test" {
-  storage_account_id = azurerm_storage_account.test.id
-  key_vault_id       = azurerm_key_vault.test.id
-  key_name           = azurerm_key_vault_key.second.name
-  key_version        = azurerm_key_vault_key.second.version
-}
-`, r.template(data))
-	}
-
 	return fmt.Sprintf(`
 %s
 
@@ -358,18 +305,6 @@ resource "azurerm_storage_account_customer_managed_key" "test" {
 }
 
 func (r StorageAccountCustomerManagedKeyResource) autoKeyRotation(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-%s
-
-resource "azurerm_storage_account_customer_managed_key" "test" {
-  storage_account_id = azurerm_storage_account.test.id
-  key_vault_id       = azurerm_key_vault.test.id
-  key_name           = azurerm_key_vault_key.first.name
-}
-`, r.template(data))
-	}
-
 	return fmt.Sprintf(`
 %s
 
@@ -381,17 +316,6 @@ resource "azurerm_storage_account_customer_managed_key" "test" {
 }
 
 func (r StorageAccountCustomerManagedKeyResource) managedHSM(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-%s
-
-resource "azurerm_storage_account_customer_managed_key" "test" {
-  storage_account_id = azurerm_storage_account.test.id
-  managed_hsm_key_id = azurerm_key_vault_managed_hardware_security_module_key.test.versioned_id
-}
-`, r.templateHSM(data))
-	}
-
 	return fmt.Sprintf(`
 %s
 
@@ -403,17 +327,6 @@ resource "azurerm_storage_account_customer_managed_key" "test" {
 }
 
 func (r StorageAccountCustomerManagedKeyResource) managedHSMUpdate(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-%s
-
-resource "azurerm_storage_account_customer_managed_key" "test" {
-  storage_account_id = azurerm_storage_account.test.id
-  managed_hsm_key_id = azurerm_key_vault_managed_hardware_security_module_key.test.id
-}
-`, r.templateHSM(data))
-	}
-
 	return fmt.Sprintf(`
 %s
 
@@ -469,6 +382,7 @@ resource "azurerm_key_vault" "remotetest" {
   name                       = "acctestkv%s"
   location                   = azurerm_resource_group.remotetest.location
   resource_group_name        = azurerm_resource_group.remotetest.name
+  rbac_authorization_enabled = false
   tenant_id                  = "%s"
   sku_name                   = "standard"
   purge_protection_enabled   = true
@@ -574,6 +488,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acctestkv%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   purge_protection_enabled   = true
@@ -652,6 +567,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acctestkv%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   purge_protection_enabled   = true
@@ -788,6 +704,7 @@ resource "azurerm_key_vault" "remotetest" {
   name                       = "acctestkv%[5]s"
   location                   = azurerm_resource_group.remotetest.location
   resource_group_name        = azurerm_resource_group.remotetest.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.remote.tenant_id
   sku_name                   = "standard"
   purge_protection_enabled   = true
@@ -870,6 +787,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acc%[3]d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7

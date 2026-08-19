@@ -3,7 +3,7 @@
 
 package communication
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name communication_service -service-package-name communication -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 import (
 	"context"
@@ -69,11 +69,9 @@ func (CommunicationServiceResource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"data_location": {
-			Type: pluginsdk.TypeString,
-			// TODO: should this become Required and remove the default in 4.0?
-			Optional: true,
+			Type:     pluginsdk.TypeString,
+			Required: true,
 			ForceNew: true,
-			Default:  "United States",
 			ValidateFunc: validation.StringInSlice([]string{
 				"Africa",
 				"Asia Pacific",

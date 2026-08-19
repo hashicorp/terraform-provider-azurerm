@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -495,31 +494,6 @@ func TestAccEventHubNamespace_publicNetworkAccessUpdate(t *testing.T) {
 	})
 }
 
-func TestAccEventHubNamespace_minimumTLSUpdate(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skipf("The `minimum_tls_version` has only one possible value `1.2`, we can not update it.")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
-	r := EventHubNamespaceResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("minimum_tls_version").HasValue("1.2"),
-			),
-		},
-		{
-			Config: r.minimumTLSUpdate(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("minimum_tls_version").HasValue("1.1"),
-			),
-		},
-	})
-}
-
 func TestAccEventHubNamespace_autoInfalteDisabledWithAutoInflateUnits(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
 	r := EventHubNamespaceResource{}
@@ -856,7 +830,9 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.1.0/24"]
-  service_endpoints    = ["Microsoft.EventHub"]
+  service_endpoint {
+    service = "Microsoft.EventHub"
+  }
 }
 
 resource "azurerm_virtual_network" "test2" {
@@ -871,7 +847,9 @@ resource "azurerm_subnet" "test2" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test2.name
   address_prefixes     = ["10.1.1.0/24"]
-  service_endpoints    = ["Microsoft.EventHub"]
+  service_endpoint {
+    service = "Microsoft.EventHub"
+  }
 }
 
 resource "azurerm_eventhub_namespace" "test" {
@@ -1062,27 +1040,6 @@ resource "azurerm_eventhub_namespace" "test" {
   resource_group_name           = azurerm_resource_group.test.name
   sku                           = "Basic"
   public_network_access_enabled = false
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (EventHubNamespaceResource) minimumTLSUpdate(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-eh-%d"
-  location = "%s"
-}
-
-resource "azurerm_eventhub_namespace" "test" {
-  name                = "acctesteventhubnamespace-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
-  minimum_tls_version = "1.1"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package toproto5
@@ -18,7 +18,8 @@ import (
 func Block(ctx context.Context, name string, path *tftypes.AttributePath, b fwschema.Block) (*tfprotov5.SchemaNestedBlock, error) {
 	schemaNestedBlock := &tfprotov5.SchemaNestedBlock{
 		Block: &tfprotov5.SchemaBlock{
-			Deprecated: b.GetDeprecationMessage() != "",
+			Deprecated:         b.GetDeprecationMessage() != "",
+			DeprecationMessage: b.GetDeprecationMessage(),
 		},
 		TypeName: name,
 	}

@@ -18,11 +18,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-02-01/vaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/deletedvaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/vaults"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/migration"
@@ -36,19 +38,22 @@ import (
 	dataplane "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity
+
 var keyVaultResourceName = "azurerm_key_vault"
 
 func resourceKeyVault() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceKeyVaultCreate,
 		Read:   resourceKeyVaultRead,
 		Update: resourceKeyVaultUpdate,
 		Delete: resourceKeyVaultDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := commonids.ParseKeyVaultID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.KeyVaultId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.KeyVaultId{}),
+		},
 
 		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
@@ -74,6 +79,11 @@ func resourceKeyVault() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"resource_group_name": commonschema.ResourceGroupName(),
+
+			"rbac_authorization_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Required: true,
+			},
 
 			"sku_name": {
 				Type:     pluginsdk.TypeString,
@@ -132,11 +142,6 @@ func resourceKeyVault() *pluginsdk.Resource {
 			},
 
 			"enabled_for_template_deployment": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-			},
-
-			"rbac_authorization_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
@@ -213,60 +218,12 @@ func resourceKeyVault() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["rbac_authorization_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"enable_rbac_authorization"},
-		}
-
-		resource.Schema["enable_rbac_authorization"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"rbac_authorization_enabled"},
-			Deprecated:    "This property has been renamed to `rbac_authorization_enabled` and will be removed in v5.0 of the provider",
-		}
-
-		// NOTE: To unblock customers where they had previously deployed a key vault with
-		// contacts, but cannot re-deploy the key vault. I am adding support for the contact
-		// field back into the resource for UPDATE ONLY. If this is a new resource and the
-		// contact field is defined in the configuration file it will now throw an error.
-		// This will allow legacy key vaults to continue to work as the previously have
-		// and enforces our new model of separating out the data plane call into its
-		// own resource (e.g., contacts)...
-		resource.Schema["contact"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeSet,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "As the `contact` property uses a data plane API, to better support private endpoints and key vaults with public network access disabled, new key vaults with the `contact` field defined in the configuration file will now be required to use the `azurerm_key_vault_certificate_contacts` resource instead of the exposed `contact` field in the key vault resource itself. This field will be removed in v5.0 of the provider.",
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"email": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-					},
-					"name": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-					},
-					"phone": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-					},
-				},
-			},
-		}
-	}
-
-	return resource
 }
 
 func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).KeyVault.VaultsClient
+	deletedVaultsClient := meta.(*clients.Client).KeyVault.DeletedVaultsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -279,13 +236,6 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	defer locks.UnlockByName(id.VaultName, keyVaultResourceName)
 
 	isPublic := d.Get("public_network_access_enabled").(bool)
-	if !features.FivePointOh() {
-		if len(d.Get("contact").(*pluginsdk.Set).List()) > 0 {
-			// In v4.0, the provider will not allow creating key vaults if the configuration
-			// file contains a 'contact' field...
-			return fmt.Errorf("%s: `contact` field is not supported for new key vaults", id)
-		}
-	}
 
 	// check for the presence of an existing, live one which should be imported into the state
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
@@ -302,8 +252,8 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	// before creating check to see if the key vault exists in the soft delete state
-	deletedVaultId := vaults.NewDeletedVaultID(id.SubscriptionId, location, id.VaultName)
-	softDeletedKeyVault, err := client.GetDeleted(ctx, deletedVaultId)
+	deletedVaultId := deletedvaults.NewDeletedVaultID(id.SubscriptionId, location, id.VaultName)
+	softDeletedKeyVault, err := deletedVaultsClient.VaultsGetDeleted(ctx, deletedVaultId)
 	if err != nil {
 		// If Terraform lacks permission to read at the Subscription we'll get 409, not 404
 		if !response.WasNotFound(softDeletedKeyVault.HttpResponse) && !response.WasStatusCode(softDeletedKeyVault.HttpResponse, http.StatusForbidden) {
@@ -326,7 +276,7 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	enabledForDeployment := d.Get("enabled_for_deployment").(bool)
 	enabledForDiskEncryption := d.Get("enabled_for_disk_encryption").(bool)
 	enabledForTemplateDeployment := d.Get("enabled_for_template_deployment").(bool)
-	enabledRbacAuthorization := d.Get("rbac_authorization_enabled").(bool)
+	rbacAuthorizationEnabled := d.Get("rbac_authorization_enabled").(bool)
 	t := d.Get("tags").(map[string]interface{})
 
 	policies := d.Get("access_policy").([]interface{})
@@ -349,7 +299,7 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 			EnabledForDeployment:         &enabledForDeployment,
 			EnabledForDiskEncryption:     &enabledForDiskEncryption,
 			EnabledForTemplateDeployment: &enabledForTemplateDeployment,
-			EnableRbacAuthorization:      pointer.To(enabledRbacAuthorization),
+			EnableRbacAuthorization:      pointer.To(rbacAuthorizationEnabled),
 			NetworkAcls:                  networkAcls,
 
 			// @tombuildsstuff: as of 2020-12-15 this is now defaulted on, and appears to be so in all regions
@@ -358,12 +308,6 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 			EnableSoftDelete: pointer.To(true),
 		},
 		Tags: tags.Expand(t),
-	}
-
-	if !features.FivePointOh() {
-		if v, ok := d.GetOk("enable_rbac_authorization"); ok {
-			parameters.Properties.EnableRbacAuthorization = pointer.To(v.(bool))
-		}
 	}
 
 	if isPublic {
@@ -392,7 +336,7 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		if err != nil {
 			return err
 		}
-		if !utils.SliceContainsValue(virtualNetworkNames, id.VirtualNetworkName) {
+		if !helpers.SliceContainsValue(virtualNetworkNames, id.VirtualNetworkName) {
 			virtualNetworkNames = append(virtualNetworkNames, id.VirtualNetworkName)
 		}
 	}
@@ -400,11 +344,14 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	locks.MultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
 	defer locks.UnlockMultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
 
-	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	read, err := client.Get(ctx, id)
 	if err != nil {
@@ -464,7 +411,6 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
-	managementClient := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -477,8 +423,6 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	// key vault access policy trying to update it as well
 	locks.ByName(id.VaultName, keyVaultResourceName)
 	defer locks.UnlockByName(id.VaultName, keyVaultResourceName)
-
-	d.Partial(true)
 
 	// first pull the existing key vault since we need to lock on several bits of its information
 	existing, err := client.Get(ctx, *id)
@@ -498,8 +442,7 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	if d.HasChange("access_policy") {
 		policiesRaw := d.Get("access_policy").([]interface{})
-		accessPolicies := expandAccessPolicies(policiesRaw)
-		update.Properties.AccessPolicies = accessPolicies
+		update.Properties.AccessPolicies = expandAccessPolicies(policiesRaw)
 	}
 
 	if d.HasChange("enabled_for_deployment") {
@@ -518,12 +461,6 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		update.Properties.EnableRbacAuthorization = pointer.To(d.Get("rbac_authorization_enabled").(bool))
 	}
 
-	if !features.FivePointOh() {
-		if d.HasChange("enable_rbac_authorization") {
-			update.Properties.EnableRbacAuthorization = pointer.To(d.Get("enable_rbac_authorization").(bool))
-		}
-	}
-
 	if d.HasChange("network_acls") {
 		networkAclsRaw := d.Get("network_acls").([]interface{})
 		networkAcls, subnetIds := expandKeyVaultNetworkAcls(networkAclsRaw)
@@ -536,7 +473,7 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 				return err
 			}
 
-			if !utils.SliceContainsValue(virtualNetworkNames, id.VirtualNetworkName) {
+			if !helpers.SliceContainsValue(virtualNetworkNames, id.VirtualNetworkName) {
 				virtualNetworkNames = append(virtualNetworkNames, id.VirtualNetworkName)
 			}
 		}
@@ -551,10 +488,7 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		newValue := d.Get("purge_protection_enabled").(bool)
 
 		// existing.Properties guaranteed non-nil above
-		oldValue := false
-		if existing.Model.Properties.EnablePurgeProtection != nil {
-			oldValue = *existing.Model.Properties.EnablePurgeProtection
-		}
+		oldValue := pointer.From(existing.Model.Properties.EnablePurgeProtection)
 
 		// whilst this should have got caught in the customizeDiff this won't work if that fields interpolated
 		// hence the double-checking here
@@ -601,10 +535,7 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 
 		// existing.Properties guaranteed non-nil above
-		var oldValue int64 = 0
-		if existing.Model.Properties.SoftDeleteRetentionInDays != nil {
-			oldValue = *existing.Model.Properties.SoftDeleteRetentionInDays
-		}
+		oldValue := pointer.From(existing.Model.Properties.SoftDeleteRetentionInDays)
 
 		// whilst this should have got caught in the customizeDiff this won't work if that fields interpolated
 		// hence the double-checking here
@@ -631,49 +562,6 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	if _, err := client.Update(ctx, *id, update); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
-	}
-
-	if !features.FivePointOh() {
-		if d.HasChange("contact") {
-			contacts := dataplane.Contacts{
-				ContactList: pointer.To(make([]dataplane.Contact, 0)),
-			}
-
-			if len(d.Get("contact").(*pluginsdk.Set).List()) > 0 || d.Get("contact").(*pluginsdk.Set).List()[0] != nil {
-				for _, item := range d.Get("contact").(*pluginsdk.Set).List() {
-					v := item.(map[string]interface{})
-					contacts.ContactList = pointer.To(append(*contacts.ContactList, dataplane.Contact{
-						Name:         pointer.To(v["name"].(string)),
-						EmailAddress: pointer.To(v["email"].(string)),
-						Phone:        pointer.To(v["phone"].(string)),
-					}))
-				}
-			}
-
-			vaultUri := ""
-			if existing.Model != nil && existing.Model.Properties.VaultUri != nil {
-				vaultUri = pointer.From(existing.Model.Properties.VaultUri)
-			}
-
-			if vaultUri == "" {
-				return fmt.Errorf("failed to get vault base url for %s: %s", *id, err)
-			}
-
-			var err error
-			if len(*contacts.ContactList) == 0 {
-				_, err = managementClient.DeleteCertificateContacts(ctx, vaultUri)
-			} else {
-				_, err = managementClient.SetCertificateContacts(ctx, vaultUri, contacts)
-			}
-
-			if err != nil {
-				var extendedErrorMsg string
-				if !isPublic {
-					extendedErrorMsg = "\n\nWARNING: public network access for this key vault has been disabled, access to the key vault is only allowed through private endpoints"
-				}
-				return fmt.Errorf("updating Contacts for %s: %+v %s", *id, err, extendedErrorMsg)
-			}
-		}
 	}
 
 	d.Partial(false)
@@ -713,13 +601,17 @@ func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		meta.(*clients.Client).KeyVault.AddToCache(*id, vaultUri)
 	}
 
+	return resourceKeyVaultFlatten(ctx, managementClient, d, id, resp.Model, true)
+}
+
+func resourceKeyVaultFlatten(ctx context.Context, managementClient *dataplane.BaseClient, d *pluginsdk.ResourceData, id *commonids.KeyVaultId, model *vaults.Vault, includeResource bool) error {
 	d.Set("name", id.VaultName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("vault_uri", vaultUri)
 
 	publicNetworkAccessEnabled := true
 
-	if model := resp.Model; model != nil {
+	if model != nil {
+		d.Set("vault_uri", pointer.From(model.Properties.VaultUri))
 		d.Set("location", location.NormalizeNilable(model.Location))
 		d.Set("tenant_id", model.Properties.TenantId)
 		d.Set("enabled_for_deployment", model.Properties.EnabledForDeployment)
@@ -728,9 +620,6 @@ func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("rbac_authorization_enabled", model.Properties.EnableRbacAuthorization)
 		d.Set("purge_protection_enabled", model.Properties.EnablePurgeProtection)
 
-		if !features.FivePointOh() {
-			d.Set("enable_rbac_authorization", model.Properties.EnableRbacAuthorization)
-		}
 		if model.Properties.PublicNetworkAccess != nil {
 			publicNetworkAccessEnabled = strings.EqualFold(*model.Properties.PublicNetworkAccess, "Enabled")
 		}
@@ -768,37 +657,36 @@ func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return fmt.Errorf("setting `tags`: %+v", err)
 		}
+	} else {
+		d.Set("vault_uri", "")
 	}
 
-	// If publicNetworkAccessEnabled is true, the data plane call should succeed.
-	// (if the caller has the 'ManageContacts' certificate permissions)
-	//
-	// If an error is returned from the data plane call we need to return that error.
-	//
-	// If publicNetworkAccessEnabled is false, the data plane call should fail unless
-	// there is a private endpoint connected to the key vault.
-	// (and the caller has the 'ManageContacts' certificate permissions)
-	//
-	// We don't know if the private endpoint has been created yet, so we need
-	// to ignore the error if the data plane call fails.
-	contacts, err := managementClient.GetCertificateContacts(ctx, vaultUri)
-	if err != nil {
-		if publicNetworkAccessEnabled && (!utils.ResponseWasForbidden(contacts.Response) && !utils.ResponseWasNotFound(contacts.Response)) {
-			return fmt.Errorf("retrieving `contact` for KeyVault: %+v", err)
+	if includeResource {
+		// If publicNetworkAccessEnabled is true, the data plane call should succeed.
+		// (if the caller has the 'ManageContacts' certificate permissions)
+		//
+		// If an error is returned from the data plane call we need to return that error.
+		//
+		// If publicNetworkAccessEnabled is false, the data plane call should fail unless
+		// there is a private endpoint connected to the key vault.
+		// (and the caller has the 'ManageContacts' certificate permissions)
+		//
+		// We don't know if the private endpoint has been created yet, so we need
+		// to ignore the error if the data plane call fails.
+		contacts, err := managementClient.GetCertificateContacts(ctx, d.Get("vault_uri").(string))
+		if err != nil {
+			if publicNetworkAccessEnabled && (!utils.ResponseWasForbidden(contacts.Response) && !utils.ResponseWasNotFound(contacts.Response)) {
+				return fmt.Errorf("retrieving `contact` for KeyVault: %+v", err)
+			}
 		}
 	}
 
-	if !features.FivePointOh() {
-		if err := d.Set("contact", flattenKeyVaultCertificateContactList(&contacts)); err != nil {
-			return fmt.Errorf("setting `contact` for KeyVault: %+v", err)
-		}
-	}
-
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceKeyVaultDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
+	deletedVaultsClient := meta.(*clients.Client).KeyVault.DeletedVaultsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -812,7 +700,11 @@ func resourceKeyVaultDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	read, err := client.Get(ctx, *id)
 	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
+		if response.WasNotFound(read.HttpResponse) {
+			log.Printf("[DEBUG] Key Vault %q was not found - removing from state", id.VaultName)
+			return nil
+		}
+		return fmt.Errorf("checking if key vault %q exists: %v", *id, err)
 	}
 
 	location := ""
@@ -841,7 +733,7 @@ func resourceKeyVaultDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 						return err
 					}
 
-					if !utils.SliceContainsValue(virtualNetworkNames, subnetId.VirtualNetworkName) {
+					if !helpers.SliceContainsValue(virtualNetworkNames, subnetId.VirtualNetworkName) {
 						virtualNetworkNames = append(virtualNetworkNames, subnetId.VirtualNetworkName)
 					}
 				}
@@ -858,11 +750,11 @@ func resourceKeyVaultDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	// Purge the soft deleted key vault permanently if the feature flag is enabled
 	if meta.(*clients.Client).Features.KeyVault.PurgeSoftDeleteOnDestroy && softDeleteEnabled {
-		deletedVaultId := vaults.NewDeletedVaultID(id.SubscriptionId, location, id.VaultName)
+		deletedVaultId := deletedvaults.NewDeletedVaultID(id.SubscriptionId, location, id.VaultName)
 
 		// KeyVaults with Purge Protection Enabled cannot be deleted unless done by Azure
 		if purgeProtectionEnabled {
-			deletedInfo, err := getSoftDeletedStateForKeyVault(ctx, client, deletedVaultId)
+			deletedInfo, err := getSoftDeletedStateForKeyVault(ctx, deletedVaultsClient, deletedVaultId)
 			if err != nil {
 				return fmt.Errorf("retrieving the Deletion Details for %s: %+v", *id, err)
 			}
@@ -877,7 +769,7 @@ func resourceKeyVaultDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 
 		log.Printf("[DEBUG] KeyVault %q marked for purge - executing purge", id.VaultName)
-		if err := client.PurgeDeletedThenPoll(ctx, deletedVaultId); err != nil {
+		if err := deletedVaultsClient.VaultsPurgeDeletedThenPoll(ctx, deletedVaultId); err != nil {
 			return fmt.Errorf("purging %s: %+v", *id, err)
 		}
 		log.Printf("[DEBUG] Purged KeyVault %q.", id.VaultName)
@@ -944,8 +836,8 @@ func expandKeyVaultNetworkAcls(input []interface{}) (*vaults.NetworkRuleSet, []s
 	}
 
 	ruleSet := vaults.NetworkRuleSet{
-		Bypass:              pointer.To(vaults.NetworkRuleBypassOptions(bypass)),
-		DefaultAction:       pointer.To(vaults.NetworkRuleAction(defaultAction)),
+		Bypass:              pointer.ToEnum[vaults.NetworkRuleBypassOptions](bypass),
+		DefaultAction:       pointer.ToEnum[vaults.NetworkRuleAction](defaultAction),
 		IPRules:             &ipRules,
 		VirtualNetworkRules: &networkRules,
 	}
@@ -992,38 +884,6 @@ func flattenKeyVaultNetworkAcls(input *vaults.NetworkRuleSet) []interface{} {
 	}
 }
 
-func flattenKeyVaultCertificateContactList(input *dataplane.Contacts) []interface{} {
-	results := make([]interface{}, 0)
-	if input == nil || input.ContactList == nil {
-		return results
-	}
-
-	for _, contact := range *input.ContactList {
-		emailAddress := ""
-		if contact.EmailAddress != nil {
-			emailAddress = *contact.EmailAddress
-		}
-
-		name := ""
-		if contact.Name != nil {
-			name = *contact.Name
-		}
-
-		phone := ""
-		if contact.Phone != nil {
-			phone = *contact.Phone
-		}
-
-		results = append(results, map[string]interface{}{
-			"email": emailAddress,
-			"name":  name,
-			"phone": phone,
-		})
-	}
-
-	return results
-}
-
 func optedOutOfRecoveringSoftDeletedKeyVaultErrorFmt(name, location string) string {
 	return fmt.Sprintf(`
 An existing soft-deleted Key Vault exists with the Name %q in the location %q, however
@@ -1045,8 +905,8 @@ type keyVaultDeletionStatus struct {
 	purgeDate  string
 }
 
-func getSoftDeletedStateForKeyVault(ctx context.Context, client *vaults.VaultsClient, deletedVaultId vaults.DeletedVaultId) (*keyVaultDeletionStatus, error) {
-	resp, err := client.GetDeleted(ctx, deletedVaultId)
+func getSoftDeletedStateForKeyVault(ctx context.Context, deletedVaultsClient *deletedvaults.DeletedVaultsClient, deletedVaultId deletedvaults.DeletedVaultId) (*keyVaultDeletionStatus, error) {
+	resp, err := deletedVaultsClient.VaultsGetDeleted(ctx, deletedVaultId)
 	if err != nil {
 		return nil, err
 	}

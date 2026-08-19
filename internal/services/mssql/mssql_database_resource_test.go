@@ -637,7 +637,7 @@ func TestAccMsSqlDatabase_threatDetectionPolicy(t *testing.T) {
 				check.That(data.ResourceName).Key("threat_detection_policy.0.state").HasValue("Enabled"),
 				check.That(data.ResourceName).Key("threat_detection_policy.0.retention_days").HasValue("15"),
 				check.That(data.ResourceName).Key("threat_detection_policy.0.disabled_alerts.#").HasValue("1"),
-				check.That(data.ResourceName).Key("threat_detection_policy.0.email_account_admins").HasValue("Enabled"),
+				check.That(data.ResourceName).Key("threat_detection_policy.0.email_account_admins_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep("sample_name", "threat_detection_policy.0.storage_account_access_key"),
@@ -1209,6 +1209,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acctestkv-%[3]s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
@@ -2161,12 +2162,12 @@ resource "azurerm_mssql_database" "test" {
   sku_name     = "GP_Gen5_2"
 
   threat_detection_policy {
-    retention_days             = 15
-    state                      = "%[3]s"
-    disabled_alerts            = ["Sql_Injection"]
-    email_account_admins       = "Enabled"
-    storage_account_access_key = azurerm_storage_account.test.primary_access_key
-    storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
+    retention_days               = 15
+    state                        = "%[3]s"
+    disabled_alerts              = ["Sql_Injection"]
+    email_account_admins_enabled = true
+    storage_account_access_key   = azurerm_storage_account.test.primary_access_key
+    storage_endpoint             = azurerm_storage_account.test.primary_blob_endpoint
   }
 
   tags = {
@@ -2190,10 +2191,10 @@ resource "azurerm_mssql_database" "test" {
   sku_name     = "GP_Gen5_2"
 
   threat_detection_policy {
-    retention_days       = 15
-    state                = "Enabled"
-    disabled_alerts      = ["Sql_Injection"]
-    email_account_admins = "Enabled"
+    retention_days               = 15
+    state                        = "Enabled"
+    disabled_alerts              = ["Sql_Injection"]
+    email_account_admins_enabled = true
   }
 
   tags = {
@@ -2462,7 +2463,7 @@ resource "azurerm_mssql_database" "test" {
 
 func (r MssqlDatabaseResource) bacpac(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%[1]s
+	%[1]s
 
 resource "azurerm_storage_account" "test" {
   name                     = "accsa%d"
@@ -2474,16 +2475,15 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "bacpac"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
 resource "azurerm_storage_blob" "test" {
-  name                   = "test.bacpac"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-  source                 = "testdata/sql_import.bacpac"
+  name                 = "test.bacpac"
+  storage_container_id = azurerm_storage_container.test.id
+  type                 = "Block"
+  source               = "testdata/sql_import.bacpac"
 }
 
 resource "azurerm_mssql_firewall_rule" "test" {
@@ -2542,6 +2542,7 @@ resource "azurerm_key_vault" "test" {
   name                        = "acctest%[3]s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
+  rbac_authorization_enabled  = false
   enabled_for_disk_encryption = true
   tenant_id                   = azurerm_user_assigned_identity.test.tenant_id
   soft_delete_retention_days  = 7
