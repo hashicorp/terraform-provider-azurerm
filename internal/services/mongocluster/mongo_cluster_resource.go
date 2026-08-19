@@ -477,7 +477,7 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			pollingCtx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+			pollingCtx, cancel := context.WithTimeout(ctx, 20*time.Minute)
 			defer cancel()
 
 			pollerType := custompollers.NewMongoClusterEarliestRestoreTimePoller(client, id)
