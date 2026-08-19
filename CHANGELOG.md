@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 * `azurerm_databricks_workspace` - remove a redundant key vault existence check [GH-33136]
+* `azurerm_databricks_workspace_root_dbfs_customer_managed_key` - remove a redundant key vault existence check [GH-33136]
 * `azurerm_redhat_openshift_cluster` - add support for the `network_profile.load_balancer_profile` block [GH-32473]
 * `azurerm_redhat_openshift_cluster` - add support for the `platform_workload_identity_profile` block [GH-32473]
 * dependencies: `go` - update to `1.26.6` [GH-33141]
@@ -16,6 +17,7 @@ FEATURES:
 * **New List Resource**: `azurerm_user_assigned_identity` [GH-32667]
 
 BUG FIXES:
+* `azurerm_databricks_workspace` - fix a persistent diff on removal of `managed_disk_cmk_key_vault_key_id` or `managed_services_cmk_key_vault_key_id` [GH-33136]
 
 ## 5.1.0 (August 13, 2026)
 
