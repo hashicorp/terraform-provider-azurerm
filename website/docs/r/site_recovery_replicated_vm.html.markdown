@@ -275,7 +275,7 @@ The following arguments are supported:
 
 A `managed_disk` block supports the following:
 
-> **Note:** If omitted, the API will return managed disks and terraform will commit them to state. If explicitly configured, only the specified disks will be replicated. New entries can be added non-destructively; however, entry removal will force a new resource to be created
+-> **Note:** If omitted, the API will return managed disks and terraform will commit them to state. If explicitly configured, only the specified disks will be replicated. New entries can be added non-destructively; however, entry removal will force a new resource to be created
 
 * `disk_id` - (Required) Id of disk that should be replicated. Changing this forces a new resource to be created.
 
