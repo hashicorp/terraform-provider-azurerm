@@ -224,6 +224,26 @@ func resourceFirewall() *pluginsdk.Resource {
 				},
 			},
 
+			"autoscale_configuration": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"min_capacity": {
+							Type:         pluginsdk.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntAtLeast(2),
+						},
+						"max_capacity": {
+							Type:         pluginsdk.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(2, 50),
+						},
+					},
+				},
+			},
+
 			"zones": commonschema.ZonesMultipleOptionalForceNew(),
 
 			"tags": commonschema.Tags(),
@@ -348,6 +368,17 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			attrs := *parameters.Properties.AdditionalProperties
 			attrs[k] = v
 		}
+	}
+
+	if v, ok := d.GetOk("autoscale_configuration"); ok {
+		autoscaleCfg := v.([]interface{})
+		if len(autoscaleCfg) == 1 && autoscaleCfg[0] != nil {
+			b := autoscaleCfg[0].(map[string]interface{})
+			if b["max_capacity"].(int) < b["min_capacity"].(int) {
+				return fmt.Errorf("`autoscale_configuration.max_capacity` (%d) must be greater than or equal to `autoscale_configuration.min_capacity` (%d)", b["max_capacity"].(int), b["min_capacity"].(int))
+			}
+		}
+		parameters.Properties.AutoscaleConfiguration = expandFirewallAutoscaleConfiguration(autoscaleCfg)
 	}
 
 	if policyId, ok := d.GetOk("firewall_policy_id"); ok {
@@ -479,6 +510,10 @@ func resourceFirewallSetFlatten(d *pluginsdk.ResourceData, id *azurefirewalls.Az
 
 			if err := d.Set("virtual_hub", flattenFirewallVirtualHubSetting(props)); err != nil {
 				return fmt.Errorf("setting `virtual_hub`: %+v", err)
+			}
+
+			if err := d.Set("autoscale_configuration", flattenFirewallAutoscaleConfiguration(props.AutoscaleConfiguration)); err != nil {
+				return fmt.Errorf("setting `autoscale_configuration`: %+v", err)
 			}
 		}
 
@@ -843,4 +878,27 @@ func validateFirewallIPConfigurationSettings(configs []interface{}) error {
 	}
 
 	return nil
+}
+
+func expandFirewallAutoscaleConfiguration(input []interface{}) *azurefirewalls.AzureFirewallAutoscaleConfiguration {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	b := input[0].(map[string]interface{})
+	return &azurefirewalls.AzureFirewallAutoscaleConfiguration{
+		MinCapacity: pointer.To(int64(b["min_capacity"].(int))),
+		MaxCapacity: pointer.To(int64(b["max_capacity"].(int))),
+	}
+}
+
+func flattenFirewallAutoscaleConfiguration(input *azurefirewalls.AzureFirewallAutoscaleConfiguration) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"min_capacity": int(pointer.From(input.MinCapacity)),
+			"max_capacity": int(pointer.From(input.MaxCapacity)),
+		},
+	}
 }
