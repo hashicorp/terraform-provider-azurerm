@@ -13,6 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/publicipaddresses"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -429,6 +431,61 @@ func TestAccPublicIp_standardV2RegionalTier(t *testing.T) {
 				check.That(data.ResourceName).Key("ip_address").Exists(),
 				check.That(data.ResourceName).Key("sku").HasValue(string(publicipaddresses.PublicIPAddressSkuNameStandardVTwo)),
 				check.That(data.ResourceName).Key("sku_tier").HasValue(string(publicipaddresses.PublicIPAddressSkuTierRegional)),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccPublicIp_skuUpgradeStandardToStandardV2(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	r := PublicIpResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.skuTier(data, string(publicipaddresses.PublicIPAddressSkuNameStandard), string(publicipaddresses.PublicIPAddressSkuTierRegional)),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ip_address").Exists(),
+				check.That(data.ResourceName).Key("sku").HasValue(string(publicipaddresses.PublicIPAddressSkuNameStandard)),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.skuTier(data, string(publicipaddresses.PublicIPAddressSkuNameStandardVTwo), string(publicipaddresses.PublicIPAddressSkuTierRegional)),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ip_address").Exists(),
+				check.That(data.ResourceName).Key("sku").HasValue(string(publicipaddresses.PublicIPAddressSkuNameStandardVTwo)),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccPublicIp_skuDowngradeRequiresReplacement(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	r := PublicIpResource{}
+
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
+		{
+			Config: r.skuTier(data, string(publicipaddresses.PublicIPAddressSkuNameStandardVTwo), string(publicipaddresses.PublicIPAddressSkuTierRegional)),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku").HasValue(string(publicipaddresses.PublicIPAddressSkuNameStandardVTwo)),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.skuTier(data, string(publicipaddresses.PublicIPAddressSkuNameStandard), string(publicipaddresses.PublicIPAddressSkuTierRegional)),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku").HasValue(string(publicipaddresses.PublicIPAddressSkuNameStandard)),
 			),
 		},
 		data.ImportStep(),
