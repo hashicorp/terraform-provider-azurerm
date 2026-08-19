@@ -316,7 +316,7 @@ func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
 
 If an API supports an LRO (Long Running Operation), use the `{Operation}ThenPoll` variant so the provider waits for the operation to complete before returning.
 
-Prefer the PUT API (`CreateOrUpdateThenPoll` or similar) over PATCH (`UpdateThenPoll` or similar) when both are available and you need to clear values. SDK structs generated from the OpenAPI spec use `omitempty` JSON tags, which means they cannot send explicit `null` values for fields on update.
+Default to the PUT API (`CreateOrUpdateThenPoll` or similar) over PATCH (`UpdateThenPoll` or similar) whenever both are available. Terraform configuration is declarative - removing an optional field from the configuration means "unset this value" - so an Update must be able to *clear* any optional field, not just set it. A PATCH cannot do this: SDK structs generated from the OpenAPI spec use `omitempty` JSON tags, which means the explicit `null` value required to clear a field in a PATCH request can never be sent.
 
 Consider the following struct:
 
@@ -342,6 +342,8 @@ props := FooProperties{
     SizeGB: nil, // this will serialize to "{}"!
 }
 ```
+
+As a result a PATCH-based Update silently ignores the removal of a field from the user's configuration, producing permanent drift that the provider cannot correct. Only use the PATCH API when a PUT is unavailable (or is broken/destructive for that resource) **and** no updatable field ever needs to be cleared. When using the PUT API, retrieve the existing resource, apply the changed fields to the retrieved model, and send the full payload back - see [best practices](best-practices.md#updates-should-default-to-the-put-api) for more detail.
 
 ---
 

@@ -23,23 +23,17 @@ if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 
 The update method should be checking if the updatable fields (in this example, only tags) - have changes (using `d.HasChanges` - which will flag updated values in the config if they're not ignored via `ignore_changes`).
 
-Depending on the API there are two types of Updates, a patch/delta update (where only the fields containing changes are sent) - and a full update (which requires sending the full payload) - these are differentiable via the method name in the SDK, patch/delta updates are generally called `Update`, with a full update being called `CreateOrUpdate`.
+### Updates should default to the PUT API
 
-A patch/delta update would look similar to below:
+Depending on the API there can be two ways to perform an Update - a PUT (a full update requiring the complete payload to be sent, generally called `CreateOrUpdate` in the SDK) - and a PATCH (a partial/delta update where only the fields being changed are sent, generally called `Update` in the SDK).
 
-```go
-payload := resources.GroupUpdate{}
-if d.HasChanges("tags") {
-  // this uses `pointer.To` since all fields are optional in a patch/delta update, so they'll only be updated if specified
-  payload.Tags = pointer.To(tags.Expand(d.Get("tags").(map[string]interface{})))
-}
+**Updates should default to using the PUT API: retrieve the existing resource from the API, apply the changed fields to the retrieved model, and send the full payload back.**
 
-if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
-  return fmt.Errorf("updating %s: %+v", id, err)
-}
-```
+The reason for this comes from Terraform's declarative model. The user's configuration is the desired state, so removing an optional field from the configuration means "unset this value" - which means an Update method must be able to *clear* any optional field, not just set it. PATCH semantics are the opposite - an absent field means "leave it unchanged" - and since the SDK structs generated from the OpenAPI spec use `omitempty` JSON tags, a `nil` field is omitted from the payload entirely, so the explicit `"field": null` that a PATCH requires to clear a value can never be sent.
 
-A full update would retrieve the existing object from the API and then patch it, for example:
+This makes PATCH-based Updates a trap: setting and changing values works fine, but when a user removes an optional field from their configuration the plan shows the field being removed, the apply "succeeds", and the next plan shows the same diff again - permanent drift that the provider cannot correct. Because this only surfaces when a field is *removed* from the configuration (a case frequently missing from acceptance tests) the failure is silent. A PUT does not have this gap - a full payload with the field absent resets it on the server - and its failure modes are loud (the API rejects the payload) rather than silent drift.
+
+A PUT-based Update retrieves the existing object from the API, applies the changed fields, and sends it back, for example:
 
 ```go
 resp, err := client.Get(ctx, id)
@@ -54,6 +48,29 @@ if resp.Model == nil {
 payload := *resp.Model
 if d.HasChanges("tags") {
   payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+}
+
+if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+  return fmt.Errorf("updating %s: %+v", id, err)
+}
+```
+
+Starting from the retrieved model (rather than rebuilding the payload from the configuration) preserves any server-set or externally-managed fields that a full replacement would otherwise wipe, and gating each field on `d.HasChanges` keeps `ignore_changes` working. Note that some APIs return read-only or write-once fields in the GET response which they then reject in a PUT - these need to be removed from the payload before sending.
+
+The PATCH API should only be used when:
+
+* the API does not offer a PUT, or
+* the PUT for that API is broken or destructive (e.g. it rejects payloads containing fields returned by the GET, or causes the resource to restart)
+
+**and** no updatable field ever needs to be cleared (or the PATCH model is able to send an explicit empty value, e.g. a non-pointer map that serialises to `{}`). The burden of proof sits on choosing PATCH, not PUT.
+
+A PATCH-based Update would look similar to below:
+
+```go
+payload := resources.GroupUpdate{}
+if d.HasChanges("tags") {
+  // this uses `pointer.To` since all fields are optional in a patch/delta update, so they'll only be updated if specified
+  payload.Tags = pointer.To(tags.Expand(d.Get("tags").(map[string]interface{})))
 }
 
 if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
