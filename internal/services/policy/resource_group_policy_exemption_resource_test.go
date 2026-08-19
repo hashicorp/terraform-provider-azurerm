@@ -10,11 +10,11 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
-	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -88,7 +88,7 @@ func (r ResourceGroupPolicyExemptionResource) Exists(ctx context.Context, client
 		return nil, err
 	}
 
-	resourceGroupId := resourceParse.NewResourceGroupID(id.SubscriptionId, id.ResourceGroup)
+	resourceGroupId := commonids.NewResourceGroupID(id.SubscriptionId, id.ResourceGroup)
 
 	resp, err := client.Policy.ExemptionsClient.Get(ctx, resourceGroupId.ID(), id.PolicyExemptionName)
 	if err != nil {

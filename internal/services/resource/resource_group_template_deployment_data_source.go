@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/deployments"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -53,15 +53,15 @@ func dataSourceResourceGroupTemplateDeploymentRead(d *schema.ResourceData, meta 
 
 	resourceGroupName := d.Get("resource_group_name").(string)
 	deploymentName := d.Get("name").(string)
-	id := parse.NewResourceGroupTemplateDeploymentID(subscriptionId, resourceGroupName, deploymentName)
+	id := deployments.NewResourceGroupProviderDeploymentID(subscriptionId, resourceGroupName, deploymentName)
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.DeploymentName)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.DeploymentName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("template %s in resource Group %s was not found", deploymentName, resourceGroupName)
 		}
 
-		return fmt.Errorf("retrieving Template Deployment %q (Resource Group %q): %+v", id.DeploymentName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Template Deployment %q (Resource Group %q): %+v", id.DeploymentName, id.ResourceGroupName, err)
 	}
 
 	d.SetId(id.ID())

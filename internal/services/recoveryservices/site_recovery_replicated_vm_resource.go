@@ -33,7 +33,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
-	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -779,7 +778,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 
 			recoveryGroupId := ""
 			if groupId := pointer.From(a2aDetails.RecoveryAzureResourceGroupId); groupId != "" {
-				parsedGroupId, err := resourceParse.ResourceGroupIDInsensitively(groupId)
+				parsedGroupId, err := commonids.ParseResourceGroupIDInsensitively(groupId)
 				if err != nil {
 					return err
 				}
@@ -900,7 +899,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 
 					recoveryResourceGroupID := ""
 					if respRGId := pointer.From(disk.RecoveryResourceGroupId); respRGId != "" {
-						parsedResourceGroupId, err := resourceParse.ResourceGroupIDInsensitively(respRGId)
+						parsedResourceGroupId, err := commonids.ParseResourceGroupIDInsensitively(respRGId)
 						if err != nil {
 							return err
 						}

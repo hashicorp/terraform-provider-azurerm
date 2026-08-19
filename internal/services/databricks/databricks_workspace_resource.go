@@ -29,7 +29,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/validate"
-	resourcesParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -521,7 +520,7 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 		managedResourceGroupName = fmt.Sprintf("databricks-rg-%s", id.ResourceGroupName)
 	}
 
-	managedResourceGroupID := resourcesParse.NewResourceGroupID(subscriptionId, managedResourceGroupName).ID()
+	managedResourceGroupID := commonids.NewResourceGroupID(subscriptionId, managedResourceGroupName).ID()
 	customerEncryptionEnabled := d.Get("customer_managed_key_enabled").(bool)
 	infrastructureEncryptionEnabled := d.Get("infrastructure_encryption_enabled").(bool)
 	defaultStorageFirewallEnabledRaw := d.Get("default_storage_firewall_enabled").(bool)
@@ -792,12 +791,12 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("sku", sku.Name)
 		}
 
-		managedResourceGroupID, err := resourcesParse.ResourceGroupIDInsensitively(pointer.From(model.Properties.ManagedResourceGroupId))
+		managedResourceGroupID, err := commonids.ParseResourceGroupIDInsensitively(pointer.From(model.Properties.ManagedResourceGroupId))
 		if err != nil {
 			return err
 		}
 		d.Set("managed_resource_group_id", model.Properties.ManagedResourceGroupId)
-		d.Set("managed_resource_group_name", managedResourceGroupID.ResourceGroup)
+		d.Set("managed_resource_group_name", managedResourceGroupID.ResourceGroupName)
 
 		if defaultStorageFirewall := model.Properties.DefaultStorageFirewall; defaultStorageFirewall != nil {
 			d.Set("default_storage_firewall_enabled", *defaultStorageFirewall != workspaces.DefaultStorageFirewallDisabled)

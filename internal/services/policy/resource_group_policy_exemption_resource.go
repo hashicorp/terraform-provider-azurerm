@@ -11,6 +11,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/structure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
@@ -19,8 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/validate"
-	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
-	resourceValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -58,7 +57,7 @@ func resourceArmResourceGroupPolicyExemption() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: resourceValidate.ResourceGroupID,
+				ValidateFunc: validation.AsGeneratedID(commonids.ParseResourceGroupIDInsensitively),
 			},
 
 			"exemption_category": {
@@ -114,12 +113,14 @@ func resourceArmResourceGroupPolicyExemptionCreateUpdate(d *pluginsdk.ResourceDa
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroupId, err := resourceParse.ResourceGroupID(d.Get("resource_group_id").(string))
+	// todo 6.0 - move to the case-sensitive parser when validation.AsGeneratedID is removed: this parses a config
+	// value which the paired AsGeneratedID validator accepts with legacy casing, and configs cannot be migrated.
+	resourceGroupId, err := commonids.ParseResourceGroupIDInsensitively(d.Get("resource_group_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewResourceGroupPolicyExemptionID(resourceGroupId.SubscriptionId, resourceGroupId.ResourceGroup, d.Get("name").(string))
+	id := parse.NewResourceGroupPolicyExemptionID(resourceGroupId.SubscriptionId, resourceGroupId.ResourceGroupName, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
@@ -188,7 +189,7 @@ func resourceArmResourceGroupPolicyExemptionRead(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("reading Policy Exemption: %+v", err)
 	}
 
-	resourceGroupId := resourceParse.NewResourceGroupID(id.SubscriptionId, id.ResourceGroup)
+	resourceGroupId := commonids.NewResourceGroupID(id.SubscriptionId, id.ResourceGroup)
 
 	resp, err := client.Get(ctx, resourceGroupId.ID(), id.PolicyExemptionName)
 	if err != nil {
@@ -237,7 +238,7 @@ func resourceArmResourceGroupPolicyExemptionDelete(d *pluginsdk.ResourceData, me
 		return err
 	}
 
-	resourceGroupId := resourceParse.NewResourceGroupID(id.SubscriptionId, id.ResourceGroup)
+	resourceGroupId := commonids.NewResourceGroupID(id.SubscriptionId, id.ResourceGroup)
 
 	if _, err := client.Delete(ctx, resourceGroupId.ID(), id.PolicyExemptionName); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id.ID(), err)
