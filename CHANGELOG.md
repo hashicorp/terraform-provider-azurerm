@@ -1,7 +1,8 @@
 ## 5.2.0 (Unreleased)
 
 ENHANCEMENTS:
-* `azurerm_redhat_openshift_cluster` - add support for the `network_profile.load_balancer_profile` property [GH-32473]
+* `azurerm_redhat_openshift_cluster` - add support for the `network_profile.load_balancer_profile` block [GH-32473]
+* `azurerm_redhat_openshift_cluster` - add support for the `platform_workload_identity_profile` block [GH-32473]
 * dependencies: `go` - update to `1.26.6` [GH-33141]
 * `azurerm_role_assignment` - the `condition`, `condition_version`, and `description` properties can now be updated in-place [GH-32714]
 * `azurerm_snapshot`: `create_option` now supports `CopyStart` [GH-32834]
