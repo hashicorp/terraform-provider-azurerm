@@ -106,7 +106,7 @@ func TestWrapDataSourceReadTimeoutsLegacyRead(t *testing.T) {
 	wrapDataSourceReadTimeouts(r)
 
 	d := schema.TestResourceDataRaw(t, map[string]*schema.Schema{}, map[string]interface{}{})
-	if err := r.Read(d, nil); err != nil {
+	if err := r.Read(d, nil); err != nil { //nolint:staticcheck
 		t.Fatalf("unexpected error: %+v", err)
 	}
 	if observed > declared || observed < declared-time.Minute {

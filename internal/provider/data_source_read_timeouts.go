@@ -45,9 +45,11 @@ func wrapDataSourceReadTimeouts(r *schema.Resource) {
 		return
 	}
 
-	if r.Read != nil {
-		inner := r.Read
-		r.Read = func(d *schema.ResourceData, meta interface{}) error {
+	// the deprecated legacy Read signature remains in use by untyped Data Sources, which is
+	// exactly what this wrapper exists to cover
+	if r.Read != nil { //nolint:staticcheck
+		inner := r.Read                                                 //nolint:staticcheck
+		r.Read = func(d *schema.ResourceData, meta interface{}) error { //nolint:staticcheck
 			timeouts.RegisterDataSourceReadTimeout(d, effectiveReadTimeout(d.GetRawConfig(), declared))
 			defer timeouts.DeregisterDataSourceReadTimeout(d)
 			return inner(d, meta)
