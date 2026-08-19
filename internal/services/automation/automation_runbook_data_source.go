@@ -122,7 +122,8 @@ func (d AutomationRunbookDataSource) Attributes() map[string]*pluginsdk.Schema {
 
 								"type": {
 									Type:     pluginsdk.TypeString,
-									Computed: true},
+									Computed: true,
+								},
 
 								"mandatory": {
 									Type:     pluginsdk.TypeBool,
