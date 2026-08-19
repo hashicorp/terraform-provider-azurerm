@@ -28,9 +28,9 @@ var (
 )
 
 type CognitiveAccountCapabilityHostModel struct {
-	AiServicesConnections    []string `tfschema:"ai_services_connections"`
-	CognitiveAccountId       string   `tfschema:"cognitive_account_id"`
 	Name                     string   `tfschema:"name"`
+	CognitiveAccountId       string   `tfschema:"cognitive_account_id"`
+	AiServicesConnections    []string `tfschema:"ai_services_connections"`
 	StorageConnections       []string `tfschema:"storage_connections"`
 	ThreadStorageConnections []string `tfschema:"thread_storage_connections"`
 	VectorStoreConnections   []string `tfschema:"vector_store_connections"`
