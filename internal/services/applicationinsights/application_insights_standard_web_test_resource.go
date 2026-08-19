@@ -1,6 +1,8 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
+//go:generate go run ../../tools/generator-tests resourceidentity -test-name basicConfig
+
 package applicationinsights
 
 import (
@@ -15,17 +17,19 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	webtests "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var (
 	_ sdk.ResourceWithUpdate        = ApplicationInsightsStandardWebTestResource{}
 	_ sdk.ResourceWithCustomizeDiff = ApplicationInsightsStandardWebTestResource{}
+	_ sdk.ResourceWithIdentity      = ApplicationInsightsStandardWebTestResource{}
 )
 
 type ApplicationInsightsStandardWebTestResource struct{}
@@ -221,9 +225,9 @@ func (ApplicationInsightsStandardWebTestResource) Arguments() map[string]*plugin
 
 					// Typo in API spec, issue: https://github.com/Azure/azure-rest-api-specs/issues/22136
 					// "ignore_status_code": {
-					// 	Type:     pluginsdk.TypeBool,
+					// 	Type:   pluginsdk.TypeBool,
 					// 	Optional: true,
-					// 	Default:  false,
+					// 	Default: false,
 					// },
 
 					"ssl_cert_remaining_lifetime": {
@@ -304,6 +308,10 @@ func (ApplicationInsightsStandardWebTestResource) ResourceType() string {
 	return "azurerm_application_insights_standard_web_test"
 }
 
+func (ApplicationInsightsStandardWebTestResource) Identity() resourceids.ResourceId {
+	return &webtests.WebTestId{}
+}
+
 func (r ApplicationInsightsStandardWebTestResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -320,12 +328,14 @@ func (r ApplicationInsightsStandardWebTestResource) Create() sdk.ResourceFunc {
 
 			id := webtests.NewWebTestID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			existing, err := client.WebTestsGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.WebTestsGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			validations := expandApplicationInsightsStandardWebTestValidations(model.ValidationRules)
@@ -370,6 +380,9 @@ func (r ApplicationInsightsStandardWebTestResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -514,6 +527,9 @@ func (ApplicationInsightsStandardWebTestResource) Read() sdk.ResourceFunc {
 				}
 			}
 
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
+			}
 			return metadata.Encode(&state)
 		},
 	}
@@ -531,8 +547,7 @@ func (ApplicationInsightsStandardWebTestResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			_, err = client.WebTestsDelete(ctx, *id)
-			if err != nil {
+			if _, err = client.WebTestsDelete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
@@ -560,7 +575,7 @@ func expandApplicationInsightsStandardWebTestRequest(input []RequestModel) (requ
 	request.Headers = expandApplicationInsightsStandardWebTestRequestHeaders(requestInput.Header)
 
 	if v := requestInput.Body; v != "" {
-		request.RequestBody = pointer.To(utils.Base64EncodeIfNot(v))
+		request.RequestBody = pointer.To(helpers.Base64EncodeIfNot(v))
 	}
 
 	if v := requestInput.URL; v != "" {

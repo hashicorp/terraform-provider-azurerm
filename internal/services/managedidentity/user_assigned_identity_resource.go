@@ -13,19 +13,28 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2024-11-30/identities"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedidentity/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 var (
 	_ sdk.Resource                   = UserAssignedIdentityResource{}
+	_ sdk.ResourceWithIdentity       = UserAssignedIdentityResource{}
 	_ sdk.ResourceWithStateMigration = UserAssignedIdentityResource{}
 )
 
 type UserAssignedIdentityResource struct{}
+
+func (r UserAssignedIdentityResource) Identity() resourceids.ResourceId {
+	return &commonids.UserAssignedIdentityId{}
+}
 
 func (r UserAssignedIdentityResource) StateUpgraders() sdk.StateUpgradeData {
 	return sdk.StateUpgradeData{
@@ -42,6 +51,7 @@ func (r UserAssignedIdentityResource) ModelObject() interface{} {
 
 type UserAssignedIdentityResourceSchema struct {
 	ClientId          string                 `tfschema:"client_id"`
+	IsolationScope    string                 `tfschema:"isolation_scope"`
 	Location          string                 `tfschema:"location"`
 	Name              string                 `tfschema:"name"`
 	PrincipalId       string                 `tfschema:"principal_id"`
@@ -67,7 +77,17 @@ func (r UserAssignedIdentityResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
-		"tags":                commonschema.Tags(),
+
+		"isolation_scope": {
+			Optional: true,
+			Type:     pluginsdk.TypeString,
+			ValidateFunc: validation.StringInSlice([]string{
+				// `None` is not exposed
+				string(identities.IsolationScopeRegional),
+			}, false),
+		},
+
+		"tags": commonschema.Tags(),
 	}
 }
 
@@ -103,20 +123,28 @@ func (r UserAssignedIdentityResource) Create() sdk.ResourceFunc {
 
 			id := commonids.NewUserAssignedIdentityID(subscriptionId, config.ResourceGroupName, config.Name)
 
-			existing, err := client.UserAssignedIdentitiesGet(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.UserAssignedIdentitiesGet(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			payload := identities.Identity{
-				Location:   location.Normalize(config.Location),
-				Tags:       tags.Expand(config.Tags),
-				Properties: &identities.UserAssignedIdentityProperties{},
+				Location: location.Normalize(config.Location),
+				Tags:     tags.Expand(config.Tags),
+				Properties: &identities.UserAssignedIdentityProperties{
+					IsolationScope: pointer.To(identities.IsolationScopeNone),
+				},
+			}
+
+			if config.IsolationScope != "" {
+				payload.Properties.IsolationScope = pointer.ToEnum[identities.IsolationScope](config.IsolationScope)
 			}
 
 			if _, err := client.UserAssignedIdentitiesCreateOrUpdate(ctx, id, payload); err != nil {
@@ -124,6 +152,9 @@ func (r UserAssignedIdentityResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -134,7 +165,6 @@ func (r UserAssignedIdentityResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ManagedIdentity.V20241130.Identities
-			schema := UserAssignedIdentityResourceSchema{}
 
 			id, err := commonids.ParseUserAssignedIdentityID(metadata.ResourceData.Id())
 			if err != nil {
@@ -149,20 +179,7 @@ func (r UserAssignedIdentityResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			if model := resp.Model; model != nil {
-				schema.Name = id.UserAssignedIdentityName
-				schema.ResourceGroupName = id.ResourceGroupName
-				schema.Location = location.Normalize(model.Location)
-				schema.Tags = tags.Flatten(model.Tags)
-
-				if model.Properties != nil {
-					schema.ClientId = pointer.From(model.Properties.ClientId)
-					schema.PrincipalId = pointer.From(model.Properties.PrincipalId)
-					schema.TenantId = pointer.From(model.Properties.TenantId)
-				}
-			}
-
-			return metadata.Encode(&schema)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
 }
@@ -208,6 +225,14 @@ func (r UserAssignedIdentityResource) Update() sdk.ResourceFunc {
 				Properties: &identities.UserAssignedIdentityProperties{},
 			}
 
+			if metadata.ResourceData.HasChange("isolation_scope") {
+				isolationScope := identities.IsolationScopeNone
+				if config.IsolationScope != "" {
+					isolationScope = identities.IsolationScope(config.IsolationScope)
+				}
+				payload.Properties.IsolationScope = pointer.To(isolationScope)
+			}
+
 			if _, err := client.UserAssignedIdentitiesUpdate(ctx, *id, payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
@@ -215,4 +240,32 @@ func (r UserAssignedIdentityResource) Update() sdk.ResourceFunc {
 			return nil
 		},
 	}
+}
+
+func (r UserAssignedIdentityResource) flatten(metadata sdk.ResourceMetaData, id *commonids.UserAssignedIdentityId, model *identities.Identity) error {
+	state := UserAssignedIdentityResourceSchema{
+		Name:              id.UserAssignedIdentityName,
+		ResourceGroupName: id.ResourceGroupName,
+	}
+
+	if model != nil {
+		state.Location = location.Normalize(model.Location)
+		state.Tags = tags.Flatten(model.Tags)
+
+		if model.Properties != nil {
+			state.ClientId = pointer.From(model.Properties.ClientId)
+			state.PrincipalId = pointer.From(model.Properties.PrincipalId)
+			state.TenantId = pointer.From(model.Properties.TenantId)
+
+			if isolationScope := pointer.FromEnum(model.Properties.IsolationScope); isolationScope != string(identities.IsolationScopeNone) {
+				state.IsolationScope = isolationScope
+			}
+		}
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }

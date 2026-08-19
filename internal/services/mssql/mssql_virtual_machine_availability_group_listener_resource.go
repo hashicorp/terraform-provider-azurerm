@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/availabilitygrouplisteners"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/sqlvirtualmachines"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
@@ -24,7 +25,6 @@ import (
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MsSqlVirtualMachineAvailabilityGroupListenerResource struct{}
@@ -255,14 +255,16 @@ func (r MsSqlVirtualMachineAvailabilityGroupListenerResource) Create() sdk.Resou
 
 			id := availabilitygrouplisteners.NewAvailabilityGroupListenerID(subscriptionId, sqlVirtualMachineGroupId.ResourceGroupName, sqlVirtualMachineGroupId.SqlVirtualMachineGroupName, model.Name)
 
-			existing, err := client.Get(ctx, id, availabilitygrouplisteners.GetOperationOptions{Expand: pointer.To("AvailabilityGroupConfiguration")})
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id, availabilitygrouplisteners.GetOperationOptions{Expand: pointer.To("AvailabilityGroupConfiguration")})
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			replicas, err := expandMsSqlVirtualMachineAvailabilityGroupListenerReplicas(model.Replica)
@@ -293,7 +295,7 @@ func (r MsSqlVirtualMachineAvailabilityGroupListenerResource) Create() sdk.Resou
 				parameters.Properties.MultiSubnetIPConfigurations = expandMsSqlVirtualMachineAvailabilityGroupListenerMultiSubnetIpConfiguration(model.MultiSubnetIpConfiguration)
 			}
 
-			if err = client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -406,7 +408,7 @@ func expandMsSqlVirtualMachineAvailabilityGroupListenerLoadBalancerConfiguration
 			}
 			parsedIds = append(parsedIds, parsedId.ID())
 		}
-		lbConfig.SqlVirtualMachineInstances = utils.ExpandStringSlice(parsedIds)
+		lbConfig.SqlVirtualMachineInstances = helpers.ExpandStringSlice(parsedIds)
 
 		lbConfig.PrivateIPAddress = &availabilitygrouplisteners.PrivateIPAddress{
 			IPAddress:        pointer.To(lb.PrivateIpAddress),
@@ -532,10 +534,10 @@ func expandMsSqlVirtualMachineAvailabilityGroupListenerReplicas(replicas []Repli
 
 	for _, rep := range replicas {
 		replica := availabilitygrouplisteners.AgReplica{
-			Role:              pointer.To(availabilitygrouplisteners.Role(rep.Role)),
-			Commit:            pointer.To(availabilitygrouplisteners.Commit(rep.Commit)),
-			Failover:          pointer.To(availabilitygrouplisteners.Failover(rep.FailoverMode)),
-			ReadableSecondary: pointer.To(availabilitygrouplisteners.ReadableSecondary(rep.ReadableSecondary)),
+			Role:              pointer.ToEnum[availabilitygrouplisteners.Role](rep.Role),
+			Commit:            pointer.ToEnum[availabilitygrouplisteners.Commit](rep.Commit),
+			Failover:          pointer.ToEnum[availabilitygrouplisteners.Failover](rep.FailoverMode),
+			ReadableSecondary: pointer.ToEnum[availabilitygrouplisteners.ReadableSecondary](rep.ReadableSecondary),
 		}
 
 		sqlVirtualMachineId := rep.SqlVirtualMachineId
@@ -590,11 +592,11 @@ func ReplicaSchemaMsSqlVirtualMachineAvailabilityGroupListenerHash(v interface{}
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(m["sql_virtual_machine_id"].(string))))
-		buf.WriteString(fmt.Sprintf("%s-", m["role"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["commit"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["failover_mode"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["readable_secondary"].(string)))
+		fmt.Fprintf(&buf, "%s-", strings.ToLower(m["sql_virtual_machine_id"].(string)))
+		fmt.Fprintf(&buf, "%s-", m["role"].(string))
+		fmt.Fprintf(&buf, "%s-", m["commit"].(string))
+		fmt.Fprintf(&buf, "%s-", m["failover_mode"].(string))
+		fmt.Fprintf(&buf, "%s-", m["readable_secondary"].(string))
 	}
 
 	return pluginsdk.HashString(buf.String())

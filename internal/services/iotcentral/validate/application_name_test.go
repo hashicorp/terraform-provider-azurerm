@@ -135,8 +135,7 @@ func TestApplicationName(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Value)
 
-		_, err := ApplicationName(v.Value, "unit test")
-		if err != nil && !v.Error {
+		if _, err := ApplicationName(v.Value, "unit test"); err != nil && !v.Error {
 			t.Fatalf("Expected pass but got an error: %s", err)
 		}
 	}

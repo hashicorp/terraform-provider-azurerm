@@ -37,5 +37,5 @@ data "azurerm_data_share_dataset_kusto_database" "test" {
   name     = azurerm_data_share_dataset_kusto_database.test.name
   share_id = azurerm_data_share_dataset_kusto_database.test.share_id
 }
-`, DataShareDataSetKustoDatabaseResource{}.basic(data))
+`, DataShareDatasetKustoDatabaseResource{}.basic(data))
 }

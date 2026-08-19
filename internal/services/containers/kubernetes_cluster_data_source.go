@@ -17,17 +17,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/kubernetes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceKubernetesCluster() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Read: dataSourceKubernetesClusterRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -184,6 +184,24 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 			"azure_policy_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
+			},
+
+			"bootstrap_profile": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"artifact_source": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"container_registry_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 
 			"current_kubernetes_version": {
@@ -590,6 +608,11 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
+
+						"outbound_type": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -716,8 +739,6 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
-
-	return resource
 }
 
 func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -740,6 +761,16 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 	// only raise the error if it's not a limited permissions error, since this is the Data Source
 	if err != nil && !response.WasStatusCode(userCredentialsResp.HttpResponse, http.StatusForbidden) {
 		return fmt.Errorf("retrieving User Credentials for %s: %+v", id, err)
+	}
+
+	if model := resp.Model; model != nil {
+		if resp.Model.Sku == nil || resp.Model.Sku.Name == nil {
+			return fmt.Errorf("retrieving %s: SKU information is missing", d.Id())
+		}
+
+		if pointer.From(resp.Model.Sku.Name) == managedclusters.ManagedClusterSKUNameAutomatic {
+			return fmt.Errorf("retrieving %s: azurerm_kubernetes_cluster datasource does not support SKU `Automatic`", d.Id())
+		}
 	}
 
 	d.SetId(id.ID())
@@ -766,7 +797,7 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("node_resource_group_id", nodeResourceGroupId.ID())
 
 			if accessProfile := props.ApiServerAccessProfile; accessProfile != nil {
-				apiServerAuthorizedIPRanges := utils.FlattenStringSlice(accessProfile.AuthorizedIPRanges)
+				apiServerAuthorizedIPRanges := helpers.FlattenStringSlice(accessProfile.AuthorizedIPRanges)
 				if err := d.Set("api_server_authorized_ip_ranges", apiServerAuthorizedIPRanges); err != nil {
 					return fmt.Errorf("setting `api_server_authorized_ip_ranges`: %+v", err)
 				}
@@ -789,6 +820,14 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 			agentPoolProfiles := flattenKubernetesClusterDataSourceAgentPoolProfiles(props.AgentPoolProfiles)
 			if err := d.Set("agent_pool_profile", agentPoolProfiles); err != nil {
 				return fmt.Errorf("setting `agent_pool_profile`: %+v", err)
+			}
+
+			bootstrapProfile, err := flattenBootstrapProfile(props.BootstrapProfile)
+			if err != nil {
+				return fmt.Errorf("flattening `bootstrap_profile`: %+v", err)
+			}
+			if err := d.Set("bootstrap_profile", bootstrapProfile); err != nil {
+				return fmt.Errorf("setting `bootstrap_profile`: %+v", err)
 			}
 
 			azureKeyVaultKms := flattenKubernetesClusterDataSourceKeyVaultKms(props.SecurityProfile)
@@ -911,10 +950,7 @@ func flattenKubernetesClusterDataSourceKeyVaultKms(input *managedclusters.Manage
 	azureKeyVaultKms := make([]interface{}, 0)
 
 	if input != nil && input.AzureKeyVaultKms != nil && input.AzureKeyVaultKms.Enabled != nil && *input.AzureKeyVaultKms.Enabled {
-		keyId := ""
-		if v := input.AzureKeyVaultKms.KeyId; v != nil {
-			keyId = *v
-		}
+		keyId := pointer.From(input.AzureKeyVaultKms.KeyId)
 
 		networkAccess := ""
 		if v := input.AzureKeyVaultKms.KeyVaultNetworkAccess; v != nil {
@@ -1154,10 +1190,7 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]managedcluster
 			count = int(*profile.Count)
 		}
 
-		enableNodePublicIP := false
-		if profile.EnableNodePublicIP != nil {
-			enableNodePublicIP = *profile.EnableNodePublicIP
-		}
+		enableNodePublicIP := pointer.From(profile.EnableNodePublicIP)
 
 		minCount := 0
 		if profile.MinCount != nil {
@@ -1169,10 +1202,7 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]managedcluster
 			maxCount = int(*profile.MaxCount)
 		}
 
-		enableAutoScaling := false
-		if profile.EnableAutoScaling != nil {
-			enableAutoScaling = *profile.EnableAutoScaling
-		}
+		enableAutoScaling := pointer.From(profile.EnableAutoScaling)
 
 		name := profile.Name
 
@@ -1183,10 +1213,7 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]managedcluster
 			osDiskSizeGb = int(*profile.OsDiskSizeGB)
 		}
 
-		vnetSubnetId := ""
-		if profile.VnetSubnetID != nil {
-			vnetSubnetId = *profile.VnetSubnetID
-		}
+		vnetSubnetId := pointer.From(profile.VnetSubnetID)
 
 		orchestratorVersion := ""
 		if profile.OrchestratorVersion != nil && *profile.OrchestratorVersion != "" {
@@ -1247,17 +1274,11 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]managedcluster
 func flattenKubernetesClusterDataSourceAzureActiveDirectoryRoleBasedAccessControl(input *managedclusters.ManagedClusterProperties) []interface{} {
 	results := make([]interface{}, 0)
 	if profile := input.AadProfile; profile != nil {
-		adminGroupObjectIds := utils.FlattenStringSlice(profile.AdminGroupObjectIDs)
+		adminGroupObjectIds := helpers.FlattenStringSlice(profile.AdminGroupObjectIDs)
 
-		azureRbacEnabled := false
-		if profile.EnableAzureRBAC != nil {
-			azureRbacEnabled = *profile.EnableAzureRBAC
-		}
+		azureRbacEnabled := pointer.From(profile.EnableAzureRBAC)
 
-		tenantId := ""
-		if profile.TenantID != nil {
-			tenantId = *profile.TenantID
-		}
+		tenantId := pointer.From(profile.TenantID)
 
 		result := map[string]interface{}{
 			"admin_group_object_ids": adminGroupObjectIds,
@@ -1278,15 +1299,9 @@ func flattenKubernetesClusterDataSourceIdentityProfile(profile *map[string]manag
 
 	kubeletIdentity := make([]interface{}, 0)
 	kubeletidentity := (*profile)["kubeletidentity"]
-	clientId := ""
-	if clientid := kubeletidentity.ClientId; clientid != nil {
-		clientId = *clientid
-	}
+	clientId := pointer.From(kubeletidentity.ClientId)
 
-	objectId := ""
-	if objectid := kubeletidentity.ObjectId; objectid != nil {
-		objectId = *objectid
-	}
+	objectId := pointer.From(kubeletidentity.ObjectId)
 
 	userAssignedIdentityId := ""
 	if resourceid := kubeletidentity.ResourceId; resourceid != nil {
@@ -1370,6 +1385,8 @@ func flattenKubernetesClusterDataSourceNetworkProfile(profile *managedclusters.C
 		values["load_balancer_sku"] = string(*profile.LoadBalancerSku)
 	}
 
+	values["outbound_type"] = pointer.From(profile.OutboundType)
+
 	return []interface{}{values}
 }
 
@@ -1431,14 +1448,9 @@ func flattenKubernetesClusterDataSourceMicrosoftDefender(input *managedclusters.
 		return []interface{}{}
 	}
 
-	logAnalyticsWorkspace := ""
-	if v := input.Defender.LogAnalyticsWorkspaceResourceId; v != nil {
-		logAnalyticsWorkspace = *v
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"log_analytics_workspace_id": logAnalyticsWorkspace,
+			"log_analytics_workspace_id": pointer.From(input.Defender.LogAnalyticsWorkspaceResourceId),
 		},
 	}
 }

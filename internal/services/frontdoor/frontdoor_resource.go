@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
 	frontDoorValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/validate"
@@ -68,14 +69,16 @@ func resourceFrontDoorCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	id := frontdoors.NewFrontDoorID(subscriptionId, resourceGroup, name)
 
-	resp, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("checking for presence of %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		resp, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("checking for presence of %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(resp.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_frontdoor", id.ID())
+		if !response.WasNotFound(resp.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_frontdoor", id.ID())
+		}
 	}
 
 	var backendCertNameCheck bool
@@ -115,13 +118,13 @@ func resourceFrontDoorCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 		Tags: tags.Expand(t),
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, frontDoorParameters); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, frontDoorParameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
+	d.SetId(id.ID())
 
 	d.Set("explicit_resource_order", flattenExplicitResourceOrder(backendPools, frontendEndpoints, routingRules, loadBalancingSettings, healthProbeSettings, id))
 
-	d.SetId(id.ID())
 	return resourceFrontDoorRead(d, meta)
 }
 
@@ -407,7 +410,9 @@ func resourceFrontDoorRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -1319,7 +1324,7 @@ func flattenSingleFrontDoorHealthProbeSettingsModel(input *frontdoors.HealthProb
 		}
 	}
 
-	output := map[string]interface{}{
+	return map[string]interface{}{
 		"enabled":             enabled,
 		"id":                  id,
 		"name":                name,
@@ -1328,8 +1333,6 @@ func flattenSingleFrontDoorHealthProbeSettingsModel(input *frontdoors.HealthProb
 		"path":                path,
 		"probe_method":        probeMethod,
 	}
-
-	return output
 }
 
 func combineLoadBalancingSettingsModel(allLoadBalancingSettings []frontdoors.LoadBalancingSettingsModel, orderedIds []interface{}, frontDoorId frontdoors.FrontDoorId) []interface{} {
@@ -1414,15 +1417,13 @@ func flattenSingleFrontDoorLoadBalancingSettingsModel(input *frontdoors.LoadBala
 		}
 	}
 
-	output := map[string]interface{}{
+	return map[string]interface{}{
 		"additional_latency_milliseconds": additionalLatencyMilliseconds,
 		"id":                              id,
 		"name":                            name,
 		"sample_size":                     sampleSize,
 		"successful_samples_required":     successfulSamplesRequired,
 	}
-
-	return output
 }
 
 func combineRoutingRules(allRoutingRules []frontdoors.RoutingRule, oldBlocks interface{}, orderedIds []interface{}, frontDoorId frontdoors.FrontDoorId) ([]interface{}, error) {
@@ -1562,10 +1563,6 @@ func flattenRoutingRuleForwardingConfiguration(config frontdoors.RouteConfigurat
 		}
 		name = backendPoolId.Name
 	}
-	customForwardingPath := ""
-	if v.CustomForwardingPath != nil {
-		customForwardingPath = *v.CustomForwardingPath
-	}
 
 	cacheEnabled := false
 	cacheQueryParameterStripDirective := string(frontdoors.FrontDoorQueryStripAll)
@@ -1624,7 +1621,7 @@ func flattenRoutingRuleForwardingConfiguration(config frontdoors.RouteConfigurat
 	return &[]interface{}{
 		map[string]interface{}{
 			"backend_pool_name":                     name,
-			"custom_forwarding_path":                customForwardingPath,
+			"custom_forwarding_path":                pointer.From(v.CustomForwardingPath),
 			"forwarding_protocol":                   forwardingProtocol,
 			"cache_enabled":                         cacheEnabled,
 			"cache_query_parameter_strip_directive": cacheQueryParameterStripDirective,
@@ -1641,23 +1638,6 @@ func flattenRoutingRuleRedirectConfiguration(config frontdoors.RouteConfiguratio
 		return []interface{}{}
 	}
 
-	customFragment := ""
-	if v.CustomFragment != nil {
-		customFragment = *v.CustomFragment
-	}
-	customHost := ""
-	if v.CustomHost != nil {
-		customHost = *v.CustomHost
-	}
-	customQueryString := ""
-	if v.CustomQueryString != nil {
-		customQueryString = *v.CustomQueryString
-	}
-	customPath := ""
-	if v.CustomPath != nil {
-		customPath = *v.CustomPath
-	}
-
 	redirectProtocol := ""
 	if v.RedirectProtocol != nil {
 		redirectProtocol = string(*v.RedirectProtocol)
@@ -1670,10 +1650,10 @@ func flattenRoutingRuleRedirectConfiguration(config frontdoors.RouteConfiguratio
 
 	return []interface{}{
 		map[string]interface{}{
-			"custom_host":         customHost,
-			"custom_fragment":     customFragment,
-			"custom_query_string": customQueryString,
-			"custom_path":         customPath,
+			"custom_host":         pointer.From(v.CustomHost),
+			"custom_fragment":     pointer.From(v.CustomFragment),
+			"custom_query_string": pointer.From(v.CustomQueryString),
+			"custom_path":         pointer.From(v.CustomPath),
 			"redirect_protocol":   redirectProtocol,
 			"redirect_type":       redirectType,
 		},

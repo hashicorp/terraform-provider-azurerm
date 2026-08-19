@@ -535,9 +535,9 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name                          = "example"
-    primary                       = true
-    enable_accelerated_networking = %t
+    name                           = "example"
+    primary                        = true
+    accelerated_networking_enabled = %t
 
     ip_configuration {
       name      = "internal"
@@ -577,9 +577,9 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name                          = "example"
-    primary                       = true
-    enable_accelerated_networking = true
+    name                           = "example"
+    primary                        = true
+    accelerated_networking_enabled = true
 
     ip_configuration {
       name      = "internal"
@@ -619,10 +619,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name                          = "example"
-    primary                       = true
-    enable_accelerated_networking = true
-    auxiliary_mode                = "AcceleratedConnections"
+    name                           = "example"
+    primary                        = true
+    accelerated_networking_enabled = true
+    auxiliary_mode                 = "AcceleratedConnections"
 
     ip_configuration {
       name      = "internal"
@@ -662,10 +662,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name                          = "example"
-    primary                       = true
-    enable_accelerated_networking = true
-    auxiliary_sku                 = "A1"
+    name                           = "example"
+    primary                        = true
+    accelerated_networking_enabled = true
+    auxiliary_sku                  = "A1"
 
     ip_configuration {
       name      = "internal"
@@ -705,11 +705,11 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name                          = "example"
-    primary                       = true
-    enable_accelerated_networking = true
-    auxiliary_mode                = "AcceleratedConnections"
-    auxiliary_sku                 = "A1"
+    name                           = "example"
+    primary                        = true
+    accelerated_networking_enabled = true
+    auxiliary_mode                 = "AcceleratedConnections"
+    auxiliary_sku                  = "A1"
 
     ip_configuration {
       name      = "internal"
@@ -1092,9 +1092,9 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name                 = "example"
-    primary              = true
-    enable_ip_forwarding = true
+    name                  = "example"
+    primary               = true
+    ip_forwarding_enabled = true
 
     ip_configuration {
       name      = "internal"
@@ -1272,10 +1272,33 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
 func (r LinuxVirtualMachineScaleSetResource) networkMultipleIPConfigurationsIPv6(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-vmss-%[2]d"
+  location = "%[3]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestnw-%[2]d"
+  address_space       = ["10.0.0.0/16", "ace:cab:deca::/48"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24", "ace:cab:deca::/64"]
+}
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%d"
+  name                = "acctestvmss-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "Standard_D2s_v3"
@@ -1309,12 +1332,13 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
 
     ip_configuration {
-      name    = "second"
-      version = "IPv6"
+      name      = "second"
+      subnet_id = azurerm_subnet.test.id
+      version   = "IPv6"
     }
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.templatePublicKey(), data.RandomInteger, data.Locations.Primary)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) networkMultipleNICs(data acceptance.TestData) string {

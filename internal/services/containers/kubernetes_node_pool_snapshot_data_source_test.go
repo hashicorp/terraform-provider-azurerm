@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/snapshots"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -48,8 +48,7 @@ func TestAccDataSourceKubernetesNodePoolSnapshot_basic(t *testing.T) {
 							},
 						},
 					}
-					_, err = client.CreateOrUpdate(ctx, id, snapshot)
-					if err != nil {
+					if _, err = client.CreateOrUpdate(ctx, id, snapshot); err != nil {
 						return fmt.Errorf("creating %s: %+v", id, err)
 					}
 					return nil
@@ -77,8 +76,7 @@ func TestAccDataSourceKubernetesNodePoolSnapshot_basic(t *testing.T) {
 						return err
 					}
 					id := snapshots.NewSnapshotID(poolId.SubscriptionId, poolId.ResourceGroupName, data.RandomString)
-					_, err = client.Delete(ctx, id)
-					if err != nil {
+					if _, err = client.Delete(ctx, id); err != nil {
 						return fmt.Errorf("creating %s: %+v", id, err)
 					}
 					return nil
@@ -111,6 +109,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
   identity {
     type = "SystemAssigned"
@@ -151,6 +154,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
   identity {
     type = "SystemAssigned"

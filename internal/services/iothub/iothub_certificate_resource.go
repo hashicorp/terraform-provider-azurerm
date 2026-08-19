@@ -86,15 +86,17 @@ func resourceIotHubCertificateCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	id := parse.NewIotHubCertificateID(subscriptionId, d.Get("resource_group_name").(string), d.Get("iothub_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id.ResourceGroup, id.IotHubName, id.CertificateName)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id.ResourceGroup, id.IotHubName, id.CertificateName)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_iothub_certificate", id.ID())
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_iothub_certificate", id.ID())
+		}
 	}
 
 	certificate := devices.CertificateDescription{
@@ -157,10 +159,7 @@ func resourceIotHubCertificateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("reading %s: %v", id, err)
 	}
 
-	etag := ""
-	if existing.Etag != nil {
-		etag = *existing.Etag
-	}
+	etag := pointer.From(existing.Etag)
 
 	if d.HasChange("is_verified") {
 		existing.Properties.IsVerified = pointer.To(d.Get("is_verified").(bool))

@@ -19,8 +19,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-07-03/galleryimageversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -96,7 +98,7 @@ func resourceSharedImageVersion() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
-							ValidateFunc: validate.DiskEncryptionSetID,
+							ValidateFunc: validation.AsGeneratedID(commonids.ParseDiskEncryptionSetIDInsensitively),
 						},
 
 						"exclude_from_latest_enabled": {
@@ -209,15 +211,17 @@ func resourceSharedImageVersionCreate(d *pluginsdk.ResourceData, meta interface{
 
 	id := galleryimageversions.NewImageVersionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("gallery_name").(string), d.Get("image_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id, galleryimageversions.DefaultGetOperationOptions())
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id, galleryimageversions.DefaultGetOperationOptions())
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_shared_image_version", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_shared_image_version", id.ID())
+		}
 	}
 
 	targetRegions, err := expandSharedImageVersionTargetRegions(d)
@@ -230,7 +234,7 @@ func resourceSharedImageVersionCreate(d *pluginsdk.ResourceData, meta interface{
 		Properties: &galleryimageversions.GalleryImageVersionProperties{
 			PublishingProfile: &galleryimageversions.GalleryArtifactPublishingProfileBase{
 				ExcludeFromLatest: pointer.To(d.Get("exclude_from_latest").(bool)),
-				ReplicationMode:   pointer.To(galleryimageversions.ReplicationMode(d.Get("replication_mode").(string))),
+				ReplicationMode:   pointer.ToEnum[galleryimageversions.ReplicationMode](d.Get("replication_mode").(string)),
 				TargetRegions:     targetRegions,
 			},
 			SafetyProfile: &galleryimageversions.GalleryImageVersionSafetyProfile{
@@ -278,8 +282,26 @@ func resourceSharedImageVersionCreate(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, version); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, version, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	readCtx, cancelCtx := context.WithTimeout(ctx, 5*time.Minute)
+	defer cancelCtx()
+	if err = retry.RetryContext(readCtx, 5*time.Second, func() *retry.RetryError {
+		read, err := client.Get(ctx, id, galleryimageversions.DefaultGetOperationOptions())
+		if err != nil {
+			if response.WasNotFound(read.HttpResponse) {
+				return retry.RetryableError(fmt.Errorf("waiting for creation of %s", id))
+			}
+			return retry.NonRetryableError(err)
+		}
+		if read.Model == nil {
+			return retry.RetryableError(fmt.Errorf("waiting for `model` to become available for %s", id))
+		}
+		return nil
+	}); err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -416,10 +438,7 @@ func resourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta interface{})
 			osDiskSnapShotID := ""
 			storageAccountID := ""
 			if props.StorageProfile.OsDiskImage != nil && props.StorageProfile.OsDiskImage.Source != nil {
-				sourceID := ""
-				if props.StorageProfile.OsDiskImage.Source.Id != nil {
-					sourceID = *props.StorageProfile.OsDiskImage.Source.Id
-				}
+				sourceID := pointer.From(props.StorageProfile.OsDiskImage.Source.Id)
 
 				if props.StorageProfile.OsDiskImage.Source.StorageAccountId != nil {
 					sourceID = *props.StorageProfile.OsDiskImage.Source.StorageAccountId
@@ -439,7 +458,9 @@ func resourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta interface{})
 				d.Set("deletion_of_replicated_locations_enabled", pointer.From(safetyProfile.AllowDeletionOfReplicatedLocations))
 			}
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -512,7 +533,7 @@ func expandSharedImageVersionTargetRegions(d *pluginsdk.ResourceData) (*[]galler
 			Name:                 name,
 			ExcludeFromLatest:    pointer.To(excludeFromLatest),
 			RegionalReplicaCount: pointer.To(int64(regionalReplicaCount)),
-			StorageAccountType:   pointer.To(galleryimageversions.StorageAccountType(storageAccountType)),
+			StorageAccountType:   pointer.ToEnum[galleryimageversions.StorageAccountType](storageAccountType),
 		}
 
 		if diskEncryptionSetId != "" {

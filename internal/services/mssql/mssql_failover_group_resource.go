@@ -61,7 +61,7 @@ func (r MsSqlFailoverGroupResource) ModelObject() interface{} {
 }
 
 func (r MsSqlFailoverGroupResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.FailoverGroupID
+	return failovergroups.ValidateFailoverGroupID
 }
 
 func (r MsSqlFailoverGroupResource) Arguments() map[string]*pluginsdk.Schema {
@@ -194,15 +194,17 @@ func (r MsSqlFailoverGroupResource) Create() sdk.ResourceFunc {
 
 			id := failovergroups.NewFailoverGroupID(subscriptionId, serverId.ResourceGroupName, serverId.ServerName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			readOnlyFailoverPolicy := failovergroups.ReadOnlyEndpointFailoverPolicyDisabled
@@ -229,8 +231,7 @@ func (r MsSqlFailoverGroupResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			err = client.CreateOrUpdateThenPoll(ctx, id, properties)
-			if err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, properties, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -251,13 +252,10 @@ func (r MsSqlFailoverGroupResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Info("Decoding state...")
 			var state MsSqlFailoverGroupModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
 			}
-
-			metadata.Logger.Infof("updating %s", id)
 
 			readOnlyFailoverPolicy := failovergroups.ReadOnlyEndpointFailoverPolicyDisabled
 			if state.ReadonlyEndpointFailurePolicyEnabled {
@@ -283,8 +281,7 @@ func (r MsSqlFailoverGroupResource) Update() sdk.ResourceFunc {
 			}
 
 			// client.Update doesn't support changing the PartnerServers
-			err = client.CreateOrUpdateThenPoll(ctx, *id, properties)
-			if err != nil {
+			if err = client.CreateOrUpdateThenPoll(ctx, *id, properties); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -366,8 +363,7 @@ func (r MsSqlFailoverGroupResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			err = client.DeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 

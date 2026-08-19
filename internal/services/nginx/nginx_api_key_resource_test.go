@@ -175,12 +175,15 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_nginx_deployment" "test" {
-  name                     = "acctest-%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  sku                      = "standardv2_Monthly"
-  capacity                 = 10
-  location                 = azurerm_resource_group.test.location
-  diagnose_support_enabled = false
+  name                = "acctest-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "standardv3_Monthly"
+  capacity            = 10
+  location            = azurerm_resource_group.test.location
+
+  identity {
+    type = "SystemAssigned"
+  }
 
   frontend_public {
     ip_address = [azurerm_public_ip.test.id]

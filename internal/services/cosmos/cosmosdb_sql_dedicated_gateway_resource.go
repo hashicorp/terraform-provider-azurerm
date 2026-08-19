@@ -3,6 +3,11 @@
 
 package cosmos
 
+// NOTE: Resource Identity is NOT implemented for this resource.
+// The service name is always "SqlDedicatedGateway" (a constant, not user-configurable),
+// which means during import the user would be going name = "SqlDedicatedGateway".
+// This will have to wait until our wrapper/framework has a way to handle this.
+
 import (
 	"context"
 	"fmt"
@@ -86,13 +91,16 @@ func (r CosmosDbSqlDedicatedGatewayResource) Create() sdk.ResourceFunc {
 			}
 
 			id := sqldedicatedgateway.NewServiceID(cosmosdbAccountId.SubscriptionId, cosmosdbAccountId.ResourceGroupName, cosmosdbAccountId.DatabaseAccountName, string(sqldedicatedgateway.ServiceTypeSqlDedicatedGateway))
-			existing, err := client.ServiceGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.ServiceGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			serviceType := sqldedicatedgateway.ServiceTypeSqlDedicatedGateway
@@ -105,7 +113,7 @@ func (r CosmosDbSqlDedicatedGatewayResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err := client.ServiceCreateThenPoll(ctx, id, *parameters); err != nil {
+			if err := client.ServiceCreateCallbackThenPoll(ctx, id, *parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

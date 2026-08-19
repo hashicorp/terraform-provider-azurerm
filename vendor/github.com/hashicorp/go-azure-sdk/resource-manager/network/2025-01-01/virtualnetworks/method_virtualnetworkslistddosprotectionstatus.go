@@ -110,9 +110,20 @@ func (c VirtualNetworksClient) VirtualNetworksListDdosProtectionStatus(ctx conte
 
 // VirtualNetworksListDdosProtectionStatusThenPoll performs VirtualNetworksListDdosProtectionStatus then polls until it's completed
 func (c VirtualNetworksClient) VirtualNetworksListDdosProtectionStatusThenPoll(ctx context.Context, id commonids.VirtualNetworkId, options VirtualNetworksListDdosProtectionStatusOperationOptions) error {
+	return c.VirtualNetworksListDdosProtectionStatusCallbackThenPoll(ctx, id, options, nil)
+}
+
+// VirtualNetworksListDdosProtectionStatusCallbackThenPoll performs VirtualNetworksListDdosProtectionStatus, runs the optional callback function, then polls until it's completed
+func (c VirtualNetworksClient) VirtualNetworksListDdosProtectionStatusCallbackThenPoll(ctx context.Context, id commonids.VirtualNetworkId, options VirtualNetworksListDdosProtectionStatusOperationOptions, callback func() error) error {
 	result, err := c.VirtualNetworksListDdosProtectionStatus(ctx, id, options)
 	if err != nil {
 		return fmt.Errorf("performing VirtualNetworksListDdosProtectionStatus: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

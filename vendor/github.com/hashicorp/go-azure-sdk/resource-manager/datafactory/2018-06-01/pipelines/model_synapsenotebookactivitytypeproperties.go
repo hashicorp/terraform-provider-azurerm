@@ -9,7 +9,7 @@ type SynapseNotebookActivityTypeProperties struct {
 	DriverSize               *interface{}                                `json:"driverSize,omitempty"`
 	ExecutorSize             *interface{}                                `json:"executorSize,omitempty"`
 	Notebook                 SynapseNotebookReference                    `json:"notebook"`
-	NumExecutors             *int64                                      `json:"numExecutors,omitempty"`
+	NumExecutors             *interface{}                                `json:"numExecutors,omitempty"`
 	Parameters               *map[string]NotebookParameter               `json:"parameters,omitempty"`
 	SparkConfig              *map[string]interface{}                     `json:"sparkConfig,omitempty"`
 	SparkPool                *BigDataPoolParametrizationReference        `json:"sparkPool,omitempty"`

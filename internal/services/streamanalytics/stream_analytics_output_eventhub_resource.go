@@ -12,13 +12,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceStreamAnalyticsOutputEventHub() *pluginsdk.Resource {
@@ -124,15 +124,17 @@ func resourceStreamAnalyticsOutputEventHubCreateUpdate(d *pluginsdk.ResourceData
 
 	id := outputs.NewOutputID(subscriptionId, d.Get("resource_group_name").(string), d.Get("stream_analytics_job_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_stream_analytics_output_eventhub", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_stream_analytics_output_eventhub", id.ID())
+			}
 		}
 	}
 
@@ -151,10 +153,10 @@ func resourceStreamAnalyticsOutputEventHubCreateUpdate(d *pluginsdk.ResourceData
 
 	eventHubOutputDataSourceProps := &outputs.EventHubOutputDataSourceProperties{
 		PartitionKey:        pointer.To(partitionKey),
-		PropertyColumns:     utils.ExpandStringSlice(propertyColumns),
+		PropertyColumns:     helpers.ExpandStringSlice(propertyColumns),
 		EventHubName:        pointer.To(eventHubName),
 		ServiceBusNamespace: pointer.To(serviceBusNamespace),
-		AuthenticationMode:  pointer.To(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
+		AuthenticationMode:  pointer.ToEnum[outputs.AuthenticationMode](d.Get("authentication_mode").(string)),
 	}
 
 	if sharedAccessPolicyKey != "" {
@@ -222,29 +224,13 @@ func resourceStreamAnalyticsOutputEventHubRead(d *pluginsdk.ResourceData, meta i
 				return fmt.Errorf("converting %s to a EventHub Output", *id)
 			}
 
-			eventHubName := ""
-			if v := output.Properties.EventHubName; v != nil {
-				eventHubName = *v
-			}
-			d.Set("eventhub_name", eventHubName)
+			d.Set("eventhub_name", pointer.From(output.Properties.EventHubName))
 
-			serviceBusNamespace := ""
-			if v := output.Properties.ServiceBusNamespace; v != nil {
-				serviceBusNamespace = *v
-			}
-			d.Set("servicebus_namespace", serviceBusNamespace)
+			d.Set("servicebus_namespace", pointer.From(output.Properties.ServiceBusNamespace))
 
-			sharedAccessPolicyName := ""
-			if v := output.Properties.SharedAccessPolicyName; v != nil {
-				sharedAccessPolicyName = *v
-			}
-			d.Set("shared_access_policy_name", sharedAccessPolicyName)
+			d.Set("shared_access_policy_name", pointer.From(output.Properties.SharedAccessPolicyName))
 
-			partitionKey := ""
-			if v := output.Properties.PartitionKey; v != nil {
-				partitionKey = *v
-			}
-			d.Set("partition_key", partitionKey)
+			d.Set("partition_key", pointer.From(output.Properties.PartitionKey))
 
 			authMode := ""
 			if v := output.Properties.AuthenticationMode; v != nil {
@@ -252,11 +238,7 @@ func resourceStreamAnalyticsOutputEventHubRead(d *pluginsdk.ResourceData, meta i
 			}
 			d.Set("authentication_mode", authMode)
 
-			var propertyColumns []string
-			if v := output.Properties.PropertyColumns; v != nil {
-				propertyColumns = *v
-			}
-			d.Set("property_columns", propertyColumns)
+			d.Set("property_columns", pointer.From(output.Properties.PropertyColumns))
 
 			if err := d.Set("serialization", flattenStreamAnalyticsOutputSerialization(props.Serialization)); err != nil {
 				return fmt.Errorf("setting `serialization`: %+v", err)

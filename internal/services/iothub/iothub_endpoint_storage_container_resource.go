@@ -261,7 +261,9 @@ func resourceIotHubEndpointStorageContainerCreateUpdate(d *pluginsdk.ResourceDat
 		if existingEndpointName := existingEndpoint.Name; existingEndpointName != nil {
 			if strings.EqualFold(*existingEndpointName, id.EndpointName) {
 				if d.IsNewResource() {
-					return tf.ImportAsExistsError("azurerm_iothub_endpoint_storage_container", id.ID())
+					if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+						return tf.ImportAsExistsError("azurerm_iothub_endpoint_storage_container", id.ID())
+					}
 				}
 				endpoints = append(endpoints, storageContainerEndpoint)
 				alreadyExists = true
@@ -283,11 +285,11 @@ func resourceIotHubEndpointStorageContainerCreateUpdate(d *pluginsdk.ResourceDat
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for the completion of the creating/updating of %s: %+v", id, err)
 	}
-
-	d.SetId(id.ID())
 
 	return resourceIotHubEndpointStorageContainerRead(d, meta)
 }
@@ -342,17 +344,9 @@ func resourceIotHubEndpointStorageContainerRead(d *pluginsdk.ResourceData, meta 
 					}
 					d.Set("authentication_type", authenticationType)
 
-					connectionStr := ""
-					if endpoint.ConnectionString != nil {
-						connectionStr = *endpoint.ConnectionString
-					}
-					d.Set("connection_string", connectionStr)
+					d.Set("connection_string", pointer.From(endpoint.ConnectionString))
 
-					endpointUri := ""
-					if endpoint.EndpointURI != nil {
-						endpointUri = *endpoint.EndpointURI
-					}
-					d.Set("endpoint_uri", endpointUri)
+					d.Set("endpoint_uri", pointer.From(endpoint.EndpointURI))
 
 					identityId := ""
 					if endpoint.Identity != nil && endpoint.Identity.UserAssignedIdentity != nil {

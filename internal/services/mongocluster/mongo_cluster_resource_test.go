@@ -6,6 +6,7 @@ package mongocluster_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -18,7 +19,7 @@ import (
 
 type MongoClusterResource struct{}
 
-func TestAccMongoClusterFreeTier(t *testing.T) {
+func TestAccMongoCluster_freeTier(t *testing.T) {
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"freeTier": { // Run tests in sequence since each subscription is limited to one free tier cluster per region and free tier is currently only available in South India.
 			"basic":  testAccMongoCluster_basic,
@@ -38,7 +39,8 @@ func testAccMongoCluster_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("connection_strings.0.value").HasValue(
 					fmt.Sprintf(`mongodb+srv://adminTerraform:QAZwsx123basic@acctest-mc%d.global.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000`,
-						data.RandomInteger)),
+						data.RandomInteger),
+				),
 				check.That(data.ResourceName).Key("connection_strings.1.value").HasValue(
 					fmt.Sprintf(`mongodb+srv://adminTerraform:QAZwsx123basic@acctest-mc%d.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000`,
 						data.RandomInteger),
@@ -164,6 +166,42 @@ func TestAccMongoCluster_dataApiModeEnabled(t *testing.T) {
 			),
 		},
 		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.value", "connection_strings.1.value"),
+	})
+}
+
+func TestAccMongoCluster_entraIdOnly(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster", "test")
+	r := MongoClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.entraIdOnly(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("create_mode"),
+	})
+}
+
+func TestAccMongoCluster_authenticationMethodsValidation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster", "test")
+	r := MongoClusterResource{}
+	expectedError := regexp.MustCompile("`administrator_username` is required when `authentication_methods` contains `NativeAuth` or is not configured")
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.withoutAdministrator(data, ""),
+			ExpectError: expectedError,
+		},
+		{
+			Config:      r.withoutAdministrator(data, "  authentication_methods = []"),
+			ExpectError: expectedError,
+		},
+		{
+			Config:      r.withoutAdministrator(data, `  authentication_methods = ["NativeAuth"]`),
+			ExpectError: expectedError,
+		},
 	})
 }
 
@@ -345,11 +383,12 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestAmr%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acctestAmr%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 
   purge_protection_enabled   = true
   soft_delete_retention_days = 7
@@ -442,6 +481,42 @@ resource "azurerm_mongo_cluster" "test" {
   data_api_mode_enabled  = true
 }
 `, r.template(data, data.Locations.Ternary), data.RandomInteger)
+}
+
+func (r MongoClusterResource) entraIdOnly(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mongo_cluster" "test" {
+  name                   = "acctest-mc%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  shard_count            = "1"
+  compute_tier           = "M30"
+  high_availability_mode = "Disabled"
+  storage_size_in_gb     = "32"
+  version                = "7.0"
+  authentication_methods = ["MicrosoftEntraID"]
+}
+`, r.template(data, data.Locations.Primary), data.RandomInteger)
+}
+
+func (r MongoClusterResource) withoutAdministrator(data acceptance.TestData, authenticationMethods string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mongo_cluster" "test" {
+  name                   = "acctest-mc%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  shard_count            = "1"
+  compute_tier           = "M30"
+  high_availability_mode = "Disabled"
+  storage_size_in_gb     = "32"
+  version                = "7.0"
+%s
+}
+`, r.template(data, data.Locations.Primary), data.RandomInteger, authenticationMethods)
 }
 
 func (r MongoClusterResource) template(data acceptance.TestData, location string) string {

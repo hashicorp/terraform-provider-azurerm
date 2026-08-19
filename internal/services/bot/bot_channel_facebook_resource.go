@@ -98,7 +98,7 @@ func resourceBotChannelFacebookCreate(d *pluginsdk.ResourceData, meta interface{
 	defer cancel()
 
 	id := parse.NewBotChannelID(subscriptionId, d.Get("resource_group_name").(string), d.Get("bot_name").(string), string(botservice.ChannelNameFacebookChannel))
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, id.ChannelName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -253,19 +253,9 @@ func flattenFacebookPage(input *[]botservice.FacebookPage) []interface{} {
 	}
 
 	for _, item := range *input {
-		var id string
-		if item.ID != nil {
-			id = *item.ID
-		}
-
-		var accessToken string
-		if item.AccessToken != nil {
-			accessToken = *item.AccessToken
-		}
-
 		results = append(results, map[string]interface{}{
-			"id":           id,
-			"access_token": accessToken,
+			"id":           pointer.From(item.ID),
+			"access_token": pointer.From(item.AccessToken),
 		})
 	}
 

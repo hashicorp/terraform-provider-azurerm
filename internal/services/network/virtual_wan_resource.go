@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -94,15 +95,17 @@ func resourceVirtualWanCreate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	id := virtualwans.NewVirtualWANID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.VirtualWansGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.VirtualWansGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_virtual_wan", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_virtual_wan", id.ID())
+		}
 	}
 
 	wan := virtualwans.VirtualWAN{
@@ -111,12 +114,12 @@ func resourceVirtualWanCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		Properties: &virtualwans.VirtualWanProperties{
 			DisableVpnEncryption:           pointer.To(d.Get("disable_vpn_encryption").(bool)),
 			AllowBranchToBranchTraffic:     pointer.To(d.Get("allow_branch_to_branch_traffic").(bool)),
-			Office365LocalBreakoutCategory: pointer.To(virtualwans.OfficeTrafficCategory(d.Get("office365_local_breakout_category").(string))),
+			Office365LocalBreakoutCategory: pointer.ToEnum[virtualwans.OfficeTrafficCategory](d.Get("office365_local_breakout_category").(string)),
 			Type:                           pointer.To(d.Get("type").(string)),
 		},
 	}
 
-	if err := client.VirtualWansCreateOrUpdateThenPoll(ctx, id, wan); err != nil {
+	if err := client.VirtualWansCreateOrUpdateCallbackThenPoll(ctx, id, wan, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -158,7 +161,7 @@ func resourceVirtualWanUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if d.HasChange("office365_local_breakout_category") {
-		payload.Properties.Office365LocalBreakoutCategory = pointer.To(virtualwans.OfficeTrafficCategory(d.Get("office365_local_breakout_category").(string)))
+		payload.Properties.Office365LocalBreakoutCategory = pointer.ToEnum[virtualwans.OfficeTrafficCategory](d.Get("office365_local_breakout_category").(string))
 	}
 
 	if d.HasChange("type") {
@@ -210,7 +213,9 @@ func resourceVirtualWanRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.Set("office365_local_breakout_category", pointer.From(props.Office365LocalBreakoutCategory))
 			d.Set("type", props.Type)
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }

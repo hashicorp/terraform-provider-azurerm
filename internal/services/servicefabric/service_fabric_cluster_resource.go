@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	serviceFabricValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabric/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -571,15 +572,17 @@ func resourceServiceFabricClusterCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	id := cluster.NewClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_service_fabric_cluster", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_service_fabric_cluster", id.ID())
+			}
 		}
 	}
 
@@ -639,34 +642,35 @@ func resourceServiceFabricClusterCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if certificateRaw, ok := d.GetOk("certificate"); ok {
-		certificate := expandServiceFabricClusterCertificate(certificateRaw.([]interface{}))
-		clusterModel.Properties.Certificate = certificate
+		clusterModel.Properties.Certificate = expandServiceFabricClusterCertificate(certificateRaw.([]interface{}))
 	}
 
 	if reverseProxyCertificateRaw, ok := d.GetOk("reverse_proxy_certificate"); ok {
-		reverseProxyCertificate := expandServiceFabricClusterReverseProxyCertificate(reverseProxyCertificateRaw.([]interface{}))
-		clusterModel.Properties.ReverseProxyCertificate = reverseProxyCertificate
+		clusterModel.Properties.ReverseProxyCertificate = expandServiceFabricClusterReverseProxyCertificate(reverseProxyCertificateRaw.([]interface{}))
 	}
 
 	if clientCertificateThumbprintRaw, ok := d.GetOk("client_certificate_thumbprint"); ok {
-		clientCertificateThumbprints := expandServiceFabricClusterClientCertificateThumbprints(clientCertificateThumbprintRaw.([]interface{}))
-		clusterModel.Properties.ClientCertificateThumbprints = clientCertificateThumbprints
+		clusterModel.Properties.ClientCertificateThumbprints = expandServiceFabricClusterClientCertificateThumbprints(clientCertificateThumbprintRaw.([]interface{}))
 	}
 
 	if clientCertificateCommonNamesRaw, ok := d.GetOk("client_certificate_common_name"); ok {
-		clientCertificateCommonNames := expandServiceFabricClusterClientCertificateCommonNames(clientCertificateCommonNamesRaw.([]interface{}))
-		clusterModel.Properties.ClientCertificateCommonNames = clientCertificateCommonNames
+		clusterModel.Properties.ClientCertificateCommonNames = expandServiceFabricClusterClientCertificateCommonNames(clientCertificateCommonNamesRaw.([]interface{}))
 	}
 
 	if clusterCodeVersion != "" {
 		clusterModel.Properties.ClusterCodeVersion = pointer.To(clusterCodeVersion)
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, clusterModel); err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, clusterModel, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, clusterModel); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
-
-	d.SetId(id.ID())
 	return resourceServiceFabricClusterRead(d, meta)
 }
 
@@ -788,7 +792,9 @@ func resourceServiceFabricClusterRead(d *pluginsdk.ResourceData, meta interface{
 			}
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -803,8 +809,6 @@ func resourceServiceFabricClusterDelete(d *pluginsdk.ResourceData, meta interfac
 	if err != nil {
 		return err
 	}
-
-	log.Printf("[DEBUG] Deleting %s", id.ID())
 
 	resp, err := client.Delete(ctx, *id)
 	if err != nil {

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -115,7 +116,7 @@ func resourceArmIotHubEnrichmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 	enrichment := devices.EnrichmentProperties{
 		Key:           &enrichmentKey,
 		Value:         &enrichmentValue,
-		EndpointNames: utils.ExpandStringSlice(endpointNamesRaw),
+		EndpointNames: helpers.ExpandStringSlice(endpointNamesRaw),
 	}
 
 	routing := iothub.Properties.Routing
@@ -136,7 +137,9 @@ func resourceArmIotHubEnrichmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 		if existingEnrichment.Key != nil {
 			if strings.EqualFold(*existingEnrichment.Key, enrichmentKey) {
 				if d.IsNewResource() {
-					return tf.ImportAsExistsError("azurerm_iothub_enrichment", id.ID())
+					if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+						return tf.ImportAsExistsError("azurerm_iothub_enrichment", id.ID())
+					}
 				}
 				enrichments = append(enrichments, enrichment)
 				alreadyExists = true
@@ -158,11 +161,11 @@ func resourceArmIotHubEnrichmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("creating/updating IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
 	}
 
+	d.SetId(id.ID())
+
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for the completion of the creating/updating of IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
 	}
-
-	d.SetId(id.ID())
 
 	return resourceArmIotHubEnrichmentRead(d, meta)
 }

@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roledefinitions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsms"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/managedhsms"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/migration"
@@ -51,7 +51,7 @@ var (
 // Arguments ...
 // skip `assignable_scopes` field support as https://github.com/Azure/azure-rest-api-specs/issues/23045
 func (r KeyVaultMHSMRoleDefinitionResource) Arguments() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -134,8 +134,6 @@ func (r KeyVaultMHSMRoleDefinitionResource) Arguments() map[string]*pluginsdk.Sc
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
-
-	return s
 }
 
 func (r KeyVaultMHSMRoleDefinitionResource) Attributes() map[string]*pluginsdk.Schema {
@@ -212,12 +210,15 @@ func (r KeyVaultMHSMRoleDefinitionResource) Create() sdk.ResourceFunc {
 
 			scope := keyvault.RoleScopeGlobal
 			id := parse.NewManagedHSMDataPlaneRoleDefinitionID(endpoint.ManagedHSMName, endpoint.DomainSuffix, string(scope), config.Name)
-			existing, err := client.Get(ctx, id.BaseURI(), id.Scope, id.ManagedHSMName)
-			if !utils.ResponseWasNotFound(existing.Response) {
-				if err != nil {
-					return fmt.Errorf("checking for the existence of an existing %q: %+v", id, err)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id.BaseURI(), id.Scope, id.ManagedHSMName)
+				if !utils.ResponseWasNotFound(existing.Response) {
+					if err != nil {
+						return fmt.Errorf("checking for the existence of an existing %q: %+v", id, err)
+					}
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
 				}
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
 			payload := keyvault.RoleDefinitionCreateParameters{
@@ -381,8 +382,7 @@ func (r KeyVaultMHSMRoleDefinitionResource) Update() sdk.ResourceFunc {
 				},
 			}
 
-			_, err = client.CreateOrUpdate(ctx, id.BaseURI(), id.Scope, id.RoleDefinitionName, payload)
-			if err != nil {
+			if _, err = client.CreateOrUpdate(ctx, id.BaseURI(), id.Scope, id.RoleDefinitionName, payload); err != nil {
 				return fmt.Errorf("updating %s: %v", id.ID(), err)
 			}
 

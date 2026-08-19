@@ -7,19 +7,19 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	rmTables "github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-06-01/tables"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
-	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/table/entities"
-	"github.com/jackofallops/giovanni/storage/2023-11-03/table/tables"
 )
 
 func dataSourceStorageTableEntity() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Read: dataSourceStorageTableEntityRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -30,7 +30,7 @@ func dataSourceStorageTableEntity() *pluginsdk.Resource {
 			"storage_table_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: storageValidate.StorageTableDataPlaneID,
+				ValidateFunc: rmTables.ValidateTableID,
 			},
 
 			"partition_key": {
@@ -54,38 +54,43 @@ func dataSourceStorageTableEntity() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	return resource
 }
 
 func dataSourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	partitionKey := d.Get("partition_key").(string)
 	rowKey := d.Get("row_key").(string)
 
-	var storageTableId *tables.TableId
+	var tableName string
+	var accountName string
+	var storageTableIdFmtd string
+	var account *client.AccountDetails
 	var err error
-	if v, ok := d.GetOk("storage_table_id"); ok && v.(string) != "" {
-		storageTableId, err = tables.ParseTableID(v.(string), storageClient.StorageDomainSuffix)
-		if err != nil {
-			return err
-		}
-	}
 
-	if storageTableId == nil {
-		return fmt.Errorf("determining storage table ID")
+	tableIdRaw, ok := d.GetOk("storage_table_id")
+	if !ok || tableIdRaw.(string) == "" {
+		return fmt.Errorf("`storage_table_id` is required")
 	}
+	storageTableIdRaw := tableIdRaw.(string)
 
-	account, err := storageClient.FindAccount(ctx, subscriptionId, storageTableId.AccountId.AccountName)
+	storageTableId, err := rmTables.ParseTableID(storageTableIdRaw)
 	if err != nil {
-		return fmt.Errorf("retrieving Account %q for Table %q: %v", storageTableId.AccountId.AccountName, storageTableId.TableName, err)
+		return err
 	}
+	storageTableIdFmtd = storageTableId.ID()
+	tableName = storageTableId.TableName
+	accountName = storageTableId.StorageAccountName
+	storageAccountId := commonids.NewStorageAccountID(storageTableId.SubscriptionId, storageTableId.ResourceGroupName, storageTableId.StorageAccountName)
+	account, err = storageClient.GetAccount(ctx, storageAccountId)
+	if err != nil {
+		return fmt.Errorf("retrieving Account %q for Table %q: %v", accountName, tableName, err)
+	}
+
 	if account == nil {
-		return fmt.Errorf("the parent Storage Account %s was not found", storageTableId.AccountId.AccountName)
+		return fmt.Errorf("the parent Storage Account %s was not found", accountName)
 	}
 
 	dataPlaneClient, err := storageClient.TableEntityDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
@@ -103,7 +108,7 @@ func dataSourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("parsing Account ID: %v", err)
 	}
 
-	id := entities.NewEntityID(*accountId, storageTableId.TableName, partitionKey, rowKey)
+	id := entities.NewEntityID(*accountId, tableName, partitionKey, rowKey)
 
 	input := entities.GetEntityInput{
 		PartitionKey:  partitionKey,
@@ -111,12 +116,12 @@ func dataSourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{
 		MetaDataLevel: entities.NoMetaData,
 	}
 
-	result, err := dataPlaneClient.Get(ctx, storageTableId.TableName, input)
+	result, err := dataPlaneClient.Get(ctx, tableName, input)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %v", id, err)
 	}
 
-	d.Set("storage_table_id", storageTableId.ID())
+	d.Set("storage_table_id", storageTableIdFmtd)
 	d.Set("partition_key", partitionKey)
 	d.Set("row_key", rowKey)
 

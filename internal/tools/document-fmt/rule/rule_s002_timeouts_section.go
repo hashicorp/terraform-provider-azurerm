@@ -99,6 +99,16 @@ func (r S002) Run(rd *data.TerraformNodeData, fix bool) []error {
 		start, end := 0, 0
 
 		for idx, line := range content {
+			if strings.Contains(line, "https://www.terraform.io/language/resources/syntax#operation-timeouts") {
+				errs = append(errs, fmt.Errorf("%s: is using an outdated reference (`https://www.terraform.io/language/resources/syntax#operation-timeouts`)", IdAndName(r)))
+
+				if fix {
+					content[idx] = "The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:"
+					rd.Document.HasChange = true
+					section.SetContent(content)
+				}
+			}
+
 			if partialTimeoutRegex.MatchString(line) {
 				// track start and end of timeout lines, in case we need to insert a new timeout
 				// we can insert at end and let the reorder func take care of the rest

@@ -9,12 +9,11 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/containerapps"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/daprcomponents"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -1638,7 +1637,8 @@ func ContainerVolumeSchema() *pluginsdk.Schema {
 					Default:  "EmptyDir",
 					ValidateFunc: validation.StringInSlice(
 						containerapps.PossibleValuesForStorageType(),
-						false),
+						false,
+					),
 					Description: "The type of storage volume. Possible values include `AzureFile` and `EmptyDir`. Defaults to `EmptyDir`.",
 				},
 
@@ -2066,8 +2066,8 @@ func ContainerAppReadinessProbeSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      3,
-					ValidateFunc: validation.IntBetween(1, 30),
-					Description:  "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.",
+					ValidateFunc: validation.IntBetween(1, 48),
+					Description:  "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `48`. Defaults to `3`.",
 				},
 
 				"success_count_threshold": {
@@ -2153,7 +2153,7 @@ func ContainerAppReadinessProbeSchemaComputed() *pluginsdk.Schema {
 				"failure_count_threshold": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.",
+					Description: "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `48`. Defaults to `3`.",
 				},
 
 				"success_count_threshold": {
@@ -2250,20 +2250,19 @@ func flattenContainerAppReadinessProbe(input containerapps.ContainerAppProbe) []
 }
 
 type ContainerAppLivenessProbe struct {
-	Transport              string       `tfschema:"transport"`
-	Host                   string       `tfschema:"host"`
-	Port                   int64        `tfschema:"port"`
-	Path                   string       `tfschema:"path"`
-	Headers                []HttpHeader `tfschema:"header"`
-	InitialDelay           int64        `tfschema:"initial_delay"`
-	Interval               int64        `tfschema:"interval_seconds"`
-	Timeout                int64        `tfschema:"timeout"`
-	FailureThreshold       int64        `tfschema:"failure_count_threshold"`
-	TerminationGracePeriod int64        `tfschema:"termination_grace_period_seconds,removedInNextMajorVersion"`
+	Transport        string       `tfschema:"transport"`
+	Host             string       `tfschema:"host"`
+	Port             int64        `tfschema:"port"`
+	Path             string       `tfschema:"path"`
+	Headers          []HttpHeader `tfschema:"header"`
+	InitialDelay     int64        `tfschema:"initial_delay"`
+	Interval         int64        `tfschema:"interval_seconds"`
+	Timeout          int64        `tfschema:"timeout"`
+	FailureThreshold int64        `tfschema:"failure_count_threshold"`
 }
 
 func ContainerAppLivenessProbeSchema() *pluginsdk.Schema {
-	schema := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MinItems: 1,
@@ -2355,20 +2354,10 @@ func ContainerAppLivenessProbeSchema() *pluginsdk.Schema {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		schema.Elem.(*pluginsdk.Resource).Schema["termination_grace_period_seconds"] = &pluginsdk.Schema{
-			Type:        pluginsdk.TypeInt,
-			Computed:    true,
-			Description: "The time in seconds after the container is sent the termination signal before the process if forcibly killed.",
-		}
-	}
-
-	return schema
 }
 
 func ContainerAppLivenessProbeSchemaComputed() *pluginsdk.Schema {
-	schema := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
 		Elem: &pluginsdk.Resource{
@@ -2443,16 +2432,6 @@ func ContainerAppLivenessProbeSchemaComputed() *pluginsdk.Schema {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		schema.Elem.(*pluginsdk.Resource).Schema["termination_grace_period_seconds"] = &pluginsdk.Schema{
-			Type:        pluginsdk.TypeInt,
-			Computed:    true,
-			Description: "The time in seconds after the container is sent the termination signal before the process if forcibly killed.",
-		}
-	}
-
-	return schema
 }
 
 func expandContainerAppLivenessProbe(input ContainerAppLivenessProbe) containerapps.ContainerAppProbe {
@@ -2499,11 +2478,10 @@ func expandContainerAppLivenessProbe(input ContainerAppLivenessProbe) containera
 func flattenContainerAppLivenessProbe(input containerapps.ContainerAppProbe) []ContainerAppLivenessProbe {
 	result := make([]ContainerAppLivenessProbe, 0)
 	probe := ContainerAppLivenessProbe{
-		InitialDelay:           pointer.From(input.InitialDelaySeconds),
-		Interval:               pointer.From(input.PeriodSeconds),
-		Timeout:                pointer.From(input.TimeoutSeconds),
-		FailureThreshold:       pointer.From(input.FailureThreshold),
-		TerminationGracePeriod: pointer.From(input.TerminationGracePeriodSeconds),
+		InitialDelay:     pointer.From(input.InitialDelaySeconds),
+		Interval:         pointer.From(input.PeriodSeconds),
+		Timeout:          pointer.From(input.TimeoutSeconds),
+		FailureThreshold: pointer.From(input.FailureThreshold),
 	}
 	if httpGet := input.HTTPGet; httpGet != nil {
 		if httpGet.Scheme != nil {
@@ -2537,20 +2515,19 @@ func flattenContainerAppLivenessProbe(input containerapps.ContainerAppProbe) []C
 }
 
 type ContainerAppStartupProbe struct {
-	Transport              string       `tfschema:"transport"`
-	Host                   string       `tfschema:"host"`
-	Port                   int64        `tfschema:"port"`
-	Path                   string       `tfschema:"path"`
-	Headers                []HttpHeader `tfschema:"header"`
-	InitialDelay           int64        `tfschema:"initial_delay"`
-	Interval               int64        `tfschema:"interval_seconds"`
-	Timeout                int64        `tfschema:"timeout"`
-	FailureThreshold       int64        `tfschema:"failure_count_threshold"`
-	TerminationGracePeriod int64        `tfschema:"termination_grace_period_seconds,removedInNextMajorVersion"`
+	Transport        string       `tfschema:"transport"`
+	Host             string       `tfschema:"host"`
+	Port             int64        `tfschema:"port"`
+	Path             string       `tfschema:"path"`
+	Headers          []HttpHeader `tfschema:"header"`
+	InitialDelay     int64        `tfschema:"initial_delay"`
+	Interval         int64        `tfschema:"interval_seconds"`
+	Timeout          int64        `tfschema:"timeout"`
+	FailureThreshold int64        `tfschema:"failure_count_threshold"`
 }
 
 func ContainerAppStartupProbeSchema() *pluginsdk.Schema {
-	schema := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MinItems: 1,
@@ -2636,26 +2613,16 @@ func ContainerAppStartupProbeSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      3,
-					ValidateFunc: validation.IntBetween(1, 30),
-					Description:  "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.",
+					ValidateFunc: validation.IntBetween(1, 240),
+					Description:  "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `240`. Defaults to `3`.",
 				},
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		schema.Elem.(*pluginsdk.Resource).Schema["termination_grace_period_seconds"] = &pluginsdk.Schema{
-			Type:        pluginsdk.TypeInt,
-			Computed:    true,
-			Description: "The time in seconds after the container is sent the termination signal before the process if forcibly killed.",
-		}
-	}
-
-	return schema
 }
 
 func ContainerAppStartupProbeSchemaComputed() *pluginsdk.Schema {
-	schema := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
 		Elem: &pluginsdk.Resource{
@@ -2721,21 +2688,11 @@ func ContainerAppStartupProbeSchemaComputed() *pluginsdk.Schema {
 				"failure_count_threshold": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.",
+					Description: "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `240`. Defaults to `3`.",
 				},
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		schema.Elem.(*pluginsdk.Resource).Schema["termination_grace_period_seconds"] = &pluginsdk.Schema{
-			Type:        pluginsdk.TypeInt,
-			Computed:    true,
-			Description: "The time in seconds after the container is sent the termination signal before the process if forcibly killed.",
-		}
-	}
-
-	return schema
 }
 
 func expandContainerAppStartupProbe(input ContainerAppStartupProbe) containerapps.ContainerAppProbe {
@@ -2782,11 +2739,10 @@ func expandContainerAppStartupProbe(input ContainerAppStartupProbe) containerapp
 func flattenContainerAppStartupProbe(input containerapps.ContainerAppProbe) []ContainerAppStartupProbe {
 	result := make([]ContainerAppStartupProbe, 0)
 	probe := ContainerAppStartupProbe{
-		InitialDelay:           pointer.From(input.InitialDelaySeconds),
-		Interval:               pointer.From(input.PeriodSeconds),
-		Timeout:                pointer.From(input.TimeoutSeconds),
-		FailureThreshold:       pointer.From(input.FailureThreshold),
-		TerminationGracePeriod: pointer.From(input.TerminationGracePeriodSeconds),
+		InitialDelay:     pointer.From(input.InitialDelaySeconds),
+		Interval:         pointer.From(input.PeriodSeconds),
+		Timeout:          pointer.From(input.TimeoutSeconds),
+		FailureThreshold: pointer.From(input.FailureThreshold),
 	}
 
 	if httpGet := input.HTTPGet; httpGet != nil {
@@ -2870,7 +2826,7 @@ func SecretsSchema() *pluginsdk.Schema {
 				"key_vault_secret_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+					ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret),
 					Description:  "The Key Vault Secret ID. Could be either one of `id` or `versionless_id`.",
 				},
 
@@ -3037,21 +2993,21 @@ func ContainerAppProbesRemoved(metadata sdk.ResourceMetaData) bool {
 	var hasLiveness, hasReadiness, hasStartup bool
 
 	if metadata.ResourceData.HasChange("template.0.container.0.liveness_probe") {
-		_, newLivenessRaw := metadata.ResourceData.GetChange("template.0.container.0.liveness_probe")
+		newLivenessRaw := metadata.ResourceData.Get("template.0.container.0.liveness_probe")
 		if newLiveness, ok := newLivenessRaw.([]interface{}); ok && len(newLiveness) > 0 {
 			hasLiveness = true
 		}
 	}
 
 	if metadata.ResourceData.HasChange("template.0.container.0.readiness_probe") {
-		_, newReadinessRaw := metadata.ResourceData.GetChange("template.0.container.0.readiness_probe")
+		newReadinessRaw := metadata.ResourceData.Get("template.0.container.0.readiness_probe")
 		if newReadiness, ok := newReadinessRaw.([]interface{}); ok && len(newReadiness) > 0 {
 			hasReadiness = true
 		}
 	}
 
 	if metadata.ResourceData.HasChange("template.0.container.0.startup_probe") {
-		_, newStartupRaw := metadata.ResourceData.GetChange("template.0.container.0.startup_probe")
+		newStartupRaw := metadata.ResourceData.Get("template.0.container.0.startup_probe")
 		if newStartup, ok := newStartupRaw.([]interface{}); ok && len(newStartup) > 0 {
 			hasStartup = true
 		}
@@ -3164,6 +3120,7 @@ type CustomScaleRule struct {
 	Metadata        map[string]string         `tfschema:"metadata"`
 	CustomRuleType  string                    `tfschema:"custom_rule_type"`
 	Authentications []ScaleRuleAuthentication `tfschema:"authentication"`
+	IdentityID      string                    `tfschema:"identity_id"`
 }
 
 func CustomScaleRuleSchema() *pluginsdk.Schema {
@@ -3225,6 +3182,15 @@ func CustomScaleRuleSchema() *pluginsdk.Schema {
 						},
 					},
 				},
+				"identity_id": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.Any(
+						commonids.ValidateUserAssignedIdentityID,
+						validation.StringInSlice([]string{"System"}, false),
+					),
+					Description: "ID of the System or User Managed Identity used to execute scale rule.",
+				},
 			},
 		},
 	}
@@ -3270,6 +3236,11 @@ func CustomScaleRuleSchemaComputed() *pluginsdk.Schema {
 							},
 						},
 					},
+				},
+				"identity_id": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "ID of the System or User Managed Identity used to execute scale rule.",
 				},
 			},
 		},
@@ -3489,6 +3460,7 @@ func (c *ContainerTemplate) expandContainerAppScaleRules() []containerapps.Scale
 			Custom: &containerapps.CustomScaleRule{
 				Metadata: pointer.To(v.Metadata),
 				Type:     pointer.To(v.CustomRuleType),
+				Identity: pointer.To(v.IdentityID),
 			},
 		}
 
@@ -3593,6 +3565,7 @@ func (c *ContainerTemplate) flattenContainerAppScaleRules(input *[]containerapps
 					Name:           pointer.From(v.Name),
 					Metadata:       pointer.From(r.Metadata),
 					CustomRuleType: pointer.From(r.Type),
+					IdentityID:     pointer.From(r.Identity),
 				}
 
 				authentications := make([]ScaleRuleAuthentication, 0)

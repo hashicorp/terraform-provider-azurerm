@@ -132,28 +132,28 @@ resource "azurerm_api_management" "test" {
 }
 
 resource "azurerm_redis_cache" "test" {
-  name                = "acctestRedis-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  capacity            = 1
-  family              = "C"
-  sku_name            = "Basic"
-  enable_non_ssl_port = false
-  minimum_tls_version = "1.2"
+  name                 = "acctestRedis-%[1]d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  capacity             = 1
+  family               = "C"
+  sku_name             = "Basic"
+  non_ssl_port_enabled = false
+  minimum_tls_version  = "1.2"
 
   redis_configuration {
   }
 }
 
 resource "azurerm_redis_cache" "test2" {
-  name                = "acctestRedis2-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  capacity            = 1
-  family              = "C"
-  sku_name            = "Basic"
-  enable_non_ssl_port = false
-  minimum_tls_version = "1.2"
+  name                 = "acctestRedis2-%[1]d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  capacity             = 1
+  family               = "C"
+  sku_name             = "Basic"
+  non_ssl_port_enabled = false
+  minimum_tls_version  = "1.2"
 
   redis_configuration {
   }

@@ -33,7 +33,7 @@ type provisioningStatePoller struct {
 	maxDroppedConnections  int
 }
 
-func provisioningStatePollerFromResponse(response *client.Response, lroIsSelfReference bool, client *Client, pollingInterval time.Duration) (*provisioningStatePoller, error) {
+func provisioningStatePollerFromResponse(response *client.Response, lroIsSelfReference bool, c *Client, pollingInterval time.Duration) (*provisioningStatePoller, error) {
 	// if we've gotten to this point then we're polling against a Resource Manager resource/operation of some kind
 	// we next need to determine if the current URI is a Resource Manager resource, or if we should be polling on the
 	// resource (e.g. `/my/resource`) rather than an operation on the resource (e.g. `/my/resource/start`)
@@ -61,9 +61,13 @@ func provisioningStatePollerFromResponse(response *client.Response, lroIsSelfRef
 		resourcePath = *path
 	}
 
+	if s, ok := response.Header[client.SkipPollingDelayHeader]; ok && s[0] == "true" {
+		pollingInterval = 0
+	}
+
 	return &provisioningStatePoller{
 		apiVersion:            apiVersion,
-		client:                client,
+		client:                c,
 		initialRetryDuration:  pollingInterval,
 		originalUri:           originalUri,
 		resourcePath:          resourcePath,
@@ -177,7 +181,7 @@ func resourceManagerResourcePathFromUri(input string) (*string, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	segments := strings.Split(strings.TrimPrefix(parsed.Path, "/"), "/")
+	segments := strings.Split(strings.TrimLeft(parsed.Path, "/"), "/")
 	if len(segments) == 0 {
 		return nil, fmt.Errorf("polling uri was empty")
 	}

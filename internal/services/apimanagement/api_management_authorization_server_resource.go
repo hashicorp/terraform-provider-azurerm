@@ -198,15 +198,17 @@ func resourceApiManagementAuthorizationServerCreateUpdate(d *pluginsdk.ResourceD
 	id := authorizationserver.NewAuthorizationServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_authorization_server", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_api_management_authorization_server", id.ID())
+			}
 		}
 	}
 
@@ -251,14 +253,12 @@ func resourceApiManagementAuthorizationServerCreateUpdate(d *pluginsdk.ResourceD
 
 	authorizationMethodsRaw := d.Get("authorization_methods").(*pluginsdk.Set).List()
 	if len(authorizationMethodsRaw) > 0 {
-		authorizationMethods := expandApiManagementAuthorizationServerAuthorizationMethods(authorizationMethodsRaw)
-		params.Properties.AuthorizationMethods = authorizationMethods
+		params.Properties.AuthorizationMethods = expandApiManagementAuthorizationServerAuthorizationMethods(authorizationMethodsRaw)
 	}
 
 	bearerTokenSendingMethodsRaw := d.Get("bearer_token_sending_methods").(*pluginsdk.Set).List()
 	if len(bearerTokenSendingMethodsRaw) > 0 {
-		bearerTokenSendingMethods := expandApiManagementAuthorizationServerBearerTokenSendingMethods(bearerTokenSendingMethodsRaw)
-		params.Properties.BearerTokenSendingMethods = bearerTokenSendingMethods
+		params.Properties.BearerTokenSendingMethods = expandApiManagementAuthorizationServerBearerTokenSendingMethods(bearerTokenSendingMethodsRaw)
 	}
 
 	if tokenEndpoint := d.Get("token_endpoint").(string); tokenEndpoint != "" {
