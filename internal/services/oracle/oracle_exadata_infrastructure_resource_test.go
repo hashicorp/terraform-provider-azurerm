@@ -147,7 +147,6 @@ resource "azurerm_oracle_exadata_infrastructure" "test" {
   database_server_type = "X11M"
   storage_server_type  = "X11M-HC"
   storage_count        = "3"
-  zones                = []
 }
 `, a.template(data), data.RandomInteger)
 }

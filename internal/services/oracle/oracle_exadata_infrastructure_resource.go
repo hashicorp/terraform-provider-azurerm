@@ -25,24 +25,21 @@ var _ sdk.Resource = ExadataInfraResource{}
 type ExadataInfraResource struct{}
 
 type ExadataInfraResourceModel struct {
-	// Azure
 	Location          string            `tfschema:"location"`
 	Name              string            `tfschema:"name"`
 	ResourceGroupName string            `tfschema:"resource_group_name"`
 	Tags              map[string]string `tfschema:"tags"`
-	Zones             zones.Schema      `tfschema:"zones"`
 
-	// Required
 	ComputeCount int64  `tfschema:"compute_count"`
 	DisplayName  string `tfschema:"display_name"`
 	Shape        string `tfschema:"shape"`
 	StorageCount int64  `tfschema:"storage_count"`
 
-	// Optional
-	DatabaseServerType string                   `tfschema:"database_server_type"`
-	StorageServerType  string                   `tfschema:"storage_server_type"`
 	CustomerContacts   []string                 `tfschema:"customer_contacts"`
+	DatabaseServerType string                   `tfschema:"database_server_type"`
 	MaintenanceWindow  []MaintenanceWindowModel `tfschema:"maintenance_window"`
+	StorageServerType  string                   `tfschema:"storage_server_type"`
+	Zones              zones.Schema             `tfschema:"zones"`
 }
 
 func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
@@ -194,7 +191,7 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 
-		"zones": commonschema.ZonesMultipleRequiredForceNew(),
+		"zones": commonschema.ZonesMultipleOptionalForceNew(),
 	}
 }
 
