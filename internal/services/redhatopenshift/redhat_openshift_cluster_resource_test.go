@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -248,12 +249,9 @@ func TestAccRedhatOpenshiftCluster_platformWorkloadIdentity(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.platformWorkloadIdentity(data, "second"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
+			Config:      r.platformWorkloadIdentity(data, "second"),
+			ExpectError: regexp.MustCompile("`platform_workload_identity_profile.0.upgradeable_to` cannot be removed once set"),
 		},
-		data.ImportStep(),
 	})
 }
 

@@ -134,6 +134,11 @@ func (r RedHatOpenShiftCluster) CustomizeDiff() sdk.ResourceFunc {
 				return nil
 			}
 
+			oldUpgradeableTo, newUpgradeableTo := metadata.ResourceDiff.GetChange("platform_workload_identity_profile.0.upgradeable_to")
+			if oldUpgradeableTo.(string) != "" && newUpgradeableTo.(string) == "" {
+				return errors.New("`platform_workload_identity_profile.0.upgradeable_to` cannot be removed once set")
+			}
+
 			// The service principal can be swapped, but it cannot be added or removed in place.
 			oldServicePrincipal, newServicePrincipal := metadata.ResourceDiff.GetChange("service_principal")
 			if len(oldServicePrincipal.([]interface{})) != len(newServicePrincipal.([]interface{})) {
