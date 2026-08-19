@@ -13,13 +13,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-<<<<<<< HEAD
 	"github.com/hashicorp/go-azure-sdk/resource-manager/portal/2026-04-01/dashboards"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-=======
-	"github.com/hashicorp/go-azure-sdk/resource-manager/portal/2019-01-01-preview/dashboard"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
->>>>>>> origin/main
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -71,7 +67,7 @@ func resourcePortalDashboard() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FivePointOh() {
+	if !features.SixPointOh() {
 		resource.Schema["dashboard_properties"].DiffSuppressOnRefresh = true
 		resource.Schema["dashboard_properties"].DiffSuppressFunc = func(k, old, new string, d *schema.ResourceData) bool {
 			if old == new {
@@ -79,7 +75,7 @@ func resourcePortalDashboard() *pluginsdk.Resource {
 			}
 			if parsedLegacy, ok := parse.LegacyDashboardProperties(new); ok {
 				if converted, err := json.Marshal(parsedLegacy); err == nil {
-					return utils.NormalizeJson(old) == utils.NormalizeJson(string(converted))
+					return helpers.NormalizeJson(old) == helpers.NormalizeJson(string(converted))
 				}
 			}
 			return false
@@ -118,7 +114,7 @@ func resourcePortalDashboardCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	dashboardPropsRaw := d.Get("dashboard_properties").(string)
 
-	if !features.FivePointOh() {
+	if !features.SixPointOh() {
 		if dashboardProperties, ok := parse.LegacyDashboardProperties(dashboardPropsRaw); ok {
 			props.Properties = dashboardProperties
 

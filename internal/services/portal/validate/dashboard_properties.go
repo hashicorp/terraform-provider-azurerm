@@ -21,7 +21,7 @@ func DashboardProperties(v interface{}, k string) (warnings []string, errs []err
 		return warnings, errs
 	}
 
-	if !features.FivePointOh() {
+	if !features.SixPointOh() {
 		var dashboardProperties dashboard.DashboardProperties
 		if err := json.Unmarshal([]byte(value), &dashboardProperties); err == nil {
 			if dashboardProperties.Lenses == nil {

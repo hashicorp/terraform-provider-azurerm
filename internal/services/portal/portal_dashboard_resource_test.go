@@ -101,7 +101,7 @@ DASH
 }
 
 func (PortalDashboardResource) complete(data acceptance.TestData) string {
-	if !features.FivePointOh() {
+	if !features.SixPointOh() {
 		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
