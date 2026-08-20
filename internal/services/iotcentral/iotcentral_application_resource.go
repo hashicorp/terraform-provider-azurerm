@@ -26,7 +26,7 @@ import (
 )
 
 func resourceIotCentralApplication() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceIotCentralAppCreate,
 		Read:   resourceIotCentralAppRead,
 		Update: resourceIotCentralAppUpdate,
@@ -104,8 +104,6 @@ func resourceIotCentralApplication() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	return resource
 }
 
 func resourceIotCentralAppCreate(d *pluginsdk.ResourceData, meta interface{}) error {

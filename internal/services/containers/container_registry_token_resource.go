@@ -191,11 +191,7 @@ func resourceContainerRegistryTokenRead(d *pluginsdk.ResourceData, meta interfac
 			}
 			d.Set("enabled", status)
 
-			scopeMapId := ""
-			if v := props.ScopeMapId; v != nil {
-				scopeMapId = *v
-			}
-			d.Set("scope_map_id", scopeMapId)
+			d.Set("scope_map_id", pointer.From(props.ScopeMapId))
 		}
 	}
 

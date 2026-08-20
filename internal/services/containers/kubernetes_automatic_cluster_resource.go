@@ -1027,7 +1027,7 @@ func expandKubernetesAutomaticClusterServiceMeshProfile(input []ServiceMeshProfi
 						Mode:    managedclusters.IstioIngressGatewayModeExternal,
 					},
 				},
-				ProxyRedirectionMechanism: pointer.To(managedclusters.ProxyRedirectionMechanism(config.ProxyRedirectMechanism)),
+				ProxyRedirectionMechanism: pointer.ToEnum[managedclusters.ProxyRedirectionMechanism](config.ProxyRedirectMechanism),
 			},
 		},
 	}

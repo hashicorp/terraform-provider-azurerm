@@ -227,7 +227,7 @@ func (r ContainerAppResource) Create() sdk.ResourceFunc {
 			}
 			containerApp.Identity = pointer.To(identity.LegacySystemAndUserAssignedMap(*ident))
 
-			containerApp.Properties.Configuration.ActiveRevisionsMode = pointer.To(containerapps.ActiveRevisionsMode(app.RevisionMode))
+			containerApp.Properties.Configuration.ActiveRevisionsMode = pointer.ToEnum[containerapps.ActiveRevisionsMode](app.RevisionMode)
 
 			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, containerApp, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -372,7 +372,7 @@ func (r ContainerAppResource) Update() sdk.ResourceFunc {
 			model.Properties.Configuration.Secrets = helpers.UnpackContainerSecretsCollection(secretsResp.Model)
 
 			if metadata.ResourceData.HasChange("revision_mode") {
-				model.Properties.Configuration.ActiveRevisionsMode = pointer.To(containerapps.ActiveRevisionsMode(state.RevisionMode))
+				model.Properties.Configuration.ActiveRevisionsMode = pointer.ToEnum[containerapps.ActiveRevisionsMode](state.RevisionMode)
 			}
 
 			if metadata.ResourceData.HasChange("ingress") {

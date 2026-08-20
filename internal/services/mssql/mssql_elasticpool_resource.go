@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
@@ -33,7 +32,7 @@ import (
 //go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceMsSqlElasticPool() *pluginsdk.Resource {
-	r := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceMsSqlElasticPoolCreateUpdate,
 		Read:   resourceMsSqlElasticPoolRead,
 		Update: resourceMsSqlElasticPoolCreateUpdate,
@@ -246,20 +245,6 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 			}),
 		),
 	}
-
-	if !features.FivePointOh() {
-		r.Schema["enclave_type"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(databases.AlwaysEncryptedEnclaveTypeVBS),
-				string(databases.AlwaysEncryptedEnclaveTypeDefault),
-			}, false),
-		}
-	}
-
-	return r
 }
 
 func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -295,7 +280,7 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		Sku:      sku,
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		Properties: &elasticpools.ElasticPoolProperties{
-			LicenseType:                pointer.To(elasticpools.ElasticPoolLicenseType(d.Get("license_type").(string))),
+			LicenseType:                pointer.ToEnum[elasticpools.ElasticPoolLicenseType](d.Get("license_type").(string)),
 			PerDatabaseSettings:        expandMsSqlElasticPoolPerDatabaseSettings(d),
 			ZoneRedundant:              pointer.To(d.Get("zone_redundant").(bool)),
 			MaintenanceConfigurationId: pointer.To(maintenanceConfigId.ID()),
@@ -309,7 +294,7 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 
 	// NOTE: The service default is actually nil/empty which indicates enclave is disabled. the value `Default` is NOT the default.
 	if v, ok := d.GetOk("enclave_type"); ok && v.(string) != "" {
-		elasticPool.Properties.PreferredEnclaveType = pointer.To(elasticpools.AlwaysEncryptedEnclaveType(v.(string)))
+		elasticPool.Properties.PreferredEnclaveType = pointer.ToEnum[elasticpools.AlwaysEncryptedEnclaveType](v.(string))
 	}
 
 	if d.HasChange("max_size_gb") {
@@ -416,8 +401,7 @@ func resourceMsSqlElasticPoolDelete(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting ElasticPool %s: %+v", id, err)
 	}
 

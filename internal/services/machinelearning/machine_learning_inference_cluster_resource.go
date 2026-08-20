@@ -295,7 +295,7 @@ func expandAksComputeProperties(aksId string, aks *managedclusters.ManagedCluste
 		Properties: &machinelearningcomputes.AKSSchemaProperties{
 			ClusterFqdn:      pointer.To(*fqdn),
 			SslConfiguration: expandSSLConfig(d.Get("ssl").([]interface{})),
-			ClusterPurpose:   pointer.To(machinelearningcomputes.ClusterPurpose(d.Get("cluster_purpose").(string))),
+			ClusterPurpose:   pointer.ToEnum[machinelearningcomputes.ClusterPurpose](d.Get("cluster_purpose").(string)),
 		},
 		ComputeLocation: pointer.To(aks.Location),
 		Description:     pointer.To(d.Get("description").(string)),
@@ -323,7 +323,7 @@ func expandSSLConfig(input []interface{}) *machinelearningcomputes.SslConfigurat
 	}
 
 	return &machinelearningcomputes.SslConfiguration{
-		Status:                  pointer.To(machinelearningcomputes.SslConfigStatus(sslStatus)),
+		Status:                  pointer.ToEnum[machinelearningcomputes.SslConfigStatus](sslStatus),
 		Cert:                    pointer.To(v["cert"].(string)),
 		Key:                     pointer.To(v["key"].(string)),
 		Cname:                   pointer.To(v["cname"].(string)),
