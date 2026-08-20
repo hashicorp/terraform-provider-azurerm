@@ -35,10 +35,6 @@ func TestAccPlaywrightWorkspaceDataSource_basic(t *testing.T) {
 
 func (PlaywrightWorkspaceDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %[1]s
 
 data "azurerm_playwright_workspace" "test" {
