@@ -7,8 +7,8 @@ import (
 	"context"
 	"log"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -25,7 +25,7 @@ func (k KubernetesClusterV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		log.Printf("[DEBUG] Migrating ID to correct casing for Kubernetes Cluster")
 		rawId := rawState["id"].(string)
 
-		id, err := parse.ClusterID(rawId)
+		id, err := commonids.ParseKubernetesClusterIDInsensitively(rawId)
 		if err != nil {
 			return nil, err
 		}

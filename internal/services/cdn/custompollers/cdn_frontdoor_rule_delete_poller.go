@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-09-01/rules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rules"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 )
 

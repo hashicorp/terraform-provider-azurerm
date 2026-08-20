@@ -27,7 +27,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name private_dns_zone -service-package-name privatedns -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 var privateDnsZoneResourceName = "azurerm_private_dns_zone"
 
@@ -338,10 +338,7 @@ func flattenPrivateDNSZoneSOARecord(input *privatedns.RecordSet) []interface{} {
 		metaData = tags.Flatten(input.Properties.Metadata)
 	}
 
-	fqdn := ""
-	if input.Properties.Fqdn != nil {
-		fqdn = *input.Properties.Fqdn
-	}
+	fqdn := pointer.From(input.Properties.Fqdn)
 
 	email := ""
 	hostName := ""

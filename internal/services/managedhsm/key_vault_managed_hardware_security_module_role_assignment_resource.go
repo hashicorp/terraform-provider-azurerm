@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roledefinitions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsms"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/managedhsms"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/migration"
@@ -40,7 +40,7 @@ var _ sdk.ResourceWithStateMigration = KeyVaultManagedHSMRoleAssignmentResource{
 type KeyVaultManagedHSMRoleAssignmentResource struct{}
 
 func (r KeyVaultManagedHSMRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"managed_hsm_id": {
 			Type:         pluginsdk.TypeString,
 			ForceNew:     true,
@@ -76,8 +76,6 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) Arguments() map[string]*plugin
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
-
-	return s
 }
 
 func (r KeyVaultManagedHSMRoleAssignmentResource) Attributes() map[string]*pluginsdk.Schema {

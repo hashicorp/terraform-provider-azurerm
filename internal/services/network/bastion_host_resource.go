@@ -10,8 +10,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -23,13 +21,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name bastion_host -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 var skuWeight = map[string]int8{
 	"Developer": 1,
@@ -579,11 +578,7 @@ func flattenBastionHostIPConfiguration(ipConfigs *[]bastionhosts.BastionHostIPCo
 		}
 
 		if props := config.Properties; props != nil {
-			subnetId := ""
-			if subnet := props.Subnet; subnet.Id != nil {
-				subnetId = *subnet.Id
-			}
-			ipConfig["subnet_id"] = subnetId
+			ipConfig["subnet_id"] = pointer.From(props.Subnet.Id)
 
 			publicIpId := ""
 			if pip := props.PublicIPAddress; pip != nil && pip.Id != nil {

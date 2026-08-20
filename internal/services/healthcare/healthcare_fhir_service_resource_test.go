@@ -350,9 +350,10 @@ resource "azurerm_container_registry" "test" {
   admin_enabled       = false
 
   georeplications {
-    location                = "%s"
-    zone_redundancy_enabled = true
-    tags                    = {}
+    location                        = "%s"
+    global_endpoint_routing_enabled = true
+    zone_redundancy_enabled         = true
+    tags                            = {}
   }
 }
 
@@ -415,9 +416,10 @@ resource "azurerm_container_registry" "test" {
   admin_enabled       = false
 
   georeplications {
-    location                = "%s"
-    zone_redundancy_enabled = true
-    tags                    = {}
+    location                        = "%s"
+    global_endpoint_routing_enabled = true
+    zone_redundancy_enabled         = true
+    tags                            = {}
   }
 }
 

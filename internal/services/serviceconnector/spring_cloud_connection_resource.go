@@ -59,11 +59,7 @@ func (r SpringCloudConnectorResource) Arguments() map[string]*schema.Schema {
 		"client_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			// TODO: remove `None` in 4.0, since this is Optional `None` == omitting the field
-			Default: string(servicelinker.ClientTypeNone),
 			ValidateFunc: validation.StringInSlice([]string{
-				// TODO: remove `None` in 4.0, since this is Optional `None` == omitting the field
-				string(servicelinker.ClientTypeNone),
 				string(servicelinker.ClientTypeDotnet),
 				string(servicelinker.ClientTypeJava),
 				string(servicelinker.ClientTypePython),
@@ -133,7 +129,8 @@ func (r SpringCloudConnectorResource) Create() sdk.ResourceFunc {
 			}
 
 			serviceConnectorProperties := servicelinker.LinkerProperties{
-				AuthInfo: authInfo,
+				AuthInfo:   authInfo,
+				ClientType: pointer.To(servicelinker.ClientTypeNone),
 			}
 
 			if storageAccountId, err := commonids.ParseStorageAccountID(model.TargetResourceId); err == nil {
@@ -148,13 +145,11 @@ func (r SpringCloudConnectorResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.SecretStore != nil {
-				secretStore := expandSecretStore(model.SecretStore)
-				serviceConnectorProperties.SecretStore = secretStore
+				serviceConnectorProperties.SecretStore = expandSecretStore(model.SecretStore)
 			}
 
 			if model.ClientType != "" {
-				clientType := servicelinker.ClientType(model.ClientType)
-				serviceConnectorProperties.ClientType = &clientType
+				serviceConnectorProperties.ClientType = pointer.ToEnum[servicelinker.ClientType](model.ClientType)
 			}
 
 			if model.VnetSolution != "" {
@@ -213,8 +208,8 @@ func (r SpringCloudConnectorResource) Read() sdk.ResourceFunc {
 					AuthInfo:         flattenServiceConnectorAuthInfo(props.AuthInfo, pwd),
 				}
 
-				if props.ClientType != nil {
-					state.ClientType = string(*props.ClientType)
+				if v := pointer.From(props.ClientType); v != servicelinker.ClientTypeNone {
+					state.ClientType = string(v)
 				}
 
 				if props.VNetSolution != nil && props.VNetSolution.Type != nil {

@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -133,8 +132,7 @@ func (r ResourceProviderRegistrationResource) Create() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("feature") {
 				oldFeaturesRaw, newFeaturesRaw := metadata.ResourceData.GetChange("feature")
-				err := r.applyFeatures(ctx, metadata, resourceId, oldFeaturesRaw.(*pluginsdk.Set).List(), newFeaturesRaw.(*pluginsdk.Set).List())
-				if err != nil {
+				if err := r.applyFeatures(ctx, metadata, resourceId, oldFeaturesRaw.(*pluginsdk.Set).List(), newFeaturesRaw.(*pluginsdk.Set).List()); err != nil {
 					return fmt.Errorf("applying features for %q: %+v", resourceId, err)
 				}
 			}
@@ -206,8 +204,7 @@ func (r ResourceProviderRegistrationResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("feature") {
 				oldFeaturesRaw, newFeaturesRaw := metadata.ResourceData.GetChange("feature")
-				err := r.applyFeatures(ctx, metadata, *id, oldFeaturesRaw.(*pluginsdk.Set).List(), newFeaturesRaw.(*pluginsdk.Set).List())
-				if err != nil {
+				if err := r.applyFeatures(ctx, metadata, *id, oldFeaturesRaw.(*pluginsdk.Set).List(), newFeaturesRaw.(*pluginsdk.Set).List()); err != nil {
 					return fmt.Errorf("applying features for %s: %+v", *id, err)
 				}
 			}
@@ -316,8 +313,7 @@ func (r ResourceProviderRegistrationResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			err = r.applyFeatures(ctx, metadata, *id, metadata.ResourceData.Get("feature").(*pluginsdk.Set).List(), make([]interface{}, 0))
-			if err != nil {
+			if err = r.applyFeatures(ctx, metadata, *id, metadata.ResourceData.Get("feature").(*pluginsdk.Set).List(), make([]interface{}, 0)); err != nil {
 				return fmt.Errorf("applying features for %s: %+v", *id, err)
 			}
 
@@ -340,7 +336,7 @@ func (r ResourceProviderRegistrationResource) Delete() sdk.ResourceFunc {
 }
 
 func (r ResourceProviderRegistrationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ResourceProviderID
+	return providers.ValidateSubscriptionProviderID
 }
 
 func (r ResourceProviderRegistrationResource) CustomImporter() sdk.ResourceRunFunc {

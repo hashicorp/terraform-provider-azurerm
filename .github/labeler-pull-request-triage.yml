@@ -434,11 +434,6 @@ service/oracle:
   - any-glob-to-any-file:
     - internal/services/oracle/**/*
 
-service/orbital:
-- changed-files:
-  - any-glob-to-any-file:
-    - internal/services/orbital/**/*
-
 service/paloalto:
 - changed-files:
   - any-glob-to-any-file:
@@ -494,7 +489,6 @@ service/redis:
   - any-glob-to-any-file:
     - internal/services/managedredis/**/*
     - internal/services/redis/**/*
-    - internal/services/redisenterprise/**/*
 
 service/relay:
 - changed-files:

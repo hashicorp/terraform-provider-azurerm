@@ -14,7 +14,11 @@ Building on the example found in [adding a new resource](guide-new-resource.md) 
 
 Our hypothetical property `logging_enabled` will be user configurable and thus will need to be added to the `Arguments` list.
 
-The position of the new property is determined based on the order found in [adding a new resource](guide-new-resource.md#step-3-scaffold-an-emptynew-resource) and will end up looking like the code block below. Here is an example for a typed resource:
+The position of the new property is determined based on the order found in [adding a new resource](guide-new-resource.md#step-3-scaffold-an-emptynew-resource).
+
+> **Warning:** do not reorder existing properties in the same PR, as doing so degrades diff readability. Make any reordering changes in a separate follow-up PR instead.
+
+Once added, the schema will end up looking like the code block below. Here is an example for a typed resource:
 
 ```go
 func (ResourceGroupExampleResource) Arguments() map[string]*pluginsdk.Schema {
@@ -145,7 +149,7 @@ func resource() *pluginsdk.Resource {
         },
     }
 
-    if !features.FivePointOh() {
+    if !features.SixPointOh() {
         resource["compression_enabled"] = &pluginsdk.Schema{
             Type:          pluginsdk.TypeBool,
             Optional:      true,
@@ -179,7 +183,7 @@ func (r ExampleResource) Arguments() map[string]*pluginsdk.Schema {
 		}
 	}
 	
-	if !features.FivePointOh() {
+	if !features.SixPointOh() {
 		schema["compression_enabled"] = &pluginsdk.Schema{
 			Type:	       pluginsdk.TypeBool,
 			Optional:      true,
@@ -206,7 +210,7 @@ Also make sure to feature flag the behaviour in the `Create()`, `Update()` and `
 func myResourceCreate() {
     ...
     enableCompression := false
-    if !features.FivePointOh() {
+    if !features.SixPointOh() {
         if v, ok := d.GetOkExists("enable_compression"); ok {
             enableCompression = v.(bool)
         }       
@@ -221,7 +225,7 @@ func myResourceRead() {
     ...
 	d.Set("compression_enabled", props.EnableCompression)
     
-    if !features.FivePointOh() {
+    if !features.SixPointOh() {
         d.Set("enable_compression", props.EnableCompression)
     }
     ...
@@ -233,7 +237,7 @@ Here is an example for a typed resource:
 func (r ExampleResource) Create() sdk.ResourceFunc {
 	...
 	compressionEnabled := false
-	if !features.FivePointOh() {
+	if !features.SixPointOh() {
 		compressionEnabled = model.EnableCompression
 	}
 	
@@ -245,7 +249,7 @@ func (r ExampleResource) Read() sdk.ResourceFunc {
 	...
 	state.CompressionEnabled = pointer.From(props.CompressionEnabled)
 	
-	if !features.FivePointOh() {
+	if !features.SixPointOh() {
 		state.EnableCompression = pointer.From(props.CompressionEnabled)
 	}   
 	...
