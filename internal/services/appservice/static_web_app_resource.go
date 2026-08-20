@@ -113,7 +113,7 @@ func (r StaticWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"basic_auth": helpers.BasicAuthSchema(),
 
-		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 		"repository_url": {
 			Type:         pluginsdk.TypeString,
@@ -488,7 +488,8 @@ func (r StaticWebAppResource) Update() sdk.ResourceFunc {
 					authProps.Properties = &staticsites.StaticSiteBasicAuthPropertiesARMResourceProperties{
 						ApplicableEnvironmentsMode: "SpecifiedEnvironments",
 						Password:                   nil,
-						SecretState:                nil,
+						// To remove a password the backend validation requires 'secretState' to be in JSON, so we send an empty string
+						SecretState: pointer.To(""),
 					}
 				}
 

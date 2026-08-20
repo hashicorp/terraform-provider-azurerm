@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/hostpool"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/hostpool"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -258,7 +258,7 @@ func resourceVirtualDesktopHostPoolCreate(d *pluginsdk.ResourceData, meta interf
 			LoadBalancerType:              hostpool.LoadBalancerType(d.Get("load_balancer_type").(string)),
 			PersonalDesktopAssignmentType: &personalDesktopAssignmentType,
 			PreferredAppGroupType:         hostpool.PreferredAppGroupType(d.Get("preferred_app_group_type").(string)),
-			PublicNetworkAccess:           pointer.To(hostpool.HostpoolPublicNetworkAccess(d.Get("public_network_access").(string))),
+			PublicNetworkAccess:           pointer.ToEnum[hostpool.HostpoolPublicNetworkAccess](d.Get("public_network_access").(string)),
 			AgentUpdate:                   expandAgentUpdateCreate(d.Get("scheduled_agent_updates").([]interface{})),
 			VMTemplate:                    &vmTemplate,
 		},
@@ -291,7 +291,19 @@ func resourceVirtualDesktopHostPoolUpdate(d *pluginsdk.ResourceData, meta interf
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	if d.HasChanges("custom_rdp_properties", "description", "friendly_name", "load_balancer_type", "maximum_sessions_allowed", "preferred_app_group_type", "public_network_access", "start_vm_on_connect", "validate_environment", "scheduled_agent_updates") {
+	// lintignore:R019 // deliberate subset: only the fields feeding HostPoolPatchProperties; tags are applied separately above
+	if d.HasChanges(
+		"custom_rdp_properties",
+		"description",
+		"friendly_name",
+		"load_balancer_type",
+		"maximum_sessions_allowed",
+		"preferred_app_group_type",
+		"public_network_access",
+		"start_vm_on_connect",
+		"validate_environment",
+		"scheduled_agent_updates",
+	) {
 		payload.Properties = &hostpool.HostPoolPatchProperties{}
 
 		if d.HasChange("custom_rdp_properties") {
@@ -321,7 +333,7 @@ func resourceVirtualDesktopHostPoolUpdate(d *pluginsdk.ResourceData, meta interf
 		}
 
 		if d.HasChange("public_network_access") {
-			payload.Properties.PublicNetworkAccess = pointer.To(hostpool.HostpoolPublicNetworkAccess(d.Get("public_network_access").(string)))
+			payload.Properties.PublicNetworkAccess = pointer.ToEnum[hostpool.HostpoolPublicNetworkAccess](d.Get("public_network_access").(string))
 		}
 
 		if d.HasChange("start_vm_on_connect") {
@@ -497,8 +509,7 @@ func expandAgentUpdatePatch(input []interface{}) *hostpool.AgentUpdatePatchPrope
 	updatesDefault := hostpool.SessionHostComponentUpdateTypeDefault
 
 	useSessionHostLocalTime := *pointer.To(raw["use_session_host_timezone"].(bool))
-	updateScheduleTimeZone := pointer.To(raw["timezone"].(string))
-	props.MaintenanceWindowTimeZone = updateScheduleTimeZone
+	props.MaintenanceWindowTimeZone = pointer.To(raw["timezone"].(string))
 	props.UseSessionHostLocalTime = &useSessionHostLocalTime
 
 	if raw["enabled"].(bool) {

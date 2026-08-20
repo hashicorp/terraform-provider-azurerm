@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/netappaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/netappaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -181,7 +181,12 @@ func (r NetAppAccountEncryptionResource) Update() sdk.ResourceFunc {
 				Properties: &netappaccounts.AccountProperties{},
 			}
 
-			if metadata.ResourceData.HasChange("user_assigned_identity_id") || metadata.ResourceData.HasChange("system_assigned_identity_principal_id") || metadata.ResourceData.HasChange("encryption_key") || metadata.ResourceData.HasChange("federated_client_id") {
+			if metadata.ResourceData.HasChanges(
+				"user_assigned_identity_id",
+				"system_assigned_identity_principal_id",
+				"encryption_key",
+				"federated_client_id",
+			) {
 				encryptionExpanded, err := expandEncryption(ctx, state.EncryptionKey, keyVaultsClient, subscriptionId, pointer.To(state))
 				if err != nil {
 					return err

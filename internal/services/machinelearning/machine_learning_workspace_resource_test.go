@@ -554,6 +554,7 @@ resource "azurerm_machine_learning_workspace" "test" {
   image_build_compute_name        = "terraformCompute"
   service_side_encryption_enabled = true
   v1_legacy_mode_enabled          = false
+  storage_account_access_type     = "Identity"
 
   identity {
     type = "SystemAssigned"
@@ -689,6 +690,7 @@ resource "azurerm_machine_learning_workspace" "test" {
   public_network_access_enabled   = true
   service_side_encryption_enabled = true
   image_build_compute_name        = "terraformComputeUpdate"
+  storage_account_access_type     = "AccessKey"
 
   identity {
     type = "SystemAssigned"
@@ -749,10 +751,11 @@ resource "azurerm_application_insights" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestvault%[3]s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
+  name                       = "acctestvault%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
 
   sku_name = "standard"
 

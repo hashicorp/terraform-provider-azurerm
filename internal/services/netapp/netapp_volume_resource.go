@@ -16,19 +16,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/snapshots"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/volumes"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 const (
@@ -38,7 +37,7 @@ const (
 )
 
 func resourceNetAppVolume() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceNetAppVolumeCreate,
 		Read:   resourceNetAppVolumeRead,
 		Update: resourceNetAppVolumeUpdate,
@@ -271,11 +270,21 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 
-			"mount_ip_addresses": {
+			"mount_target": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"ip_address": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"smb_server_fqdn": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
 				},
 			},
 
@@ -511,18 +520,6 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				}
 			}
 
-			if !features.FivePointOh() {
-				// export_policy_rule.protocol conflicts with export_policy_rule.protocols_enabled
-				// Can't use the sdk's ConflictsWith because the properties are nested under a
-				// TypeList with a MaxItems != 1
-				for _, rule := range d.GetRawConfig().AsValueMap()["export_policy_rule"].AsValueSlice() {
-					ruleMap := rule.AsValueMap()
-					if !ruleMap["protocols_enabled"].IsNull() && !ruleMap["protocol"].IsNull() {
-						return fmt.Errorf("conflicting configuration arguments. export_policy_rule.protocol conflicts with export_policy_rule.protocols_enabled")
-					}
-				}
-			}
-
 			// Validate NFSv3 to NFSv4.1 protocol conversion restrictions
 			if d.HasChange("protocols") {
 				old, new := d.GetChange("protocols")
@@ -577,43 +574,6 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 			return nil
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["export_policy_rule"].Elem.(*pluginsdk.Resource).Schema["protocols_enabled"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			Computed:   true,
-			MaxItems:   1,
-			MinItems:   1,
-			Deprecated: "this property has been deprecated in favour of `export_policy_rule.protocol` and will be removed in version 5.0 of the Provider.",
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-				ValidateFunc: validation.StringInSlice([]string{
-					"NFSv3",
-					"NFSv4.1",
-					"CIFS",
-				}, false),
-			},
-		}
-
-		resource.Schema["export_policy_rule"].Elem.(*pluginsdk.Resource).Schema["protocol"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Computed: true,
-			MinItems: 1,
-			MaxItems: 1,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-				ValidateFunc: validation.StringInSlice([]string{
-					"NFSv3",
-					"NFSv4.1",
-					"CIFS",
-				}, false),
-			},
-		}
-	}
-
-	return resource
 }
 
 func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -753,7 +713,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		propertyMismatch := []string{}
 		if model := sourceVolume.Model; model != nil {
 			props := model.Properties
-			if !ValidateSlicesEquality(*props.ProtocolTypes, *utils.ExpandStringSlice(protocols), false) {
+			if !ValidateSlicesEquality(*props.ProtocolTypes, *helpers.ExpandStringSlice(protocols), false) {
 				propertyMismatch = append(propertyMismatch, "protocols")
 			}
 			if !strings.EqualFold(props.SubnetId, subnetID) {
@@ -800,7 +760,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			NetworkFeatures:           &networkFeatures,
 			SmbNonBrowsable:           &smbNonBrowsable,
 			SmbAccessBasedEnumeration: &smbAccessBasedEnumeration,
-			ProtocolTypes:             utils.ExpandStringSlice(protocols),
+			ProtocolTypes:             helpers.ExpandStringSlice(protocols),
 			SecurityStyle:             &securityStyle,
 			UsageThreshold:            storageQuotaInGB,
 			ExportPolicy:              exportPolicyRule,
@@ -831,8 +791,8 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	if len(d.Get("cool_access").([]interface{})) > 0 {
 		coolAccess := d.Get("cool_access").([]interface{})[0].(map[string]interface{})
 		parameters.Properties.CoolAccess = pointer.To(true)
-		parameters.Properties.CoolAccessRetrievalPolicy = pointer.To(volumes.CoolAccessRetrievalPolicy(coolAccess["retrieval_policy"].(string)))
-		parameters.Properties.CoolAccessTieringPolicy = pointer.To(volumes.CoolAccessTieringPolicy(coolAccess["tiering_policy"].(string)))
+		parameters.Properties.CoolAccessRetrievalPolicy = pointer.ToEnum[volumes.CoolAccessRetrievalPolicy](coolAccess["retrieval_policy"].(string))
+		parameters.Properties.CoolAccessTieringPolicy = pointer.ToEnum[volumes.CoolAccessTieringPolicy](coolAccess["tiering_policy"].(string))
 		parameters.Properties.CoolnessPeriod = pointer.To(int64(coolAccess["coolness_period_in_days"].(int)))
 	}
 
@@ -842,7 +802,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("volume encryption cannot be enabled when network features is set to basic: %s", id.ID())
 		}
 
-		parameters.Properties.EncryptionKeySource = pointer.To(volumes.EncryptionKeySource(encryptionKeySource.(string)))
+		parameters.Properties.EncryptionKeySource = pointer.ToEnum[volumes.EncryptionKeySource](encryptionKeySource.(string))
 	}
 
 	if keyVaultPrivateEndpointID, ok := d.GetOk("key_vault_private_endpoint_id"); ok {
@@ -925,15 +885,14 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		// Only override export policy protocols if we're also changing volume protocols
 		if d.HasChange("protocols") {
 			protocols := d.Get("protocols").(*pluginsdk.Set).List()
-			protocolOverride = *utils.ExpandStringSlice(protocols)
+			protocolOverride = *helpers.ExpandStringSlice(protocols)
 		}
-		exportPolicyRule := expandNetAppVolumeExportPolicyRulePatch(exportPolicyRuleRaw, protocolOverride)
-		update.Properties.ExportPolicy = exportPolicyRule
+		update.Properties.ExportPolicy = expandNetAppVolumeExportPolicyRulePatch(exportPolicyRuleRaw, protocolOverride)
 	}
 
 	if d.HasChange("protocols") {
 		protocols := d.Get("protocols").(*pluginsdk.Set).List()
-		update.Properties.ProtocolTypes = utils.ExpandStringSlice(protocols)
+		update.Properties.ProtocolTypes = helpers.ExpandStringSlice(protocols)
 	}
 
 	if d.HasChange("data_protection_snapshot_policy") {
@@ -1009,11 +968,11 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 			update.Properties.CoolAccess = pointer.To(true)
 
 			if d.HasChange("cool_access.0.retrieval_policy") {
-				update.Properties.CoolAccessRetrievalPolicy = pointer.To(volumes.CoolAccessRetrievalPolicy(coolAccess["retrieval_policy"].(string)))
+				update.Properties.CoolAccessRetrievalPolicy = pointer.ToEnum[volumes.CoolAccessRetrievalPolicy](coolAccess["retrieval_policy"].(string))
 			}
 
 			if d.HasChange("cool_access.0.tiering_policy") {
-				update.Properties.CoolAccessTieringPolicy = pointer.To(volumes.CoolAccessTieringPolicy(coolAccess["tiering_policy"].(string)))
+				update.Properties.CoolAccessTieringPolicy = pointer.ToEnum[volumes.CoolAccessTieringPolicy](coolAccess["tiering_policy"].(string))
 			}
 
 			if d.HasChange("cool_access.0.coolness_period_in_days") {
@@ -1153,8 +1112,8 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 		if err := d.Set("export_policy_rule", flattenNetAppVolumeExportPolicyRule(props.ExportPolicy)); err != nil {
 			return fmt.Errorf("setting `export_policy_rule`: %+v", err)
 		}
-		if err := d.Set("mount_ip_addresses", flattenNetAppVolumeMountIPAddresses(props.MountTargets)); err != nil {
-			return fmt.Errorf("setting `mount_ip_addresses`: %+v", err)
+		if err := d.Set("mount_target", flattenNetAppVolumeMountTargets(props.MountTargets)); err != nil {
+			return fmt.Errorf("setting `mount_target`: %+v", err)
 		}
 		if err := d.Set("data_protection_replication", flattenNetAppVolumeDataProtectionReplication(props.DataProtection)); err != nil {
 			return fmt.Errorf("setting `data_protection_replication`: %+v", err)
@@ -1329,7 +1288,7 @@ func expandNetAppVolumeExportPolicyRule(input []interface{}) *volumes.VolumeProp
 		if item != nil {
 			v := item.(map[string]interface{})
 			ruleIndex := int64(v["rule_index"].(int))
-			allowedClients := strings.Join(*utils.ExpandStringSlice(v["allowed_clients"].(*pluginsdk.Set).List()), ",")
+			allowedClients := strings.Join(*helpers.ExpandStringSlice(v["allowed_clients"].(*pluginsdk.Set).List()), ",")
 
 			cifsEnabled := false
 			nfsv3Enabled := false
@@ -1346,25 +1305,6 @@ func expandNetAppVolumeExportPolicyRule(input []interface{}) *volumes.VolumeProp
 								nfsv3Enabled = true
 							case "nfsv4.1":
 								nfsv41Enabled = true
-							}
-						}
-					}
-				}
-			}
-			if !features.FivePointOh() {
-				if vpe := v["protocols_enabled"]; vpe != nil {
-					protocolsEnabled := vpe.([]interface{})
-					if len(protocolsEnabled) != 0 {
-						for _, protocol := range protocolsEnabled {
-							if protocol != nil {
-								switch strings.ToLower(protocol.(string)) {
-								case "cifs":
-									cifsEnabled = true
-								case "nfsv3":
-									nfsv3Enabled = true
-								case "nfsv4.1":
-									nfsv41Enabled = true
-								}
 							}
 						}
 					}
@@ -1413,7 +1353,7 @@ func expandNetAppVolumeExportPolicyRulePatch(input []interface{}, overrideProtoc
 		if item != nil {
 			v := item.(map[string]interface{})
 			ruleIndex := int64(v["rule_index"].(int))
-			allowedClients := strings.Join(*utils.ExpandStringSlice(v["allowed_clients"].(*pluginsdk.Set).List()), ",")
+			allowedClients := strings.Join(*helpers.ExpandStringSlice(v["allowed_clients"].(*pluginsdk.Set).List()), ",")
 
 			nfsv3Enabled := false
 			nfsv41Enabled := false
@@ -1434,7 +1374,6 @@ func expandNetAppVolumeExportPolicyRulePatch(input []interface{}, overrideProtoc
 				}
 			} else {
 				// Use existing logic when no protocol override is provided
-				// This handles both FivePointOh() v5 and !FivePointOh() v4 cases
 				if vpe := v["protocol"]; vpe != nil {
 					protocolsEnabled := vpe.([]interface{})
 					if len(protocolsEnabled) != 0 {
@@ -1447,25 +1386,6 @@ func expandNetAppVolumeExportPolicyRulePatch(input []interface{}, overrideProtoc
 									nfsv3Enabled = true
 								case "nfsv4.1":
 									nfsv41Enabled = true
-								}
-							}
-						}
-					}
-				}
-				if !features.FivePointOh() {
-					if vpe := v["protocols_enabled"]; vpe != nil {
-						protocolsEnabled := vpe.([]interface{})
-						if len(protocolsEnabled) != 0 {
-							for _, protocol := range protocolsEnabled {
-								if protocol != nil {
-									switch strings.ToLower(protocol.(string)) {
-									case "cifs":
-										cifsEnabled = true
-									case "nfsv3":
-										nfsv3Enabled = true
-									case "nfsv4.1":
-										nfsv41Enabled = true
-									}
 								}
 							}
 						}
@@ -1504,10 +1424,6 @@ func flattenNetAppVolumeExportPolicyRule(input *volumes.VolumePropertiesExportPo
 	}
 
 	for _, item := range *input.Rules {
-		ruleIndex := int64(0)
-		if v := item.RuleIndex; v != nil {
-			ruleIndex = *v
-		}
 		allowedClients := []string{}
 		if v := item.AllowedClients; v != nil {
 			allowedClients = strings.Split(*v, ",")
@@ -1524,41 +1440,36 @@ func flattenNetAppVolumeExportPolicyRule(input *volumes.VolumePropertiesExportPo
 			protocolsEnabled = append(protocolsEnabled, "NFSv4.1")
 		}
 
-		result := map[string]interface{}{
-			"allowed_clients":                utils.FlattenStringSlice(&allowedClients),
+		results = append(results, map[string]interface{}{
+			"allowed_clients":                helpers.FlattenStringSlice(&allowedClients),
 			"kerberos_5_read_only_enabled":   pointer.From(item.Kerberos5ReadOnly),
 			"kerberos_5_read_write_enabled":  pointer.From(item.Kerberos5ReadWrite),
 			"kerberos_5i_read_only_enabled":  pointer.From(item.Kerberos5iReadOnly),
 			"kerberos_5i_read_write_enabled": pointer.From(item.Kerberos5iReadWrite),
 			"kerberos_5p_read_only_enabled":  pointer.From(item.Kerberos5pReadOnly),
 			"kerberos_5p_read_write_enabled": pointer.From(item.Kerberos5pReadWrite),
-			"protocol":                       utils.FlattenStringSlice(&protocolsEnabled),
+			"protocol":                       helpers.FlattenStringSlice(&protocolsEnabled),
 			"root_access_enabled":            pointer.From(item.HasRootAccess),
-			"rule_index":                     ruleIndex,
+			"rule_index":                     pointer.From(item.RuleIndex),
 			"unix_read_only":                 pointer.From(item.UnixReadOnly),
 			"unix_read_write":                pointer.From(item.UnixReadWrite),
-		}
-
-		if !features.FivePointOh() {
-			result["protocols_enabled"] = utils.FlattenStringSlice(&protocolsEnabled)
-		}
-
-		results = append(results, result)
+		})
 	}
 
 	return results
 }
 
-func flattenNetAppVolumeMountIPAddresses(input *[]volumes.MountTargetProperties) []interface{} {
+func flattenNetAppVolumeMountTargets(input *[]volumes.MountTargetProperties) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, item := range *input {
-		if item.IPAddress != nil {
-			results = append(results, item.IPAddress)
-		}
+		results = append(results, map[string]interface{}{
+			"ip_address":      pointer.From(item.IPAddress),
+			"smb_server_fqdn": pointer.From(item.SmbServerFqdn),
+		})
 	}
 
 	return results

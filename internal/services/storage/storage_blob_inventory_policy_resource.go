@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/blobinventorypolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/migration"
@@ -21,10 +22,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_blob_inventory_policy -service-package-name storage -compare-values "subscription_id:storage_account_id,resource_group_name:storage_account_id,storage_account_name:storage_account_id"
+//go:generate go run ../../tools/generator-tests resourceidentity -parent-id "storage_account_id"
 
 func resourceStorageBlobInventoryPolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -297,7 +297,7 @@ func expandBlobInventoryPolicyRules(input []interface{}) ([]blobinventorypolicie
 				Format:       blobinventorypolicies.Format(v["format"].(string)),
 				Schedule:     blobinventorypolicies.Schedule(v["schedule"].(string)),
 				ObjectType:   blobinventorypolicies.ObjectType(v["scope"].(string)),
-				SchemaFields: *utils.ExpandStringSlice(v["schema_fields"].([]interface{})),
+				SchemaFields: *helpers.ExpandStringSlice(v["schema_fields"].([]interface{})),
 				Filters:      filters,
 			},
 		})
@@ -311,9 +311,9 @@ func expandBlobInventoryPolicyFilter(input []interface{}, objectType string) (*b
 	}
 	v := input[0].(map[string]interface{})
 	policyFilter := &blobinventorypolicies.BlobInventoryPolicyFilter{
-		PrefixMatch:         utils.ExpandStringSlice(v["prefix_match"].(*pluginsdk.Set).List()),
-		ExcludePrefix:       utils.ExpandStringSlice(v["exclude_prefixes"].(*pluginsdk.Set).List()),
-		BlobTypes:           utils.ExpandStringSlice(v["blob_types"].(*pluginsdk.Set).List()),
+		PrefixMatch:         helpers.ExpandStringSlice(v["prefix_match"].(*pluginsdk.Set).List()),
+		ExcludePrefix:       helpers.ExpandStringSlice(v["exclude_prefixes"].(*pluginsdk.Set).List()),
+		BlobTypes:           helpers.ExpandStringSlice(v["blob_types"].(*pluginsdk.Set).List()),
 		IncludeBlobVersions: pointer.To(v["include_blob_versions"].(bool)),
 		IncludeDeleted:      pointer.To(v["include_deleted"].(bool)),
 		IncludeSnapshots:    pointer.To(v["include_snapshots"].(bool)),
@@ -361,26 +361,14 @@ func flattenBlobInventoryPolicyFilter(input *blobinventorypolicies.BlobInventory
 		return make([]interface{}, 0)
 	}
 
-	var includeBlobVersions bool
-	if input.IncludeBlobVersions != nil {
-		includeBlobVersions = *input.IncludeBlobVersions
-	}
-	var includeDeleted bool
-	if input.IncludeDeleted != nil {
-		includeDeleted = *input.IncludeDeleted
-	}
-	var includeSnapshots bool
-	if input.IncludeSnapshots != nil {
-		includeSnapshots = *input.IncludeSnapshots
-	}
 	return []interface{}{
 		map[string]interface{}{
-			"blob_types":            utils.FlattenStringSlice(input.BlobTypes),
-			"include_blob_versions": includeBlobVersions,
-			"include_deleted":       includeDeleted,
-			"include_snapshots":     includeSnapshots,
-			"prefix_match":          utils.FlattenStringSlice(input.PrefixMatch),
-			"exclude_prefixes":      utils.FlattenStringSlice(input.ExcludePrefix),
+			"blob_types":            helpers.FlattenStringSlice(input.BlobTypes),
+			"include_blob_versions": pointer.From(input.IncludeBlobVersions),
+			"include_deleted":       pointer.From(input.IncludeDeleted),
+			"include_snapshots":     pointer.From(input.IncludeSnapshots),
+			"prefix_match":          helpers.FlattenStringSlice(input.PrefixMatch),
+			"exclude_prefixes":      helpers.FlattenStringSlice(input.ExcludePrefix),
 		},
 	}
 }

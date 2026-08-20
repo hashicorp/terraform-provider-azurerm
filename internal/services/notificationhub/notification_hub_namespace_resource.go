@@ -154,7 +154,7 @@ func resourceNotificationHubNamespaceCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if v, ok := d.GetOk("replication_region"); ok {
-		parameters.Properties.ReplicationRegion = pointer.To(namespaces.ReplicationRegion(location.Normalize(v.(string))))
+		parameters.Properties.ReplicationRegion = pointer.ToEnum[namespaces.ReplicationRegion](location.Normalize(v.(string)))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
@@ -192,7 +192,7 @@ func resourceNotificationHubNamespaceUpdate(d *pluginsdk.ResourceData, meta inte
 
 	parameters := namespaces.NamespacePatchParameters{
 		Properties: &namespaces.NamespaceProperties{
-			NamespaceType: pointer.To(namespaces.NamespaceType(d.Get("namespace_type").(string))),
+			NamespaceType: pointer.ToEnum[namespaces.NamespaceType](d.Get("namespace_type").(string)),
 			Enabled:       pointer.To(d.Get("enabled").(bool)),
 		},
 	}

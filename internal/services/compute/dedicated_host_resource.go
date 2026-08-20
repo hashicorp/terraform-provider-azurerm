@@ -134,12 +134,9 @@ func resourceDedicatedHost() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					// TODO: remove `None` in 4.0 in favour of this field being set to an empty string (since it's optional)
-					string(dedicatedhosts.DedicatedHostLicenseTypesNone),
 					string(dedicatedhosts.DedicatedHostLicenseTypesWindowsServerHybrid),
 					string(dedicatedhosts.DedicatedHostLicenseTypesWindowsServerPerpetual),
 				}, false),
-				Default: string(dedicatedhosts.DedicatedHostLicenseTypesNone),
 			},
 
 			"tags": commonschema.Tags(),
@@ -170,18 +167,21 @@ func resourceDedicatedHostCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 	}
 
-	licenseType := dedicatedhosts.DedicatedHostLicenseTypes(d.Get("license_type").(string))
 	payload := dedicatedhosts.DedicatedHost{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &dedicatedhosts.DedicatedHostProperties{
 			AutoReplaceOnFailure: pointer.To(d.Get("auto_replace_on_failure").(bool)),
-			LicenseType:          &licenseType,
+			LicenseType:          pointer.To(dedicatedhosts.DedicatedHostLicenseTypesNone),
 			PlatformFaultDomain:  pointer.To(int64(d.Get("platform_fault_domain").(int))),
 		},
 		Sku: dedicatedhosts.Sku{
 			Name: pointer.To(d.Get("sku_name").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if v := d.Get("license_type").(string); v != "" {
+		payload.Properties.LicenseType = pointer.ToEnum[dedicatedhosts.DedicatedHostLicenseTypes](v)
 	}
 
 	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
@@ -225,7 +225,12 @@ func resourceDedicatedHostRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		d.Set("sku_name", model.Sku.Name)
 		if props := model.Properties; props != nil {
 			d.Set("auto_replace_on_failure", props.AutoReplaceOnFailure)
-			d.Set("license_type", string(pointer.From(props.LicenseType)))
+
+			licenseType := pointer.FromEnum(props.LicenseType)
+			if licenseType == string(dedicatedhosts.DedicatedHostLicenseTypesNone) {
+				licenseType = ""
+			}
+			d.Set("license_type", licenseType)
 
 			platformFaultDomain := 0
 			if props.PlatformFaultDomain != nil {
@@ -260,8 +265,11 @@ func resourceDedicatedHostUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 			payload.Properties.AutoReplaceOnFailure = pointer.To(d.Get("auto_replace_on_failure").(bool))
 		}
 		if d.HasChange("license_type") {
-			licenseType := dedicatedhosts.DedicatedHostLicenseTypes(d.Get("license_type").(string))
-			payload.Properties.LicenseType = &licenseType
+			licenseType := dedicatedhosts.DedicatedHostLicenseTypesNone
+			if v := d.Get("license_type").(string); v != "" {
+				licenseType = dedicatedhosts.DedicatedHostLicenseTypes(v)
+			}
+			payload.Properties.LicenseType = pointer.To(licenseType)
 		}
 	}
 
