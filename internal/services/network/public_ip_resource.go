@@ -225,7 +225,7 @@ func resourcePublicIp() *pluginsdk.Resource {
 }
 
 func isPublicIpSkuUpgrade(oldSku string, newSku string) bool {
-	var publicIpSkuUpgradeOrder = map[string]int{
+	publicIpSkuUpgradeOrder := map[string]int{
 		strings.ToLower(string(publicipaddresses.PublicIPAddressSkuNameBasic)):        1,
 		strings.ToLower(string(publicipaddresses.PublicIPAddressSkuNameStandard)):     2,
 		strings.ToLower(string(publicipaddresses.PublicIPAddressSkuNameStandardVTwo)): 3,
