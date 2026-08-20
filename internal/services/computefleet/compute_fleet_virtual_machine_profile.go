@@ -23,6 +23,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/computefleet/validate"
@@ -30,7 +31,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func galleryApplicationSchema() *pluginsdk.Schema {
@@ -2118,7 +2118,7 @@ func (r ComputeFleetResource) flattenOSProfileModel(input *fleets.VirtualMachine
 	if input.CustomData != nil {
 		output.CustomDataBase64 = pointer.From(input.CustomData)
 	} else {
-		output.CustomDataBase64 = utils.Base64EncodeIfNot(d.Get("virtual_machine_profile.0.os_profile.0.custom_data_base64").(string))
+		output.CustomDataBase64 = helpers.Base64EncodeIfNot(d.Get("virtual_machine_profile.0.os_profile.0.custom_data_base64").(string))
 	}
 
 	windowsConfigs := make([]WindowsConfigurationModel, 0)
