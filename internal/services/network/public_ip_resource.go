@@ -224,13 +224,13 @@ func resourcePublicIp() *pluginsdk.Resource {
 	}
 }
 
-var publicIpSkuUpgradeOrder = map[string]int{
-	strings.ToLower(string(publicipaddresses.PublicIPAddressSkuNameBasic)):        1,
-	strings.ToLower(string(publicipaddresses.PublicIPAddressSkuNameStandard)):     2,
-	strings.ToLower(string(publicipaddresses.PublicIPAddressSkuNameStandardVTwo)): 3,
-}
-
 func isPublicIpSkuUpgrade(oldSku string, newSku string) bool {
+	var publicIpSkuUpgradeOrder = map[string]int{
+		strings.ToLower(string(publicipaddresses.PublicIPAddressSkuNameBasic)):        1,
+		strings.ToLower(string(publicipaddresses.PublicIPAddressSkuNameStandard)):     2,
+		strings.ToLower(string(publicipaddresses.PublicIPAddressSkuNameStandardVTwo)): 3,
+	}
+
 	return publicIpSkuUpgradeOrder[strings.ToLower(newSku)] > publicIpSkuUpgradeOrder[strings.ToLower(oldSku)]
 }
 
