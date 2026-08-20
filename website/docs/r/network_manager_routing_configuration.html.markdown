@@ -79,4 +79,4 @@ terraform import azurerm_network_manager_routing_configuration.example /subscrip
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2025-01-01
+* `Microsoft.Network` - 2025-07-01
