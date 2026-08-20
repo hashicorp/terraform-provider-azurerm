@@ -9,7 +9,6 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 func TestAccLinuxVirtualMachineScaleSet_authPassword(t *testing.T) {
@@ -154,11 +153,7 @@ func TestAccLinuxVirtualMachineScaleSet_authDisablePasswordAuthUpdate(t *testing
 		data.ImportStep("admin_password"),
 	}
 
-	if !features.FivePointOh() {
-		data.ResourceTest(t, r, steps)
-	} else {
-		data.ResourceTestIgnoreRecreate(t, r, steps) // We added a ForceNew to the admin_password field in 5.0, so for now we can ignore the recreate step
-	}
+	data.ResourceTestIgnoreRecreate(t, r, steps) // We added a ForceNew to the admin_password field in 5.0, so for now we can ignore the recreate step
 }
 
 func (r LinuxVirtualMachineScaleSetResource) authPassword(data acceptance.TestData) string {

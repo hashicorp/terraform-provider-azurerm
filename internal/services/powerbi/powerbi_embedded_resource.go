@@ -210,7 +210,7 @@ func resourcePowerBIEmbeddedUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	parameters := capacities.DedicatedCapacityUpdateParameters{}
 
-	if d.HasChange("administrators") || d.HasChange("mode") {
+	if d.HasChanges("administrators", "mode") {
 		administrators := d.Get("administrators").(*pluginsdk.Set).List()
 		mode := capacities.Mode(d.Get("mode").(string))
 

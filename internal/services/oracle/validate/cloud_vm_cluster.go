@@ -85,21 +85,6 @@ func LicenseModel(i interface{}, k string) (warnings []string, errors []error) {
 	return
 }
 
-func DataStoragePercentage(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(int)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be int", k))
-		return
-	}
-
-	if v != 35 && v != 40 && v != 60 && v != 80 {
-		errors = append(errors, fmt.Errorf("%v must 35, 40, 60 or 80", k))
-		return
-	}
-
-	return
-}
-
 func SystemVersion(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
