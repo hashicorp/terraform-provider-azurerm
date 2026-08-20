@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/batchaccount"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -38,50 +37,25 @@ func dataSourceBatchAccount() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
-
-			"network_profile": {
+			"account_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+			"encryption": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"account_access": dataSourceBatchAccountEndpointAccessProfileSchema(),
-
-						"node_management_access": dataSourceBatchAccountEndpointAccessProfileSchema(),
+						"key_vault_key_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
 
-			"public_network_access_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
-			},
+			"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
 
-			"storage_account_authentication_mode": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"storage_account_node_identity": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: validate.AccountName,
-			},
-			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
-			"location":            commonschema.LocationComputed(),
-			"storage_account_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-			"pool_allocation_mode": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
 			"key_vault_reference": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -98,31 +72,63 @@ func dataSourceBatchAccount() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"location": commonschema.LocationComputed(),
+
+			"name": {
+				Type:     pluginsdk.TypeString,
+				Required: true,
+			},
+
+			"network_profile": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"account_access": dataSourceBatchAccountEndpointAccessProfileSchema(),
+
+						"node_management_access": dataSourceBatchAccountEndpointAccessProfileSchema(),
+					},
+				},
+			},
+
+			"pool_allocation_mode": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"primary_access_key": {
 				Type:      pluginsdk.TypeString,
 				Sensitive: true,
 				Computed:  true,
 			},
+
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+
+			"storage_account_authentication_mode": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"storage_account_node_identity": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"storage_account_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"secondary_access_key": {
 				Type:      pluginsdk.TypeString,
 				Sensitive: true,
 				Computed:  true,
-			},
-			"account_endpoint": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-			"encryption": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"key_vault_key_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
 			},
 
 			"tags": commonschema.TagsDataSource(),
@@ -205,7 +211,6 @@ func dataSourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 					d.Set("primary_access_key", keysModel.Primary)
 					d.Set("secondary_access_key", keysModel.Secondary)
 				}
-
 				// set empty keyvault reference which is not needed in Batch Service allocation mode.
 				d.Set("key_vault_reference", []interface{}{})
 			} else if poolAllocationMode == string(batchaccount.PoolAllocationModeUserSubscription) {
