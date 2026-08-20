@@ -535,8 +535,7 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 						tfp := f
 						targetingFilters = append(targetingFilters, tfp)
 					case PercentageFeatureFilter:
-						pfp := f
-						percentageFilter = pfp
+						percentageFilter = f
 					case CustomFilter:
 						cf := f
 						customFilters = append(customFilters, cf)
