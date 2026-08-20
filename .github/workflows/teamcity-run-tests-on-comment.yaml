@@ -147,6 +147,9 @@ jobs:
           # Passed via env rather than interpolated into the script to prevent
           # shell injection from untrusted comment text (OpenSSF Dangerous-Workflow)
           COMMENT_BODY: ${{ github.event.comment.body }}
+          # tctest reads GITHUB_TOKEN for its GitHub API calls - without it, test
+          # discovery runs unauthenticated (60 req/hr per runner IP) and hits 403s
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           PR_NUMBER=${{ github.event.issue.number }}
           PR_SHA="${{ steps.get-pr-sha.outputs.sha }}"
@@ -322,13 +325,18 @@ jobs:
             const errors = (process.env.TCTEST_ERRORS || '').replace(/\u001b\[[0-9;]*m/g, '').trim();
 
             let body;
-            const limit = errors.match(/would trigger (\d+) service builds, exceeding --max-builds-per-pr limit of (\d+)/);
+            // matches both tctest spellings: "would trigger N service builds, exceeding ..."
+            // and the --service variant "would trigger N builds per PR, exceeding ..."
+            const limit = errors.match(/would trigger (\d+) (?:service )?builds(?: per PR)?, exceeding --max-builds-per-pr limit of (\d+)/);
             if (limit) {
               body = `❌ This would trigger builds on **${limit[1]}** services, exceeding the limit of ${limit[2]}.\n\n` +
                 `Re-run with \`/test -f\` (or \`/test -force\`) to run them anyway.`;
-            } else if (errors.includes('has merge conflicts')) {
+            } else if (errors.includes('is there a merge conflict')) {
               body = '❌ This PR has merge conflicts — TeamCity tests cannot run until they are resolved.\n\n' +
                 'Merge the base branch (or rebase), then comment `/test` again.';
+            } else if (errors.includes('API rate limit exceeded')) {
+              body = '❌ Test discovery hit the GitHub API rate limit.\n\n' +
+                'Wait a few minutes and comment `/test` again.';
             } else if (errors.includes('no builds were triggered')) {
               body = '❌ No TeamCity builds were triggered — no acceptance tests could be discovered from this PR\'s changed files.\n\n' +
                 'If this PR does have acceptance tests, re-run with an explicit prefix, e.g. `/test TestAccFoo`.';
