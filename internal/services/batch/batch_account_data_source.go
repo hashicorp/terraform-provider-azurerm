@@ -28,7 +28,6 @@ func dataSourceBatchAccount() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-
 			"allowed_authentication_modes": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
