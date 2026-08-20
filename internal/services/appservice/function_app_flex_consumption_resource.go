@@ -578,10 +578,10 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 
 			if !features.SixPointOh() && deploymentStorage == nil {
 				deploymentStorage = &webapps.FunctionsDeploymentStorage{
-					Type:  pointer.To(webapps.FunctionsDeploymentStorageType(functionAppFlexConsumption.StorageContainerType)),
+					Type:  pointer.ToEnum[webapps.FunctionsDeploymentStorageType](functionAppFlexConsumption.StorageContainerType),
 					Value: pointer.To(functionAppFlexConsumption.StorageContainerEndpoint),
 					Authentication: &webapps.FunctionsDeploymentStorageAuthentication{
-						Type: pointer.To(webapps.AuthenticationType(functionAppFlexConsumption.StorageAuthType)),
+						Type: pointer.ToEnum[webapps.AuthenticationType](functionAppFlexConsumption.StorageAuthType),
 					},
 				}
 				endpoint, _ := url.Parse(functionAppFlexConsumption.StorageContainerEndpoint)
@@ -1054,8 +1054,7 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 
 				if metadata.ResourceData.HasChange("storage_access_key") {
 					deploymentStorageKey = state.StorageAccessKey
-					dsValue := fmt.Sprintf(helpers.StorageStringFmt, deploymentStorageName, deploymentStorageKey, *storageDomainSuffix)
-					state.AppSettings[DeploymentStorageConnStr] = dsValue
+					state.AppSettings[DeploymentStorageConnStr] = fmt.Sprintf(helpers.StorageStringFmt, deploymentStorageName, deploymentStorageKey, *storageDomainSuffix)
 				}
 
 				if metadata.ResourceData.HasChange("storage_authentication_type") {
