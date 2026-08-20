@@ -553,7 +553,7 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 }
 
 func startTaskDSSchema() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"command_line": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -672,7 +672,6 @@ func startTaskDSSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 	}
-	return s
 }
 
 func batchPoolDataContainerRegistry() map[string]*schema.Schema {

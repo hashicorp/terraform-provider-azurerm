@@ -41,7 +41,7 @@ func resourceStorageShareDirectory() *pluginsdk.Resource {
 
 		"metadata": MetaDataSchema(),
 	}
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceStorageShareDirectoryCreate,
 		Read:   resourceStorageShareDirectoryRead,
 		Update: resourceStorageShareDirectoryUpdate,
@@ -61,8 +61,6 @@ func resourceStorageShareDirectory() *pluginsdk.Resource {
 
 		Schema: schema,
 	}
-
-	return resource
 }
 
 func resourceStorageShareDirectoryCreate(d *pluginsdk.ResourceData, meta interface{}) error {

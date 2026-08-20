@@ -258,8 +258,7 @@ func resourceArmDevTestVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("subnet") {
-		subnets := expandDevTestVirtualNetworkSubnets(d.Get("subnet").([]interface{}), subscriptionId, id.ResourceGroupName, id.VirtualNetworkName)
-		payload.Properties.SubnetOverrides = subnets
+		payload.Properties.SubnetOverrides = expandDevTestVirtualNetworkSubnets(d.Get("subnet").([]interface{}), subscriptionId, id.ResourceGroupName, id.VirtualNetworkName)
 	}
 
 	if d.HasChange("tags") {

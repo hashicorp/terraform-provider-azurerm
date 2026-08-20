@@ -210,8 +210,7 @@ func flattenAzureRmPrivateDnsTxtRecords(records *[]privatedns.TxtRecord) []map[s
 			txtRecord := make(map[string]interface{})
 
 			if v := record.Value; v != nil {
-				value := strings.Join(*v, "")
-				txtRecord["value"] = value
+				txtRecord["value"] = strings.Join(*v, "")
 			}
 
 			results = append(results, txtRecord)
@@ -241,11 +240,9 @@ func expandAzureRmPrivateDnsTxtRecords(d *pluginsdk.ResourceData) *[]privatedns.
 		}
 		value = append(value, v)
 
-		txtRecord := privatedns.TxtRecord{
+		records[i] = privatedns.TxtRecord{
 			Value: &value,
 		}
-
-		records[i] = txtRecord
 	}
 
 	return &records

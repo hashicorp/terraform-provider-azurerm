@@ -364,7 +364,7 @@ func expandFluidRelayServerCustomerManagedKey(input []CustomerManagedKey) *fluid
 	}
 
 	v := input[0]
-	encryption := &fluidrelayservers.EncryptionProperties{
+	return &fluidrelayservers.EncryptionProperties{
 		CustomerManagedKeyEncryption: &fluidrelayservers.CustomerManagedKeyEncryptionProperties{
 			KeyEncryptionKeyURL: pointer.To(v.KeyVaultKeyID),
 			KeyEncryptionKeyIdentity: &fluidrelayservers.CustomerManagedKeyEncryptionPropertiesKeyEncryptionKeyIdentity{
@@ -373,8 +373,6 @@ func expandFluidRelayServerCustomerManagedKey(input []CustomerManagedKey) *fluid
 			},
 		},
 	}
-
-	return encryption
 }
 
 func flattenFluidRelayServerCustomerManagedKey(input *fluidrelayservers.EncryptionProperties) ([]CustomerManagedKey, error) {

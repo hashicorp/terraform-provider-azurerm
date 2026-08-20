@@ -51,7 +51,7 @@ var (
 // Arguments ...
 // skip `assignable_scopes` field support as https://github.com/Azure/azure-rest-api-specs/issues/23045
 func (r KeyVaultMHSMRoleDefinitionResource) Arguments() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -134,8 +134,6 @@ func (r KeyVaultMHSMRoleDefinitionResource) Arguments() map[string]*pluginsdk.Sc
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
-
-	return s
 }
 
 func (r KeyVaultMHSMRoleDefinitionResource) Attributes() map[string]*pluginsdk.Schema {

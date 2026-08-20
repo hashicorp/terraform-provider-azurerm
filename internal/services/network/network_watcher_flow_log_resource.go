@@ -255,11 +255,9 @@ func resourceNetworkWatcherFlowLogCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if version, ok := d.GetOk("version"); ok {
-		format := &flowlogs.FlowLogFormatParameters{
+		parameters.Properties.Format = &flowlogs.FlowLogFormatParameters{
 			Version: pointer.To(int64(version.(int))),
 		}
-
-		parameters.Properties.Format = format
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {

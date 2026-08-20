@@ -507,8 +507,7 @@ func flattenNetAppVolumeGroupSAPHanaVolumes(ctx context.Context, input *[]volume
 		volumeGroupVolume.VolumeSpecName = pointer.From(props.VolumeSpecName)
 
 		if props.UsageThreshold > 0 {
-			usageThreshold := props.UsageThreshold / 1073741824
-			volumeGroupVolume.StorageQuotaInGB = usageThreshold
+			volumeGroupVolume.StorageQuotaInGB = props.UsageThreshold / 1073741824
 		}
 
 		if props.ExportPolicy != nil && props.ExportPolicy.Rules != nil && len(pointer.From(props.ExportPolicy.Rules)) > 0 {
@@ -590,8 +589,7 @@ func flattenNetAppVolumeGroupOracleVolumes(ctx context.Context, input *[]volumeg
 		volumeGroupVolume.VolumeSpecName = pointer.From(props.VolumeSpecName)
 
 		if props.UsageThreshold > 0 {
-			usageThreshold := props.UsageThreshold / 1073741824
-			volumeGroupVolume.StorageQuotaInGB = usageThreshold
+			volumeGroupVolume.StorageQuotaInGB = props.UsageThreshold / 1073741824
 		}
 
 		if props.ExportPolicy != nil && props.ExportPolicy.Rules != nil && len(pointer.From(props.ExportPolicy.Rules)) > 0 {
