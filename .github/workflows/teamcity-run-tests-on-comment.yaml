@@ -325,16 +325,16 @@ jobs:
             const errors = (process.env.TCTEST_ERRORS || '').replace(/\u001b\[[0-9;]*m/g, '').trim();
 
             let body;
-            // matches both tctest spellings: "would trigger N service builds, exceeding ..."
-            // and the --service variant "would trigger N builds per PR, exceeding ..."
-            const limit = errors.match(/would trigger (\d+) (?:service )?builds(?: per PR)?, exceeding --max-builds-per-pr limit of (\d+)/);
+            // matchers are deliberately loose so minor rewording in tctest doesn't
+            // silently drop us back to the generic failure comment
+            const limit = errors.match(/would trigger (\d+)\b.*?\bexceeding\b.*?\blimit of (\d+)/i);
             if (limit) {
               body = `❌ This would trigger builds on **${limit[1]}** services, exceeding the limit of ${limit[2]}.\n\n` +
                 `Re-run with \`/test -f\` (or \`/test -force\`) to run them anyway.`;
-            } else if (errors.includes('is there a merge conflict')) {
+            } else if (/merge conflict/i.test(errors)) {
               body = '❌ This PR has merge conflicts — TeamCity tests cannot run until they are resolved.\n\n' +
                 'Merge the base branch (or rebase), then comment `/test` again.';
-            } else if (errors.includes('API rate limit exceeded')) {
+            } else if (/rate limit/i.test(errors)) {
               body = '❌ Test discovery hit the GitHub API rate limit.\n\n' +
                 'Wait a few minutes and comment `/test` again.';
             } else if (errors.includes('no builds were triggered')) {
