@@ -14,13 +14,14 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type FunctionAppFlexConsumptionResource struct{}
 
 // remove in 6.0 starts
-func TestAccFunctionAppFlexConsumption_FourPointOhBasic(t *testing.T) {
+func TestAccFunctionAppFlexConsumption_FivePointOhBasic(t *testing.T) {
 	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 6.0")
 	}
@@ -29,7 +30,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhBasic(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicFourPointOh(data),
+			Config: r.basicFivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -39,7 +40,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhBasic(t *testing.T) {
 	})
 }
 
-func TestAccFunctionAppFlexConsumption_FourPointOhDeploymentStorageUpdate(t *testing.T) {
+func TestAccFunctionAppFlexConsumption_FivePointOhDeploymentStorageUpdate(t *testing.T) {
 	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 6.0")
 	}
@@ -48,7 +49,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhDeploymentStorageUpdate(t *tes
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicFourPointOh(data),
+			Config: r.basicFivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -56,7 +57,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhDeploymentStorageUpdate(t *tes
 		},
 		data.ImportStep("site_credential.0.password"),
 		{
-			Config: r.deploymentStorageBlobEndpointUpdateFourPointOh(data),
+			Config: r.deploymentStorageBlobEndpointUpdateFivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -64,7 +65,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhDeploymentStorageUpdate(t *tes
 		},
 		data.ImportStep("site_credential.0.password"),
 		{
-			Config: r.deploymentStorageUpdateFourPointOh(data),
+			Config: r.deploymentStorageUpdateFivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -74,7 +75,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhDeploymentStorageUpdate(t *tes
 	})
 }
 
-func TestAccFunctionAppFlexConsumption_FourPointOhDeploymentStorageIdentityUpdate(t *testing.T) {
+func TestAccFunctionAppFlexConsumption_FivePointOhDeploymentStorageIdentityUpdate(t *testing.T) {
 	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 6.0")
 	}
@@ -83,7 +84,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhDeploymentStorageIdentityUpdat
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicFourPointOh(data),
+			Config: r.basicFivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -91,7 +92,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhDeploymentStorageIdentityUpdat
 		},
 		data.ImportStep("site_credential.0.password"),
 		{
-			Config: r.storageSystemAssignedIdentityFourPointOh(data),
+			Config: r.storageSystemAssignedIdentityFivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -99,7 +100,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhDeploymentStorageIdentityUpdat
 		},
 		data.ImportStep("site_credential.0.password"),
 		{
-			Config: r.deploymentStorageUai1FourPointOh(data),
+			Config: r.deploymentStorageUai1FivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -109,7 +110,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhDeploymentStorageIdentityUpdat
 	})
 }
 
-func TestAccFunctionAppFlexConsumption_FourPointOhDeploymentStorageUaiUpdate(t *testing.T) {
+func TestAccFunctionAppFlexConsumption_FivePointOhDeploymentStorageUaiUpdate(t *testing.T) {
 	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 6.0")
 	}
@@ -118,7 +119,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhDeploymentStorageUaiUpdate(t *
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.deploymentStorageUai1FourPointOh(data),
+			Config: r.deploymentStorageUai1FivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -126,7 +127,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhDeploymentStorageUaiUpdate(t *
 		},
 		data.ImportStep("site_credential.0.password"),
 		{
-			Config: r.deploymentStorageUai2FourPointOh(data),
+			Config: r.deploymentStorageUai2FivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -136,7 +137,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhDeploymentStorageUaiUpdate(t *
 	})
 }
 
-func TestAccFunctionAppFlexConsumption_FourPointOhSwapSchema(t *testing.T) {
+func TestAccFunctionAppFlexConsumption_FivePointOhSwapSchema(t *testing.T) {
 	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 6.0")
 	}
@@ -145,7 +146,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhSwapSchema(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicFourPointOh(data),
+			Config: r.basicFivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -161,7 +162,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhSwapSchema(t *testing.T) {
 		},
 		data.ImportStep("site_credential.0.password"),
 		{
-			Config: r.basicFourPointOh(data),
+			Config: r.basicFivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -171,7 +172,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhSwapSchema(t *testing.T) {
 	})
 }
 
-func TestAccFunctionAppFlexConsumption_FourPointOhSwapSchemaSystemIdentity(t *testing.T) {
+func TestAccFunctionAppFlexConsumption_FivePointOhSwapSchemaSystemIdentity(t *testing.T) {
 	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 6.0")
 	}
@@ -180,7 +181,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhSwapSchemaSystemIdentity(t *te
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.storageSystemAssignedIdentityFourPointOh(data),
+			Config: r.storageSystemAssignedIdentityFivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -198,7 +199,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhSwapSchemaSystemIdentity(t *te
 	})
 }
 
-func TestAccFunctionAppFlexConsumption_FourPointOhSwapSchemaUserAssigned(t *testing.T) {
+func TestAccFunctionAppFlexConsumption_FivePointOhSwapSchemaUserAssigned(t *testing.T) {
 	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 6.0")
 	}
@@ -207,7 +208,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhSwapSchemaUserAssigned(t *test
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.deploymentStorageUai1FourPointOh(data),
+			Config: r.deploymentStorageUai1FivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -225,7 +226,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhSwapSchemaUserAssigned(t *test
 	})
 }
 
-func TestAccFunctionAppFlexConsumption_FourPointOhSwapSchemaStorageKvUpdate(t *testing.T) {
+func TestAccFunctionAppFlexConsumption_FivePointOhSwapSchemaStorageKvUpdate(t *testing.T) {
 	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 6.0")
 	}
@@ -234,7 +235,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhSwapSchemaStorageKvUpdate(t *t
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicFourPointOh(data),
+			Config: r.basicFivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -252,7 +253,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhSwapSchemaStorageKvUpdate(t *t
 	})
 }
 
-func TestAccFunctionAppFlexConsumption_FourPointOhConnectionString(t *testing.T) {
+func TestAccFunctionAppFlexConsumption_FivePointOhConnectionString(t *testing.T) {
 	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 6.0")
 	}
@@ -261,7 +262,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhConnectionString(t *testing.T)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.connectionStringFourPointOh(data),
+			Config: r.connectionStringFivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -271,7 +272,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhConnectionString(t *testing.T)
 	})
 }
 
-func TestAccFunctionAppFlexConsumption_FourPointOhStickySettings(t *testing.T) {
+func TestAccFunctionAppFlexConsumption_FivePointOhStickySettings(t *testing.T) {
 	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 6.0")
 	}
@@ -280,7 +281,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhStickySettings(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.stickySettingsFourPointOh(data),
+			Config: r.stickySettingsFivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -290,7 +291,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhStickySettings(t *testing.T) {
 	})
 }
 
-func TestAccFunctionAppFlexConsumption_FourPointOhConnectionStringUpdate(t *testing.T) {
+func TestAccFunctionAppFlexConsumption_FivePointOhConnectionStringUpdate(t *testing.T) {
 	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 6.0")
 	}
@@ -299,7 +300,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhConnectionStringUpdate(t *test
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.connectionStringFourPointOh(data),
+			Config: r.connectionStringFivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -307,7 +308,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhConnectionStringUpdate(t *test
 		},
 		data.ImportStep("site_credential.0.password"),
 		{
-			Config: r.connectionStringUpdateFourPointOh(data),
+			Config: r.connectionStringUpdateFivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -315,7 +316,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhConnectionStringUpdate(t *test
 		},
 		data.ImportStep("site_credential.0.password"),
 		{
-			Config: r.connectionStringFourPointOh(data),
+			Config: r.connectionStringFivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -325,7 +326,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhConnectionStringUpdate(t *test
 	})
 }
 
-func TestAccFunctionAppFlexConsumption_FourPointOhComplete(t *testing.T) {
+func TestAccFunctionAppFlexConsumption_FivePointOhComplete(t *testing.T) {
 	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 6.0")
 	}
@@ -334,7 +335,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhComplete(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.completeFourPointOh(data),
+			Config: r.completeFivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -344,7 +345,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhComplete(t *testing.T) {
 	})
 }
 
-func TestAccFunctionAppFlexConsumption_FourPointOhAppSettings(t *testing.T) {
+func TestAccFunctionAppFlexConsumption_FivePointOhAppSettings(t *testing.T) {
 	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 6.0")
 	}
@@ -353,7 +354,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhAppSettings(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appSettingsFourPointOh(data),
+			Config: r.appSettingsFivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -363,7 +364,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhAppSettings(t *testing.T) {
 	})
 }
 
-func TestAccFunctionAppFlexConsumption_FourPointOhAppSettingsUpdate(t *testing.T) {
+func TestAccFunctionAppFlexConsumption_FivePointOhAppSettingsUpdate(t *testing.T) {
 	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 6.0")
 	}
@@ -372,7 +373,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhAppSettingsUpdate(t *testing.T
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appSettingsFourPointOh(data),
+			Config: r.appSettingsFivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -380,7 +381,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhAppSettingsUpdate(t *testing.T
 		},
 		data.ImportStep("site_credential.0.password"),
 		{
-			Config: r.appSettingsAddKvpsFourPointOh(data),
+			Config: r.appSettingsAddKvpsFivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -388,7 +389,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhAppSettingsUpdate(t *testing.T
 		},
 		data.ImportStep("site_credential.0.password"),
 		{
-			Config: r.appSettingsRemoveKvpsFourPointOh(data),
+			Config: r.appSettingsRemoveKvpsFivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -398,7 +399,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhAppSettingsUpdate(t *testing.T
 	})
 }
 
-func TestAccFunctionAppFlexConsumption_FourPointOhRuntimePython(t *testing.T) {
+func TestAccFunctionAppFlexConsumption_FivePointOhRuntimePython(t *testing.T) {
 	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 6.0")
 	}
@@ -407,7 +408,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhRuntimePython(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.pythonFourPointOh(data, "3.10"),
+			Config: r.pythonFivePointOh(data, "3.10"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -417,7 +418,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhRuntimePython(t *testing.T) {
 	})
 }
 
-func TestAccFunctionAppFlexConsumption_FourPointOhInstanceMemoryUpdate(t *testing.T) {
+func TestAccFunctionAppFlexConsumption_FivePointOhInstanceMemoryUpdate(t *testing.T) {
 	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 6.0")
 	}
@@ -426,7 +427,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhInstanceMemoryUpdate(t *testin
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicFourPointOh(data),
+			Config: r.basicFivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -434,7 +435,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhInstanceMemoryUpdate(t *testin
 		},
 		data.ImportStep("site_credential.0.password"),
 		{
-			Config: r.instanceMemoryUpdateFourPointOh(data, "20"),
+			Config: r.instanceMemoryUpdateFivePointOh(data, "20"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -442,7 +443,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhInstanceMemoryUpdate(t *testin
 		},
 		data.ImportStep("site_credential.0.password"),
 		{
-			Config: r.basicFourPointOh(data),
+			Config: r.basicFivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -452,7 +453,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhInstanceMemoryUpdate(t *testin
 	})
 }
 
-func TestAccFunctionAppFlexConsumption_FourPointOhAlwaysReadyUpdateName(t *testing.T) {
+func TestAccFunctionAppFlexConsumption_FivePointOhAlwaysReadyUpdateName(t *testing.T) {
 	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 6.0")
 	}
@@ -461,7 +462,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhAlwaysReadyUpdateName(t *testi
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicFourPointOh(data),
+			Config: r.basicFivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -469,7 +470,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhAlwaysReadyUpdateName(t *testi
 		},
 		data.ImportStep("site_credential.0.password"),
 		{
-			Config: r.alwaysReadyBasicFourPointOh(data),
+			Config: r.alwaysReadyBasicFivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -477,7 +478,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhAlwaysReadyUpdateName(t *testi
 		},
 		data.ImportStep("site_credential.0.password"),
 		{
-			Config: r.alwaysReadyInstanceCountFourPointOh(data),
+			Config: r.alwaysReadyInstanceCountFivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -485,7 +486,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhAlwaysReadyUpdateName(t *testi
 		},
 		data.ImportStep("site_credential.0.password"),
 		{
-			Config: r.basicFourPointOh(data),
+			Config: r.basicFivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -495,7 +496,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhAlwaysReadyUpdateName(t *testi
 	})
 }
 
-func TestAccFunctionAppFlexConsumption_FourPointOhAlwaysReadyInstanceCountError(t *testing.T) {
+func TestAccFunctionAppFlexConsumption_FivePointOhAlwaysReadyInstanceCountError(t *testing.T) {
 	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 6.0")
 	}
@@ -504,13 +505,13 @@ func TestAccFunctionAppFlexConsumption_FourPointOhAlwaysReadyInstanceCountError(
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.alwaysReadyInstanceCountErrorFourPointOh(data),
+			Config:      r.alwaysReadyInstanceCountErrorFivePointOh(data),
 			ExpectError: regexp.MustCompile("the total number of always-ready instances should not exceed the maximum scale out limit"),
 		},
 	})
 }
 
-func TestAccFunctionAppFlexConsumption_FourPointOhAlwaysReadyUpdate(t *testing.T) {
+func TestAccFunctionAppFlexConsumption_FivePointOhAlwaysReadyUpdate(t *testing.T) {
 	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 6.0")
 	}
@@ -519,7 +520,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhAlwaysReadyUpdate(t *testing.T
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.alwaysReadyInstanceCountFourPointOh(data),
+			Config: r.alwaysReadyInstanceCountFivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -527,7 +528,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhAlwaysReadyUpdate(t *testing.T
 		},
 		data.ImportStep("site_credential.0.password"),
 		{
-			Config: r.alwaysReadyInstanceCountUpdateFourPointOh(data),
+			Config: r.alwaysReadyInstanceCountUpdateFivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -537,7 +538,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhAlwaysReadyUpdate(t *testing.T
 	})
 }
 
-func TestAccFunctionAppFlexConsumption_FourPointOhMaxInstanceCount(t *testing.T) {
+func TestAccFunctionAppFlexConsumption_FivePointOhMaxInstanceCount(t *testing.T) {
 	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 6.0")
 	}
@@ -546,7 +547,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhMaxInstanceCount(t *testing.T)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicFourPointOh(data),
+			Config: r.basicFivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -554,7 +555,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhMaxInstanceCount(t *testing.T)
 		},
 		data.ImportStep("site_credential.0.password"),
 		{
-			Config: r.alwaysReadyInstanceCountFourPointOh(data),
+			Config: r.alwaysReadyInstanceCountFivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -562,7 +563,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhMaxInstanceCount(t *testing.T)
 		},
 		data.ImportStep("site_credential.0.password"),
 		{
-			Config: r.basicFourPointOh(data),
+			Config: r.basicFivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -572,7 +573,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhMaxInstanceCount(t *testing.T)
 	})
 }
 
-func TestAccFunctionAppFlexConsumption_FourPointOhHttpsOnlyUpdate(t *testing.T) {
+func TestAccFunctionAppFlexConsumption_FivePointOhHttpsOnlyUpdate(t *testing.T) {
 	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 6.0")
 	}
@@ -581,7 +582,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhHttpsOnlyUpdate(t *testing.T) 
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicFourPointOh(data),
+			Config: r.basicFivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -589,7 +590,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhHttpsOnlyUpdate(t *testing.T) 
 		},
 		data.ImportStep("site_credential.0.password"),
 		{
-			Config: r.completeFourPointOh(data),
+			Config: r.completeFivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -597,7 +598,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhHttpsOnlyUpdate(t *testing.T) 
 		},
 		data.ImportStep("site_credential.0.password"),
 		{
-			Config: r.basicFourPointOh(data),
+			Config: r.basicFivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -607,7 +608,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhHttpsOnlyUpdate(t *testing.T) 
 	})
 }
 
-func TestAccFunctionAppFlexConsumption_FourPointOhvNetIntegrationWithVnetProperties(t *testing.T) {
+func TestAccFunctionAppFlexConsumption_FivePointOhvNetIntegrationWithVnetProperties(t *testing.T) {
 	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 6.0")
 	}
@@ -616,7 +617,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhvNetIntegrationWithVnetPropert
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.vNetIntegration_subnetWithVnetPropertiesFourPointOh(data),
+			Config: r.vNetIntegration_subnetWithVnetPropertiesFivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("virtual_network_subnet_id").MatchesOtherKey(
@@ -629,7 +630,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhvNetIntegrationWithVnetPropert
 	})
 }
 
-func TestAccFunctionAppFlexConsumption_FourPointOhHttpConcurrencyUpdate(t *testing.T) {
+func TestAccFunctionAppFlexConsumption_FivePointOhHttpConcurrencyUpdate(t *testing.T) {
 	if features.SixPointOh() {
 		t.Skip("Skipping as this resource was removed in 6.0")
 	}
@@ -638,7 +639,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhHttpConcurrencyUpdate(t *testi
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicFourPointOh(data),
+			Config: r.basicFivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -647,7 +648,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhHttpConcurrencyUpdate(t *testi
 		},
 		data.ImportStep("site_credential.0.password"),
 		{
-			Config: r.httpConcurrencyFourPointOh(data, 20),
+			Config: r.httpConcurrencyFivePointOh(data, 20),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -656,7 +657,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhHttpConcurrencyUpdate(t *testi
 		},
 		data.ImportStep("site_credential.0.password"),
 		{
-			Config: r.httpConcurrencyFourPointOh(data, 60),
+			Config: r.httpConcurrencyFivePointOh(data, 60),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -665,7 +666,7 @@ func TestAccFunctionAppFlexConsumption_FourPointOhHttpConcurrencyUpdate(t *testi
 		},
 		data.ImportStep("site_credential.0.password"),
 		{
-			Config: r.basicFourPointOh(data),
+			Config: r.basicFivePointOh(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -1393,7 +1394,7 @@ func (r FunctionAppFlexConsumptionResource) Exists(ctx context.Context, client *
 }
 
 // remove in 6.0 starts
-func (r FunctionAppFlexConsumptionResource) basicFourPointOh(data acceptance.TestData) string {
+func (r FunctionAppFlexConsumptionResource) basicFivePointOh(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1421,7 +1422,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r FunctionAppFlexConsumptionResource) deploymentStorageUpdateFourPointOh(data acceptance.TestData) string {
+func (r FunctionAppFlexConsumptionResource) deploymentStorageUpdateFivePointOh(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1449,7 +1450,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r FunctionAppFlexConsumptionResource) deploymentStorageBlobEndpointUpdateFourPointOh(data acceptance.TestData) string {
+func (r FunctionAppFlexConsumptionResource) deploymentStorageBlobEndpointUpdateFivePointOh(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1477,7 +1478,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r FunctionAppFlexConsumptionResource) deploymentStorageUai1FourPointOh(data acceptance.TestData) string {
+func (r FunctionAppFlexConsumptionResource) deploymentStorageUai1FivePointOh(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1511,7 +1512,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r FunctionAppFlexConsumptionResource) deploymentStorageUai2FourPointOh(data acceptance.TestData) string {
+func (r FunctionAppFlexConsumptionResource) deploymentStorageUai2FivePointOh(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1545,7 +1546,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r FunctionAppFlexConsumptionResource) storageSystemAssignedIdentityFourPointOh(data acceptance.TestData) string {
+func (r FunctionAppFlexConsumptionResource) storageSystemAssignedIdentityFivePointOh(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1572,7 +1573,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r FunctionAppFlexConsumptionResource) httpConcurrencyFourPointOh(data acceptance.TestData, httpConcurrency int64) string {
+func (r FunctionAppFlexConsumptionResource) httpConcurrencyFivePointOh(data acceptance.TestData, httpConcurrency int64) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1601,7 +1602,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
 `, r.template(data), data.RandomInteger, httpConcurrency)
 }
 
-func (r FunctionAppFlexConsumptionResource) connectionStringFourPointOh(data acceptance.TestData) string {
+func (r FunctionAppFlexConsumptionResource) connectionStringFivePointOh(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1635,7 +1636,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r FunctionAppFlexConsumptionResource) stickySettingsFourPointOh(data acceptance.TestData) string {
+func (r FunctionAppFlexConsumptionResource) stickySettingsFivePointOh(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1692,7 +1693,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r FunctionAppFlexConsumptionResource) connectionStringUpdateFourPointOh(data acceptance.TestData) string {
+func (r FunctionAppFlexConsumptionResource) connectionStringUpdateFivePointOh(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1732,7 +1733,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r FunctionAppFlexConsumptionResource) completeFourPointOh(data acceptance.TestData) string {
+func (r FunctionAppFlexConsumptionResource) completeFivePointOh(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1845,7 +1846,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r FunctionAppFlexConsumptionResource) appSettingsFourPointOh(data acceptance.TestData) string {
+func (r FunctionAppFlexConsumptionResource) appSettingsFivePointOh(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1877,7 +1878,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r FunctionAppFlexConsumptionResource) appSettingsAddKvpsFourPointOh(data acceptance.TestData) string {
+func (r FunctionAppFlexConsumptionResource) appSettingsAddKvpsFivePointOh(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1911,7 +1912,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r FunctionAppFlexConsumptionResource) appSettingsRemoveKvpsFourPointOh(data acceptance.TestData) string {
+func (r FunctionAppFlexConsumptionResource) appSettingsRemoveKvpsFivePointOh(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1944,7 +1945,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r FunctionAppFlexConsumptionResource) pythonFourPointOh(data acceptance.TestData, pythonVersion string) string {
+func (r FunctionAppFlexConsumptionResource) pythonFivePointOh(data acceptance.TestData, pythonVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1970,7 +1971,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
 `, r.template(data), data.RandomInteger, pythonVersion)
 }
 
-func (r FunctionAppFlexConsumptionResource) instanceMemoryUpdateFourPointOh(data acceptance.TestData, nodeVersion string) string {
+func (r FunctionAppFlexConsumptionResource) instanceMemoryUpdateFivePointOh(data acceptance.TestData, nodeVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2004,7 +2005,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
 `, r.template(data), data.RandomInteger, nodeVersion)
 }
 
-func (r FunctionAppFlexConsumptionResource) alwaysReadyBasicFourPointOh(data acceptance.TestData) string {
+func (r FunctionAppFlexConsumptionResource) alwaysReadyBasicFivePointOh(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2045,7 +2046,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r FunctionAppFlexConsumptionResource) alwaysReadyInstanceCountFourPointOh(data acceptance.TestData) string {
+func (r FunctionAppFlexConsumptionResource) alwaysReadyInstanceCountFivePointOh(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2086,7 +2087,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r FunctionAppFlexConsumptionResource) alwaysReadyInstanceCountErrorFourPointOh(data acceptance.TestData) string {
+func (r FunctionAppFlexConsumptionResource) alwaysReadyInstanceCountErrorFivePointOh(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2128,7 +2129,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r FunctionAppFlexConsumptionResource) alwaysReadyInstanceCountUpdateFourPointOh(data acceptance.TestData) string {
+func (r FunctionAppFlexConsumptionResource) alwaysReadyInstanceCountUpdateFivePointOh(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2173,7 +2174,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r FunctionAppFlexConsumptionResource) vNetIntegration_subnetWithVnetPropertiesFourPointOh(data acceptance.TestData) string {
+func (r FunctionAppFlexConsumptionResource) vNetIntegration_subnetWithVnetPropertiesFivePointOh(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
