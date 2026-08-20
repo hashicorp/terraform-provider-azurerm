@@ -17,6 +17,7 @@ FEATURES:
 * **New List Resource**: `azurerm_user_assigned_identity` [GH-32667]
 
 BUG FIXES:
+* `azurerm_cognitive_account_project` - added create/update/delete lock on parent AccountID to make sure operations on parent account are processed in serial (required by Cognitive service) [GH-33151]
 * `azurerm_oracle_exadata_infrastructure` - fix an issue that prevented users from deploying with no `zones` set [GH-33011]
 * `azurerm_databricks_workspace` - fix a persistent diff on removal of `managed_disk_cmk_key_vault_key_id` or `managed_services_cmk_key_vault_key_id` [GH-33136]
 
