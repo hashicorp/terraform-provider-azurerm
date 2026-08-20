@@ -93,7 +93,7 @@ The following arguments are supported:
 
 * `site_config` - (Required) A `site_config` block as defined below.
 
-* `deployment_storage` - - (Required) A `deployment_storage` block as defined below.
+* `deployment_storage` - (Required) A `deployment_storage` block as defined below.
 
 * `runtime_name` - (Required) The Runtime of the Linux Function App. Possible values are `node`, `dotnet-isolated`, `powershell`, `python`, `java` and `custom`.
 
@@ -170,7 +170,7 @@ A `backend_storage` block supports the following:
 
 * `name` - (Required) The name of the Function App backend runtime to access the deployment backend storage.
 
-* `access_key` - (Optional) The access key used by the Function App backend runtime to access the deployment backend storage. 
+* `access_key` - (Optional) The access key used by the Function App backend runtime to access the deployment backend storage.
 
 ~> **Note:** When using `name`, if `access_key` is not provided, access via the storage account’s managed identity will automatically be enabled.
 
