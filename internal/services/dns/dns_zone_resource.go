@@ -407,7 +407,7 @@ func (r DnsZoneResource) Delete() sdk.ResourceFunc {
 }
 
 func expandDNSZoneSOARecord(input DnsZoneSoaRecordResourceRecord) *recordsets.SoaRecord {
-	result := &recordsets.SoaRecord{
+	return &recordsets.SoaRecord{
 		Email:        pointer.To(input.Email),
 		ExpireTime:   pointer.To(input.ExpireTime),
 		MinimumTTL:   pointer.To(input.MinimumTtl),
@@ -415,8 +415,6 @@ func expandDNSZoneSOARecord(input DnsZoneSoaRecordResourceRecord) *recordsets.So
 		RetryTime:    pointer.To(input.RetryTime),
 		SerialNumber: pointer.To(input.SerialNumber),
 	}
-
-	return result
 }
 
 func flattenDNSZoneSOARecord(input *recordsets.RecordSet) []DnsZoneSoaRecordResourceRecord {

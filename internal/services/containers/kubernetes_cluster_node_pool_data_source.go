@@ -23,7 +23,7 @@ import (
 )
 
 func dataSourceKubernetesClusterNodePool() *pluginsdk.Resource {
-	dataSource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Read: dataSourceKubernetesClusterNodePoolRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -168,8 +168,6 @@ func dataSourceKubernetesClusterNodePool() *pluginsdk.Resource {
 			"zones": commonschema.ZonesMultipleComputed(),
 		},
 	}
-
-	return dataSource
 }
 
 func dataSourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta interface{}) error {

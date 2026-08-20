@@ -53,7 +53,7 @@ func resourceManagedApplication() *pluginsdk.Resource {
 }
 
 func resourceManagedApplicationSchema() map[string]*pluginsdk.Schema {
-	schema := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -142,8 +142,6 @@ func resourceManagedApplicationSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 	}
-
-	return schema
 }
 
 func resourceManagedApplicationCreate(d *pluginsdk.ResourceData, meta interface{}) error {

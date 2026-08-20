@@ -509,8 +509,7 @@ func expandAgentUpdatePatch(input []interface{}) *hostpool.AgentUpdatePatchPrope
 	updatesDefault := hostpool.SessionHostComponentUpdateTypeDefault
 
 	useSessionHostLocalTime := *pointer.To(raw["use_session_host_timezone"].(bool))
-	updateScheduleTimeZone := pointer.To(raw["timezone"].(string))
-	props.MaintenanceWindowTimeZone = updateScheduleTimeZone
+	props.MaintenanceWindowTimeZone = pointer.To(raw["timezone"].(string))
 	props.UseSessionHostLocalTime = &useSessionHostLocalTime
 
 	if raw["enabled"].(bool) {

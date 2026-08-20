@@ -25,7 +25,7 @@ import (
 )
 
 func resourceArmBotConnection() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceArmBotConnectionCreate,
 		Read:   resourceArmBotConnectionRead,
 		Update: resourceArmBotConnectionUpdate,
@@ -96,8 +96,6 @@ func resourceArmBotConnection() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	return resource
 }
 
 func resourceArmBotConnectionCreate(d *pluginsdk.ResourceData, meta interface{}) error {

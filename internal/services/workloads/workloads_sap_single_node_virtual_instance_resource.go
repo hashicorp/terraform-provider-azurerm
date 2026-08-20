@@ -672,13 +672,11 @@ func expandSAPSingleNodeVirtualInstanceVirtualMachineConfiguration(input []Singl
 
 	virtualMachineConfiguration := input[0]
 
-	result := &sapvirtualinstances.VirtualMachineConfiguration{
+	return &sapvirtualinstances.VirtualMachineConfiguration{
 		ImageReference: pointer.From(expandSAPSingleNodeVirtualInstanceImageReference(virtualMachineConfiguration.ImageReference)),
 		OsProfile:      pointer.From(expandSAPSingleNodeVirtualInstanceOsProfile(virtualMachineConfiguration.OSProfile)),
 		VMSize:         virtualMachineConfiguration.VmSize,
 	}
-
-	return result
 }
 
 func expandSAPSingleNodeVirtualInstanceImageReference(input []SingleServerImageReference) *sapvirtualinstances.ImageReference {
@@ -688,14 +686,12 @@ func expandSAPSingleNodeVirtualInstanceImageReference(input []SingleServerImageR
 
 	imageReference := input[0]
 
-	result := &sapvirtualinstances.ImageReference{
+	return &sapvirtualinstances.ImageReference{
 		Offer:     pointer.To(imageReference.Offer),
 		Publisher: pointer.To(imageReference.Publisher),
 		Sku:       pointer.To(imageReference.Sku),
 		Version:   pointer.To(imageReference.Version),
 	}
-
-	return result
 }
 
 func expandSAPSingleNodeVirtualInstanceOsProfile(input []SingleServerOSProfile) *sapvirtualinstances.OSProfile {
@@ -705,7 +701,7 @@ func expandSAPSingleNodeVirtualInstanceOsProfile(input []SingleServerOSProfile) 
 
 	osProfile := input[0]
 
-	result := &sapvirtualinstances.OSProfile{
+	return &sapvirtualinstances.OSProfile{
 		AdminUsername: pointer.To(osProfile.AdminUsername),
 		OsConfiguration: &sapvirtualinstances.LinuxConfiguration{
 			DisablePasswordAuthentication: pointer.To(true),
@@ -715,8 +711,6 @@ func expandSAPSingleNodeVirtualInstanceOsProfile(input []SingleServerOSProfile) 
 			},
 		},
 	}
-
-	return result
 }
 
 func expandSAPSingleNodeVirtualInstanceVirtualMachineFullResourceNames(input []SingleServerVirtualMachineResourceNames) *sapvirtualinstances.SingleServerFullResourceNames {

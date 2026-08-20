@@ -382,10 +382,9 @@ func expandImageOSDisk(input []interface{}) *images.ImageOSDisk {
 		}
 		managedDiskID := config["managed_disk_id"].(string)
 		if managedDiskID != "" {
-			managedDisk := &images.SubResource{
+			out.ManagedDisk = &images.SubResource{
 				Id: &managedDiskID,
 			}
-			out.ManagedDisk = managedDisk
 		}
 
 		blobURI := config["blob_uri"].(string)
@@ -432,10 +431,9 @@ func expandImageDataDisks(disks []interface{}) *[]images.ImageDataDisk {
 		}
 
 		if managedDiskID := config["managed_disk_id"].(string); managedDiskID != "" {
-			managedDisk := &images.SubResource{
+			item.ManagedDisk = &images.SubResource{
 				Id: &managedDiskID,
 			}
-			item.ManagedDisk = managedDisk
 		}
 
 		if id := config["disk_encryption_set_id"].(string); id != "" {
