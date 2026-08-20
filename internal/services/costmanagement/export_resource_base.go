@@ -202,10 +202,7 @@ func flattenExportDataStorageLocationToModel(input exports.ExportDeliveryInfo) (
 		containerId = commonids.NewStorageContainerID(storageAccountId.SubscriptionId, storageAccountId.ResourceGroupName, storageAccountId.StorageAccountName, v).ID()
 	}
 
-	rootFolderPath := ""
-	if v := destination.RootFolderPath; v != nil {
-		rootFolderPath = *v
-	}
+	rootFolderPath := pointer.From(destination.RootFolderPath)
 
 	return []CostManagementExportDataStorageLocationModel{
 		{

@@ -528,7 +528,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	}
 
 	networkProfile := &virtualmachinescalesets.VirtualMachineScaleSetNetworkProfile{
-		NetworkApiVersion: pointer.To(virtualmachinescalesets.NetworkApiVersion(d.Get("network_api_version").(string))),
+		NetworkApiVersion: pointer.ToEnum[virtualmachinescalesets.NetworkApiVersion](d.Get("network_api_version").(string)),
 	}
 
 	if v, ok := d.GetOk("proximity_placement_group_id"); ok {
@@ -598,8 +598,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
 	sourceImageId := d.Get("source_image_id").(string)
 	if len(sourceImageReferenceRaw) != 0 || sourceImageId != "" {
-		sourceImageReference := expandSourceImageReferenceVMSS(sourceImageReferenceRaw, sourceImageId)
-		virtualMachineProfile.StorageProfile.ImageReference = sourceImageReference
+		virtualMachineProfile.StorageProfile.ImageReference = expandSourceImageReferenceVMSS(sourceImageReferenceRaw, sourceImageId)
 	}
 
 	if userData, ok := d.GetOk("user_data_base64"); ok {
@@ -745,7 +744,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	}
 
 	if v, ok := d.GetOk("priority"); ok {
-		virtualMachineProfile.Priority = pointer.To(virtualmachinescalesets.VirtualMachinePriorityTypes(v.(string)))
+		virtualMachineProfile.Priority = pointer.ToEnum[virtualmachinescalesets.VirtualMachinePriorityTypes](v.(string))
 	}
 
 	if v, ok := d.GetOk("os_disk"); ok {
@@ -753,8 +752,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	}
 
 	additionalCapabilitiesRaw := d.Get("additional_capabilities").([]interface{})
-	additionalCapabilities := ExpandOrchestratedVirtualMachineScaleSetAdditionalCapabilities(additionalCapabilitiesRaw)
-	props.Properties.AdditionalCapabilities = additionalCapabilities
+	props.Properties.AdditionalCapabilities = ExpandOrchestratedVirtualMachineScaleSetAdditionalCapabilities(additionalCapabilitiesRaw)
 
 	if v, ok := d.GetOk("data_disk"); ok {
 		ultraSSDEnabled := d.Get("additional_capabilities.0.ultra_ssd_enabled").(bool)
@@ -795,7 +793,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		if *virtualMachineProfile.Priority != virtualmachinescalesets.VirtualMachinePriorityTypesSpot {
 			return fmt.Errorf("`eviction_policy` can only be specified when `priority` is set to `%s`", string(virtualmachinescalesets.VirtualMachinePriorityTypesSpot))
 		}
-		virtualMachineProfile.EvictionPolicy = pointer.To(virtualmachinescalesets.VirtualMachineEvictionPolicyTypes(v.(string)))
+		virtualMachineProfile.EvictionPolicy = pointer.ToEnum[virtualmachinescalesets.VirtualMachineEvictionPolicyTypes](v.(string))
 	} else if *virtualMachineProfile.Priority == virtualmachinescalesets.VirtualMachinePriorityTypesSpot {
 		return fmt.Errorf("`eviction_policy` is required when `priority` is set to `%s`", string(virtualmachinescalesets.VirtualMachinePriorityTypesSpot))
 	}
@@ -981,8 +979,8 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 
 				// PatchSettings is required by PATCH API when running Hotpatch-compatible images.
 				if isHotpatchEnabledImage {
-					windowsConfig.PatchSettings.AssessmentMode = pointer.To(virtualmachinescalesets.WindowsPatchAssessmentMode(patchAssessmentMode))
-					windowsConfig.PatchSettings.PatchMode = pointer.To(virtualmachinescalesets.WindowsVMGuestPatchMode(patchMode))
+					windowsConfig.PatchSettings.AssessmentMode = pointer.ToEnum[virtualmachinescalesets.WindowsPatchAssessmentMode](patchAssessmentMode)
+					windowsConfig.PatchSettings.PatchMode = pointer.ToEnum[virtualmachinescalesets.WindowsVMGuestPatchMode](patchMode)
 					windowsConfig.PatchSettings.EnableHotpatching = pointer.To(hotpatchingEnabled)
 				}
 
@@ -1012,14 +1010,14 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 					if !provisionVMAgent && (patchAssessmentMode == string(virtualmachinescalesets.WindowsPatchAssessmentModeAutomaticByPlatform)) {
 						return fmt.Errorf("when `patch_assessment_mode` is set to `%s`, `provision_vm_agent` must be set to `true`", virtualmachinescalesets.WindowsPatchAssessmentModeAutomaticByPlatform)
 					}
-					windowsConfig.PatchSettings.AssessmentMode = pointer.To(virtualmachinescalesets.WindowsPatchAssessmentMode(patchAssessmentMode))
+					windowsConfig.PatchSettings.AssessmentMode = pointer.ToEnum[virtualmachinescalesets.WindowsPatchAssessmentMode](patchAssessmentMode)
 				}
 
 				if d.HasChange("os_profile.0.windows_configuration.0.patch_mode") {
 					if isHotpatchEnabledImage && (patchMode != string(virtualmachinescalesets.WindowsVMGuestPatchModeAutomaticByPlatform)) {
 						return fmt.Errorf("when using a hotpatching enabled image, `patch_mode` must be set to `%s`, got `%s`", virtualmachinescalesets.WindowsVMGuestPatchModeAutomaticByPlatform, patchMode)
 					}
-					windowsConfig.PatchSettings.PatchMode = pointer.To(virtualmachinescalesets.WindowsVMGuestPatchMode(patchMode))
+					windowsConfig.PatchSettings.PatchMode = pointer.ToEnum[virtualmachinescalesets.WindowsVMGuestPatchMode](patchMode)
 				}
 
 				// Disabling hotpatching is not supported in images that support hotpatching
@@ -1087,7 +1085,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 					if linuxConfig.PatchSettings == nil {
 						linuxConfig.PatchSettings = &virtualmachinescalesets.LinuxPatchSettings{}
 					}
-					linuxConfig.PatchSettings.AssessmentMode = pointer.To(virtualmachinescalesets.LinuxPatchAssessmentMode(patchAssessmentMode))
+					linuxConfig.PatchSettings.AssessmentMode = pointer.ToEnum[virtualmachinescalesets.LinuxPatchAssessmentMode](patchAssessmentMode)
 				}
 
 				if d.HasChange("os_profile.0.linux_configuration.0.patch_mode") {
@@ -1102,7 +1100,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 					if linuxConfig.PatchSettings == nil {
 						linuxConfig.PatchSettings = &virtualmachinescalesets.LinuxPatchSettings{}
 					}
-					linuxConfig.PatchSettings.PatchMode = pointer.To(virtualmachinescalesets.LinuxVMGuestPatchMode(patchMode))
+					linuxConfig.PatchSettings.PatchMode = pointer.ToEnum[virtualmachinescalesets.LinuxVMGuestPatchMode](patchMode)
 				}
 
 				vmssOsProfile.LinuxConfiguration = &linuxConfig
@@ -1137,8 +1135,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 				sourceImageId := d.Get("source_image_id").(string)
 
 				if len(sourceImageReferenceRaw) != 0 || sourceImageId != "" {
-					sourceImageReference := expandSourceImageReferenceVMSS(sourceImageReferenceRaw, sourceImageId)
-					updateProps.VirtualMachineProfile.StorageProfile.ImageReference = sourceImageReference
+					updateProps.VirtualMachineProfile.StorageProfile.ImageReference = expandSourceImageReferenceVMSS(sourceImageReferenceRaw, sourceImageId)
 				}
 
 				// Must include all storage profile properties when updating disk image.  See: https://github.com/hashicorp/terraform-provider-azurerm/issues/8273
@@ -1159,7 +1156,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 				updateProps.VirtualMachineProfile.NetworkProfile = &virtualmachinescalesets.VirtualMachineScaleSetUpdateNetworkProfile{}
 			}
 
-			updateProps.VirtualMachineProfile.NetworkProfile.NetworkApiVersion = pointer.To(virtualmachinescalesets.NetworkApiVersion(d.Get("network_api_version").(string)))
+			updateProps.VirtualMachineProfile.NetworkProfile.NetworkApiVersion = pointer.ToEnum[virtualmachinescalesets.NetworkApiVersion](d.Get("network_api_version").(string))
 
 			networkInterfacesRaw := d.Get("network_interface").([]interface{})
 			networkInterfaces, err := ExpandOrchestratedVirtualMachineScaleSetNetworkInterfaceUpdate(networkInterfacesRaw)
@@ -1296,7 +1293,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 			upgradePolicy = *existing.Model.Properties.UpgradePolicy
 		}
 
-		upgradePolicy.Mode = pointer.To(virtualmachinescalesets.UpgradeMode(d.Get("upgrade_mode").(string)))
+		upgradePolicy.Mode = pointer.ToEnum[virtualmachinescalesets.UpgradeMode](d.Get("upgrade_mode").(string))
 
 		rollingRaw := d.Get("rolling_upgrade_policy").([]interface{})
 		rollingUpgradePolicy, err := ExpandVirtualMachineScaleSetRollingUpgradePolicy(rollingRaw, len(zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())) > 0, false)
@@ -1718,8 +1715,8 @@ func expandOrchestratedVirtualMachineScaleSetPublicIPSku(input string) *virtualm
 	}
 
 	return &virtualmachinescalesets.PublicIPAddressSku{
-		Name: pointer.To(virtualmachinescalesets.PublicIPAddressSkuName(skuParts[0])),
-		Tier: pointer.To(virtualmachinescalesets.PublicIPAddressSkuTier(skuParts[1])),
+		Name: pointer.ToEnum[virtualmachinescalesets.PublicIPAddressSkuName](skuParts[0]),
+		Tier: pointer.ToEnum[virtualmachinescalesets.PublicIPAddressSkuTier](skuParts[1]),
 	}
 }
 

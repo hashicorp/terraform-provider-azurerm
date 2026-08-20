@@ -484,8 +484,7 @@ func (k ClusterResource) Delete() sdk.ResourceFunc {
 			}
 			clusterClient := metadata.Client.ServiceFabricManaged.ManagedClusterClient
 
-			err = clusterClient.DeleteThenPoll(ctx, *resourceId)
-			if err != nil {
+			if err = clusterClient.DeleteThenPoll(ctx, *resourceId); err != nil {
 				return fmt.Errorf("while deleting cluster %q: %+v", resourceId.String(), err)
 			}
 			return nil
@@ -991,8 +990,7 @@ func nodeTypeSchema() *pluginsdk.Schema {
 					ValidateFunc: func(i interface{}, s string) ([]string, []error) {
 						input := i.(string)
 						errors := make([]error, 0)
-						_, _, err := parsePortRange(input)
-						if err != nil {
+						if _, _, err := parsePortRange(input); err != nil {
 							errors = append(errors, err)
 						}
 						return nil, errors

@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/azurefirewalls"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -21,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceFirewallApplicationRuleCollection() *pluginsdk.Resource {
@@ -182,7 +182,7 @@ func resourceFirewallApplicationRuleCollectionCreateUpdate(d *pluginsdk.Resource
 		Name: pointer.To(name),
 		Properties: &azurefirewalls.AzureFirewallApplicationRuleCollectionPropertiesFormat{
 			Action: &azurefirewalls.AzureFirewallRCAction{
-				Type: pointer.To(azurefirewalls.AzureFirewallRCActionType(d.Get("action").(string))),
+				Type: pointer.ToEnum[azurefirewalls.AzureFirewallRCActionType](d.Get("action").(string)),
 			},
 			Priority: pointer.To(int64(priority)),
 			Rules:    applicationRules,
@@ -410,10 +410,10 @@ func expandFirewallApplicationRules(inputs []interface{}) (*[]azurefirewalls.Azu
 		output := azurefirewalls.AzureFirewallApplicationRule{
 			Name:            pointer.To(ruleName),
 			Description:     pointer.To(ruleDescription),
-			SourceAddresses: utils.ExpandStringSlice(ruleSourceAddresses),
-			SourceIPGroups:  utils.ExpandStringSlice(ruleSourceIpGroups),
-			FqdnTags:        utils.ExpandStringSlice(ruleFqdnTags),
-			TargetFqdns:     utils.ExpandStringSlice(ruleTargetFqdns),
+			SourceAddresses: helpers.ExpandStringSlice(ruleSourceAddresses),
+			SourceIPGroups:  helpers.ExpandStringSlice(ruleSourceIpGroups),
+			FqdnTags:        helpers.ExpandStringSlice(ruleFqdnTags),
+			TargetFqdns:     helpers.ExpandStringSlice(ruleTargetFqdns),
 		}
 
 		ruleProtocols := make([]azurefirewalls.AzureFirewallApplicationRuleProtocol, 0)
@@ -422,7 +422,7 @@ func expandFirewallApplicationRules(inputs []interface{}) (*[]azurefirewalls.Azu
 			port := protocol["port"].(int)
 			ruleProtocol := azurefirewalls.AzureFirewallApplicationRuleProtocol{
 				Port:         pointer.To(int64(port)),
-				ProtocolType: pointer.To(azurefirewalls.AzureFirewallApplicationRuleProtocolType(protocol["type"].(string))),
+				ProtocolType: pointer.ToEnum[azurefirewalls.AzureFirewallApplicationRuleProtocolType](protocol["type"].(string)),
 			}
 			ruleProtocols = append(ruleProtocols, ruleProtocol)
 		}
@@ -457,16 +457,16 @@ func flattenFirewallApplicationRuleCollectionRules(rules *[]azurefirewalls.Azure
 			output["description"] = *ruleDescription
 		}
 		if ruleSourceAddresses := rule.SourceAddresses; ruleSourceAddresses != nil {
-			output["source_addresses"] = utils.FlattenStringSlice(ruleSourceAddresses)
+			output["source_addresses"] = helpers.FlattenStringSlice(ruleSourceAddresses)
 		}
 		if ruleSourceIpGroups := rule.SourceIPGroups; ruleSourceIpGroups != nil {
-			output["source_ip_groups"] = utils.FlattenStringSlice(ruleSourceIpGroups)
+			output["source_ip_groups"] = helpers.FlattenStringSlice(ruleSourceIpGroups)
 		}
 		if ruleFqdnTags := rule.FqdnTags; ruleFqdnTags != nil {
-			output["fqdn_tags"] = utils.FlattenStringSlice(ruleFqdnTags)
+			output["fqdn_tags"] = helpers.FlattenStringSlice(ruleFqdnTags)
 		}
 		if ruleTargetFqdns := rule.TargetFqdns; ruleTargetFqdns != nil {
-			output["target_fqdns"] = utils.FlattenStringSlice(ruleTargetFqdns)
+			output["target_fqdns"] = helpers.FlattenStringSlice(ruleTargetFqdns)
 		}
 		protocols := make([]map[string]interface{}, 0)
 		if ruleProtocols := rule.Protocols; ruleProtocols != nil {

@@ -123,7 +123,7 @@ func resourcePrivateDnsZoneVirtualNetworkLinkCreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	if v, ok := d.GetOk("resolution_policy"); ok {
-		parameters.Properties.ResolutionPolicy = pointer.To(virtualnetworklinks.ResolutionPolicy(v.(string)))
+		parameters.Properties.ResolutionPolicy = pointer.ToEnum[virtualnetworklinks.ResolutionPolicy](v.(string))
 	}
 
 	options := virtualnetworklinks.CreateOrUpdateOperationOptions{

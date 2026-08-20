@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/data-plane/synapse/2021-06-01-preview/managedprivateendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -22,7 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSynapseManagedPrivateEndpoint() *pluginsdk.Resource {
@@ -128,7 +128,7 @@ func resourceSynapseManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, meta
 
 	payload := managedprivateendpoints.ManagedPrivateEndpoint{
 		Properties: &managedprivateendpoints.ManagedPrivateEndpointProperties{
-			Fqdns:                 utils.ExpandStringSlice(d.Get("fully_qualified_domain_names").([]any)),
+			Fqdns:                 helpers.ExpandStringSlice(d.Get("fully_qualified_domain_names").([]any)),
 			GroupId:               pointer.To(d.Get("subresource_name").(string)),
 			PrivateLinkResourceId: pointer.To(d.Get("target_resource_id").(string)),
 		},

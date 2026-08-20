@@ -157,8 +157,7 @@ func resourceDnsNsRecordUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	if d.HasChange("records") {
 		recordsRaw := d.Get("records").([]interface{})
-		records := expandAzureRmDnsNsRecords(recordsRaw)
-		existing.Model.Properties.NSRecords = records
+		existing.Model.Properties.NSRecords = expandAzureRmDnsNsRecords(recordsRaw)
 	}
 
 	if d.HasChange("tags") {

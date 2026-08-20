@@ -664,7 +664,7 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 					HTTPSOnly:         pointer.To(functionAppFlexConsumption.HttpsOnly),
 					FunctionAppConfig: flexFunctionAppConfig,
 					ClientCertEnabled: pointer.To(functionAppFlexConsumption.ClientCertEnabled),
-					ClientCertMode:    pointer.To(webapps.ClientCertMode(functionAppFlexConsumption.ClientCertMode)),
+					ClientCertMode:    pointer.ToEnum[webapps.ClientCertMode](functionAppFlexConsumption.ClientCertMode),
 				},
 			}
 
@@ -1008,7 +1008,7 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("client_certificate_mode") {
-				model.Properties.ClientCertMode = pointer.To(webapps.ClientCertMode(state.ClientCertMode))
+				model.Properties.ClientCertMode = pointer.ToEnum[webapps.ClientCertMode](state.ClientCertMode)
 			}
 
 			if metadata.ResourceData.HasChange("client_certificate_exclusion_paths") {
