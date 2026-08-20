@@ -2461,7 +2461,7 @@ resource "azurerm_key_vault" "test" {
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
-    rbac_authorization_enabled      = false
+  rbac_authorization_enabled = false
 
 
   access_policy {
@@ -4086,7 +4086,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "acctestblobforfc"
-  storage_account_id  = azurerm_storage_account.test.id
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
