@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/tables"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2023-09-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2025-07-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -178,7 +178,7 @@ func (r WorkspaceTableCustomLogResource) Create() sdk.ResourceFunc {
 
 			param := tables.Table{
 				Properties: &tables.TableProperties{
-					Plan:                 pointer.To(tables.TablePlanEnum(config.Plan)),
+					Plan:                 pointer.ToEnum[tables.TablePlanEnum](config.Plan),
 					RetentionInDays:      defaultRetentionInDays,
 					TotalRetentionInDays: defaultRetentionInDays,
 					Schema: &tables.Schema{

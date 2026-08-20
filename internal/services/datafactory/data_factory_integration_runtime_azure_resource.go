@@ -213,8 +213,7 @@ func resourceDataFactoryIntegrationRuntimeAzureCreate(d *pluginsdk.ResourceData,
 	if ttl := d.Get("interactive_authoring_time_to_live_in_minutes").(int); ttl != 0 {
 		// Interactive Authoring/Query can only be modified once the integration runtime is online
 		poller := pollers.NewPoller(custompollers.NewDataFactoryIntegrationRuntimeStatusPoller(client, id), time.Second*5, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-		err := poller.PollUntilDone(ctx)
-		if err != nil {
+		if err := poller.PollUntilDone(ctx); err != nil {
 			return fmt.Errorf("waiting for state change of %s: %+v", id, err)
 		}
 

@@ -18,16 +18,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name databricks_workspace_root_dbfs_customer_managed_key -service-package-name databricks -compare-values "subscription_id:workspace_id,resource_group_name:workspace_id,name:workspace_id"
+//go:generate go run ../../tools/generator-tests resourceidentity -parent-id "workspace_id"
 
 func resourceDatabricksWorkspaceRootDbfsCustomerManagedKey() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Create: databricksWorkspaceRootDbfsCustomerManagedKeyCreate,
 		Read:   databricksWorkspaceRootDbfsCustomerManagedKeyRead,
 		Update: databricksWorkspaceRootDbfsCustomerManagedKeyUpdate,
@@ -69,19 +70,28 @@ func resourceDatabricksWorkspaceRootDbfsCustomerManagedKey() *pluginsdk.Resource
 				Required:     true,
 				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 			},
-
-			"key_vault_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: commonids.ValidateKeyVaultID,
-			},
 		},
 	}
+
+	if !features.SixPointOh() {
+		r.Schema["key_vault_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: commonids.ValidateKeyVaultID,
+			DiffSuppressFunc: func(_, o, n string, _ *pluginsdk.ResourceData) bool {
+				// Suppress removal diff for 5.x since that does not require an update
+				return o != "" && n == ""
+			},
+			Deprecated: "`key_vault_id` has been deprecated and will be removed in v6.0 of the AzureRM provider. This property is no longer required for cross-subscription scenarios.",
+		}
+	}
+
+	return r
 }
 
 func databricksWorkspaceRootDbfsCustomerManagedKeyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	workspaceClient := meta.(*clients.Client).DataBricks.WorkspacesClient
-	keyVaultsClient := meta.(*clients.Client).KeyVault
+
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -128,27 +138,6 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyCreate(d *pluginsdk.ResourceDa
 		return err
 	}
 
-	dbfsSubscriptionId := commonids.NewSubscriptionID(id.SubscriptionId)
-	keyVaultId := d.Get("key_vault_id").(string)
-	if keyVaultId != "" {
-		parsedKeyVaultID, err := commonids.ParseKeyVaultID(keyVaultId)
-		if err != nil {
-			return err
-		}
-		dbfsSubscriptionId = commonids.NewSubscriptionID(parsedKeyVaultID.SubscriptionId)
-	}
-
-	// make sure the key vault exists
-	// TODO: consider removing this check and deprecating the `key_vault_id` property.
-	// 1. The check can be time consuming when there are many KVs present in a subscription.
-	// 2. The API request will fail if the KV doesn't exist, both that error and this check happen at apply time after a successful plan regardless.
-	// 3. It doesn't work with Managed HSM vaults (hence the conditional)
-	if !key.IsManagedHSM() {
-		if keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, dbfsSubscriptionId, key.KeyVaultBaseURL); err != nil || keyVaultIdRaw == nil {
-			return fmt.Errorf("retrieving the Resource ID for the Key Vault at URL %q: %+v", key.KeyVaultBaseURL, err)
-		}
-	}
-
 	params.Encryption = &workspaces.WorkspaceEncryptionParameter{
 		Value: &workspaces.Encryption{
 			KeySource:   pointer.To(workspaces.KeySourceMicrosoftPointKeyvault),
@@ -166,10 +155,6 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyCreate(d *pluginsdk.ResourceDa
 	if err := pluginsdk.SetResourceIdentityData(d, id); err != nil {
 		return err
 	}
-
-	// Always set this even if it's empty to keep the state file
-	// consistent with the configuration file...
-	d.Set("key_vault_id", keyVaultId)
 
 	return databricksWorkspaceRootDbfsCustomerManagedKeyRead(d, meta)
 }
@@ -215,14 +200,16 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyRead(d *pluginsdk.ResourceData
 	}
 
 	d.Set("workspace_id", id.ID())
-	d.Set("key_vault_id", d.Get("key_vault_id").(string))
+	if !features.SixPointOh() {
+		d.Set("key_vault_id", d.Get("key_vault_id").(string))
+	}
 
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func databricksWorkspaceRootDbfsCustomerManagedKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	workspaceClient := meta.(*clients.Client).DataBricks.WorkspacesClient
-	keyVaultsClient := meta.(*clients.Client).KeyVault
+
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -261,23 +248,6 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyUpdate(d *pluginsdk.ResourceDa
 		return err
 	}
 
-	dbfsSubscriptionId := commonids.NewSubscriptionID(id.SubscriptionId)
-	keyVaultId := d.Get("key_vault_id").(string)
-	if keyVaultId != "" {
-		parsedKeyVaultID, err := commonids.ParseKeyVaultID(keyVaultId)
-		if err != nil {
-			return err
-		}
-		dbfsSubscriptionId = commonids.NewSubscriptionID(parsedKeyVaultID.SubscriptionId)
-	}
-
-	// make sure the key vault exists
-	if !key.IsManagedHSM() {
-		if _, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, dbfsSubscriptionId, key.KeyVaultBaseURL); err != nil {
-			return fmt.Errorf("retrieving the Resource ID for the Key Vault in subscription %q at URL %q: %+v", dbfsSubscriptionId, key.KeyVaultBaseURL, err)
-		}
-	}
-
 	existing.Model.Properties.Parameters.Encryption = &workspaces.WorkspaceEncryptionParameter{
 		Value: &workspaces.Encryption{
 			KeySource:   pointer.To(workspaces.KeySourceMicrosoftPointKeyvault),
@@ -290,10 +260,6 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyUpdate(d *pluginsdk.ResourceDa
 	if err = workspaceClient.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
 		return fmt.Errorf("updating Root DBFS Customer Managed Key for %s: %+v", *id, err)
 	}
-
-	// Always set this even if it's empty to keep the state file
-	// consistent with the configuration file...
-	d.Set("key_vault_id", keyVaultId)
 
 	return databricksWorkspaceRootDbfsCustomerManagedKeyRead(d, meta)
 }

@@ -29,8 +29,8 @@ func TestAccSharedImageVersion_basic(t *testing.T) {
 			// need to create a vm and then reference it in the image creation
 			Config: r.setup(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_linux_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -63,8 +63,8 @@ func TestAccSharedImageVersion_storageAccountTypeLrs(t *testing.T) {
 			Config:  r.setup(data),
 			Destroy: false,
 			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_linux_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -89,8 +89,8 @@ func TestAccSharedImageVersion_storageAccountTypeZrs(t *testing.T) {
 			Config:  r.setup(data),
 			Destroy: false,
 			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_linux_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -99,21 +99,6 @@ func TestAccSharedImageVersion_storageAccountTypeZrs(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("managed_image_id").Exists(),
 				check.That(data.ResourceName).Key("target_region.#").HasValue("1"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccSharedImageVersion_blobURI(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_shared_image_version", "test")
-	r := SharedImageVersionResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.imageVersionBlobURI(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -163,8 +148,8 @@ func TestAccSharedImageVersion_diskEncryptionSetID(t *testing.T) {
 			// need to create a vm and then reference it in the image creation
 			Config: r.setup(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_linux_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -189,8 +174,8 @@ func TestAccSharedImageVersion_endOfLifeDate(t *testing.T) {
 			// need to create a vm and then reference it in the image creation
 			Config: r.setup(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_linux_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -219,8 +204,8 @@ func TestAccSharedImageVersion_replicationMode(t *testing.T) {
 			// need to create a vm and then reference it in the image creation
 			Config: r.setup(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_linux_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -242,8 +227,8 @@ func TestAccSharedImageVersion_replicatedRegionDeletion(t *testing.T) {
 			// need to create a vm and then reference it in the image creation
 			Config: r.setup(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_linux_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -266,8 +251,8 @@ func TestAccSharedImageVersion_requiresImport(t *testing.T) {
 			Config:  r.setup(data),
 			Destroy: false,
 			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_linux_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -320,7 +305,7 @@ func (SharedImageVersionResource) revokeSnapshot(ctx context.Context, client *cl
 
 // nolint: unparam
 func (SharedImageVersionResource) setup(data acceptance.TestData) string {
-	return ImageResource{}.setupUnmanagedDisks(data)
+	return ImageResource{}.setupManagedDisks(data)
 }
 
 func (SharedImageVersionResource) provision(data acceptance.TestData) string {
@@ -375,48 +360,6 @@ resource "azurerm_shared_image_version" "test" {
 `, template)
 }
 
-func (r SharedImageVersionResource) imageVersionBlobURI(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_shared_image_gallery" "test" {
-  name                = "acctestsig%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
-resource "azurerm_shared_image" "test" {
-  name                = "acctestimg%[2]d"
-  gallery_name        = azurerm_shared_image_gallery.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  os_type             = "Linux"
-
-  identifier {
-    publisher = "AccTesPublisher%[2]d"
-    offer     = "AccTesOffer%[2]d"
-    sku       = "AccTesSku%[2]d"
-  }
-}
-
-resource "azurerm_shared_image_version" "test" {
-  name                = "0.0.1"
-  gallery_name        = azurerm_shared_image_gallery.test.name
-  image_name          = azurerm_shared_image.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-
-  blob_uri           = azurerm_virtual_machine.testsource.storage_os_disk[0].vhd_uri
-  storage_account_id = azurerm_storage_account.test.id
-
-  target_region {
-    name                   = azurerm_resource_group.test.location
-    regional_replica_count = 1
-  }
-}
-`, r.setup(data), data.RandomInteger)
-}
-
 func (r SharedImageVersionResource) provisionSpecialized(data acceptance.TestData) string {
 	template := ImageResource{}.setupManagedDisks(data)
 	return fmt.Sprintf(`
@@ -455,7 +398,7 @@ resource "azurerm_snapshot" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   create_option       = "Copy"
-  source_resource_id  = azurerm_virtual_machine.testsource.storage_os_disk.0.managed_disk_id
+  source_resource_id  = data.azurerm_managed_disk.testsource.id
 }
 
 resource "azurerm_shared_image_version" "test" {
@@ -491,7 +434,7 @@ resource "azurerm_shared_image_version" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
-  managed_image_id = azurerm_virtual_machine.testsource.id
+  managed_image_id = azurerm_linux_virtual_machine.testsource.id
 
   target_region {
     name                   = azurerm_resource_group.test.location

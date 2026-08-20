@@ -290,23 +290,23 @@ func (r AutonomousDatabaseCloneFromDatabaseResource) Create() sdk.ResourceFunc {
 				BackupRetentionPeriodInDays:    pointer.To(model.BackupRetentionPeriodInDays),
 				CharacterSet:                   pointer.To(model.CharacterSet),
 				ComputeCount:                   pointer.To(model.ComputeCount),
-				ComputeModel:                   pointer.To(autonomousdatabases.ComputeModel(model.ComputeModel)),
+				ComputeModel:                   pointer.ToEnum[autonomousdatabases.ComputeModel](model.ComputeModel),
 				CustomerContacts:               pointer.To(expandCloneCustomerContacts(model.CustomerContacts)),
 				DataStorageSizeInTbs:           pointer.To(model.DataStorageSizeInTb),
-				DbWorkload:                     pointer.To(autonomousdatabases.WorkloadType(model.DatabaseWorkload)),
+				DbWorkload:                     pointer.ToEnum[autonomousdatabases.WorkloadType](model.DatabaseWorkload),
 				DbVersion:                      pointer.To(model.DatabaseVersion),
 				DisplayName:                    pointer.To(model.DisplayName),
 				IsAutoScalingEnabled:           pointer.To(model.AutoScalingEnabled),
 				IsAutoScalingForStorageEnabled: pointer.To(model.AutoScalingForStorageEnabled),
 				IsMtlsConnectionRequired:       pointer.To(model.MtlsConnectionRequired),
-				LicenseModel:                   pointer.To(autonomousdatabases.LicenseModel(model.LicenseModel)),
+				LicenseModel:                   pointer.ToEnum[autonomousdatabases.LicenseModel](model.LicenseModel),
 				NcharacterSet:                  pointer.To(model.NationalCharacterSet),
 				WhitelistedIPs:                 pointer.To(model.AllowedIpAddresses),
 			}
 
 			properties := param.Properties.(*autonomousdatabases.AutonomousDatabaseCloneProperties)
 			if model.RefreshableModel != "" {
-				properties.RefreshableModel = pointer.To(autonomousdatabases.RefreshableModelType(model.RefreshableModel))
+				properties.RefreshableModel = pointer.ToEnum[autonomousdatabases.RefreshableModelType](model.RefreshableModel)
 			}
 
 			if model.SubnetId != "" {

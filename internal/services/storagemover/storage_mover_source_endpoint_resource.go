@@ -248,11 +248,7 @@ func (r StorageMoverSourceEndpointResource) flatten(metadata sdk.ResourceMetaDat
 				state.NfsVersion = *v
 			}
 
-			description := ""
-			if v.Description != nil {
-				description = *v.Description
-			}
-			state.Description = description
+			state.Description = pointer.From(v.Description)
 		}
 	}
 

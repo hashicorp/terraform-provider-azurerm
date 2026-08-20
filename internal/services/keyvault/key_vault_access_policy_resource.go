@@ -110,11 +110,7 @@ func resourceKeyVaultAccessPolicyCreate(d *pluginsdk.ResourceData, meta interfac
 				tenantIdMatches := policy.TenantId == tenantId
 				objectIdMatches := policy.ObjectId == objectId
 
-				appId := ""
-				if policy.ApplicationId != nil {
-					appId = *policy.ApplicationId
-				}
-				applicationIdMatches := appId == applicationId
+				applicationIdMatches := pointer.From(policy.ApplicationId) == applicationId
 				if tenantIdMatches && objectIdMatches && applicationIdMatches {
 					if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 						return tf.ImportAsExistsError("azurerm_key_vault_access_policy", id.ID())
@@ -392,10 +388,7 @@ func findKeyVaultAccessPolicy(policies *[]vaults.AccessPolicyEntry, objectId str
 
 	for _, policy := range *policies {
 		if strings.EqualFold(policy.ObjectId, objectId) {
-			aid := ""
-			if policy.ApplicationId != nil {
-				aid = *policy.ApplicationId
-			}
+			aid := pointer.From(policy.ApplicationId)
 
 			if strings.EqualFold(aid, applicationId) {
 				return &policy
