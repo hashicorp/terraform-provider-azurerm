@@ -13,6 +13,8 @@ When using version 5.0 of the AzureRM Provider we recommend using the latest ver
 * [AzureRM Provider Usage Examples](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples)
 * [Slack Workspace for Contributors](https://terraform-azure.slack.com) ([Request Invite](https://join.slack.com/t/terraform-azure/shared_invite/zt-3qcv2dj6v-aKas6O6FSBZaxSSZph~Uvg))
 
+This is a sentence added in the first PR
+
 ## Usage Example
 
 ```hcl
