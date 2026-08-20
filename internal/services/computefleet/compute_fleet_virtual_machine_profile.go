@@ -1174,8 +1174,7 @@ func (r ComputeFleetResource) expandExtensionModel(inputList []ExtensionModel, t
 
 		if v.ProtectedSettingsJson != "" {
 			protectedSettingsValue := make(map[string]interface{})
-			err := json.Unmarshal([]byte(v.ProtectedSettingsJson), &protectedSettingsValue)
-			if err != nil {
+			if err := json.Unmarshal([]byte(v.ProtectedSettingsJson), &protectedSettingsValue); err != nil {
 				return nil, fmt.Errorf("unmarshaling `protected_settings_json`: %+v", err)
 			}
 			extension.Properties.ProtectedSettings = pointer.To(protectedSettingsValue)
@@ -1191,8 +1190,7 @@ func (r ComputeFleetResource) expandExtensionModel(inputList []ExtensionModel, t
 
 		if v.SettingsJson != "" {
 			result := make(map[string]interface{})
-			err := json.Unmarshal([]byte(v.SettingsJson), &result)
-			if err != nil {
+			if err := json.Unmarshal([]byte(v.SettingsJson), &result); err != nil {
 				return nil, fmt.Errorf("unmarshaling `settings_json`: %+v", err)
 			}
 			extension.Properties.Settings = pointer.To(result)

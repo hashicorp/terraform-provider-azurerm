@@ -998,18 +998,15 @@ func (r ComputeFleetResource) CustomizeDiff() sdk.ResourceFunc {
 				return errors.New("`virtual_machine_profile.0.virtual_machine_sizes_profile` blocks with duplicated `name` are not allowed")
 			}
 
-			err := validateSecuritySetting(state.VirtualMachineProfile)
-			if err != nil {
+			if err := validateSecuritySetting(state.VirtualMachineProfile); err != nil {
 				return err
 			}
 
-			err = validateWindowsSetting(state.VirtualMachineProfile, metadata.ResourceDiff)
-			if err != nil {
+			if err := validateWindowsSetting(state.VirtualMachineProfile, metadata.ResourceDiff); err != nil {
 				return err
 			}
 
-			err = validateLinuxSetting(state.VirtualMachineProfile, metadata.ResourceDiff)
-			if err != nil {
+			if err := validateLinuxSetting(state.VirtualMachineProfile, metadata.ResourceDiff); err != nil {
 				return err
 			}
 
