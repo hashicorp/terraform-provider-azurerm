@@ -85,6 +85,8 @@ The following arguments are supported:
 
 * `storage_type` - (Optional) The storage type for the MongoDB Cluster. Possible values are `PremiumSSD` and `PremiumSSDv2`. Defaults to `PremiumSSD`. Changing this forces a new resource to be created.
 
+~> **Note:** `storage_type` cannot be changed in place, since online migration between `PremiumSSD` and `PremiumSSDv2` is not supported. To upgrade the storage type, create a new cluster with `create_mode` set to `PointInTimeRestore` or `GeoReplica` and the desired `storage_type` and `storage_size_in_gb`. When `storage_type` is `PremiumSSDv2`, `high_availability_mode` must be `Disabled`, `customer_managed_key` cannot be set, and only one of `compute_tier`, `storage_size_in_gb` or `high_availability_mode` can be changed per update.
+
 * `version` - (Optional) The version for the MongoDB Cluster. Possibles values are `5.0`, `6.0`, `7.0` and `8.0`.
 
 ~> **Note:** `version` is required when `create_mode` is `Default`.
@@ -156,4 +158,4 @@ terraform import azurerm_mongo_cluster.example /subscriptions/00000000-0000-0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DocumentDB` - 2025-09-01
+* `Microsoft.DocumentDB` - 2026-06-01

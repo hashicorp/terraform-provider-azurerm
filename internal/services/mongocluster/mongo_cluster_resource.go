@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2025-09-01/mongoclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2026-06-01/mongoclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -360,10 +360,12 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 			// Per the current service API design, they don’t allow setting `userAssignedIdentities` to `nil` in the request payload when the `type` of `identity` is `nil`; otherwise, the API would return an error.
 			// Therefore, we have to use the customized function instead of the common one, since the common function always sets `userAssignedIdentities` to `nil` in the request payload.
 			// Service team confirmed that it will be more flexible, and we will allow `userAssignedIdentities = nil` in the future. Tracking issue: https://github.com/Azure/azure-rest-api-specs/issues/38575
-			if identityVal != nil && identityVal.Type == identity.TypeNone {
-				identityVal = nil
+			if identityVal != nil && identityVal.Type != identity.TypeNone {
+				parameter.Identity = &identity.LegacySystemAndUserAssignedMap{
+					Type:        identityVal.Type,
+					IdentityIds: identityVal.IdentityIds,
+				}
 			}
-			parameter.Identity = identityVal
 
 			if state.AdministratorUserName != "" {
 				parameter.Properties.Administrator = &mongoclusters.AdministratorProperties{
@@ -568,7 +570,14 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 				if err != nil {
 					return fmt.Errorf(`expanding "identity": %v`, err)
 				}
-				payload.Identity = identityVal
+				if identityVal == nil {
+					payload.Identity = nil
+				} else {
+					payload.Identity = &identity.LegacySystemAndUserAssignedMap{
+						Type:        identityVal.Type,
+						IdentityIds: identityVal.IdentityIds,
+					}
+				}
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
@@ -607,11 +616,18 @@ func (r MongoClusterResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
 
-				identity, err := identity.FlattenUserAssignedMapToModel(model.Identity)
+				identityVal, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(model.Identity)
 				if err != nil {
 					return fmt.Errorf("flattening `identity`: %+v", err)
 				}
-				state.Identity = pointer.From(identity)
+				modelUserAssignedList := make([]identity.ModelUserAssigned, 0, len(identityVal))
+				for _, assigned := range identityVal {
+					modelUserAssignedList = append(modelUserAssignedList, identity.ModelUserAssigned{
+						Type:        assigned.Type,
+						IdentityIds: assigned.IdentityIds,
+					})
+				}
+				state.Identity = modelUserAssignedList
 
 				if props := model.Properties; props != nil {
 					// API doesn't return the value of administrator_password
@@ -755,6 +771,29 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 
 				if state.ShardCount > 1 {
 					return fmt.Errorf("the value of `shard_count` cannot exceed 1 for the `Free` or `M25` Compute Tier")
+				}
+			}
+
+			if state.StorageType == string(mongoclusters.StorageTypePremiumSSDvTwo) {
+				if state.HighAvailabilityMode != "" && state.HighAvailabilityMode != string(mongoclusters.HighAvailabilityModeDisabled) {
+					return errors.New("`high_availability_mode` must be `Disabled` when `storage_type` is `PremiumSSDv2`")
+				}
+
+				if len(state.CustomerManagedKey) > 0 {
+					return errors.New("`customer_managed_key` cannot be set when `storage_type` is `PremiumSSDv2`")
+				}
+
+				if metadata.ResourceDiff.Id() != "" {
+					changedFields := 0
+					for _, field := range []string{"compute_tier", "storage_size_in_gb", "high_availability_mode"} {
+						if metadata.ResourceDiff.HasChange(field) {
+							changedFields++
+						}
+					}
+
+					if changedFields > 1 {
+						return errors.New("only one of `compute_tier`, `storage_size_in_gb`, or `high_availability_mode` can be changed per update when `storage_type` is `PremiumSSDv2`")
+					}
 				}
 			}
 

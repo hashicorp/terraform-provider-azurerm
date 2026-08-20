@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2025-09-01/mongoclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2026-06-01/mongoclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -169,6 +169,65 @@ func TestAccMongoCluster_dataApiModeEnabled(t *testing.T) {
 	})
 }
 
+func TestAccMongoCluster_premiumSSDv2(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster", "test")
+	r := MongoClusterResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.premiumSSDv2WithZoneRedundantHighAvailability(data),
+			ExpectError: regexp.MustCompile("`high_availability_mode` must be `Disabled` when `storage_type` is `PremiumSSDv2`"),
+		},
+		{
+			Config:      r.premiumSSDv2WithCustomerManagedKey(data),
+			ExpectError: regexp.MustCompile("`customer_managed_key` cannot be set when `storage_type` is `PremiumSSDv2`"),
+		},
+		{
+			Config: r.premiumSSDv2(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.value", "connection_strings.1.value"),
+		{
+			Config:      r.premiumSSDv2WithMultipleUpdates(data),
+			ExpectError: regexp.MustCompile("only one of `compute_tier`, `storage_size_in_gb`, or `high_availability_mode` can be changed per update when `storage_type` is `PremiumSSDv2`"),
+		},
+	})
+}
+
+func TestAccMongoCluster_pitrPremiumSSDv2(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster", "point_in_time_restore")
+	r := MongoClusterResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.pitrPremiumSSDv2(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.value", "connection_strings.1.value"),
+	})
+}
+
+func TestAccMongoCluster_replicaPremiumSSDv2(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster", "geo_replica")
+	r := MongoClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.replicaPremiumSSDv2(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That("azurerm_mongo_cluster.test").Key("storage_type").HasValue("PremiumSSD"),
+				check.That(data.ResourceName).Key("storage_type").HasValue("PremiumSSDv2"),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode", "source_location", "connection_strings.0.value", "connection_strings.1.value"),
+	})
+}
+
 func TestAccMongoCluster_entraIdOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster", "test")
 	r := MongoClusterResource{}
@@ -263,6 +322,99 @@ resource "azurerm_mongo_cluster" "test" {
   }
 }
 `, r.template(data, data.Locations.Ternary), data.RandomInteger)
+}
+
+func (r MongoClusterResource) premiumSSDv2(data acceptance.TestData) string {
+	return r.premiumSSDv2Config(data, "M30", "Disabled", 64, "")
+}
+
+func (r MongoClusterResource) premiumSSDv2WithZoneRedundantHighAvailability(data acceptance.TestData) string {
+	return r.premiumSSDv2Config(data, "M30", "ZoneRedundantPreferred", 64, "")
+}
+
+func (r MongoClusterResource) premiumSSDv2WithCustomerManagedKey(data acceptance.TestData) string {
+	return r.premiumSSDv2Config(data, "M30", "Disabled", 64, `
+  customer_managed_key {
+    key_vault_key_id          = "https://example.vault.azure.net/keys/example"
+    user_assigned_identity_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.ManagedIdentity/userAssignedIdentities/example"
+  }
+`)
+}
+
+func (r MongoClusterResource) premiumSSDv2WithMultipleUpdates(data acceptance.TestData) string {
+	return r.premiumSSDv2Config(data, "M40", "Disabled", 128, "")
+}
+
+func (r MongoClusterResource) premiumSSDv2Config(data acceptance.TestData, computeTier, highAvailabilityMode string, storageSizeInGb int64, additionalConfiguration string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mongo_cluster" "test" {
+  name                   = "acctest-mc%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_username = "adminTerraform"
+  administrator_password = "QAZwsx123ssd"
+  shard_count            = "1"
+  compute_tier           = "%s"
+  high_availability_mode = "%s"
+  storage_size_in_gb     = "%d"
+  storage_type           = "PremiumSSDv2"
+  version                = "8.0"
+%s
+}
+`, r.template(data, data.Locations.Ternary), data.RandomInteger, computeTier, highAvailabilityMode, storageSizeInGb, additionalConfiguration)
+}
+
+func (r MongoClusterResource) pitrPremiumSSDv2(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "time_offset" "test" {
+  offset_minutes = 15
+}
+
+resource "azurerm_mongo_cluster" "point_in_time_restore" {
+  name                   = "acctest-mc-restore%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  create_mode            = "PointInTimeRestore"
+  administrator_username = "adminTerraform"
+  administrator_password = "QAZwsx123update"
+  storage_type           = "PremiumSSDv2"
+  storage_size_in_gb     = "64"
+
+  restore {
+    source_id         = azurerm_mongo_cluster.test.id
+    point_in_time_utc = time_offset.test.rfc3339
+  }
+
+  lifecycle {
+    ignore_changes = [source_server_id, high_availability_mode, preview_features, shard_count, storage_size_in_gb, compute_tier, version]
+  }
+}
+`, r.source(data), data.RandomInteger)
+}
+
+func (r MongoClusterResource) replicaPremiumSSDv2(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mongo_cluster" "geo_replica" {
+  name                = "acctest-mc-replica%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = "%s"
+  source_server_id    = azurerm_mongo_cluster.test.id
+  source_location     = azurerm_mongo_cluster.test.location
+  create_mode         = "GeoReplica"
+  storage_size_in_gb  = "64"
+  storage_type        = "PremiumSSDv2"
+
+  lifecycle {
+    ignore_changes = ["administrator_username", "high_availability_mode", "preview_features", "shard_count", "storage_size_in_gb", "compute_tier", "version"]
+  }
+}
+`, r.source(data), data.RandomInteger, data.Locations.Secondary)
 }
 
 func (r MongoClusterResource) source(data acceptance.TestData) string {
