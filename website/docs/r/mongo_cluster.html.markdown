@@ -59,6 +59,10 @@ The following arguments are supported:
 
 -> **Note:** When adding or removing `identity`, a resource recreation will be triggered.
 
+* `network_bypass_mode` - (Optional) The network bypass mode for the MongoDB Cluster. The only possible value is `AzureCosmosDB`; omitting this argument disables network bypass.
+
+~> **Note:** `network_bypass_mode` can only be set to `AzureCosmosDB` when `public_network_access` is `Disabled`, `authentication_methods` contains only `MicrosoftEntraID`, and no firewall rules exist on the cluster.
+
 * `preview_features` - (Optional) The preview features that can be enabled on the MongoDB Cluster. Changing this forces a new resource to be created.
 
 * `restore` - (Optional) A `restore` block as defined below. Required when `create_mode` is set to `PointInTimeRestore`. Changing this forces a new resource to be created.
@@ -156,4 +160,4 @@ terraform import azurerm_mongo_cluster.example /subscriptions/00000000-0000-0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DocumentDB` - 2025-09-01
+* `Microsoft.DocumentDB` - 2026-06-01
