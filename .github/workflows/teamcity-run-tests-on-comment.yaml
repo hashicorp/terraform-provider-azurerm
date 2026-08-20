@@ -6,9 +6,10 @@ name: TeamCity Run Tests on Comment
 # membership (or the allow-list) before dispatching via katbyte/tctest.
 # -f/-force bypasses the max-builds-per-pr limit.
 #
-# SECURITY: the failure comment may only ever contain tctest's stderr, which is
-# limited to trigger/discovery errors (bad flags, merge conflicts, GitHub/TeamCity
-# API errors). tctest is invoked without --wait, so it never fetches TeamCity build
+# SECURITY: tctest's captured stderr is only ever analyzed to pick a canned failure
+# message - it is never included in the comment body, since comment bodies bypass the
+# secret masking applied to workflow logs (e.g. TCTEST_SERVER appearing in an HTTP
+# error URL). tctest is invoked without --wait, so it never fetches TeamCity build
 # logs and no build/test output can ever be echoed back onto a public PR.
 
 on:
@@ -332,10 +333,9 @@ jobs:
               body = '❌ No TeamCity builds were triggered — no acceptance tests could be discovered from this PR\'s changed files.\n\n' +
                 'If this PR does have acceptance tests, re-run with an explicit prefix, e.g. `/test TestAccFoo`.';
             } else {
+              // unrecognized error: never post raw stderr (comment bodies bypass the
+              // secret masking that workflow logs get) - point at the logs instead
               body = '❌ Failed to trigger TeamCity tests.';
-              if (errors) {
-                body += `\n\n\`\`\`\n${errors.slice(-1500)}\n\`\`\``;
-              }
             }
             body += `\n\nSee the [workflow logs](${runUrl}) for details.`;
 
