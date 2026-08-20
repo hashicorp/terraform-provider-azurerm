@@ -41,7 +41,7 @@ func TestAccPlaywrightWorkspace_list_basic(t *testing.T) {
 				Query:  true,
 				Config: r.basicQueryByResourceGroupName(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLengthAtLeast(listResourceAddress, 2),
+					querycheck.ExpectLength(listResourceAddress, 2),
 				},
 			},
 		},

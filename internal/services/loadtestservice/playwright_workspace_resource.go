@@ -31,7 +31,7 @@ type PlaywrightWorkspaceModel struct {
 	ResourceGroupName string            `tfschema:"resource_group_name"`
 	Location          string            `tfschema:"location"`
 	DataplaneUri      string            `tfschema:"dataplane_uri"`
-	WorkspaceId       string            `tfschema:"workspace_id"`
+	Uuid              string            `tfschema:"uuid"`
 	Tags              map[string]string `tfschema:"tags"`
 }
 
@@ -61,7 +61,7 @@ func (PlaywrightWorkspaceResource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"workspace_id": {
+		"uuid": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -108,16 +108,12 @@ func (r PlaywrightWorkspaceResource) Create() sdk.ResourceFunc {
 				Tags: pointer.To(config.Tags),
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, param, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
-			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
-				return err
-			}
-
-			return nil
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id)
 		},
 	}
 }
@@ -141,7 +137,7 @@ func (r PlaywrightWorkspaceResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("tags") {
 				param.Tags = pointer.To(config.Tags)
 			}
-
+			// `PATCH` is used instead of `PUT` as `tags` property fails to be updated via `PUT` due to API issue
 			if _, err := client.Update(ctx, *id, param); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
@@ -209,16 +205,11 @@ func (PlaywrightWorkspaceResource) flatten(metadata sdk.ResourceMetaData, id *pl
 	}
 
 	if model != nil {
-		state.Location = location.NormalizeNilable(&model.Location)
+		state.Location = location.Normalize(model.Location)
 
 		if properties := model.Properties; properties != nil {
-			if dataplaneUri := properties.DataplaneUri; dataplaneUri != nil {
-				state.DataplaneUri = pointer.From(dataplaneUri)
-			}
-
-			if workspaceId := properties.WorkspaceId; workspaceId != nil {
-				state.WorkspaceId = pointer.From(workspaceId)
-			}
+			state.DataplaneUri = pointer.From(properties.DataplaneUri)
+			state.Uuid = pointer.From(properties.WorkspaceId)
 		}
 
 		state.Tags = pointer.From(model.Tags)

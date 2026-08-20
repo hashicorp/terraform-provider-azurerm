@@ -28,7 +28,7 @@ type PlaywrightWorkspaceDataSourceModel struct {
 	ResourceGroupName string            `tfschema:"resource_group_name"`
 	Location          string            `tfschema:"location"`
 	DataplaneUri      string            `tfschema:"dataplane_uri"`
-	WorkspaceId       string            `tfschema:"workspace_id"`
+	Uuid              string            `tfschema:"uuid"`
 	Tags              map[string]string `tfschema:"tags"`
 }
 
@@ -55,7 +55,7 @@ func (PlaywrightWorkspaceDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"workspace_id": {
+		"uuid": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -97,16 +97,11 @@ func (PlaywrightWorkspaceDataSource) Read() sdk.ResourceFunc {
 			metadata.SetID(id)
 
 			if model := resp.Model; model != nil {
-				state.Location = location.NormalizeNilable(&model.Location)
+				state.Location = location.Normalize(model.Location)
 
 				if properties := model.Properties; properties != nil {
-					if dataplaneUri := properties.DataplaneUri; dataplaneUri != nil {
-						state.DataplaneUri = pointer.From(dataplaneUri)
-					}
-
-					if workspaceId := properties.WorkspaceId; workspaceId != nil {
-						state.WorkspaceId = pointer.From(workspaceId)
-					}
+					state.DataplaneUri = pointer.From(properties.DataplaneUri)
+					state.Uuid = pointer.From(properties.WorkspaceId)
 				}
 
 				state.Tags = pointer.From(model.Tags)
