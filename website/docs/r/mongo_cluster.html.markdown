@@ -59,6 +59,10 @@ The following arguments are supported:
 
 -> **Note:** When adding or removing `identity`, a resource recreation will be triggered.
 
+* `network_bypass_mode` - (Optional) The network bypass mode for the MongoDB Cluster. The only possible value is `AzureCosmosDB`; omitting this argument disables network bypass.
+
+~> **Note:** `network_bypass_mode` can only be set to `AzureCosmosDB` when `public_network_access` is `Disabled`, `authentication_methods` contains only `MicrosoftEntraID`, and no firewall rules exist on the cluster. When enabling this mode on an existing cluster, the provider applies the public network access and authentication changes first; firewall rules must be deleted separately, and Azure returns an error if any remain.
+
 * `preview_features` - (Optional) The preview features that can be enabled on the MongoDB Cluster. Changing this forces a new resource to be created.
 
 * `restore` - (Optional) A `restore` block as defined below. Required when `create_mode` is set to `PointInTimeRestore`. Changing this forces a new resource to be created.
@@ -83,7 +87,9 @@ The following arguments are supported:
 
 * `storage_size_in_gb` - (Optional) The size of the data disk space for the MongoDB Cluster.
 
-* `storage_type` - (Optional) The storage type for the MongoDB Cluster. Possible values are `PremiumSSD` and `PremiumSSDv2`. Defaults to `PremiumSSD`. Changing this forces a new resource to be created.
+* `storage_type` - (Optional) The storage type for the MongoDB Cluster. Possible values are `PremiumSSD` and `PremiumSSDv2`. Defaults to `PremiumSSD`.
+
+~> **Note:** `storage_type` cannot be changed in place, since online migration between `PremiumSSD` and `PremiumSSDv2` is not supported. To upgrade the storage type, create a new cluster with `create_mode` set to `PointInTimeRestore` or `GeoReplica` and the desired `storage_type` and `storage_size_in_gb`. When `storage_type` is `PremiumSSDv2`, `high_availability_mode` must be `Disabled`, `customer_managed_key` cannot be set, and only one of `compute_tier`, `storage_size_in_gb` or `high_availability_mode` can be changed per update.
 
 * `version` - (Optional) The version for the MongoDB Cluster. Possibles values are `5.0`, `6.0`, `7.0` and `8.0`.
 
@@ -125,6 +131,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `connection_strings` - One or more `connection_strings` blocks as defined below.
 
+* `earliest_restore_time` - The earliest point in time (in UTC) to which the MongoDB Cluster can be restored.
+
 ---
 
 A `connection_strings` block exports the following:
@@ -156,4 +164,4 @@ terraform import azurerm_mongo_cluster.example /subscriptions/00000000-0000-0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DocumentDB` - 2025-09-01
+* `Microsoft.DocumentDB` - 2026-06-01
