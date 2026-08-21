@@ -349,7 +349,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 			Computed:      true,
 			Optional:      true,
 			ConflictsWith: []string{"virtual_network_application_traffic_enabled"},
-			Deprecated:    "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v5.0 of the AzureRM Provider",
+			Deprecated:    "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v6.0 of the AzureRM Provider",
 		}
 	}
 
@@ -549,7 +549,7 @@ func SiteConfigSchemaLinuxFunctionAppComputed() *pluginsdk.Schema {
 		s.Elem.(*pluginsdk.Resource).Schema["vnet_route_all_enabled"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeBool,
 			Computed:   true,
-			Deprecated: "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v5.0 of the AzureRM Provider",
+			Deprecated: "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v6.0 of the AzureRM Provider",
 		}
 	}
 
@@ -827,7 +827,7 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 			Optional:      true,
 			Computed:      true,
 			ConflictsWith: []string{"virtual_network_application_traffic_enabled"},
-			Deprecated:    "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v5.0 of the AzureRM Provider",
+			Deprecated:    "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v6.0 of the AzureRM Provider",
 		}
 	}
 
@@ -1141,7 +1141,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 			Optional:      true,
 			Computed:      true,
 			ConflictsWith: []string{"virtual_network_application_traffic_enabled"},
-			Deprecated:    "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v5.0 of the AzureRM Provider",
+			Deprecated:    "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v6.0 of the AzureRM Provider",
 		}
 	}
 
@@ -1330,7 +1330,7 @@ func SiteConfigSchemaWindowsFunctionAppComputed() *pluginsdk.Schema {
 		s.Elem.(*pluginsdk.Resource).Schema["vnet_route_all_enabled"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeBool,
 			Computed:   true,
-			Deprecated: "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v5.0 of the AzureRM Provider",
+			Deprecated: "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v6.0 of the AzureRM Provider",
 		}
 	}
 

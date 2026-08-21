@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2025-05-01/webapps"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
