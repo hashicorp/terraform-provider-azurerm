@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	appplatform_rm "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
@@ -42,7 +42,9 @@ func resourceSpringCloudApp() *pluginsdk.Resource {
 		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.SpringCloudAppID(id)
+			// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+			// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+			_, err := appplatform_rm.ParseAppIDInsensitively(id)
 			return err
 		}),
 
@@ -238,14 +240,14 @@ func resourceSpringCloudAppCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewSpringCloudAppID(subscriptionId, d.Get("resource_group_name").(string), d.Get("service_name").(string), d.Get("name").(string))
-	serviceResp, err := servicesClient.Get(ctx, id.ResourceGroup, id.SpringName)
+	id := appplatform_rm.NewAppID(subscriptionId, d.Get("resource_group_name").(string), d.Get("service_name").(string), d.Get("name").(string))
+	serviceResp, err := servicesClient.Get(ctx, id.ResourceGroupName, id.SpringName)
 	if err != nil {
 		return fmt.Errorf("unable to retrieve %q: %+v", id, err)
 	}
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.AppName, "")
+		existing, err := client.Get(ctx, id.ResourceGroupName, id.SpringName, id.AppName, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of existing %q: %+v", id, err)
@@ -276,7 +278,7 @@ func resourceSpringCloudAppCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			CustomPersistentDisks: expandAppCustomPersistentDiskResourceArray(d.Get("custom_persistent_disk").([]interface{}), id),
 		},
 	}
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.AppName, app)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.SpringName, id.AppName, app)
 	if err != nil {
 		return fmt.Errorf("creating %q: %+v", id, err)
 	}
@@ -299,7 +301,7 @@ func resourceSpringCloudAppCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	// IngressSettings could only be set by update
 	// Issue: https://github.com/Azure/azure-rest-api-specs/issues/21536
 	app.Properties.IngressSettings = expandSpringCloudAppIngressSetting(d.Get("ingress_settings").([]interface{}))
-	future, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.AppName, app)
+	future, err = client.CreateOrUpdate(ctx, id.ResourceGroupName, id.SpringName, id.AppName, app)
 	if err != nil {
 		return fmt.Errorf("update %q: %+v", id, err)
 	}
@@ -315,7 +317,9 @@ func resourceSpringCloudAppUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SpringCloudAppID(d.Id())
+	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+	id, err := appplatform_rm.ParseAppIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
@@ -347,7 +351,7 @@ func resourceSpringCloudAppUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			PublicEndpoint: pointer.To(enabled),
 		}
 	}
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.AppName, app)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.SpringName, id.AppName, app)
 	if err != nil {
 		return fmt.Errorf("update %s: %+v", id, err)
 	}
@@ -363,24 +367,26 @@ func resourceSpringCloudAppRead(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SpringCloudAppID(d.Id())
+	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+	id, err := appplatform_rm.ParseAppIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.AppName, "")
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.SpringName, id.AppName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Spring Cloud App %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", id.AppName, id.SpringName, id.ResourceGroup, err)
+		return fmt.Errorf("reading Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", id.AppName, id.SpringName, id.ResourceGroupName, err)
 	}
 
 	d.Set("name", id.AppName)
 	d.Set("service_name", id.SpringName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	identity, err := flattenSpringCloudAppIdentity(resp.Identity)
 	if err != nil {
@@ -421,12 +427,14 @@ func resourceSpringCloudAppDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SpringCloudAppID(d.Id())
+	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+	id, err := appplatform_rm.ParseAppIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.SpringName, id.AppName)
+	future, err := client.Delete(ctx, id.ResourceGroupName, id.SpringName, id.AppName)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
@@ -469,12 +477,12 @@ func expandSpringCloudAppPersistentDisk(input []interface{}) *appplatform.Persis
 	}
 }
 
-func expandAppCustomPersistentDiskResourceArray(input []interface{}, id parse.SpringCloudAppId) *[]appplatform.CustomPersistentDiskResource {
+func expandAppCustomPersistentDiskResourceArray(input []interface{}, id appplatform_rm.AppId) *[]appplatform.CustomPersistentDiskResource {
 	results := make([]appplatform.CustomPersistentDiskResource, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})
 		results = append(results, appplatform.CustomPersistentDiskResource{
-			StorageID: pointer.To(parse.NewSpringCloudStorageID(id.SubscriptionId, id.ResourceGroup, id.SpringName, v["storage_name"].(string)).ID()),
+			StorageID: pointer.To(appplatform_rm.NewStorageID(id.SubscriptionId, id.ResourceGroupName, id.SpringName, v["storage_name"].(string)).ID()),
 			CustomPersistentDiskProperties: &appplatform.AzureFileVolume{
 				ShareName:    pointer.To(v["share_name"].(string)),
 				MountPath:    pointer.To(v["mount_path"].(string)),
@@ -565,7 +573,7 @@ func flattenAppCustomPersistentDiskResourceArray(input *[]appplatform.CustomPers
 			// The returned value has inconsistent casing
 			// TODO: Remove the normalization codes once the following issue is fixed.
 			// Issue: https://github.com/Azure/azure-rest-api-specs/issues/22205
-			if id, err := parse.SpringCloudStorageIDInsensitively(*item.StorageID); err == nil {
+			if id, err := appplatform_rm.ParseStorageIDInsensitively(*item.StorageID); err == nil {
 				storageName = id.StorageName
 			}
 		}
@@ -609,7 +617,7 @@ func flattenSpringCloudAppAddon(configs map[string]interface{}) *string {
 	if raw, ok := configs["applicationConfigurationService"]; ok && raw != nil {
 		if applicationConfigurationService, ok := raw.(map[string]interface{}); ok && len(applicationConfigurationService) != 0 {
 			if resourceId, ok := applicationConfigurationService["resourceId"]; ok && resourceId != nil {
-				applicationConfigurationServiceId, err := parse.SpringCloudConfigurationServiceIDInsensitively(resourceId.(string))
+				applicationConfigurationServiceId, err := appplatform_rm.ParseConfigurationServiceIDInsensitively(resourceId.(string))
 				if err == nil {
 					applicationConfigurationService["resourceId"] = applicationConfigurationServiceId.ID()
 					configs["applicationConfigurationService"] = applicationConfigurationService
@@ -620,7 +628,7 @@ func flattenSpringCloudAppAddon(configs map[string]interface{}) *string {
 	if raw, ok := configs["serviceRegistry"]; ok && raw != nil {
 		if serviceRegistry, ok := raw.(map[string]interface{}); ok && len(serviceRegistry) != 0 {
 			if resourceId, ok := serviceRegistry["resourceId"]; ok && resourceId != nil {
-				serviceRegistryId, err := parse.SpringCloudServiceRegistryIDInsensitively(resourceId.(string))
+				serviceRegistryId, err := appplatform_rm.ParseServiceRegistryIDInsensitively(resourceId.(string))
 				if err == nil {
 					serviceRegistry["resourceId"] = serviceRegistryId.ID()
 					configs["serviceRegistry"] = serviceRegistry

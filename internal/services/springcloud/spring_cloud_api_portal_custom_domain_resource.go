@@ -9,12 +9,12 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	appplatform_rm "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
@@ -42,7 +42,9 @@ func resourceSpringCloudAPIPortalCustomDomain() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.SpringCloudAPIPortalCustomDomainID(id)
+			// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+			// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+			_, err := appplatform_rm.ParseApiPortalDomainIDInsensitively(id)
 			return err
 		}),
 
@@ -57,7 +59,7 @@ func resourceSpringCloudAPIPortalCustomDomain() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.SpringCloudAPIPortalID,
+				ValidateFunc: validation.AsGeneratedID(appplatform_rm.ParseApiPortalIDInsensitively),
 			},
 
 			"thumbprint": {
@@ -74,15 +76,17 @@ func resourceSpringCloudAPIPortalCustomDomainCreateUpdate(d *pluginsdk.ResourceD
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	portalId, err := parse.SpringCloudAPIPortalID(d.Get("spring_cloud_api_portal_id").(string))
+	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+	portalId, err := appplatform_rm.ParseApiPortalIDInsensitively(d.Get("spring_cloud_api_portal_id").(string))
 	if err != nil {
 		return err
 	}
-	id := parse.NewSpringCloudAPIPortalCustomDomainID(subscriptionId, portalId.ResourceGroup, portalId.SpringName, portalId.ApiPortalName, d.Get("name").(string))
+	id := appplatform_rm.NewApiPortalDomainID(subscriptionId, portalId.ResourceGroupName, portalId.SpringName, portalId.ApiPortalName, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-			existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.ApiPortalName, id.DomainName)
+			existing, err := client.Get(ctx, id.ResourceGroupName, id.SpringName, id.ApiPortalName, id.DomainName)
 			if err != nil {
 				if !utils.ResponseWasNotFound(existing.Response) {
 					return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -99,7 +103,7 @@ func resourceSpringCloudAPIPortalCustomDomainCreateUpdate(d *pluginsdk.ResourceD
 			Thumbprint: pointer.To(d.Get("thumbprint").(string)),
 		},
 	}
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.ApiPortalName, id.DomainName, apiPortalCustomDomainResource)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.SpringName, id.ApiPortalName, id.DomainName, apiPortalCustomDomainResource)
 	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
@@ -120,12 +124,14 @@ func resourceSpringCloudAPIPortalCustomDomainRead(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SpringCloudAPIPortalCustomDomainID(d.Id())
+	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+	id, err := appplatform_rm.ParseApiPortalDomainIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.ApiPortalName, id.DomainName)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.SpringName, id.ApiPortalName, id.DomainName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] appplatform %q does not exist - removing from state", d.Id())
@@ -135,7 +141,7 @@ func resourceSpringCloudAPIPortalCustomDomainRead(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 	d.Set("name", id.DomainName)
-	d.Set("spring_cloud_api_portal_id", parse.NewSpringCloudAPIPortalID(id.SubscriptionId, id.ResourceGroup, id.SpringName, id.ApiPortalName).ID())
+	d.Set("spring_cloud_api_portal_id", appplatform_rm.NewApiPortalID(id.SubscriptionId, id.ResourceGroupName, id.SpringName, id.ApiPortalName).ID())
 	if props := resp.Properties; props != nil {
 		d.Set("thumbprint", props.Thumbprint)
 	}
@@ -147,12 +153,14 @@ func resourceSpringCloudAPIPortalCustomDomainDelete(d *pluginsdk.ResourceData, m
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SpringCloudAPIPortalCustomDomainID(d.Id())
+	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+	id, err := appplatform_rm.ParseApiPortalDomainIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.SpringName, id.ApiPortalName, id.DomainName)
+	future, err := client.Delete(ctx, id.ResourceGroupName, id.SpringName, id.ApiPortalName, id.DomainName)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}

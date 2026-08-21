@@ -15,8 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -176,7 +174,7 @@ func (s SpringCloudCustomizedAcceleratorResource) Arguments() map[string]*schema
 					"ca_certificate_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validate.SpringCloudCertificateID,
+						ValidateFunc: validation.AsGeneratedID(appplatform.ParseCertificateIDInsensitively),
 					},
 
 					"commit": {
@@ -482,14 +480,14 @@ func flattenSpringCloudCustomizedAcceleratorGitRepository(state []GitRepositoryM
 
 	caCertificateId := ""
 	if publicAuthSetting, ok := input.AuthSetting.(appplatform.AcceleratorPublicSetting); ok && publicAuthSetting.CaCertResourceId != nil {
-		certificatedId, err := parse.SpringCloudCertificateIDInsensitively(*publicAuthSetting.CaCertResourceId)
+		certificatedId, err := appplatform.ParseCertificateIDInsensitively(*publicAuthSetting.CaCertResourceId)
 		if err == nil {
 			caCertificateId = certificatedId.ID()
 		}
 	}
 	if basicAuthSetting, ok := input.AuthSetting.(appplatform.AcceleratorBasicAuthSetting); ok {
 		if basicAuthSetting.CaCertResourceId != nil {
-			certificatedId, err := parse.SpringCloudCertificateIDInsensitively(*basicAuthSetting.CaCertResourceId)
+			certificatedId, err := appplatform.ParseCertificateIDInsensitively(*basicAuthSetting.CaCertResourceId)
 			if err == nil {
 				caCertificateId = certificatedId.ID()
 			}
