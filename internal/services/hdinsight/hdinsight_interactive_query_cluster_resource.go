@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/clusters"
@@ -253,24 +252,22 @@ func resourceHDInsightInteractiveQueryClusterCreate(d *pluginsdk.ResourceData, m
 	}
 
 	if diskEncryptionPropertiesRaw, ok := d.GetOk("disk_encryption"); ok {
-		params.Properties.DiskEncryptionProperties, err = ExpandHDInsightsDiskEncryptionProperties(diskEncryptionPropertiesRaw.([]interface{}))
+		diskEncryptionProperties, diskEncryptionIdentity, err := ExpandHDInsightsDiskEncryptionProperties(diskEncryptionPropertiesRaw.([]interface{}))
 		if err != nil {
 			return err
+		}
+		params.Properties.DiskEncryptionProperties = diskEncryptionProperties
+		if diskEncryptionIdentity != nil {
+			for identityId := range diskEncryptionIdentity.IdentityIds {
+				params.Identity = addHDInsightUserAssignedIdentity(params.Identity, identityId)
+			}
 		}
 	}
 
 	if v, ok := d.GetOk("security_profile"); ok {
 		params.Properties.SecurityProfile = ExpandHDInsightSecurityProfile(v.([]interface{}))
-
-		// @tombuildsstuff: this behaviour is likely wrong and wants reevaluating - users should need to explicitly define this in the config?
-		params.Identity = &identity.SystemAndUserAssignedMap{
-			Type:        identity.TypeUserAssigned,
-			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
-		}
 		if params.Properties.SecurityProfile != nil && params.Properties.SecurityProfile.MsiResourceId != nil {
-			params.Identity.IdentityIds[*params.Properties.SecurityProfile.MsiResourceId] = identity.UserAssignedIdentityDetails{
-				// intentionally empty
-			}
+			params.Identity = addHDInsightUserAssignedIdentity(params.Identity, *params.Properties.SecurityProfile.MsiResourceId)
 		}
 	}
 

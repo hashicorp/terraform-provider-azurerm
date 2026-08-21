@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/clusters"
@@ -296,24 +295,22 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if diskEncryptionPropertiesRaw, ok := d.GetOk("disk_encryption"); ok {
-		payload.Properties.DiskEncryptionProperties, err = ExpandHDInsightsDiskEncryptionProperties(diskEncryptionPropertiesRaw.([]interface{}))
+		diskEncryptionProperties, diskEncryptionIdentity, err := ExpandHDInsightsDiskEncryptionProperties(diskEncryptionPropertiesRaw.([]interface{}))
 		if err != nil {
 			return err
+		}
+		payload.Properties.DiskEncryptionProperties = diskEncryptionProperties
+		if diskEncryptionIdentity != nil {
+			for identityId := range diskEncryptionIdentity.IdentityIds {
+				payload.Identity = addHDInsightUserAssignedIdentity(payload.Identity, identityId)
+			}
 		}
 	}
 
 	if v, ok := d.GetOk("security_profile"); ok {
 		payload.Properties.SecurityProfile = ExpandHDInsightSecurityProfile(v.([]interface{}))
-
-		// @tombuildsstuff: this behaviour is likely wrong and wants reevaluating - users should need to explicitly define this in the config?
-		payload.Identity = &identity.SystemAndUserAssignedMap{
-			Type:        identity.TypeUserAssigned,
-			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
-		}
 		if payload.Properties.SecurityProfile != nil && payload.Properties.SecurityProfile.MsiResourceId != nil {
-			payload.Identity.IdentityIds[*payload.Properties.SecurityProfile.MsiResourceId] = identity.UserAssignedIdentityDetails{
-				// intentionally empty
-			}
+			payload.Identity = addHDInsightUserAssignedIdentity(payload.Identity, *payload.Properties.SecurityProfile.MsiResourceId)
 		}
 	}
 
