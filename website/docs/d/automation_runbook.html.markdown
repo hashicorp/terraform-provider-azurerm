@@ -106,8 +106,6 @@ The `job_schedule` block supports:
 
 * `parameters` -  A map of key/value pairs corresponding to the arguments that can be passed to the Runbook.
 
--> **Note:** The parameter keys/names must strictly be in lowercase, even if this is not the case in the runbook. This is due to a limitation in Azure Automation where the parameter names are normalized. The values specified don't have this limitation.
-
 * `run_on` - Name of a Hybrid Worker Group the Runbook will be executed on.
 
 ## Timeouts
