@@ -514,14 +514,11 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 				},
 			},
 
-<<<<<<< HEAD
 			"target_node_communication_mode": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
-=======
->>>>>>> a45ae87cc10578cdd54872b5c99dbf0dd81a1377
 			"task_scheduling_policy": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
