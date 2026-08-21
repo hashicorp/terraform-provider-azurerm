@@ -26,6 +26,20 @@ import (
 
 type RoleAssignmentMarketplaceResource struct{}
 
+func TestAccRoleAssignmentMarketplace_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_marketplace_role_assignment", "test")
+	r := RoleAssignmentMarketplaceResource{}
+	roleName := "Reader"
+
+	data.ResourceSequentialRegressionTest(t, r, []acceptance.TestStep{
+		{
+			// Last error may cause the role already assigned. Need to delete it before a new test.
+			PreConfig: r.deleteAssignedRole(t, roleName),
+			Config:    r.emptyNameConfig(roleName),
+		},
+	}, "")
+}
+
 func TestAccRoleAssignmentMarketplace_emptyName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_marketplace_role_assignment", "test")
 	r := RoleAssignmentMarketplaceResource{}

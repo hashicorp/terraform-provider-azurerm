@@ -14,6 +14,16 @@ import (
 
 type WindowsFunctionAppDataSource struct{}
 
+func TestAccWindowsFunctionAppDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_windows_function_app", "test")
+	r := WindowsFunctionAppDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccWindowsFunctionAppDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_windows_function_app", "test")
 	d := WindowsFunctionAppDataSource{}
