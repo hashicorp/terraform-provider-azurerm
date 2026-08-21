@@ -102,3 +102,7 @@ Please follow the format in the example below for listing breaking changes in da
 ```
 
 ---
+
+### `azurerm_app_service_environment_v3`
+
+* The deprecated `inbound_network_dependencies` property has been removed as it is no longer supported by the resource.

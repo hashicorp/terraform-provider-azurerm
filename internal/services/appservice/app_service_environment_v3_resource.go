@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/appserviceenvironments"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/preflight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
@@ -42,7 +43,7 @@ type AppServiceEnvironmentV3Model struct {
 	Tags                               map[string]string                 `tfschema:"tags"`
 	DnsSuffix                          string                            `tfschema:"dns_suffix"`
 	ExternalInboundIPAddresses         []string                          `tfschema:"external_inbound_ip_addresses"`
-	InboundNetworkDependencies         []AppServiceV3InboundDependencies `tfschema:"inbound_network_dependencies"`
+	InboundNetworkDependencies         []AppServiceV3InboundDependencies `tfschema:"inbound_network_dependencies,removedInNextMajorVersion"`
 	InternalInboundIPAddresses         []string                          `tfschema:"internal_inbound_ip_addresses"`
 	IpSSLAddressCount                  int64                             `tfschema:"ip_ssl_address_count"`
 	LinuxOutboundIPAddresses           []string                          `tfschema:"linux_outbound_ip_addresses"`
@@ -153,7 +154,7 @@ func (r AppServiceEnvironmentV3Resource) Arguments() map[string]*pluginsdk.Schem
 }
 
 func (r AppServiceEnvironmentV3Resource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	schema := map[string]*pluginsdk.Schema{
 		"dns_suffix": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -164,35 +165,6 @@ func (r AppServiceEnvironmentV3Resource) Attributes() map[string]*pluginsdk.Sche
 			Computed: true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
-			},
-		},
-
-		"inbound_network_dependencies": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"description": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"ip_addresses": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-						},
-					},
-
-					"ports": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-						},
-					},
-				},
 			},
 		},
 
@@ -235,6 +207,38 @@ func (r AppServiceEnvironmentV3Resource) Attributes() map[string]*pluginsdk.Sche
 			},
 		},
 	}
+	if !features.SixPointOh() {
+		schema["inbound_network_dependencies"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"description": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"ip_addresses": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+
+					"ports": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+				},
+			},
+			Deprecated: "the `inboundNetworkDependenciesEndpoints` is deprecated and it will be removed in v6.0 of the AzureRM Provider.",
+		}
+	}
+	return schema
 }
 
 func (r AppServiceEnvironmentV3Resource) ModelObject() interface{} {
@@ -488,13 +492,16 @@ func (r AppServiceEnvironmentV3Resource) Read() sdk.ResourceFunc {
 						state.RemoteDebuggingEnabled = pointer.From(props.RemoteDebugEnabled)
 					}
 				}
-				inboundNetworkDependencies, err := flattenInboundNetworkDependencies(ctx, client, id)
-				if err != nil {
-					return err
+				if !features.SixPointOh() {
+					// The `inboundNetworkDependenciesEndpoints` API is not supported on App Service Environment v3 and
+					// returns an error for `ASEV3` resources, so we log and continue rather than failing the Read.
+					inboundNetworkDependencies, err := flattenInboundNetworkDependencies(ctx, client, id)
+					if err != nil {
+						metadata.Logger.Warnf("retrieving Inbound Network Dependencies for %s: %+v", *id, err)
+					} else {
+						state.InboundNetworkDependencies = *inboundNetworkDependencies
+					}
 				}
-
-				state.InboundNetworkDependencies = *inboundNetworkDependencies
-
 				state.Tags = pointer.From(model.Tags)
 			}
 
@@ -639,6 +646,7 @@ func expandClusterSettingsModel(input []ClusterSettingModel) *[]appserviceenviro
 	return &clusterSettings
 }
 
+// remove this function in 6.0 - the inboundNetworkDependenciesEndpoints API is not supported for App Service Environment v3 and the attribute is no longer populated.
 func flattenInboundNetworkDependencies(ctx context.Context, client *appserviceenvironments.AppServiceEnvironmentsClient, id *commonids.AppServiceEnvironmentId) (*[]AppServiceV3InboundDependencies, error) {
 	inboundNetworking, err := client.GetInboundNetworkDependenciesEndpointsComplete(ctx, *id)
 	if err != nil {

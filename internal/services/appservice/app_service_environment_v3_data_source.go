@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -35,7 +36,7 @@ type AppServiceEnvironmentV3DataSourceModel struct {
 	Tags                               map[string]string                 `tfschema:"tags"`
 	DnsSuffix                          string                            `tfschema:"dns_suffix"`
 	ExternalInboundIPAddresses         []string                          `tfschema:"external_inbound_ip_addresses"`
-	InboundNetworkDependencies         []AppServiceV3InboundDependencies `tfschema:"inbound_network_dependencies"`
+	InboundNetworkDependencies         []AppServiceV3InboundDependencies `tfschema:"inbound_network_dependencies,removedInNextMajorVersion"`
 	InternalInboundIPAddresses         []string                          `tfschema:"internal_inbound_ip_addresses"`
 	IpSSLAddressCount                  int64                             `tfschema:"ip_ssl_address_count"`
 	LinuxOutboundIPAddresses           []string                          `tfschema:"linux_outbound_ip_addresses"`
@@ -57,7 +58,7 @@ func (r AppServiceEnvironmentV3DataSource) Arguments() map[string]*pluginsdk.Sch
 }
 
 func (r AppServiceEnvironmentV3DataSource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	schema := map[string]*pluginsdk.Schema{
 		"allow_new_private_endpoint_connections": {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
@@ -96,35 +97,6 @@ func (r AppServiceEnvironmentV3DataSource) Attributes() map[string]*pluginsdk.Sc
 			Computed: true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
-			},
-		},
-
-		"inbound_network_dependencies": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"description": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"ip_addresses": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-						},
-					},
-
-					"ports": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-						},
-					},
-				},
 			},
 		},
 
@@ -189,6 +161,38 @@ func (r AppServiceEnvironmentV3DataSource) Attributes() map[string]*pluginsdk.Sc
 
 		"tags": commonschema.TagsDataSource(),
 	}
+	if !features.SixPointOh() {
+		schema["inbound_network_dependencies"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"description": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"ip_addresses": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+
+					"ports": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+				},
+			},
+			Deprecated: "the `inboundNetworkDependenciesEndpoints` is deprecated and it will be removed in v6.0 of the AzureRM Provider.",
+		}
+	}
+	return schema
 }
 
 func (r AppServiceEnvironmentV3DataSource) ModelObject() interface{} {
@@ -251,12 +255,16 @@ func (r AppServiceEnvironmentV3DataSource) Read() sdk.ResourceFunc {
 					}
 				}
 
-				inboundNetworkDependencies, err := flattenInboundNetworkDependencies(ctx, client, &id)
-				if err != nil {
-					return err
+				if !features.SixPointOh() {
+					// The `inboundNetworkDependenciesEndpoints` API is not supported on App Service Environment v3 and
+					// returns an error for `ASEV3` resources, so we log and continue rather than failing the Read.
+					inboundNetworkDependencies, err := flattenInboundNetworkDependencies(ctx, client, &id)
+					if err != nil {
+						metadata.Logger.Warnf("retrieving Inbound Network Dependencies for %s: %+v", id, err)
+					} else {
+						state.InboundNetworkDependencies = *inboundNetworkDependencies
+					}
 				}
-				state.InboundNetworkDependencies = *inboundNetworkDependencies
-
 				state.Tags = pointer.From(model.Tags)
 			}
 
