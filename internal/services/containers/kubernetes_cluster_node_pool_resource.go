@@ -158,6 +158,11 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		// Optional
+		"artifact_streaming_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		},
+
 		"capacity_reservation_group_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -546,6 +551,12 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		Count: pointer.To(int64(count)),
 	}
 
+	if d.Get("artifact_streaming_enabled").(bool) {
+		profile.ArtifactStreamingProfile = &agentpools.AgentPoolArtifactStreamingProfile{
+			Enabled: pointer.To(true),
+		}
+	}
+
 	if gpuInstanceProfile := d.Get("gpu_instance").(string); gpuInstanceProfile != "" {
 		profile.GpuInstanceProfile = pointer.ToEnum[agentpools.GPUInstanceProfile](gpuInstanceProfile)
 	}
@@ -767,6 +778,12 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	if d.HasChange("auto_scaling_enabled") {
 		enableAutoScaling = d.Get("auto_scaling_enabled").(bool)
 		props.EnableAutoScaling = pointer.To(enableAutoScaling)
+	}
+
+	if d.HasChange("artifact_streaming_enabled") {
+		props.ArtifactStreamingProfile = &agentpools.AgentPoolArtifactStreamingProfile{
+			Enabled: pointer.To(d.Get("artifact_streaming_enabled").(bool)),
+		}
 	}
 
 	if d.HasChange("fips_enabled") {
@@ -1074,6 +1091,11 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 		d.Set("zones", zones.FlattenUntyped(props.AvailabilityZones))
 
 		d.Set("auto_scaling_enabled", props.EnableAutoScaling)
+		artifactStreamingEnabled := false
+		if props.ArtifactStreamingProfile != nil {
+			artifactStreamingEnabled = pointer.From(props.ArtifactStreamingProfile.Enabled)
+		}
+		d.Set("artifact_streaming_enabled", artifactStreamingEnabled)
 		d.Set("node_public_ip_enabled", props.EnableNodePublicIP)
 		d.Set("host_encryption_enabled", props.EnableEncryptionAtHost)
 		d.Set("fips_enabled", props.EnableFIPS)
