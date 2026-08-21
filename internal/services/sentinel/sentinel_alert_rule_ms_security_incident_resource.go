@@ -60,17 +60,9 @@ func resourceSentinelAlertRuleMsSecurityIncident() *pluginsdk.Resource {
 			},
 
 			"product_filter": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(alertrules.MicrosoftSecurityProductNameMicrosoftCloudAppSecurity),
-					string(alertrules.MicrosoftSecurityProductNameAzureSecurityCenter),
-					string(alertrules.MicrosoftSecurityProductNameAzureActiveDirectoryIdentityProtection),
-					string(alertrules.MicrosoftSecurityProductNameAzureSecurityCenterForIoT),
-					string(alertrules.MicrosoftSecurityProductNameAzureAdvancedThreatProtection),
-					string(alertrules.MicrosoftSecurityProductNameMicrosoftDefenderAdvancedThreatProtection),
-					string(alertrules.MicrosoftSecurityProductNameOfficeThreeSixFiveAdvancedThreatProtection),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(alertrules.PossibleValuesForMicrosoftSecurityProductName(), false),
 			},
 
 			"severity_filter": {
@@ -78,13 +70,8 @@ func resourceSentinelAlertRuleMsSecurityIncident() *pluginsdk.Resource {
 				Required: true,
 				MinItems: 1,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(alertrules.AlertSeverityHigh),
-						string(alertrules.AlertSeverityMedium),
-						string(alertrules.AlertSeverityLow),
-						string(alertrules.AlertSeverityInformational),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice(alertrules.PossibleValuesForAlertSeverity(), false),
 				},
 			},
 

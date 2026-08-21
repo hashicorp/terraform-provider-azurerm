@@ -154,15 +154,9 @@ func resourceMonitorMetricAlert() *pluginsdk.Resource {
 							},
 						},
 						"operator": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(metricalerts.OperatorEquals),
-								string(metricalerts.OperatorGreaterThan),
-								string(metricalerts.OperatorGreaterThanOrEqual),
-								string(metricalerts.OperatorLessThan),
-								string(metricalerts.OperatorLessThanOrEqual),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(metricalerts.PossibleValuesForOperator(), false),
 						},
 						"threshold": {
 							Type:     pluginsdk.TypeFloat,
@@ -239,22 +233,14 @@ func resourceMonitorMetricAlert() *pluginsdk.Resource {
 							},
 						},
 						"operator": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(metricalerts.DynamicThresholdOperatorLessThan),
-								string(metricalerts.DynamicThresholdOperatorGreaterThan),
-								string(metricalerts.DynamicThresholdOperatorGreaterOrLessThan),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(metricalerts.PossibleValuesForDynamicThresholdOperator(), false),
 						},
 						"alert_sensitivity": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(metricalerts.DynamicThresholdSensitivityLow),
-								string(metricalerts.DynamicThresholdSensitivityMedium),
-								string(metricalerts.DynamicThresholdSensitivityHigh),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(metricalerts.PossibleValuesForDynamicThresholdSensitivity(), false),
 						},
 
 						"evaluation_total_count": {

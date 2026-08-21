@@ -127,13 +127,9 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 			},
 
 			"upgrade_policy_mode": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualmachinescalesets.UpgradeModeAutomatic),
-					string(virtualmachinescalesets.UpgradeModeManual),
-					string(virtualmachinescalesets.UpgradeModeRolling),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForUpgradeMode(), false),
 			},
 
 			"health_probe_id": {
@@ -210,13 +206,10 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 			},
 
 			"eviction_policy": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualmachinescalesets.VirtualMachineEvictionPolicyTypesDeallocate),
-					string(virtualmachinescalesets.VirtualMachineEvictionPolicyTypesDelete),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForVirtualMachineEvictionPolicyTypes(), false),
 			},
 
 			"os_profile": {

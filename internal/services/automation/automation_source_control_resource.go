@@ -96,13 +96,9 @@ func (m SourceControlResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"source_control_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(sourcecontrol.SourceTypeVsoGit),
-				string(sourcecontrol.SourceTypeVsoTfvc),
-				string(sourcecontrol.SourceTypeGitHub),
-			}, true),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(sourcecontrol.PossibleValuesForSourceType(), true),
 		},
 
 		"description": {
@@ -130,12 +126,9 @@ func (m SourceControlResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"token_type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(sourcecontrol.TokenTypeOauth),
-							string(sourcecontrol.TokenTypePersonalAccessToken),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(sourcecontrol.PossibleValuesForTokenType(), false),
 					},
 				},
 			},

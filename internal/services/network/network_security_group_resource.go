@@ -84,16 +84,9 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 						},
 
 						"protocol": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(networksecuritygroups.SecurityRuleProtocolAny),
-								string(networksecuritygroups.SecurityRuleProtocolTcp),
-								string(networksecuritygroups.SecurityRuleProtocolUdp),
-								string(networksecuritygroups.SecurityRuleProtocolIcmp),
-								string(networksecuritygroups.SecurityRuleProtocolAh),
-								string(networksecuritygroups.SecurityRuleProtocolEsp),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(networksecuritygroups.PossibleValuesForSecurityRuleProtocol(), false),
 						},
 
 						"source_port_range": {
@@ -165,12 +158,9 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 						},
 
 						"access": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(networksecuritygroups.SecurityRuleAccessAllow),
-								string(networksecuritygroups.SecurityRuleAccessDeny),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(networksecuritygroups.PossibleValuesForSecurityRuleAccess(), false),
 						},
 
 						"priority": {
@@ -180,12 +170,9 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 						},
 
 						"direction": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(networksecuritygroups.SecurityRuleDirectionInbound),
-								string(networksecuritygroups.SecurityRuleDirectionOutbound),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(networksecuritygroups.PossibleValuesForSecurityRuleDirection(), false),
 						},
 					},
 				},

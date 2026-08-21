@@ -63,25 +63,18 @@ func resourceContainerGroup() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"ip_address_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(containerinstance.ContainerGroupIPAddressTypePublic),
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(containerinstance.ContainerGroupIPAddressTypePublic),
-					string(containerinstance.ContainerGroupIPAddressTypePrivate),
-					"None",
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(containerinstance.ContainerGroupIPAddressTypePublic),
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(containerinstance.PossibleValuesForContainerGroupIPAddressType(), false),
 			},
 
 			"os_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(containerinstance.OperatingSystemTypesWindows),
-					string(containerinstance.OperatingSystemTypesLinux),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(containerinstance.PossibleValuesForOperatingSystemTypes(), false),
 			},
 
 			"image_registry_credential": {
@@ -159,15 +152,11 @@ func resourceContainerGroup() *pluginsdk.Resource {
 			},
 
 			"restart_policy": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(containerinstance.ContainerGroupRestartPolicyAlways),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(containerinstance.ContainerGroupRestartPolicyAlways),
-					string(containerinstance.ContainerGroupRestartPolicyNever),
-					string(containerinstance.ContainerGroupRestartPolicyOnFailure),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(containerinstance.ContainerGroupRestartPolicyAlways),
+				ValidateFunc: validation.StringInSlice(containerinstance.PossibleValuesForContainerGroupRestartPolicy(), false),
 			},
 
 			"dns_name_label": {
@@ -177,17 +166,11 @@ func resourceContainerGroup() *pluginsdk.Resource {
 			},
 
 			"dns_name_label_reuse_policy": {
-				Type:     pluginsdk.TypeString,
-				ForceNew: true,
-				Optional: true,
-				Default:  string(containerinstance.DnsNameLabelReusePolicyUnsecure),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(containerinstance.DnsNameLabelReusePolicyNoreuse),
-					string(containerinstance.DnsNameLabelReusePolicyResourceGroupReuse),
-					string(containerinstance.DnsNameLabelReusePolicySubscriptionReuse),
-					string(containerinstance.DnsNameLabelReusePolicyTenantReuse),
-					string(containerinstance.DnsNameLabelReusePolicyUnsecure),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				ForceNew:     true,
+				Optional:     true,
+				Default:      string(containerinstance.DnsNameLabelReusePolicyUnsecure),
+				ValidateFunc: validation.StringInSlice(containerinstance.PossibleValuesForDnsNameLabelReusePolicy(), false),
 			},
 
 			"exposed_port": {
@@ -207,14 +190,11 @@ func resourceContainerGroup() *pluginsdk.Resource {
 						},
 
 						"protocol": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ForceNew: true,
-							Default:  string(containerinstance.ContainerGroupNetworkProtocolTCP),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(containerinstance.ContainerGroupNetworkProtocolTCP),
-								string(containerinstance.ContainerGroupNetworkProtocolUDP),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							Default:      string(containerinstance.ContainerGroupNetworkProtocolTCP),
+							ValidateFunc: validation.StringInSlice(containerinstance.PossibleValuesForContainerGroupNetworkProtocol(), false),
 						},
 					},
 				},
@@ -419,13 +399,10 @@ func resourceContainerGroup() *pluginsdk.Resource {
 									},
 
 									"log_type": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-										ForceNew: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(containerinstance.LogAnalyticsLogTypeContainerInsights),
-											string(containerinstance.LogAnalyticsLogTypeContainerInstanceLogs),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ForceNew:     true,
+										ValidateFunc: validation.StringInSlice(containerinstance.PossibleValuesForLogAnalyticsLogType(), false),
 									},
 
 									"metadata": {
