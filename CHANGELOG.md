@@ -1,6 +1,7 @@
 ## 5.3.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_managed_application` - add support for the `identity` block [GH-30725]
 
 FEATURES:
 
