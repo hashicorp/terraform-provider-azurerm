@@ -1,3 +1,13 @@
+## 5.3.0 (Unreleased)
+
+ENHANCEMENTS:
+* `azurerm_managed_application` - add support for the `identity` block [GH-30725]
+
+FEATURES:
+
+BUG FIXES:
+* Data Source: `azurerm_app_configuration_key` - now correctly sets `tags` into state [GH-33182]
+
 ## 5.2.0 (August 20, 2026)
 
 FEATURES:
