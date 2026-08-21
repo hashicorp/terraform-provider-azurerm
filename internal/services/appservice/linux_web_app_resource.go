@@ -680,7 +680,7 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 						state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.OutboundVnetRouting.BackupRestoreTraffic)
 						state.VnetImagePullEnabled = pointer.From(props.OutboundVnetRouting.ImagePullTraffic)
 						state.VirtualNetworkApplicationTrafficEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
-						if !features.FivePointOh() {
+						if !features.SixPointOh() {
 							siteConfig.VnetRouteAllEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
 						}
 					}
@@ -890,7 +890,7 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 				vnetRoutingProps.ApplicationTraffic = pointer.To(state.VirtualNetworkApplicationTrafficEnabled)
 			}
 
-			if !features.FivePointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
+			if !features.SixPointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
 				vnetRoutingProps.ApplicationTraffic = &sc.VnetRouteAllEnabled
 			}
 
