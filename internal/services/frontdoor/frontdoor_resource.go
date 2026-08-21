@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2020-04-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2020-05-01/frontdoors"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -381,7 +382,7 @@ func resourceFrontDoorRead(d *pluginsdk.ResourceData, meta interface{}) error {
 					if v.Name == nil || v.Id == nil {
 						continue
 					}
-					rid, err := parse.FrontendEndpointIDInsensitively(*v.Id)
+					rid, err := frontdoors.ParseFrontendEndpointIDInsensitively(*v.Id)
 					if err != nil {
 						continue
 					}
@@ -719,7 +720,7 @@ func expandFrontDoorFrontEndEndpoints(input []interface{}, frontDoorId frontdoor
 	output := make([]frontdoors.SubResource, 0)
 
 	for _, name := range input {
-		frontendEndpointId := parse.NewFrontendEndpointID(frontDoorId.SubscriptionId, frontDoorId.ResourceGroupName, frontDoorId.FrontDoorName, name.(string)).ID()
+		frontendEndpointId := frontdoors.NewFrontendEndpointID(frontDoorId.SubscriptionId, frontDoorId.ResourceGroupName, frontDoorId.FrontDoorName, name.(string)).ID()
 		result := frontdoors.SubResource{
 			Id: pointer.To(frontendEndpointId),
 		}
@@ -1188,7 +1189,7 @@ func flattenSingleFrontEndEndpoints(input frontdoors.FrontendEndpoint, frontDoor
 	name := ""
 	if input.Name != nil {
 		// rewrite the ID to ensure it's consistent
-		id = parse.NewFrontendEndpointID(frontDoorId.SubscriptionId, frontDoorId.ResourceGroupName, frontDoorId.FrontDoorName, *input.Name).ID()
+		id = frontdoors.NewFrontendEndpointID(frontDoorId.SubscriptionId, frontDoorId.ResourceGroupName, frontDoorId.FrontDoorName, *input.Name).ID()
 		name = *input.Name
 	}
 	hostName := ""
@@ -1207,7 +1208,7 @@ func flattenSingleFrontEndEndpoints(input frontdoors.FrontendEndpoint, frontDoor
 		}
 		if waf := props.WebApplicationFirewallPolicyLink; waf != nil && waf.Id != nil {
 			// rewrite the ID to ensure it's consistent
-			parsed, err := parse.WebApplicationFirewallPolicyIDInsensitively(*waf.Id)
+			parsed, err := webapplicationfirewallpolicies.ParseFrontDoorWebApplicationFirewallPolicyIDInsensitively(*waf.Id)
 			if err != nil {
 				return nil, err
 			}
@@ -1685,11 +1686,11 @@ func flattenFrontDoorFrontendEndpointsSubResources(input *[]frontdoors.SubResour
 			continue
 		}
 
-		id, err := parse.FrontendEndpointIDInsensitively(*v.Id)
+		id, err := frontdoors.ParseFrontendEndpointIDInsensitively(*v.Id)
 		if err != nil {
 			return nil, err
 		}
-		output = append(output, id.Name)
+		output = append(output, id.FrontendEndpointName)
 	}
 
 	return &output, nil
@@ -2096,7 +2097,7 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 					"web_application_firewall_policy_link_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: frontDoorValidate.WebApplicationFirewallPolicyID,
+						ValidateFunc: validation.AsGeneratedID(webapplicationfirewallpolicies.ParseFrontDoorWebApplicationFirewallPolicyIDInsensitively),
 					},
 				},
 			},

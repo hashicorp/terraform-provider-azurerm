@@ -9,11 +9,11 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/endpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -371,33 +371,33 @@ func TestAccCdnEndpoint_compressionUpdate(t *testing.T) {
 }
 
 func (r CdnEndpointResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.EndpointID(state.ID)
+	id, err := endpoints.ParseEndpointID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Cdn.EndpointsClient.Get(ctx, id.ResourceGroup, id.ProfileName, id.Name)
+	resp, err := client.Cdn.EndpointsClient.Get(ctx, id.ResourceGroupName, id.ProfileName, id.EndpointName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return pointer.To(false), nil
 		}
-		return nil, fmt.Errorf("retrieving CDN Endpoint %q (Resource Group %q / Profile Name %q): %+v", id.Name, id.ResourceGroup, id.ProfileName, err)
+		return nil, fmt.Errorf("retrieving CDN Endpoint %q (Resource Group %q / Profile Name %q): %+v", id.EndpointName, id.ResourceGroupName, id.ProfileName, err)
 	}
 	return pointer.To(true), nil
 }
 
 func (r CdnEndpointResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.EndpointID(state.ID)
+	id, err := endpoints.ParseEndpointID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
 	endpointsClient := client.Cdn.EndpointsClient
-	future, err := endpointsClient.Delete(ctx, id.ResourceGroup, id.ProfileName, id.Name)
+	future, err := endpointsClient.Delete(ctx, id.ResourceGroupName, id.ProfileName, id.EndpointName)
 	if err != nil {
-		return nil, fmt.Errorf("deleting CDN Endpoint %q (Resource Group %q / Profile %q): %+v", id.Name, id.ResourceGroup, id.ProfileName, err)
+		return nil, fmt.Errorf("deleting CDN Endpoint %q (Resource Group %q / Profile %q): %+v", id.EndpointName, id.ResourceGroupName, id.ProfileName, err)
 	}
 	if err := future.WaitForCompletionRef(ctx, endpointsClient.Client); err != nil {
-		return nil, fmt.Errorf("waiting for deletion of CDN Endpoint %q (Resource Group %q / Profile %q): %+v", id.Name, id.ResourceGroup, id.ProfileName, err)
+		return nil, fmt.Errorf("waiting for deletion of CDN Endpoint %q (Resource Group %q / Profile %q): %+v", id.EndpointName, id.ResourceGroupName, id.ProfileName, err)
 	}
 
 	return pointer.To(true), nil
