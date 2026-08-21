@@ -364,7 +364,6 @@ func resourceSynapseSparkPoolRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 func resourceSynapseSparkPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Synapse.SparkPoolClient
-	workspaceClient := meta.(*clients.Client).Synapse.WorkspaceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -373,41 +372,76 @@ func resourceSynapseSparkPoolUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	workspace, err := workspaceClient.Get(ctx, id.ResourceGroup, id.WorkspaceName)
+	current, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.BigDataPoolName)
 	if err != nil {
-		return fmt.Errorf("reading Synapse workspace %q (Workspace %q / Resource Group %q): %+v", id.WorkspaceName, id.WorkspaceName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving current %s: %+v", *id, err)
 	}
 
-	autoScale := expandArmSparkPoolAutoScaleProperties(d.Get("auto_scale").([]interface{}))
-	bigDataPoolInfo := synapse.BigDataPoolResourceInfo{
-		Location: workspace.Location,
-		BigDataPoolResourceProperties: &synapse.BigDataPoolResourceProperties{
-			AutoPause:                 expandArmSparkPoolAutoPauseProperties(d.Get("auto_pause").([]interface{})),
-			AutoScale:                 autoScale,
-			CacheSize:                 pointer.To(int32(d.Get("cache_size").(int))),
-			IsComputeIsolationEnabled: pointer.To(d.Get("compute_isolation_enabled").(bool)),
-			DynamicExecutorAllocation: &synapse.DynamicExecutorAllocation{
-				Enabled:      pointer.To(d.Get("dynamic_executor_allocation_enabled").(bool)),
-				MinExecutors: pointer.To(int32(d.Get("min_executors").(int))),
-				MaxExecutors: pointer.To(int32(d.Get("max_executors").(int))),
-			},
-			DefaultSparkLogFolder:       pointer.To(d.Get("spark_log_folder").(string)),
-			LibraryRequirements:         expandArmSparkPoolLibraryRequirements(d.Get("library_requirement").([]interface{})),
-			NodeSize:                    synapse.NodeSize(d.Get("node_size").(string)),
-			NodeSizeFamily:              synapse.NodeSizeFamily(d.Get("node_size_family").(string)),
-			SessionLevelPackagesEnabled: pointer.To(d.Get("session_level_packages_enabled").(bool)),
-			SparkConfigProperties:       expandSparkPoolSparkConfig(d.Get("spark_config").([]interface{})),
-			SparkEventsFolder:           pointer.To(d.Get("spark_events_folder").(string)),
-			SparkVersion:                pointer.To(d.Get("spark_version").(string)),
-		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	if d.HasChange("auto_pause") {
+		current.AutoPause = expandArmSparkPoolAutoPauseProperties(d.Get("auto_pause").([]interface{}))
 	}
-	if !*autoScale.Enabled {
-		bigDataPoolInfo.NodeCount = pointer.To(int32(d.Get("node_count").(int)))
+	if d.HasChange("auto_scale") {
+		current.AutoScale = expandArmSparkPoolAutoScaleProperties(d.Get("auto_scale").([]interface{}))
+	}
+	if d.HasChange("cache_size") {
+		current.CacheSize = pointer.To(int32(d.Get("cache_size").(int)))
+	}
+	if d.HasChange("compute_isolation_enabled") {
+		current.IsComputeIsolationEnabled = pointer.To(d.Get("compute_isolation_enabled").(bool))
+	}
+	if d.HasChanges("dynamic_executor_allocation_enabled", "min_executors", "max_executors") {
+		dynamicExecutorAllocation := current.DynamicExecutorAllocation
+		if dynamicExecutorAllocation == nil {
+			dynamicExecutorAllocation = &synapse.DynamicExecutorAllocation{}
+		}
+		if d.HasChange("dynamic_executor_allocation_enabled") {
+			dynamicExecutorAllocation.Enabled = pointer.To(d.Get("dynamic_executor_allocation_enabled").(bool))
+		}
+		if d.HasChange("min_executors") {
+			dynamicExecutorAllocation.MinExecutors = pointer.To(int32(d.Get("min_executors").(int)))
+		}
+		if d.HasChange("max_executors") {
+			dynamicExecutorAllocation.MaxExecutors = pointer.To(int32(d.Get("max_executors").(int)))
+		}
+		current.DynamicExecutorAllocation = dynamicExecutorAllocation
+	}
+	if d.HasChange("spark_config") {
+		current.SparkConfigProperties = expandSparkPoolSparkConfig(d.Get("spark_config").([]interface{}))
+	}
+	if d.HasChange("spark_log_folder") {
+		current.DefaultSparkLogFolder = pointer.To(d.Get("spark_log_folder").(string))
+	}
+	if d.HasChange("library_requirement") {
+		current.LibraryRequirements = expandArmSparkPoolLibraryRequirements(d.Get("library_requirement").([]interface{}))
+	}
+	if d.HasChange("node_size") {
+		current.NodeSize = synapse.NodeSize(d.Get("node_size").(string))
+	}
+	if d.HasChange("node_size_family") {
+		current.NodeSizeFamily = synapse.NodeSizeFamily(d.Get("node_size_family").(string))
+	}
+	if d.HasChange("session_level_packages_enabled") {
+		current.SessionLevelPackagesEnabled = pointer.To(d.Get("session_level_packages_enabled").(bool))
+	}
+	if d.HasChange("spark_events_folder") {
+		current.SparkEventsFolder = pointer.To(d.Get("spark_events_folder").(string))
+	}
+	if d.HasChange("spark_version") {
+		current.SparkVersion = pointer.To(d.Get("spark_version").(string))
+	}
+	if d.HasChange("tags") {
+		current.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+	if d.HasChanges("node_count", "auto_scale") {
+		if _, ok := d.GetOk("auto_scale"); !ok {
+			current.NodeCount = pointer.To(int32(d.Get("node_count").(int)))
+		} else {
+			current.NodeCount = nil
+		}
 	}
 
 	force := pointer.To(false)
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.BigDataPoolName, bigDataPoolInfo, force)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.BigDataPoolName, current, force)
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
