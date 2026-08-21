@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/agentregistrationinformation"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/automationaccount"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -34,8 +35,55 @@ func dataSourceAutomationAccount() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
+			"dsc_primary_access_key": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"dsc_server_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"dsc_secondary_access_key": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"encryption": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"user_assigned_identity_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"key_vault_key_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"location": commonschema.LocationComputed(),
+
+			"local_authentication_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"primary_key": {
 				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
@@ -72,6 +120,13 @@ func dataSourceAutomationAccount() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+
+			"sku_name": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
@@ -112,6 +167,21 @@ func dataSourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}
 		if props := model.Properties; props != nil {
 			d.Set("private_endpoint_connection", flattenPrivateEndpointConnectionsDataSource(props.PrivateEndpointConnections))
 			d.Set("hybrid_service_url", props.AutomationHybridServiceURL)
+			d.Set("local_authentication_enabled", !pointer.From(props.DisableLocalAuth))
+			d.Set("public_network_access_enabled", pointer.From(props.PublicNetworkAccess))
+
+			skuName := ""
+			if sku := props.Sku; sku != nil {
+				skuName = string(sku.Name)
+			}
+			d.Set("sku_name", skuName)
+
+			if err := d.Set("encryption", flattenEncryption(props.Encryption)); err != nil {
+				return fmt.Errorf("setting `encryption`: %+v", err)
+			}
+		}
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
 		}
 	}
 
@@ -128,6 +198,10 @@ func dataSourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}
 	d.Set("endpoint", endpoint)
 	d.Set("primary_key", primaryKey)
 	d.Set("secondary_key", secondaryKey)
+
+	d.Set("dsc_server_endpoint", endpoint)
+	d.Set("dsc_primary_access_key", primaryKey)
+	d.Set("dsc_secondary_access_key", secondaryKey)
 
 	return nil
 }
