@@ -19,6 +19,16 @@ import (
 
 type ApiManagementAuthorizationBackendResource struct{}
 
+func TestAccApiManagementBackend_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
+	r := ApiManagementAuthorizationBackendResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.circuitBreakerRuleComplete(data),
+		},
+	}, "")
+}
+
 func TestAccApiManagementBackend_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
 	r := ApiManagementAuthorizationBackendResource{}

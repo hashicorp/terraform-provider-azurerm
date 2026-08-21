@@ -18,6 +18,16 @@ import (
 
 type ApiManagementIdentityProviderGoogleResource struct{}
 
+func TestAccApiManagementIdentityProviderGoogle_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_google", "test")
+	r := ApiManagementIdentityProviderGoogleResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccApiManagementIdentityProviderGoogle_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_google", "test")
 	r := ApiManagementIdentityProviderGoogleResource{}

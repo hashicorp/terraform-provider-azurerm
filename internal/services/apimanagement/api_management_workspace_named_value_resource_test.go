@@ -16,6 +16,16 @@ import (
 
 type ApiManagementWorkspaceNamedValueResource struct{}
 
+func TestAccApiManagementWorkspaceNamedValue_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_workspace_named_value", "test")
+	r := ApiManagementWorkspaceNamedValueResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccApiManagementWorkspaceNamedValue_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_workspace_named_value", "test")
 	r := ApiManagementWorkspaceNamedValueResource{}

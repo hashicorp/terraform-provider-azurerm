@@ -18,6 +18,16 @@ import (
 
 type ApiManagementProductTagResource struct{}
 
+func TestAccApiManagementProductTag_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_product_tag", "test")
+	r := ApiManagementProductTagResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccApiManagementProductTag_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_product_tag", "test")
 	r := ApiManagementProductTagResource{}
