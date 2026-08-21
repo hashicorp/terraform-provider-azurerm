@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-04-01/agentpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/snapshots"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -802,6 +802,22 @@ func TestAccKubernetesClusterNodePool_windows2022(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.windows2022Config(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.Os").HasValue("Windows"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesClusterNodePool_windows2025(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.windows2025Config(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.Os").HasValue("Windows"),
@@ -2761,6 +2777,31 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_count            = 1
   os_type               = "Windows"
   os_sku                = "Windows2022"
+  tags = {
+    Os = "Windows"
+  }
+  upgrade_settings {
+    max_surge = "10%%"
+  }
+}
+`, r.templateWindowsConfig(data))
+}
+
+func (r KubernetesClusterNodePoolResource) windows2025Config(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "windoz"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 1
+  os_type               = "Windows"
+  os_sku                = "Windows2025"
   tags = {
     Os = "Windows"
   }

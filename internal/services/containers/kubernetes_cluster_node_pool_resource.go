@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-04-01/agentpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/snapshots"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -312,6 +312,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 				string(agentpools.OSSKUUbuntuTwoFourZeroFour),
 				string(agentpools.OSSKUWindowsTwoZeroOneNine),
 				string(agentpools.OSSKUWindowsTwoZeroTwoTwo),
+				string(agentpools.OSSKUWindowsTwoZeroTwoFive),
 			}, false),
 		},
 
