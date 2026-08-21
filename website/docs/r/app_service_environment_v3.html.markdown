@@ -131,10 +131,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `external_inbound_ip_addresses` - The external inbound IP addresses of the App Service Environment V3.
 
-* `inbound_network_dependencies` - An `inbound_network_dependencies` block as defined below.
-
-~> **Note:** `inbound_network_dependencies` is deprecated and will be removed in v6.0 of the AzureRM Provider. The `inboundNetworkDependenciesEndpoints` API is not supported on App Service Environment v3, so this attribute is no longer populated. Refer to the [App Service Environment networking documentation](https://learn.microsoft.com/en-us/azure/app-service/environment/networking) for the required inbound ports and addresses.
-
 * `internal_inbound_ip_addresses` - The internal inbound IP addresses of the App Service Environment V3.
 
 * `ip_ssl_address_count` - The number of IP SSL addresses reserved for the App Service Environment V3.
@@ -146,16 +142,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `pricing_tier` - Pricing tier for the front end instances.
 
 * `windows_outbound_ip_addresses` - Outbound addresses of Windows based Apps in this App Service Environment V3.
-
----
-
-An `inbound_network_dependencies` block exports the following:
-
-* `description` - A short description of the purpose of the network traffic.
-
-* `ip_addresses` - A list of IP addresses that network traffic will originate from in CIDR notation.
-
-* `ports` - The ports that network traffic will arrive to the App Service Environment V3 on.
 
 ## Timeouts
 
