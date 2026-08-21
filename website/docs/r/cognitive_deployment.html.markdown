@@ -59,6 +59,10 @@ The following arguments are supported:
 
 * `rai_policy_name` - (Optional) The name of RAI policy.
 
+* `spillover_deployment_name` - (Optional) The name of the deployment that should serve requests when this deployment would have otherwise been throttled due to reaching its throughput limit.
+
+~> **Note:** `spillover_deployment_name` is only supported on provisioned deployments (where the `sku` `name` is `GlobalProvisionedManaged`, `DataZoneProvisionedManaged`, or `ProvisionedManaged`). The referenced deployment must already exist within the same Cognitive Services Account, must use a standard `sku` `name` (`GlobalStandard`, `DataZoneStandard`, or `Standard`), and must use the same `model`. A deployment cannot reference itself.
+
 * `version_upgrade_option` - (Optional) Deployment model version upgrade option. Possible values are `OnceNewDefaultVersionAvailable`, `OnceCurrentVersionExpired`, and `NoAutoUpgrade`. Defaults to `OnceNewDefaultVersionAvailable`.
 
 ---
