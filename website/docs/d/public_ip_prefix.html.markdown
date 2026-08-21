@@ -30,6 +30,7 @@ output "public_ip_prefix" {
 * `resource_group_name` - Specifies the name of the resource group.
 
 ## Attributes Reference
+
 * `custom_ip_prefix_id` - The Custom IP Prefix ID associated with the Public IP Prefix. Changing this forces a new resource to be created.
 * `id` - The ID of the Public IP Prefix.
 * `ip_prefix` - The Public IP address range, in CIDR notation.
