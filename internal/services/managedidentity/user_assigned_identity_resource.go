@@ -153,10 +153,13 @@ func (r UserAssignedIdentityResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			poller := custompollers.NewEventualConsistencyPoller(5*time.Second, 5, func() (*http.Response, error) {
+			pollerOpts := custompollers.DefaultCreationEventualConsistencyPollerOptions()
+			pollerOpts.Interval = 5 * time.Second
+
+			poller := custompollers.NewEventualConsistencyPoller(5, func() (*http.Response, error) {
 				resp, err := client.UserAssignedIdentitiesGet(ctx, id)
 				return resp.HttpResponse, err
-			})
+			}, pollerOpts)
 			if err := poller.PollUntilDone(ctx); err != nil {
 				return fmt.Errorf("waiting for %s to become available: %+v", id, err)
 			}
