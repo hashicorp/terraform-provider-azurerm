@@ -6,6 +6,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* `azurerm_mssql_virtual_machine` - add support for `use_storage_pool` to the `storage_settings` and `temp_db_settings` blocks ([#30846](https://github.com/hashicorp/terraform-provider-azurerm/issues/30846))
 * dependencies: `go` - update to `1.26.6` ([#33141](https://github.com/hashicorp/terraform-provider-azurerm/issues/33141))
 * dependencies: `go-azure-sdk` - update to `v0.20260811.1225050` ([#33079](https://github.com/hashicorp/terraform-provider-azurerm/issues/33079))
 * `azurerm_cdn_frontdoor_batch_rule_set` - allow `/` as an input to `rule.conditions.request_path.values` ([#33023](https://github.com/hashicorp/terraform-provider-azurerm/issues/33023))
