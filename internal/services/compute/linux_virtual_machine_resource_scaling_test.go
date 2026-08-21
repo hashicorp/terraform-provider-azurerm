@@ -93,6 +93,42 @@ func TestAccLinuxVirtualMachine_scalingCapacityReservationGroupUpdate(t *testing
 	})
 }
 
+func TestAccLinuxVirtualMachine_scalingCapacityReservationGroupZonalUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.scalingCapacityReservationGroupZonal(data, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.scalingCapacityReservationGroupZonal(data, "azurerm_capacity_reservation_group.test1.id"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.scalingCapacityReservationGroupZonal(data, "azurerm_capacity_reservation_group.test2.id"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.scalingCapacityReservationGroupZonal(data, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLinuxVirtualMachine_scalingDedicatedHost(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 	r := LinuxVirtualMachineResource{}
@@ -603,6 +639,86 @@ resource "azurerm_linux_virtual_machine" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r LinuxVirtualMachineResource) scalingCapacityReservationGroupZonal(data acceptance.TestData, crg string) string {
+	crgText := ""
+	if crg != "" {
+		crgText = fmt.Sprintf(`capacity_reservation_group_id = %s`, crg)
+	}
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_capacity_reservation_group" "test1" {
+  name                = "acctest-ccrg1-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  zones               = ["3"]
+}
+
+resource "azurerm_capacity_reservation" "test1" {
+  name                          = "acctest-ccr1-%[2]d"
+  capacity_reservation_group_id = azurerm_capacity_reservation_group.test1.id
+  zone                          = "3"
+  sku {
+    name     = "Standard_D2s_v3"
+    capacity = 1
+  }
+}
+
+resource "azurerm_capacity_reservation_group" "test2" {
+  name                = "acctest-ccrg2-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  zones               = ["3"]
+}
+
+resource "azurerm_capacity_reservation" "test2" {
+  name                          = "acctest-ccr2-%[2]d"
+  capacity_reservation_group_id = azurerm_capacity_reservation_group.test2.id
+  zone                          = "3"
+  sku {
+    name     = "Standard_D2s_v3"
+    capacity = 1
+  }
+}
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVM-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_D2s_v3"
+  admin_username      = "adminuser"
+  zone                = "3"
+  %[3]s
+
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+
+  depends_on = [
+    azurerm_capacity_reservation.test1,
+    azurerm_capacity_reservation.test2,
+  ]
+}
+`, r.template(data), data.RandomInteger, crgText)
 }
 
 func (r LinuxVirtualMachineResource) scalingDedicatedHostInitial(data acceptance.TestData) string {
