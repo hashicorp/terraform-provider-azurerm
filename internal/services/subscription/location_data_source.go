@@ -94,10 +94,6 @@ func (r LocationDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
-			if resp.Model == nil {
-				return fmt.Errorf("retrieving %s: model value was nil", id)
-			}
-
 			var model LocationDataSourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
