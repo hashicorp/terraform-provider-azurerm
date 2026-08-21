@@ -112,7 +112,13 @@ func mapFieldsToNetworkInterface(input *[]networkinterfaces.NetworkInterfaceIPCo
 	}
 
 	for _, config := range *output {
-		if config.Properties == nil || config.Properties.PrivateIPAddressVersion == nil || *config.Properties.PrivateIPAddressVersion != networkinterfaces.IPVersionIPvFour {
+		if config.Properties == nil {
+			continue
+		}
+
+		config.Properties.ApplicationSecurityGroups = &applicationSecurityGroups
+
+		if config.Properties.PrivateIPAddressVersion == nil || *config.Properties.PrivateIPAddressVersion != networkinterfaces.IPVersionIPvFour {
 			continue
 		}
 
@@ -127,7 +133,6 @@ func mapFieldsToNetworkInterface(input *[]networkinterfaces.NetworkInterfaceIPCo
 			config.Properties.LoadBalancerBackendAddressPools = &loadBalancerBackendAddressPools
 		}
 
-		config.Properties.ApplicationSecurityGroups = &applicationSecurityGroups
 		config.Properties.ApplicationGatewayBackendAddressPools = &applicationGatewayBackendAddressPools
 		config.Properties.LoadBalancerInboundNatRules = &loadBalancerInboundNatRules
 	}
