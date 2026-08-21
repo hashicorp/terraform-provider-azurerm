@@ -144,6 +144,12 @@ func azureProvider(supportLegacyTestSuite bool, testName string) *schema.Provide
 		}
 	}
 
+	// ensure the declared (or user-configured) read timeout is applied to Data Source reads,
+	// which the Plugin SDK does not do itself (hashicorp/terraform-plugin-sdk#1038)
+	for _, dataSource := range dataSources {
+		wrapDataSourceReadTimeouts(dataSource)
+	}
+
 	p := &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"subscription_id": {
