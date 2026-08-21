@@ -26,7 +26,7 @@ import (
 )
 
 func resourceNetAppPool() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceNetAppPoolCreate,
 		Read:   resourceNetAppPoolRead,
 		Update: resourceNetAppPoolUpdate,
@@ -143,8 +143,6 @@ func resourceNetAppPool() *pluginsdk.Resource {
 			},
 		),
 	}
-
-	return resource
 }
 
 func resourceNetAppPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error {

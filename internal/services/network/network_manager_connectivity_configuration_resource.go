@@ -420,10 +420,9 @@ func (r ManagerConnectivityConfigurationResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			err = client.DeleteThenPoll(ctx, *id, connectivityconfigurations.DeleteOperationOptions{
+			if err = client.DeleteThenPoll(ctx, *id, connectivityconfigurations.DeleteOperationOptions{
 				Force: pointer.To(true),
-			})
-			if err != nil {
+			}); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 

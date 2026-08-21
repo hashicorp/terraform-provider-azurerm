@@ -25,24 +25,21 @@ var _ sdk.Resource = ExadataInfraResource{}
 type ExadataInfraResource struct{}
 
 type ExadataInfraResourceModel struct {
-	// Azure
 	Location          string            `tfschema:"location"`
 	Name              string            `tfschema:"name"`
 	ResourceGroupName string            `tfschema:"resource_group_name"`
 	Tags              map[string]string `tfschema:"tags"`
-	Zones             zones.Schema      `tfschema:"zones"`
 
-	// Required
 	ComputeCount int64  `tfschema:"compute_count"`
 	DisplayName  string `tfschema:"display_name"`
 	Shape        string `tfschema:"shape"`
 	StorageCount int64  `tfschema:"storage_count"`
 
-	// Optional
-	DatabaseServerType string                   `tfschema:"database_server_type"`
-	StorageServerType  string                   `tfschema:"storage_server_type"`
 	CustomerContacts   []string                 `tfschema:"customer_contacts"`
+	DatabaseServerType string                   `tfschema:"database_server_type"`
 	MaintenanceWindow  []MaintenanceWindowModel `tfschema:"maintenance_window"`
+	StorageServerType  string                   `tfschema:"storage_server_type"`
+	Zones              zones.Schema             `tfschema:"zones"`
 }
 
 func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
@@ -194,7 +191,7 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 
-		"zones": commonschema.ZonesMultipleRequiredForceNew(),
+		"zones": commonschema.ZonesMultipleOptionalForceNew(),
 	}
 }
 
@@ -240,7 +237,7 @@ func (r ExadataInfraResource) Create() sdk.ResourceFunc {
 				Name:     pointer.To(model.Name),
 				Location: location.Normalize(model.Location),
 				Tags:     pointer.To(model.Tags),
-				Zones:    model.Zones,
+				Zones:    zones.Expand(model.Zones),
 				Properties: &cloudexadatainfrastructures.CloudExadataInfrastructureProperties{
 					ComputeCount:     pointer.To(model.ComputeCount),
 					DisplayName:      model.DisplayName,
@@ -261,8 +258,8 @@ func (r ExadataInfraResource) Create() sdk.ResourceFunc {
 					HoursOfDay:      pointer.To(model.MaintenanceWindow[0].HoursOfDay),
 					LeadTimeInWeeks: pointer.To(model.MaintenanceWindow[0].LeadTimeInWeeks),
 					Months:          pointer.To(ExpandMonths(model.MaintenanceWindow[0].Months)),
-					PatchingMode:    pointer.To(cloudexadatainfrastructures.PatchingMode(model.MaintenanceWindow[0].PatchingMode)),
-					Preference:      pointer.To(cloudexadatainfrastructures.Preference(model.MaintenanceWindow[0].Preference)),
+					PatchingMode:    pointer.ToEnum[cloudexadatainfrastructures.PatchingMode](model.MaintenanceWindow[0].PatchingMode),
+					Preference:      pointer.ToEnum[cloudexadatainfrastructures.Preference](model.MaintenanceWindow[0].Preference),
 					WeeksOfMonth:    pointer.To(model.MaintenanceWindow[0].WeeksOfMonth),
 				}
 			}
@@ -300,8 +297,7 @@ func (r ExadataInfraResource) Update() sdk.ResourceFunc {
 				update := &cloudexadatainfrastructures.CloudExadataInfrastructureUpdate{
 					Tags: pointer.To(model.Tags),
 				}
-				err = client.UpdateThenPoll(ctx, *id, *update)
-				if err != nil {
+				if err = client.UpdateThenPoll(ctx, *id, *update); err != nil {
 					return fmt.Errorf("updating %s: %v", id, err)
 				}
 			}
@@ -336,15 +332,12 @@ func (ExadataInfraResource) Read() sdk.ResourceFunc {
 
 			if model := result.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
-				state.Zones = model.Zones
+				state.Zones = zones.Flatten(&model.Zones)
 				state.Tags = pointer.From(model.Tags)
 				if props := model.Properties; props != nil {
 					state.CustomerContacts = FlattenCustomerContacts(result.Model.Properties.CustomerContacts)
 					state.Name = pointer.From(result.Model.Name)
-					state.Location = result.Model.Location
-					state.Zones = result.Model.Zones
 					state.ResourceGroupName = id.ResourceGroupName
-					state.Tags = pointer.From(result.Model.Tags)
 					state.ComputeCount = pointer.From(props.ComputeCount)
 					state.DisplayName = props.DisplayName
 					state.StorageCount = pointer.From(props.StorageCount)
