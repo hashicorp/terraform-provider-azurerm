@@ -14,6 +14,16 @@ import (
 type BlueprintDefinitionDataSource struct{}
 
 // lintignore:AT001
+func TestAccBlueprintDefinitionDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_blueprint_definition", "test")
+	r := BlueprintDefinitionDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccBlueprintDefinitionDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_blueprint_definition", "test")
 	r := BlueprintDefinitionDataSource{}

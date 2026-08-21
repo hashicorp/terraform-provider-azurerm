@@ -18,6 +18,16 @@ import (
 
 type AutomationConnectionCertificateResource struct{}
 
+func TestAccAutomationConnectionCertificate_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_connection_certificate", "test")
+	r := AutomationConnectionCertificateResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccAutomationConnectionCertificate_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection_certificate", "test")
 	r := AutomationConnectionCertificateResource{}

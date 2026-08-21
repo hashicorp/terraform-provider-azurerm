@@ -13,6 +13,16 @@ import (
 
 type AutomationVariableDateTimeDataSouce struct{}
 
+func TestAccDataSourceAzureRMAutomationVariableDateTime_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_automation_variable_datetime", "test")
+	r := AutomationVariableDateTimeDataSouce{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceAzureRMAutomationVariableDateTime_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_automation_variable_datetime", "test")
 	r := AutomationVariableDateTimeDataSouce{}
