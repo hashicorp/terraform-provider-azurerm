@@ -100,6 +100,13 @@ func resourceWindowsVirtualMachineScaleSet() *pluginsdk.Resource {
 
 				return nil
 			}),
+
+			pluginsdk.ForceNewIf("capacity_reservation_group_id", func(ctx context.Context, d *schema.ResourceDiff, _ interface{}) bool {
+				if _, ok := d.GetOk("zones"); ok {
+					return false
+				}
+				return true
+			}),
 		),
 	}
 }
@@ -775,6 +782,20 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		updateProps.AutomaticRepairsPolicy = automaticRepairsPolicy
 	}
 
+	if d.HasChange("capacity_reservation_group_id") {
+		capacityReservation := &virtualmachinescalesets.CapacityReservationProfile{
+			CapacityReservationGroup: &virtualmachinescalesets.SubResource{},
+		}
+		if v, ok := d.GetOk("capacity_reservation_group_id"); ok {
+			capacityReservation.CapacityReservationGroup.Id = pointer.To(v.(string))
+		}
+		existing.Model.Properties.VirtualMachineProfile.CapacityReservation = capacityReservation
+
+		if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, virtualmachinescalesets.DefaultCreateOrUpdateOperationOptions()); err != nil {
+			return fmt.Errorf("updating Windows %s: %+v", id, err)
+		}
+	}
+
 	if d.HasChange("identity") {
 		identityExpanded, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 		if err != nil {
@@ -1221,7 +1242,6 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		"capacity_reservation_group_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			ValidateFunc: capacityreservationgroups.ValidateCapacityReservationGroupID,
 			ConflictsWith: []string{
 				"proximity_placement_group_id",
