@@ -49,7 +49,6 @@ func resourceSearchService() *pluginsdk.Resource {
 		}),
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			pluginsdk.CustomizeDiffShim(validateSearchServiceSKUUpdate),
 			pluginsdk.CustomizeDiffShim(validateSearchServiceApiAccessControlRbac),
 		),
 
@@ -706,40 +705,6 @@ func resourceSearchServiceDelete(d *pluginsdk.ResourceData, meta interface{}) er
 
 	if _, err := client.Delete(ctx, *id, services.DeleteOperationOptions{}); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	return nil
-}
-
-func validateSearchServiceSKUUpdate(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-	// only validate if the resource already exists
-	if diff.Id() == "" {
-		return nil
-	}
-
-	old, new := diff.GetChange("sku")
-	if old == new {
-		return nil
-	}
-
-	oldSku := old.(string)
-	newSku := new.(string)
-
-	// Define SKU hierarchy for validation - excludes Free tier
-	skuHierarchy := map[string]int{
-		string(services.SkuNameBasic):         1, // basic
-		string(services.SkuNameStandard):      2, // standard (S1)
-		string(services.SkuNameStandardTwo):   3, // standard2 (S2)
-		string(services.SkuNameStandardThree): 4, // standard3 (S3)
-		// Free and Storage optimized SKUs are not included as they're not part of the Basic->Standard upgrade path
-	}
-
-	oldLevel, oldExists := skuHierarchy[oldSku]
-	newLevel, newExists := skuHierarchy[newSku]
-
-	// If it's not a valid upgrade, force recreation instead of blocking the change
-	if !oldExists || !newExists || newLevel <= oldLevel {
-		return diff.ForceNew("sku")
 	}
 
 	return nil
