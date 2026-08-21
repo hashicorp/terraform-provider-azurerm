@@ -231,7 +231,7 @@ func (r LinuxWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 	}
 
-	if !features.FivePointOh() {
+	if !features.SixPointOh() {
 		args["virtual_network_application_traffic_enabled"].Computed = true
 		args["virtual_network_application_traffic_enabled"].Default = nil
 		args["virtual_network_application_traffic_enabled"].ConflictsWith = []string{"site_config.0.vnet_route_all_enabled"}
@@ -381,7 +381,7 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 					SiteConfig:            siteConfig,
 					ClientAffinityEnabled: pointer.To(webAppSlot.ClientAffinityEnabled),
 					ClientCertEnabled:     pointer.To(webAppSlot.ClientCertEnabled),
-					ClientCertMode:        pointer.To(webapps.ClientCertMode(webAppSlot.ClientCertMode)),
+					ClientCertMode:        pointer.ToEnum[webapps.ClientCertMode](webAppSlot.ClientCertMode),
 					OutboundVnetRouting: &webapps.OutboundVnetRouting{
 						BackupRestoreTraffic: pointer.To(webAppSlot.VirtualNetworkBackupRestoreEnabled),
 						ImagePullTraffic:     pointer.To(webAppSlot.VnetImagePullEnabled),
@@ -390,7 +390,7 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if !features.FivePointOh() {
+			if !features.SixPointOh() {
 				rawSiteVnetRouting, err := metadata.GetRawConfigAt("site_config.0.vnet_route_all_enabled")
 				if err != nil {
 					return err
@@ -652,7 +652,7 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 						state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.OutboundVnetRouting.BackupRestoreTraffic)
 						state.VnetImagePullEnabled = pointer.From(props.OutboundVnetRouting.ImagePullTraffic)
 						state.VirtualNetworkApplicationTrafficEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
-						if !features.FivePointOh() {
+						if !features.SixPointOh() {
 							siteConfig.VnetRouteAllEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
 						}
 					}
@@ -810,7 +810,7 @@ func (r LinuxWebAppSlotResource) Update() sdk.ResourceFunc {
 				model.Properties.ClientCertEnabled = pointer.To(state.ClientCertEnabled)
 			}
 			if metadata.ResourceData.HasChange("client_certificate_mode") {
-				model.Properties.ClientCertMode = pointer.To(webapps.ClientCertMode(state.ClientCertMode))
+				model.Properties.ClientCertMode = pointer.ToEnum[webapps.ClientCertMode](state.ClientCertMode)
 			}
 			if metadata.ResourceData.HasChange("client_certificate_exclusion_paths") {
 				model.Properties.ClientCertExclusionPaths = pointer.To(state.ClientCertExclusionPaths)
@@ -845,7 +845,7 @@ func (r LinuxWebAppSlotResource) Update() sdk.ResourceFunc {
 			if model.Properties.OutboundVnetRouting != nil {
 				vnetRoutingProps = model.Properties.OutboundVnetRouting
 			}
-			if !features.FivePointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
+			if !features.SixPointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
 				vnetRoutingProps.ApplicationTraffic = &sc.VnetRouteAllEnabled
 			}
 

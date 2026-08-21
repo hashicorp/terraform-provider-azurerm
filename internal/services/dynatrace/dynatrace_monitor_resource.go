@@ -233,7 +233,7 @@ func (r MonitorsResource) Create() sdk.ResourceFunc {
 				monitoringStatus = monitors.MonitoringStatusDisabled
 			}
 			monitorsProps := monitors.MonitorProperties{
-				MarketplaceSubscriptionStatus:  pointer.To(monitors.MarketplaceSubscriptionStatus(model.MarketplaceSubscriptionStatus)),
+				MarketplaceSubscriptionStatus:  pointer.ToEnum[monitors.MarketplaceSubscriptionStatus](model.MarketplaceSubscriptionStatus),
 				MonitoringStatus:               pointer.To(monitoringStatus),
 				PlanData:                       ExpandDynatracePlanData(model.PlanData),
 				UserInfo:                       ExpandDynatraceUserInfo(model.UserInfo),

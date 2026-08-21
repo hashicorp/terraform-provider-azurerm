@@ -217,8 +217,7 @@ func (r FunctionAppFunctionResource) Create() sdk.ResourceFunc {
 			}
 
 			var confJSON interface{}
-			err = json.Unmarshal([]byte(appFunction.ConfigJSON), &confJSON)
-			if err != nil {
+			if err = json.Unmarshal([]byte(appFunction.ConfigJSON), &confJSON); err != nil {
 				return fmt.Errorf("error preparing config data to send: %+v", err)
 			}
 
@@ -416,8 +415,7 @@ func (r FunctionAppFunctionResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("config_json") {
 				var confJSON interface{}
-				err = json.Unmarshal([]byte(appFunction.ConfigJSON), &confJSON)
-				if err != nil {
+				if err = json.Unmarshal([]byte(appFunction.ConfigJSON), &confJSON); err != nil {
 					return fmt.Errorf("error preparing config data to send: %+v", err)
 				}
 				model.Properties.Config = pointer.To(confJSON)

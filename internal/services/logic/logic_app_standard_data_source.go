@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2025-05-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -493,7 +492,7 @@ func flattenHeaders(input map[string][]string) []interface{} {
 }
 
 func schemaLogicAppStandardSiteConfigDataSource() *pluginsdk.Schema {
-	schema := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
 		Elem: &pluginsdk.Resource{
@@ -606,24 +605,6 @@ func schemaLogicAppStandardSiteConfigDataSource() *pluginsdk.Schema {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		schema.Elem.(*pluginsdk.Resource).Schema["public_network_access_enabled"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Computed:   true,
-			Deprecated: "the `site_config.public_network_access_enabled` property has been superseded by the `public_network_access` property and will be removed in v5.0 of the AzureRM Provider.",
-		}
-		schema.Elem.(*pluginsdk.Resource).Schema["scm_min_tls_version"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		}
-		schema.Elem.(*pluginsdk.Resource).Schema["min_tls_version"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		}
-	}
-
-	return schema
 }
 
 func schemaLogicAppCorsSettingsDataSource() *pluginsdk.Schema {

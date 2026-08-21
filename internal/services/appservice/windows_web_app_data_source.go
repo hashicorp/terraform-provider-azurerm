@@ -395,8 +395,7 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 				}
 
 				siteConfig := helpers.SiteConfigWindows{}
-				err = siteConfig.Flatten(webAppSiteConfig.Model.Properties, currentStack)
-				if err != nil {
+				if err = siteConfig.Flatten(webAppSiteConfig.Model.Properties, currentStack); err != nil {
 					return err
 				}
 

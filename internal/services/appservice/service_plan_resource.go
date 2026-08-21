@@ -27,7 +27,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name service_plan -service-package-name appservice -properties "resource_group_name,name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 type ServicePlanResource struct{}
 

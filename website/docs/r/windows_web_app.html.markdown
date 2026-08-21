@@ -100,7 +100,7 @@ The following arguments are supported:
 
 * `virtual_network_backup_restore_enabled` - (Optional) Whether backup and restore operations over the linked virtual network are enabled. Defaults to `false`.
 
-* `virtual_network_image_pull_enabled` - (Optional) Whether traffic for the image pull should be routed over the virtual network.
+* `virtual_network_image_pull_enabled` - (Optional) Whether traffic for the image pull should be routed over the virtual network. Defaults to `false`.
 
 ~> **Note:** `virtual_network_image_pull_enabled` must be set to `true` when running in an App Service Environment.
 
@@ -197,7 +197,7 @@ ASP.NET V4.8 | v4.0
 
 ~> **Note:** For currently supported versions, please see the official documentation. Some example values include: `1.8`, `1.8.0_322`,  `11`, `11.0.14`, `17`, `17.0.2`, `21` and `25`
 
-* `node_version` - (Optional) The version of node to use when `current_stack` is set to `node`. Possible values are `~12`, `~14`, `~16`, `~18`, `~20` and `~22`.
+* `node_version` - (Optional) The version of node to use when `current_stack` is set to `node`. Possible values are `~12`, `~14`, `~16`, `~18`, `~20`, `~22` and `~24`.
 
 ~> **Note:** This property conflicts with `java_version`.
 

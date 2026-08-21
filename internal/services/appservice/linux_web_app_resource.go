@@ -224,7 +224,7 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 	}
 
-	if !features.FivePointOh() {
+	if !features.SixPointOh() {
 		args["virtual_network_application_traffic_enabled"].Computed = true
 		args["virtual_network_application_traffic_enabled"].Default = nil
 		args["virtual_network_application_traffic_enabled"].ConflictsWith = []string{"site_config.0.vnet_route_all_enabled"}
@@ -401,7 +401,7 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 					SiteConfig:            siteConfig,
 					ClientAffinityEnabled: pointer.To(webApp.ClientAffinityEnabled),
 					ClientCertEnabled:     pointer.To(webApp.ClientCertEnabled),
-					ClientCertMode:        pointer.To(webapps.ClientCertMode(webApp.ClientCertMode)),
+					ClientCertMode:        pointer.ToEnum[webapps.ClientCertMode](webApp.ClientCertMode),
 					OutboundVnetRouting: &webapps.OutboundVnetRouting{
 						ImagePullTraffic:     pointer.To(webApp.VnetImagePullEnabled),
 						BackupRestoreTraffic: pointer.To(webApp.VirtualNetworkBackupRestoreEnabled),
@@ -410,7 +410,7 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if !features.FivePointOh() {
+			if !features.SixPointOh() {
 				rawSiteVnetRouting, err := metadata.GetRawConfigAt("site_config.0.vnet_route_all_enabled")
 				if err != nil {
 					return err
@@ -834,7 +834,7 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 				model.Properties.ClientCertEnabled = pointer.To(state.ClientCertEnabled)
 			}
 			if metadata.ResourceData.HasChange("client_certificate_mode") {
-				model.Properties.ClientCertMode = pointer.To(webapps.ClientCertMode(state.ClientCertMode))
+				model.Properties.ClientCertMode = pointer.ToEnum[webapps.ClientCertMode](state.ClientCertMode)
 			}
 			if metadata.ResourceData.HasChange("client_certificate_exclusion_paths") {
 				model.Properties.ClientCertExclusionPaths = pointer.To(state.ClientCertExclusionPaths)

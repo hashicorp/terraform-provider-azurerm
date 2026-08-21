@@ -324,7 +324,7 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 		"tags": commonschema.Tags(),
 	}
 
-	if !features.FivePointOh() {
+	if !features.SixPointOh() {
 		s["virtual_network_application_traffic_enabled"].Computed = true
 		s["virtual_network_application_traffic_enabled"].Default = nil
 		s["virtual_network_application_traffic_enabled"].ConflictsWith = []string{"site_config.0.vnet_route_all_enabled"}
@@ -549,14 +549,14 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 					HTTPSOnly:         pointer.To(functionAppFlexConsumption.HttpsOnly),
 					FunctionAppConfig: flexFunctionAppConfig,
 					ClientCertEnabled: pointer.To(functionAppFlexConsumption.ClientCertEnabled),
-					ClientCertMode:    pointer.To(webapps.ClientCertMode(functionAppFlexConsumption.ClientCertMode)),
+					ClientCertMode:    pointer.ToEnum[webapps.ClientCertMode](functionAppFlexConsumption.ClientCertMode),
 					OutboundVnetRouting: &webapps.OutboundVnetRouting{
 						ApplicationTraffic: pointer.To(functionAppFlexConsumption.VirtualNetworkApplicationTrafficEnabled),
 					},
 				},
 			}
 
-			if !features.FivePointOh() {
+			if !features.SixPointOh() {
 				rawSiteVnetRouting, err := metadata.GetRawConfigAt("site_config.0.vnet_route_all_enabled")
 				if err != nil {
 					return err
@@ -760,7 +760,7 @@ func (r FunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 				}
 				if model.Properties.OutboundVnetRouting != nil {
 					state.VirtualNetworkApplicationTrafficEnabled = pointer.From(model.Properties.OutboundVnetRouting.ApplicationTraffic)
-					if !features.FivePointOh() {
+					if !features.SixPointOh() {
 						siteConfig.VnetRouteAllEnabled = state.VirtualNetworkApplicationTrafficEnabled
 					}
 				}
@@ -903,7 +903,7 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("client_certificate_mode") {
-				model.Properties.ClientCertMode = pointer.To(webapps.ClientCertMode(state.ClientCertMode))
+				model.Properties.ClientCertMode = pointer.ToEnum[webapps.ClientCertMode](state.ClientCertMode)
 			}
 
 			if metadata.ResourceData.HasChange("client_certificate_exclusion_paths") {
@@ -979,7 +979,7 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 				vnetRoutingProps.ApplicationTraffic = pointer.To(state.VirtualNetworkApplicationTrafficEnabled)
 			}
 
-			if !features.FivePointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
+			if !features.SixPointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
 				vnetRoutingProps.ApplicationTraffic = siteConfig.VnetRouteAllEnabled
 			}
 

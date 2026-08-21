@@ -9,11 +9,11 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/api"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2025-05-01/webapps"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -82,7 +82,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 				"api_management_api_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: apimValidate.ApiID,
+					ValidateFunc: validation.AsGeneratedID(api.ParseApiIDInsensitively),
 					Description:  "The ID of the API Management API for this Linux Function App.",
 				},
 
@@ -337,7 +337,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 		},
 	}
 
-	if !features.FivePointOh() {
+	if !features.SixPointOh() {
 		s.Elem.(*pluginsdk.Resource).Schema["remote_debugging_version"].ValidateFunc = validation.StringInSlice([]string{
 			"VS2017",
 			"VS2019",
@@ -545,7 +545,7 @@ func SiteConfigSchemaLinuxFunctionAppComputed() *pluginsdk.Schema {
 		},
 	}
 
-	if !features.FivePointOh() {
+	if !features.SixPointOh() {
 		s.Elem.(*pluginsdk.Resource).Schema["vnet_route_all_enabled"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeBool,
 			Computed:   true,
@@ -601,7 +601,7 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 				"api_management_api_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: apimValidate.ApiID,
+					ValidateFunc: validation.AsGeneratedID(api.ParseApiIDInsensitively),
 					Description:  "The ID of the API Management API for this Linux Function App.",
 				},
 
@@ -821,7 +821,7 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 		},
 	}
 
-	if !features.FivePointOh() {
+	if !features.SixPointOh() {
 		s.Elem.(*pluginsdk.Resource).Schema["vnet_route_all_enabled"] = &pluginsdk.Schema{
 			Type:          pluginsdk.TypeBool,
 			Optional:      true,
@@ -891,7 +891,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 				"api_management_api_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: apimValidate.ApiID,
+					ValidateFunc: validation.AsGeneratedID(api.ParseApiIDInsensitively),
 					Description:  "The ID of the API Management API for this Windows Function App.",
 				},
 
@@ -1129,7 +1129,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 		},
 	}
 
-	if !features.FivePointOh() {
+	if !features.SixPointOh() {
 		s.Elem.(*pluginsdk.Resource).Schema["remote_debugging_version"].ValidateFunc = validation.StringInSlice([]string{
 			"VS2017",
 			"VS2019",
@@ -1326,7 +1326,7 @@ func SiteConfigSchemaWindowsFunctionAppComputed() *pluginsdk.Schema {
 		},
 	}
 
-	if !features.FivePointOh() {
+	if !features.SixPointOh() {
 		s.Elem.(*pluginsdk.Resource).Schema["vnet_route_all_enabled"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeBool,
 			Computed:   true,
@@ -1715,7 +1715,7 @@ func windowsFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.powershell_core_version",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "The version of Node to use. Possible values include `~12`, `~14`, `~16`, `~18`, `~20` and `~22`",
+					Description: "The version of Node to use. Possible values include `~12`, `~14`, `~16`, `~18`, `~20`, `~22` and `~24`",
 				},
 
 				"java_version": {
@@ -1994,7 +1994,7 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 		expanded.AcrUseManagedIdentityCreds = pointer.To(linuxSiteConfig.UseManagedIdentityACR)
 	}
 
-	if !features.FivePointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
+	if !features.SixPointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
 		expanded.VnetRouteAllEnabled = pointer.To(linuxSiteConfig.VnetRouteAllEnabled)
 	}
 
@@ -2019,7 +2019,7 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.ip_restriction_default_action") {
-		expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(linuxSiteConfig.IpRestrictionDefaultAction))
+		expanded.IPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](linuxSiteConfig.IpRestrictionDefaultAction)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_use_main_ip_restriction") {
@@ -2035,15 +2035,15 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction_default_action") {
-		expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(linuxSiteConfig.ScmIpRestrictionDefaultAction))
+		expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](linuxSiteConfig.ScmIpRestrictionDefaultAction)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.load_balancing_mode") {
-		expanded.LoadBalancing = pointer.To(webapps.SiteLoadBalancing(linuxSiteConfig.LoadBalancing))
+		expanded.LoadBalancing = pointer.ToEnum[webapps.SiteLoadBalancing](linuxSiteConfig.LoadBalancing)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.managed_pipeline_mode") {
-		expanded.ManagedPipelineMode = pointer.To(webapps.ManagedPipelineMode(linuxSiteConfig.ManagedPipelineMode))
+		expanded.ManagedPipelineMode = pointer.ToEnum[webapps.ManagedPipelineMode](linuxSiteConfig.ManagedPipelineMode)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_enabled") {
@@ -2061,7 +2061,7 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.ftps_state") {
-		expanded.FtpsState = pointer.To(webapps.FtpsState(linuxSiteConfig.FtpsState))
+		expanded.FtpsState = pointer.ToEnum[webapps.FtpsState](linuxSiteConfig.FtpsState)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.health_check_path") {
@@ -2073,20 +2073,19 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.minimum_tls_version") {
-		expanded.MinTlsVersion = pointer.To(webapps.SupportedTlsVersions(linuxSiteConfig.MinTlsVersion))
+		expanded.MinTlsVersion = pointer.ToEnum[webapps.SupportedTlsVersions](linuxSiteConfig.MinTlsVersion)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_minimum_tls_version") {
-		expanded.ScmMinTlsVersion = pointer.To(webapps.SupportedTlsVersions(linuxSiteConfig.ScmMinTlsVersion))
+		expanded.ScmMinTlsVersion = pointer.ToEnum[webapps.SupportedTlsVersions](linuxSiteConfig.ScmMinTlsVersion)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.minimum_tls_cipher_suite") {
-		expanded.MinTlsCipherSuite = pointer.To(webapps.TlsCipherSuites(linuxSiteConfig.MinTlsCipherSuite))
+		expanded.MinTlsCipherSuite = pointer.ToEnum[webapps.TlsCipherSuites](linuxSiteConfig.MinTlsCipherSuite)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.cors") {
-		cors := ExpandCorsSettings(linuxSiteConfig.Cors)
-		expanded.Cors = cors
+		expanded.Cors = ExpandCorsSettings(linuxSiteConfig.Cors)
 	}
 
 	// the value 0 cannot be detected as a valid change during the creation.
@@ -2188,7 +2187,7 @@ func ExpandSiteConfigFunctionFlexConsumptionApp(siteConfigFlexConsumption []Site
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.ip_restriction_default_action") {
-		expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(FlexConsumptionSiteConfig.IpRestrictionDefaultAction))
+		expanded.IPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](FlexConsumptionSiteConfig.IpRestrictionDefaultAction)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_use_main_ip_restriction") {
@@ -2204,15 +2203,15 @@ func ExpandSiteConfigFunctionFlexConsumptionApp(siteConfigFlexConsumption []Site
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction_default_action") {
-		expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(FlexConsumptionSiteConfig.ScmIpRestrictionDefaultAction))
+		expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](FlexConsumptionSiteConfig.ScmIpRestrictionDefaultAction)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.load_balancing_mode") {
-		expanded.LoadBalancing = pointer.To(webapps.SiteLoadBalancing(FlexConsumptionSiteConfig.LoadBalancing))
+		expanded.LoadBalancing = pointer.ToEnum[webapps.SiteLoadBalancing](FlexConsumptionSiteConfig.LoadBalancing)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.managed_pipeline_mode") {
-		expanded.ManagedPipelineMode = pointer.To(webapps.ManagedPipelineMode(FlexConsumptionSiteConfig.ManagedPipelineMode))
+		expanded.ManagedPipelineMode = pointer.ToEnum[webapps.ManagedPipelineMode](FlexConsumptionSiteConfig.ManagedPipelineMode)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_enabled") {
@@ -2236,16 +2235,15 @@ func ExpandSiteConfigFunctionFlexConsumptionApp(siteConfigFlexConsumption []Site
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.minimum_tls_version") {
-		expanded.MinTlsVersion = pointer.To(webapps.SupportedTlsVersions(FlexConsumptionSiteConfig.MinTlsVersion))
+		expanded.MinTlsVersion = pointer.ToEnum[webapps.SupportedTlsVersions](FlexConsumptionSiteConfig.MinTlsVersion)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_minimum_tls_version") {
-		expanded.ScmMinTlsVersion = pointer.To(webapps.SupportedTlsVersions(FlexConsumptionSiteConfig.ScmMinTlsVersion))
+		expanded.ScmMinTlsVersion = pointer.ToEnum[webapps.SupportedTlsVersions](FlexConsumptionSiteConfig.ScmMinTlsVersion)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.cors") {
-		cors := ExpandCorsSettings(FlexConsumptionSiteConfig.Cors)
-		expanded.Cors = cors
+		expanded.Cors = ExpandCorsSettings(FlexConsumptionSiteConfig.Cors)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.elastic_instance_minimum") {
@@ -2393,7 +2391,7 @@ func ExpandSiteConfigWindowsFunctionApp(siteConfig []SiteConfigWindowsFunctionAp
 		expanded.WindowsFxVersion = pointer.To("")
 	}
 
-	if !features.FivePointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
+	if !features.SixPointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
 		expanded.VnetRouteAllEnabled = pointer.To(windowsSiteConfig.VnetRouteAllEnabled)
 	}
 
@@ -2414,7 +2412,7 @@ func ExpandSiteConfigWindowsFunctionApp(siteConfig []SiteConfigWindowsFunctionAp
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.ip_restriction_default_action") {
-		expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(windowsSiteConfig.IpRestrictionDefaultAction))
+		expanded.IPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](windowsSiteConfig.IpRestrictionDefaultAction)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_use_main_ip_restriction") {
@@ -2430,15 +2428,15 @@ func ExpandSiteConfigWindowsFunctionApp(siteConfig []SiteConfigWindowsFunctionAp
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction_default_action") {
-		expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(windowsSiteConfig.ScmIpRestrictionDefaultAction))
+		expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](windowsSiteConfig.ScmIpRestrictionDefaultAction)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.load_balancing_mode") {
-		expanded.LoadBalancing = pointer.To(webapps.SiteLoadBalancing(windowsSiteConfig.LoadBalancing))
+		expanded.LoadBalancing = pointer.ToEnum[webapps.SiteLoadBalancing](windowsSiteConfig.LoadBalancing)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.managed_pipeline_mode") {
-		expanded.ManagedPipelineMode = pointer.To(webapps.ManagedPipelineMode(windowsSiteConfig.ManagedPipelineMode))
+		expanded.ManagedPipelineMode = pointer.ToEnum[webapps.ManagedPipelineMode](windowsSiteConfig.ManagedPipelineMode)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_enabled") {
@@ -2456,7 +2454,7 @@ func ExpandSiteConfigWindowsFunctionApp(siteConfig []SiteConfigWindowsFunctionAp
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.ftps_state") {
-		expanded.FtpsState = pointer.To(webapps.FtpsState(windowsSiteConfig.FtpsState))
+		expanded.FtpsState = pointer.ToEnum[webapps.FtpsState](windowsSiteConfig.FtpsState)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.health_check_path") {
@@ -2468,20 +2466,19 @@ func ExpandSiteConfigWindowsFunctionApp(siteConfig []SiteConfigWindowsFunctionAp
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.minimum_tls_version") {
-		expanded.MinTlsVersion = pointer.To(webapps.SupportedTlsVersions(windowsSiteConfig.MinTlsVersion))
+		expanded.MinTlsVersion = pointer.ToEnum[webapps.SupportedTlsVersions](windowsSiteConfig.MinTlsVersion)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_minimum_tls_version") {
-		expanded.ScmMinTlsVersion = pointer.To(webapps.SupportedTlsVersions(windowsSiteConfig.ScmMinTlsVersion))
+		expanded.ScmMinTlsVersion = pointer.ToEnum[webapps.SupportedTlsVersions](windowsSiteConfig.ScmMinTlsVersion)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.minimum_tls_cipher_suite") {
-		expanded.MinTlsCipherSuite = pointer.To(webapps.TlsCipherSuites(windowsSiteConfig.MinTlsCipherSuite))
+		expanded.MinTlsCipherSuite = pointer.ToEnum[webapps.TlsCipherSuites](windowsSiteConfig.MinTlsCipherSuite)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.cors") {
-		cors := ExpandCorsSettings(windowsSiteConfig.Cors)
-		expanded.Cors = cors
+		expanded.Cors = ExpandCorsSettings(windowsSiteConfig.Cors)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.pre_warmed_instance_count") || existing == nil {

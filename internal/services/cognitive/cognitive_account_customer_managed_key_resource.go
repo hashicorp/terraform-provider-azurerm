@@ -71,8 +71,8 @@ func resourceCognitiveAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.Resourc
 		return err
 	}
 
-	locks.ByName(id.AccountName, "azurerm_cognitive_account")
-	defer locks.UnlockByName(id.AccountName, "azurerm_cognitive_account")
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
@@ -166,8 +166,8 @@ func resourceCognitiveAccountCustomerManagedKeyDelete(d *pluginsdk.ResourceData,
 		return err
 	}
 
-	locks.ByName(id.AccountName, "azurerm_cognitive_account")
-	defer locks.UnlockByName(id.AccountName, "azurerm_cognitive_account")
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	resp, err := client.AccountsGet(ctx, *id)
 	if err != nil {

@@ -27,7 +27,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
@@ -84,7 +83,7 @@ var (
 )
 
 func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -287,21 +286,6 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
-
-	if !features.FivePointOh() {
-		s["app_service_plan_id"].ValidateFunc = nil
-		s["client_certificate_mode"].Default = nil
-		s["public_network_access"].Default = nil
-		s["public_network_access"].Computed = true
-		s["site_config"].Elem.(*pluginsdk.Resource).Schema["ip_restriction"].Elem.(*pluginsdk.Resource).Schema["headers"].Elem.(*pluginsdk.Resource).Schema["x_forwarded_host"].DiffSuppressFunc = suppress.ListOrder
-		s["site_config"].Elem.(*pluginsdk.Resource).Schema["ip_restriction"].Elem.(*pluginsdk.Resource).Schema["headers"].Elem.(*pluginsdk.Resource).Schema["x_forwarded_for"].DiffSuppressFunc = suppress.ListOrder
-		s["site_config"].Elem.(*pluginsdk.Resource).Schema["ip_restriction"].Elem.(*pluginsdk.Resource).Schema["headers"].Elem.(*pluginsdk.Resource).Schema["x_azure_fdid"].DiffSuppressFunc = suppress.ListOrder
-		s["site_config"].Elem.(*pluginsdk.Resource).Schema["scm_ip_restriction"].Elem.(*pluginsdk.Resource).Schema["headers"].Elem.(*pluginsdk.Resource).Schema["x_forwarded_host"].DiffSuppressFunc = suppress.ListOrder
-		s["site_config"].Elem.(*pluginsdk.Resource).Schema["scm_ip_restriction"].Elem.(*pluginsdk.Resource).Schema["headers"].Elem.(*pluginsdk.Resource).Schema["x_forwarded_for"].DiffSuppressFunc = suppress.ListOrder
-		s["site_config"].Elem.(*pluginsdk.Resource).Schema["scm_ip_restriction"].Elem.(*pluginsdk.Resource).Schema["headers"].Elem.(*pluginsdk.Resource).Schema["x_azure_fdid"].DiffSuppressFunc = suppress.ListOrder
-	}
-
-	return s
 }
 
 func (r LogicAppResource) Attributes() map[string]*pluginsdk.Schema {
@@ -505,7 +489,7 @@ func (r LogicAppResource) Create() sdk.ResourceFunc {
 
 			siteConfig.AppSettings = pointer.To(appSettings)
 
-			if v, ok := data.AppSettings["WEBSITE_VNET_ROUTE_ALL"]; ok && !features.FivePointOh() {
+			if v, ok := data.AppSettings["WEBSITE_VNET_ROUTE_ALL"]; ok && !features.SixPointOh() {
 				// For compatibility between app_settings and site_config, we need to set the API property based on the presence of the app_setting map value if present.
 				// a replacement of this resource should consider deprecating support for this.
 				vnetRouteAll, _ := strconv.ParseBool(v)
@@ -537,29 +521,7 @@ func (r LogicAppResource) Create() sdk.ResourceFunc {
 				Tags: pointer.To(data.Tags),
 			}
 
-			if !features.FivePointOh() {
-				// if a user is still using `site_config.public_network_access_enabled` we should be setting `public_network_access` for them
-				publicNetworkAccess := reconcilePNA(metadata)
-				if v := siteEnvelope.Properties.SiteConfig.PublicNetworkAccess; v != nil && *v == helpers.PublicNetworkAccessDisabled {
-					publicNetworkAccess = helpers.PublicNetworkAccessDisabled
-				}
-				// conversely if `public_network_access` has been set it should take precedence, and we should be propagating the value for that to `site_config.public_network_access_enabled`
-				switch publicNetworkAccess {
-				case helpers.PublicNetworkAccessDisabled:
-					siteEnvelope.Properties.SiteConfig.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessDisabled)
-				case helpers.PublicNetworkAccessEnabled:
-					siteEnvelope.Properties.SiteConfig.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessEnabled)
-				}
-				siteEnvelope.Properties.PublicNetworkAccess = pointer.To(publicNetworkAccess)
-			}
-
-			if !features.FivePointOh() {
-				if data.ClientCertificateMode != "" {
-					siteEnvelope.Properties.ClientCertMode = pointer.ToEnum[webapps.ClientCertMode](data.ClientCertificateMode)
-				}
-			} else {
-				siteEnvelope.Properties.ClientCertMode = pointer.ToEnum[webapps.ClientCertMode](data.ClientCertificateMode)
-			}
+			siteEnvelope.Properties.ClientCertMode = pointer.ToEnum[webapps.ClientCertMode](data.ClientCertificateMode)
 
 			if data.VirtualNetworkSubnetId != "" {
 				siteEnvelope.Properties.VirtualNetworkSubnetId = pointer.To(data.VirtualNetworkSubnetId)
@@ -671,13 +633,14 @@ func (r LogicAppResource) Read() sdk.ResourceFunc {
 						}
 					}
 					// Note this is a bug - the Service defaults to `Required` regardless of the Enabled value
-					if !features.FivePointOh() {
+					if !features.SixPointOh() {
 						if pointer.From(props.ClientCertEnabled) {
 							state.ClientCertificateMode = pointer.FromEnum(props.ClientCertMode)
 						}
 					} else {
 						state.ClientCertificateMode = pointer.FromEnum(props.ClientCertMode)
 					}
+					state.ClientCertificateMode = pointer.FromEnum(props.ClientCertMode)
 				}
 			}
 
@@ -846,7 +809,15 @@ func (r LogicAppResource) Update() sdk.ResourceFunc {
 			}
 			existingSiteConfig.AppSettings = pointer.To(currentAppSettings)
 
-			if metadata.ResourceData.HasChanges("site_config", "app_settings", "version", "storage_account_name", "storage_account_access_key", "storage_key_vault_secret_id") {
+			// lintignore:R019 // deliberate subset: only the fields that require rebuilding site_config; the remaining attributes are applied elsewhere in the update
+			if metadata.ResourceData.HasChanges(
+				"site_config",
+				"app_settings",
+				"version",
+				"storage_account_name",
+				"storage_account_access_key",
+				"storage_key_vault_secret_id",
+			) {
 				existingSiteConfig, err = expandLogicAppStandardSiteConfigForUpdate(data.SiteConfig, metadata, existingSiteConfig)
 				if err != nil {
 					return fmt.Errorf("expanding site_config update for %s: %v", *id, err)
@@ -887,14 +858,8 @@ func (r LogicAppResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("public_network_access") {
 				if strings.EqualFold(data.PublicNetworkAccess, helpers.PublicNetworkAccessEnabled) {
 					siteEnvelope.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessEnabled)
-					if !features.FivePointOh() {
-						siteEnvelope.SiteConfig.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessEnabled)
-					}
 				} else {
 					siteEnvelope.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessDisabled)
-					if !features.FivePointOh() {
-						siteEnvelope.SiteConfig.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessDisabled)
-					}
 				}
 			}
 
@@ -1084,10 +1049,6 @@ func flattenLogicAppStandardSiteConfig(input *webapps.SiteConfig) []helpers.Logi
 
 	result.IpRestrictionDefaultAction = pointer.FromEnum(input.IPSecurityRestrictionsDefaultAction)
 
-	if !features.FivePointOh() {
-		result.PublicNetworkAccessEnabled = strings.EqualFold(pointer.From(input.PublicNetworkAccess), helpers.PublicNetworkAccessEnabled)
-	}
-
 	results = append(results, result)
 	return results
 }
@@ -1114,17 +1075,9 @@ func flattenLogicAppStandardIpRestriction(input *[]webapps.IPSecurityRestriction
 			}
 		}
 
-		subnetId := ""
-		if subnetIdRaw := v.VnetSubnetResourceId; subnetIdRaw != nil {
-			subnetId = *subnetIdRaw
-		}
-		restriction["virtual_network_subnet_id"] = subnetId
+		restriction["virtual_network_subnet_id"] = pointer.From(v.VnetSubnetResourceId)
 
-		name := ""
-		if nameRaw := v.Name; nameRaw != nil {
-			name = *nameRaw
-		}
-		restriction["name"] = name
+		restriction["name"] = pointer.From(v.Name)
 
 		priority := 0
 		if priorityRaw := v.Priority; priorityRaw != nil {
@@ -1132,11 +1085,7 @@ func flattenLogicAppStandardIpRestriction(input *[]webapps.IPSecurityRestriction
 		}
 		restriction["priority"] = priority
 
-		action := ""
-		if actionRaw := v.Action; actionRaw != nil {
-			action = *actionRaw
-		}
-		restriction["action"] = action
+		restriction["action"] = pointer.From(v.Action)
 
 		if headers := v.Headers; headers != nil {
 			restriction["headers"] = flattenHeaders(*headers)
@@ -1161,7 +1110,7 @@ func expandLogicAppStandardSiteConfigForCreate(d []helpers.LogicAppSiteConfig, m
 	siteConfig.FunctionsRuntimeScaleMonitoringEnabled = pointer.To(config.RuntimeScaleMonitoringEnabled)
 	siteConfig.Use32BitWorkerProcess = pointer.To(config.Use32BitWorkerProcess)
 	siteConfig.WebSocketsEnabled = pointer.To(config.WebSocketsEnabled)
-	siteConfig.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(config.SCMIpRestrictionDefaultAction))
+	siteConfig.ScmIPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](config.SCMIpRestrictionDefaultAction)
 
 	if config.LinuxFxVersion != "" {
 		siteConfig.LinuxFxVersion = pointer.To(config.LinuxFxVersion)
@@ -1208,9 +1157,6 @@ func expandLogicAppStandardSiteConfigForCreate(d []helpers.LogicAppSiteConfig, m
 	siteConfig.VnetRouteAllEnabled = pointer.To(config.VNETRouteAllEnabled)
 
 	siteConfig.PublicNetworkAccess = pointer.To(metadata.ResourceData.Get("public_network_access").(string))
-	if !features.FivePointOh() {
-		siteConfig.PublicNetworkAccess = pointer.To(reconcilePNA(metadata))
-	}
 
 	siteConfig.IPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](config.IpRestrictionDefaultAction)
 
@@ -1266,7 +1212,7 @@ func expandLogicAppStandardSiteConfigForUpdate(d []helpers.LogicAppSiteConfig, m
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction_default_action") {
-		siteConfig.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(config.SCMIpRestrictionDefaultAction))
+		siteConfig.ScmIPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](config.SCMIpRestrictionDefaultAction)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_min_tls_version") {
@@ -1305,11 +1251,15 @@ func expandLogicAppStandardSiteConfigForUpdate(d []helpers.LogicAppSiteConfig, m
 		siteConfig.NetFrameworkVersion = pointer.To(config.DotnetFrameworkVersion)
 	}
 
-	if !features.FivePointOh() && metadata.ResourceData.HasChanges("site_config.0.public_network_access_enabled") {
-		siteConfig.PublicNetworkAccess = pointer.To(reconcilePNA(metadata))
-	}
-
-	if metadata.ResourceData.HasChanges("app_settings", "storage_account_name", "storage_account_share_name", "storage_account_access_key", "version", "storage_key_vault_secret_id") {
+	// lintignore:R019 // deliberate subset: only the fields that feed the app_settings merge; the remaining attributes do not affect it
+	if metadata.ResourceData.HasChanges(
+		"app_settings",
+		"storage_account_name",
+		"storage_account_share_name",
+		"storage_account_access_key",
+		"version",
+		"storage_key_vault_secret_id",
+	) {
 		o, n := metadata.ResourceData.GetChange("app_settings")
 
 		appSettings := make([]webapps.NameValuePair, 0)
@@ -1423,28 +1373,4 @@ func mergeAppSettings(existing []webapps.NameValuePair, old, new map[string]inte
 	}
 
 	return pointer.To(expandAppSettings(eMap))
-}
-
-func reconcilePNA(d sdk.ResourceMetaData) string {
-	pna := ""
-	scPNASet := false
-	d.ResourceData.GetRawConfig().AsValueMap()["public_network_access"].IsNull()
-	if !d.ResourceData.GetRawConfig().AsValueMap()["public_network_access"].IsNull() { // is top level set, takes precedence
-		pna = d.ResourceData.Get("public_network_access").(string)
-	}
-	if sc := d.ResourceData.GetRawConfig().AsValueMap()["site_config"]; !sc.IsNull() {
-		if len(sc.AsValueSlice()) > 0 && !sc.AsValueSlice()[0].AsValueMap()["public_network_access_enabled"].IsNull() {
-			scPNASet = true
-		}
-	}
-	if pna == "" && scPNASet { // if not, or it's empty, is site_config value set
-		pnaBool := d.ResourceData.Get("site_config.0.public_network_access_enabled").(bool)
-		if pnaBool {
-			pna = helpers.PublicNetworkAccessEnabled
-		} else {
-			pna = helpers.PublicNetworkAccessDisabled
-		}
-	}
-
-	return pna
 }

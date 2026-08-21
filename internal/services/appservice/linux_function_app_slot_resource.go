@@ -95,7 +95,7 @@ func (r LinuxFunctionAppSlotResource) IDValidationFunc() pluginsdk.SchemaValidat
 }
 
 func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
-	args := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -552,7 +552,7 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 					HTTPSOnly:            pointer.To(functionAppSlot.HttpsOnly),
 					SiteConfig:           siteConfig,
 					ClientCertEnabled:    pointer.To(functionAppSlot.ClientCertEnabled),
-					ClientCertMode:       pointer.To(webapps.ClientCertMode(functionAppSlot.ClientCertMode)),
+					ClientCertMode:       pointer.ToEnum[webapps.ClientCertMode](functionAppSlot.ClientCertMode),
 					DailyMemoryTimeQuota: pointer.To(functionAppSlot.DailyMemoryTimeQuota),
 					OutboundVnetRouting: &webapps.OutboundVnetRouting{
 						BackupRestoreTraffic: pointer.To(functionAppSlot.VirtualNetworkBackupRestoreEnabled),
@@ -943,7 +943,7 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("client_certificate_mode") {
-				model.Properties.ClientCertMode = pointer.To(webapps.ClientCertMode(state.ClientCertMode))
+				model.Properties.ClientCertMode = pointer.ToEnum[webapps.ClientCertMode](state.ClientCertMode)
 			}
 
 			if metadata.ResourceData.HasChange("client_certificate_exclusion_paths") {
@@ -1210,8 +1210,7 @@ func (m *LinuxFunctionAppSlotModel) unpackLinuxFunctionAppSettings(input webapps
 
 		case "AzureWebJobsStorage":
 			if strings.HasPrefix(v, "@Microsoft.KeyVault") {
-				trimmed := strings.TrimPrefix(strings.TrimSuffix(v, ")"), "@Microsoft.KeyVault(SecretUri=")
-				m.StorageKeyVaultSecretID = trimmed
+				m.StorageKeyVaultSecretID = strings.TrimPrefix(strings.TrimSuffix(v, ")"), "@Microsoft.KeyVault(SecretUri=")
 			} else {
 				m.StorageAccountName, m.StorageAccountKey = helpers.ParseWebJobsStorageString(v)
 			}

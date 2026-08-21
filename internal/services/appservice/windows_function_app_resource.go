@@ -325,7 +325,7 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 	}
 
-	if !features.FivePointOh() {
+	if !features.SixPointOh() {
 		args["storage_key_vault_secret_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
 		args["virtual_network_application_traffic_enabled"].Computed = true
 		args["virtual_network_application_traffic_enabled"].Default = nil
@@ -556,7 +556,7 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 					HTTPSOnly:            pointer.To(functionApp.HttpsOnly),
 					SiteConfig:           siteConfig,
 					ClientCertEnabled:    pointer.To(functionApp.ClientCertEnabled),
-					ClientCertMode:       pointer.To(webapps.ClientCertMode(functionApp.ClientCertMode)),
+					ClientCertMode:       pointer.ToEnum[webapps.ClientCertMode](functionApp.ClientCertMode),
 					DailyMemoryTimeQuota: pointer.To(functionApp.DailyMemoryTimeQuota),
 					OutboundVnetRouting: &webapps.OutboundVnetRouting{
 						BackupRestoreTraffic: pointer.To(functionApp.VirtualNetworkBackupRestoreEnabled),
@@ -566,7 +566,7 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if !features.FivePointOh() {
+			if !features.SixPointOh() {
 				rawSiteVnetRouting, err := metadata.GetRawConfigAt("site_config.0.vnet_route_all_enabled")
 				if err != nil {
 					return err
@@ -807,7 +807,7 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 						state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.OutboundVnetRouting.BackupRestoreTraffic)
 						state.VnetImagePullEnabled = pointer.From(props.OutboundVnetRouting.ImagePullTraffic)
 						state.VirtualNetworkApplicationTrafficEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
-						if !features.FivePointOh() {
+						if !features.SixPointOh() {
 							siteConfig.VnetRouteAllEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
 						}
 					}
@@ -1002,7 +1002,7 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("client_certificate_mode") {
-				model.Properties.ClientCertMode = pointer.To(webapps.ClientCertMode(state.ClientCertMode))
+				model.Properties.ClientCertMode = pointer.ToEnum[webapps.ClientCertMode](state.ClientCertMode)
 			}
 
 			if metadata.ResourceData.HasChange("client_certificate_exclusion_paths") {
@@ -1110,7 +1110,7 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 				model.Properties.SiteConfig = siteConfig
 			}
 
-			if !features.FivePointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
+			if !features.SixPointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
 				vnetRoutingProps.ApplicationTraffic = siteConfig.VnetRouteAllEnabled
 			}
 
@@ -1448,8 +1448,7 @@ func (m *WindowsFunctionAppModel) unpackWindowsFunctionAppSettings(input *webapp
 
 		case "AzureWebJobsStorage":
 			if strings.HasPrefix(v, "@Microsoft.KeyVault") {
-				trimmed := strings.TrimPrefix(strings.TrimSuffix(v, ")"), "@Microsoft.KeyVault(SecretUri=")
-				m.StorageKeyVaultSecretID = trimmed
+				m.StorageKeyVaultSecretID = strings.TrimPrefix(strings.TrimSuffix(v, ")"), "@Microsoft.KeyVault(SecretUri=")
 			} else {
 				m.StorageAccountName, m.StorageAccountKey = helpers.ParseWebJobsStorageString(v)
 			}

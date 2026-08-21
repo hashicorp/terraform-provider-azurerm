@@ -1275,7 +1275,7 @@ func TestAccWindowsFunctionAppSlot_vNetIntegrationUpdate(t *testing.T) {
 	})
 }
 
-func TestAccWindowsFunctionAppSlotASEv3_basic(t *testing.T) {
+func TestAccWindowsFunctionAppSlot_ASEv3Basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_function_app_slot", "test")
 	r := WindowsFunctionAppSlotResource{}
 
@@ -3304,9 +3304,9 @@ resource "azurerm_subnet" "test" {
     }
   }
 
-  service_endpoints = [
-    "Microsoft.Storage"
-  ]
+  service_endpoint {
+    service = "Microsoft.Storage"
+  }
 }
 
 resource "azurerm_storage_account_network_rules" "test" {

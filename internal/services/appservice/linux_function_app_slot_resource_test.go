@@ -1375,7 +1375,7 @@ func TestAccLinuxFunctionAppSlot_vNetIntegrationUpdateWithVnetProperties(t *test
 	})
 }
 
-func TestAccLinuxFunctionAppSlotASEv3_basicWithVnetProperties(t *testing.T) {
+func TestAccLinuxFunctionAppSlot_ASEv3BasicWithVnetProperties(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
 	r := LinuxFunctionAppSlotResource{}
 
@@ -3580,9 +3580,9 @@ resource "azurerm_subnet" "test" {
     }
   }
 
-  service_endpoints = [
-    "Microsoft.Storage"
-  ]
+  service_endpoint {
+    service = "Microsoft.Storage"
+  }
 }
 
 resource "azurerm_storage_account_network_rules" "test" {

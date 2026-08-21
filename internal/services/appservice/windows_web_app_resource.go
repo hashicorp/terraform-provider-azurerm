@@ -222,7 +222,7 @@ func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 	}
 
-	if !features.FivePointOh() {
+	if !features.SixPointOh() {
 		s["virtual_network_image_pull_enabled"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
@@ -412,7 +412,7 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 					SiteConfig:            siteConfig,
 					ClientAffinityEnabled: pointer.To(webApp.ClientAffinityEnabled),
 					ClientCertEnabled:     pointer.To(webApp.ClientCertEnabled),
-					ClientCertMode:        pointer.To(webapps.ClientCertMode(webApp.ClientCertMode)),
+					ClientCertMode:        pointer.ToEnum[webapps.ClientCertMode](webApp.ClientCertMode),
 					OutboundVnetRouting: &webapps.OutboundVnetRouting{
 						BackupRestoreTraffic: pointer.To(webApp.VirtualNetworkBackupRestoreEnabled),
 						ApplicationTraffic:   pointer.To(webApp.VirtualNetworkApplicationTrafficEnabled),
@@ -420,7 +420,7 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if !features.FivePointOh() {
+			if !features.SixPointOh() {
 				rawVnetImagePullEnabled, err := metadata.GetRawConfigAt("virtual_network_image_pull_enabled")
 				if err != nil {
 					return err
@@ -723,7 +723,7 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 						state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.OutboundVnetRouting.BackupRestoreTraffic)
 						state.VirtualNetworkImagePullEnabled = pointer.From(props.OutboundVnetRouting.ImagePullTraffic)
 						state.VirtualNetworkApplicationTrafficEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
-						if !features.FivePointOh() {
+						if !features.SixPointOh() {
 							siteConfig.VnetRouteAllEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
 						}
 					}
@@ -883,7 +883,7 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 				model.Properties.ClientCertEnabled = pointer.To(state.ClientCertEnabled)
 			}
 			if metadata.ResourceData.HasChange("client_certificate_mode") {
-				model.Properties.ClientCertMode = pointer.To(webapps.ClientCertMode(state.ClientCertMode))
+				model.Properties.ClientCertMode = pointer.ToEnum[webapps.ClientCertMode](state.ClientCertMode)
 			}
 			if metadata.ResourceData.HasChange("client_certificate_exclusion_paths") {
 				model.Properties.ClientCertExclusionPaths = pointer.To(state.ClientCertExclusionPaths)
@@ -956,7 +956,7 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if !features.FivePointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
+			if !features.SixPointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
 				vnetRoutingProps.ApplicationTraffic = &sc.VnetRouteAllEnabled
 			}
 

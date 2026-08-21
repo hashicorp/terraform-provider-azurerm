@@ -132,7 +132,7 @@ The following arguments are supported:
 
 * `client_affinity_enabled` - (Optional) Should the Logic App send session affinity cookies, which route client requests in the same session to the same instance?
 
-* `client_certificate_mode` - (Optional) The mode of the Logic App's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser`.
+* `client_certificate_mode` - (Optional) The mode of the Logic App's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser`. Defaults to `Required`.
 
 * `enabled` - (Optional) Is the Logic App enabled? Defaults to `true`.
 
@@ -196,7 +196,7 @@ The `site_config` block supports the following:
 
 * `cors` - (Optional) A `cors` block as defined below.
 
-* `dotnet_framework_version` - (Optional) The version of the .NET framework's CLR used in this Logic App Possible values are `v4.0` (including .NET Core 2.1 and 3.1), `v5.0`, `v6.0` and `v8.0`. [For more information on which .NET Framework version to use based on the runtime version you're targeting - please see this table](https://docs.microsoft.com/azure/azure-functions/functions-dotnet-class-library#supported-versions). Defaults to `v4.0`.
+* `dotnet_framework_version` - (Optional) The version of the .NET framework's CLR used in this Logic App Possible values are `v4.0` (including .NET Core 2.1 and 3.1), `v5.0`, `v6.0`, `v8.0` and `v10.0`. [For more information on which .NET Framework version to use based on the runtime version you're targeting - please see this table](https://docs.microsoft.com/azure/azure-functions/functions-dotnet-class-library#supported-versions). Defaults to `v4.0`.
 
 * `elastic_instance_minimum` - (Optional) The number of minimum instances for this Logic App Only affects apps on the Premium plan.
 
@@ -222,7 +222,7 @@ The `site_config` block supports the following:
   
 * `scm_use_main_ip_restriction` - (Optional) Should the Logic App `ip_restriction` configuration be used for the SCM too. Defaults to `false`.
 
-* `scm_min_tls_version` - (Optional) Configures the minimum version of TLS required for SSL requests to the SCM site. Possible values are `1.0`, `1.1`, `1.2` and `1.3`.
+* `scm_min_tls_version` - (Optional) Configures the minimum version of TLS required for SSL requests to the SCM site. Possible values are `1.2` and `1.3`.
 
 ~> **Note:** Azure Services will require TLS 1.2+ by August 2025, please see this [announcement](https://azure.microsoft.com/en-us/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more.
 
@@ -232,7 +232,7 @@ The `site_config` block supports the following:
 
 ~> **Note:** You must set `os_type` in `azurerm_service_plan` to `Linux` when this property is set.
 
-* `min_tls_version` - (Optional) The minimum supported TLS version for the Logic App. Possible values are `1.0`, `1.1`, `1.2` and `1.3`. Defaults to `1.2` for new Logic Apps.
+* `min_tls_version` - (Optional) The minimum supported TLS version for the Logic App. Possible values are `1.2` and `1.3`. Defaults to `1.2` for new Logic Apps.
 
 ~> **Note:** Azure Services will require TLS 1.2+ by August 2025, please see this [announcement](https://azure.microsoft.com/en-us/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more.
 

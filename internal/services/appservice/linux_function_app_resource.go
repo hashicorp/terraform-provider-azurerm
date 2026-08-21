@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name linux_function_app -properties "name,resource_group_name" -service-package-name appservice -test-params "B1" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity -test-params "B1"
 
 package appservice
 
@@ -333,7 +333,7 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 	}
 
-	if !features.FivePointOh() {
+	if !features.SixPointOh() {
 		args["storage_key_vault_secret_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
 
 		args["virtual_network_application_traffic_enabled"].Computed = true
@@ -573,7 +573,7 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if !features.FivePointOh() {
+			if !features.SixPointOh() {
 				rawSiteVnetRouting, err := metadata.GetRawConfigAt("site_config.0.vnet_route_all_enabled")
 				if err != nil {
 					return err
@@ -858,7 +858,7 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 						state.VnetImagePullEnabled = pointer.From(props.OutboundVnetRouting.ImagePullTraffic)
 						state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.OutboundVnetRouting.BackupRestoreTraffic)
 						state.VirtualNetworkApplicationTrafficEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
-						if !features.FivePointOh() {
+						if !features.SixPointOh() {
 							siteConfig.VnetRouteAllEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
 						}
 					}
@@ -1014,7 +1014,7 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("client_certificate_mode") {
-				model.Properties.ClientCertMode = pointer.To(webapps.ClientCertMode(state.ClientCertMode))
+				model.Properties.ClientCertMode = pointer.ToEnum[webapps.ClientCertMode](state.ClientCertMode)
 			}
 
 			if metadata.ResourceData.HasChange("client_certificate_exclusion_paths") {
@@ -1105,7 +1105,7 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				model.Properties.SiteConfig = siteConfig
 			}
 
-			if !features.FivePointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
+			if !features.SixPointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
 				vnetRoutingProps.ApplicationTraffic = siteConfig.VnetRouteAllEnabled
 			}
 
@@ -1438,8 +1438,7 @@ func (m *LinuxFunctionAppModel) unpackLinuxFunctionAppSettings(input webapps.Str
 
 		case "AzureWebJobsStorage":
 			if strings.HasPrefix(v, "@Microsoft.KeyVault") {
-				trimmed := strings.TrimPrefix(strings.TrimSuffix(v, ")"), "@Microsoft.KeyVault(SecretUri=")
-				m.StorageKeyVaultSecretID = trimmed
+				m.StorageKeyVaultSecretID = strings.TrimPrefix(strings.TrimSuffix(v, ")"), "@Microsoft.KeyVault(SecretUri=")
 			} else {
 				m.StorageAccountName, m.StorageAccountKey = helpers.ParseWebJobsStorageString(v)
 			}
