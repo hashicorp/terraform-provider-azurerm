@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/integrationruntimes"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -24,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDataFactoryIntegrationRuntimeAzureSsis() *pluginsdk.Resource {
@@ -812,7 +812,7 @@ func expandDataFactoryIntegrationRuntimeAzureSsisVirtualNetwork(input []interfac
 	}
 
 	if publicIPs := v["public_ips"].([]interface{}); len(publicIPs) > 0 {
-		result.PublicIPs = utils.ExpandStringSlice(publicIPs)
+		result.PublicIPs = helpers.ExpandStringSlice(publicIPs)
 	}
 
 	return result
@@ -1082,7 +1082,7 @@ func flattenDataFactoryIntegrationRuntimeAzureSsisVnetIntegration(vnetProperties
 			"vnet_id":     pointer.From(vnetProperties.VNetId),
 			"subnet_id":   pointer.From(vnetProperties.SubnetId),
 			"subnet_name": pointer.From(vnetProperties.Subnet),
-			"public_ips":  utils.FlattenStringSlice(vnetProperties.PublicIPs),
+			"public_ips":  helpers.FlattenStringSlice(vnetProperties.PublicIPs),
 		},
 	}
 }

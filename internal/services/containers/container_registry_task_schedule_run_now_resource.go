@@ -98,10 +98,9 @@ func (r ContainerRegistryTaskScheduleResource) Create() sdk.ResourceFunc {
 				// If the SDK didn't parse the response body, try parsing it on our side.
 				if scheduleResp.HttpResponse != nil {
 					scheduleRunModel := registries.Run{}
-					err = json.
+					if err = json.
 						NewDecoder(scheduleResp.HttpResponse.Body).
-						Decode(&scheduleRunModel)
-					if err != nil {
+						Decode(&scheduleRunModel); err != nil {
 						return fmt.Errorf("can't decode ScheduleRun model, err: %w for taskID %s", err, taskId)
 					}
 

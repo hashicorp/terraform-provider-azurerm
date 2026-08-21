@@ -1324,7 +1324,7 @@ func flattenSingleFrontDoorHealthProbeSettingsModel(input *frontdoors.HealthProb
 		}
 	}
 
-	output := map[string]interface{}{
+	return map[string]interface{}{
 		"enabled":             enabled,
 		"id":                  id,
 		"name":                name,
@@ -1333,8 +1333,6 @@ func flattenSingleFrontDoorHealthProbeSettingsModel(input *frontdoors.HealthProb
 		"path":                path,
 		"probe_method":        probeMethod,
 	}
-
-	return output
 }
 
 func combineLoadBalancingSettingsModel(allLoadBalancingSettings []frontdoors.LoadBalancingSettingsModel, orderedIds []interface{}, frontDoorId frontdoors.FrontDoorId) []interface{} {
@@ -1419,15 +1417,13 @@ func flattenSingleFrontDoorLoadBalancingSettingsModel(input *frontdoors.LoadBala
 		}
 	}
 
-	output := map[string]interface{}{
+	return map[string]interface{}{
 		"additional_latency_milliseconds": additionalLatencyMilliseconds,
 		"id":                              id,
 		"name":                            name,
 		"sample_size":                     sampleSize,
 		"successful_samples_required":     successfulSamplesRequired,
 	}
-
-	return output
 }
 
 func combineRoutingRules(allRoutingRules []frontdoors.RoutingRule, oldBlocks interface{}, orderedIds []interface{}, frontDoorId frontdoors.FrontDoorId) ([]interface{}, error) {
@@ -1567,10 +1563,6 @@ func flattenRoutingRuleForwardingConfiguration(config frontdoors.RouteConfigurat
 		}
 		name = backendPoolId.Name
 	}
-	customForwardingPath := ""
-	if v.CustomForwardingPath != nil {
-		customForwardingPath = *v.CustomForwardingPath
-	}
 
 	cacheEnabled := false
 	cacheQueryParameterStripDirective := string(frontdoors.FrontDoorQueryStripAll)
@@ -1629,7 +1621,7 @@ func flattenRoutingRuleForwardingConfiguration(config frontdoors.RouteConfigurat
 	return &[]interface{}{
 		map[string]interface{}{
 			"backend_pool_name":                     name,
-			"custom_forwarding_path":                customForwardingPath,
+			"custom_forwarding_path":                pointer.From(v.CustomForwardingPath),
 			"forwarding_protocol":                   forwardingProtocol,
 			"cache_enabled":                         cacheEnabled,
 			"cache_query_parameter_strip_directive": cacheQueryParameterStripDirective,
@@ -1646,23 +1638,6 @@ func flattenRoutingRuleRedirectConfiguration(config frontdoors.RouteConfiguratio
 		return []interface{}{}
 	}
 
-	customFragment := ""
-	if v.CustomFragment != nil {
-		customFragment = *v.CustomFragment
-	}
-	customHost := ""
-	if v.CustomHost != nil {
-		customHost = *v.CustomHost
-	}
-	customQueryString := ""
-	if v.CustomQueryString != nil {
-		customQueryString = *v.CustomQueryString
-	}
-	customPath := ""
-	if v.CustomPath != nil {
-		customPath = *v.CustomPath
-	}
-
 	redirectProtocol := ""
 	if v.RedirectProtocol != nil {
 		redirectProtocol = string(*v.RedirectProtocol)
@@ -1675,10 +1650,10 @@ func flattenRoutingRuleRedirectConfiguration(config frontdoors.RouteConfiguratio
 
 	return []interface{}{
 		map[string]interface{}{
-			"custom_host":         customHost,
-			"custom_fragment":     customFragment,
-			"custom_query_string": customQueryString,
-			"custom_path":         customPath,
+			"custom_host":         pointer.From(v.CustomHost),
+			"custom_fragment":     pointer.From(v.CustomFragment),
+			"custom_query_string": pointer.From(v.CustomQueryString),
+			"custom_path":         pointer.From(v.CustomPath),
 			"redirect_protocol":   redirectProtocol,
 			"redirect_type":       redirectType,
 		},

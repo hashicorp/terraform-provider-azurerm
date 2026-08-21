@@ -148,16 +148,15 @@ func (r ContainerAppEnvironmentStorageResource) Create() sdk.ResourceFunc {
 			managedEnvironmentStorage := managedenvironmentsstorages.ManagedEnvironmentStorage{}
 
 			if storage.NfsServer != "" {
-				props := &managedenvironmentsstorages.ManagedEnvironmentStorageProperties{
+				managedEnvironmentStorage.Properties = &managedenvironmentsstorages.ManagedEnvironmentStorageProperties{
 					NfsAzureFile: &managedenvironmentsstorages.NfsAzureFileProperties{
 						AccessMode: &accessMode,
 						Server:     pointer.To(storage.NfsServer),
 						ShareName:  pointer.To(storage.ShareName),
 					},
 				}
-				managedEnvironmentStorage.Properties = props
 			} else {
-				props := &managedenvironmentsstorages.ManagedEnvironmentStorageProperties{
+				managedEnvironmentStorage.Properties = &managedenvironmentsstorages.ManagedEnvironmentStorageProperties{
 					AzureFile: &managedenvironmentsstorages.AzureFileProperties{
 						AccessMode:  &accessMode,
 						AccountKey:  pointer.To(storage.AccessKey),
@@ -165,7 +164,6 @@ func (r ContainerAppEnvironmentStorageResource) Create() sdk.ResourceFunc {
 						ShareName:   pointer.To(storage.ShareName),
 					},
 				}
-				managedEnvironmentStorage.Properties = props
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, id, managedEnvironmentStorage); err != nil {

@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
@@ -205,7 +206,7 @@ func resourceBotWebAppCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 			DeveloperAppInsightKey:            pointer.To(d.Get("developer_app_insights_key").(string)),
 			DeveloperAppInsightsAPIKey:        pointer.To(d.Get("developer_app_insights_api_key").(string)),
 			DeveloperAppInsightsApplicationID: pointer.To(d.Get("developer_app_insights_application_id").(string)),
-			LuisAppIds:                        utils.ExpandStringSlice(d.Get("luis_app_ids").([]interface{})),
+			LuisAppIds:                        helpers.ExpandStringSlice(d.Get("luis_app_ids").([]interface{})),
 			LuisKey:                           pointer.To(d.Get("luis_key").(string)),
 		},
 		Location: pointer.To(d.Get("location").(string)),
@@ -300,7 +301,7 @@ func resourceBotWebAppUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 			DeveloperAppInsightKey:            pointer.To(d.Get("developer_app_insights_key").(string)),
 			DeveloperAppInsightsAPIKey:        pointer.To(d.Get("developer_app_insights_api_key").(string)),
 			DeveloperAppInsightsApplicationID: pointer.To(d.Get("developer_app_insights_application_id").(string)),
-			LuisAppIds:                        utils.ExpandStringSlice(d.Get("luis_app_ids").([]interface{})),
+			LuisAppIds:                        helpers.ExpandStringSlice(d.Get("luis_app_ids").([]interface{})),
 			LuisKey:                           pointer.To(d.Get("luis_key").(string)),
 		},
 		Location: pointer.To(d.Get("location").(string)),

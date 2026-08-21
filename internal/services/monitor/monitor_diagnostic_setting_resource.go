@@ -170,7 +170,7 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
-	var logs []diagnosticsettings.LogSettings
+	var logs []diagnosticsettings.DiagnosticsLogSettings
 	hasEnabledLogs := false
 	if enabledLogs, ok := d.GetOk("enabled_log"); ok {
 		enabledLogsList := enabledLogs.(*pluginsdk.Set).List()
@@ -185,7 +185,7 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	// if no logs/metrics are enabled the API "creates" but 404's on Read
-	var metrics []diagnosticsettings.MetricSettings
+	var metrics []diagnosticsettings.DiagnosticsMetricSettings
 	hasEnabledMetrics := false
 
 	if enabledMetrics, ok := d.GetOk("enabled_metric"); ok {
@@ -280,7 +280,7 @@ func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("unexpected null model of Monitor Diagnostics Setting %q for Resource %q", id.DiagnosticSettingName, id.ResourceUri)
 	}
 
-	var logs []diagnosticsettings.LogSettings
+	var logs []diagnosticsettings.DiagnosticsLogSettings
 	hasEnabledLogs := false
 
 	if d.HasChange("enabled_log") {
@@ -310,14 +310,13 @@ func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
-	var metrics []diagnosticsettings.MetricSettings
+	var metrics []diagnosticsettings.DiagnosticsMetricSettings
 	hasEnabledMetrics := false
 
 	if d.HasChange("enabled_metric") {
 		enabledMetrics := d.Get("enabled_metric").(*pluginsdk.Set).List()
 		if len(enabledMetrics) > 0 {
-			expandEnabledMetrics := expandMonitorDiagnosticsSettingsEnabledMetrics(enabledMetrics)
-			metrics = expandEnabledMetrics
+			metrics = expandMonitorDiagnosticsSettingsEnabledMetrics(enabledMetrics)
 			hasEnabledMetrics = true
 		} else if existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.Metrics != nil {
 			// if the enabled_metric is updated to empty, we disable the metric explicitly
@@ -520,8 +519,8 @@ func monitorDiagnosticSettingRefreshFunc(ctx context.Context, client *diagnostic
 	}
 }
 
-func expandMonitorDiagnosticsSettingsEnabledLogs(input []interface{}) (*[]diagnosticsettings.LogSettings, error) {
-	results := make([]diagnosticsettings.LogSettings, 0)
+func expandMonitorDiagnosticsSettingsEnabledLogs(input []interface{}) (*[]diagnosticsettings.DiagnosticsLogSettings, error) {
+	results := make([]diagnosticsettings.DiagnosticsLogSettings, 0)
 
 	for _, raw := range input {
 		v := raw.(map[string]interface{})
@@ -529,7 +528,7 @@ func expandMonitorDiagnosticsSettingsEnabledLogs(input []interface{}) (*[]diagno
 		category := v["category"].(string)
 		categoryGroup := v["category_group"].(string)
 
-		output := diagnosticsettings.LogSettings{
+		output := diagnosticsettings.DiagnosticsLogSettings{
 			Enabled: true,
 		}
 
@@ -548,7 +547,7 @@ func expandMonitorDiagnosticsSettingsEnabledLogs(input []interface{}) (*[]diagno
 	return &results, nil
 }
 
-func flattenMonitorDiagnosticEnabledLogs(input *[]diagnosticsettings.LogSettings) []interface{} {
+func flattenMonitorDiagnosticEnabledLogs(input *[]diagnosticsettings.DiagnosticsLogSettings) []interface{} {
 	enabledLogs := make([]interface{}, 0)
 	if input == nil {
 		return enabledLogs
@@ -561,24 +560,16 @@ func flattenMonitorDiagnosticEnabledLogs(input *[]diagnosticsettings.LogSettings
 			continue
 		}
 
-		category := ""
-		if v.Category != nil {
-			category = *v.Category
-		}
-		output["category"] = category
+		output["category"] = pointer.From(v.Category)
 
-		categoryGroup := ""
-		if v.CategoryGroup != nil {
-			categoryGroup = *v.CategoryGroup
-		}
-		output["category_group"] = categoryGroup
+		output["category_group"] = pointer.From(v.CategoryGroup)
 
 		enabledLogs = append(enabledLogs, output)
 	}
 	return enabledLogs
 }
 
-func flattenMonitorDiagnosticEnabledMetrics(input *[]diagnosticsettings.MetricSettings) []interface{} {
+func flattenMonitorDiagnosticEnabledMetrics(input *[]diagnosticsettings.DiagnosticsMetricSettings) []interface{} {
 	enabledLogs := make([]interface{}, 0)
 	if input == nil {
 		return enabledLogs
@@ -597,13 +588,13 @@ func flattenMonitorDiagnosticEnabledMetrics(input *[]diagnosticsettings.MetricSe
 	return enabledLogs
 }
 
-func expandMonitorDiagnosticsSettingsEnabledMetrics(input []interface{}) []diagnosticsettings.MetricSettings {
-	results := make([]diagnosticsettings.MetricSettings, 0)
+func expandMonitorDiagnosticsSettingsEnabledMetrics(input []interface{}) []diagnosticsettings.DiagnosticsMetricSettings {
+	results := make([]diagnosticsettings.DiagnosticsMetricSettings, 0)
 
 	for _, raw := range input {
 		v := raw.(map[string]interface{})
 
-		output := diagnosticsettings.MetricSettings{
+		output := diagnosticsettings.DiagnosticsMetricSettings{
 			Category: pointer.To(v["category"].(string)),
 			Enabled:  true,
 		}
