@@ -197,11 +197,8 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 				},
 			},
 
-<<<<<<< HEAD
 			"identity": commonschema.UserAssignedIdentityComputed(),
 
-=======
->>>>>>> a45ae87cc10578cdd54872b5c99dbf0dd81a1377
 			"inter_node_communication": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -451,7 +448,6 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-<<<<<<< HEAD
 			"security_profile": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -477,8 +473,6 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 				},
 			},
 
-=======
->>>>>>> a45ae87cc10578cdd54872b5c99dbf0dd81a1377
 			"start_task": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
