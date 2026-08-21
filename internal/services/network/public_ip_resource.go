@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -225,13 +226,13 @@ func resourcePublicIp() *pluginsdk.Resource {
 }
 
 func isPublicIpSkuUpgrade(oldSku string, newSku string) bool {
-	publicIpSkuUpgradeOrder := map[string]int{
-		strings.ToLower(string(publicipaddresses.PublicIPAddressSkuNameBasic)):        1,
-		strings.ToLower(string(publicipaddresses.PublicIPAddressSkuNameStandard)):     2,
-		strings.ToLower(string(publicipaddresses.PublicIPAddressSkuNameStandardVTwo)): 3,
+	publicIpSkuUpgradeOrder := []string{
+		strings.ToLower(string(publicipaddresses.PublicIPAddressSkuNameBasic)),
+		strings.ToLower(string(publicipaddresses.PublicIPAddressSkuNameStandard)),
+		strings.ToLower(string(publicipaddresses.PublicIPAddressSkuNameStandardVTwo)),
 	}
 
-	return publicIpSkuUpgradeOrder[strings.ToLower(newSku)] > publicIpSkuUpgradeOrder[strings.ToLower(oldSku)]
+	return slices.Index(publicIpSkuUpgradeOrder, strings.ToLower(newSku)) > slices.Index(publicIpSkuUpgradeOrder, strings.ToLower(oldSku))
 }
 
 func isStandardPublicIpSku(sku string) bool {
