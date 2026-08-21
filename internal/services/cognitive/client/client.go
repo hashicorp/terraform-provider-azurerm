@@ -6,6 +6,7 @@ package client
 import (
 	"fmt"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/accountcapabilityhost"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/accountconnectionresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/cognitiveservicesaccounts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/cognitiveservicesprojects"
@@ -16,15 +17,22 @@ import (
 )
 
 type Client struct {
-	ProjectsClient                  *cognitiveservicesprojects.CognitiveServicesProjectsClient
+	AccountCapabilityHostClient     *accountcapabilityhost.AccountCapabilityHostClient
 	AccountConnectionResourceClient *accountconnectionresource.AccountConnectionResourceClient
 	AccountsClient                  *cognitiveservicesaccounts.CognitiveServicesAccountsClient
 	DeploymentsClient               *deployments.DeploymentsClient
+	ProjectsClient                  *cognitiveservicesprojects.CognitiveServicesProjectsClient
 	RaiBlocklistsClient             *raiblocklists.RaiBlocklistsClient
 	RaiPoliciesClient               *raipolicies.RaiPoliciesClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
+	accountCapabilityHostClient, err := accountcapabilityhost.NewAccountCapabilityHostClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Account Capability Host client: %+v", err)
+	}
+	o.Configure(accountCapabilityHostClient.Client, o.Authorizers.ResourceManager)
+
 	accountConnectionResourceClient, err := accountconnectionresource.NewAccountConnectionResourceClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Account Connection client: %+v", err)
@@ -62,10 +70,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	o.Configure(raiBlobklistsClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		ProjectsClient:                  projectsClient,
+		AccountCapabilityHostClient:     accountCapabilityHostClient,
 		AccountConnectionResourceClient: accountConnectionResourceClient,
 		AccountsClient:                  accountsClient,
 		DeploymentsClient:               deploymentsClient,
+		ProjectsClient:                  projectsClient,
 		RaiBlocklistsClient:             raiBlobklistsClient,
 		RaiPoliciesClient:               raiPoliciesClient,
 	}, nil
