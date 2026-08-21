@@ -33,10 +33,7 @@ func dataSourceAutomationAccount() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			"dsc_server_endpoint": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"dsc_primary_access_key": {
 				Type:      pluginsdk.TypeString,
@@ -44,15 +41,15 @@ func dataSourceAutomationAccount() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 
+			"dsc_server_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"dsc_secondary_access_key": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
-			},
-
-			"endpoint": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
 			},
 
 			"encryption": {
@@ -73,13 +70,6 @@ func dataSourceAutomationAccount() *pluginsdk.Resource {
 				},
 			},
 
-			"hybrid_service_url": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
-
 			"location": commonschema.LocationComputed(),
 
 			"local_authentication_enabled": {
@@ -88,6 +78,23 @@ func dataSourceAutomationAccount() *pluginsdk.Resource {
 			},
 
 			"primary_key": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"secondary_key": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
+
+			"endpoint": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -109,14 +116,7 @@ func dataSourceAutomationAccount() *pluginsdk.Resource {
 				},
 			},
 
-			"public_network_access_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
-			},
-
-			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
-
-			"secondary_key": {
+			"hybrid_service_url": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -169,7 +169,12 @@ func dataSourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("hybrid_service_url", props.AutomationHybridServiceURL)
 			d.Set("local_authentication_enabled", !pointer.From(props.DisableLocalAuth))
 			d.Set("public_network_access_enabled", pointer.From(props.PublicNetworkAccess))
-			d.Set("sku_name", pointer.From(props.Sku))
+
+			skuName := ""
+			if sku := props.Sku; sku != nil {
+				skuName = string(sku.Name)
+			}
+			d.Set("sku_name", skuName)
 
 			if err := d.Set("encryption", flattenEncryption(props.Encryption)); err != nil {
 				return fmt.Errorf("setting `encryption`: %+v", err)
