@@ -60,6 +60,100 @@ func dataSourceExpressRouteCircuitPeering() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"ipv6": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"microsoft_peering": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"advertised_public_prefixes": {
+										Type:     pluginsdk.TypeList,
+										Computed: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+										},
+									},
+
+									"customer_asn": {
+										Type:     pluginsdk.TypeInt,
+										Computed: true,
+									},
+
+									"routing_registry_name": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+
+									"advertised_communities": {
+										Type:     pluginsdk.TypeList,
+										Computed: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+										},
+									},
+								},
+							},
+						},
+
+						"primary_peer_address_prefix": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"secondary_peer_address_prefix": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+
+						"route_filter_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"microsoft_peering_config": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"advertised_public_prefixes": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+						},
+
+						"customer_asn": {
+							Type:     pluginsdk.TypeInt,
+							Computed: true,
+						},
+
+						"routing_registry_name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"advertised_communities": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+					},
+				},
+			},
+
 			"vlan_id": {
 				Type:     pluginsdk.TypeInt,
 				Computed: true,
@@ -142,6 +236,14 @@ func dataSourceExpressRouteCircuitPeeringRead(d *pluginsdk.ResourceData, meta in
 				routeFilterId = *props.RouteFilter.Id
 			}
 			d.Set("route_filter_id", routeFilterId)
+
+			config := flattenExpressRouteCircuitPeeringMicrosoftConfig(props.MicrosoftPeeringConfig)
+			if err := d.Set("microsoft_peering_config", config); err != nil {
+				return fmt.Errorf("setting `microsoft_peering_config`: %+v", err)
+			}
+			if err := d.Set("ipv6", flattenExpressRouteCircuitIpv6PeeringConfig(props.IPv6PeeringConfig)); err != nil {
+				return fmt.Errorf("setting `ipv6`: %+v", err)
+			}
 		}
 	}
 
