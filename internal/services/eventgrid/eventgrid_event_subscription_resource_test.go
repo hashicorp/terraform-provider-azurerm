@@ -418,7 +418,7 @@ func TestAccEventGridEventSubscription_userIdentity(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.userIdentityUpdated(data),
+			Config: r.userIdentityRemoved(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("delivery_identity.#").HasValue("0"),
@@ -1270,7 +1270,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
 	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (EventGridEventSubscriptionResource) userIdentityUpdated(data acceptance.TestData) string {
+func (EventGridEventSubscriptionResource) userIdentityRemoved(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
