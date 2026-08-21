@@ -13,6 +13,16 @@ import (
 
 type ConsumptionBudgetSubscriptionDataSource struct{}
 
+func TestAccDataSourceConsumptionBudgetSubscription_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_consumption_budget_subscription", "test")
+	r := ConsumptionBudgetSubscriptionDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceConsumptionBudgetSubscription_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_consumption_budget_subscription", "test")
 	r := ConsumptionBudgetSubscriptionDataSource{}

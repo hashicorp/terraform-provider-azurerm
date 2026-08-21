@@ -14,6 +14,16 @@ import (
 
 type OrchestratedVirtualMachineScaleSetDataSource struct{}
 
+func TestAccOrchestratedVMSSDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_orchestrated_virtual_machine_scale_set", "test")
+	r := OrchestratedVirtualMachineScaleSetDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccOrchestratedVMSSDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_orchestrated_virtual_machine_scale_set", "test")
 	d := OrchestratedVirtualMachineScaleSetDataSource{}

@@ -18,6 +18,16 @@ import (
 
 type VirtualMachineScaleSetExtensionResource struct{}
 
+func TestAccVirtualMachineScaleSetExtension_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_extension", "test")
+	r := VirtualMachineScaleSetExtensionResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicLinux(data),
+		},
+	}, "")
+}
+
 func TestAccVirtualMachineScaleSetExtension_basicLinux(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_extension", "test")
 	r := VirtualMachineScaleSetExtensionResource{}

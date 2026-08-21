@@ -20,6 +20,27 @@ import (
 
 type MarketplaceAgreementResource struct{}
 
+func TestAccMarketplaceAgreement_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_marketplace_agreement", "test")
+	r := MarketplaceAgreementResource{}
+	offer := "waf"
+
+	data.ResourceRegressionAdditionalStepsTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.empty(),
+			Check: acceptance.ComposeTestCheckFunc(
+				data.CheckWithClientWithoutResource(r.cancelExistingAgreement(offer)),
+			),
+		},
+		{
+			Config: r.basic(offer),
+		},
+		{
+			Config: r.basic(offer),
+		},
+	}, "")
+}
+
 func TestAccMarketplaceAgreement_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_marketplace_agreement", "test")
 	r := MarketplaceAgreementResource{}
