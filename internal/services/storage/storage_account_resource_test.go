@@ -161,6 +161,7 @@ func TestAccStorageAccount_DNSEndpointTypeAzure(t *testing.T) {
 				check.That(data.ResourceName).Key("account_replication_type").HasValue("LRS"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("production"),
+				check.That(data.ResourceName).Key("primary_connection_string").MatchesRegex(regexp.MustCompile(`BlobEndpoint=https://[^;]+\.blob\.storage\.azure\.net`)),
 			),
 		},
 		data.ImportStep(),
@@ -1932,6 +1933,13 @@ resource "azurerm_storage_account" "test" {
   tags = {
     environment = "production"
   }
+}
+
+// storage_account delete race condition due to short create/delete interval
+resource "time_sleep" "wait_for_account_to_settle" {
+  depends_on = [azurerm_storage_account.test]
+
+  create_duration = "1m"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
