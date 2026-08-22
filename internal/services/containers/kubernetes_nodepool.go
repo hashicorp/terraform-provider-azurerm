@@ -4,6 +4,7 @@
 package containers
 
 import (
+	"encoding/base64"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -278,6 +279,11 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 
 					"host_encryption_enabled": {
 						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
+
+					"message_of_the_day": {
+						Type:     pluginsdk.TypeString,
 						Optional: true,
 					},
 				}
@@ -700,6 +706,7 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 			EnableNodePublicIP:         defaultCluster.EnableNodePublicIP,
 			NodePublicIPPrefixID:       defaultCluster.NodePublicIPPrefixID,
 			SpotMaxPrice:               defaultCluster.SpotMaxPrice,
+			MessageOfTheDay:            defaultCluster.MessageOfTheDay,
 			NodeLabels:                 defaultCluster.NodeLabels,
 			NodeTaints:                 defaultCluster.NodeTaints,
 			PodSubnetID:                defaultCluster.PodSubnetID,
@@ -948,6 +955,11 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 		profile.GpuProfile = &managedclusters.GPUProfile{
 			Driver: pointer.ToEnum[managedclusters.GPUDriver](gpuDriver),
 		}
+	}
+
+	if messageOfTheDay := raw["message_of_the_day"].(string); messageOfTheDay != "" {
+		encoded := base64.StdEncoding.EncodeToString([]byte(messageOfTheDay))
+		profile.MessageOfTheDay = pointer.To(encoded)
 	}
 
 	count := raw["node_count"].(int)
@@ -1319,6 +1331,14 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		osSKU = string(*agentPool.OsSKU)
 	}
 
+	messageOfTheDay := ""
+	if agentPool.MessageOfTheDay != nil {
+		encoded := *agentPool.MessageOfTheDay
+		if decoded, err := base64.StdEncoding.DecodeString(encoded); err == nil {
+			messageOfTheDay = string(decoded)
+		}
+	}
+
 	agentPoolType := ""
 	if agentPool.Type != nil {
 		agentPoolType = string(*agentPool.Type)
@@ -1342,6 +1362,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		"kubelet_disk_type":             kubeletDiskType,
 		"max_count":                     maxCount,
 		"max_pods":                      maxPods,
+		"message_of_the_day":            messageOfTheDay,
 		"min_count":                     minCount,
 		"name":                          name,
 		"node_count":                    count,
