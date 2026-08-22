@@ -6,6 +6,7 @@ package policy
 import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -29,14 +30,21 @@ func (r Registration) DataSources() []sdk.DataSource {
 }
 
 func (r Registration) Resources() []sdk.Resource {
-	return []sdk.Resource{
+	resources := []sdk.Resource{
 		ManagementGroupAssignmentResource{},
+		ManagementGroupPolicyDefinitionResource{},
 		ManagementGroupPolicySetDefinitionResource{},
 		PolicySetDefinitionResource{},
 		ResourceAssignmentResource{},
 		ResourceGroupAssignmentResource{},
 		SubscriptionAssignmentResource{},
 	}
+
+	if features.SixPointOh() {
+		resources = append(resources, PolicyDefinitionResource{})
+	}
+
+	return resources
 }
 
 // Name is the name of this Service
@@ -63,18 +71,23 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
-	return map[string]*pluginsdk.Resource{
-		"azurerm_policy_definition":                               resourceArmPolicyDefinition(),
-		"azurerm_management_group_policy_remediation":             resourceArmManagementGroupPolicyRemediation(),
-		"azurerm_resource_policy_remediation":                     resourceArmResourcePolicyRemediation(),
+	resources := map[string]*pluginsdk.Resource{
 		"azurerm_management_group_policy_exemption":               resourceArmManagementGroupPolicyExemption(),
-		"azurerm_resource_policy_exemption":                       resourceArmResourcePolicyExemption(),
-		"azurerm_resource_group_policy_exemption":                 resourceArmResourceGroupPolicyExemption(),
-		"azurerm_subscription_policy_exemption":                   resourceArmSubscriptionPolicyExemption(),
-		"azurerm_resource_group_policy_remediation":               resourceArmResourceGroupPolicyRemediation(),
-		"azurerm_subscription_policy_remediation":                 resourceArmSubscriptionPolicyRemediation(),
+		"azurerm_management_group_policy_remediation":             resourceArmManagementGroupPolicyRemediation(),
 		"azurerm_policy_virtual_machine_configuration_assignment": resourcePolicyVirtualMachineConfigurationAssignment(),
+		"azurerm_resource_group_policy_exemption":                 resourceArmResourceGroupPolicyExemption(),
+		"azurerm_resource_group_policy_remediation":               resourceArmResourceGroupPolicyRemediation(),
+		"azurerm_resource_policy_exemption":                       resourceArmResourcePolicyExemption(),
+		"azurerm_resource_policy_remediation":                     resourceArmResourcePolicyRemediation(),
+		"azurerm_subscription_policy_exemption":                   resourceArmSubscriptionPolicyExemption(),
+		"azurerm_subscription_policy_remediation":                 resourceArmSubscriptionPolicyRemediation(),
 	}
+
+	if !features.SixPointOh() {
+		resources["azurerm_policy_definition"] = resourceArmPolicyDefinition()
+	}
+
+	return resources
 }
 
 func (r Registration) Actions() []func() action.Action {
