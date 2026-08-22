@@ -126,10 +126,9 @@ func resourceApiManagementApiDiagnostic() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
-			if _, n := d.GetChange("operation_name_format"); n != "" {
-				if d.Get("identifier") != "applicationinsights" {
-					return fmt.Errorf("`operation_name_format` cannot be set when `identifier` is not `applicationinsights`")
-				}
+			format := d.GetRawConfig().GetAttr("operation_name_format")
+			if !format.IsNull() && d.Get("identifier") != "applicationinsights" {
+				return fmt.Errorf("`operation_name_format` cannot be set when `identifier` is not `applicationinsights`")
 			}
 
 			return nil
