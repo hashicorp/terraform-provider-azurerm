@@ -648,7 +648,7 @@ Things worth noting here:
 
 For example, in this case:
 
-:white_check_mark: **DO**
+**DO**
 
 ```
 var _ sdk.ResourceWithUpdate = ResourceGroupExampleResource{}
@@ -660,7 +660,7 @@ var _ sdk.ResourceWithUpdate = ResourceGroupExampleResource{}
 
 For example, in this case:
 
-:white_check_mark: **DO**
+**DO**
 
 ```
 "name": {
@@ -678,7 +678,7 @@ For example, in this case:
 
 For example, in this case:
 
-:white_check_mark: **DO**
+**DO**
 
 ```
 func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
@@ -704,7 +704,7 @@ func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
 
 - Avoid returning errors in `Update` or `CustomizeDiff` for valid configurations that cannot be updated in-place. Instead, use `ForceNew` in `CustomizeDiff` to trigger resource recreation.
 
-:white_check_mark: **DO**
+**DO**
 
 ```go
 func (r ExampleResource) CustomizeDiff() sdk.ResourceFunc {
