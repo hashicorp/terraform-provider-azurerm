@@ -16,8 +16,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2025-08-01/vaults"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protecteditems"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2024-10-01/protectionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2025-08-01/protecteditems"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2025-08-01/protectionpolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -136,7 +136,7 @@ func resourceRecoveryServicesBackupProtectedVMCreate(d *pluginsdk.ResourceData, 
 		},
 	}
 
-	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, item, sdk.SetIDCallback(meta, &id, d)); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, item, protecteditems.DefaultCreateOrUpdateOperationOptions(), sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 	d.SetId(id.ID())
@@ -162,7 +162,7 @@ func resourceRecoveryServicesBackupProtectedVMCreate(d *pluginsdk.ResourceData, 
 			},
 		}
 
-		if err := client.CreateOrUpdateThenPoll(ctx, id, updateInput); err != nil {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, updateInput, protecteditems.DefaultCreateOrUpdateOperationOptions()); err != nil {
 			return fmt.Errorf("creating %s: %+v", id, err)
 		}
 	}
@@ -282,7 +282,7 @@ func resourceRecoveryServicesBackupProtectedVMUpdate(d *pluginsdk.ResourceData, 
 	}
 	model.Properties = properties
 
-	if err := client.CreateOrUpdateThenPoll(ctx, *id, model); err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, model, protecteditems.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -329,7 +329,7 @@ func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, 
 						},
 					}
 
-					if err := client.CreateOrUpdateThenPoll(ctx, *id, updateInput); err != nil {
+					if err := client.CreateOrUpdateThenPoll(ctx, *id, updateInput, protecteditems.DefaultCreateOrUpdateOperationOptions()); err != nil {
 						return fmt.Errorf("setting protection to %s and retaining data for %s: %+v", desiredState, *id, err)
 					}
 
@@ -386,7 +386,7 @@ func resourceRecoveryServicesVaultBackupProtectedVMRecoverSoftDeleted(ctx contex
 		},
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, payload, protecteditems.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("recovering soft-deleted %s: %+v", id, err)
 	}
 
