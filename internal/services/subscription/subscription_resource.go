@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"slices"
 	"time"
 
 	"github.com/google/uuid"
@@ -405,6 +406,36 @@ func resourceSubscriptionDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	if subscriptionName == "" || subscriptionId == "" {
 		return fmt.Errorf("one or both of Subscription Name (%q) and Subscription ID (%q) could not be determined", subscriptionName, subscriptionId)
 	}
+
+	// The below order matters: Cancel the subscription, then removing the alias.
+	// The alias is the *main* handle of this terraform resource, we shall only delete it as the last step to avoid trailing partial state,
+	// which otherwise can't be mitigated by a second `terraform run` (the Read() regards this resource is gone since alias is deleted).
+
+	// Cancel the Subscription
+	if !meta.(*clients.Client).Features.Subscription.PreventCancellationOnDestroy {
+		if slices.Contains([]subscriptions.SubscriptionState{subscriptions.SubscriptionStateDisabled, subscriptions.SubscriptionStateWarned}, pointer.From(sub.Model.State)) {
+			log.Printf("[DEBUG] Subscription %s is already cancelled", subscriptionId)
+		} else {
+			log.Printf("[DEBUG] Cancelling subscription %s", subscriptionId)
+
+			opts := subscriptionAlias.DefaultSubscriptionCancelOperationOptions()
+			// TODO: support a Provider `features` flag to enable deleting a Subscription containing Resources
+			// This is a dangerous operation, and likely wants a similar default value as to that for Resource Groups
+			if _, err := aliasClient.SubscriptionCancel(ctx, subscriptionResourceId, opts); err != nil {
+				return fmt.Errorf("failed to cancel Subscription: %+v", err)
+			}
+
+			deadline, _ := ctx.Deadline()
+			deleteDeadline := time.Until(deadline)
+
+			if err := waitForSubscriptionStateToSettle(ctx, client, subscriptionResourceId, "Cancelled", deleteDeadline); err != nil {
+				return fmt.Errorf("failed to cancel Subscription %q (Alias %q): %+v", subscriptionId, id.AliasName, err)
+			}
+		}
+	} else {
+		log.Printf("[DEBUG] Skipping subscription %s cancellation due to feature flag.", *id)
+	}
+
 	// remove the alias
 	if _, count, err := checkExistingAliases(ctx, *aliasClient, subscriptionId); err != nil {
 		if count > 1 {
@@ -417,27 +448,6 @@ func resourceSubscriptionDelete(d *pluginsdk.ResourceData, meta interface{}) err
 		if !response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("could not delete Alias %q for Subscription %q (ID: %q): %+v", id.AliasName, subscriptionName, subscriptionId, err)
 		}
-	}
-
-	// Cancel the Subscription
-	if !meta.(*clients.Client).Features.Subscription.PreventCancellationOnDestroy {
-		log.Printf("[DEBUG] Cancelling subscription %s", subscriptionId)
-
-		opts := subscriptionAlias.DefaultSubscriptionCancelOperationOptions()
-		// TODO: support a Provider `features` flag to enable deleting a Subscription containing Resources
-		// This is a dangerous operation, and likely wants a similar default value as to that for Resource Groups
-		if _, err := aliasClient.SubscriptionCancel(ctx, subscriptionResourceId, opts); err != nil {
-			return fmt.Errorf("failed to cancel Subscription: %+v", err)
-		}
-
-		deadline, _ := ctx.Deadline()
-		deleteDeadline := time.Until(deadline)
-
-		if err := waitForSubscriptionStateToSettle(ctx, client, subscriptionResourceId, "Cancelled", deleteDeadline); err != nil {
-			return fmt.Errorf("failed to cancel Subscription %q (Alias %q): %+v", subscriptionId, id.AliasName, err)
-		}
-	} else {
-		log.Printf("[DEBUG] Skipping subscription %s cancellation due to feature flag.", *id)
 	}
 
 	return nil
