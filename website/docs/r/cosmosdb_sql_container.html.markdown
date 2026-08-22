@@ -69,6 +69,8 @@ The following arguments are supported:
 
 * `partition_key_paths` - (Required) A list of partition key paths. Changing this forces a new resource to be created.
 
+* `computed_property` - (Optional) One or more `computed_property` blocks as defined below.
+
 * `partition_key_kind` - (Optional) Define a partition key kind. Possible values are `Hash` and `MultiHash`. Defaults to `Hash`. Changing this forces a new resource to be created.
 
 * `partition_key_version` - (Optional) Define a partition key version. Possible values are `1`and `2`. This should be set to `2` in order to use large partition keys.
@@ -96,6 +98,14 @@ The following arguments are supported:
 An `autoscale_settings` block supports the following:
 
 * `max_throughput` - (Optional) The maximum throughput of the SQL container (RU/s). Must be between `1,000` and `1,000,000`. Must be set in increments of `1,000`. Conflicts with `throughput`.
+
+---
+
+A `computed_property` block supports the following:
+
+* `name` - (Required) The name of a computed property.
+
+* `query` - (Required) The query that evaluates the value for computed property.
 
 ---
 A `unique_key` block supports the following:
