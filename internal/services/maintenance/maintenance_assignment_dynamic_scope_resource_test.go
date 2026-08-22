@@ -147,6 +147,14 @@ resource "azurerm_maintenance_assignment_dynamic_scope" "test" {
       tag    = "foo"
       values = ["barbar"]
     }
+    tags {
+      tag    = "environment"
+      values = ["dev"]
+    }
+    tags {
+      tag    = "service"
+      values = ["service-a"]
+    }
   }
 }
 `, r.template(data), data.RandomInteger, data.Locations.Primary)
