@@ -103,6 +103,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		CustomManagedIdentityEndpoint:   getEnvStringOrDefault(data.MSIEndpoint, "ARM_MSI_ENDPOINT", ""),
 		CustomManagedIdentityAPIVersion: getEnvStringOrDefault(data.MSIAPIVersion, "ARM_MSI_API_VERSION", ""),
+		CustomManagedIdentityHeaders:    managedIdentityHeaders(data),
 
 		AzureCliSubscriptionIDHint: subscriptionId,
 
@@ -619,4 +620,11 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 	}
 
 	p.Client = client
+}
+
+func managedIdentityHeaders(data *ProviderModel) map[string][]string {
+	return clients.ManagedIdentityHeaders(
+		getEnvStringOrDefault(data.MSICustomHeaderName, "ARM_MSI_CUSTOM_HEADER_NAME", "X-IDENTITY-HEADER"),
+		getEnvStringsOrDefault(data.MSICustomHeaderValue, []string{"ARM_MSI_CUSTOM_HEADER_VALUE", "IDENTITY_HEADER"}, ""),
+	)
 }
