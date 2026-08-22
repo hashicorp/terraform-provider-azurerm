@@ -796,8 +796,8 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 
 ### `azurerm_linux_web_app`
 
-* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
 * The `site_config.application_stack.ruby_version` property has been removed.
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
 
 ### `azurerm_linux_web_app_slot`
 
@@ -831,6 +831,7 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 * The `site_config.min_tls_version` property no longer accepts `1.0` or `1.1` as a value.
 * The deprecated `site_config.public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
 * The `site_config.scm_min_tls_version` property no longer accepts `1.0` or `1.1` as a value.
+* The `site_config.vnet_route_all_enabled` property is no longer inferred from the `WEBSITE_VNET_ROUTE_ALL` app setting, and vnet application traffic will be referred from the `vnet_application_traffic_enabled` property instead.
 
 ### `azurerm_machine_learning_datastore_fileshare`
 
@@ -1148,12 +1149,10 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 ### `azurerm_windows_web_app`
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
-* The `virtual_network_image_pull_enabled` property now defaults to `false`.
 
 ### `azurerm_windows_web_app_slot`
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
-* The `virtual_network_image_pull_enabled` property now defaults to `false`.
 
 ## Breaking Changes in Data Sources
 
@@ -1204,10 +1203,6 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 
 * The deprecated `enable_floating_ip` property has been removed in favour of the `floating_ip_enabled` property.
 * The deprecated `enable_tcp_reset` property has been removed in favour of the `tcp_reset_enabled` property.
-
-### `azurerm_linux_web_app`
-
-* The `site_config.application_stack.ruby_version` property has been removed.
 
 ### `azurerm_logic_app_standard`
 

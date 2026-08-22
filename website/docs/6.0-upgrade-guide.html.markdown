@@ -90,6 +90,48 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `key_vault_id` property has been removed.
 
+### `azurerm_linux_web_app`
+
+* The deprecated `site_config.vnet_route_all_enabled` property has been removed in favour of the `virtual_network_application_traffic_enabled` property.
+
+### `azurerm_linux_web_app_slot`
+
+* The deprecated `site_config.vnet_route_all_enabled` property has been removed in favour of the `virtual_network_application_traffic_enabled` property.
+
+### `azurerm_linux_function_app`
+
+* The deprecated `site_config.vnet_route_all_enabled` property has been removed in favour of the `virtual_network_application_traffic_enabled` property.
+
+### `azurerm_linux_function_app_slot`
+
+* The deprecated `site_config.vnet_route_all_enabled` property has been removed in favour of the `virtual_network_application_traffic_enabled` property.
+
+### `azurerm_function_app_flex_consumption`
+
+* The deprecated `site_config.vnet_route_all_enabled` property has been removed in favour of the `virtual_network_application_traffic_enabled` property.
+
+### `azurerm_logic_app_standard`
+
+* The `site_config.vnet_route_all_enabled` property is no longer referred from the `WEBSITE_VNET_ROUTE_ALL` app setting, and vnet application traffic will be referred from the `vnet_application_traffic_enabled` property instead.
+
+### `azurerm_windows_function_app`
+
+* The deprecated `site_config.vnet_route_all_enabled` property has been removed in favour of the `virtual_network_application_traffic_enabled` property.
+
+### `azurerm_windows_function_app_slot`
+
+* The deprecated `site_config.vnet_route_all_enabled` property has been removed in favour of the `virtual_network_application_traffic_enabled` property.
+
+### `azurerm_windows_web_app`
+
+* The `virtual_network_image_pull_enabled` property now defaults to `false`.
+* The deprecated `site_config.vnet_route_all_enabled` property has been removed in favour of the `virtual_network_application_traffic_enabled` property.
+
+### `azurerm_windows_web_app_slot`
+
+* The `virtual_network_image_pull_enabled` property now defaults to `false`.
+* The deprecated `site_config.vnet_route_all_enabled` property has been removed in favour of the `virtual_network_application_traffic_enabled` property.
+
 ## Breaking Changes in Data Sources
 
 Please follow the format in the example below for listing breaking changes in data sources:

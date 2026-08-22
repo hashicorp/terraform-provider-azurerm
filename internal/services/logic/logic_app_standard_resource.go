@@ -19,8 +19,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2025-05-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
@@ -32,32 +33,33 @@ import (
 type LogicAppResource struct{}
 
 type LogicAppResourceModel struct {
-	Name                        string                                     `tfschema:"name"`
-	ResourceGroupName           string                                     `tfschema:"resource_group_name"`
-	Location                    string                                     `tfschema:"location"`
-	AppServicePlanId            string                                     `tfschema:"app_service_plan_id"`
-	AppSettings                 map[string]string                          `tfschema:"app_settings"`
-	UseExtensionBundle          bool                                       `tfschema:"use_extension_bundle"`
-	BundleVersion               string                                     `tfschema:"bundle_version"`
-	ClientAffinityEnabled       bool                                       `tfschema:"client_affinity_enabled"`
-	ClientCertificateMode       string                                     `tfschema:"client_certificate_mode"`
-	Enabled                     bool                                       `tfschema:"enabled"`
-	FtpPublishBasicAuthEnabled  bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
-	HTTPSOnly                   bool                                       `tfschema:"https_only"`
-	Identity                    []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	KeyvaultReferenceIdentityId string                                     `tfschema:"key_vault_reference_identity_id"`
-	SCMPublishBasicAuthEnabled  bool                                       `tfschema:"scm_publish_basic_authentication_enabled"`
-	SiteConfig                  []helpers.LogicAppSiteConfig               `tfschema:"site_config"`
-	ConnectionStrings           []helpers.ConnectionString                 `tfschema:"connection_string"`
-	StorageAccountName          string                                     `tfschema:"storage_account_name"`
-	StorageAccountAccessKey     string                                     `tfschema:"storage_account_access_key"`
-	StorageKeyVaultSecretID     string                                     `tfschema:"storage_key_vault_secret_id"`
-	PublicNetworkAccess         string                                     `tfschema:"public_network_access"`
-	StorageAccountShareName     string                                     `tfschema:"storage_account_share_name"`
-	Version                     string                                     `tfschema:"version"`
-	VNETContentShareEnabled     bool                                       `tfschema:"vnet_content_share_enabled"`
-	VirtualNetworkSubnetId      string                                     `tfschema:"virtual_network_subnet_id"`
-	Tags                        map[string]string                          `tfschema:"tags"`
+	Name                          string                                     `tfschema:"name"`
+	ResourceGroupName             string                                     `tfschema:"resource_group_name"`
+	Location                      string                                     `tfschema:"location"`
+	AppServicePlanId              string                                     `tfschema:"app_service_plan_id"`
+	AppSettings                   map[string]string                          `tfschema:"app_settings"`
+	UseExtensionBundle            bool                                       `tfschema:"use_extension_bundle"`
+	BundleVersion                 string                                     `tfschema:"bundle_version"`
+	ClientAffinityEnabled         bool                                       `tfschema:"client_affinity_enabled"`
+	ClientCertificateMode         string                                     `tfschema:"client_certificate_mode"`
+	Enabled                       bool                                       `tfschema:"enabled"`
+	FtpPublishBasicAuthEnabled    bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
+	HTTPSOnly                     bool                                       `tfschema:"https_only"`
+	Identity                      []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	KeyvaultReferenceIdentityId   string                                     `tfschema:"key_vault_reference_identity_id"`
+	SCMPublishBasicAuthEnabled    bool                                       `tfschema:"scm_publish_basic_authentication_enabled"`
+	SiteConfig                    []helpers.LogicAppSiteConfig               `tfschema:"site_config"`
+	ConnectionStrings             []helpers.ConnectionString                 `tfschema:"connection_string"`
+	StorageAccountName            string                                     `tfschema:"storage_account_name"`
+	StorageAccountAccessKey       string                                     `tfschema:"storage_account_access_key"`
+	StorageKeyVaultSecretID       string                                     `tfschema:"storage_key_vault_secret_id"`
+	PublicNetworkAccess           string                                     `tfschema:"public_network_access"`
+	StorageAccountShareName       string                                     `tfschema:"storage_account_share_name"`
+	Version                       string                                     `tfschema:"version"`
+	VNETContentShareEnabled       bool                                       `tfschema:"vnet_content_share_enabled"`
+	VNETApplicationTrafficEnabled bool                                       `tfschema:"vnet_application_traffic_enabled"`
+	VirtualNetworkSubnetId        string                                     `tfschema:"virtual_network_subnet_id"`
+	Tags                          map[string]string                          `tfschema:"tags"`
 
 	CustomDomainVerificationId  string                           `tfschema:"custom_domain_verification_id"`
 	DefaultHostname             string                           `tfschema:"default_hostname"`
@@ -268,6 +270,12 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"vnet_content_share_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
+		},
+
+		"vnet_application_traffic_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
 		},
 
 		"virtual_network_subnet_id": {
@@ -481,7 +489,7 @@ func (r LogicAppResource) Create() sdk.ResourceFunc {
 
 			siteConfig.AppSettings = pointer.To(appSettings)
 
-			if v, ok := data.AppSettings["WEBSITE_VNET_ROUTE_ALL"]; ok {
+			if v, ok := data.AppSettings["WEBSITE_VNET_ROUTE_ALL"]; ok && !features.SixPointOh() {
 				// For compatibility between app_settings and site_config, we need to set the API property based on the presence of the app_setting map value if present.
 				// a replacement of this resource should consider deprecating support for this.
 				vnetRouteAll, _ := strconv.ParseBool(v)
@@ -498,14 +506,17 @@ func (r LogicAppResource) Create() sdk.ResourceFunc {
 				Kind:     pointer.To(kind),
 				Location: location.Normalize(data.Location),
 				Properties: &webapps.SiteProperties{
-					ServerFarmId:            pointer.To(data.AppServicePlanId),
-					Enabled:                 pointer.To(data.Enabled),
-					ClientAffinityEnabled:   pointer.To(data.ClientAffinityEnabled),
-					ClientCertEnabled:       pointer.To(data.ClientCertificateMode != ""),
-					HTTPSOnly:               pointer.To(data.HTTPSOnly),
-					SiteConfig:              siteConfig,
-					VnetContentShareEnabled: pointer.To(data.VNETContentShareEnabled),
-					PublicNetworkAccess:     pointer.To(data.PublicNetworkAccess),
+					ServerFarmId:          pointer.To(data.AppServicePlanId),
+					Enabled:               pointer.To(data.Enabled),
+					ClientAffinityEnabled: pointer.To(data.ClientAffinityEnabled),
+					ClientCertEnabled:     pointer.To(data.ClientCertificateMode != ""),
+					HTTPSOnly:             pointer.To(data.HTTPSOnly),
+					SiteConfig:            siteConfig,
+					OutboundVnetRouting: &webapps.OutboundVnetRouting{
+						ContentShareTraffic: pointer.To(data.VNETContentShareEnabled),
+						ApplicationTraffic:  pointer.To(data.VNETApplicationTrafficEnabled),
+					},
+					PublicNetworkAccess: pointer.To(data.PublicNetworkAccess),
 				},
 				Tags: pointer.To(data.Tags),
 			}
@@ -609,10 +620,25 @@ func (r LogicAppResource) Read() sdk.ResourceFunc {
 					state.ClientAffinityEnabled = pointer.From(props.ClientAffinityEnabled)
 					state.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
 					state.VirtualNetworkSubnetId = pointer.From(props.VirtualNetworkSubnetId)
-					state.VNETContentShareEnabled = pointer.From(props.VnetContentShareEnabled)
 					state.PublicNetworkAccess = pointer.From(props.PublicNetworkAccess)
 					if kvRefId := pointer.From(props.KeyVaultReferenceIdentity); !strings.EqualFold(kvRefId, "SystemAssigned") {
 						state.KeyvaultReferenceIdentityId = kvRefId
+					}
+					if outboundVnet := props.OutboundVnetRouting; outboundVnet != nil {
+						if outboundVnet.ContentShareTraffic != nil {
+							state.VNETContentShareEnabled = pointer.From(outboundVnet.ContentShareTraffic)
+						}
+						if outboundVnet.ApplicationTraffic != nil {
+							state.VNETApplicationTrafficEnabled = pointer.From(outboundVnet.ApplicationTraffic)
+						}
+					}
+					// Note this is a bug - the Service defaults to `Required` regardless of the Enabled value
+					if !features.SixPointOh() {
+						if pointer.From(props.ClientCertEnabled) {
+							state.ClientCertificateMode = pointer.FromEnum(props.ClientCertMode)
+						}
+					} else {
+						state.ClientCertificateMode = pointer.FromEnum(props.ClientCertMode)
 					}
 					state.ClientCertificateMode = pointer.FromEnum(props.ClientCertMode)
 				}
@@ -837,8 +863,16 @@ func (r LogicAppResource) Update() sdk.ResourceFunc {
 				}
 			}
 
+			vnetRoutingProps := &webapps.OutboundVnetRouting{}
+			if siteEnvelope.OutboundVnetRouting != nil {
+				vnetRoutingProps = siteEnvelope.OutboundVnetRouting
+			}
 			if metadata.ResourceData.HasChange("vnet_content_share_enabled") {
-				siteEnvelope.VnetContentShareEnabled = pointer.To(data.VNETContentShareEnabled)
+				vnetRoutingProps.ContentShareTraffic = pointer.To(data.VNETContentShareEnabled)
+			}
+
+			if metadata.ResourceData.HasChange("vnet_application_traffic_enabled") {
+				vnetRoutingProps.ApplicationTraffic = pointer.To(data.VNETApplicationTrafficEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {
@@ -867,6 +901,7 @@ func (r LogicAppResource) Update() sdk.ResourceFunc {
 				siteEnvelope.KeyVaultReferenceIdentity = pointer.To(data.KeyvaultReferenceIdentityId)
 			}
 
+			siteEnvelope.OutboundVnetRouting = vnetRoutingProps
 			existing.Model.Properties = pointer.To(siteEnvelope)
 
 			if metadata.ResourceData.HasChange("tags") {
