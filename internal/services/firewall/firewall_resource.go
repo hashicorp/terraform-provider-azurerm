@@ -208,7 +208,7 @@ func resourceFirewall() *pluginsdk.Resource {
 						"public_ip_count": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntAtLeast(1),
+							ValidateFunc: validation.IntAtLeast(0),
 							Default:      1,
 						},
 						"public_ip_addresses": {
