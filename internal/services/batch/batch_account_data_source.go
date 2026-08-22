@@ -10,11 +10,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/batchaccount"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -29,16 +29,62 @@ func dataSourceBatchAccount() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: validate.AccountName,
+				Type:     pluginsdk.TypeString,
+				Required: true,
 			},
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 			"location":            commonschema.LocationComputed(),
+
+			"allowed_authentication_modes": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
+			"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
+
+			"network_profile": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"account_access": dataSourceBatchAccountEndpointAccessProfileSchema(),
+
+						"node_management_access": dataSourceBatchAccountEndpointAccessProfileSchema(),
+					},
+				},
+			},
+
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"storage_account_authentication_mode": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"storage_account_node_identity": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"key_vault_key_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"storage_account_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+
 			"pool_allocation_mode": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -115,12 +161,40 @@ func dataSourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	if model := resp.Model; model != nil {
 		d.Set("location", location.Normalize(model.Location))
 
+		identity, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+
+		if err := d.Set("identity", identity); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
+
 		if props := model.Properties; props != nil {
 			d.Set("account_endpoint", props.AccountEndpoint)
 
+			if err := d.Set("allowed_authentication_modes", flattenAllowedAuthenticationModes(props.AllowedAuthenticationModes)); err != nil {
+				return fmt.Errorf("setting `allowed_authentication_modes`: %+v", err)
+			}
+
+			d.Set("public_network_access_enabled", pointer.From(props.PublicNetworkAccess) == batchaccount.PublicNetworkAccessTypeEnabled)
+
+			if err := d.Set("network_profile", flattenBatchAccountNetworkProfile(props.NetworkProfile)); err != nil {
+				return fmt.Errorf("setting `network_profile`: %+v", err)
+			}
+
 			if autoStorage := props.AutoStorage; autoStorage != nil {
 				d.Set("storage_account_id", autoStorage.StorageAccountId)
+				d.Set("storage_account_authentication_mode", string(pointer.From(autoStorage.AuthenticationMode)))
+
+				if autoStorage.NodeIdentityReference != nil {
+					d.Set("storage_account_node_identity", pointer.From(autoStorage.NodeIdentityReference.ResourceId))
+				}
+			} else {
+				d.Set("storage_account_authentication_mode", "")
+				d.Set("storage_account_id", "")
 			}
+
 			d.Set("pool_allocation_mode", string(pointer.From(props.PoolAllocationMode)))
 			poolAllocationMode := d.Get("pool_allocation_mode").(string)
 
@@ -138,7 +212,6 @@ func dataSourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 					d.Set("primary_access_key", keysModel.Primary)
 					d.Set("secondary_access_key", keysModel.Secondary)
 				}
-
 				// set empty keyvault reference which is not needed in Batch Service allocation mode.
 				d.Set("key_vault_reference", []interface{}{})
 			} else if poolAllocationMode == string(batchaccount.PoolAllocationModeUserSubscription) {
@@ -150,4 +223,37 @@ func dataSourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return tags.FlattenAndSet(d, model.Tags)
 	}
 	return nil
+}
+
+func dataSourceBatchAccountEndpointAccessProfileSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"default_action": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"ip_rule": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"ip_range": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"action": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
 }
