@@ -108,7 +108,7 @@ func (r PlaywrightWorkspaceResource) Create() sdk.ResourceFunc {
 				Tags: pointer.To(config.Tags),
 			}
 
-			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, param, metadata.SetIDCallback(&id)); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, param, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

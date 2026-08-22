@@ -43,7 +43,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `tags` - A mapping of tags assigned to the Playwright Workspace.
 
-* `workspace_id` - The ID in GUID format of the Playwright Workspace.
+* `uuid` - The ID in GUID format of the Playwright Workspace.
 
 ## Timeouts
 
