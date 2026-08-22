@@ -47,7 +47,6 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(120 * time.Minute),
 		},
-
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(resourceVirtualNetworkGatewayCustomizeDiff),
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -675,17 +674,6 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 func resourceVirtualNetworkGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
 	gatewayType := d.Get("type").(string)
 
-	// Validate that public_ip_address_id is not set for ExpressRoute gateways
-	if gatewayType == string(virtualnetworkgateways.VirtualNetworkGatewayTypeExpressRoute) {
-		ipConfigs := d.Get("ip_configuration").([]interface{})
-		for i, ipConfigRaw := range ipConfigs {
-			ipConfig := ipConfigRaw.(map[string]interface{})
-			if publicIPID, ok := ipConfig["public_ip_address_id"].(string); ok && publicIPID != "" {
-				return fmt.Errorf("`ip_configuration.%d.public_ip_address_id` cannot be set when `type` is set to `ExpressRoute`", i)
-			}
-		}
-	}
-
 	minScaleUnit := d.Get("minimum_scale_unit").(int)
 	maxScaleUnit := d.Get("maximum_scale_unit").(int)
 	sku := d.Get("sku").(string)
@@ -836,8 +824,11 @@ func resourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface
 			d.Set("sku", string(pointer.From(props.Sku.Name)))
 		}
 
-		gatewayType := pointer.From(props.GatewayType)
-		if err := d.Set("ip_configuration", flattenVirtualNetworkGatewayIPConfigurations(props.IPConfigurations, gatewayType)); err != nil {
+		ipConfigurations, err := flattenVirtualNetworkGatewayIPConfigurations(props.IPConfigurations)
+		if err != nil {
+			return fmt.Errorf("flattening `ip_configuration`: %+v", err)
+		}
+		if err := d.Set("ip_configuration", ipConfigurations); err != nil {
 			return fmt.Errorf("setting `ip_configuration`: %+v", err)
 		}
 
@@ -1475,7 +1466,7 @@ func flattenVirtualNetworkGatewayBgpPeeringAddresses(input *[]virtualnetworkgate
 	return output, nil
 }
 
-func flattenVirtualNetworkGatewayIPConfigurations(ipConfigs *[]virtualnetworkgateways.VirtualNetworkGatewayIPConfiguration, gatewayType virtualnetworkgateways.VirtualNetworkGatewayType) []interface{} {
+func flattenVirtualNetworkGatewayIPConfigurations(ipConfigs *[]virtualnetworkgateways.VirtualNetworkGatewayIPConfiguration) ([]interface{}, error) {
 	flat := make([]interface{}, 0)
 
 	if ipConfigs != nil {
@@ -1494,12 +1485,13 @@ func flattenVirtualNetworkGatewayIPConfigurations(ipConfigs *[]virtualnetworkgat
 				}
 			}
 
-			// Do not include public_ip_address_id for ExpressRoute gateways
-			if gatewayType != virtualnetworkgateways.VirtualNetworkGatewayTypeExpressRoute {
-				if pip := props.PublicIPAddress; pip != nil {
-					if id := pip.Id; id != nil {
-						v["public_ip_address_id"] = *id
+			if pip := props.PublicIPAddress; pip != nil {
+				if id := pip.Id; id != nil {
+					publicIPAddressId, err := commonids.ParsePublicIPAddressID(*id)
+					if err != nil {
+						return nil, err
 					}
+					v["public_ip_address_id"] = publicIPAddressId.ID()
 				}
 			}
 
@@ -1507,7 +1499,7 @@ func flattenVirtualNetworkGatewayIPConfigurations(ipConfigs *[]virtualnetworkgat
 		}
 	}
 
-	return flat
+	return flat, nil
 }
 
 func flattenVirtualNetworkGatewayVpnClientConfig(cfg *virtualnetworkgateways.VpnClientConfiguration) ([]interface{}, error) {
