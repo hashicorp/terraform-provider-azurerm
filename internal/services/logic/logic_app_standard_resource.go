@@ -461,7 +461,10 @@ func (r LogicAppResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("the Site Name %q failed the availability check: %+v", id.SiteName, *model.Message)
 			}
 
-			basicAppSettings, err := getBasicLogicAppSettings(data, *storageAccountDomainSuffix)
+			// For Logic App on ASE, the app settings differ from Logic App on ASP skus. Reference: https://github.com/hashicorp/terraform-provider-azurerm/issues/29872#issuecomment-2992814581
+			isASE := servicePlan.Model != nil && servicePlan.Model.Properties != nil && servicePlan.Model.Properties.HostingEnvironmentProfile != nil && servicePlan.Model.Properties.HostingEnvironmentProfile.Id != nil
+
+			basicAppSettings, err := getBasicLogicAppSettings(data, *storageAccountDomainSuffix, isASE)
 			if err != nil {
 				return err
 			}
@@ -658,6 +661,14 @@ func (r LogicAppResource) Read() sdk.ResourceFunc {
 				delete(appSettings, storageAppSettingName)
 				delete(appSettings, functionVersionAppSettingName)
 				delete(appSettings, contentShareAppSettingName)
+
+				// WEBSITE_VNET_ROUTE_ALL is managed via `site_config.vnet_route_all_enabled` and may be platform-injected
+				// (e.g. on ASE), so keep it here only when the user already manages it to avoid a persistent diff.
+				if prior, ok := metadata.ResourceData.Get("app_settings").(map[string]interface{}); ok {
+					if _, tracked := prior["WEBSITE_VNET_ROUTE_ALL"]; !tracked {
+						delete(appSettings, "WEBSITE_VNET_ROUTE_ALL")
+					}
+				}
 
 				state.AppSettings = appSettings
 			}
@@ -920,7 +931,7 @@ var (
 	_ sdk.ResourceWithCustomizeDiff = LogicAppResource{}
 )
 
-func getBasicLogicAppSettings(d LogicAppResourceModel, endpointSuffix string) ([]webapps.NameValuePair, error) {
+func getBasicLogicAppSettings(d LogicAppResourceModel, endpointSuffix string, isASE bool) ([]webapps.NameValuePair, error) {
 	appKindPropName := "APP_KIND"
 	appKindPropValue := "workflowApp"
 
@@ -942,8 +953,13 @@ func getBasicLogicAppSettings(d LogicAppResourceModel, endpointSuffix string) ([
 		{Name: &storageAppSettingName, Value: &storageConnection},
 		{Name: &functionVersionAppSettingName, Value: &functionVersion},
 		{Name: &appKindPropName, Value: &appKindPropValue},
-		{Name: &contentShareAppSettingName, Value: &contentShare},
-		{Name: &contentFileConnStringAppSettingName, Value: &storageConnection},
+	}
+
+	if !isASE {
+		basicSettings = append(basicSettings, []webapps.NameValuePair{
+			{Name: &contentShareAppSettingName, Value: &contentShare},
+			{Name: &contentFileConnStringAppSettingName, Value: &storageConnection},
+		}...)
 	}
 
 	if d.UseExtensionBundle {
