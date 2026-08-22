@@ -50,7 +50,7 @@ fun buildConfigurationsForServices(services: Map<String, String>, providerName :
         var runNightly = runNightly.getOrDefault(environment, false)
 
         var service = serviceDetails(serviceName, displayName, environment, config.vcsRootId)
-        var buildConfig = service.buildConfiguration(providerName, runNightly, testConfig.startHour, testConfig.parallelism, testConfig.daysOfWeek, testConfig.daysOfMonth, testConfig.timeout, testConfig.disableTriggers, false)
+        var buildConfig = service.buildConfiguration(providerName, runNightly, testConfig.startHour, testConfig.parallelism, testConfig.maxConcurrentBuilds, testConfig.maxConcurrentBuildsPerBranch, testConfig.daysOfWeek, testConfig.daysOfMonth, testConfig.timeout, testConfig.disableTriggers, false)
 
         buildConfig.params.ConfigureAzureSpecificTestParameters(environment, config, locationsToUse, testConfig.useAltSubscription, testConfig.useDevTestSubscription, enableBetaVersion = false)
 
@@ -71,7 +71,7 @@ fun buildConfigurationsForServicesBetaVersion(services: Map<String, String>, pro
         var runNightly = runNightly.getOrDefault(environment, false)
 
         var service = serviceDetails(serviceName, displayName, environment, config.vcsRootId)
-        var buildConfig = service.buildConfiguration(providerName, runNightly, testConfig.startHour, testConfig.parallelism, testConfig.weeklyTestDay, testConfig.daysOfMonth, testConfig.timeout, testConfig.disableTriggers, true)
+        var buildConfig = service.buildConfiguration(providerName, runNightly, testConfig.startHour, testConfig.parallelism, testConfig.maxConcurrentBuilds, testConfig.maxConcurrentBuildsPerBranch, testConfig.weeklyTestDay, testConfig.daysOfMonth, testConfig.timeout, testConfig.disableTriggers, true)
 
         buildConfig.params.ConfigureAzureSpecificTestParameters(environment, config, locationsToUse, testConfig.useAltSubscription, testConfig.useDevTestSubscription, enableBetaVersion = true)
 
@@ -93,8 +93,10 @@ fun buildConfigurationForCache(environment: String, config: ClientConfiguration)
     return buildCacheConfiguration(environment, config.vcsRootId).buildConfiguration(providerName)
 }
 
-class testConfiguration(parallelism: Int = defaultParallelism, startHour: Int = defaultStartHour, daysOfWeek: String = defaultDaysOfWeek, weeklyTestDay: String = defaultWeeklyDay, daysOfMonth: String = defaultDaysOfMonth, timeout: Int = defaultTimeout, useAltSubscription: Boolean = false, useDevTestSubscription: Boolean = false, locationOverride: LocationConfiguration = LocationConfiguration("","","", false), terraformCoreOverride: String = defaultTerraformCoreVersion, disableTriggers: Boolean = false) {
+class testConfiguration(parallelism: Int = defaultParallelism, maxConcurrentBuilds: Int = defaultMaxConcurrentBuilds, maxConcurrentBuildsPerBranch: Int = defaultMaxConcurrentBuildsPerBranch, startHour: Int = defaultStartHour, daysOfWeek: String = defaultDaysOfWeek, weeklyTestDay: String = defaultWeeklyDay, daysOfMonth: String = defaultDaysOfMonth, timeout: Int = defaultTimeout, useAltSubscription: Boolean = false, useDevTestSubscription: Boolean = false, locationOverride: LocationConfiguration = LocationConfiguration("","","", false), terraformCoreOverride: String = defaultTerraformCoreVersion, disableTriggers: Boolean = false) {
     var parallelism = parallelism
+    var maxConcurrentBuilds = maxConcurrentBuilds
+    var maxConcurrentBuildsPerBranch = maxConcurrentBuildsPerBranch
     var startHour = startHour
     var daysOfWeek = daysOfWeek
     var weeklyTestDay = weeklyTestDay
