@@ -749,6 +749,8 @@ func TestAccMsSqlDatabase_withLongTermRetentionPolicy(t *testing.T) {
 			Config: r.withLongTermRetentionPolicy(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("long_term_retention_policy.0.immutable_backups_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("long_term_retention_policy.0.immutability_mode").HasValue("Unlocked"),
 			),
 		},
 		data.ImportStep(),
@@ -756,6 +758,7 @@ func TestAccMsSqlDatabase_withLongTermRetentionPolicy(t *testing.T) {
 			Config: r.withLongTermRetentionPolicyUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("long_term_retention_policy.0.immutable_backups_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -2265,10 +2268,12 @@ resource "azurerm_mssql_database" "test" {
   name      = "acctest-db-%[3]d"
   server_id = azurerm_mssql_server.test.id
   long_term_retention_policy {
-    weekly_retention  = "P1W"
-    monthly_retention = "P1M"
-    yearly_retention  = "P1Y"
-    week_of_year      = 1
+    weekly_retention          = "P1W"
+    monthly_retention         = "P1M"
+    yearly_retention          = "P1Y"
+    week_of_year              = 1
+    immutable_backups_enabled = true
+    immutability_mode         = "Unlocked"
   }
 }
 `, r.template(data), data.RandomIntOfLength(15), data.RandomInteger)

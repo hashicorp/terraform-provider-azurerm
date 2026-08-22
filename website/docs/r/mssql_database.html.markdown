@@ -287,6 +287,8 @@ A `long_term_retention_policy` block supports the following:
 * `monthly_retention` - (Optional) The monthly retention policy for an LTR backup in an ISO 8601 format. Valid value is between 1 to 120 months. e.g. `P1Y`, `P1M`, `P4W` or `P30D`. Defaults to `PT0S`.
 * `yearly_retention` - (Optional) The yearly retention policy for an LTR backup in an ISO 8601 format. Valid value is between 1 to 10 years. e.g. `P1Y`, `P12M`, `P52W` or `P365D`. Defaults to `PT0S`.
 * `week_of_year` - (Optional) The week of year to take the yearly backup. Value has to be between `1` and `52`.
+* `immutable_backups_enabled` - (Optional) Specifies if the backups are immutable. Defaults to `false`.
+* `immutability_mode` - (Optional) The time-based immutability mode for the immutable backups. Possible values are `Locked` and `Unlocked`. This is only applicable when `immutable_backups_enabled` is set to `true`. Changing this from `Unlocked` to `Locked` makes the immutability permanent and cannot be reverted.
 
 ---
 
@@ -340,4 +342,4 @@ terraform import azurerm_mssql_database.example /subscriptions/00000000-0000-000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Sql` - 2023-08-01-preview
+* `Microsoft.Sql` - 2025-01-01, 2023-08-01-preview
