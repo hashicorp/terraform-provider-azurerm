@@ -1892,6 +1892,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
+%s
 
   default_node_pool {
     name              = "default"
@@ -1914,7 +1915,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, kubernetesClusterNodeProvisioningProfileTestBlock())
 }
 
 func (KubernetesClusterResource) skuConfigStandard(data acceptance.TestData) string {
@@ -3192,6 +3193,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
   kubernetes_version  = %q
+%s
 
   default_node_pool {
     name             = "default"
@@ -3214,7 +3216,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, currentKubernetesVersion)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, kubernetesClusterNodeProvisioningProfileTestBlock())
 }
 
 func (KubernetesClusterResource) oidcIssuer(data acceptance.TestData, enabled bool) string {
