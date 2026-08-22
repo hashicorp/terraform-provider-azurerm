@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/pool"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -152,6 +153,10 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
+						"automatic_upgrade_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
 						"settings_json": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
@@ -191,6 +196,8 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"identity": commonschema.UserAssignedIdentityComputed(),
 
 			"inter_node_communication": {
 				Type:     pluginsdk.TypeString,
@@ -441,6 +448,31 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"security_profile": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"host_encryption_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+						"security_type": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"secure_boot_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+						"vtpm_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"start_task": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -480,6 +512,11 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 						},
 					},
 				},
+			},
+
+			"target_node_communication_mode": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 
 			"task_scheduling_policy": {
@@ -738,11 +775,21 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
+		identityResult, err := identity.FlattenUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		if err := d.Set("identity", identityResult); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
+
 		if props := model.Properties; props != nil {
 			d.Set("display_name", props.DisplayName)
 			d.Set("vm_size", props.VMSize)
 			d.Set("inter_node_communication", string(pointer.From(props.InterNodeCommunication)))
 			d.Set("max_tasks_per_node", props.TaskSlotsPerNode)
+			d.Set("inter_node_communication", string(pointer.From(props.InterNodeCommunication)))
+			d.Set("target_node_communication_mode", string(pointer.From(props.TargetNodeCommunicationMode)))
 
 			if scaleSettings := props.ScaleSettings; scaleSettings != nil {
 				if err := d.Set("auto_scale", flattenBatchPoolAutoScaleSettings(scaleSettings.AutoScale)); err != nil {
@@ -823,6 +870,9 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 							if item.AutoUpgradeMinorVersion != nil {
 								extension["auto_upgrade_minor_version"] = *item.AutoUpgradeMinorVersion
 							}
+							if item.EnableAutomaticUpgrade != nil {
+								extension["automatic_upgrade_enabled"] = *item.EnableAutomaticUpgrade
+							}
 							if item.Settings != nil {
 								extension["settings_json"] = item.Settings
 							}
@@ -869,6 +919,9 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 							},
 						}
 						d.Set("windows", windowsConfig)
+					}
+					if config.SecurityProfile != nil {
+						d.Set("security_profile", flattenBatchPoolSecurityProfile(config.SecurityProfile))
 					}
 				}
 			}
