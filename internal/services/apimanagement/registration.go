@@ -109,15 +109,16 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		ApiManagementGatewayConfigConnectionResource{},
 		ApiManagementNotificationRecipientEmailResource{},
 		ApiManagementNotificationRecipientUserResource{},
-		ApiManagementWorkspaceResource{},
-		ApiManagementWorkspacePolicyResource{},
+		ApiManagementStandaloneGatewayResource{},
 		ApiManagementWorkspaceApiVersionSetResource{},
 		ApiManagementWorkspaceCertificateResource{},
 		ApiManagementWorkspaceNamedValueResource{},
 		ApiManagementWorkspacePolicyFragmentResource{},
-		ApiManagementStandaloneGatewayResource{},
+		ApiManagementWorkspacePolicyResource{},
+		ApiManagementWorkspaceResource{},
 	}
 }
 
