@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.Resource = AutonomousDatabaseRegularResource{}
+var _ sdk.ResourceWithCustomizeDiff = AutonomousDatabaseRegularResource{}
 
 type AutonomousDatabaseRegularResource struct{}
 
@@ -52,6 +52,7 @@ type AutonomousDatabaseRegularResourceModel struct {
 
 	// Optional
 	CustomerContacts []string `tfschema:"customer_contacts"`
+	DatabaseEdition  string   `tfschema:"database_edition"`
 }
 
 func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schema {
@@ -196,6 +197,14 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 			},
 		},
 
+		"database_edition": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C The service assigns a database edition when one is not specified.
+			Computed:     true,
+			ValidateFunc: validation.StringInSlice(autonomousdatabases.PossibleValuesForDatabaseEditionType(), false),
+		},
+
 		"mtls_connection_required": {
 			Type:     pluginsdk.TypeBool,
 			Required: true,
@@ -239,6 +248,33 @@ func (AutonomousDatabaseRegularResource) ModelObject() interface{} {
 
 func (AutonomousDatabaseRegularResource) ResourceType() string {
 	return "azurerm_oracle_autonomous_database"
+}
+
+func (AutonomousDatabaseRegularResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Second,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			if metadata.ResourceDiff == nil {
+				return nil
+			}
+
+			databaseEdition, ok := metadata.ResourceDiff.GetOk("database_edition")
+			if !ok || databaseEdition.(string) == "" {
+				return nil
+			}
+
+			licenseModel, ok := metadata.ResourceDiff.GetOk("license_model")
+			if !ok {
+				return nil
+			}
+
+			if licenseModel.(string) != string(autonomousdatabases.LicenseModelBringYourOwnLicense) {
+				return fmt.Errorf("`database_edition` can only be specified when `license_model` is `BringYourOwnLicense`")
+			}
+
+			return nil
+		},
+	}
 }
 
 func (r AutonomousDatabaseRegularResource) Create() sdk.ResourceFunc {
@@ -288,6 +324,10 @@ func (r AutonomousDatabaseRegularResource) Create() sdk.ResourceFunc {
 
 			if len(model.CustomerContacts) > 0 {
 				properties.CustomerContacts = pointer.To(expandAdbsCustomerContacts(model.CustomerContacts))
+			}
+
+			if model.DatabaseEdition != "" {
+				properties.DatabaseEdition = pointer.To(autonomousdatabases.DatabaseEditionType(model.DatabaseEdition))
 			}
 
 			if model.SubnetId != "" {
@@ -374,6 +414,9 @@ func (r AutonomousDatabaseRegularResource) Update() sdk.ResourceFunc {
 				if metadata.ResourceData.HasChange("allowed_ips") {
 					generalUpdate.Properties.WhitelistedIPs = pointer.To(model.AllowedIps)
 				}
+				if metadata.ResourceData.HasChange("database_edition") {
+					generalUpdate.Properties.DatabaseEdition = pointer.To(autonomousdatabases.DatabaseEditionType(model.DatabaseEdition))
+				}
 
 				if err := client.UpdateThenPoll(ctx, *id, generalUpdate); err != nil {
 					return fmt.Errorf("updating general properties for %s: %+v", *id, err)
@@ -459,6 +502,7 @@ func (AutonomousDatabaseRegularResource) Read() sdk.ResourceFunc {
 				state.ComputeModel = pointer.FromEnum(props.ComputeModel)
 				state.CustomerContacts = flattenAdbsCustomerContacts(props.CustomerContacts)
 				state.DataStorageSizeInTbs = pointer.From(props.DataStorageSizeInTbs)
+				state.DatabaseEdition = pointer.FromEnum(props.DatabaseEdition)
 				state.DbWorkload = string(pointer.From(props.DbWorkload))
 				state.DbVersion = pointer.From(props.DbVersion)
 				state.DisplayName = pointer.From(props.DisplayName)
@@ -544,5 +588,6 @@ func (r AutonomousDatabaseRegularResource) hasGeneralUpdates(metadata sdk.Resour
 		"auto_scaling_enabled",
 		"auto_scaling_for_storage_enabled",
 		"allowed_ips",
-	)
+	) ||
+		metadata.ResourceData.HasChange("database_edition")
 }
