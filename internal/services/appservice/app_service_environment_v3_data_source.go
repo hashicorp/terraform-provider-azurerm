@@ -189,7 +189,7 @@ func (r AppServiceEnvironmentV3DataSource) Attributes() map[string]*pluginsdk.Sc
 					},
 				},
 			},
-			Deprecated: "the `inboundNetworkDependenciesEndpoints` is deprecated and it will be removed in v6.0 of the AzureRM Provider.",
+			Deprecated: "The `inboundNetworkDependenciesEndpoints` API is not supported on App Service Environment v3 - the `inbound_network_dependencies` attribute has been deprecated and will be removed in v6.0 of the AzureRM Provider",
 		}
 	}
 	return schema

@@ -235,7 +235,7 @@ func (r AppServiceEnvironmentV3Resource) Attributes() map[string]*pluginsdk.Sche
 					},
 				},
 			},
-			Deprecated: "the `inboundNetworkDependenciesEndpoints` is deprecated and it will be removed in v6.0 of the AzureRM Provider.",
+			Deprecated: "The `inboundNetworkDependenciesEndpoints` API is not supported on App Service Environment v3 - the `inbound_network_dependencies` attribute has been deprecated and will be removed in v6.0 of the AzureRM Provider",
 		}
 	}
 	return schema
@@ -646,7 +646,7 @@ func expandClusterSettingsModel(input []ClusterSettingModel) *[]appserviceenviro
 	return &clusterSettings
 }
 
-// remove this function in 6.0 - the inboundNetworkDependenciesEndpoints API is not supported for App Service Environment v3 and the attribute is no longer populated.
+// remove this function in 6.0 - `inboundNetworkDependenciesEndpoints` is not supported for App Service Environment v3.
 func flattenInboundNetworkDependencies(ctx context.Context, client *appserviceenvironments.AppServiceEnvironmentsClient, id *commonids.AppServiceEnvironmentId) (*[]AppServiceV3InboundDependencies, error) {
 	inboundNetworking, err := client.GetInboundNetworkDependenciesEndpointsComplete(ctx, *id)
 	if err != nil {

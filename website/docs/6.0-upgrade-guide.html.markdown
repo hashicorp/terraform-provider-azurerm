@@ -90,6 +90,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `key_vault_id` property has been removed.
 
+### `azurerm_app_service_environment_v3`
+
+* The deprecated inbound_network_dependencies attribute has been removed because inboundNetworkDependenciesEndpoints is not supported for App Service Environment v3.
+
 ## Breaking Changes in Data Sources
 
 Please follow the format in the example below for listing breaking changes in data sources:
@@ -105,4 +109,4 @@ Please follow the format in the example below for listing breaking changes in da
 
 ### `azurerm_app_service_environment_v3`
 
-* The deprecated `inbound_network_dependencies` property has been removed as it is no longer supported by the resource.
+* The deprecated inbound_network_dependencies attribute has been removed because inboundNetworkDependenciesEndpoints is not supported for App Service Environment v3.
