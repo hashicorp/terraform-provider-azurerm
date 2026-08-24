@@ -227,17 +227,17 @@ func resourcePublicIp() *pluginsdk.Resource {
 
 func isPublicIpSkuUpgrade(oldSku string, newSku string) bool {
 	publicIpSkuUpgradeOrder := []string{
-		strings.ToLower(string(publicipaddresses.PublicIPAddressSkuNameBasic)),
-		strings.ToLower(string(publicipaddresses.PublicIPAddressSkuNameStandard)),
-		strings.ToLower(string(publicipaddresses.PublicIPAddressSkuNameStandardVTwo)),
+		string(publicipaddresses.PublicIPAddressSkuNameBasic),
+		string(publicipaddresses.PublicIPAddressSkuNameStandard),
+		string(publicipaddresses.PublicIPAddressSkuNameStandardVTwo),
 	}
 
-	return slices.Index(publicIpSkuUpgradeOrder, strings.ToLower(newSku)) > slices.Index(publicIpSkuUpgradeOrder, strings.ToLower(oldSku))
+	return slices.Index(publicIpSkuUpgradeOrder, newSku) > slices.Index(publicIpSkuUpgradeOrder, oldSku)
 }
 
 func isStandardPublicIpSku(sku string) bool {
-	return strings.EqualFold(sku, string(publicipaddresses.PublicIPAddressSkuNameStandard)) ||
-		strings.EqualFold(sku, string(publicipaddresses.PublicIPAddressSkuNameStandardVTwo))
+	return sku == string(publicipaddresses.PublicIPAddressSkuNameStandard) ||
+		sku == string(publicipaddresses.PublicIPAddressSkuNameStandardVTwo)
 }
 
 const publicIPBasicSkuCreateDeprecationMessage = "creation of new `Basic` SKU public IP addresses is no longer permitted following its deprecation on March 31, 2025. This also affects `allocation_method` set to `Dynamic`, as it is only available with the `Basic` SKU. For more information, see https://azure.microsoft.com/updates/upgrade-to-standard-sku-public-ip-addresses-in-azure-by-30-september-2025-basic-sku-will-be-retired/"
