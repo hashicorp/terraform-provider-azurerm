@@ -84,7 +84,7 @@ func TestAccStorageDiscoveryWorkspace_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_discovery_workspace", "test")
 	r := StorageDiscoveryWorkspaceResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -97,6 +97,11 @@ func TestAccStorageDiscoveryWorkspace_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.updateComplete(data),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionUpdate),
+				},
+			},
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scope.#").HasValue("2"),
@@ -118,6 +123,11 @@ func TestAccStorageDiscoveryWorkspace_update(t *testing.T) {
 		},
 		{
 			Config: r.basic(data),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionUpdate),
+				},
+			},
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scope.#").HasValue("1"),
