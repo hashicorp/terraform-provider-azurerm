@@ -38,7 +38,7 @@ jobs:
           echo ""
           echo "Your changes contain breaking schema changes (e.g. removing or renaming"
           echo "a property, changing a property type, or making an optional property required)."
-          echo "Breaking changes must be gated behind the appropriate feature flag (e.g. features.FivePointOh())."
+          echo "Breaking changes must be gated behind the appropriate feature flag (e.g. features.SixPointOh())."
           echo "Please review the breaking changes guide: contributing/topics/guide-breaking-changes.md"
 
   save-artifacts-on-fail:

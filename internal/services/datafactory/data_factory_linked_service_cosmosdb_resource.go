@@ -168,11 +168,10 @@ func resourceDataFactoryLinkedServiceCosmosDbCreateUpdate(d *pluginsdk.ResourceD
 		cosmosdbProperties.Database = databaseName
 	} else {
 		connectionString := d.Get("connection_string").(string)
-		connectionStringSecureString := datafactory.SecureString{
+		cosmosdbProperties.ConnectionString = datafactory.SecureString{
 			Value: &connectionString,
 			Type:  datafactory.TypeSecureString,
 		}
-		cosmosdbProperties.ConnectionString = connectionStringSecureString
 		cosmosdbProperties.Database = databaseName
 	}
 

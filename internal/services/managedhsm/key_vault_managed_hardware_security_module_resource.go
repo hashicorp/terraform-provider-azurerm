@@ -437,12 +437,10 @@ func expandMHSMNetworkAcls(input []interface{}) *managedhsms.MHSMNetworkRuleSet 
 		return nil
 	}
 	v := input[0].(map[string]interface{})
-	res := &managedhsms.MHSMNetworkRuleSet{
+	return &managedhsms.MHSMNetworkRuleSet{
 		Bypass:        pointer.ToEnum[managedhsms.NetworkRuleBypassOptions](v["bypass"].(string)),
 		DefaultAction: pointer.ToEnum[managedhsms.NetworkRuleAction](v["default_action"].(string)),
 	}
-
-	return res
 }
 
 func flattenMHSMNetworkAcls(acl *managedhsms.MHSMNetworkRuleSet) []interface{} {

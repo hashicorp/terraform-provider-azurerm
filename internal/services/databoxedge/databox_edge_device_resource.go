@@ -420,7 +420,5 @@ func flattenDeviceSku(input *devices.Sku) string {
 		tier = devices.SkuTierStandard
 	}
 
-	skuName := fmt.Sprintf("%s-%s", name, tier)
-
-	return skuName
+	return fmt.Sprintf("%s-%s", name, tier)
 }

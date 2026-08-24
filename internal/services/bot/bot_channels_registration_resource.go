@@ -137,7 +137,7 @@ func resourceBotChannelsRegistration() *pluginsdk.Resource {
 			"description": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.BotChannelRegistrationDescription,
+				ValidateFunc: validation.StringLenBetween(0, 512),
 			},
 
 			"display_name": {

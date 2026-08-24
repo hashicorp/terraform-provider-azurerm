@@ -24,7 +24,7 @@ import (
 )
 
 func resourceBotChannelWebChat() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceBotChannelWebChatCreate,
 		Read:   resourceBotChannelWebChatRead,
 		Delete: resourceBotChannelWebChatDelete,
@@ -93,8 +93,6 @@ func resourceBotChannelWebChat() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	return resource
 }
 
 func resourceBotChannelWebChatCreate(d *pluginsdk.ResourceData, meta interface{}) error {

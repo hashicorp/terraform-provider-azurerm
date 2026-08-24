@@ -23,7 +23,7 @@ import (
 )
 
 func resourceArmResourceGroupPolicyRemediation() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceArmResourceGroupPolicyRemediationCreateUpdate,
 		Read:   resourceArmResourceGroupPolicyRemediationRead,
 		Update: resourceArmResourceGroupPolicyRemediationCreateUpdate,
@@ -111,8 +111,6 @@ func resourceArmResourceGroupPolicyRemediation() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	return resource
 }
 
 func resourceArmResourceGroupPolicyRemediationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
