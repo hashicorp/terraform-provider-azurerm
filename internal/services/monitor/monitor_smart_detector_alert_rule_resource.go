@@ -14,18 +14,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2019-06-01/smartdetectoralertrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-01-01/actiongroupsapis"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceMonitorSmartDetectorAlertRule() *pluginsdk.Resource {
@@ -116,7 +115,7 @@ func resourceMonitorSmartDetectorAlertRule() *pluginsdk.Resource {
 							Required: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
-								ValidateFunc: validate.ActionGroupID,
+								ValidateFunc: validation.AsGeneratedID(actiongroupsapis.ParseActionGroupIDInsensitively),
 							},
 							Set: set.HashStringIgnoreCase,
 						},
@@ -197,7 +196,7 @@ func resourceMonitorSmartDetectorAlertRuleCreateUpdate(d *pluginsdk.ResourceData
 			Detector: smartdetectoralertrules.Detector{
 				Id: d.Get("detector_type").(string),
 			},
-			Scope:        pointer.From(utils.ExpandStringSlice(d.Get("scope_resource_ids").(*pluginsdk.Set).List())),
+			Scope:        pointer.From(helpers.ExpandStringSlice(d.Get("scope_resource_ids").(*pluginsdk.Set).List())),
 			ActionGroups: pointer.From(expandMonitorSmartDetectorAlertRuleActionGroup(d.Get("action_group").([]interface{}))),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -294,7 +293,7 @@ func expandMonitorSmartDetectorAlertRuleActionGroup(input []interface{}) *smartd
 	return &smartdetectoralertrules.ActionGroupsInformation{
 		CustomEmailSubject:   pointer.To(v["email_subject"].(string)),
 		CustomWebhookPayload: pointer.To(v["webhook_payload"].(string)),
-		GroupIds:             pointer.From(utils.ExpandStringSlice(v["ids"].(*pluginsdk.Set).List())),
+		GroupIds:             pointer.From(helpers.ExpandStringSlice(v["ids"].(*pluginsdk.Set).List())),
 	}
 }
 
@@ -313,7 +312,7 @@ func flattenMonitorSmartDetectorAlertRuleActionGroup(input *smartdetectoralertru
 
 	groupIds := make([]string, 0)
 	for _, idRaw := range input.GroupIds {
-		id, err := parse.ActionGroupIDInsensitively(idRaw)
+		id, err := actiongroupsapis.ParseActionGroupIDInsensitively(idRaw)
 		if err != nil {
 			return nil, fmt.Errorf("parsing %s: %v", idRaw, err)
 		}

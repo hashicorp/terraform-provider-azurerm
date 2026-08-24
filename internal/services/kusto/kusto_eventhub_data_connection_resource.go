@@ -304,8 +304,7 @@ func resourceKustoEventHubDataConnectionUpdate(d *pluginsdk.ResourceData, meta i
 		Properties: props,
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, *id, dataConnection)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, *id, dataConnection); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -322,8 +321,7 @@ func resourceKustoEventHubDataConnectionDelete(d *pluginsdk.ResourceData, meta i
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting Kusto Event Hub Data Connection %q (Resource Group %q, Cluster %q, Database %q): %+v", id.DataConnectionName, id.ResourceGroupName, id.ClusterName, id.DatabaseName, err)
 	}
 

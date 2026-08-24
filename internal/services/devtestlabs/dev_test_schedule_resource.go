@@ -237,25 +237,19 @@ func resourceDevTestLabSchedulesCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if v, ok := d.GetOk("weekly_recurrence"); ok {
-		weekRecurrence := expandDevTestScheduleRecurrenceWeekly(v)
-
-		schedule.Properties.WeeklyRecurrence = weekRecurrence
+		schedule.Properties.WeeklyRecurrence = expandDevTestScheduleRecurrenceWeekly(v)
 	}
 
 	if v, ok := d.GetOk("daily_recurrence"); ok {
-		dailyRecurrence := expandDevTestScheduleRecurrenceDaily(v)
-		schedule.Properties.DailyRecurrence = dailyRecurrence
+		schedule.Properties.DailyRecurrence = expandDevTestScheduleRecurrenceDaily(v)
 	}
 
 	if v, ok := d.GetOk("hourly_recurrence"); ok {
-		hourlyRecurrence := expandDevTestScheduleRecurrenceHourly(v)
-
-		schedule.Properties.HourlyRecurrence = hourlyRecurrence
+		schedule.Properties.HourlyRecurrence = expandDevTestScheduleRecurrenceHourly(v)
 	}
 
 	if _, ok := d.GetOk("notification_settings"); ok {
-		notificationSettings := expandDevTestScheduleNotificationSettings(d)
-		schedule.Properties.NotificationSettings = notificationSettings
+		schedule.Properties.NotificationSettings = expandDevTestScheduleNotificationSettings(d)
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, schedule); err != nil {

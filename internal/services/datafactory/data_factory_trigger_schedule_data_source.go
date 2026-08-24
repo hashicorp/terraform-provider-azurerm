@@ -201,9 +201,6 @@ func (d TriggerScheduleDataSource) Read() sdk.ResourceFunc {
 			}
 
 			id := parse.NewTriggerID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, model.Name)
-			if err != nil {
-				return err
-			}
 
 			existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 			if err != nil {

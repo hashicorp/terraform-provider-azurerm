@@ -101,17 +101,10 @@ func IntInSlice(valid []int) func(interface{}, string) ([]string, []error) {
 	return validation.IntInSlice(valid)
 }
 
-func IntPositive(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(int)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be int", i))
-		return
-	}
-	if v <= 0 {
-		errors = append(errors, fmt.Errorf("expected %s to be positive, got %d", k, v))
-		return
-	}
-	return
+// IntPositive is a SchemaValidateFunc which tests if the provided value
+// is of type int and is positive
+func IntPositive(i interface{}, k string) ([]string, []error) {
+	return validation.IntAtLeast(1)(i, k)
 }
 
 // IsCIDR is a SchemaValidateFunc which tests if the provided value is of type string and a valid CIDR
@@ -189,6 +182,7 @@ func IsURLWithScheme(validSchemes []string) func(interface{}, string) ([]string,
 }
 
 // IsURLWithPath is a SchemaValidateFunc that tests if the provided value is of type string and a valid URL with a path
+// lintignore:V013 // false positive - this validates a URL; the string comparisons check for empty values
 func IsURLWithPath(i interface{}, k string) (_ []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
@@ -247,6 +241,13 @@ func NoZeroValues(i interface{}, k string) ([]string, []error) {
 // provided value does not contain any of the specified Unicode code points in chars.
 func StringDoesNotContainAny(chars string) func(interface{}, string) ([]string, []error) {
 	return validation.StringDoesNotContainAny(chars)
+}
+
+// StringDoesNotMatch returns a SchemaValidateFunc which tests if the provided value
+// does not match a given regexp. Optionally an error message can be provided to
+// return something friendlier than "must not match some globby regexp".
+func StringDoesNotMatch(r *regexp.Regexp, message string) func(interface{}, string) ([]string, []error) {
+	return validation.StringDoesNotMatch(r, message)
 }
 
 // StringInSlice returns a SchemaValidateFunc which tests if the provided value

@@ -296,23 +296,11 @@ func resourceIotHubEndpointEventHubRead(d *pluginsdk.ResourceData, meta interfac
 					}
 					d.Set("authentication_type", authenticationType)
 
-					connectionStr := ""
-					if endpoint.ConnectionString != nil {
-						connectionStr = *endpoint.ConnectionString
-					}
-					d.Set("connection_string", connectionStr)
+					d.Set("connection_string", pointer.From(endpoint.ConnectionString))
 
-					endpointUri := ""
-					if endpoint.EndpointURI != nil {
-						endpointUri = *endpoint.EndpointURI
-					}
-					d.Set("endpoint_uri", endpointUri)
+					d.Set("endpoint_uri", pointer.From(endpoint.EndpointURI))
 
-					entityPath := ""
-					if endpoint.EntityPath != nil {
-						entityPath = *endpoint.EntityPath
-					}
-					d.Set("entity_path", entityPath)
+					d.Set("entity_path", pointer.From(endpoint.EntityPath))
 
 					identityId := ""
 					if endpoint.Identity != nil && endpoint.Identity.UserAssignedIdentity != nil {
