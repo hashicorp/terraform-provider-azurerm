@@ -413,9 +413,8 @@ func (r LocalUserResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("ssh_password_enabled") {
 				props.HasSshPassword = &plan.SshPasswordEnabled
-				_, isEnabled := metadata.ResourceData.GetChange("ssh_password_enabled")
 				state := plan
-				if isEnabled.(bool) {
+				if plan.SshPasswordEnabled {
 					// If this update is to change the `ssh_password_enabled` from false to true. We'll need to regenerate the password.
 					// The previously generated password will be useless, that can't be used to connect (sftp returns permission denied).
 					// Also, after `ssh_key_enabled` being set to back true, but without calling the RegeneratePassword(), then if you

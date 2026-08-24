@@ -323,7 +323,7 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		Sku: &workspaces.Sku{
 			Name: d.Get("sku_name").(string),
-			Tier: pointer.To(workspaces.SkuTier(d.Get("sku_name").(string))),
+			Tier: pointer.ToEnum[workspaces.SkuTier](d.Get("sku_name").(string)),
 		},
 		Kind:     pointer.To(d.Get("kind").(string)),
 		Identity: expandedIdentity,
@@ -476,7 +476,7 @@ func resourceMachineLearningWorkspaceUpdate(d *pluginsdk.ResourceData, meta inte
 	if d.HasChange("sku_name") {
 		payload.Sku = &workspaces.Sku{
 			Name: d.Get("sku_name").(string),
-			Tier: pointer.To(workspaces.SkuTier(d.Get("sku_name").(string))),
+			Tier: pointer.ToEnum[workspaces.SkuTier](d.Get("sku_name").(string)),
 		}
 	}
 
@@ -681,7 +681,7 @@ func flattenMachineLearningWorkspaceIdentity(input *identity.LegacySystemAndUser
 			transform.TenantId = input.TenantId
 		}
 
-		if input != nil && input.IdentityIds != nil {
+		if input.IdentityIds != nil {
 			for k, v := range input.IdentityIds {
 				transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
 					ClientId:    v.ClientId,
@@ -813,7 +813,7 @@ func expandMachineLearningWorkspaceManagedNetwork(i []interface{}) (*workspaces.
 	v := i[0].(map[string]interface{})
 
 	return &workspaces.ManagedNetworkSettings{
-		IsolationMode: pointer.To(workspaces.IsolationMode(v["isolation_mode"].(string))),
+		IsolationMode: pointer.ToEnum[workspaces.IsolationMode](v["isolation_mode"].(string)),
 	}, v["provision_on_creation_enabled"].(bool)
 }
 

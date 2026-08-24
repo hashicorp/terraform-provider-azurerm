@@ -19,7 +19,7 @@ import (
 )
 
 func dataSourceServiceBusNamespace() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Read: dataSourceServiceBusNamespaceRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -86,8 +86,6 @@ func dataSourceServiceBusNamespace() *pluginsdk.Resource {
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
-
-	return resource
 }
 
 func dataSourceServiceBusNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) error {

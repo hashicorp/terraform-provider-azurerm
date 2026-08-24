@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2024-03-01/signalr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -29,10 +30,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name signalr_service -service-package-name signalr -properties "name,resource_group_name"
+//go:generate go run ../../tools/generator-tests resourceidentity
 func resourceArmSignalRService() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceArmSignalRServiceCreate,
@@ -285,15 +285,9 @@ func resourceArmSignalRServiceFlatten(d *pluginsdk.ResourceData, id *signalr.Sig
 
 			if props.ResourceLogConfiguration != nil && props.ResourceLogConfiguration.Categories != nil {
 				for _, item := range *props.ResourceLogConfiguration.Categories {
-					name := ""
-					if item.Name != nil {
-						name = *item.Name
-					}
+					name := pointer.From(item.Name)
 
-					var cateEnabled string
-					if item.Enabled != nil {
-						cateEnabled = *item.Enabled
-					}
+					cateEnabled := pointer.From(item.Enabled)
 
 					switch name {
 					case "MessagingLogs":
@@ -370,9 +364,7 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		currentSku = resourceType.Sku.Name
 	}
 
-	if d.HasChanges("cors", "upstream_endpoint", "serverless_connection_timeout_in_seconds", "identity",
-		"public_network_access_enabled", "local_auth_enabled", "aad_auth_enabled", "tls_client_cert_enabled",
-		"features", "connectivity_logs_enabled", "messaging_logs_enabled", "http_request_logs_enabled", "service_mode", "live_trace_enabled", "live_trace") {
+	if d.HasChangesExcept("sku", "tags") {
 		resourceType.Properties = &signalr.SignalRProperties{}
 
 		if d.HasChange("cors") {
@@ -428,9 +420,16 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 			}
 		}
 
-		if d.HasChanges("connectivity_logs_enabled", "messaging_logs_enabled", "http_request_logs_enabled", "live_trace_enabled", "service_mode") {
+		// lintignore:R019 // deliberate subset: only the attributes mapped to SignalR feature flags; the other properties are handled by the surrounding branches
+		if d.HasChanges(
+			"connectivity_logs_enabled",
+			"messaging_logs_enabled",
+			"http_request_logs_enabled",
+			"live_trace_enabled",
+			"service_mode",
+		) {
 			features := make([]signalr.SignalRFeature, 0)
-			if d.HasChange("connectivity_logs_enabled") || d.HasChange("messaging_logs_enabled") || d.HasChange("http_request_logs_enabled") {
+			if d.HasChanges("connectivity_logs_enabled", "messaging_logs_enabled", "http_request_logs_enabled") {
 				connectivityLogsNew := d.Get("connectivity_logs_enabled")
 				features = append(features, signalRFeature(signalr.FeatureFlagsEnableConnectivityLogs, strconv.FormatBool(connectivityLogsNew.(bool))))
 
@@ -560,9 +559,9 @@ func expandUpstreamSettings(input []interface{}) *signalr.ServerlessUpstreamSett
 			Type: &authTypeNone,
 		}
 		upstreamTemplate := signalr.UpstreamTemplate{
-			HubPattern:      pointer.To(strings.Join(*utils.ExpandStringSlice(setting["hub_pattern"].([]interface{})), ",")),
-			EventPattern:    pointer.To(strings.Join(*utils.ExpandStringSlice(setting["event_pattern"].([]interface{})), ",")),
-			CategoryPattern: pointer.To(strings.Join(*utils.ExpandStringSlice(setting["category_pattern"].([]interface{})), ",")),
+			HubPattern:      pointer.To(strings.Join(*helpers.ExpandStringSlice(setting["hub_pattern"].([]interface{})), ",")),
+			EventPattern:    pointer.To(strings.Join(*helpers.ExpandStringSlice(setting["event_pattern"].([]interface{})), ",")),
+			CategoryPattern: pointer.To(strings.Join(*helpers.ExpandStringSlice(setting["category_pattern"].([]interface{})), ",")),
 			UrlTemplate:     setting["url_template"].(string),
 			Auth:            &auth,
 		}
@@ -594,19 +593,19 @@ func flattenUpstreamSettings(upstreamSettings *signalr.ServerlessUpstreamSetting
 		categoryPattern := make([]interface{}, 0)
 		if settings.CategoryPattern != nil {
 			categoryPatterns := strings.Split(*settings.CategoryPattern, ",")
-			categoryPattern = utils.FlattenStringSlice(&categoryPatterns)
+			categoryPattern = helpers.FlattenStringSlice(&categoryPatterns)
 		}
 
 		eventPattern := make([]interface{}, 0)
 		if settings.EventPattern != nil {
 			eventPatterns := strings.Split(*settings.EventPattern, ",")
-			eventPattern = utils.FlattenStringSlice(&eventPatterns)
+			eventPattern = helpers.FlattenStringSlice(&eventPatterns)
 		}
 
 		hubPattern := make([]interface{}, 0)
 		if settings.HubPattern != nil {
 			hubPatterns := strings.Split(*settings.HubPattern, ",")
-			hubPattern = utils.FlattenStringSlice(&hubPatterns)
+			hubPattern = helpers.FlattenStringSlice(&hubPatterns)
 		}
 
 		var managedIdentityId string
@@ -757,15 +756,9 @@ func flattenSignalRLiveTraceConfig(input *signalr.LiveTraceConfiguration) []inte
 
 	if input.Categories != nil {
 		for _, item := range *input.Categories {
-			name := ""
-			if item.Name != nil {
-				name = *item.Name
-			}
+			name := pointer.From(item.Name)
 
-			var cateEnabled string
-			if item.Enabled != nil {
-				cateEnabled = *item.Enabled
-			}
+			cateEnabled := pointer.From(item.Enabled)
 
 			switch name {
 			case "MessagingLogs":

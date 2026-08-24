@@ -26,7 +26,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
@@ -44,7 +43,7 @@ const (
 var postgresqlFlexibleServerResourceName = "azurerm_postgresql_flexible_server"
 
 func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourcePostgresqlFlexibleServerCreate,
 		Read:   resourcePostgresqlFlexibleServerRead,
 		Update: resourcePostgresqlFlexibleServerUpdate,
@@ -548,30 +547,6 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			},
 		),
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["customer_managed_key"].Elem.(*pluginsdk.Resource).Schema["key_vault_key_id"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny),
-			RequiredWith: []string{
-				"identity",
-				"customer_managed_key.0.primary_user_assigned_identity_id",
-			},
-		}
-
-		resource.Schema["customer_managed_key"].Elem.(*pluginsdk.Resource).Schema["geo_backup_key_vault_key_id"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny),
-			RequiredWith: []string{
-				"identity",
-				"customer_managed_key.0.geo_backup_user_assigned_identity_id",
-			},
-		}
-	}
-
-	return resource
 }
 
 func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -738,8 +713,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if authRaw, ok := d.GetOk("authentication"); ok {
-		authConfig := expandFlexibleServerAuthConfig(authRaw.([]interface{}))
-		parameters.Properties.AuthConfig = authConfig
+		parameters.Properties.AuthConfig = expandFlexibleServerAuthConfig(authRaw.([]interface{}))
 	}
 
 	identity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
@@ -956,7 +930,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
-	if d.HasChange("private_dns_zone_id") || d.HasChange("public_network_access_enabled") {
+	if d.HasChanges("private_dns_zone_id", "public_network_access_enabled") {
 		parameters.Properties.Network = expandArmServerNetwork(d)
 	}
 
@@ -1033,7 +1007,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 		parameters.Properties.AuthConfig = expandFlexibleServerAuthConfigForPatch(d.Get("authentication").([]interface{}))
 	}
 
-	if d.HasChange("auto_grow_enabled") || d.HasChange("storage_mb") || d.HasChange("storage_tier") {
+	if d.HasChanges("auto_grow_enabled", "storage_mb", "storage_tier") {
 		// TODO remove the additional update after https://github.com/Azure/azure-rest-api-specs/issues/22867 is fixed
 		storage := expandArmServerStorage(d)
 
@@ -1208,7 +1182,7 @@ func expandArmServerStorage(d *pluginsdk.ResourceData) *servers.Storage {
 	}
 
 	if v, ok := d.GetOk("storage_tier"); ok {
-		storage.Tier = pointer.To(servers.AzureManagedDiskPerformanceTier(v.(string)))
+		storage.Tier = pointer.ToEnum[servers.AzureManagedDiskPerformanceTier](v.(string))
 	}
 
 	return &storage
@@ -1321,18 +1295,9 @@ func flattenArmServerMaintenanceWindow(input *servers.MaintenanceWindow) []inter
 		return make([]interface{}, 0)
 	}
 
-	var dayOfWeek int64
-	if input.DayOfWeek != nil {
-		dayOfWeek = *input.DayOfWeek
-	}
-	var startHour int64
-	if input.StartHour != nil {
-		startHour = *input.StartHour
-	}
-	var startMinute int64
-	if input.StartMinute != nil {
-		startMinute = *input.StartMinute
-	}
+	dayOfWeek := pointer.From(input.DayOfWeek)
+	startHour := pointer.From(input.StartHour)
+	startMinute := pointer.From(input.StartMinute)
 	return []interface{}{
 		map[string]interface{}{
 			"day_of_week":  dayOfWeek,
@@ -1397,10 +1362,7 @@ func flattenFlexibleServerHighAvailability(ha *servers.HighAvailability) []inter
 		return []interface{}{}
 	}
 
-	var zone string
-	if ha.StandbyAvailabilityZone != nil {
-		zone = *ha.StandbyAvailabilityZone
-	}
+	zone := pointer.From(ha.StandbyAvailabilityZone)
 
 	return []interface{}{
 		map[string]interface{}{

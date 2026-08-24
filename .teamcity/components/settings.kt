@@ -13,7 +13,7 @@ var defaultParallelism = 20
 var defaultTimeout = 12
 
 // specifies the default version of Terraform Core which should be used for testing
-var defaultTerraformCoreVersion = "1.14.3"
+var defaultTerraformCoreVersion = "1.15.8"
 
 // This represents a cron view of days of the week, Monday - Friday.
 const val defaultDaysOfWeek = "2,3,4,5,6"
@@ -74,7 +74,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "cosmos" to testConfiguration(locationOverride = LocationConfiguration("westus", "northeurope", "eastus2", true)),
 
         // Confidential Ledger
-        "confidentialledger" to testConfiguration(locationOverride = LocationConfiguration("eastus","southcentralus","westeurope", false)),
+        "confidentialledger" to testConfiguration(parallelism = 1, locationOverride = LocationConfiguration("eastus","southeastasia","westeurope", false)),
 
         // Container App Managed Environments are limited to 20 per location, using 10 as they can take some time to clear
         // Enable rotation test to mitigate resource burden in a single region
@@ -82,6 +82,9 @@ var serviceTestConfigurationOverrides = mapOf(
 
         // The AKS API has a low rate limit
         "containers" to testConfiguration(parallelism = 5, locationOverride = LocationConfiguration("eastus","westeurope","eastus2", false), timeout = 18),
+
+        // `azurerm_cost_management_scheduled_action` that can be targeted on a cost management view is limited
+        "costmanagement" to testConfiguration(parallelism = 4),
 
         // Custom Providers is only available in certain locations
         "customproviders" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westus2", "westeurope", true)),
@@ -96,7 +99,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "datafactory" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "westus2", false)),
 
         // Dev Center only available in some regions / has a quota of 5
-        "devcenter" to testConfiguration(parallelism = 2, locationOverride = LocationConfiguration("westeurope", "uksouth", "canadacentral", true)),
+        "devcenter" to testConfiguration(parallelism = 2, locationOverride = LocationConfiguration("southeastasia", "uksouth", "canadacentral", true)),
 
         // "hdinsight" is super expensive - G class VM's are not available in westus2, quota only available in westeurope currently
         "hdinsight" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "eastus2", false)),
@@ -153,7 +156,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "newrelic" to testConfiguration(locationOverride = LocationConfiguration("centraluseuap", "eastus", "eastus", false)),
 
         // Network Function is only available in certain locations
-        "networkfunction" to testConfiguration(locationOverride = LocationConfiguration("westus2", "eastus2", "westeurope", false)),
+        "networkfunction" to testConfiguration(locationOverride = LocationConfiguration("southeastasia", "eastus2", "westeurope", true)),
 
         // Network Regional Tire Public IP is only available in
         "network" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus2", "westus", false), timeout = 24),
