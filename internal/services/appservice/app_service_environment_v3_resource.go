@@ -343,7 +343,7 @@ func expandCreateForAppServiceEnvironmentV3(model AppServiceEnvironmentV3Model, 
 		Properties: &appserviceenvironments.AppServiceEnvironment{
 			DedicatedHostCount:        pointer.To(model.DedicatedHostCount),
 			ClusterSettings:           expandClusterSettingsModel(model.ClusterSetting),
-			InternalLoadBalancingMode: pointer.To(appserviceenvironments.LoadBalancingMode(model.InternalLoadBalancingMode)),
+			InternalLoadBalancingMode: pointer.ToEnum[appserviceenvironments.LoadBalancingMode](model.InternalLoadBalancingMode),
 			VirtualNetwork: appserviceenvironments.VirtualNetworkProfile{
 				Id: model.SubnetId,
 			},

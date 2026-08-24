@@ -171,8 +171,7 @@ func RoleAssignmentID(input string) (*RoleAssignmentId, error) {
 		if strings.Contains(input, "/aliases/") {
 			roleAssignmentId.IsSubscriptionAliasLevel = true
 			aliasParts := strings.Split(idParts[0], "/")
-			alias := aliasParts[len(aliasParts)-1]
-			roleAssignmentId.SubscriptionAlias = alias
+			roleAssignmentId.SubscriptionAlias = aliasParts[len(aliasParts)-1]
 		} else {
 			roleAssignmentId.IsSubscriptionLevel = true
 		}

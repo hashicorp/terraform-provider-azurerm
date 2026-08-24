@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afddomains"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/routes"
 	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func flattenTransformSlice(input *[]waf.TransformType) []interface{} {
@@ -99,7 +99,7 @@ func expandStringSliceToCsvFormat(input []interface{}) *string {
 		return nil
 	}
 
-	v := utils.ExpandStringSlice(input)
+	v := helpers.ExpandStringSlice(input)
 	csv := strings.Trim(fmt.Sprintf("[%s]", strings.Join(*v, ",")), "[]")
 
 	return &csv

@@ -23,6 +23,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/subnets"
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -32,7 +33,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity
@@ -405,7 +405,7 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subnet := subnets.Subnet{
 		Name: pointer.To(id.SubnetName),
 		Properties: &subnets.SubnetPropertiesFormat{
-			AddressPrefixes:                   utils.ExpandStringSlice(d.Get("address_prefixes").([]any)),
+			AddressPrefixes:                   helpers.ExpandStringSlice(d.Get("address_prefixes").([]any)),
 			DefaultOutboundAccess:             pointer.To(d.Get("default_outbound_access_enabled").(bool)),
 			Delegations:                       expandSubnetDelegation(d.Get("delegation").([]interface{})),
 			IPamPoolPrefixAllocations:         expandSubnetIPAddressPool(d.Get("ip_address_pool").([]interface{})),
@@ -561,7 +561,7 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 			props.AddressPrefix = nil
 			props.AddressPrefixes = nil
 		default:
-			props.AddressPrefixes = utils.ExpandStringSlice(addressPrefixesRaw)
+			props.AddressPrefixes = helpers.ExpandStringSlice(addressPrefixesRaw)
 			props.AddressPrefix = nil
 		}
 	}
@@ -606,7 +606,7 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	if d.HasChange("private_endpoint_network_policies") {
 		v := d.Get("private_endpoint_network_policies").(string)
-		props.PrivateEndpointNetworkPolicies = pointer.To(subnets.VirtualNetworkPrivateEndpointNetworkPolicies(v))
+		props.PrivateEndpointNetworkPolicies = pointer.ToEnum[subnets.VirtualNetworkPrivateEndpointNetworkPolicies](v)
 	}
 
 	if d.HasChange("private_link_service_network_policies_enabled") {
@@ -970,10 +970,7 @@ func flattenSubnetServiceEndpointPolicies(input *[]subnets.ServiceEndpointPolicy
 
 	output := make([]interface{}, 0, len(*input))
 	for _, policy := range *input {
-		id := ""
-		if policy.Id != nil {
-			id = *policy.Id
-		}
+		id := pointer.From(policy.Id)
 		output = append(output, id)
 	}
 	return output

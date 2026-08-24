@@ -275,6 +275,7 @@ func (r GalleryApplicationVersionResource) Exists(ctx context.Context, client *c
 
 func (r GalleryApplicationVersionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+
 provider "azurerm" {
   features {}
 }

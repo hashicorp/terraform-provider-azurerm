@@ -6,7 +6,6 @@ package batch
 import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -36,34 +35,20 @@ func (r Registration) WebsiteCategories() []string {
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
-	datasources := map[string]*pluginsdk.Resource{
+	return map[string]*pluginsdk.Resource{
 		"azurerm_batch_account":     dataSourceBatchAccount(),
 		"azurerm_batch_application": dataSourceBatchApplication(),
 		"azurerm_batch_pool":        dataSourceBatchPool(),
 	}
-
-	// The batch certificate feature was retired by Azure on 2024-02-29
-	if !features.FivePointOh() {
-		datasources["azurerm_batch_certificate"] = dataSourceBatchCertificate()
-	}
-
-	return datasources
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
-	resources := map[string]*pluginsdk.Resource{
+	return map[string]*pluginsdk.Resource{
 		"azurerm_batch_account":     resourceBatchAccount(),
 		"azurerm_batch_application": resourceBatchApplication(),
 		"azurerm_batch_pool":        resourceBatchPool(),
 	}
-
-	// The batch certificate feature was retired by Azure on 2024-02-29
-	if !features.FivePointOh() {
-		resources["azurerm_batch_certificate"] = resourceBatchCertificate()
-	}
-
-	return resources
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
