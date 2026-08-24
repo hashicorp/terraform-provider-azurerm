@@ -102,6 +102,18 @@ func resourceLinuxVirtualMachineScaleSet() *pluginsdk.Resource {
 
 				return nil
 			}),
+
+			// Azure only allows associating (not changing/removing) a capacity reservation group in-place for zonal scale sets.
+			pluginsdk.ForceNewIf("capacity_reservation_group_id", func(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) bool {
+				if _, ok := d.GetOk("zones"); ok {
+					oldRaw, _ := d.GetChange("capacity_reservation_group_id")
+					oldCRG := oldRaw.(string)
+					if oldCRG == "" {
+						return false
+					}
+				}
+				return true
+			}),
 		),
 	}
 }
@@ -753,20 +765,33 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 		updateProps.AutomaticRepairsPolicy = automaticRepairsPolicy
 	}
 
-	if d.HasChange("identity") {
-		identityExpanded, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
-		if err != nil {
-			return fmt.Errorf("expanding `identity`: %+v", err)
+	if d.HasChange("identity") || d.HasChange("capacity_reservation_group_id") {
+		if d.HasChange("identity") {
+			identityExpanded, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
+			}
+
+			existing.Model.Identity = identityExpanded
+			// Removing a user-assigned identity using PATCH requires setting it to `null` in the payload which
+			// 1. The go-azure-sdk for resource manager doesn't support at the moment
+			// 2. The expand identity function doesn't behave this way
+			// For the moment updating the identity with the PUT circumvents this API behaviour
+			// See https://github.com/hashicorp/terraform-provider-azurerm/issues/25058 for more details
 		}
 
-		existing.Model.Identity = identityExpanded
-		// Removing a user-assigned identity using PATCH requires setting it to `null` in the payload which
-		// 1. The go-azure-sdk for resource manager doesn't support at the moment
-		// 2. The expand identity function doesn't behave this way
-		// For the moment updating the identity with the PUT circumvents this API behaviour
-		// See https://github.com/hashicorp/terraform-provider-azurerm/issues/25058 for more details
+		if d.HasChange("capacity_reservation_group_id") {
+			capacityReservation := &virtualmachinescalesets.CapacityReservationProfile{
+				CapacityReservationGroup: &virtualmachinescalesets.SubResource{},
+			}
+			if v, ok := d.GetOk("capacity_reservation_group_id"); ok {
+				capacityReservation.CapacityReservationGroup.Id = pointer.To(v.(string))
+			}
+			existing.Model.Properties.VirtualMachineProfile.CapacityReservation = capacityReservation
+		}
+
 		if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, virtualmachinescalesets.DefaultCreateOrUpdateOperationOptions()); err != nil {
-			return fmt.Errorf("updating identity for Linux %s: %+v", id, err)
+			return fmt.Errorf("updating Linux %s: %+v", id, err)
 		}
 	}
 
@@ -1203,7 +1228,6 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 		"capacity_reservation_group_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			ValidateFunc: capacityreservationgroups.ValidateCapacityReservationGroupID,
 			ConflictsWith: []string{
 				"proximity_placement_group_id",

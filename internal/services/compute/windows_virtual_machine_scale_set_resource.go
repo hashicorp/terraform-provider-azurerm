@@ -100,6 +100,18 @@ func resourceWindowsVirtualMachineScaleSet() *pluginsdk.Resource {
 
 				return nil
 			}),
+
+			// Azure only allows associating (not changing/removing) a capacity reservation group in-place for zonal scale sets.
+			pluginsdk.ForceNewIf("capacity_reservation_group_id", func(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) bool {
+				if _, ok := d.GetOk("zones"); ok {
+					oldRaw, _ := d.GetChange("capacity_reservation_group_id")
+					oldCRG := oldRaw.(string)
+					if oldCRG == "" {
+						return false
+					}
+				}
+				return true
+			}),
 		),
 	}
 }
@@ -704,6 +716,18 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		updateProps.VirtualMachineProfile.DiagnosticsProfile = expandBootDiagnosticsVMSS(bootDiagnosticsRaw)
 	}
 
+	if d.HasChange("capacity_reservation_group_id") {
+		capacityReservation := &virtualmachinescalesets.CapacityReservationProfile{
+			CapacityReservationGroup: &virtualmachinescalesets.SubResource{},
+		}
+		if v, ok := d.GetOk("capacity_reservation_group_id"); ok {
+			capacityReservation.CapacityReservationGroup.Id = pointer.To(v.(string))
+		}
+		existing.Model.Properties.VirtualMachineProfile.CapacityReservation = capacityReservation
+		if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, virtualmachinescalesets.DefaultCreateOrUpdateOperationOptions()); err != nil {
+			return fmt.Errorf("updating Windows %s: %+v", id, err)
+		}
+	}
 	if d.HasChange("do_not_run_extensions_on_overprovisioned_machines") {
 		v := d.Get("do_not_run_extensions_on_overprovisioned_machines").(bool)
 		updateProps.DoNotRunExtensionsOnOverprovisionedVMs = pointer.To(v)
@@ -1221,7 +1245,6 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		"capacity_reservation_group_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			ValidateFunc: capacityreservationgroups.ValidateCapacityReservationGroupID,
 			ConflictsWith: []string{
 				"proximity_placement_group_id",
