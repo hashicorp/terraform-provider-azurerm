@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -358,6 +358,89 @@ func TestAccNetAppVolume_largeVolume(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccNetAppVolume_breakthroughMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
+	r := NetAppVolumeResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.breakthroughMode(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_quota_in_gb").HasValue("2400"),
+				check.That(data.ResourceName).Key("large_volume_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("breakthrough_mode_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetAppVolume_breakthroughModeUpdateSize(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
+	r := NetAppVolumeResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.breakthroughMode(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_quota_in_gb").HasValue("2400"),
+				check.That(data.ResourceName).Key("breakthrough_mode_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.breakthroughModeResized(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_quota_in_gb").HasValue("3000"),
+				check.That(data.ResourceName).Key("breakthrough_mode_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetAppVolume_breakthroughModeRequiresLargeVolume(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
+	r := NetAppVolumeResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.breakthroughModeWithoutLargeVolume(data),
+			PlanOnly:    true,
+			ExpectError: regexp.MustCompile(regexp.QuoteMeta("`breakthrough_mode_enabled` can only be used on large volumes; set `large_volume_enabled` to true")),
+		},
+	})
+}
+
+func TestAccNetAppVolume_breakthroughModeConflictsWithCoolAccess(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
+	r := NetAppVolumeResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.breakthroughModeWithCoolAccess(data),
+			PlanOnly:    true,
+			ExpectError: regexp.MustCompile(regexp.QuoteMeta("`cool_access` cannot be configured when `breakthrough_mode_enabled` is true at creation time")),
+		},
+	})
+}
+
+func TestAccNetAppVolume_breakthroughModeBelowMinimumSize(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
+	r := NetAppVolumeResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.breakthroughModeBelowMinimumSize(data),
+			PlanOnly:    true,
+			ExpectError: regexp.MustCompile(regexp.QuoteMeta("when `breakthrough_mode_enabled` is true, `storage_quota_in_gb` must be at least 2,400 GB (2,400 GiB)")),
+		},
 	})
 }
 
@@ -1484,6 +1567,122 @@ resource "azurerm_netapp_volume" "test" {
   throughput_in_mibps  = 1640
 }
 `, template, data.RandomInteger, data.RandomInteger)
+}
+
+func (r NetAppVolumeResource) breakthroughMode(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_netapp_volume" "test" {
+  name                      = "acctest-NetAppVolume-%[2]d"
+  location                  = azurerm_resource_group.test.location
+  resource_group_name       = azurerm_resource_group.test.name
+  account_name              = azurerm_netapp_account.test.name
+  pool_name                 = azurerm_netapp_pool.test.name
+  volume_path               = "my-unique-file-path-%[2]d"
+  service_level             = "Standard"
+  subnet_id                 = azurerm_subnet.test.id
+  protocols                 = ["NFSv4.1"]
+  storage_quota_in_gb       = 2400
+  large_volume_enabled      = true
+  breakthrough_mode_enabled = true
+  throughput_in_mibps       = 38.4
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r NetAppVolumeResource) breakthroughModeResized(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_netapp_volume" "test" {
+  name                      = "acctest-NetAppVolume-%[2]d"
+  location                  = azurerm_resource_group.test.location
+  resource_group_name       = azurerm_resource_group.test.name
+  account_name              = azurerm_netapp_account.test.name
+  pool_name                 = azurerm_netapp_pool.test.name
+  volume_path               = "my-unique-file-path-%[2]d"
+  service_level             = "Standard"
+  subnet_id                 = azurerm_subnet.test.id
+  protocols                 = ["NFSv4.1"]
+  storage_quota_in_gb       = 3000
+  large_volume_enabled      = true
+  breakthrough_mode_enabled = true
+  throughput_in_mibps       = 48
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r NetAppVolumeResource) breakthroughModeWithoutLargeVolume(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_netapp_volume" "test" {
+  name                      = "acctest-NetAppVolume-%[2]d"
+  location                  = azurerm_resource_group.test.location
+  resource_group_name       = azurerm_resource_group.test.name
+  account_name              = azurerm_netapp_account.test.name
+  pool_name                 = azurerm_netapp_pool.test.name
+  volume_path               = "my-unique-file-path-%[2]d"
+  service_level             = "Standard"
+  subnet_id                 = azurerm_subnet.test.id
+  protocols                 = ["NFSv4.1"]
+  storage_quota_in_gb       = 2400
+  large_volume_enabled      = false
+  breakthrough_mode_enabled = true
+  throughput_in_mibps       = 38.4
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r NetAppVolumeResource) breakthroughModeBelowMinimumSize(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_netapp_volume" "test" {
+  name                      = "acctest-NetAppVolume-%[2]d"
+  location                  = azurerm_resource_group.test.location
+  resource_group_name       = azurerm_resource_group.test.name
+  account_name              = azurerm_netapp_account.test.name
+  pool_name                 = azurerm_netapp_pool.test.name
+  volume_path               = "my-unique-file-path-%[2]d"
+  service_level             = "Standard"
+  subnet_id                 = azurerm_subnet.test.id
+  protocols                 = ["NFSv4.1"]
+  storage_quota_in_gb       = 2000
+  large_volume_enabled      = true
+  breakthrough_mode_enabled = true
+  throughput_in_mibps       = 32
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r NetAppVolumeResource) breakthroughModeWithCoolAccess(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_netapp_volume" "test" {
+  name                      = "acctest-NetAppVolume-%[2]d"
+  location                  = azurerm_resource_group.test.location
+  resource_group_name       = azurerm_resource_group.test.name
+  account_name              = azurerm_netapp_account.test.name
+  pool_name                 = azurerm_netapp_pool.test.name
+  volume_path               = "my-unique-file-path-%[2]d"
+  service_level             = "Standard"
+  subnet_id                 = azurerm_subnet.test.id
+  protocols                 = ["NFSv4.1"]
+  storage_quota_in_gb       = 2400
+  large_volume_enabled      = true
+  breakthrough_mode_enabled = true
+  throughput_in_mibps       = 38.4
+
+  cool_access {
+    retrieval_policy        = "Default"
+    tiering_policy          = "Auto"
+    coolness_period_in_days = 30
+  }
+}
+`, r.templateCoolAccess(data), data.RandomInteger)
 }
 
 func (r NetAppVolumeResource) templateLargePool(data acceptance.TestData) string {
