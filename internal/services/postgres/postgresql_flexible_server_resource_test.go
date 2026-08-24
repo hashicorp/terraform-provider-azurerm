@@ -737,7 +737,7 @@ func TestAccPostgresqlFlexibleServer_replicaWithPremiumV2Storage(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withVersion(data, 18, "Default"),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -760,7 +760,7 @@ func TestAccPostgresqlFlexibleServer_pointInTimeRestoreWithPremiumV2Storage(t *t
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withVersion(data, 18, "Default"),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1890,7 +1890,7 @@ resource "azurerm_postgresql_flexible_server" "replica" {
   storage_iops        = 3000
   storage_throughput  = 125
 }
-`, r.withVersion(data, 18, "Default"), data.RandomInteger)
+`, r.basic(data), data.RandomInteger)
 }
 
 func (r PostgresqlFlexibleServerResource) pointInTimeRestoreWithPremiumV2(data acceptance.TestData) string {
@@ -1908,7 +1908,7 @@ resource "azurerm_postgresql_flexible_server" "pitr" {
   storage_iops                      = 3000
   storage_throughput                = 125
 }
-`, r.withVersion(data, 18, "Default"), data.RandomInteger, time.Now().Add(time.Duration(15)*time.Minute).UTC().Format(time.RFC3339))
+`, r.basic(data), data.RandomInteger, time.Now().Add(time.Duration(15)*time.Minute).UTC().Format(time.RFC3339))
 }
 
 func (r PostgresqlFlexibleServerResource) cluster(data acceptance.TestData, clusterSize int) string {
