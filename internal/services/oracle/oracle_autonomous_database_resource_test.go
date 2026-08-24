@@ -82,19 +82,10 @@ func TestAdbsRegularResource_updateRegular(t *testing.T) {
 	})
 }
 
-/*
 func TestAdbsRegularResource_autonomousMaintenanceScheduleType(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseRegularResource{}.ResourceType(), "test")
 	r := AdbsRegularResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.autonomousMaintenanceScheduleType(data, "Early"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("autonomous_maintenance_schedule_type").HasValue("Early"),
-			),
-		},
-		data.ImportStep("admin_password"),
 		{
 			Config: r.autonomousMaintenanceScheduleType(data, "Regular"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -103,9 +94,16 @@ func TestAdbsRegularResource_autonomousMaintenanceScheduleType(t *testing.T) {
 			),
 		},
 		data.ImportStep("admin_password"),
+		{
+			Config: r.autonomousMaintenanceScheduleType(data, "Early"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("autonomous_maintenance_schedule_type").HasValue("Early"),
+			),
+		},
+		data.ImportStep("admin_password"),
 	})
 }
-*/
 
 func TestAdbsRegularResource_updateBackupSchedule(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseRegularResource{}.ResourceType(), "test")
@@ -276,7 +274,7 @@ resource "azurerm_oracle_autonomous_database" "test" {
   autonomous_maintenance_schedule_type = "%[4]s"
   mtls_connection_required             = true
   data_storage_size_in_tbs             = 1
-  db_workload                          = "APEX"
+  db_workload                          = "OLTP"
   admin_password                       = "TestPass#2024#"
   db_version                           = "19c"
   character_set                        = "AL32UTF8"
