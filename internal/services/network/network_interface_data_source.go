@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -38,6 +39,18 @@ func dataSourceNetworkInterface() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+
+			"auxiliary_mode": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"auxiliary_sku": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"edge_zone": commonschema.EdgeZoneComputed(),
 
 			"network_security_group_id": {
 				Type:     pluginsdk.TypeString,
@@ -130,6 +143,11 @@ func dataSourceNetworkInterface() *pluginsdk.Resource {
 				},
 			},
 
+			"internal_domain_name_suffix": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"dns_servers": {
 				Type:     pluginsdk.TypeSet,
 				Computed: true,
@@ -205,6 +223,7 @@ func dataSourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{})
 	if loc := model.Location; loc != nil {
 		d.Set("location", location.Normalize(*loc))
 	}
+	d.Set("edge_zone", flattenEdgeZoneModel(model.ExtendedLocation))
 
 	if props := model.Properties; props != nil {
 		d.Set("mac_address", props.MacAddress)
@@ -243,8 +262,21 @@ func dataSourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{})
 		}
 		d.Set("virtual_machine_id", virtualMachineId)
 
+		auxiliaryMode := ""
+		if props.AuxiliaryMode != nil && *props.AuxiliaryMode != networkinterfaces.NetworkInterfaceAuxiliaryModeNone {
+			auxiliaryMode = string(*props.AuxiliaryMode)
+		}
+		d.Set("auxiliary_mode", auxiliaryMode)
+
+		auxiliarySku := ""
+		if props.AuxiliarySku != nil && *props.AuxiliarySku != networkinterfaces.NetworkInterfaceAuxiliarySkuNone {
+			auxiliarySku = string(*props.AuxiliarySku)
+		}
+		d.Set("auxiliary_sku", auxiliarySku)
+
 		var appliedDNSServers []string
 		var dnsServers []string
+		internalDomainNameSuffix := ""
 		if dnsSettings := props.DnsSettings; dnsSettings != nil {
 			if s := dnsSettings.AppliedDnsServers; s != nil {
 				appliedDNSServers = *s
@@ -253,6 +285,8 @@ func dataSourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{})
 			if s := dnsSettings.DnsServers; s != nil {
 				dnsServers = *s
 			}
+
+			internalDomainNameSuffix = pointer.From(dnsSettings.InternalDomainNameSuffix)
 
 			d.Set("internal_dns_name_label", dnsSettings.InternalDnsNameLabel)
 		}
@@ -265,6 +299,7 @@ func dataSourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{})
 
 		d.Set("applied_dns_servers", appliedDNSServers)
 		d.Set("dns_servers", dnsServers)
+		d.Set("internal_domain_name_suffix", internalDomainNameSuffix)
 		d.Set("ip_forwarding_enabled", props.EnableIPForwarding)
 		d.Set("accelerated_networking_enabled", props.EnableAcceleratedNetworking)
 	}
