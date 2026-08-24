@@ -76,12 +76,12 @@ func dataSourceMonitorDiagnosticCategoriesRead(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("retrieving Diagnostics Categories for Resource %q: %+v", actualResourceId, err)
 	}
 
-	if categories.Model == nil && categories.Model.Value == nil {
+	if categories.Model == nil {
 		return fmt.Errorf("retrieving Diagnostics Categories for Resource %q: `categories.Value` was nil", actualResourceId)
 	}
 
 	d.SetId(actualResourceId.ID())
-	val := *categories.Model.Value
+	val := *categories.Model
 
 	metrics := make([]string, 0)
 	logs := make([]string, 0)

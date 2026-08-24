@@ -24,6 +24,7 @@ type ApiConnectionDataSourceModel struct {
 	Location          string            `tfschema:"location"`
 	ManagedApiId      string            `tfschema:"managed_api_id"`
 	DisplayName       string            `tfschema:"display_name"`
+	Kind              string            `tfschema:"kind"`
 	ParameterValues   map[string]string `tfschema:"parameter_values"`
 	Tags              map[string]string `tfschema:"tags"`
 }
@@ -70,6 +71,11 @@ func (r ApiConnectionDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
+		"kind": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"parameter_values": {
 			Type:     pluginsdk.TypeMap,
 			Computed: true,
@@ -109,6 +115,7 @@ func (r ApiConnectionDataSource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				state.Location = location.NormalizeNilable(model.Location)
+				state.Kind = pointer.From(model.Kind)
 
 				if props := model.Properties; props != nil {
 					state.DisplayName = pointer.From(props.DisplayName)
