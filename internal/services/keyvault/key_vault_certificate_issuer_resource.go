@@ -267,9 +267,18 @@ func resourceKeyVaultCertificateIssuerDelete(d *pluginsdk.ResourceData, meta int
 	}
 
 	if !ok {
-		log.Printf("[DEBUG] Issuer %q (Key Vault %q) was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
-		d.SetId("")
+		// parent key vault does not exist, nothing to delete
 		return nil
+	}
+
+	resp, err := client.GetCertificateIssuer(ctx, id.KeyVaultBaseUrl, id.Name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[DEBUG] Certificate Issuer %q was not found in Key Vault at URI %q - removing from state", id.Name, id.KeyVaultBaseUrl)
+			return nil
+		}
+
+		return fmt.Errorf("checking if Issuer %q in key vault %q at url %q exists: %v", id.Name, *keyVaultId, id.KeyVaultBaseUrl, err)
 	}
 
 	_, err = client.DeleteCertificateIssuer(ctx, id.KeyVaultBaseUrl, id.Name)
@@ -307,31 +316,11 @@ func flattenKeyVaultCertificateIssuerAdmins(input *[]keyvault.AdministratorDetai
 	}
 
 	for _, admin := range *input {
-		emailAddress := ""
-		if admin.EmailAddress != nil {
-			emailAddress = *admin.EmailAddress
-		}
-
-		firstName := ""
-		if admin.FirstName != nil {
-			firstName = *admin.FirstName
-		}
-
-		lastName := ""
-		if admin.LastName != nil {
-			lastName = *admin.LastName
-		}
-
-		phone := ""
-		if admin.Phone != nil {
-			phone = *admin.Phone
-		}
-
 		results = append(results, map[string]interface{}{
-			"email_address": emailAddress,
-			"first_name":    firstName,
-			"last_name":     lastName,
-			"phone":         phone,
+			"email_address": pointer.From(admin.EmailAddress),
+			"first_name":    pointer.From(admin.FirstName),
+			"last_name":     pointer.From(admin.LastName),
+			"phone":         pointer.From(admin.Phone),
 		})
 	}
 

@@ -28,8 +28,7 @@ func appendUnderHeader(filePath string, newEntry, header string) error {
 		return err
 	}
 	defer func(file *os.File) {
-		err := file.Close()
-		if err != nil {
+		if err := file.Close(); err != nil {
 			println("file open error ", err.Error())
 		}
 	}(file)
@@ -89,8 +88,7 @@ func appendUnderHeader(filePath string, newEntry, header string) error {
 		return err
 	}
 	defer func(file *os.File) {
-		err := file.Close()
-		if err != nil {
+		if err := file.Close(); err != nil {
 			println("file open error ", err.Error())
 		}
 	}(writtenFile)
@@ -98,8 +96,7 @@ func appendUnderHeader(filePath string, newEntry, header string) error {
 	// Write the updated content back to the file
 	writer := bufio.NewWriter(writtenFile)
 	for _, line := range lines {
-		_, err := writer.WriteString(line + "\n")
-		if err != nil {
+		if _, err := writer.WriteString(line + "\n"); err != nil {
 			return err
 		}
 	}

@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -131,8 +132,7 @@ func (k KeyDataSource) Read() sdk.ResourceFunc {
 			} else {
 				var ref VaultKeyReference
 				refBytes := []byte(pointer.From(kv.Value))
-				err := json.Unmarshal(refBytes, &ref)
-				if err != nil {
+				if err := json.Unmarshal(refBytes, &ref); err != nil {
 					return fmt.Errorf("while unmarshalling vault reference: %+v", err)
 				}
 
@@ -146,6 +146,7 @@ func (k KeyDataSource) Read() sdk.ResourceFunc {
 				model.Locked = *kv.Locked
 			}
 			model.Etag = pointer.From(kv.Etag)
+			model.Tags = tags.Flatten(kv.Tags)
 
 			metadata.SetID(nestedItemId)
 			return metadata.Encode(&model)
