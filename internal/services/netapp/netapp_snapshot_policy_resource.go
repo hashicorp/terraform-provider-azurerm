@@ -356,8 +356,7 @@ func resourceNetAppSnapshotPolicyDelete(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	// Try to delete the snapshot policy using DeleteThenPoll
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		// Check if error is about snapshot policy being in use
 		if strings.Contains(err.Error(), "SnapshotPolicy is used") {
 			// Get all volumes in the account that might be using this snapshot policy

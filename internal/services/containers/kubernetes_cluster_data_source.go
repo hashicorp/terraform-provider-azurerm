@@ -27,7 +27,7 @@ import (
 )
 
 func dataSourceKubernetesCluster() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Read: dataSourceKubernetesClusterRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -739,8 +739,6 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
-
-	return resource
 }
 
 func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -952,10 +950,7 @@ func flattenKubernetesClusterDataSourceKeyVaultKms(input *managedclusters.Manage
 	azureKeyVaultKms := make([]interface{}, 0)
 
 	if input != nil && input.AzureKeyVaultKms != nil && input.AzureKeyVaultKms.Enabled != nil && *input.AzureKeyVaultKms.Enabled {
-		keyId := ""
-		if v := input.AzureKeyVaultKms.KeyId; v != nil {
-			keyId = *v
-		}
+		keyId := pointer.From(input.AzureKeyVaultKms.KeyId)
 
 		networkAccess := ""
 		if v := input.AzureKeyVaultKms.KeyVaultNetworkAccess; v != nil {
@@ -1195,10 +1190,7 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]managedcluster
 			count = int(*profile.Count)
 		}
 
-		enableNodePublicIP := false
-		if profile.EnableNodePublicIP != nil {
-			enableNodePublicIP = *profile.EnableNodePublicIP
-		}
+		enableNodePublicIP := pointer.From(profile.EnableNodePublicIP)
 
 		minCount := 0
 		if profile.MinCount != nil {
@@ -1210,10 +1202,7 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]managedcluster
 			maxCount = int(*profile.MaxCount)
 		}
 
-		enableAutoScaling := false
-		if profile.EnableAutoScaling != nil {
-			enableAutoScaling = *profile.EnableAutoScaling
-		}
+		enableAutoScaling := pointer.From(profile.EnableAutoScaling)
 
 		name := profile.Name
 
@@ -1224,10 +1213,7 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]managedcluster
 			osDiskSizeGb = int(*profile.OsDiskSizeGB)
 		}
 
-		vnetSubnetId := ""
-		if profile.VnetSubnetID != nil {
-			vnetSubnetId = *profile.VnetSubnetID
-		}
+		vnetSubnetId := pointer.From(profile.VnetSubnetID)
 
 		orchestratorVersion := ""
 		if profile.OrchestratorVersion != nil && *profile.OrchestratorVersion != "" {
@@ -1290,15 +1276,9 @@ func flattenKubernetesClusterDataSourceAzureActiveDirectoryRoleBasedAccessContro
 	if profile := input.AadProfile; profile != nil {
 		adminGroupObjectIds := helpers.FlattenStringSlice(profile.AdminGroupObjectIDs)
 
-		azureRbacEnabled := false
-		if profile.EnableAzureRBAC != nil {
-			azureRbacEnabled = *profile.EnableAzureRBAC
-		}
+		azureRbacEnabled := pointer.From(profile.EnableAzureRBAC)
 
-		tenantId := ""
-		if profile.TenantID != nil {
-			tenantId = *profile.TenantID
-		}
+		tenantId := pointer.From(profile.TenantID)
 
 		result := map[string]interface{}{
 			"admin_group_object_ids": adminGroupObjectIds,
@@ -1319,15 +1299,9 @@ func flattenKubernetesClusterDataSourceIdentityProfile(profile *map[string]manag
 
 	kubeletIdentity := make([]interface{}, 0)
 	kubeletidentity := (*profile)["kubeletidentity"]
-	clientId := ""
-	if clientid := kubeletidentity.ClientId; clientid != nil {
-		clientId = *clientid
-	}
+	clientId := pointer.From(kubeletidentity.ClientId)
 
-	objectId := ""
-	if objectid := kubeletidentity.ObjectId; objectid != nil {
-		objectId = *objectid
-	}
+	objectId := pointer.From(kubeletidentity.ObjectId)
 
 	userAssignedIdentityId := ""
 	if resourceid := kubeletidentity.ResourceId; resourceid != nil {
@@ -1474,14 +1448,9 @@ func flattenKubernetesClusterDataSourceMicrosoftDefender(input *managedclusters.
 		return []interface{}{}
 	}
 
-	logAnalyticsWorkspace := ""
-	if v := input.Defender.LogAnalyticsWorkspaceResourceId; v != nil {
-		logAnalyticsWorkspace = *v
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"log_analytics_workspace_id": logAnalyticsWorkspace,
+			"log_analytics_workspace_id": pointer.From(input.Defender.LogAnalyticsWorkspaceResourceId),
 		},
 	}
 }

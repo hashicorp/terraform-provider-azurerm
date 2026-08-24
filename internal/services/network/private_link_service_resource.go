@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -33,7 +32,7 @@ import (
 //go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourcePrivateLinkService() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create:   resourcePrivateLinkServiceCreate,
 		Read:     resourcePrivateLinkServiceRead,
 		Update:   resourcePrivateLinkServiceUpdate,
@@ -175,25 +174,6 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 			return nil
 		}),
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["proxy_protocol_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"enable_proxy_protocol"},
-		}
-
-		resource.Schema["enable_proxy_protocol"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"proxy_protocol_enabled"},
-			Deprecated:    "the `enable_proxy_protocol` property has been deprecated in favour of the `proxy_protocol_enabled` property and will be removed in v5.0 of the AzureRM Provider",
-		}
-	}
-
-	return resource
 }
 
 func resourcePrivateLinkServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -216,18 +196,13 @@ func resourcePrivateLinkServiceCreate(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
-	enableProxyProtocol := d.Get("proxy_protocol_enabled").(bool)
-	if !features.FivePointOh() && !d.GetRawConfig().AsValueMap()["enable_proxy_protocol"].IsNull() {
-		enableProxyProtocol = d.Get("enable_proxy_protocol").(bool)
-	}
-
 	parameters := privatelinkservices.PrivateLinkService{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &privatelinkservices.PrivateLinkServiceProperties{
 			AutoApproval: &privatelinkservices.ResourceSet{
 				Subscriptions: helpers.ExpandStringSlice(d.Get("auto_approval_subscription_ids").(*pluginsdk.Set).List()),
 			},
-			EnableProxyProtocol: pointer.To(enableProxyProtocol),
+			EnableProxyProtocol: pointer.To(d.Get("proxy_protocol_enabled").(bool)),
 			Visibility: &privatelinkservices.ResourceSet{
 				Subscriptions: helpers.ExpandStringSlice(d.Get("visibility_subscription_ids").(*pluginsdk.Set).List()),
 			},
@@ -301,16 +276,7 @@ func resourcePrivateLinkServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
-	if !features.FivePointOh() && d.HasChanges("enable_proxy_protocol", "proxy_protocol_enabled") {
-		enableProxyProtocol := false
-		if d.HasChange("enable_proxy_protocol") && !d.GetRawConfig().AsValueMap()["enable_proxy_protocol"].IsNull() {
-			enableProxyProtocol = d.Get("enable_proxy_protocol").(bool)
-		}
-		if d.HasChange("proxy_protocol_enabled") && !d.GetRawConfig().AsValueMap()["proxy_protocol_enabled"].IsNull() {
-			enableProxyProtocol = d.Get("proxy_protocol_enabled").(bool)
-		}
-		payload.Properties.EnableProxyProtocol = pointer.To(enableProxyProtocol)
-	} else if d.HasChange("proxy_protocol_enabled") {
+	if d.HasChange("proxy_protocol_enabled") {
 		payload.Properties.EnableProxyProtocol = pointer.To(d.Get("proxy_protocol_enabled").(bool))
 	}
 
@@ -390,9 +356,6 @@ func resourcePrivateLinkServiceRead(d *pluginsdk.ResourceData, meta interface{})
 			d.Set("alias", props.Alias)
 
 			d.Set("proxy_protocol_enabled", props.EnableProxyProtocol)
-			if !features.FivePointOh() {
-				d.Set("enable_proxy_protocol", props.EnableProxyProtocol)
-			}
 
 			d.Set("destination_ip_address", pointer.From(props.DestinationIPAddress))
 
@@ -468,7 +431,7 @@ func expandPrivateLinkServiceIPConfiguration(input []interface{}) *[]privatelink
 			Name: pointer.To(name),
 			Properties: &privatelinkservices.PrivateLinkServiceIPConfigurationProperties{
 				PrivateIPAddress:        pointer.To(privateIpAddress),
-				PrivateIPAddressVersion: pointer.To(privatelinkservices.IPVersion(privateIpAddressVersion)),
+				PrivateIPAddressVersion: pointer.ToEnum[privatelinkservices.IPVersion](privateIpAddressVersion),
 				Subnet: &privatelinkservices.Subnet{
 					Id: pointer.To(subnetId),
 				},
@@ -513,11 +476,6 @@ func flattenPrivateLinkServiceIPConfiguration(input *[]privatelinkservices.Priva
 	}
 
 	for _, item := range *input {
-		name := ""
-		if item.Name != nil {
-			name = *item.Name
-		}
-
 		privateIpAddress := ""
 		privateIpVersion := ""
 		subnetId := ""
@@ -540,7 +498,7 @@ func flattenPrivateLinkServiceIPConfiguration(input *[]privatelinkservices.Priva
 		}
 
 		results = append(results, map[string]interface{}{
-			"name":                       name,
+			"name":                       pointer.From(item.Name),
 			"primary":                    primary,
 			"private_ip_address":         privateIpAddress,
 			"private_ip_address_version": privateIpVersion,

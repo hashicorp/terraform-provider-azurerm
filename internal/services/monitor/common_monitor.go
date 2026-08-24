@@ -36,7 +36,7 @@ func expandMonitorScheduledQueryRulesCommonSource(d *pluginsdk.ResourceData) sch
 		source.Query = pointer.To(query.(string))
 	}
 	if queryType, ok := d.GetOk("query_type"); ok {
-		source.QueryType = pointer.To(scheduledqueryrules.QueryType(queryType.(string)))
+		source.QueryType = pointer.ToEnum[scheduledqueryrules.QueryType](queryType.(string))
 	}
 
 	return source

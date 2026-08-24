@@ -182,7 +182,7 @@ func resourceFirewallApplicationRuleCollectionCreateUpdate(d *pluginsdk.Resource
 		Name: pointer.To(name),
 		Properties: &azurefirewalls.AzureFirewallApplicationRuleCollectionPropertiesFormat{
 			Action: &azurefirewalls.AzureFirewallRCAction{
-				Type: pointer.To(azurefirewalls.AzureFirewallRCActionType(d.Get("action").(string))),
+				Type: pointer.ToEnum[azurefirewalls.AzureFirewallRCActionType](d.Get("action").(string)),
 			},
 			Priority: pointer.To(int64(priority)),
 			Rules:    applicationRules,
@@ -422,7 +422,7 @@ func expandFirewallApplicationRules(inputs []interface{}) (*[]azurefirewalls.Azu
 			port := protocol["port"].(int)
 			ruleProtocol := azurefirewalls.AzureFirewallApplicationRuleProtocol{
 				Port:         pointer.To(int64(port)),
-				ProtocolType: pointer.To(azurefirewalls.AzureFirewallApplicationRuleProtocolType(protocol["type"].(string))),
+				ProtocolType: pointer.ToEnum[azurefirewalls.AzureFirewallApplicationRuleProtocolType](protocol["type"].(string)),
 			}
 			ruleProtocols = append(ruleProtocols, ruleProtocol)
 		}

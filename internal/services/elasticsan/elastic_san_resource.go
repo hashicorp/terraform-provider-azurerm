@@ -349,7 +349,7 @@ func ExpandSku(input []ElasticSANResourceSkuModel) elasticsans.Sku {
 	}
 
 	if input[0].Tier != "" {
-		output.Tier = pointer.To(elasticsans.SkuTier(input[0].Tier))
+		output.Tier = pointer.ToEnum[elasticsans.SkuTier](input[0].Tier)
 	}
 
 	return output

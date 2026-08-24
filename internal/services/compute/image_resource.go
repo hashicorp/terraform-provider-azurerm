@@ -142,7 +142,7 @@ func resourceImage() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
-							ValidateFunc: commonids.ValidateDiskEncryptionSetID,
+							ValidateFunc: validation.AsGeneratedID(commonids.ParseDiskEncryptionSetIDInsensitively),
 						},
 
 						"storage_type": {
@@ -203,7 +203,7 @@ func resourceImage() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
-							ValidateFunc: commonids.ValidateDiskEncryptionSetID,
+							ValidateFunc: validation.AsGeneratedID(commonids.ParseDiskEncryptionSetIDInsensitively),
 						},
 
 						"storage_type": {
@@ -245,7 +245,7 @@ func resourceImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	props := images.ImageProperties{
-		HyperVGeneration: pointer.To(images.HyperVGenerationTypes(d.Get("hyper_v_generation").(string))),
+		HyperVGeneration: pointer.ToEnum[images.HyperVGenerationTypes](d.Get("hyper_v_generation").(string)),
 	}
 
 	sourceVM := images.SubResource{}
@@ -382,17 +382,16 @@ func expandImageOSDisk(input []interface{}) *images.ImageOSDisk {
 		}
 		managedDiskID := config["managed_disk_id"].(string)
 		if managedDiskID != "" {
-			managedDisk := &images.SubResource{
+			out.ManagedDisk = &images.SubResource{
 				Id: &managedDiskID,
 			}
-			out.ManagedDisk = managedDisk
 		}
 
 		blobURI := config["blob_uri"].(string)
 		out.BlobUri = &blobURI
 
 		if v := config["caching"].(string); v != "" {
-			out.Caching = pointer.To(images.CachingTypes(v))
+			out.Caching = pointer.ToEnum[images.CachingTypes](v)
 		}
 
 		if size := config["size_gb"]; size != 0 {
@@ -405,7 +404,7 @@ func expandImageOSDisk(input []interface{}) *images.ImageOSDisk {
 			}
 		}
 
-		out.StorageAccountType = pointer.To(images.StorageAccountTypes(config["storage_type"].(string)))
+		out.StorageAccountType = pointer.ToEnum[images.StorageAccountTypes](config["storage_type"].(string))
 
 		return out
 	}
@@ -428,14 +427,13 @@ func expandImageDataDisks(disks []interface{}) *[]images.ImageDataDisk {
 		}
 
 		if v := config["caching"].(string); v != "" {
-			item.Caching = pointer.To(images.CachingTypes(v))
+			item.Caching = pointer.ToEnum[images.CachingTypes](v)
 		}
 
 		if managedDiskID := config["managed_disk_id"].(string); managedDiskID != "" {
-			managedDisk := &images.SubResource{
+			item.ManagedDisk = &images.SubResource{
 				Id: &managedDiskID,
 			}
-			item.ManagedDisk = managedDisk
 		}
 
 		if id := config["disk_encryption_set_id"].(string); id != "" {
@@ -444,7 +442,7 @@ func expandImageDataDisks(disks []interface{}) *[]images.ImageDataDisk {
 			}
 		}
 
-		item.StorageAccountType = pointer.To(images.StorageAccountTypes(config["storage_type"].(string)))
+		item.StorageAccountType = pointer.ToEnum[images.StorageAccountTypes](config["storage_type"].(string))
 
 		output = append(output, item)
 	}
@@ -457,10 +455,7 @@ func flattenImageOSDisk(input *images.ImageStorageProfile) []interface{} {
 
 	if input != nil {
 		if v := input.OsDisk; v != nil {
-			blobUri := ""
-			if uri := v.BlobUri; uri != nil {
-				blobUri = *uri
-			}
+			blobUri := pointer.From(v.BlobUri)
 			caching := ""
 			if v.Caching != nil {
 				caching = string(*v.Caching)
@@ -508,10 +503,7 @@ func flattenImageDataDisks(input *images.ImageStorageProfile) []interface{} {
 	if input != nil {
 		if v := input.DataDisks; v != nil {
 			for _, disk := range *input.DataDisks {
-				blobUri := ""
-				if disk.BlobUri != nil {
-					blobUri = *disk.BlobUri
-				}
+				blobUri := pointer.From(disk.BlobUri)
 				caching := ""
 				if disk.Caching != nil {
 					caching = string(*disk.Caching)

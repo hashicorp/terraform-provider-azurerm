@@ -126,16 +126,16 @@ func expandNetAppVolumeGroupSAPHanaVolumes(input []netAppModels.NetAppVolumeGrou
 			Properties: volumegroups.VolumeProperties{
 				CapacityPoolResourceId:   pointer.To(item.CapacityPoolId),
 				CreationToken:            item.VolumePath,
-				ServiceLevel:             pointer.To(volumegroups.ServiceLevel(item.ServiceLevel)),
+				ServiceLevel:             pointer.ToEnum[volumegroups.ServiceLevel](item.ServiceLevel),
 				SubnetId:                 item.SubnetId,
 				ProtocolTypes:            pointer.To(item.Protocols),
-				SecurityStyle:            pointer.To(volumegroups.SecurityStyle(item.SecurityStyle)),
+				SecurityStyle:            pointer.ToEnum[volumegroups.SecurityStyle](item.SecurityStyle),
 				UsageThreshold:           storageQuotaInGB,
 				ExportPolicy:             expandNetAppVolumeGroupVolumeExportPolicyRule(item.ExportPolicy),
 				SnapshotDirectoryVisible: pointer.To(item.SnapshotDirectoryVisible),
 				ThroughputMibps:          pointer.To(item.ThroughputInMibps),
 				VolumeSpecName:           pointer.To(item.VolumeSpecName),
-				NetworkFeatures:          pointer.To(volumegroups.NetworkFeatures(item.NetworkFeatures)),
+				NetworkFeatures:          pointer.ToEnum[volumegroups.NetworkFeatures](item.NetworkFeatures),
 				DataProtection:           dataProtection,
 			},
 			Tags: &item.Tags,
@@ -150,7 +150,7 @@ func expandNetAppVolumeGroupSAPHanaVolumes(input []netAppModels.NetAppVolumeGrou
 		}
 
 		if v := item.EncryptionKeySource; v != "" {
-			volumeProperties.Properties.EncryptionKeySource = pointer.To(volumegroups.EncryptionKeySource(v))
+			volumeProperties.Properties.EncryptionKeySource = pointer.ToEnum[volumegroups.EncryptionKeySource](v)
 		}
 
 		if v := item.KeyVaultPrivateEndpointId; v != "" {
@@ -195,16 +195,16 @@ func expandNetAppVolumeGroupOracleVolumes(input []netAppModels.NetAppVolumeGroup
 			Properties: volumegroups.VolumeProperties{
 				CapacityPoolResourceId:   pointer.To(item.CapacityPoolId),
 				CreationToken:            item.VolumePath,
-				ServiceLevel:             pointer.To(volumegroups.ServiceLevel(item.ServiceLevel)),
+				ServiceLevel:             pointer.ToEnum[volumegroups.ServiceLevel](item.ServiceLevel),
 				SubnetId:                 item.SubnetId,
 				ProtocolTypes:            pointer.To(item.Protocols),
-				SecurityStyle:            pointer.To(volumegroups.SecurityStyle(item.SecurityStyle)),
+				SecurityStyle:            pointer.ToEnum[volumegroups.SecurityStyle](item.SecurityStyle),
 				UsageThreshold:           storageQuotaInGB,
 				ExportPolicy:             expandNetAppVolumeGroupVolumeExportPolicyRule(item.ExportPolicy),
 				SnapshotDirectoryVisible: pointer.To(item.SnapshotDirectoryVisible),
 				ThroughputMibps:          pointer.To(item.ThroughputInMibps),
 				VolumeSpecName:           pointer.To(item.VolumeSpecName),
-				NetworkFeatures:          pointer.To(volumegroups.NetworkFeatures(item.NetworkFeatures)),
+				NetworkFeatures:          pointer.ToEnum[volumegroups.NetworkFeatures](item.NetworkFeatures),
 				DataProtection:           dataProtection,
 			},
 			Tags: &item.Tags,
@@ -219,7 +219,7 @@ func expandNetAppVolumeGroupOracleVolumes(input []netAppModels.NetAppVolumeGroup
 		}
 
 		if v := item.EncryptionKeySource; v != "" {
-			volumeProperties.Properties.EncryptionKeySource = pointer.To(volumegroups.EncryptionKeySource(v))
+			volumeProperties.Properties.EncryptionKeySource = pointer.ToEnum[volumegroups.EncryptionKeySource](v)
 		}
 
 		if v := item.KeyVaultPrivateEndpointId; v != "" {
@@ -507,8 +507,7 @@ func flattenNetAppVolumeGroupSAPHanaVolumes(ctx context.Context, input *[]volume
 		volumeGroupVolume.VolumeSpecName = pointer.From(props.VolumeSpecName)
 
 		if props.UsageThreshold > 0 {
-			usageThreshold := props.UsageThreshold / 1073741824
-			volumeGroupVolume.StorageQuotaInGB = usageThreshold
+			volumeGroupVolume.StorageQuotaInGB = props.UsageThreshold / 1073741824
 		}
 
 		if props.ExportPolicy != nil && props.ExportPolicy.Rules != nil && len(pointer.From(props.ExportPolicy.Rules)) > 0 {
@@ -590,8 +589,7 @@ func flattenNetAppVolumeGroupOracleVolumes(ctx context.Context, input *[]volumeg
 		volumeGroupVolume.VolumeSpecName = pointer.From(props.VolumeSpecName)
 
 		if props.UsageThreshold > 0 {
-			usageThreshold := props.UsageThreshold / 1073741824
-			volumeGroupVolume.StorageQuotaInGB = usageThreshold
+			volumeGroupVolume.StorageQuotaInGB = props.UsageThreshold / 1073741824
 		}
 
 		if props.ExportPolicy != nil && props.ExportPolicy.Rules != nil && len(pointer.From(props.ExportPolicy.Rules)) > 0 {

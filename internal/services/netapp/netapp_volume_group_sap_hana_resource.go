@@ -530,8 +530,7 @@ func (r NetAppVolumeGroupSAPHanaResource) Update() sdk.ResourceFunc {
 								}
 							}
 
-							exportPolicyRule := expandNetAppVolumeGroupVolumeExportPolicyRulePatchWithProtocolConversion(exportPolicyRuleRaw, protocolOverride)
-							update.Properties.ExportPolicy = exportPolicyRule
+							update.Properties.ExportPolicy = expandNetAppVolumeGroupVolumeExportPolicyRulePatchWithProtocolConversion(exportPolicyRuleRaw, protocolOverride)
 						}
 
 						if metadata.ResourceData.HasChange(fmt.Sprintf("%v.protocols", volumeItem)) {

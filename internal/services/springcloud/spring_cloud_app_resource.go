@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
@@ -30,7 +29,7 @@ import (
 
 func resourceSpringCloudApp() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		DeprecationMessage: features.DeprecatedInFivePointOh("Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_app` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information."),
+		DeprecationMessage: "Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_app` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information.",
 
 		Create: resourceSpringCloudAppCreate,
 		Read:   resourceSpringCloudAppRead,
@@ -490,8 +489,7 @@ func expandAppCustomPersistentDiskResourceArray(input []interface{}, id parse.Sp
 func expandSpringCloudAppAddon(input string) (map[string]interface{}, error) {
 	var addonConfig map[string]interface{}
 	if len(input) != 0 {
-		err := json.Unmarshal([]byte(input), &addonConfig)
-		if err != nil {
+		if err := json.Unmarshal([]byte(input), &addonConfig); err != nil {
 			return nil, fmt.Errorf("unable to unmarshal `addon_json`: %+v", err)
 		}
 	}
@@ -547,15 +545,10 @@ func flattenSpringCloudAppPersistentDisk(input *appplatform.PersistentDisk) []in
 		sizeInGB = int(*input.SizeInGB)
 	}
 
-	mountPath := ""
-	if input.MountPath != nil {
-		mountPath = *input.MountPath
-	}
-
 	return []interface{}{
 		map[string]interface{}{
 			"size_in_gb": sizeInGB,
-			"mount_path": mountPath,
+			"mount_path": pointer.From(input.MountPath),
 		},
 	}
 }

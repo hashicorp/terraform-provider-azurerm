@@ -606,7 +606,7 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	if d.HasChange("private_endpoint_network_policies") {
 		v := d.Get("private_endpoint_network_policies").(string)
-		props.PrivateEndpointNetworkPolicies = pointer.To(subnets.VirtualNetworkPrivateEndpointNetworkPolicies(v))
+		props.PrivateEndpointNetworkPolicies = pointer.ToEnum[subnets.VirtualNetworkPrivateEndpointNetworkPolicies](v)
 	}
 
 	if d.HasChange("private_link_service_network_policies_enabled") {
@@ -970,10 +970,7 @@ func flattenSubnetServiceEndpointPolicies(input *[]subnets.ServiceEndpointPolicy
 
 	output := make([]interface{}, 0, len(*input))
 	for _, policy := range *input {
-		id := ""
-		if policy.Id != nil {
-			id = *policy.Id
-		}
+		id := pointer.From(policy.Id)
 		output = append(output, id)
 	}
 	return output

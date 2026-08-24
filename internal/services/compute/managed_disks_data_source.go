@@ -313,10 +313,7 @@ func flattenManagedDiskEncryptionSettingsTyped(encryptionSettings *disks.Encrypt
 				secretUrl = key.SecretURL
 			}
 
-			sourceVaultId := ""
-			if key.SourceVault.Id != nil {
-				sourceVaultId = *key.SourceVault.Id
-			}
+			sourceVaultId := pointer.From(key.SourceVault.Id)
 
 			diskEncryptionKeys = append(diskEncryptionKeys, DiskEncryptionKey{
 				SecretURL:     secretUrl,
@@ -330,10 +327,7 @@ func flattenManagedDiskEncryptionSettingsTyped(encryptionSettings *disks.Encrypt
 				keyUrl = key.KeyURL
 			}
 
-			sourceVaultId := ""
-			if key.SourceVault.Id != nil {
-				sourceVaultId = *key.SourceVault.Id
-			}
+			sourceVaultId := pointer.From(key.SourceVault.Id)
 
 			keyEncryptionKeys = append(keyEncryptionKeys, KeyEncryptionKey{
 				KeyURL:        keyUrl,
