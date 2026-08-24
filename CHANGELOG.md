@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 * `azurerm_managed_application` - add support for the `identity` block [GH-30725]
+* `azurerm_private_endpoint` - extend validation for `private_service_connection.subresource_names` to allow names containing spaces [GH-32887]
 
 FEATURES:
 
