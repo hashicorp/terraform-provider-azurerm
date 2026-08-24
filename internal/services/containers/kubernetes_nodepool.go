@@ -288,7 +288,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 }
 
 func schemaNodePoolKubeletConfig() *pluginsdk.Schema {
-	s := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
@@ -363,8 +363,6 @@ func schemaNodePoolKubeletConfig() *pluginsdk.Schema {
 			},
 		},
 	}
-
-	return s
 }
 
 func schemaNodePoolLinuxOSConfig() *pluginsdk.Schema {
@@ -1443,7 +1441,7 @@ func flattenClusterNodePoolKubeletConfig(input *managedclusters.KubeletConfig) [
 		podMaxPids = int(*input.PodMaxPids)
 	}
 
-	result := []interface{}{
+	return []interface{}{
 		map[string]interface{}{
 			"cpu_manager_policy":        cpuManagerPolicy,
 			"cpu_cfs_quota_enabled":     cpuCfsQuotaEnabled,
@@ -1457,8 +1455,6 @@ func flattenClusterNodePoolKubeletConfig(input *managedclusters.KubeletConfig) [
 			"pod_max_pid":               podMaxPids,
 		},
 	}
-
-	return result
 }
 
 func flattenAgentPoolKubeletConfig(input *agentpools.KubeletConfig) []interface{} {
@@ -1498,7 +1494,7 @@ func flattenAgentPoolKubeletConfig(input *agentpools.KubeletConfig) []interface{
 		podMaxPids = int(*input.PodMaxPids)
 	}
 
-	result := []interface{}{
+	return []interface{}{
 		map[string]interface{}{
 			"cpu_manager_policy":        cpuManagerPolicy,
 			"cpu_cfs_quota_enabled":     cpuCfsQuotaEnabled,
@@ -1512,8 +1508,6 @@ func flattenAgentPoolKubeletConfig(input *agentpools.KubeletConfig) []interface{
 			"pod_max_pid":               podMaxPids,
 		},
 	}
-
-	return result
 }
 
 func flattenClusterNodePoolLinuxOSConfig(input *managedclusters.LinuxOSConfig) ([]interface{}, error) {

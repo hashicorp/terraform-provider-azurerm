@@ -215,7 +215,7 @@ func TestAccRoleAssignment_condition(t *testing.T) {
 	})
 }
 
-func TestAccRoleAssignment_implicitCondition(t *testing.T) {
+func TestAccRoleAssignment_conditionUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
 	id := uuid.New().String()
 
@@ -223,7 +223,35 @@ func TestAccRoleAssignment_implicitCondition(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.implicitConditionVersion(id),
+			Config: r.noConditionNoDescription(id),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("skip_service_principal_aad_check"),
+		{
+			Config: r.condition(id),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("skip_service_principal_aad_check"),
+		{
+			Config: r.noConditionNoDescription(id),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("skip_service_principal_aad_check"),
+		{
+			Config: r.conditionImplicitVersion(id),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("skip_service_principal_aad_check"),
+		{
+			Config: r.noConditionNoDescription(id),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -620,7 +648,7 @@ resource "azurerm_role_assignment" "test" {
 `, groupId)
 }
 
-func (RoleAssignmentResource) implicitConditionVersion(groupId string) string {
+func (RoleAssignmentResource) conditionImplicitVersion(groupId string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -633,13 +661,33 @@ data "azurerm_client_config" "test" {
 }
 
 resource "azurerm_role_assignment" "test" {
-
   name                 = "%s"
   scope                = data.azurerm_subscription.primary.id
   role_definition_name = "Monitoring Reader"
   principal_id         = data.azurerm_client_config.test.object_id
   description          = "Monitoring Reader except "
   condition            = "@Resource[Microsoft.Storage/storageAccounts/blobServices/containers:name] StringEqualsIgnoreCase 'foo_storage_container'"
+}
+`, groupId)
+}
+
+func (RoleAssignmentResource) noConditionNoDescription(groupId string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_subscription" "primary" {
+}
+
+data "azurerm_client_config" "test" {
+}
+
+resource "azurerm_role_assignment" "test" {
+  name                 = "%s"
+  scope                = data.azurerm_subscription.primary.id
+  role_definition_name = "Monitoring Reader"
+  principal_id         = data.azurerm_client_config.test.object_id
 }
 `, groupId)
 }

@@ -298,12 +298,10 @@ func expandFirewallPolicyThreatIntelWhitelist(input []interface{}) *firewallpoli
 	}
 
 	raw := input[0].(map[string]interface{})
-	output := &firewallpolicies.FirewallPolicyThreatIntelWhitelist{
+	return &firewallpolicies.FirewallPolicyThreatIntelWhitelist{
 		IPAddresses: helpers.ExpandStringSlice(raw["ip_addresses"].(*pluginsdk.Set).List()),
 		Fqdns:       helpers.ExpandStringSlice(raw["fqdns"].(*pluginsdk.Set).List()),
 	}
-
-	return output
 }
 
 func expandFirewallPolicyDNSSetting(input []interface{}) *firewallpolicies.DnsSettings {
@@ -312,12 +310,10 @@ func expandFirewallPolicyDNSSetting(input []interface{}) *firewallpolicies.DnsSe
 	}
 
 	raw := input[0].(map[string]interface{})
-	output := &firewallpolicies.DnsSettings{
+	return &firewallpolicies.DnsSettings{
 		Servers:     helpers.ExpandStringSlice(raw["servers"].([]interface{})),
 		EnableProxy: pointer.To(raw["proxy_enabled"].(bool)),
 	}
-
-	return output
 }
 
 func expandFirewallPolicyIntrusionDetection(input []interface{}) *firewallpolicies.FirewallPolicyIntrusionDetection {
@@ -390,13 +386,11 @@ func expandFirewallPolicyInsights(input []interface{}) *firewallpolicies.Firewal
 	}
 
 	raw := input[0].(map[string]interface{})
-	output := &firewallpolicies.FirewallPolicyInsights{
+	return &firewallpolicies.FirewallPolicyInsights{
 		IsEnabled:             pointer.To(raw["enabled"].(bool)),
 		RetentionDays:         pointer.To(int64(raw["retention_in_days"].(int))),
 		LogAnalyticsResources: expandFirewallPolicyLogAnalyticsResources(raw["default_log_analytics_workspace_id"].(string), raw["log_analytics_workspace"].([]interface{})),
 	}
-
-	return output
 }
 
 func expandFirewallPolicyExplicitProxy(input []interface{}) *firewallpolicies.ExplicitProxy {
@@ -622,7 +616,7 @@ func flattenFirewallPolicyLogAnalyticsResources(input *firewallpolicies.Firewall
 }
 
 func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
-	resource := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -972,6 +966,4 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
-
-	return resource
 }

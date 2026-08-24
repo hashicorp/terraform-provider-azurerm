@@ -145,10 +145,6 @@ func (r ManagerSecurityAdminConfigurationResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", *id, err)
-			}
-
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)

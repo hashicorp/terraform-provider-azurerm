@@ -37,7 +37,7 @@ const (
 )
 
 func resourceNetAppVolume() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceNetAppVolumeCreate,
 		Read:   resourceNetAppVolumeRead,
 		Update: resourceNetAppVolumeUpdate,
@@ -574,8 +574,6 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 			return nil
 		},
 	}
-
-	return resource
 }
 
 func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -889,8 +887,7 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 			protocols := d.Get("protocols").(*pluginsdk.Set).List()
 			protocolOverride = *helpers.ExpandStringSlice(protocols)
 		}
-		exportPolicyRule := expandNetAppVolumeExportPolicyRulePatch(exportPolicyRuleRaw, protocolOverride)
-		update.Properties.ExportPolicy = exportPolicyRule
+		update.Properties.ExportPolicy = expandNetAppVolumeExportPolicyRulePatch(exportPolicyRuleRaw, protocolOverride)
 	}
 
 	if d.HasChange("protocols") {

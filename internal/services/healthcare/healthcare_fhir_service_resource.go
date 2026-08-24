@@ -285,13 +285,11 @@ func resourceHealthcareApisFhirServiceCreate(d *pluginsdk.ResourceData, meta int
 	acrConfig := fhirservices.FhirServiceAcrConfiguration{}
 	ociArtifactsRaw, hasValues := d.GetOk("oci_artifact")
 	if hasValues {
-		ociArtifacts := expandOciArtifacts(ociArtifactsRaw.([]interface{}))
-		acrConfig.OciArtifacts = ociArtifacts
+		acrConfig.OciArtifacts = expandOciArtifacts(ociArtifactsRaw.([]interface{}))
 	}
 	loginServersRaw, hasValues := d.GetOk("container_registry_login_server_url")
 	if hasValues {
-		loginServers := expandFhirAcrLoginServer(loginServersRaw.(*pluginsdk.Set).List())
-		acrConfig.LoginServers = loginServers
+		acrConfig.LoginServers = expandFhirAcrLoginServer(loginServersRaw.(*pluginsdk.Set).List())
 	}
 	parameters.Properties.AcrConfiguration = &acrConfig
 
@@ -427,13 +425,11 @@ func resourceHealthcareApisFhirServiceUpdate(d *pluginsdk.ResourceData, meta int
 	acrConfig := fhirservices.FhirServiceAcrConfiguration{}
 	ociArtifactsRaw, hasValues := d.GetOk("oci_artifact")
 	if hasValues {
-		ociArtifacts := expandOciArtifacts(ociArtifactsRaw.([]interface{}))
-		acrConfig.OciArtifacts = ociArtifacts
+		acrConfig.OciArtifacts = expandOciArtifacts(ociArtifactsRaw.([]interface{}))
 	}
 	loginServersRaw, hasValues := d.GetOk("container_registry_login_server_url")
 	if hasValues {
-		loginServers := expandFhirAcrLoginServer(loginServersRaw.(*pluginsdk.Set).List())
-		acrConfig.LoginServers = loginServers
+		acrConfig.LoginServers = expandFhirAcrLoginServer(loginServersRaw.(*pluginsdk.Set).List())
 	}
 	parameters.Properties.AcrConfiguration = &acrConfig
 
@@ -495,13 +491,11 @@ func expandFhirAuthentication(input []interface{}) *fhirservices.FhirServiceAuth
 	audience := authConfig["audience"].(string)
 	smartProxyEnabled := authConfig["smart_proxy_enabled"].(bool)
 
-	auth := &fhirservices.FhirServiceAuthenticationConfiguration{
+	return &fhirservices.FhirServiceAuthenticationConfiguration{
 		Authority:         pointer.To(authority),
 		Audience:          pointer.To(audience),
 		SmartProxyEnabled: pointer.To(smartProxyEnabled),
 	}
-
-	return auth
 }
 
 func expandAccessPolicy(input []interface{}) *[]fhirservices.FhirServiceAccessPolicyEntry {

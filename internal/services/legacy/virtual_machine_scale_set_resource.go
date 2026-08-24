@@ -25,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	validate2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/legacy/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -621,7 +620,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: validate2.DiskSizeGB,
+							ValidateFunc: validation.IntBetween(0, 32767),
 						},
 
 						"managed_disk_type": {
@@ -822,9 +821,6 @@ func resourceVirtualMachineScaleSetCreateUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	osProfile := expandAzureRMVirtualMachineScaleSetsOsProfile(d)
-	if err != nil {
-		return err
-	}
 
 	extensions, err := expandAzureRMVirtualMachineScaleSetExtensions(d)
 	if err != nil {
@@ -1369,8 +1365,7 @@ func flattenAzureRMVirtualMachineScaleSetOsProfile(d *pluginsdk.ResourceData, pr
 
 	// admin password isn't returned, so let's look it up
 	if v, ok := d.GetOk("os_profile.0.admin_password"); ok {
-		password := v.(string)
-		result["admin_password"] = password
+		result["admin_password"] = v.(string)
 	}
 
 	if profile.CustomData != nil {
@@ -1915,11 +1910,9 @@ func expandAzureRMVirtualMachineScaleSetsDiagnosticProfile(d *pluginsdk.Resource
 		StorageUri: &storageUri,
 	}
 
-	diagnosticsProfile := virtualmachinescalesets.DiagnosticsProfile{
+	return virtualmachinescalesets.DiagnosticsProfile{
 		BootDiagnostics: bootDiagnostic,
 	}
-
-	return diagnosticsProfile
 }
 
 func expandAzureRMVirtualMachineScaleSetsStorageProfileOsDisk(d *pluginsdk.ResourceData) (*virtualmachinescalesets.VirtualMachineScaleSetOSDisk, error) {
@@ -2075,14 +2068,12 @@ func expandAzureRmVirtualMachineScaleSetOsProfileLinuxConfig(d *pluginsdk.Resour
 		sshPublicKeys = append(sshPublicKeys, sshPublicKey)
 	}
 
-	config := &virtualmachinescalesets.LinuxConfiguration{
+	return &virtualmachinescalesets.LinuxConfiguration{
 		DisablePasswordAuthentication: &disablePasswordAuth,
 		Ssh: &virtualmachinescalesets.SshConfiguration{
 			PublicKeys: &sshPublicKeys,
 		},
 	}
-
-	return config
 }
 
 func expandAzureRmVirtualMachineScaleSetOsProfileWindowsConfig(d *pluginsdk.ResourceData) *virtualmachinescalesets.WindowsConfiguration {

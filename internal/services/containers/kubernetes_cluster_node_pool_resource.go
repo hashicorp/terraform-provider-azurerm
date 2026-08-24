@@ -118,7 +118,7 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 }
 
 func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -439,8 +439,6 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 	}
-
-	return s
 }
 
 func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta interface{}) error {
