@@ -326,7 +326,6 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 	}
 
 	if !features.SixPointOh() {
-		args["storage_key_vault_secret_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
 		args["virtual_network_application_traffic_enabled"].Computed = true
 		args["virtual_network_application_traffic_enabled"].Default = nil
 		args["virtual_network_application_traffic_enabled"].ConflictsWith = []string{"site_config.0.vnet_route_all_enabled"}

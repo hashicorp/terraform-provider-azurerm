@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2025-05-01/webapps"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
@@ -36,28 +37,29 @@ type WindowsFunctionAppDataSourceModel struct {
 	StorageUsesMSI          bool   `tfschema:"storage_uses_managed_identity"`
 	StorageKeyVaultSecretID string `tfschema:"storage_key_vault_secret_id"`
 
-	AppSettings                        map[string]string                      `tfschema:"app_settings"`
-	AuthSettings                       []helpers.AuthSettings                 `tfschema:"auth_settings"`
-	AuthV2Settings                     []helpers.AuthV2Settings               `tfschema:"auth_settings_v2"`
-	Backup                             []helpers.Backup                       `tfschema:"backup"`
-	BuiltinLogging                     bool                                   `tfschema:"builtin_logging_enabled"`
-	ClientCertEnabled                  bool                                   `tfschema:"client_certificate_enabled"`
-	ClientCertMode                     string                                 `tfschema:"client_certificate_mode"`
-	ClientCertExclusionPaths           string                                 `tfschema:"client_certificate_exclusion_paths"`
-	ConnectionStrings                  []helpers.ConnectionString             `tfschema:"connection_string"`
-	DailyMemoryTimeQuota               int64                                  `tfschema:"daily_memory_time_quota"`
-	Enabled                            bool                                   `tfschema:"enabled"`
-	FunctionExtensionsVersion          string                                 `tfschema:"functions_extension_version"`
-	ForceDisableContentShare           bool                                   `tfschema:"content_share_force_disabled"`
-	HttpsOnly                          bool                                   `tfschema:"https_only"`
-	PublicNetworkAccess                bool                                   `tfschema:"public_network_access_enabled"`
-	PublishingDeployBasicAuthEnabled   bool                                   `tfschema:"webdeploy_publish_basic_authentication_enabled"`
-	PublishingFTPBasicAuthEnabled      bool                                   `tfschema:"ftp_publish_basic_authentication_enabled"`
-	SiteConfig                         []helpers.SiteConfigWindowsFunctionApp `tfschema:"site_config"`
-	StickySettings                     []helpers.StickySettings               `tfschema:"sticky_settings"`
-	Tags                               map[string]string                      `tfschema:"tags"`
-	VirtualNetworkBackupRestoreEnabled bool                                   `tfschema:"virtual_network_backup_restore_enabled"`
-	VirtualNetworkSubnetId             string                                 `tfschema:"virtual_network_subnet_id"`
+	AppSettings                             map[string]string                      `tfschema:"app_settings"`
+	AuthSettings                            []helpers.AuthSettings                 `tfschema:"auth_settings"`
+	AuthV2Settings                          []helpers.AuthV2Settings               `tfschema:"auth_settings_v2"`
+	Backup                                  []helpers.Backup                       `tfschema:"backup"`
+	BuiltinLogging                          bool                                   `tfschema:"builtin_logging_enabled"`
+	ClientCertEnabled                       bool                                   `tfschema:"client_certificate_enabled"`
+	ClientCertMode                          string                                 `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths                string                                 `tfschema:"client_certificate_exclusion_paths"`
+	ConnectionStrings                       []helpers.ConnectionString             `tfschema:"connection_string"`
+	DailyMemoryTimeQuota                    int64                                  `tfschema:"daily_memory_time_quota"`
+	Enabled                                 bool                                   `tfschema:"enabled"`
+	FunctionExtensionsVersion               string                                 `tfschema:"functions_extension_version"`
+	ForceDisableContentShare                bool                                   `tfschema:"content_share_force_disabled"`
+	HttpsOnly                               bool                                   `tfschema:"https_only"`
+	PublicNetworkAccess                     bool                                   `tfschema:"public_network_access_enabled"`
+	PublishingDeployBasicAuthEnabled        bool                                   `tfschema:"webdeploy_publish_basic_authentication_enabled"`
+	PublishingFTPBasicAuthEnabled           bool                                   `tfschema:"ftp_publish_basic_authentication_enabled"`
+	SiteConfig                              []helpers.SiteConfigWindowsFunctionApp `tfschema:"site_config"`
+	StickySettings                          []helpers.StickySettings               `tfschema:"sticky_settings"`
+	Tags                                    map[string]string                      `tfschema:"tags"`
+	VirtualNetworkBackupRestoreEnabled      bool                                   `tfschema:"virtual_network_backup_restore_enabled"`
+	VirtualNetworkApplicationTrafficEnabled bool                                   `tfschema:"virtual_network_application_traffic_enabled"`
+	VirtualNetworkSubnetId                  string                                 `tfschema:"virtual_network_subnet_id"`
 
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
 	DefaultHostname               string   `tfschema:"default_hostname"`
@@ -264,6 +266,11 @@ func (d WindowsFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema 
 			Computed: true,
 		},
 
+		"virtual_network_application_traffic_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
 		"virtual_network_subnet_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -325,6 +332,7 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 
 					if props.OutboundVnetRouting != nil {
 						functionApp.VirtualNetworkBackupRestoreEnabled = pointer.From(props.OutboundVnetRouting.BackupRestoreTraffic)
+						functionApp.VirtualNetworkApplicationTrafficEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
 					}
 					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
 						functionApp.HostingEnvId = pointer.From(hostingEnv.Id)
@@ -413,6 +421,10 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 				siteConfig, err := helpers.FlattenSiteConfigWindowsFunctionApp(configResp.Model.Properties)
 				if err != nil {
 					return fmt.Errorf("reading Site Config for Windows %s: %+v", id, err)
+				}
+
+				if !features.SixPointOh() {
+					siteConfig.VnetRouteAllEnabled = functionApp.VirtualNetworkApplicationTrafficEnabled
 				}
 
 				functionApp.SiteConfig = []helpers.SiteConfigWindowsFunctionApp{*siteConfig}

@@ -326,18 +326,12 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 	}
 
 	if !features.SixPointOh() {
-		s.Elem.(*pluginsdk.Resource).Schema["remote_debugging_version"].ValidateFunc = validation.StringInSlice([]string{
-			"VS2017",
-			"VS2019",
-			"VS2022",
-		}, false)
-
 		s.Elem.(*pluginsdk.Resource).Schema["vnet_route_all_enabled"] = &pluginsdk.Schema{
 			Type:          pluginsdk.TypeBool,
 			Optional:      true,
 			Computed:      true,
 			ConflictsWith: []string{"virtual_network_application_traffic_enabled"},
-			Deprecated:    "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v5.0 of the AzureRM Provider",
+			Deprecated:    "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v6.0 of the AzureRM Provider",
 		}
 	}
 
@@ -680,7 +674,7 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 			Optional:      true,
 			Computed:      true,
 			ConflictsWith: []string{"virtual_network_application_traffic_enabled"},
-			Deprecated:    "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v5.0 of the AzureRM Provider",
+			Deprecated:    "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v6.0 of the AzureRM Provider",
 		}
 	}
 

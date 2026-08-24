@@ -338,12 +338,6 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 	}
 
 	if !features.SixPointOh() {
-		s.Elem.(*pluginsdk.Resource).Schema["remote_debugging_version"].ValidateFunc = validation.StringInSlice([]string{
-			"VS2017",
-			"VS2019",
-			"VS2022",
-		}, false)
-
 		s.Elem.(*pluginsdk.Resource).Schema["vnet_route_all_enabled"] = &pluginsdk.Schema{
 			Type:          pluginsdk.TypeBool,
 			Computed:      true,
@@ -1130,12 +1124,6 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 	}
 
 	if !features.SixPointOh() {
-		s.Elem.(*pluginsdk.Resource).Schema["remote_debugging_version"].ValidateFunc = validation.StringInSlice([]string{
-			"VS2017",
-			"VS2019",
-			"VS2022",
-		}, false)
-
 		s.Elem.(*pluginsdk.Resource).Schema["vnet_route_all_enabled"] = &pluginsdk.Schema{
 			Type:          pluginsdk.TypeBool,
 			Optional:      true,

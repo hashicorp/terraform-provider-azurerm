@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2025-05-01/webapps"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
@@ -58,17 +59,18 @@ type LinuxFunctionAppDataSourceModel struct {
 	StickySettings                   []helpers.StickySettings             `tfschema:"sticky_settings"`
 	Tags                             map[string]string                    `tfschema:"tags"`
 
-	VirtualNetworkBackupRestoreEnabled bool     `tfschema:"virtual_network_backup_restore_enabled"`
-	VirtualNetworkSubnetID             string   `tfschema:"virtual_network_subnet_id"`
-	CustomDomainVerificationId         string   `tfschema:"custom_domain_verification_id"`
-	DefaultHostname                    string   `tfschema:"default_hostname"`
-	HostingEnvId                       string   `tfschema:"hosting_environment_id"`
-	Kind                               string   `tfschema:"kind"`
-	OutboundIPAddresses                string   `tfschema:"outbound_ip_addresses"`
-	OutboundIPAddressList              []string `tfschema:"outbound_ip_address_list"`
-	PossibleOutboundIPAddresses        string   `tfschema:"possible_outbound_ip_addresses"`
-	PossibleOutboundIPAddressList      []string `tfschema:"possible_outbound_ip_address_list"`
-	Usage                              string   `tfschema:"usage"`
+	VirtualNetworkBackupRestoreEnabled      bool     `tfschema:"virtual_network_backup_restore_enabled"`
+	VirtualNetworkApplicationTrafficEnabled bool     `tfschema:"virtual_network_application_traffic_enabled"`
+	VirtualNetworkSubnetID                  string   `tfschema:"virtual_network_subnet_id"`
+	CustomDomainVerificationId              string   `tfschema:"custom_domain_verification_id"`
+	DefaultHostname                         string   `tfschema:"default_hostname"`
+	HostingEnvId                            string   `tfschema:"hosting_environment_id"`
+	Kind                                    string   `tfschema:"kind"`
+	OutboundIPAddresses                     string   `tfschema:"outbound_ip_addresses"`
+	OutboundIPAddressList                   []string `tfschema:"outbound_ip_address_list"`
+	PossibleOutboundIPAddresses             string   `tfschema:"possible_outbound_ip_addresses"`
+	PossibleOutboundIPAddressList           []string `tfschema:"possible_outbound_ip_address_list"`
+	Usage                                   string   `tfschema:"usage"`
 
 	SiteCredentials []helpers.SiteCredential `tfschema:"site_credential"`
 }
@@ -277,6 +279,11 @@ func (d LinuxFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
+		"virtual_network_application_traffic_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
 		"virtual_network_subnet_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -396,6 +403,7 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 
 					if props.OutboundVnetRouting != nil {
 						state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.OutboundVnetRouting.BackupRestoreTraffic)
+						state.VirtualNetworkApplicationTrafficEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
 					}
 					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
 						state.HostingEnvId = pointer.From(hostingEnv.Id)
@@ -425,6 +433,11 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 				if err != nil {
 					return fmt.Errorf("reading Site Config for Linux %s: %+v", id, err)
 				}
+
+				if !features.SixPointOh() {
+					siteConfig.VnetRouteAllEnabled = state.VirtualNetworkApplicationTrafficEnabled
+				}
+
 				state.SiteConfig = []helpers.SiteConfigLinuxFunctionApp{*siteConfig}
 
 				state.unpackLinuxFunctionAppSettings(appSettingsResp.Model, metadata)
