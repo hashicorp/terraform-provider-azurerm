@@ -1093,11 +1093,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
 	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-<<<<<<< HEAD
-func (EventGridEventSubscriptionResource) systemIdentityUpdate(data acceptance.TestData) string {
-=======
 func (EventGridEventSubscriptionResource) systemIdentityRemoved(data acceptance.TestData) string {
->>>>>>> 9f32cec3ad7de54abd6c00ff9bae7a4586115b1b
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
