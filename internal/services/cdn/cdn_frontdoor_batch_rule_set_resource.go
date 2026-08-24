@@ -101,7 +101,7 @@ func (CdnFrontDoorBatchRuleSetResource) Arguments() map[string]*pluginsdk.Schema
 					"name": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: validate.CdnFrontDoorRuleName,
+						ValidateFunc: validateCdnFrontDoorRuleName,
 					},
 					"behaviour_on_match": {
 						Type:         pluginsdk.TypeString,
@@ -158,7 +158,7 @@ func (CdnFrontDoorBatchRuleSetResource) Arguments() map[string]*pluginsdk.Schema
 											"query_string": {
 												Type:         pluginsdk.TypeString,
 												Optional:     true,
-												ValidateFunc: validate.CdnFrontDoorUrlRedirectActionQueryString,
+												ValidateFunc: validateCdnFrontDoorUrlRedirectActionQueryString,
 											},
 										},
 									},
@@ -193,65 +193,67 @@ func (CdnFrontDoorBatchRuleSetResource) Arguments() map[string]*pluginsdk.Schema
 									Type:     pluginsdk.TypeList,
 									Optional: true,
 									MaxItems: 1,
-									Elem: &pluginsdk.Resource{Schema: map[string]*pluginsdk.Schema{
-										"origin_group": {
-											Type:     pluginsdk.TypeList,
-											Optional: true,
-											MaxItems: 1,
-											Elem: &pluginsdk.Resource{
-												Schema: map[string]*pluginsdk.Schema{
-													"cdn_frontdoor_origin_group_id": {
-														Type:         pluginsdk.TypeString,
-														Required:     true,
-														ValidateFunc: afdorigingroups.ValidateOriginGroupID,
-													},
-													"forwarding_protocol": {
-														Type:         pluginsdk.TypeString,
-														Required:     true,
-														ValidateFunc: validation.StringInSlice(rulesets.PossibleValuesForForwardingProtocol(), false),
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"origin_group": {
+												Type:     pluginsdk.TypeList,
+												Optional: true,
+												MaxItems: 1,
+												Elem: &pluginsdk.Resource{
+													Schema: map[string]*pluginsdk.Schema{
+														"cdn_frontdoor_origin_group_id": {
+															Type:         pluginsdk.TypeString,
+															Required:     true,
+															ValidateFunc: afdorigingroups.ValidateOriginGroupID,
+														},
+														"forwarding_protocol": {
+															Type:         pluginsdk.TypeString,
+															Required:     true,
+															ValidateFunc: validation.StringInSlice(rulesets.PossibleValuesForForwardingProtocol(), false),
+														},
 													},
 												},
 											},
-										},
 
-										"caching": {
-											Type:     pluginsdk.TypeList,
-											Required: true,
-											MaxItems: 1,
-											Elem: &pluginsdk.Resource{
-												Schema: map[string]*pluginsdk.Schema{
-													"behaviour": {
-														Type:         pluginsdk.TypeString,
-														Required:     true,
-														ValidateFunc: validation.StringInSlice(PossibleValuesForRuleCacheBehavior(), false),
-													},
-													"duration": {
-														Type:         pluginsdk.TypeString,
-														Optional:     true,
-														ValidateFunc: validate.CdnFrontDoorCacheDuration,
-													},
-													"compression_enabled": {
-														Type:     pluginsdk.TypeBool,
-														Optional: true,
-														Default:  false,
-													},
-													"query_string_behaviour": {
-														Type:         pluginsdk.TypeString,
-														Optional:     true,
-														ValidateFunc: validation.StringInSlice(rulesets.PossibleValuesForRuleQueryStringCachingBehavior(), false),
-													},
-													"query_string_parameters": {
-														Type:     pluginsdk.TypeList,
-														Optional: true,
-														MaxItems: 100,
-														Elem: &pluginsdk.Schema{
-															Type: pluginsdk.TypeString,
+											"caching": {
+												Type:     pluginsdk.TypeList,
+												Required: true,
+												MaxItems: 1,
+												Elem: &pluginsdk.Resource{
+													Schema: map[string]*pluginsdk.Schema{
+														"behaviour": {
+															Type:         pluginsdk.TypeString,
+															Required:     true,
+															ValidateFunc: validation.StringInSlice(PossibleValuesForRuleCacheBehavior(), false),
+														},
+														"duration": {
+															Type:         pluginsdk.TypeString,
+															Optional:     true,
+															ValidateFunc: validateCdnFrontDoorCacheDuration,
+														},
+														"compression_enabled": {
+															Type:     pluginsdk.TypeBool,
+															Optional: true,
+															Default:  false,
+														},
+														"query_string_behaviour": {
+															Type:         pluginsdk.TypeString,
+															Optional:     true,
+															ValidateFunc: validation.StringInSlice(rulesets.PossibleValuesForRuleQueryStringCachingBehavior(), false),
+														},
+														"query_string_parameters": {
+															Type:     pluginsdk.TypeList,
+															Optional: true,
+															MaxItems: 100,
+															Elem: &pluginsdk.Schema{
+																Type: pluginsdk.TypeString,
+															},
 														},
 													},
 												},
 											},
 										},
-									}},
+									},
 								},
 							},
 						},
@@ -270,18 +272,9 @@ func (CdnFrontDoorBatchRuleSetResource) Arguments() map[string]*pluginsdk.Schema
 										"operator": {
 											Type:         pluginsdk.TypeString,
 											Required:     true,
-											ValidateFunc: validation.StringInSlice(cdnFrontDoorBatchRuleSetConditionOperatorPossibleValues([]string{string(rulesets.RemoteAddressOperatorGeoMatch), string(rulesets.RemoteAddressOperatorIPMatch)}), false),
+											ValidateFunc: validation.StringInSlice(cdnFrontDoorRuleConditionOperatorPossibleValues([]string{string(rulesets.RemoteAddressOperatorGeoMatch), string(rulesets.RemoteAddressOperatorIPMatch)}), false),
 										},
-										"values": {
-											Type:     pluginsdk.TypeList,
-											Required: true,
-											MinItems: 1,
-											MaxItems: 25,
-											Elem: &pluginsdk.Schema{
-												Type:         pluginsdk.TypeString,
-												ValidateFunc: validation.StringIsNotEmpty,
-											},
-										},
+										"values": cdnFrontDoorRuleValuesRequiredSchema(),
 									},
 								},
 							},
@@ -293,7 +286,7 @@ func (CdnFrontDoorBatchRuleSetResource) Arguments() map[string]*pluginsdk.Schema
 										"operator": {
 											Type:         pluginsdk.TypeString,
 											Required:     true,
-											ValidateFunc: validation.StringInSlice(cdnFrontDoorBatchRuleSetConditionOperatorPossibleValues(rulesets.PossibleValuesForRequestMethodOperator()), false),
+											ValidateFunc: validation.StringInSlice(cdnFrontDoorRuleConditionOperatorPossibleValues(rulesets.PossibleValuesForRequestMethodOperator()), false),
 										},
 										"values": {
 											Type:     pluginsdk.TypeSet,
@@ -316,9 +309,9 @@ func (CdnFrontDoorBatchRuleSetResource) Arguments() map[string]*pluginsdk.Schema
 										"operator": {
 											Type:         pluginsdk.TypeString,
 											Required:     true,
-											ValidateFunc: validation.StringInSlice(cdnFrontDoorBatchRuleSetConditionOperatorPossibleValues(rulesets.PossibleValuesForQueryStringOperator()), false),
+											ValidateFunc: validation.StringInSlice(cdnFrontDoorRuleConditionOperatorPossibleValues(rulesets.PossibleValuesForQueryStringOperator()), false),
 										},
-										"values":     cdnFrontDoorBatchRuleSetConditionValuesSchema(),
+										"values":     cdnFrontDoorRuleValuesOptionalSchema(),
 										"transforms": cdnFrontDoorBatchRuleSetConditionTransformsSchema(),
 									},
 								},
@@ -328,13 +321,13 @@ func (CdnFrontDoorBatchRuleSetResource) Arguments() map[string]*pluginsdk.Schema
 								Optional: true,
 								Elem: &pluginsdk.Resource{
 									Schema: map[string]*pluginsdk.Schema{
-										"name": cdnFrontDoorBatchRuleSetConditionSelectorSchema(),
+										"name": cdnFrontDoorRuleConditionNameSchema(),
 										"operator": {
 											Type:         pluginsdk.TypeString,
 											Required:     true,
-											ValidateFunc: validation.StringInSlice(cdnFrontDoorBatchRuleSetConditionOperatorPossibleValues(rulesets.PossibleValuesForPostArgsOperator()), false),
+											ValidateFunc: validation.StringInSlice(cdnFrontDoorRuleConditionOperatorPossibleValues(rulesets.PossibleValuesForPostArgsOperator()), false),
 										},
-										"values":     cdnFrontDoorBatchRuleSetConditionValuesSchema(),
+										"values":     cdnFrontDoorRuleValuesOptionalSchema(),
 										"transforms": cdnFrontDoorBatchRuleSetConditionTransformsSchema(),
 									},
 								},
@@ -347,9 +340,9 @@ func (CdnFrontDoorBatchRuleSetResource) Arguments() map[string]*pluginsdk.Schema
 										"operator": {
 											Type:         pluginsdk.TypeString,
 											Required:     true,
-											ValidateFunc: validation.StringInSlice(cdnFrontDoorBatchRuleSetConditionOperatorPossibleValues(rulesets.PossibleValuesForRequestUriOperator()), false),
+											ValidateFunc: validation.StringInSlice(cdnFrontDoorRuleConditionOperatorPossibleValues(rulesets.PossibleValuesForRequestUriOperator()), false),
 										},
-										"values":     cdnFrontDoorBatchRuleSetConditionValuesSchema(),
+										"values":     cdnFrontDoorRuleValuesOptionalSchema(),
 										"transforms": cdnFrontDoorBatchRuleSetConditionTransformsSchema(),
 									},
 								},
@@ -359,13 +352,13 @@ func (CdnFrontDoorBatchRuleSetResource) Arguments() map[string]*pluginsdk.Schema
 								Optional: true,
 								Elem: &pluginsdk.Resource{
 									Schema: map[string]*pluginsdk.Schema{
-										"name": cdnFrontDoorBatchRuleSetConditionSelectorSchema(),
+										"name": cdnFrontDoorRuleConditionNameSchema(),
 										"operator": {
 											Type:         pluginsdk.TypeString,
 											Required:     true,
-											ValidateFunc: validation.StringInSlice(cdnFrontDoorBatchRuleSetConditionOperatorPossibleValues(rulesets.PossibleValuesForRequestHeaderOperator()), false),
+											ValidateFunc: validation.StringInSlice(cdnFrontDoorRuleConditionOperatorPossibleValues(rulesets.PossibleValuesForRequestHeaderOperator()), false),
 										},
-										"values":     cdnFrontDoorBatchRuleSetConditionValuesSchema(),
+										"values":     cdnFrontDoorRuleValuesOptionalSchema(),
 										"transforms": cdnFrontDoorBatchRuleSetConditionTransformsSchema(),
 									},
 								},
@@ -378,9 +371,9 @@ func (CdnFrontDoorBatchRuleSetResource) Arguments() map[string]*pluginsdk.Schema
 										"operator": {
 											Type:         pluginsdk.TypeString,
 											Required:     true,
-											ValidateFunc: validation.StringInSlice(cdnFrontDoorBatchRuleSetConditionOperatorPossibleValues(rulesets.PossibleValuesForRequestBodyOperator()), false),
+											ValidateFunc: validation.StringInSlice(cdnFrontDoorRuleConditionOperatorPossibleValues(rulesets.PossibleValuesForRequestBodyOperator()), false),
 										},
-										"values":     cdnFrontDoorBatchRuleSetConditionValuesSchema(),
+										"values":     cdnFrontDoorRuleValuesOptionalSchema(),
 										"transforms": cdnFrontDoorBatchRuleSetConditionTransformsSchema(),
 									},
 								},
@@ -393,7 +386,7 @@ func (CdnFrontDoorBatchRuleSetResource) Arguments() map[string]*pluginsdk.Schema
 										"operator": {
 											Type:         pluginsdk.TypeString,
 											Required:     true,
-											ValidateFunc: validation.StringInSlice(cdnFrontDoorBatchRuleSetConditionOperatorPossibleValues(rulesets.PossibleValuesForRequestSchemeMatchConditionParametersOperator()), false),
+											ValidateFunc: validation.StringInSlice(cdnFrontDoorRuleConditionOperatorPossibleValues(rulesets.PossibleValuesForRequestSchemeMatchConditionParametersOperator()), false),
 										},
 										"values": {
 											Type:     pluginsdk.TypeList,
@@ -417,17 +410,21 @@ func (CdnFrontDoorBatchRuleSetResource) Arguments() map[string]*pluginsdk.Schema
 										"operator": {
 											Type:         pluginsdk.TypeString,
 											Required:     true,
-											ValidateFunc: validation.StringInSlice(cdnFrontDoorBatchRuleSetConditionOperatorPossibleValues(rulesets.PossibleValuesForURLPathOperator()), false),
+											ValidateFunc: validation.StringInSlice(cdnFrontDoorRuleConditionOperatorPossibleValues(rulesets.PossibleValuesForURLPathOperator()), false),
 										},
 										"values": {
 											Type:     pluginsdk.TypeList,
 											Optional: true,
 											MaxItems: 25,
 											Elem: &pluginsdk.Schema{
+												// Azure accepts `/` as the root path, while non-root values must omit the leading slash.
 												Type: pluginsdk.TypeString,
 												ValidateFunc: validation.All(
 													validation.StringIsNotEmpty,
-													validation.StringDoesNotStartWithOneOf("/"),
+													validation.Any(
+														validation.StringDoesNotStartWithOneOf("/"),
+														validation.StringInSlice([]string{"/"}, false),
+													),
 												),
 											},
 										},
@@ -443,7 +440,7 @@ func (CdnFrontDoorBatchRuleSetResource) Arguments() map[string]*pluginsdk.Schema
 										"operator": {
 											Type:         pluginsdk.TypeString,
 											Required:     true,
-											ValidateFunc: validation.StringInSlice(cdnFrontDoorBatchRuleSetConditionOperatorPossibleValues(rulesets.PossibleValuesForURLFileExtensionOperator()), false),
+											ValidateFunc: validation.StringInSlice(cdnFrontDoorRuleConditionOperatorPossibleValues(rulesets.PossibleValuesForURLFileExtensionOperator()), false),
 										},
 										"values": {
 											Type:     pluginsdk.TypeList,
@@ -469,9 +466,9 @@ func (CdnFrontDoorBatchRuleSetResource) Arguments() map[string]*pluginsdk.Schema
 										"operator": {
 											Type:         pluginsdk.TypeString,
 											Required:     true,
-											ValidateFunc: validation.StringInSlice(cdnFrontDoorBatchRuleSetConditionOperatorPossibleValues(rulesets.PossibleValuesForURLFileNameOperator()), false),
+											ValidateFunc: validation.StringInSlice(cdnFrontDoorRuleConditionOperatorPossibleValues(rulesets.PossibleValuesForURLFileNameOperator()), false),
 										},
-										"values":     cdnFrontDoorBatchRuleSetConditionValuesSchema(),
+										"values":     cdnFrontDoorRuleValuesOptionalSchema(),
 										"transforms": cdnFrontDoorBatchRuleSetConditionTransformsSchema(),
 									},
 								},
@@ -484,18 +481,9 @@ func (CdnFrontDoorBatchRuleSetResource) Arguments() map[string]*pluginsdk.Schema
 										"operator": {
 											Type:         pluginsdk.TypeString,
 											Required:     true,
-											ValidateFunc: validation.StringInSlice(cdnFrontDoorBatchRuleSetConditionOperatorPossibleValues(rulesets.PossibleValuesForHTTPVersionOperator()), false),
+											ValidateFunc: validation.StringInSlice(cdnFrontDoorRuleConditionOperatorPossibleValues(rulesets.PossibleValuesForHTTPVersionOperator()), false),
 										},
-										"values": {
-											Type:     pluginsdk.TypeSet,
-											Required: true,
-											MinItems: 1,
-											MaxItems: 4,
-											Elem: &pluginsdk.Schema{
-												Type:         pluginsdk.TypeString,
-												ValidateFunc: validation.StringInSlice([]string{"2.0", "1.1", "1.0", "0.9"}, false),
-											},
-										},
+										"values": cdnFrontDoorRuleHttpVersionValuesSchema(),
 									},
 								},
 							},
@@ -504,13 +492,13 @@ func (CdnFrontDoorBatchRuleSetResource) Arguments() map[string]*pluginsdk.Schema
 								Optional: true,
 								Elem: &pluginsdk.Resource{
 									Schema: map[string]*pluginsdk.Schema{
-										"name": cdnFrontDoorBatchRuleSetConditionSelectorSchema(),
+										"name": cdnFrontDoorRuleConditionNameSchema(),
 										"operator": {
 											Type:         pluginsdk.TypeString,
 											Required:     true,
-											ValidateFunc: validation.StringInSlice(cdnFrontDoorBatchRuleSetConditionOperatorPossibleValues(rulesets.PossibleValuesForCookiesOperator()), false),
+											ValidateFunc: validation.StringInSlice(cdnFrontDoorRuleConditionOperatorPossibleValues(rulesets.PossibleValuesForCookiesOperator()), false),
 										},
-										"values":     cdnFrontDoorBatchRuleSetConditionValuesSchema(),
+										"values":     cdnFrontDoorRuleValuesOptionalSchema(),
 										"transforms": cdnFrontDoorBatchRuleSetConditionTransformsSchema(),
 									},
 								},
@@ -523,7 +511,7 @@ func (CdnFrontDoorBatchRuleSetResource) Arguments() map[string]*pluginsdk.Schema
 										"operator": {
 											Type:         pluginsdk.TypeString,
 											Required:     true,
-											ValidateFunc: validation.StringInSlice(cdnFrontDoorBatchRuleSetConditionOperatorPossibleValues(rulesets.PossibleValuesForIsDeviceOperator()), false),
+											ValidateFunc: validation.StringInSlice(cdnFrontDoorRuleConditionOperatorPossibleValues(rulesets.PossibleValuesForIsDeviceOperator()), false),
 										},
 										"values": {
 											Type:     pluginsdk.TypeList,
@@ -547,18 +535,9 @@ func (CdnFrontDoorBatchRuleSetResource) Arguments() map[string]*pluginsdk.Schema
 										"operator": {
 											Type:         pluginsdk.TypeString,
 											Required:     true,
-											ValidateFunc: validation.StringInSlice(cdnFrontDoorBatchRuleSetConditionOperatorPossibleValues([]string{string(rulesets.SocketAddrOperatorIPMatch)}), false),
+											ValidateFunc: validation.StringInSlice(cdnFrontDoorRuleConditionOperatorPossibleValues([]string{string(rulesets.SocketAddrOperatorIPMatch)}), false),
 										},
-										"values": {
-											Type:     pluginsdk.TypeList,
-											Required: true,
-											MinItems: 1,
-											MaxItems: 25,
-											Elem: &pluginsdk.Schema{
-												Type:         pluginsdk.TypeString,
-												ValidateFunc: validate.FrontDoorRuleCidrIsValid,
-											},
-										},
+										"values": cdnFrontDoorSocketAddressValuesSchema(),
 									},
 								},
 							},
@@ -570,9 +549,9 @@ func (CdnFrontDoorBatchRuleSetResource) Arguments() map[string]*pluginsdk.Schema
 										"operator": {
 											Type:         pluginsdk.TypeString,
 											Required:     true,
-											ValidateFunc: validation.StringInSlice(cdnFrontDoorBatchRuleSetConditionOperatorPossibleValues(rulesets.PossibleValuesForClientPortOperator()), false),
+											ValidateFunc: validation.StringInSlice(cdnFrontDoorRuleConditionOperatorPossibleValues(rulesets.PossibleValuesForClientPortOperator()), false),
 										},
-										"values": cdnFrontDoorBatchRuleSetConditionValuesSchema(),
+										"values": cdnFrontDoorRuleValuesOptionalSchema(),
 									},
 								},
 							},
@@ -584,17 +563,9 @@ func (CdnFrontDoorBatchRuleSetResource) Arguments() map[string]*pluginsdk.Schema
 										"operator": {
 											Type:         pluginsdk.TypeString,
 											Required:     true,
-											ValidateFunc: validation.StringInSlice(cdnFrontDoorBatchRuleSetConditionOperatorPossibleValues(rulesets.PossibleValuesForQueryStringOperator()), false),
+											ValidateFunc: validation.StringInSlice(cdnFrontDoorRuleConditionOperatorPossibleValues(rulesets.PossibleValuesForQueryStringOperator()), false),
 										},
-										"values": {
-											Type:     pluginsdk.TypeSet,
-											Optional: true,
-											MaxItems: 2,
-											Elem: &pluginsdk.Schema{
-												Type:         pluginsdk.TypeString,
-												ValidateFunc: validation.StringInSlice([]string{"80", "443"}, false),
-											},
-										},
+										"values": cdnFrontDoorServerPortValuesSchema(),
 									},
 								},
 							},
@@ -606,9 +577,9 @@ func (CdnFrontDoorBatchRuleSetResource) Arguments() map[string]*pluginsdk.Schema
 										"operator": {
 											Type:         pluginsdk.TypeString,
 											Required:     true,
-											ValidateFunc: validation.StringInSlice(cdnFrontDoorBatchRuleSetConditionOperatorPossibleValues(rulesets.PossibleValuesForHostNameOperator()), false),
+											ValidateFunc: validation.StringInSlice(cdnFrontDoorRuleConditionOperatorPossibleValues(rulesets.PossibleValuesForHostNameOperator()), false),
 										},
-										"values":     cdnFrontDoorBatchRuleSetConditionValuesSchema(),
+										"values":     cdnFrontDoorRuleValuesOptionalSchema(),
 										"transforms": cdnFrontDoorBatchRuleSetConditionTransformsSchema(),
 									},
 								},
@@ -621,7 +592,7 @@ func (CdnFrontDoorBatchRuleSetResource) Arguments() map[string]*pluginsdk.Schema
 										"operator": {
 											Type:         pluginsdk.TypeString,
 											Required:     true,
-											ValidateFunc: validation.StringInSlice(cdnFrontDoorBatchRuleSetConditionOperatorPossibleValues(rulesets.PossibleValuesForSslProtocolOperator()), false),
+											ValidateFunc: validation.StringInSlice(cdnFrontDoorRuleConditionOperatorPossibleValues(rulesets.PossibleValuesForSslProtocolOperator()), false),
 										},
 										"values": {
 											Type:     pluginsdk.TypeSet,

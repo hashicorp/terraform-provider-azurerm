@@ -22,7 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name system_center_virtual_machine_manager_server -service-package-name systemcentervirtualmachinemanager -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-sequential
+//go:generate go run ../../tools/generator-tests resourceidentity -test-sequential
 
 type SystemCenterVirtualMachineManagerServerModel struct {
 	Name              string            `tfschema:"name"`

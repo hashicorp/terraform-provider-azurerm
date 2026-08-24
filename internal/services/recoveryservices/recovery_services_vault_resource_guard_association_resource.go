@@ -48,13 +48,11 @@ func (r VaultGuardProxyResource) ResourceType() string {
 }
 
 func (r VaultGuardProxyResource) Arguments() map[string]*schema.Schema {
-	args := map[string]*schema.Schema{
+	return map[string]*schema.Schema{
 		"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&vaults.VaultId{}),
 
 		"resource_guard_id": commonschema.ResourceIDReferenceRequiredForceNew(&resourceguardresources.ResourceGuardId{}),
 	}
-
-	return args
 }
 
 func (r VaultGuardProxyResource) Attributes() map[string]*schema.Schema {

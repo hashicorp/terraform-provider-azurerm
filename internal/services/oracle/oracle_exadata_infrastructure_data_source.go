@@ -429,7 +429,7 @@ func (d ExadataInfraDataSource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				state.Tags = pointer.From(model.Tags)
 				state.Location = location.Normalize(model.Location)
-				state.Zones = model.Zones
+				state.Zones = zones.Flatten(&model.Zones)
 				if props := model.Properties; props != nil {
 					state.ActivatedStorageCount = pointer.From(props.ActivatedStorageCount)
 					state.ActivatedStorageCount = pointer.From(props.ActivatedStorageCount)

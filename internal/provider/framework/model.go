@@ -39,10 +39,6 @@ type ProviderModel struct {
 	Features                       types.List   `tfsdk:"features"`
 	ResourceProviderRegistrations  types.String `tfsdk:"resource_provider_registrations"`
 	ResourceProvidersToRegister    types.List   `tfsdk:"resource_providers_to_register"`
-
-	EnhancedValidation types.List `tfsdk:"enhanced_validation"` // TODO - Remove in 5.0
-
-	SkipProviderRegistration types.Bool `tfsdk:"skip_provider_registration"` // TODO - Remove in 5.0
 }
 
 type Features struct {
@@ -185,16 +181,12 @@ type VirtualMachine struct {
 	DeleteOsDiskOnDeletion           types.Bool `tfsdk:"delete_os_disk_on_deletion"`
 	SkipShutdownAndForceDelete       types.Bool `tfsdk:"skip_shutdown_and_force_delete"`
 	DetachImplicitDataDiskOnDeletion types.Bool `tfsdk:"detach_implicit_data_disk_on_deletion"`
-
-	GracefulShutdown types.Bool `tfsdk:"graceful_shutdown"` // TODO: Remove in 5.0 - Currently not possible to deprecate feature block struct items via feature flagging. Feature made redundant/ineffective by a breaking API change.
 }
 
 var VirtualMachineAttributes = map[string]attr.Type{
 	"delete_os_disk_on_deletion":            types.BoolType,
 	"detach_implicit_data_disk_on_deletion": types.BoolType,
 	"skip_shutdown_and_force_delete":        types.BoolType,
-
-	"graceful_shutdown": types.BoolType, // TODO: Remove in 5.0 - Currently not possible to deprecate feature block struct items via feature flagging. Feature made redundant/ineffective by a breaking API change.
 }
 
 type VirtualMachineScaleSet struct {

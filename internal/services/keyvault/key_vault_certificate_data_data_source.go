@@ -252,8 +252,7 @@ func dataSourceArmKeyVaultCertificateDataRead(d *pluginsdk.ResourceData, meta in
 	}
 
 	var keyPEM bytes.Buffer
-	err = pem.Encode(&keyPEM, keyBlock)
-	if err != nil {
+	if err = pem.Encode(&keyPEM, keyBlock); err != nil {
 		return fmt.Errorf("encoding Key Vault Certificate Key: %+v", err)
 	}
 
@@ -266,8 +265,7 @@ func dataSourceArmKeyVaultCertificateDataRead(d *pluginsdk.ResourceData, meta in
 		}
 
 		var certPEM bytes.Buffer
-		err = pem.Encode(&certPEM, certBlock)
-		if err != nil {
+		if err = pem.Encode(&certPEM, certBlock); err != nil {
 			return fmt.Errorf("encoding Key Vault Certificate PEM: %+v", err)
 		}
 		certs += certPEM.String()

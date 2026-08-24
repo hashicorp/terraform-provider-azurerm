@@ -3,7 +3,7 @@
 
 package customproviders
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name custom_provider -service-package-name customproviders -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 import (
 	"fmt"
@@ -253,7 +253,7 @@ func expandCustomProviderResourceType(input []interface{}) *[]customresourceprov
 
 		attrs := v.(map[string]interface{})
 		definitions = append(definitions, customresourceprovider.CustomRPResourceTypeRouteDefinition{
-			RoutingType: pointer.To(customresourceprovider.ResourceTypeRouting(attrs["routing_type"].(string))),
+			RoutingType: pointer.ToEnum[customresourceprovider.ResourceTypeRouting](attrs["routing_type"].(string)),
 			Name:        attrs["name"].(string),
 			Endpoint:    attrs["endpoint"].(string),
 		})
