@@ -175,8 +175,8 @@ func (r StorageDiscoveryWorkspaceResource) CustomizeDiff() sdk.ResourceFunc {
 
 			if diff.HasChange("scope") {
 				oldScopes, newScopes := diff.GetChange("scope")
-				if storageDiscoveryScopesRequireReplacement(oldScopes, newScopes) {
-					if err := diff.ForceNew("scope"); err != nil {
+				if replacementPath := storageDiscoveryScopeReplacementPath(oldScopes, newScopes); replacementPath != "" {
+					if err := diff.ForceNew(replacementPath); err != nil {
 						return err
 					}
 				}
@@ -430,6 +430,10 @@ func flattenStorageDiscoveryScopes(input []storagediscoveryworkspaces.StorageDis
 }
 
 func storageDiscoveryScopesRequireReplacement(oldRaw, newRaw interface{}) bool {
+	return storageDiscoveryScopeReplacementPath(oldRaw, newRaw) != ""
+}
+
+func storageDiscoveryScopeReplacementPath(oldRaw, newRaw interface{}) string {
 	oldScopes := oldRaw.([]interface{})
 	newScopes := newRaw.([]interface{})
 
@@ -443,7 +447,7 @@ func storageDiscoveryScopesRequireReplacement(oldRaw, newRaw interface{}) bool {
 		oldScopesByName[scope["display_name"].(string)] = scope
 	}
 
-	for _, item := range newScopes {
+	for index, item := range newScopes {
 		if item == nil {
 			continue
 		}
@@ -454,14 +458,20 @@ func storageDiscoveryScopesRequireReplacement(oldRaw, newRaw interface{}) bool {
 			continue
 		}
 
-		if !oldScope["resource_types"].(*pluginsdk.Set).Equal(newScope["resource_types"]) ||
-			!oldScope["tag_keys_only"].(*pluginsdk.Set).Equal(newScope["tag_keys_only"]) ||
-			!reflect.DeepEqual(oldScope["tags"], newScope["tags"]) {
-			return true
+		if !oldScope["resource_types"].(*pluginsdk.Set).Equal(newScope["resource_types"]) {
+			return fmt.Sprintf("scope.%d.resource_types", index)
+		}
+
+		if !oldScope["tag_keys_only"].(*pluginsdk.Set).Equal(newScope["tag_keys_only"]) {
+			return fmt.Sprintf("scope.%d.tag_keys_only", index)
+		}
+
+		if !reflect.DeepEqual(oldScope["tags"], newScope["tags"]) {
+			return fmt.Sprintf("scope.%d.tags", index)
 		}
 	}
 
-	return false
+	return ""
 }
 
 func validateStorageDiscoveryScopes(raw interface{}) error {

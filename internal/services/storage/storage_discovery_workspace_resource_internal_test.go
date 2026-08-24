@@ -4,8 +4,12 @@
 package storage
 
 import (
+	"context"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -67,6 +71,90 @@ func TestStorageDiscoveryScopesRequireReplacement(t *testing.T) {
 	}
 }
 
+func TestStorageDiscoveryWorkspaceScopeDiffRequiresReplacement(t *testing.T) {
+	base := storageDiscoveryScopeConfig("TestScope", []interface{}{"Microsoft.Storage/storageAccounts"}, []interface{}{}, map[string]interface{}{})
+	additional := storageDiscoveryScopeConfig("AdditionalScope", []interface{}{"Microsoft.Storage/storageAccounts"}, []interface{}{}, map[string]interface{}{})
+
+	testCases := []struct {
+		name        string
+		oldScopes   []interface{}
+		newScopes   []interface{}
+		requiresNew bool
+	}{
+		{
+			name:        "add scope",
+			oldScopes:   []interface{}{base},
+			newScopes:   []interface{}{base, additional},
+			requiresNew: false,
+		},
+		{
+			name:        "remove scope",
+			oldScopes:   []interface{}{base, additional},
+			newScopes:   []interface{}{base},
+			requiresNew: false,
+		},
+		{
+			name:      "change resource types",
+			oldScopes: []interface{}{base},
+			newScopes: []interface{}{
+				storageDiscoveryScopeConfig("TestScope", []interface{}{"Microsoft.Storage/storageAccounts", "Microsoft.Storage/storageAccounts/blobServices"}, []interface{}{}, map[string]interface{}{}),
+			},
+			requiresNew: true,
+		},
+		{
+			name:      "change tag keys",
+			oldScopes: []interface{}{base},
+			newScopes: []interface{}{
+				storageDiscoveryScopeConfig("TestScope", []interface{}{"Microsoft.Storage/storageAccounts"}, []interface{}{"environment"}, map[string]interface{}{}),
+			},
+			requiresNew: true,
+		},
+		{
+			name:      "change tags",
+			oldScopes: []interface{}{base},
+			newScopes: []interface{}{
+				storageDiscoveryScopeConfig("TestScope", []interface{}{"Microsoft.Storage/storageAccounts"}, []interface{}{}, map[string]interface{}{"environment": "test"}),
+			},
+			requiresNew: true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			wrapper := sdk.NewResourceWrapper(StorageDiscoveryWorkspaceResource{})
+			resource, err := wrapper.Resource()
+			if err != nil {
+				t.Fatalf("building resource: %v", err)
+			}
+
+			oldConfig := terraform.NewResourceConfigRaw(storageDiscoveryWorkspaceConfig(testCase.oldScopes))
+			createDiff, err := resource.Diff(context.Background(), nil, oldConfig, &clients.Client{})
+			if err != nil {
+				t.Fatalf("building initial diff: %v", err)
+			}
+
+			attributes, err := createDiff.Apply(nil, resource.CoreConfigSchema())
+			if err != nil {
+				t.Fatalf("building initial state: %v", err)
+			}
+
+			state := &terraform.InstanceState{
+				ID:         "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test/providers/Microsoft.StorageDiscovery/storageDiscoveryWorkspaces/test",
+				Attributes: attributes,
+			}
+			newConfig := terraform.NewResourceConfigRaw(storageDiscoveryWorkspaceConfig(testCase.newScopes))
+			diff, err := resource.Diff(context.Background(), state, newConfig, &clients.Client{})
+			if err != nil {
+				t.Fatalf("building update diff: %v", err)
+			}
+
+			if actual := diff.RequiresNew(); actual != testCase.requiresNew {
+				t.Fatalf("expected replacement %t but got %t: %#v", testCase.requiresNew, actual, diff.Attributes)
+			}
+		})
+	}
+}
+
 func TestValidateStorageDiscoveryScopes(t *testing.T) {
 	first := storageDiscoveryScopeTestData("TestScope", []interface{}{"Microsoft.Storage/storageAccounts"}, []interface{}{}, map[string]interface{}{})
 	second := storageDiscoveryScopeTestData("TestScope", []interface{}{"Microsoft.Storage/storageAccounts"}, []interface{}{"environment"}, map[string]interface{}{})
@@ -86,6 +174,25 @@ func storageDiscoveryScopeTestData(displayName string, resourceTypes, tagKeysOnl
 		"display_name":   displayName,
 		"resource_types": pluginsdk.NewSet(pluginsdk.HashString, resourceTypes),
 		"tag_keys_only":  pluginsdk.NewSet(pluginsdk.HashString, tagKeysOnly),
+		"tags":           tags,
+	}
+}
+
+func storageDiscoveryWorkspaceConfig(scopes []interface{}) map[string]interface{} {
+	return map[string]interface{}{
+		"name":                "test",
+		"resource_group_name": "test",
+		"location":            "westus2",
+		"workspace_roots":     []interface{}{`/subscriptions/00000000-0000-0000-0000-000000000000`},
+		"scope":               scopes,
+	}
+}
+
+func storageDiscoveryScopeConfig(displayName string, resourceTypes, tagKeysOnly []interface{}, tags map[string]interface{}) map[string]interface{} {
+	return map[string]interface{}{
+		"display_name":   displayName,
+		"resource_types": resourceTypes,
+		"tag_keys_only":  tagKeysOnly,
 		"tags":           tags,
 	}
 }
