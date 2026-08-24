@@ -192,8 +192,6 @@ An `application_stack` block supports the following:
 
 * `python_version` - (Optional) The version of Python to run. Possible values include `3.14`, `3.13`, `3.12`, `3.11`, `3.10`, `3.9`, `3.8` and `3.7`.
 
-* `ruby_version` - (Optional) The version of Ruby to run. Possible values include `2.6` and `2.7`.
-
 ---
 
 An `auth_settings` block supports the following:

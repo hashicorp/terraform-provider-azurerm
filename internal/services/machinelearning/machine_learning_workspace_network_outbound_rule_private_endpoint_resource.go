@@ -51,7 +51,7 @@ func (r WorkspaceNetworkOutboundRulePrivateEndpoint) IDValidationFunc() pluginsd
 }
 
 func (r WorkspaceNetworkOutboundRulePrivateEndpoint) Arguments() map[string]*pluginsdk.Schema {
-	arguments := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -97,7 +97,6 @@ func (r WorkspaceNetworkOutboundRulePrivateEndpoint) Arguments() map[string]*plu
 			ForceNew: true,
 		},
 	}
-	return arguments
 }
 
 func (r WorkspaceNetworkOutboundRulePrivateEndpoint) Attributes() map[string]*pluginsdk.Schema {

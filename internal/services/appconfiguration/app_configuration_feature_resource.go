@@ -419,8 +419,7 @@ func (k FeatureResource) Read() sdk.ResourceFunc {
 			}
 
 			var fv FeatureValue
-			err = json.Unmarshal([]byte(pointer.From(kv.Value)), &fv)
-			if err != nil {
+			if err = json.Unmarshal([]byte(pointer.From(kv.Value)), &fv); err != nil {
 				return fmt.Errorf("while unmarshalling underlying key's value: %+v", err)
 			}
 
@@ -483,8 +482,7 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 			}
 
 			var fv FeatureValue
-			err = json.Unmarshal([]byte(pointer.From(kv.Value)), &fv)
-			if err != nil {
+			if err = json.Unmarshal([]byte(pointer.From(kv.Value)), &fv); err != nil {
 				return fmt.Errorf("while unmarshalling underlying key's value: %+v", err)
 			}
 
@@ -537,8 +535,7 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 						tfp := f
 						targetingFilters = append(targetingFilters, tfp)
 					case PercentageFeatureFilter:
-						pfp := f
-						percentageFilter = pfp
+						percentageFilter = f
 					case CustomFilter:
 						cf := f
 						customFilters = append(customFilters, cf)

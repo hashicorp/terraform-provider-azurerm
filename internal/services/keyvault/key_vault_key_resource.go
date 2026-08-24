@@ -685,8 +685,7 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 					publicKey.Curve = elliptic.P521()
 				}
 				if publicKey.Curve != nil {
-					err = readPublicKey(d, publicKey)
-					if err != nil {
+					if err = readPublicKey(d, publicKey); err != nil {
 						return fmt.Errorf("failed to read public key: %+v", err)
 					}
 				}

@@ -361,7 +361,7 @@ func resourceAutomationScheduleUpdate(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
-	if d.HasChange("week_days") || d.HasChange("month_days") || d.HasChange("monthly_occurrence") {
+	if d.HasChanges("week_days", "month_days", "monthly_occurrence") {
 		// only pay attention to the advanced schedule fields if frequency is either Week or Month
 		if parameters.Properties.Frequency == schedule.ScheduleFrequencyWeek || parameters.Properties.Frequency == schedule.ScheduleFrequencyMonth {
 			parameters.Properties.AdvancedSchedule = expandArmAutomationScheduleAdvanced(d, d.Id() != "")

@@ -23,7 +23,7 @@ import (
 )
 
 func resourceBotChannelWebChat() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceBotChannelWebChatCreate,
 		Read:   resourceBotChannelWebChatRead,
 		Delete: resourceBotChannelWebChatDelete,
@@ -85,8 +85,6 @@ func resourceBotChannelWebChat() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	return resource
 }
 
 func resourceBotChannelWebChatCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -293,11 +291,7 @@ func flattenSites(input *[]botservice.WebChatSite) []interface{} {
 	for _, item := range *input {
 		result := make(map[string]interface{})
 
-		var name string
-		if v := item.SiteName; v != nil {
-			name = *v
-		}
-		result["name"] = name
+		result["name"] = pointer.From(item.SiteName)
 
 		userUploadEnabled := true
 		if v := item.IsBlockUserUploadEnabled; v != nil {
@@ -305,11 +299,7 @@ func flattenSites(input *[]botservice.WebChatSite) []interface{} {
 		}
 		result["user_upload_enabled"] = userUploadEnabled
 
-		var endpointParametersEnabled bool
-		if v := item.IsEndpointParametersEnabled; v != nil {
-			endpointParametersEnabled = *v
-		}
-		result["endpoint_parameters_enabled"] = endpointParametersEnabled
+		result["endpoint_parameters_enabled"] = pointer.From(item.IsEndpointParametersEnabled)
 
 		storageEnabled := true
 		if v := item.IsNoStorageEnabled; v != nil {

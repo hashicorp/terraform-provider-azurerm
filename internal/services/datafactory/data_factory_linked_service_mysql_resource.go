@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -23,7 +22,7 @@ import (
 )
 
 func resourceDataFactoryLinkedServiceMySQL() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceDataFactoryLinkedServiceMySQLCreateUpdate,
 		Read:   resourceDataFactoryLinkedServiceMySQLRead,
 		Update: resourceDataFactoryLinkedServiceMySQLCreateUpdate,
@@ -117,12 +116,6 @@ func resourceDataFactoryLinkedServiceMySQL() *pluginsdk.Resource {
 			return nil
 		}),
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["driver_version"].Default = "V1"
-	}
-
-	return resource
 }
 
 func resourceDataFactoryLinkedServiceMySQLCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -251,7 +244,7 @@ func resourceDataFactoryLinkedServiceMySQLRead(d *pluginsdk.ResourceData, meta i
 		}
 	}
 
-	driverVersion, _ := (mysql.DriverVersion).(string)
+	driverVersion, _ := mysql.DriverVersion.(string)
 	d.Set("driver_version", driverVersion)
 
 	return nil

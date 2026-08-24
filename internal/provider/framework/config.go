@@ -126,13 +126,8 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 	p.clientBuilder.DisableCorrelationRequestID = getEnvBoolOrDefault(data.DisableCorrelationRequestId, "ARM_DISABLE_CORRELATION_REQUEST_ID", false)
 	p.clientBuilder.DisableTerraformPartnerID = getEnvBoolOrDefault(data.DisableTerraformPartnerId, "ARM_DISABLE_TERRAFORM_PARTNER_ID", false)
 	p.clientBuilder.StorageUseAzureAD = getEnvBoolOrDefault(data.StorageUseAzureAD, "ARM_STORAGE_USE_AZUREAD", false)
-	// In 4.x, validate that the legacy and specific enhanced validation env vars don't conflict
-	if !providerfeatures.FivePointOh() {
-		if err := providerfeatures.ValidateEnhancedValidationEnvVars(); err != nil {
-			diags.Append(diag.NewErrorDiagnostic("validating enhanced validation environment variables", err.Error()))
-			return
-		}
-	} else if os.Getenv("ARM_PROVIDER_ENHANCED_VALIDATION") != "" {
+
+	if os.Getenv("ARM_PROVIDER_ENHANCED_VALIDATION") != "" {
 		diags.Append(diag.NewErrorDiagnostic("unsupported environment variable", "the environment variable `ARM_PROVIDER_ENHANCED_VALIDATION` has been removed in v5.0 of the AzureRM Provider - please use the `enhanced_validation` block inside the `features` block or the replacement environment variables `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` and `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS` instead"))
 		return
 	}
@@ -551,28 +546,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 		f.EnhancedValidation.PreflightEnabled = providerfeatures.EnhancedValidationPreflightEnabled()
 		f.EnhancedValidation.LocationFallback = providerfeatures.EnhancedValidationLocationFallback()
 
-		if !providerfeatures.FivePointOh() && !data.EnhancedValidation.IsNull() && !data.EnhancedValidation.IsUnknown() {
-			if !features.EnhancedValidation.IsNull() && !features.EnhancedValidation.IsUnknown() {
-				diags.Append(diag.NewErrorDiagnostic("conflicting configuration", "the `enhanced_validation` block is defined at both the provider root and inside the `features` block. Please remove the block at the provider root as it is deprecated."))
-				return
-			}
-
-			var rootEvList []EnhancedValidationModel
-			d := data.EnhancedValidation.ElementsAs(ctx, &rootEvList, true)
-			diags.Append(d...)
-			if diags.HasError() {
-				return
-			}
-
-			if len(rootEvList) > 0 {
-				if !rootEvList[0].Locations.IsNull() && !rootEvList[0].Locations.IsUnknown() {
-					f.EnhancedValidation.Locations = rootEvList[0].Locations.ValueBool()
-				}
-				if !rootEvList[0].ResourceProviders.IsNull() && !rootEvList[0].ResourceProviders.IsUnknown() {
-					f.EnhancedValidation.ResourceProviders = rootEvList[0].ResourceProviders.ValueBool()
-				}
-			}
-		} else if !features.EnhancedValidation.IsNull() && !features.EnhancedValidation.IsUnknown() {
+		if !features.EnhancedValidation.IsNull() && !features.EnhancedValidation.IsUnknown() {
 			var evList []EnhancedValidationModel
 			d := features.EnhancedValidation.ElementsAs(ctx, &evList, true)
 			diags.Append(d...)
@@ -587,7 +561,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 					f.EnhancedValidation.ResourceProviders = evList[0].ResourceProviders.ValueBool()
 				}
 				if !evList[0].PreflightEnabled.IsNull() && !evList[0].PreflightEnabled.IsUnknown() {
-					f.EnhancedValidation.PreflightEnabled = evList[0].PreflightEnabled.ValueBool() && providerfeatures.FivePointOh()
+					f.EnhancedValidation.PreflightEnabled = evList[0].PreflightEnabled.ValueBool()
 				}
 				if !evList[0].LocationFallback.IsNull() && !evList[0].LocationFallback.IsUnknown() {
 					f.EnhancedValidation.LocationFallback = evList[0].LocationFallback.ValueStringPointer()
@@ -614,17 +588,6 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 	client.StopContext = ctx
 
 	resourceProviderRegistrationSet := getEnvStringOrDefault(data.ResourceProviderRegistrations, "ARM_RESOURCE_PROVIDER_REGISTRATIONS", resourceproviders.ProviderRegistrationsNone)
-	if !providerfeatures.FivePointOh() {
-		resourceProviderRegistrationSet = getEnvStringOrDefault(data.ResourceProviderRegistrations, "ARM_RESOURCE_PROVIDER_REGISTRATIONS", resourceproviders.ProviderRegistrationsLegacy)
-
-		if !data.SkipProviderRegistration.IsNull() && !data.SkipProviderRegistration.ValueBool() {
-			if resourceProviderRegistrationSet != resourceproviders.ProviderRegistrationsLegacy {
-				diags.Append(diag.NewErrorDiagnostic("resource provider registration misconfiguration", "provider property `skip_provider_registration` cannot be set at the same time as `resource_provider_registrations`, please remove `skip_provider_registration` from your configuration or unset the `ARM_SKIP_PROVIDER_REGISTRATION` environment variable"))
-			}
-
-			resourceProviderRegistrationSet = resourceproviders.ProviderRegistrationsNone
-		}
-	}
 
 	requiredResourceProviders, err := resourceproviders.GetResourceProvidersSet(resourceProviderRegistrationSet)
 	if err != nil {
