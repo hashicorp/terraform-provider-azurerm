@@ -45,6 +45,8 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
+Edit from branch 1
+
 # 4. Create a virtual network within the resource group
 resource "azurerm_virtual_network" "example" {
   name                = "example-network"
