@@ -2,10 +2,15 @@
 
 ENHANCEMENTS:
 * `azurerm_managed_application` - add support for the `identity` block [GH-30725]
-* `azurerm_private_endpoint` - extend validation for `private_service_connection.subresource_names` to allow names containing spaces [GH-32887]
+* `azurerm_private_endpoint` - extend validation for the `private_service_connection.subresource_names` property to allow names containing spaces [GH-32887]
+* `azurerm_cognitive_deployment` - add Resource Identity support [GH-33149]
+* Data Source: `azurerm_role_definition` - export the `role_definition_resource_id` property [GH-33126]
 
 FEATURES:
 * **New Resource**: `azurerm_playwright_workspace` [GH-31954]
+* **New Data Source**: `azurerm_playwright_workspace` [GH-31954]
+* **New List Resource**: `azurerm_playwright_workspace` [GH-31954]
+* **New List Resource**: `azurerm_cognitive_deployment` [GH-33149]
 
 BUG FIXES:
 * Data Source: `azurerm_app_configuration_key` - now correctly sets `tags` into state [GH-33182]
