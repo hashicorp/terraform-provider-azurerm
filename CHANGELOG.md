@@ -5,6 +5,7 @@ ENHANCEMENTS:
 * `azurerm_private_endpoint` - extend validation for `private_service_connection.subresource_names` to allow names containing spaces [GH-32887]
 
 FEATURES:
+* **New Resource**: `azurerm_playwright_workspace` [GH-31954]
 
 BUG FIXES:
 * Data Source: `azurerm_app_configuration_key` - now correctly sets `tags` into state [GH-33182]
