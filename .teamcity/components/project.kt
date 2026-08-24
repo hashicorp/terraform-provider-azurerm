@@ -1,5 +1,7 @@
 import jetbrains.buildServer.configs.kotlin.BuildType
 import jetbrains.buildServer.configs.kotlin.Project
+import jetbrains.buildServer.configs.kotlin.BuildTypeSettings
+import jetbrains.buildServer.configs.kotlin.FailureAction
 
 const val providerName = "azurerm"
 var enableTestTriggersGlobally = false
@@ -19,6 +21,10 @@ fun AzureRM(environment: String, configuration : ClientConfiguration) : Project 
         buildConfigs.forEach { buildConfiguration ->
             buildType(buildConfiguration)
         }
+        
+        var buildChain = AcceptanceTestsBuildChain(providerName, environment, configuration, buildConfigs, false)
+        buildType(buildChain)
+
         if (configuration.createBetaProject) {
             subProject(AzureRMBetaVersion(environment, configuration))
         }
@@ -36,6 +42,9 @@ fun AzureRMBetaVersion(environment: String, configuration : ClientConfiguration)
         buildConfigs.forEach { buildConfiguration ->
             buildType(buildConfiguration)
         }
+        
+        var buildChain = AcceptanceTestsBuildChain(providerName, environment, configuration, buildConfigs, true)
+        buildType(buildChain)
     }
 }
 
@@ -105,4 +114,53 @@ class testConfiguration(parallelism: Int = defaultParallelism, startHour: Int = 
     var locationOverride = locationOverride
     var terraformCoreOverride = terraformCoreOverride
     var disableTriggers = disableTriggers
+}
+
+fun AcceptanceTestsBuildChain(providerName: String, environment: String, config: ClientConfiguration, buildConfigs: List<BuildType>, runWithBetaVersion: Boolean): BuildType {
+    return BuildType {
+        if (runWithBetaVersion) {
+            id("%s_BETA_VERSION_BUILDCHAIN_%s".format(providerName.uppercase(), environment.uppercase()))
+            name = "Acceptance Tests (Beta Version) - All Services Build Chain"
+        } else {
+            id("%s_BUILDCHAIN_%s".format(providerName.uppercase(), environment.uppercase()))
+            name = "Acceptance Tests - All Services Build Chain"
+        }
+        
+        type = BuildTypeSettings.Type.COMPOSITE
+        
+        // Trigger all builds nightly via this composite build
+        var runNightlyEnv = runNightly.getOrDefault(environment, false)
+        triggers {
+            RunNightly(runNightlyEnv, defaultStartHour, defaultDaysOfWeek, defaultDaysOfMonth, false)
+        }
+
+        // Snapshot depend on all service configurations
+        dependencies {
+            buildConfigs.forEach { buildConfig ->
+                snapshot(buildConfig) {
+                    onDependencyFailure = FailureAction.IGNORE
+                    onDependencyCancel = FailureAction.IGNORE
+                }
+            }
+        }
+        
+        params {
+            // This parameter is passed down to all dependencies in the chain.
+            // If a service test is triggered directly (e.g. via GitHub Chat-Ops),
+            // it will not receive this parameter and can bypass schedule constraints.
+            // specifically any daysOfWeek overrides.
+            text("reverse.dep.*.env.IS_NIGHTLY_RUN", "true")
+        }
+        
+        // -------------------------------------------------------------------------
+        // DALEK JOB LINKAGE:
+        //  // TODO - hook Dalek in here rather than daily cron
+        // triggers {
+        //     finishBuildTrigger {
+        //         buildType = "${'$'}{id?.value}"
+        //         successfulOnly = false
+        //     }
+        // }
+        // -------------------------------------------------------------------------
+    }
 }
