@@ -796,7 +796,7 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 			EnableVTPM:       securityProfileRaw.EnableVTPM,
 		}
 		if securityProfileRaw.SshAccess != nil {
-			agentpool.Properties.SecurityProfile.SshAccess = pointer.To(agentpools.AgentPoolSSHAccess(*securityProfileRaw.SshAccess))
+			agentpool.Properties.SecurityProfile.SshAccess = pointer.ToEnum[agentpools.AgentPoolSSHAccess](string(*securityProfileRaw.SshAccess))
 		}
 	}
 	if osTypeNodePool := defaultCluster.OsType; osTypeNodePool != nil {
