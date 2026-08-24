@@ -304,12 +304,10 @@ func expandFrontDoorRulesEngineAction(input []interface{}) frontdoors.RulesEngin
 	requestHeaderActions := ruleAction["request_header"].([]interface{})
 	responseHeaderActions := ruleAction["response_header"].([]interface{})
 
-	frontdoorRulesEngineRuleAction := frontdoors.RulesEngineAction{
+	return frontdoors.RulesEngineAction{
 		RequestHeaderActions:  expandHeaderAction(requestHeaderActions),
 		ResponseHeaderActions: expandHeaderAction(responseHeaderActions),
 	}
-
-	return frontdoorRulesEngineRuleAction
 }
 
 func expandHeaderAction(input []interface{}) *[]frontdoors.HeaderAction {

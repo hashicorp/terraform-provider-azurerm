@@ -103,9 +103,7 @@ func NewIDResourceIdentityFormatter(idType []string, idSegments []string, prefix
 	out := make([]string, 0)
 	out = append(out, idSegments...)
 
-	output := fmt.Sprintf(f, idType[0], IdToID(idType[1]), strings.Join(out, ", "))
-
-	return output
+	return fmt.Sprintf(f, idType[0], IdToID(idType[1]), strings.Join(out, ", "))
 }
 
 func NewIDCreateFormatter(idType []string, idSegments []string, prefix string) string {

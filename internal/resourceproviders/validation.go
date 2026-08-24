@@ -12,7 +12,7 @@ import (
 )
 
 // this is only here to aid testing
-var enhancedEnabled = features.EnhancedValidationEnabled()
+var enhancedEnabled = features.EnhancedValidationResourceProvidersEnabled()
 
 // EnhancedValidate returns a validation function which attempts to validate the Resource Provider
 // against the list of Resource Provider supported by this Azure Environment.

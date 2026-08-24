@@ -551,7 +551,7 @@ func (r ArcKubernetesFluxConfigurationResource) Create() sdk.ResourceFunc {
 			properties := &fluxconfiguration.FluxConfiguration{
 				Properties: &fluxconfiguration.FluxConfigurationProperties{
 					Kustomizations: expandKustomizationDefinitionModel(model.Kustomizations),
-					Scope:          pointer.To(fluxconfiguration.ScopeType(model.Scope)),
+					Scope:          pointer.ToEnum[fluxconfiguration.ScopeType](model.Scope),
 					Suspend:        pointer.To(!model.ContinuousReconciliationEnabled),
 				},
 			}
