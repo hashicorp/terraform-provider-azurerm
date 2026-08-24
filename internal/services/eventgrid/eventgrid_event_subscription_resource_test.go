@@ -1254,14 +1254,6 @@ resource "azurerm_eventgrid_event_subscription" "test" {
 
 func (EventGridEventSubscriptionResource) userIdentityRemoved(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-  
-
-
-
-
-
-
-
 provider "azurerm" {
   features {}
 }
@@ -1351,10 +1343,6 @@ resource "azurerm_eventgrid_event_subscription" "test" {
 
 func (EventGridEventSubscriptionResource) deliveryProperties(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-  
-
-
-
 provider "azurerm" {
   features {}
 }
