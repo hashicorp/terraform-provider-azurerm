@@ -125,7 +125,7 @@ func TestAccStorageDiscoveryWorkspace_update(t *testing.T) {
 			Config: r.basic(data),
 			ConfigPlanChecks: resource.ConfigPlanChecks{
 				PreApply: []plancheck.PlanCheck{
-					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionUpdate),
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
 				},
 			},
 			Check: acceptance.ComposeTestCheckFunc(
