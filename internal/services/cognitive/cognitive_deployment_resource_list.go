@@ -24,21 +24,6 @@ type cognitiveDeploymentListModel struct {
 	CognitiveAccountId types.String `tfsdk:"cognitive_account_id"`
 }
 
-func cognitiveDeploymentListResourceConfigSchema() schema.Schema {
-	return schema.Schema{
-		Attributes: map[string]schema.Attribute{
-			"cognitive_account_id": schema.StringAttribute{
-				Required: true,
-				Validators: []validator.String{
-					typehelpers.WrappedStringValidator{
-						Func: cognitiveservicesaccounts.ValidateAccountID,
-					},
-				},
-			},
-		},
-	}
-}
-
 type CognitiveDeploymentListResource struct{}
 
 var _ sdk.FrameworkListWrappedResource = new(CognitiveDeploymentListResource)
@@ -52,7 +37,18 @@ func (CognitiveDeploymentListResource) Metadata(_ context.Context, _ resource.Me
 }
 
 func (CognitiveDeploymentListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
-	response.Schema = cognitiveDeploymentListResourceConfigSchema()
+	response.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"cognitive_account_id": schema.StringAttribute{
+				Required: true,
+				Validators: []validator.String{
+					typehelpers.WrappedStringValidator{
+						Func: cognitiveservicesaccounts.ValidateAccountID,
+					},
+				},
+			},
+		},
+	}
 }
 
 func (CognitiveDeploymentListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
@@ -65,50 +61,40 @@ func (CognitiveDeploymentListResource) List(ctx context.Context, request list.Li
 		return
 	}
 
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		sdk.SetResponseErrorDiagnostic(stream, "internal-error", "context had no deadline")
-		return
-	}
-
-	accountId, err := cognitiveservicesaccounts.ParseAccountID(data.CognitiveAccountId.ValueString())
+	accountId, err := deployments.ParseAccountID(data.CognitiveAccountId.ValueString())
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(stream, "parsing Cognitive Account ID", err)
 		return
 	}
 
+	deploymentsResp, err := client.ListComplete(ctx, *accountId)
+	if err != nil {
+		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing deployments for `%s`", accountId.AccountName), err)
+		return
+	}
+
+	r := CognitiveDeploymentResource{}
 	stream.Results = func(push func(list.ListResult) bool) {
-		listCtx, cancel := context.WithDeadline(context.Background(), deadline)
-		defer cancel()
-
-		deploymentsResp, err := client.ListComplete(listCtx, deployments.NewAccountID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.AccountName))
-		if err != nil {
-			result := request.NewListResult(listCtx)
-			sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("listing deployments for `%s`", accountId.AccountName), err)
-			return
-		}
-
 		for _, deployment := range deploymentsResp.Items {
 			deploymentId, err := deployments.ParseDeploymentID(pointer.From(deployment.Id))
 			if err != nil {
-				result := request.NewListResult(listCtx)
+				result := request.NewListResult(ctx)
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Cognitive Deployment ID", err)
 				return
 			}
 
-			result := request.NewListResult(listCtx)
+			result := request.NewListResult(ctx)
 			result.DisplayName = pointer.From(deployment.Name)
 
-			r := CognitiveDeploymentResource{}
 			meta := sdk.NewResourceMetaData(metadata.Client, r)
 			meta.SetID(deploymentId)
 
 			if err := r.flatten(meta, deploymentId, &deployment); err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", CognitiveDeploymentResource{}.ResourceType()), err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", r.ResourceType()), err)
 				return
 			}
 
-			sdk.EncodeListResult(listCtx, meta.ResourceData, &result)
+			sdk.EncodeListResult(ctx, meta.ResourceData, &result)
 			if result.Diagnostics.HasError() {
 				push(result)
 				return
