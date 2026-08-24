@@ -16,7 +16,7 @@ var _ pollers.PollerType = &eventualConsistencyPoller{}
 type EventualConsistencyPollerOptions struct {
 	// Interval specifies the interval until the poller should be called again.
 	Interval time.Duration
-	// TargetStatusCode specifies the optional target HTTP status code, omitting this treats any non-error repsonse as a success
+	// TargetStatusCode specifies the optional target HTTP status code, omitting this treats any non-error response as a success
 	TargetStatusCode *int // e.g. http.StatusOK
 	// RetryErrorStatusCodes specifies the error HTTP status codes that should be retried
 	RetryErrorStatusCodes []int // e.g. http.StatusNotFound, http.StatusForbidden
