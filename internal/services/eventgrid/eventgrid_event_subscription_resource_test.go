@@ -1591,7 +1591,6 @@ resource "azurerm_eventgrid_event_subscription" "test" {
 }
 
 func (EventGridEventSubscriptionResource) systemIdentityUpdate(data acceptance.TestData) string {
-
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
