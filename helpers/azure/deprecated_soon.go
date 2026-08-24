@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 // SchemaResourceGroupNameDiffSuppress will be deprecated in the near future
@@ -45,12 +44,4 @@ func ValidateResourceID(i interface{}, k string) (warnings []string, errors []er
 	}
 
 	return warnings, errors
-}
-
-// Deprecated: use a more specific Resource ID validator instead, however note that empty strings should not
-// be allowed as a validation value. Rather than specifying an empty string, users can omit the field to use
-// an unset value.
-func ValidateResourceIDOrEmpty(i interface{}, k string) ([]string, []error) {
-	// an empty string is valid in addition to a resource ID
-	return validation.Any(validation.StringIsEmpty, ValidateResourceID)(i, k)
 }
