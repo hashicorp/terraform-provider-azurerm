@@ -395,8 +395,8 @@ func (r RoleDefinitionResource) Delete() sdk.ResourceFunc {
 			}
 
 			// Deletes are not instant and can take time to propagate
-			poller := custompollers.NewEventualConsistencyPoller(20, func() (*http.Response, error) {
-				resp, err := client.Get(ctx, id)
+			poller := custompollers.NewEventualConsistencyPoller(20, func(pollerCtx context.Context) (*http.Response, error) {
+				resp, err := client.Get(pollerCtx, id)
 				return resp.HttpResponse, err
 			}, custompollers.DefaultDeletionEventualConsistencyPollerOptions())
 			if err := poller.PollUntilDone(ctx); err != nil {

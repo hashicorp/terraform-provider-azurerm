@@ -43,7 +43,7 @@ func DefaultDeletionEventualConsistencyPollerOptions() *EventualConsistencyPolle
 // eventualConsistencyPoller is a poller meant for resources that need to account for eventual consistency
 // by checking for n number of successful responses, or n number of responses matching a specific target status code.
 type eventualConsistencyPoller struct {
-	fn      func() (*http.Response, error)
+	fn      func(pollerCtx context.Context) (*http.Response, error)
 	options EventualConsistencyPollerOptions
 
 	remainingCount int
@@ -52,7 +52,7 @@ type eventualConsistencyPoller struct {
 
 // NewEventualConsistencyPoller returns a new pollers.Poller with an eventualConsistencyPoller pollers.pollerType.
 // If the provided EventualConsistencyPollerOptions struct is nil, the default creation poller options are used.
-func NewEventualConsistencyPoller(targetCount int, fn func() (*http.Response, error), o *EventualConsistencyPollerOptions) pollers.Poller {
+func NewEventualConsistencyPoller(targetCount int, fn func(pollerCtx context.Context) (*http.Response, error), o *EventualConsistencyPollerOptions) pollers.Poller {
 	if o == nil {
 		o = DefaultCreationEventualConsistencyPollerOptions()
 	}
@@ -68,8 +68,8 @@ func NewEventualConsistencyPoller(targetCount int, fn func() (*http.Response, er
 	return pollers.NewPoller(pollerType, pollerType.options.Interval, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 }
 
-func (p *eventualConsistencyPoller) Poll(_ context.Context) (*pollers.PollResult, error) {
-	resp, err := p.fn()
+func (p *eventualConsistencyPoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
+	resp, err := p.fn(ctx)
 	if err != nil {
 		// In certain cases, we actually want to poll for a specific error status code, such as checking for consecutive 404s on deletion
 		if p.options.TargetStatusCode != nil {

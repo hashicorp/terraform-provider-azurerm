@@ -156,8 +156,8 @@ func (r UserAssignedIdentityResource) Create() sdk.ResourceFunc {
 			pollerOpts := custompollers.DefaultCreationEventualConsistencyPollerOptions()
 			pollerOpts.Interval = 5 * time.Second
 
-			poller := custompollers.NewEventualConsistencyPoller(5, func() (*http.Response, error) {
-				resp, err := client.UserAssignedIdentitiesGet(ctx, id)
+			poller := custompollers.NewEventualConsistencyPoller(5, func(pollerCtx context.Context) (*http.Response, error) {
+				resp, err := client.UserAssignedIdentitiesGet(pollerCtx, id)
 				return resp.HttpResponse, err
 			}, pollerOpts)
 			if err := poller.PollUntilDone(ctx); err != nil {
