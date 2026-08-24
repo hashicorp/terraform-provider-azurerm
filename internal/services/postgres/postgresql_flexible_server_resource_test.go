@@ -1889,6 +1889,7 @@ resource "azurerm_postgresql_flexible_server" "replica" {
   storage_type        = "PremiumV2_LRS"
   storage_iops        = 3000
   storage_throughput  = 125
+  zone                = 2
 }
 `, r.basic(data), data.RandomInteger)
 }
@@ -1907,6 +1908,7 @@ resource "azurerm_postgresql_flexible_server" "pitr" {
   storage_type                      = "PremiumV2_LRS"
   storage_iops                      = 3000
   storage_throughput                = 125
+  zone								= 2
 }
 `, r.basic(data), data.RandomInteger, time.Now().Add(time.Duration(15)*time.Minute).UTC().Format(time.RFC3339))
 }
