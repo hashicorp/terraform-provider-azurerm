@@ -148,11 +148,7 @@ The following arguments are supported:
 
 ~> **Note:** `auto_grow_enabled` is not supported when `storage_type` is `PremiumV2_LRS`.
 
-* `storage_mb` - (Optional) The max storage allowed for the PostgreSQL Flexible Server.
-
-~> **Note:** When `storage_type` is `Premium_LRS`, possible values for `storage_mb` are `32768`, `65536`, `131072`, `262144`, `524288`, `1048576`, `2097152`, `4193280`, `4194304`, `8388608`, `16777216` and `33553408`.
-
-~> **Note:** When `storage_type` is `PremiumV2_LRS`, `storage_mb` can be any multiple of `1024` between `32768` and `67108864` (i.e. between 32 GiB and 65536 GiB).
+* `storage_mb` - (Optional) The max storage allowed for the PostgreSQL Flexible Server. Possible values are `32768`, `65536`, `131072`, `262144`, `524288`, `1048576`, `2097152`, `4193280`, `4194304`, `8388608`, `16777216` and `33553408`.
 
 ~> **Note:** If the `storage_mb` field is undefined on the initial deployment of the PostgreSQL Flexible Server resource it will default to `32768`. If the `storage_mb` field has been defined and then removed, the `storage_mb` field will retain the previously defined value.
 

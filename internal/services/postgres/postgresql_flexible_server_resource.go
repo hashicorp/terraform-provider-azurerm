@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -150,7 +149,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validation.IntAtLeast(32768),
+				ValidateFunc: validation.IntInSlice([]int{32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4193280, 4194304, 8388608, 16777216, 33553408}),
 			},
 
 			"storage_tier": {
@@ -625,31 +624,6 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				if diff.HasChange("sku_name") {
 					skuOld, skuNew := diff.GetChange("sku_name")
 					return validate.FlexibleServerSkuNameChange(skuOld.(string), skuNew.(string))
-				}
-
-				return nil
-			}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-				if diff.GetRawConfig().AsValueMap()["storage_mb"].IsNull() {
-					return nil
-				}
-
-				storageMb := diff.Get("storage_mb").(int)
-
-				if diff.Get("storage_type").(string) == string(servers.StorageTypePremiumVTwoLRS) {
-					if storageMb < 32768 || storageMb > 67108864 {
-						return fmt.Errorf("`storage_mb` must be between `32768` and `67108864` when `storage_type` is `PremiumV2_LRS`, got `%d`", storageMb)
-					}
-
-					if storageMb%1024 != 0 {
-						return fmt.Errorf("`storage_mb` must be a multiple of `1024` when `storage_type` is `PremiumV2_LRS`, got `%d`", storageMb)
-					}
-
-					return nil
-				}
-
-				validStorageMb := []int{32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4193280, 4194304, 8388608, 16777216, 33553408}
-				if !slices.Contains(validStorageMb, storageMb) {
-					return fmt.Errorf("`storage_mb` must be one of %v when `storage_type` is `Premium_LRS`, got `%d`", validStorageMb, storageMb)
 				}
 
 				return nil
