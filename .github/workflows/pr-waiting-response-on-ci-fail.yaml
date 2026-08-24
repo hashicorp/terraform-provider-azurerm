@@ -16,7 +16,6 @@ on:
       - 'Check for new usages of deprecated functionality'
       - 'Enforce List Resource for New Resources'
       - 'Breaking Schema Changes'
-      - 'Static Analysis'
       - 'Preview ARM API Version Linter'
       - 'TeamCity Config Test'
     types: [completed]

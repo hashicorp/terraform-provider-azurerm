@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"net"
 	"regexp"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 // CIDR is a SchemaValidateFunc which tests if the provided value is a valid IPv4 CIDR
@@ -36,28 +38,7 @@ func IPv4Address(i interface{}, k string) (warnings []string, errors []error) {
 	return warnings, errors
 }
 
-func PortNumber(i interface{}, k string) (warnings []string, errors []error) {
-	return validatePortNumber(i, k, false)
-}
-
-func PortNumberOrZero(i interface{}, k string) (warnings []string, errors []error) {
-	return validatePortNumber(i, k, true)
-}
-
-func validatePortNumber(i interface{}, k string, allowZero bool) (warnings []string, errors []error) {
-	v, ok := i.(int)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %q to be int", k))
-		return
-	}
-
-	if allowZero && v == 0 {
-		return
-	}
-
-	if v < 1 || 65535 < v {
-		errors = append(errors, fmt.Errorf("%q is not a valid port number: %d", k, v))
-	}
-
-	return warnings, errors
-}
+var (
+	PortNumber       = validation.IsPortNumber
+	PortNumberOrZero = validation.IsPortNumberOrZero
+)

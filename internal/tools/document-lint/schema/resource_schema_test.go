@@ -11,7 +11,7 @@ import (
 )
 
 func TestResourceFile(t *testing.T) {
-	p := automation.SoftwareUpdateConfigurationResource{}
+	p := automation.WatcherResource{}
 	file := schema.FileForResource(p.Read().Func)
 	t.Log(file)
 

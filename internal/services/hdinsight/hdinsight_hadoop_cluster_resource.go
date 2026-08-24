@@ -333,8 +333,7 @@ func resourceHDInsightHadoopClusterCreate(d *pluginsdk.ResourceData, meta interf
 		edgeNodeConfig := edgeNodeRaw[0].(map[string]interface{})
 		applicationId := applications.NewApplicationID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName, id.ClusterName) // 2 id.ClusterName's are intentional
 
-		err := createHDInsightEdgeNodes(ctx, applicationsClient, applicationId, edgeNodeConfig)
-		if err != nil {
+		if err := createHDInsightEdgeNodes(ctx, applicationsClient, applicationId, edgeNodeConfig); err != nil {
 			return err
 		}
 

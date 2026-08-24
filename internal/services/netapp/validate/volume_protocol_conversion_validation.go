@@ -6,7 +6,7 @@ package validate
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 )
 
 // ValidateNetAppVolumeProtocolConversion validates protocol conversion requirements
@@ -19,10 +19,10 @@ func ValidateNetAppVolumeProtocolConversion(oldProtocols, newProtocols []string,
 	}
 
 	// Check if old is NFSv3 and new is NFSv4.1 or vice versa
-	oldHasNFSv3 := utils.SliceContainsValue(oldProtocols, "NFSv3")
-	oldHasNFSv41 := utils.SliceContainsValue(oldProtocols, "NFSv4.1")
-	newHasNFSv3 := utils.SliceContainsValue(newProtocols, "NFSv3")
-	newHasNFSv41 := utils.SliceContainsValue(newProtocols, "NFSv4.1")
+	oldHasNFSv3 := helpers.SliceContainsValue(oldProtocols, "NFSv3")
+	oldHasNFSv41 := helpers.SliceContainsValue(oldProtocols, "NFSv4.1")
+	newHasNFSv3 := helpers.SliceContainsValue(newProtocols, "NFSv3")
+	newHasNFSv41 := helpers.SliceContainsValue(newProtocols, "NFSv4.1")
 
 	// Only validate if this is an NFS protocol conversion
 	isNFSProtocolChange := (oldHasNFSv3 && !oldHasNFSv41 && newHasNFSv41 && !newHasNFSv3) ||
@@ -56,8 +56,8 @@ func ValidateNetAppVolumeProtocolConversion(oldProtocols, newProtocols []string,
 	}
 
 	// Validate that this is not a dual-protocol conversion
-	oldHasCIFS := utils.SliceContainsValue(oldProtocols, "CIFS")
-	newHasCIFS := utils.SliceContainsValue(newProtocols, "CIFS")
+	oldHasCIFS := helpers.SliceContainsValue(oldProtocols, "CIFS")
+	newHasCIFS := helpers.SliceContainsValue(newProtocols, "CIFS")
 
 	if oldHasCIFS || newHasCIFS {
 		errors = append(errors, fmt.Errorf("cannot convert a single-protocol NFS volume to a dual-protocol volume, or the other way around"))

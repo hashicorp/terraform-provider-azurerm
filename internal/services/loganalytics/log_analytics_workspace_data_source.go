@@ -111,11 +111,7 @@ func dataSourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interfa
 		d.Set("location", location.NormalizeNilable(&model.Location))
 
 		if props := model.Properties; props != nil {
-			customerId := ""
-			if props.CustomerId != nil {
-				customerId = *props.CustomerId
-			}
-			d.Set("workspace_id", customerId)
+			d.Set("workspace_id", pointer.From(props.CustomerId))
 
 			sku := ""
 			if props.Sku != nil {
@@ -123,11 +119,7 @@ func dataSourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interfa
 			}
 			d.Set("sku", sku)
 
-			var retentionInDays int64
-			if props.RetentionInDays != nil {
-				retentionInDays = *props.RetentionInDays
-			}
-			d.Set("retention_in_days", retentionInDays)
+			d.Set("retention_in_days", pointer.From(props.RetentionInDays))
 
 			if props.WorkspaceCapping != nil && props.WorkspaceCapping.DailyQuotaGb != nil {
 				d.Set("daily_quota_gb", props.WorkspaceCapping.DailyQuotaGb)
@@ -149,17 +141,9 @@ func dataSourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interfa
 		log.Printf("[ERROR] Unable to List Shared keys for Log Analytics workspaces %s: %+v", name, err)
 	} else {
 		if sharedKeysModel := sharedKeysResp.Model; sharedKeysModel != nil {
-			primarySharedKey := ""
-			if sharedKeysModel.PrimarySharedKey != nil {
-				primarySharedKey = *sharedKeysModel.PrimarySharedKey
-			}
-			d.Set("primary_shared_key", primarySharedKey)
+			d.Set("primary_shared_key", pointer.From(sharedKeysModel.PrimarySharedKey))
 
-			secondarySharedKey := ""
-			if sharedKeysModel.SecondarySharedKey != nil {
-				secondarySharedKey = *sharedKeysModel.SecondarySharedKey
-			}
-			d.Set("secondary_shared_key", secondarySharedKey)
+			d.Set("secondary_shared_key", pointer.From(sharedKeysModel.SecondarySharedKey))
 		}
 	}
 	return nil

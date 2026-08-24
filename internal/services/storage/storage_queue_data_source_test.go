@@ -9,7 +9,6 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 type StorageQueueDataSource struct{}
@@ -31,41 +30,6 @@ func TestAccDataSourceStorageQueue_basic(t *testing.T) {
 }
 
 func (d StorageQueueDataSource) basic(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestqueue-%[1]s"
-  location = "%[2]s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                = "acctestsadsc%[1]s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  location                 = "${azurerm_resource_group.test.location}"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_queue" "test" {
-  name                 = "acctestqueuedstest-%[1]s"
-  storage_account_name = "${azurerm_storage_account.test.name}"
-  metadata = {
-    k1 = "v1"
-    k2 = "v2"
-  }
-}
-
-data "azurerm_storage_queue" "test" {
-  name                 = azurerm_storage_queue.test.name
-  storage_account_name = azurerm_storage_queue.test.storage_account_name
-}
-	`, data.RandomString, data.Locations.Primary, data.RandomInteger)
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

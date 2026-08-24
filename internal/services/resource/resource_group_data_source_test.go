@@ -14,6 +14,16 @@ import (
 
 type ResourceGroupDataSource struct{}
 
+func TestAccDataSourceAzureRMResourceGroup_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_resource_group", "test")
+	r := ResourceGroupDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceAzureRMResourceGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_resource_group", "test")
 	r := ResourceGroupDataSource{}
