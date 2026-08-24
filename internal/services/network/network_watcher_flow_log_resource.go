@@ -140,9 +140,10 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 						},
 
 						"workspace_resource_id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: workspaces.ValidateWorkspaceID,
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							// TODO: check to see if empty values should be allowed (the previous validator permitted them)
+							ValidateFunc: validation.Any(validation.StringIsEmpty, workspaces.ValidateWorkspaceID),
 						},
 
 						"interval_in_minutes": {

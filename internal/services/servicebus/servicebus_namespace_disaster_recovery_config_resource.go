@@ -57,9 +57,10 @@ func resourceServiceBusNamespaceDisasterRecoveryConfig() *pluginsdk.Resource {
 			},
 
 			"partner_namespace_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: namespaces.ValidateNamespaceID,
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				// TODO: check to see if empty values should be allowed (the previous validator permitted them)
+				ValidateFunc: validation.Any(validation.StringIsEmpty, namespaces.ValidateNamespaceID),
 			},
 
 			"alias_authorization_rule_id": {
