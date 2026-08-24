@@ -51,7 +51,21 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `hostname` - The hostname of the Communication Service.
 
+* `identity` - An `identity` block as defined below.
+
 * `immutable_resource_id` - The immutable resource id of the Communication Service.
+
+---
+
+An `identity` block exports the following:
+
+* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Communication Service.
+
+* `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this Communication Service.
+
+* `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Communication Service.
+
+* `type` - The type of Managed Service Identity that is configured on this Communication Service.
 
 ## Timeouts
 
@@ -63,4 +77,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Communication` - 2023-03-31
+* `Microsoft.Communication` - 2026-03-18
