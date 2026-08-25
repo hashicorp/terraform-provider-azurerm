@@ -88,10 +88,7 @@ func resourceSubscription() *pluginsdk.Resource {
 				ForceNew:    true,
 				Description: "The workload type for the Subscription. Possible values are `Production` (default) and `DevTest`.",
 				// Other RP's have updated Constants with contextual prefixes so these are likely to change
-				ValidateFunc: validation.StringInSlice([]string{
-					string(subscriptionAlias.WorkloadProduction),
-					string(subscriptionAlias.WorkloadDevTest),
-				}, false),
+				ValidateFunc: validation.StringInSlice(subscriptionAlias.PossibleValuesForWorkload(), false),
 				// Workload is not exposed in any way, so must be ignored if the resource is imported.
 				DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
 					return new == ""
