@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -30,15 +31,9 @@ func dataSourceStorageBlob() *pluginsdk.Resource {
 			"name": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
-				// TODO: add validation
 			},
 
-			"storage_account_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-			},
-
-			"storage_container_name": {
+			"storage_container_id": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
@@ -84,14 +79,25 @@ func dataSourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	accountName := d.Get("storage_account_name").(string)
-	containerName := d.Get("storage_container_name").(string)
 	name := d.Get("name").(string)
 
-	account, err := storageClient.FindAccount(ctx, subscriptionId, accountName)
+	var accountName string
+	var containerName string
+	var account *client.AccountDetails
+	var err error
+
+	containerIdStr := d.Get("storage_container_id").(string)
+	containerId, err := commonids.ParseStorageContainerID(containerIdStr)
+	if err != nil {
+		return err
+	}
+	accountName = containerId.StorageAccountName
+	containerName = containerId.ContainerName
+	account, err = storageClient.GetAccount(ctx, commonids.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName))
 	if err != nil {
 		return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, name, containerName, err)
 	}
+
 	if account == nil {
 		return fmt.Errorf("locating Storage Account %q", accountName)
 	}
@@ -125,8 +131,7 @@ func dataSourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	d.Set("name", name)
-	d.Set("storage_container_name", containerName)
-	d.Set("storage_account_name", accountName)
+	d.Set("storage_container_id", commonids.NewStorageContainerID(subscriptionId, account.StorageAccountId.ResourceGroupName, accountName, containerName).ID())
 
 	d.Set("access_tier", string(props.AccessTier))
 	d.Set("content_type", props.ContentType)

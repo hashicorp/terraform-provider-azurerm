@@ -6,6 +6,7 @@ package keyvault
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -38,12 +39,12 @@ type Contact struct {
 }
 
 func (r KeyVaultCertificateContactsResource) Arguments() map[string]*pluginsdk.Schema {
-	schema := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}),
 
 		"contact": {
 			Type:     pluginsdk.TypeSet,
-			Optional: true,
+			Required: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"email": {
@@ -67,8 +68,6 @@ func (r KeyVaultCertificateContactsResource) Arguments() map[string]*pluginsdk.S
 			},
 		},
 	}
-
-	return schema
 }
 
 func (r KeyVaultCertificateContactsResource) Attributes() map[string]*pluginsdk.Schema {
@@ -115,16 +114,18 @@ func (r KeyVaultCertificateContactsResource) Create() sdk.ResourceFunc {
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())
 
-			existing, err := client.GetCertificateContacts(ctx, *keyVaultBaseUri)
-			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
-					return fmt.Errorf("checking for presence of existing Certificate Contacts (Key Vault %q): %s", *keyVaultBaseUri, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetCertificateContacts(ctx, *keyVaultBaseUri)
+				if err != nil {
+					if !utils.ResponseWasNotFound(existing.Response) {
+						return fmt.Errorf("checking for presence of existing Certificate Contacts (Key Vault %q): %s", *keyVaultBaseUri, err)
+					}
 				}
-			}
 
-			if !utils.ResponseWasNotFound(existing.Response) {
-				if existing.ContactList != nil && len(*existing.ContactList) != 0 {
-					return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				if !utils.ResponseWasNotFound(existing.Response) {
+					if existing.ContactList != nil && len(*existing.ContactList) != 0 {
+						return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+					}
 				}
 			}
 
@@ -132,14 +133,8 @@ func (r KeyVaultCertificateContactsResource) Create() sdk.ResourceFunc {
 				ContactList: expandKeyVaultCertificateContactsContact(state.Contact),
 			}
 
-			if len(*contacts.ContactList) == 0 {
-				if _, err := client.DeleteCertificateContacts(ctx, id.KeyVaultBaseUrl); err != nil {
-					return fmt.Errorf("removing Key Vault Certificate Contacts %s: %+v", id, err)
-				}
-			} else {
-				if _, err := client.SetCertificateContacts(ctx, *keyVaultBaseUri, contacts); err != nil {
-					return fmt.Errorf("creating Key Vault Certificate Contacts %s: %+v", id, err)
-				}
+			if _, err := client.SetCertificateContacts(ctx, *keyVaultBaseUri, contacts); err != nil {
+				return fmt.Errorf("creating Key Vault Certificate Contacts %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -222,14 +217,8 @@ func (r KeyVaultCertificateContactsResource) Update() sdk.ResourceFunc {
 				existing.ContactList = expandKeyVaultCertificateContactsContact(state.Contact)
 			}
 
-			if len(*existing.ContactList) == 0 {
-				if _, err := client.DeleteCertificateContacts(ctx, id.KeyVaultBaseUrl); err != nil {
-					return fmt.Errorf("removing Key Vault Certificate Contacts %s: %+v", id, err)
-				}
-			} else {
-				if _, err := client.SetCertificateContacts(ctx, id.KeyVaultBaseUrl, existing); err != nil {
-					return fmt.Errorf("updating Key Vault Certificate Contacts %s: %+v", id, err)
-				}
+			if _, err := client.SetCertificateContacts(ctx, id.KeyVaultBaseUrl, existing); err != nil {
+				return fmt.Errorf("updating Key Vault Certificate Contacts %s: %+v", id, err)
 			}
 
 			return nil
@@ -250,6 +239,17 @@ func (r KeyVaultCertificateContactsResource) Delete() sdk.ResourceFunc {
 
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())
+
+			// check if any contacts exist in vault, if they do not then nothing to delete
+			resp, err := client.GetCertificateContacts(ctx, id.KeyVaultBaseUrl)
+			if err != nil {
+				if utils.ResponseWasNotFound(resp.Response) {
+					log.Printf("[DEBUG] Key Vault Certificate Contact %q was not found in Key Vault at URI %q - removing from state", id.ID(), id.KeyVaultBaseUrl)
+					return nil
+				}
+
+				return fmt.Errorf("checking if any contacts exist in key vault at url %q: %v", id.KeyVaultBaseUrl, err)
+			}
 
 			if _, err := client.DeleteCertificateContacts(ctx, id.KeyVaultBaseUrl); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
@@ -285,25 +285,10 @@ func flattenKeyVaultCertificateContactsContact(input *[]keyvault.Contact) []Cont
 	}
 
 	for _, item := range *input {
-		emailAddress := ""
-		if item.EmailAddress != nil {
-			emailAddress = *item.EmailAddress
-		}
-
-		name := ""
-		if item.Name != nil {
-			name = *item.Name
-		}
-
-		phone := ""
-		if item.Phone != nil {
-			phone = *item.Phone
-		}
-
 		result = append(result, Contact{
-			Email: emailAddress,
-			Name:  name,
-			Phone: phone,
+			Email: pointer.From(item.EmailAddress),
+			Name:  pointer.From(item.Name),
+			Phone: pointer.From(item.Phone),
 		})
 	}
 

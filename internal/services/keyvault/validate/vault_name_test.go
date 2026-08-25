@@ -42,14 +42,34 @@ func TestValidateVaultName(t *testing.T) {
 		},
 		{
 			Input:       "20202020",
-			ExpectError: false,
+			ExpectError: true,
 		},
 		{
 			Input:       "ABC123!@£",
 			ExpectError: true,
 		},
 		{
+			Input:       "abcdefghijklmnopqrstuvwx",
+			ExpectError: false,
+		},
+		{
 			Input:       "abcdefghijklmnopqrstuvwxyz",
+			ExpectError: true,
+		},
+		{
+			Input:       "hello-",
+			ExpectError: true,
+		},
+		{
+			Input:       "hello--world",
+			ExpectError: true,
+		},
+		{
+			Input:       "-hello",
+			ExpectError: true,
+		},
+		{
+			Input:       "123hello",
 			ExpectError: true,
 		},
 	}

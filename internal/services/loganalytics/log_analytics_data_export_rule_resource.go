@@ -114,14 +114,16 @@ func resourceOperationalinsightsDataExportCreateUpdate(d *pluginsdk.ResourceData
 	id.Segments()
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of %s: %+v", id, err)
+				}
 			}
-		}
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_log_analytics_data_export_rule", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_log_analytics_data_export_rule", id.ID())
+			}
 		}
 	}
 
@@ -169,6 +171,10 @@ func resourceOperationalinsightsDataExportCreateUpdate(d *pluginsdk.ResourceData
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
+
 	// Tracked on https://github.com/Azure/azure-rest-api-specs/issues/31399
 	log.Printf("[DEBUG] Waiting for Log Analytics Workspace Data Export Rule %q to become ready", id.ID())
 	pollerType := custompollers.NewLogAnalyticsDataExportPoller(client, id)
@@ -177,7 +183,6 @@ func resourceOperationalinsightsDataExportCreateUpdate(d *pluginsdk.ResourceData
 		return err
 	}
 
-	d.SetId(id.ID())
 	return resourceOperationalinsightsDataExportRead(d, meta)
 }
 
@@ -206,11 +211,7 @@ func resourceOperationalinsightsDataExportRead(d *pluginsdk.ResourceData, meta i
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			dataExportId := ""
-			if props.DataExportId != nil {
-				dataExportId = *props.DataExportId
-			}
-			d.Set("export_rule_id", dataExportId)
+			d.Set("export_rule_id", pointer.From(props.DataExportId))
 
 			destinationId, err := flattenDataExportDestination(props.Destination)
 			if err != nil {
@@ -218,11 +219,7 @@ func resourceOperationalinsightsDataExportRead(d *pluginsdk.ResourceData, meta i
 			}
 			d.Set("destination_resource_id", destinationId)
 
-			enabled := false
-			if props.Enable != nil {
-				enabled = *props.Enable
-			}
-			d.Set("enabled", enabled)
+			d.Set("enabled", pointer.From(props.Enable))
 			d.Set("table_names", props.TableNames)
 		}
 	}

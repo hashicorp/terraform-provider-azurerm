@@ -6,7 +6,6 @@ package automation
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"regexp"
 	"time"
 
@@ -26,9 +25,9 @@ import (
 
 func resourceAutomationDscConfiguration() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationDscConfigurationCreateUpdate,
+		Create: resourceAutomationDscConfigurationCreate,
 		Read:   resourceAutomationDscConfigurationRead,
-		Update: resourceAutomationDscConfigurationCreateUpdate,
+		Update: resourceAutomationDscConfigurationUpdate,
 		Delete: resourceAutomationDscConfigurationDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -92,17 +91,15 @@ func resourceAutomationDscConfiguration() *pluginsdk.Resource {
 	}
 }
 
-func resourceAutomationDscConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationDscConfigurationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.DscConfiguration
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for AzureRM Automation Dsc Configuration creation.")
 
 	id := dscconfiguration.NewConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -115,29 +112,96 @@ func resourceAutomationDscConfigurationCreateUpdate(d *pluginsdk.ResourceData, m
 		}
 	}
 
-	contentEmbedded := d.Get("content_embedded").(string)
-	location := location.Normalize(d.Get("location").(string))
-	logVerbose := d.Get("log_verbose").(bool)
-	description := d.Get("description").(string)
-
 	parameters := dscconfiguration.DscConfigurationCreateOrUpdateParameters{
 		Properties: dscconfiguration.DscConfigurationCreateOrUpdateProperties{
-			LogVerbose:  pointer.To(logVerbose),
-			Description: pointer.To(description),
+			LogVerbose:  pointer.To(d.Get("log_verbose").(bool)),
+			Description: pointer.To(d.Get("description").(string)),
 			Source: dscconfiguration.ContentSource{
 				Type:  pointer.To(dscconfiguration.ContentSourceTypeEmbeddedContent),
-				Value: pointer.To(contentEmbedded),
+				Value: pointer.To(d.Get("content_embedded").(string)),
 			},
 		},
-		Location: pointer.To(location),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Tags:     pointer.To(expandStringInterfaceMap(d.Get("tags").(map[string]interface{}))),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
-		return err
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	return resourceAutomationDscConfigurationRead(d, meta)
+}
+
+func resourceAutomationDscConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Automation.DscConfiguration
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := dscconfiguration.ParseConfigurationID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: model was nil", *id)
+	}
+
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: properties was nil", *id)
+	}
+
+	content, err := client.GetContent(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving content for %s: %+v", *id, err)
+	}
+
+	if content.Model == nil {
+		return fmt.Errorf("retrieving content for %s: response was nil", *id)
+	}
+
+	// NOTE: We use CreateOrUpdate (PUT) rather than Update (PATCH) here because the
+	// PATCH API re-parses the DSC configuration source content and resets the description
+	// field, causing updates to description to be silently lost.
+	parameters := dscconfiguration.DscConfigurationCreateOrUpdateParameters{
+		Properties: dscconfiguration.DscConfigurationCreateOrUpdateProperties{
+			LogVerbose:  existing.Model.Properties.LogVerbose,
+			Description: existing.Model.Properties.Description,
+			// The GET response does not contain source, so we must set it based on the retrieved content to prevent 400s
+			Source: dscconfiguration.ContentSource{
+				Type:  pointer.To(dscconfiguration.ContentSourceTypeEmbeddedContent),
+				Value: pointer.To(string(*content.Model)),
+			},
+		},
+		Location: pointer.To(existing.Model.Location),
+		Tags:     existing.Model.Tags,
+	}
+
+	if d.HasChange("content_embedded") {
+		parameters.Properties.Source.Value = pointer.To(d.Get("content_embedded").(string))
+	}
+
+	if d.HasChange("log_verbose") {
+		parameters.Properties.LogVerbose = pointer.To(d.Get("log_verbose").(bool))
+	}
+
+	if d.HasChange("description") {
+		parameters.Properties.Description = pointer.To(d.Get("description").(string))
+	}
+
+	if d.HasChange("tags") {
+		parameters.Tags = pointer.To(expandStringInterfaceMap(d.Get("tags").(map[string]interface{})))
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, *id, parameters); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
 
 	return resourceAutomationDscConfigurationRead(d, meta)
 }

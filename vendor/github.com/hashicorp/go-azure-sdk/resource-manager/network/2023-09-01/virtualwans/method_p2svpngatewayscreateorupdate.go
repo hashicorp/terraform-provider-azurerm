@@ -63,9 +63,20 @@ func (c VirtualWANsClient) P2sVpnGatewaysCreateOrUpdate(ctx context.Context, id 
 
 // P2sVpnGatewaysCreateOrUpdateThenPoll performs P2sVpnGatewaysCreateOrUpdate then polls until it's completed
 func (c VirtualWANsClient) P2sVpnGatewaysCreateOrUpdateThenPoll(ctx context.Context, id commonids.VirtualWANP2SVPNGatewayId, input P2SVpnGateway) error {
+	return c.P2sVpnGatewaysCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// P2sVpnGatewaysCreateOrUpdateCallbackThenPoll performs P2sVpnGatewaysCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c VirtualWANsClient) P2sVpnGatewaysCreateOrUpdateCallbackThenPoll(ctx context.Context, id commonids.VirtualWANP2SVPNGatewayId, input P2SVpnGateway, callback func() error) error {
 	result, err := c.P2sVpnGatewaysCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing P2sVpnGatewaysCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -15,10 +15,6 @@ import (
 
 var _ pollers.PollerType = &dbStatePoller{}
 
-type DatabasesClientInterface interface {
-	Get(ctx context.Context, id databases.DatabaseId) (databases.GetOperationResponse, error)
-}
-
 type dbStatePoller struct {
 	client DatabasesClientInterface
 	id     databases.DatabaseId

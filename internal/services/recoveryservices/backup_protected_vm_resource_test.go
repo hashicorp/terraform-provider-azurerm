@@ -321,7 +321,12 @@ func (r BackupProtectedVmResource) Exists(ctx context.Context, clients *clients.
 func (BackupProtectedVmResource) base(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    recovery_service {
+      vm_backup_stop_protection_and_retain_data_on_destroy = true
+      purge_protected_items_from_vault_on_destroy          = true
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -360,8 +365,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-ip"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
   domain_name_label   = "acctestip%d"
 }
 
@@ -445,8 +450,6 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
-
-  soft_delete_enabled = false
 }
 
 resource "azurerm_backup_policy_vm" "test" {
@@ -508,8 +511,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-ip"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
   domain_name_label   = "acctestip%[1]d"
 }
 
@@ -595,8 +598,6 @@ resource "azurerm_recovery_services_vault" "test" {
   sku                 = "Standard"
 
   immutability = "Unlocked"
-
-  soft_delete_enabled = false
 }
 
 resource "azurerm_backup_policy_vm" "test" {
@@ -654,8 +655,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-ip"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
   domain_name_label   = "acctestip%d"
 }
 
@@ -739,8 +740,6 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
-
-  soft_delete_enabled = false
 }
 
 resource "azurerm_backup_policy_vm" "test" {
@@ -763,7 +762,12 @@ resource "azurerm_backup_policy_vm" "test" {
 func (BackupProtectedVmResource) baseWithoutVM(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    recovery_service {
+      vm_backup_stop_protection_and_retain_data_on_destroy = true
+      purge_protected_items_from_vault_on_destroy          = true
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -802,8 +806,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-ip"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
   domain_name_label   = "acctestip%d"
 }
 
@@ -820,8 +824,6 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
-
-  soft_delete_enabled = false
 }
 
 resource "azurerm_backup_policy_vm" "test" {
@@ -879,8 +881,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-ip"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
   domain_name_label   = "acctestip%d"
 }
 
@@ -967,8 +969,6 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
-
-  soft_delete_enabled = true
 }
 
 resource "azurerm_backup_policy_vm" "test" {
@@ -1022,7 +1022,12 @@ resource "azurerm_backup_protected_vm" "test" {
 func (BackupProtectedVmResource) basePolicyTest(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    recovery_service {
+      vm_backup_stop_protection_and_retain_data_on_destroy = true
+      purge_protected_items_from_vault_on_destroy          = true
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -1061,8 +1066,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-ip"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
   domain_name_label   = "acctestip%d"
 }
 
@@ -1162,8 +1167,6 @@ resource "azurerm_recovery_services_vault" "test2" {
   location            = azurerm_resource_group.test2.location
   resource_group_name = azurerm_resource_group.test2.name
   sku                 = "Standard"
-
-  soft_delete_enabled = false
 }
 
 resource "azurerm_backup_policy_vm" "test2" {
@@ -1347,8 +1350,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-ip"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
   domain_name_label   = "acctestip%[1]d"
 }
 
@@ -1433,8 +1436,7 @@ resource "azurerm_recovery_services_vault" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
 
-  soft_delete_enabled = false
-  immutability        = "Unlocked"
+  immutability = "Unlocked"
 }
 
 %[4]s

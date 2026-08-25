@@ -341,16 +341,18 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Create() sdk.ResourceFunc {
 
 			id := replicationrecoveryplans.NewReplicationRecoveryPlanID(subscriptionId, vaultId.ResourceGroupName, vaultId.VaultName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				// NOTE: Bad Request due to https://github.com/Azure/azure-rest-api-specs/issues/12759
-				if !response.WasNotFound(existing.HttpResponse) && !response.WasBadRequest(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing site recovery plan %q: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					// NOTE: Bad Request due to https://github.com/Azure/azure-rest-api-specs/issues/12759
+					if !response.WasNotFound(existing.HttpResponse) && !response.WasBadRequest(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing site recovery plan %q: %+v", id, err)
+					}
 				}
-			}
 
-			if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
-				return tf.ImportAsExistsError("azurerm_site_recovery_replication_recovery_plan", *existing.Model.Id)
+				if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
+					return tf.ImportAsExistsError("azurerm_site_recovery_replication_recovery_plan", *existing.Model.Id)
+				}
 			}
 
 			// FailoverDeploymentModelClassic is used for other cloud service back up to Azure.
@@ -374,11 +376,9 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Create() sdk.ResourceFunc {
 				parameters.Properties.ProviderSpecificInput = expandA2ASettings(model.A2ASettings[0])
 			}
 
-			err = client.CreateThenPoll(ctx, id, parameters)
-			if err != nil {
-				return fmt.Errorf("creating site recovery replication plan %q: %+v", id, err)
+			if err := client.CreateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
 
 			return nil
@@ -472,9 +472,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Update() sdk.ResourceFunc {
 
 			groupValue = *resp.Model.Properties.Groups
 
-			if metadata.ResourceData.HasChange("boot_recovery_group") ||
-				metadata.ResourceData.HasChange("failover_recovery_group") ||
-				metadata.ResourceData.HasChange("shutdown_recovery_group") {
+			if metadata.ResourceData.HasChanges("boot_recovery_group", "failover_recovery_group", "shutdown_recovery_group") {
 				groupValue, err = expandRecoveryGroup(model.ShutdownRecoveryGroup, model.FailoverRecoveryGroup, model.BootRecoveryGroup)
 			}
 
@@ -488,8 +486,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Update() sdk.ResourceFunc {
 				},
 			}
 
-			err = client.UpdateThenPoll(ctx, *id, parameters)
-			if err != nil {
+			if err = client.UpdateThenPoll(ctx, *id, parameters); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -509,8 +506,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			err = client.DeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting site recovery protection replication plan %q : %+v", id, err)
 			}
 

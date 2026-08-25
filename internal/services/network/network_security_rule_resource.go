@@ -15,12 +15,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name network_security_rule -service-package-name network -properties "name,network_security_group_name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceNetworkSecurityRule() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -139,8 +141,11 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 				MaxItems:     10,
 				Optional:     true,
 				ExactlyOneOf: []string{"source_address_prefix", "source_address_prefixes", "source_application_security_group_ids"},
-				Elem:         &pluginsdk.Schema{Type: pluginsdk.TypeString},
-				Set:          pluginsdk.HashString,
+				Elem: &pluginsdk.Schema{
+					Type:             pluginsdk.TypeString,
+					DiffSuppressFunc: suppress.CaseDifference,
+				},
+				Set: pluginsdk.HashStringInsensitively,
 			},
 
 			// lintignore:S018
@@ -149,8 +154,11 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 				MaxItems:     10,
 				Optional:     true,
 				ExactlyOneOf: []string{"destination_address_prefix", "destination_address_prefixes", "destination_application_security_group_ids"},
-				Elem:         &pluginsdk.Schema{Type: pluginsdk.TypeString},
-				Set:          pluginsdk.HashString,
+				Elem: &pluginsdk.Schema{
+					Type:             pluginsdk.TypeString,
+					DiffSuppressFunc: suppress.CaseDifference,
+				},
+				Set: pluginsdk.HashStringInsensitively,
 			},
 
 			"access": {
@@ -188,15 +196,17 @@ func resourceNetworkSecurityRuleCreate(d *pluginsdk.ResourceData, meta interface
 
 	id := securityrules.NewSecurityRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("network_security_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_network_security_rule", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_network_security_rule", id.ID())
+		}
 	}
 
 	rule := securityrules.SecurityRule{
@@ -280,7 +290,7 @@ func resourceNetworkSecurityRuleCreate(d *pluginsdk.ResourceData, meta interface
 		rule.Properties.DestinationApplicationSecurityGroups = &destinationApplicationSecurityGroups
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, rule); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, rule, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -441,7 +451,10 @@ func resourceNetworkSecurityRuleRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 		return fmt.Errorf("making Read request on %s: %+v", *id, err)
 	}
+	return resourceNetworkSecurityRuleFlatten(d, id, resp.Model)
+}
 
+func resourceNetworkSecurityRuleFlatten(d *pluginsdk.ResourceData, id *securityrules.SecurityRuleId, model *securityrules.SecurityRule) error {
 	d.Set("name", id.SecurityRuleName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("network_security_group_name", id.NetworkSecurityGroupName)
@@ -453,7 +466,7 @@ func resourceNetworkSecurityRuleRead(d *pluginsdk.ResourceData, meta interface{}
 		protocolMap[strings.ToLower(protocol)] = securityrules.SecurityRuleProtocol(protocol)
 	}
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("description", props.Description)
 			d.Set("protocol", string(protocolMap[strings.ToLower(string(props.Protocol))]))

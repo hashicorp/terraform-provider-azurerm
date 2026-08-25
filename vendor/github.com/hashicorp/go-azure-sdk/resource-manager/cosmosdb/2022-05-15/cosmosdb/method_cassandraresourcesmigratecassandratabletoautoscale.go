@@ -58,9 +58,20 @@ func (c CosmosDBClient) CassandraResourcesMigrateCassandraTableToAutoscale(ctx c
 
 // CassandraResourcesMigrateCassandraTableToAutoscaleThenPoll performs CassandraResourcesMigrateCassandraTableToAutoscale then polls until it's completed
 func (c CosmosDBClient) CassandraResourcesMigrateCassandraTableToAutoscaleThenPoll(ctx context.Context, id CassandraKeyspaceTableId) error {
+	return c.CassandraResourcesMigrateCassandraTableToAutoscaleCallbackThenPoll(ctx, id, nil)
+}
+
+// CassandraResourcesMigrateCassandraTableToAutoscaleCallbackThenPoll performs CassandraResourcesMigrateCassandraTableToAutoscale, runs the optional callback function, then polls until it's completed
+func (c CosmosDBClient) CassandraResourcesMigrateCassandraTableToAutoscaleCallbackThenPoll(ctx context.Context, id CassandraKeyspaceTableId, callback func() error) error {
 	result, err := c.CassandraResourcesMigrateCassandraTableToAutoscale(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing CassandraResourcesMigrateCassandraTableToAutoscale: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

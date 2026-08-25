@@ -589,6 +589,11 @@ func (t RedisCacheResource) Exists(ctx context.Context, clients *clients.Client,
 	return pointer.To(resp.Model != nil), nil
 }
 
+// Default for basic wrapper, useful for generated tests that cannot pass boolean or extra params
+func (t RedisCacheResource) basicWithSSL(data acceptance.TestData) string {
+	return t.basic(data, true)
+}
+
 func (RedisCacheResource) basic(data acceptance.TestData, requireSSL bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

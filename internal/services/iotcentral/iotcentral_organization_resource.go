@@ -84,6 +84,8 @@ func (r IotCentralOrganizationResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
+			// TODO: import check
+
 			app, err := client.AppsClient.Get(ctx, *appId)
 			if err != nil || app.Model == nil {
 				return fmt.Errorf("checking for the presence of existing %q: %+v", appId, err)
@@ -126,9 +128,6 @@ func (r IotCentralOrganizationResource) Read() sdk.ResourceFunc {
 			}
 
 			appId := apps.NewIotAppID(id.SubscriptionId, id.ResourceGroup, id.IotAppName)
-			if err != nil {
-				return err
-			}
 
 			app, err := client.AppsClient.Get(ctx, appId)
 			if err != nil || app.Model == nil {
@@ -180,9 +179,6 @@ func (r IotCentralOrganizationResource) Update() sdk.ResourceFunc {
 			}
 
 			appId := apps.NewIotAppID(id.SubscriptionId, id.ResourceGroup, id.IotAppName)
-			if err != nil {
-				return err
-			}
 
 			app, err := client.AppsClient.Get(ctx, appId)
 			if err != nil || app.Model == nil {
@@ -207,8 +203,7 @@ func (r IotCentralOrganizationResource) Update() sdk.ResourceFunc {
 				existing.DisplayName = &state.DisplayName
 			}
 
-			_, err = orgClient.Update(ctx, *existing.ID, existing, "*")
-			if err != nil {
+			if _, err = orgClient.Update(ctx, *existing.ID, existing, "*"); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -233,9 +228,6 @@ func (r IotCentralOrganizationResource) Delete() sdk.ResourceFunc {
 			}
 
 			appId := apps.NewIotAppID(id.SubscriptionId, id.ResourceGroup, id.IotAppName)
-			if err != nil {
-				return err
-			}
 
 			app, err := client.AppsClient.Get(ctx, appId)
 			if err != nil || app.Model == nil {
@@ -247,8 +239,7 @@ func (r IotCentralOrganizationResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("creating organization client: %+v", err)
 			}
 
-			_, err = orgClient.Remove(ctx, id.Name)
-			if err != nil {
+			if _, err = orgClient.Remove(ctx, id.Name); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -124,13 +125,16 @@ func (r IotHubDeviceUpdateInstanceResource) Create() sdk.ResourceFunc {
 			}
 
 			id := deviceupdates.NewInstanceID(deviceUpdateAccountId.SubscriptionId, deviceUpdateAccountId.ResourceGroupName, deviceUpdateAccountId.AccountName, model.Name)
-			existing, err := client.InstancesGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.InstancesGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			deviceUpdateAccount, err := client.AccountsGet(ctx, *deviceUpdateAccountId)
@@ -157,7 +161,7 @@ func (r IotHubDeviceUpdateInstanceResource) Create() sdk.ResourceFunc {
 				Tags: &model.Tags,
 			}
 
-			if err := client.InstancesCreateThenPoll(ctx, id, *properties); err != nil {
+			if err := client.InstancesCreateCallbackThenPoll(ctx, id, *properties, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -205,11 +209,7 @@ func (r IotHubDeviceUpdateInstanceResource) Read() sdk.ResourceFunc {
 
 			state.DiagnosticStorageAccount = flattenDiagnosticStorageAccount(properties.DiagnosticStorageProperties, metadata)
 
-			diagnosticEnabled := false
-			if properties.EnableDiagnostics != nil {
-				diagnosticEnabled = *properties.EnableDiagnostics
-			}
-			state.DiagnosticEnabled = diagnosticEnabled
+			state.DiagnosticEnabled = pointer.From(properties.EnableDiagnostics)
 
 			if model.Tags != nil {
 				state.Tags = *model.Tags

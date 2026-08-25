@@ -86,7 +86,7 @@ func resourceBotChannelLineCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	defer cancel()
 
 	id := parse.NewBotChannelID(subscriptionId, d.Get("resource_group_name").(string), d.Get("bot_name").(string), string(botservice.ChannelNameLineChannel))
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, id.ChannelName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -230,19 +230,9 @@ func flattenLineChannel(input *[]botservice.LineRegistration) []interface{} {
 	}
 
 	for _, item := range *input {
-		var channelAccessToken string
-		if item.ChannelAccessToken != nil {
-			channelAccessToken = *item.ChannelAccessToken
-		}
-
-		var channelSecret string
-		if item.ChannelSecret != nil {
-			channelSecret = *item.ChannelSecret
-		}
-
 		results = append(results, map[string]interface{}{
-			"access_token": channelAccessToken,
-			"secret":       channelSecret,
+			"access_token": pointer.From(item.ChannelAccessToken),
+			"secret":       pointer.From(item.ChannelSecret),
 		})
 	}
 

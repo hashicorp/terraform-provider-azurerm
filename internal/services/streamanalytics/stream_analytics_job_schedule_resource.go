@@ -133,6 +133,7 @@ func (r JobScheduleResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
 			if err := client.StartThenPoll(ctx, *streamAnalyticsId, *props); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -167,15 +168,9 @@ func (r JobScheduleResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					startTime := ""
-					if v := props.OutputStartTime; v != nil {
-						startTime = *v
-					}
+					startTime := pointer.From(props.OutputStartTime)
 
-					lastOutputTime := ""
-					if v := props.LastOutputEventTime; v != nil {
-						lastOutputTime = *v
-					}
+					lastOutputTime := pointer.From(props.LastOutputEventTime)
 
 					startMode := ""
 					if v := props.OutputStartMode; v != nil {
@@ -259,8 +254,6 @@ func (r JobScheduleResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-
-			metadata.Logger.Infof("deleting %s", *id)
 
 			streamingJobId := streamingjobs.NewStreamingJobID(id.SubscriptionId, id.ResourceGroup, id.StreamingJobName)
 			if err := client.StopThenPoll(ctx, streamingJobId); err != nil {

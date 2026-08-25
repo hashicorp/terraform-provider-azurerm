@@ -5,7 +5,6 @@ package helpers
 
 import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -20,6 +19,7 @@ type LogicAppSiteConfig struct {
 	MinTLSVersion                 string          `tfschema:"min_tls_version"`
 	PreWarmedInstanceCount        int64           `tfschema:"pre_warmed_instance_count"`
 	SCMIPRestriction              []IpRestriction `tfschema:"scm_ip_restriction"`
+	SCMIpRestrictionDefaultAction string          `tfschema:"scm_ip_restriction_default_action"`
 	SCMUseMainIpRestriction       bool            `tfschema:"scm_use_main_ip_restriction"`
 	SCMMinTLSVersion              string          `tfschema:"scm_min_tls_version"`
 	SCMType                       string          `tfschema:"scm_type"`
@@ -32,12 +32,11 @@ type LogicAppSiteConfig struct {
 	DotnetFrameworkVersion        string          `tfschema:"dotnet_framework_version"`
 	VNETRouteAllEnabled           bool            `tfschema:"vnet_route_all_enabled"`
 	AutoSwapSlotName              string          `tfschema:"auto_swap_slot_name"`
-
-	PublicNetworkAccessEnabled bool `tfschema:"public_network_access_enabled,removedInNextMajorVersion"`
+	IpRestrictionDefaultAction    string          `tfschema:"ip_restriction_default_action"`
 }
 
 func SchemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
-	schema := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Computed: true,
@@ -95,6 +94,12 @@ func SchemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 				},
 
 				"scm_ip_restriction": IpRestrictionSchema(),
+
+				"scm_ip_restriction_default_action": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForDefaultAction(), false),
+				},
 
 				"scm_use_main_ip_restriction": {
 					Type:     pluginsdk.TypeBool,
@@ -180,6 +185,7 @@ func SchemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 						"v5.0",
 						"v6.0",
 						"v8.0",
+						"v10.0",
 					}, false),
 				},
 
@@ -189,6 +195,12 @@ func SchemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 					Computed: true,
 				},
 
+				"ip_restriction_default_action": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForDefaultAction(), false),
+				},
+
 				"auto_swap_slot_name": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
@@ -196,37 +208,4 @@ func SchemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		schema.Elem.(*pluginsdk.Resource).Schema["public_network_access_enabled"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "the `site_config.public_network_access_enabled` property has been superseded by the `public_network_access` property and will be removed in v5.0 of the AzureRM Provider.",
-		}
-		schema.Elem.(*pluginsdk.Resource).Schema["scm_min_tls_version"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(webapps.SupportedTlsVersionsOnePointZero),
-				string(webapps.SupportedTlsVersionsOnePointOne),
-				string(webapps.SupportedTlsVersionsOnePointTwo),
-				string(webapps.SupportedTlsVersionsOnePointThree),
-			}, false),
-		}
-		schema.Elem.(*pluginsdk.Resource).Schema["min_tls_version"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(webapps.SupportedTlsVersionsOnePointZero),
-				string(webapps.SupportedTlsVersionsOnePointOne),
-				string(webapps.SupportedTlsVersionsOnePointTwo),
-				string(webapps.SupportedTlsVersionsOnePointThree),
-			}, false),
-		}
-	}
-
-	return schema
 }

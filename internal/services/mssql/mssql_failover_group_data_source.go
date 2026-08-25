@@ -49,7 +49,7 @@ func (d MsSqlFailoverGroupDataSource) ResourceType() string {
 }
 
 func (d MsSqlFailoverGroupDataSource) ModelObject() interface{} {
-	return nil
+	return &MsSqlFailoverGroupDataSourceModel{}
 }
 
 func (d MsSqlFailoverGroupDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -144,9 +144,6 @@ func (d MsSqlFailoverGroupDataSource) Read() sdk.ResourceFunc {
 			}
 
 			id := failovergroups.NewFailoverGroupID(subscriptionId, serverId.ResourceGroupName, serverId.ServerName, state.Name)
-			if err != nil {
-				return err
-			}
 
 			existing, err := client.Get(ctx, id)
 			if err != nil {

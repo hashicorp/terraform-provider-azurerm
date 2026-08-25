@@ -16,10 +16,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-04-01/registries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -236,6 +237,16 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			"storage_account_access_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  workspaces.SystemDatastoresAuthModeAccessKey,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(workspaces.SystemDatastoresAuthModeAccessKey),
+					string(workspaces.SystemDatastoresAuthModeIdentity),
+				}, false),
+			},
+
 			"serverless_compute": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -279,14 +290,16 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 
 	id := workspaces.NewWorkspaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_machine_learning_workspace", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_machine_learning_workspace", id.ID())
+		}
 	}
 
 	expandedIdentity, err := expandMachineLearningWorkspaceIdentity(d.Get("identity").([]interface{}))
@@ -310,10 +323,9 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		Sku: &workspaces.Sku{
 			Name: d.Get("sku_name").(string),
-			Tier: pointer.To(workspaces.SkuTier(d.Get("sku_name").(string))),
+			Tier: pointer.ToEnum[workspaces.SkuTier](d.Get("sku_name").(string)),
 		},
-		Kind: pointer.To(d.Get("kind").(string)),
-
+		Kind:     pointer.To(d.Get("kind").(string)),
 		Identity: expandedIdentity,
 		Properties: &workspaces.WorkspaceProperties{
 			ApplicationInsights:            pointer.To(d.Get("application_insights_id").(string)),
@@ -324,6 +336,7 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 			PublicNetworkAccess:            pointer.To(networkAccessBehindVnetEnabled),
 			EnableServiceSideCMKEncryption: pointer.To(d.Get("service_side_encryption_enabled").(bool)),
 			StorageAccount:                 pointer.To(d.Get("storage_account_id").(string)),
+			SystemDatastoresAuthMode:       pointer.ToEnum[workspaces.SystemDatastoresAuthMode](d.Get("storage_account_access_type").(string)),
 			V1LegacyMode:                   pointer.To(d.Get("v1_legacy_mode_enabled").(bool)),
 		},
 	}
@@ -373,7 +386,7 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 		workspace.Properties.FeatureStoreSettings = featureStore
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, workspace); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, workspace, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -463,12 +476,16 @@ func resourceMachineLearningWorkspaceUpdate(d *pluginsdk.ResourceData, meta inte
 	if d.HasChange("sku_name") {
 		payload.Sku = &workspaces.Sku{
 			Name: d.Get("sku_name").(string),
-			Tier: pointer.To(workspaces.SkuTier(d.Get("sku_name").(string))),
+			Tier: pointer.ToEnum[workspaces.SkuTier](d.Get("sku_name").(string)),
 		}
 	}
 
 	if d.HasChange("v1_legacy_mode_enabled") {
 		payload.Properties.V1LegacyMode = pointer.To(d.Get("v1_legacy_mode_enabled").(bool))
+	}
+
+	if d.HasChange("storage_account_access_type") {
+		payload.Properties.SystemDatastoresAuthMode = pointer.ToEnum[workspaces.SystemDatastoresAuthMode](d.Get("storage_account_access_type").(string))
 	}
 
 	if d.HasChange("serverless_compute") {
@@ -563,6 +580,7 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("public_network_access_enabled", *props.PublicNetworkAccess == workspaces.PublicNetworkAccessEnabled)
 			d.Set("service_side_encryption_enabled", props.EnableServiceSideCMKEncryption)
 			d.Set("v1_legacy_mode_enabled", props.V1LegacyMode)
+			d.Set("storage_account_access_type", pointer.FromEnum(props.SystemDatastoresAuthMode))
 			d.Set("workspace_id", props.WorkspaceId)
 			d.Set("managed_network", flattenMachineLearningWorkspaceManagedNetwork(props.ManagedNetwork, props.ProvisionNetworkNow))
 			d.Set("serverless_compute", flattenMachineLearningWorkspaceServerlessCompute(props.ServerlessComputeSettings))
@@ -663,7 +681,7 @@ func flattenMachineLearningWorkspaceIdentity(input *identity.LegacySystemAndUser
 			transform.TenantId = input.TenantId
 		}
 
-		if input != nil && input.IdentityIds != nil {
+		if input.IdentityIds != nil {
 			for k, v := range input.IdentityIds {
 				transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
 					ClientId:    v.ClientId,
@@ -795,7 +813,7 @@ func expandMachineLearningWorkspaceManagedNetwork(i []interface{}) (*workspaces.
 	v := i[0].(map[string]interface{})
 
 	return &workspaces.ManagedNetworkSettings{
-		IsolationMode: pointer.To(workspaces.IsolationMode(v["isolation_mode"].(string))),
+		IsolationMode: pointer.ToEnum[workspaces.IsolationMode](v["isolation_mode"].(string)),
 	}, v["provision_on_creation_enabled"].(bool)
 }
 

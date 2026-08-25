@@ -95,8 +95,7 @@ func resourceDataFactoryLinkedServiceAzureBlobStorage() *pluginsdk.Resource {
 				ExactlyOneOf: []string{"connection_string", "connection_string_insecure", "sas_uri", "service_endpoint"},
 			},
 
-			// TODO for @favoretti: rename this to 'sas_token_linked_key_vault_key' for 3.4.0
-			"key_vault_sas_token": {
+			"sas_token_linked_key_vault_key": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -229,15 +228,17 @@ func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *pluginsdk.Resour
 	id := parse.NewLinkedServiceID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Data Factory Blob Storage Anonymous %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
+			if err != nil {
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("checking for presence of existing Data Factory Blob Storage Anonymous %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_data_factory_linked_service_azure_blob_storage", id.ID())
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return tf.ImportAsExistsError("azurerm_data_factory_linked_service_azure_blob_storage", id.ID())
+			}
 		}
 	}
 
@@ -255,14 +256,14 @@ func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *pluginsdk.Resour
 	}
 
 	if v, ok := d.GetOk("sas_uri"); ok {
-		if sasToken, ok := d.GetOk("key_vault_sas_token"); ok {
-			blobStorageProperties.SasURI = pointer.To(v.(string))
+		blobStorageProperties.SasURI = &datafactory.SecureString{
+			Value: pointer.To(v.(string)),
+			Type:  datafactory.TypeSecureString,
+		}
+
+		if sasToken, ok := d.GetOk("sas_token_linked_key_vault_key"); ok {
 			blobStorageProperties.SasToken = expandAzureKeyVaultSecretReference(sasToken.([]interface{}))
-		} else {
-			blobStorageProperties.SasURI = &datafactory.SecureString{
-				Value: pointer.To(v.(string)),
-				Type:  datafactory.TypeSecureString,
-			}
+			blobStorageProperties.SasURI = pointer.To(v.(string))
 		}
 	}
 
@@ -323,7 +324,9 @@ func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *pluginsdk.Resour
 		return fmt.Errorf("creating/updating Data Factory Blob Storage %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
 
 	return resourceDataFactoryLinkedServiceBlobStorageRead(d, meta)
 }
@@ -381,8 +384,8 @@ func resourceDataFactoryLinkedServiceBlobStorageRead(d *pluginsdk.ResourceData, 
 		d.Set("storage_kind", properties.AccountKind)
 		if sasToken := properties.SasToken; sasToken != nil {
 			if keyVaultPassword, ok := sasToken.AsAzureKeyVaultSecretReference(); ok {
-				if err := d.Set("key_vault_sas_token", flattenAzureKeyVaultSecretReference(keyVaultPassword)); err != nil {
-					return fmt.Errorf("setting `key_vault_sas_token`: %+v", err)
+				if err := d.Set("sas_token_linked_key_vault_key", flattenAzureKeyVaultSecretReference(keyVaultPassword)); err != nil {
+					return fmt.Errorf("setting `sas_token_linked_key_vault_key`: %+v", err)
 				}
 			}
 		}

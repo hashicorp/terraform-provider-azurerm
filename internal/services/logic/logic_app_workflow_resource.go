@@ -283,11 +283,9 @@ func resourceLogicAppWorkflowCreate(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Logic App Workflow creation.")
-
 	id := workflows.NewWorkflowID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -363,7 +361,7 @@ func resourceLogicAppWorkflowCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, properties); err != nil {
-		return fmt.Errorf("[ERROR] Error creating Logic App Workflow %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -987,11 +985,7 @@ func flattenLogicAppWorkflowIPAddressRanges(input *[]workflows.IPAddressRange) [
 	}
 
 	for _, item := range *input {
-		var addressRange string
-		if item.AddressRange != nil {
-			addressRange = *item.AddressRange
-		}
-		results = append(results, addressRange)
+		results = append(results, pointer.From(item.AddressRange))
 	}
 
 	return results
@@ -1020,19 +1014,9 @@ func flattenLogicAppWorkflowOpenAuthenticationPolicyClaim(input *[]workflows.Ope
 	}
 
 	for _, item := range *input {
-		var name string
-		if item.Name != nil {
-			name = *item.Name
-		}
-
-		var value string
-		if item.Value != nil {
-			value = *item.Value
-		}
-
 		results = append(results, map[string]interface{}{
-			"name":  name,
-			"value": value,
+			"name":  pointer.From(item.Name),
+			"value": pointer.From(item.Value),
 		})
 	}
 

@@ -22,19 +22,6 @@ func FlattenSqlServerBlobAuditingPolicies(extendedServerBlobAuditingPolicy *sql.
 		storageEndpoint = *extendedServerBlobAuditingPolicy.StorageEndpoint
 	}
 
-	var secondKeyInUse bool
-	if extendedServerBlobAuditingPolicy.IsStorageSecondaryKeyInUse != nil {
-		secondKeyInUse = *extendedServerBlobAuditingPolicy.IsStorageSecondaryKeyInUse
-	}
-	var retentionDays int32
-	if extendedServerBlobAuditingPolicy.RetentionDays != nil {
-		retentionDays = *extendedServerBlobAuditingPolicy.RetentionDays
-	}
-	var monitor bool
-	if extendedServerBlobAuditingPolicy.IsAzureMonitorTargetEnabled != nil {
-		monitor = *extendedServerBlobAuditingPolicy.IsAzureMonitorTargetEnabled
-	}
-
 	var storageAccountSubscriptionId string
 	if extendedServerBlobAuditingPolicy.StorageAccountSubscriptionID != nil && extendedServerBlobAuditingPolicy.StorageAccountSubscriptionID.String() != "00000000-0000-0000-0000-000000000000" {
 		storageAccountSubscriptionId = extendedServerBlobAuditingPolicy.StorageAccountSubscriptionID.String()
@@ -44,9 +31,9 @@ func FlattenSqlServerBlobAuditingPolicies(extendedServerBlobAuditingPolicy *sql.
 		map[string]interface{}{
 			"storage_account_access_key":              storageAccessKey,
 			"storage_endpoint":                        storageEndpoint,
-			"storage_account_access_key_is_secondary": secondKeyInUse,
-			"retention_in_days":                       retentionDays,
-			"log_monitoring_enabled":                  monitor,
+			"storage_account_access_key_is_secondary": pointer.From(extendedServerBlobAuditingPolicy.IsStorageSecondaryKeyInUse),
+			"retention_in_days":                       pointer.From(extendedServerBlobAuditingPolicy.RetentionDays),
+			"log_monitoring_enabled":                  pointer.From(extendedServerBlobAuditingPolicy.IsAzureMonitorTargetEnabled),
 			"storage_account_subscription_id":         storageAccountSubscriptionId,
 		},
 	}
@@ -90,26 +77,13 @@ func FlattenMsSqlDBBlobAuditingPolicies(extendedDatabaseBlobAuditingPolicy *sql.
 	if extendedDatabaseBlobAuditingPolicy.StorageEndpoint != nil {
 		storageEndpoint = *extendedDatabaseBlobAuditingPolicy.StorageEndpoint
 	}
-	var secondKeyInUse bool
-	if extendedDatabaseBlobAuditingPolicy.IsStorageSecondaryKeyInUse != nil {
-		secondKeyInUse = *extendedDatabaseBlobAuditingPolicy.IsStorageSecondaryKeyInUse
-	}
-	var retentionDays int32
-	if extendedDatabaseBlobAuditingPolicy.RetentionDays != nil {
-		retentionDays = *extendedDatabaseBlobAuditingPolicy.RetentionDays
-	}
-	var monitor bool
-	if extendedDatabaseBlobAuditingPolicy.IsAzureMonitorTargetEnabled != nil {
-		monitor = *extendedDatabaseBlobAuditingPolicy.IsAzureMonitorTargetEnabled
-	}
-
 	return []interface{}{
 		map[string]interface{}{
 			"storage_account_access_key":              storageAccessKey,
 			"storage_endpoint":                        storageEndpoint,
-			"storage_account_access_key_is_secondary": secondKeyInUse,
-			"retention_in_days":                       retentionDays,
-			"log_monitoring_enabled":                  monitor,
+			"storage_account_access_key_is_secondary": pointer.From(extendedDatabaseBlobAuditingPolicy.IsStorageSecondaryKeyInUse),
+			"retention_in_days":                       pointer.From(extendedDatabaseBlobAuditingPolicy.RetentionDays),
+			"log_monitoring_enabled":                  pointer.From(extendedDatabaseBlobAuditingPolicy.IsAzureMonitorTargetEnabled),
 		},
 	}
 }

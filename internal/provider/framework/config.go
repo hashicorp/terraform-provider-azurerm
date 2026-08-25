@@ -127,6 +127,11 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 	p.clientBuilder.DisableTerraformPartnerID = getEnvBoolOrDefault(data.DisableTerraformPartnerId, "ARM_DISABLE_TERRAFORM_PARTNER_ID", false)
 	p.clientBuilder.StorageUseAzureAD = getEnvBoolOrDefault(data.StorageUseAzureAD, "ARM_STORAGE_USE_AZUREAD", false)
 
+	if os.Getenv("ARM_PROVIDER_ENHANCED_VALIDATION") != "" {
+		diags.Append(diag.NewErrorDiagnostic("unsupported environment variable", "the environment variable `ARM_PROVIDER_ENHANCED_VALIDATION` has been removed in v5.0 of the AzureRM Provider - please use the `enhanced_validation` block inside the `features` block or the replacement environment variables `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` and `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS` instead"))
+		return
+	}
+
 	f := providerfeatures.UserFeatures{}
 
 	// features is required, but we'll play safe here
@@ -519,6 +524,50 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 		} else {
 			f.DatabricksWorkspace.ForceDelete = false
 		}
+
+		if !features.ServiceBus.IsNull() && !features.ServiceBus.IsUnknown() {
+			var feature []ServiceBus
+			d := features.ServiceBus.ElementsAs(ctx, &feature, true)
+			diags.Append(d...)
+			if diags.HasError() {
+				return
+			}
+
+			f.ServiceBus.AutoDeleteSubscriptionDefaultRule = false
+			if !feature[0].AutoDeleteSubscriptionDefaultRule.IsNull() && !feature[0].AutoDeleteSubscriptionDefaultRule.IsUnknown() {
+				f.ServiceBus.AutoDeleteSubscriptionDefaultRule = feature[0].AutoDeleteSubscriptionDefaultRule.ValueBool()
+			}
+		} else {
+			f.ServiceBus.AutoDeleteSubscriptionDefaultRule = false
+		}
+
+		f.EnhancedValidation.Locations = providerfeatures.EnhancedValidationLocationsEnabled()
+		f.EnhancedValidation.ResourceProviders = providerfeatures.EnhancedValidationResourceProvidersEnabled()
+		f.EnhancedValidation.PreflightEnabled = providerfeatures.EnhancedValidationPreflightEnabled()
+		f.EnhancedValidation.LocationFallback = providerfeatures.EnhancedValidationLocationFallback()
+
+		if !features.EnhancedValidation.IsNull() && !features.EnhancedValidation.IsUnknown() {
+			var evList []EnhancedValidationModel
+			d := features.EnhancedValidation.ElementsAs(ctx, &evList, true)
+			diags.Append(d...)
+			if diags.HasError() {
+				return
+			}
+			if len(evList) > 0 {
+				if !evList[0].Locations.IsNull() && !evList[0].Locations.IsUnknown() {
+					f.EnhancedValidation.Locations = evList[0].Locations.ValueBool()
+				}
+				if !evList[0].ResourceProviders.IsNull() && !evList[0].ResourceProviders.IsUnknown() {
+					f.EnhancedValidation.ResourceProviders = evList[0].ResourceProviders.ValueBool()
+				}
+				if !evList[0].PreflightEnabled.IsNull() && !evList[0].PreflightEnabled.IsUnknown() {
+					f.EnhancedValidation.PreflightEnabled = evList[0].PreflightEnabled.ValueBool()
+				}
+				if !evList[0].LocationFallback.IsNull() && !evList[0].LocationFallback.IsUnknown() {
+					f.EnhancedValidation.LocationFallback = evList[0].LocationFallback.ValueStringPointer()
+				}
+			}
+		}
 	}
 
 	p.clientBuilder.Features = f
@@ -538,18 +587,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 	client.StopContext = ctx
 
-	resourceProviderRegistrationSet := getEnvStringOrDefault(data.ResourceProviderRegistrations, "ARM_RESOURCE_PROVIDER_REGISTRATIONS", resourceproviders.ProviderRegistrationsCore)
-	if !providerfeatures.FivePointOh() {
-		resourceProviderRegistrationSet = getEnvStringOrDefault(data.ResourceProviderRegistrations, "ARM_RESOURCE_PROVIDER_REGISTRATIONS", resourceproviders.ProviderRegistrationsLegacy)
-	}
-
-	if !data.SkipProviderRegistration.ValueBool() {
-		if resourceProviderRegistrationSet != resourceproviders.ProviderRegistrationsLegacy {
-			diags.Append(diag.NewErrorDiagnostic("resource provider registration misconfiguration", "provider property `skip_provider_registration` cannot be set at the same time as `resource_provider_registrations`, please remove `skip_provider_registration` from your configuration or unset the `ARM_SKIP_PROVIDER_REGISTRATION` environment variable"))
-		}
-
-		resourceProviderRegistrationSet = resourceproviders.ProviderRegistrationsNone
-	}
+	resourceProviderRegistrationSet := getEnvStringOrDefault(data.ResourceProviderRegistrations, "ARM_RESOURCE_PROVIDER_REGISTRATIONS", resourceproviders.ProviderRegistrationsNone)
 
 	requiredResourceProviders, err := resourceproviders.GetResourceProvidersSet(resourceProviderRegistrationSet)
 	if err != nil {
@@ -572,9 +610,12 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 	ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
 	defer cancel()
 
-	if err = resourceproviders.EnsureRegistered(ctx2, client.Resource.ResourceProvidersClient, subId, requiredResourceProviders); err != nil {
-		diags.AddError("registering resource providers", err.Error())
-		return
+	// Ensure that we do not trigger the RP cache when running in VCR mode or the cassettes have a base size of 3.5MiB!
+	if os.Getenv("TC_TEST_VIA_VCR") == "" {
+		if err = resourceproviders.EnsureRegistered(ctx2, client.Resource.ResourceProvidersClient, subId, requiredResourceProviders, f.EnhancedValidation.ResourceProviders); err != nil {
+			diags.AddError("registering resource providers", err.Error())
+			return
+		}
 	}
 
 	p.Client = client

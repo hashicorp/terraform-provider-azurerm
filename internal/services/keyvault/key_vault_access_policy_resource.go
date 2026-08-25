@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-02-01/vaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/vaults"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -110,13 +110,11 @@ func resourceKeyVaultAccessPolicyCreate(d *pluginsdk.ResourceData, meta interfac
 				tenantIdMatches := policy.TenantId == tenantId
 				objectIdMatches := policy.ObjectId == objectId
 
-				appId := ""
-				if policy.ApplicationId != nil {
-					appId = *policy.ApplicationId
-				}
-				applicationIdMatches := appId == applicationId
+				applicationIdMatches := pointer.From(policy.ApplicationId) == applicationId
 				if tenantIdMatches && objectIdMatches && applicationIdMatches {
-					return tf.ImportAsExistsError("azurerm_key_vault_access_policy", id.ID())
+					if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+						return tf.ImportAsExistsError("azurerm_key_vault_access_policy", id.ID())
+					}
 				}
 			}
 		}
@@ -390,10 +388,7 @@ func findKeyVaultAccessPolicy(policies *[]vaults.AccessPolicyEntry, objectId str
 
 	for _, policy := range *policies {
 		if strings.EqualFold(policy.ObjectId, objectId) {
-			aid := ""
-			if policy.ApplicationId != nil {
-				aid = *policy.ApplicationId
-			}
+			aid := pointer.From(policy.ApplicationId)
 
 			if strings.EqualFold(aid, applicationId) {
 				return &policy

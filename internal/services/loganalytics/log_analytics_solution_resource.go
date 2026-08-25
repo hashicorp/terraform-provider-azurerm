@@ -151,15 +151,17 @@ func (s LogAnalyticsSolutionResource) Create() sdk.ResourceFunc {
 			// "SolutionName(WorkspaceName)". Feedback will be submitted to the OMS team as IMO this isn't ideal.
 			id := solution.NewSolutionID(subscriptionId, config.ResourceGroupName, fmt.Sprintf("%s(%s)", config.SolutionName, config.WorkspaceName))
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_log_analytics_solution", id.ID())
+				if !response.WasNotFound(existing.HttpResponse) {
+					return tf.ImportAsExistsError("azurerm_log_analytics_solution", id.ID())
+				}
 			}
 
 			workspaceID, err := workspaces.ParseWorkspaceID(config.WorkspaceResourceId)
@@ -182,8 +184,7 @@ func (s LogAnalyticsSolutionResource) Create() sdk.ResourceFunc {
 				parameters.Plan = &solutionPlan
 			}
 
-			err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
-			if err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -272,8 +273,7 @@ func (s LogAnalyticsSolutionResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			err = client.DeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
@@ -324,14 +324,12 @@ func expandAzureRmLogAnalyticsSolutionPlan(plans []SolutionPlanModel) solution.S
 	promotionCode := plan.PromotionCode
 	product := plan.Product
 
-	expandedPlan := solution.SolutionPlan{
+	return solution.SolutionPlan{
 		Name:          pointer.To(name),
 		PromotionCode: pointer.To(promotionCode),
 		Publisher:     pointer.To(publisher),
 		Product:       pointer.To(product),
 	}
-
-	return expandedPlan
 }
 
 func flattenAzureRmLogAnalyticsSolutionPlan(input *solution.SolutionPlan) []SolutionPlanModel {

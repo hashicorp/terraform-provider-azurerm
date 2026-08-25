@@ -13,9 +13,9 @@ import (
 type Registration struct{}
 
 var (
-	_ sdk.FrameworkServiceRegistration               = Registration{}
 	_ sdk.TypedServiceRegistration                   = Registration{}
 	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+	_ sdk.FrameworkServiceRegistration               = Registration{}
 )
 
 func (r Registration) AssociatedGitHubLabel() string {
@@ -46,41 +46,47 @@ func (r Registration) WebsiteCategories() []string {
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
-	dataSources := map[string]*pluginsdk.Resource{
+	return map[string]*pluginsdk.Resource{
 		"azurerm_mysql_flexible_server": dataSourceMysqlFlexibleServer(),
 	}
-
-	return dataSources
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
-	resources := map[string]*pluginsdk.Resource{
+	return map[string]*pluginsdk.Resource{
 		"azurerm_mysql_flexible_server":               resourceMysqlFlexibleServer(),
 		"azurerm_mysql_flexible_database":             resourceMySqlFlexibleDatabase(),
 		"azurerm_mysql_flexible_server_configuration": resourceMySQLFlexibleServerConfiguration(),
 		"azurerm_mysql_flexible_server_firewall_rule": resourceMySqlFlexibleServerFirewallRule(),
 	}
-
-	return resources
 }
 
+// Actions implements [sdk.FrameworkServiceRegistration].
 func (r Registration) Actions() []func() action.Action {
 	return []func() action.Action{}
 }
 
-func (r Registration) FrameworkResources() []sdk.FrameworkWrappedResource {
-	return []sdk.FrameworkWrappedResource{}
-}
-
-func (r Registration) FrameworkDataSources() []sdk.FrameworkWrappedDataSource {
-	return []sdk.FrameworkWrappedDataSource{}
-}
-
+// EphemeralResources implements [sdk.FrameworkServiceRegistration].
 func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource {
 	return []func() ephemeral.EphemeralResource{}
 }
 
+// FrameworkDataSources implements [sdk.FrameworkServiceRegistration].
+func (r Registration) FrameworkDataSources() []sdk.FrameworkWrappedDataSource {
+	return []sdk.FrameworkWrappedDataSource{}
+}
+
+// FrameworkResources implements [sdk.FrameworkServiceRegistration].
+func (r Registration) FrameworkResources() []sdk.FrameworkWrappedResource {
+	return []sdk.FrameworkWrappedResource{}
+}
+
+// ListResources returns a list of List Resources supported by this Service
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
-	return []sdk.FrameworkListWrappedResource{}
+	return []sdk.FrameworkListWrappedResource{
+		MysqlFlexibleServerListResource{},
+		MysqlFlexibleDatabaseListResource{},
+		MysqlFlexibleServerFirewallRuleListResource{},
+		MysqlFlexibleServerConfigurationListResource{},
+	}
 }

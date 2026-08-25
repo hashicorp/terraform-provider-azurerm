@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -121,15 +122,17 @@ func resourceDevTestGlobalVMShutdownScheduleCreateUpdate(d *pluginsdk.ResourceDa
 	id := globalschedules.NewScheduleID(vmId.SubscriptionId, vmId.ResourceGroupName, name)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, globalschedules.GetOperationOptions{})
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id, globalschedules.GetOperationOptions{})
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_dev_test_global_vm_shutdown_schedule", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_dev_test_global_vm_shutdown_schedule", id.ID())
+			}
 		}
 	}
 
@@ -156,13 +159,11 @@ func resourceDevTestGlobalVMShutdownScheduleCreateUpdate(d *pluginsdk.ResourceDa
 	}
 
 	if v, ok := d.GetOk("daily_recurrence_time"); ok {
-		dailyRecurrence := expandDevTestGlobalVMShutdownScheduleRecurrenceDaily(v)
-		schedule.Properties.DailyRecurrence = dailyRecurrence
+		schedule.Properties.DailyRecurrence = expandDevTestGlobalVMShutdownScheduleRecurrenceDaily(v)
 	}
 
 	if _, ok := d.GetOk("notification_settings"); ok {
-		notificationSettings := expandDevTestGlobalVMShutdownScheduleNotificationSettings(d)
-		schedule.Properties.NotificationSettings = notificationSettings
+		schedule.Properties.NotificationSettings = expandDevTestGlobalVMShutdownScheduleNotificationSettings(d)
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, schedule); err != nil {
@@ -246,12 +247,7 @@ func flattenDevTestGlobalVMShutdownScheduleRecurrenceDaily(dailyRecurrence *glob
 		return nil
 	}
 
-	var result string
-	if dailyRecurrence.Time != nil {
-		result = *dailyRecurrence.Time
-	}
-
-	return result
+	return pointer.From(dailyRecurrence.Time)
 }
 
 func expandDevTestGlobalVMShutdownScheduleNotificationSettings(d *pluginsdk.ResourceData) *globalschedules.NotificationSettings {
