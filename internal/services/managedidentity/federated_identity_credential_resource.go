@@ -130,35 +130,6 @@ func (r FederatedIdentityCredentialResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			// The ManagedIdentity API is eventually consistent: an immediate GET after a successful
-			// CreateOrUpdate can return a 404 for a short window while the resource propagates. Terraform
-			// runs a Read straight after Create, so without waiting for the resource to become consistently
-			// available this races and surfaces as "Root object was present, but now absent".
-			deadline, ok := ctx.Deadline()
-			if !ok {
-				return fmt.Errorf("internal-error: context had no deadline")
-			}
-			stateConf := &pluginsdk.StateChangeConf{
-				Pending: []string{"NotFound"},
-				Target:  []string{"Found"},
-				Refresh: func() (interface{}, string, error) {
-					resp, err := client.Get(ctx, id)
-					if err != nil {
-						if response.WasNotFound(resp.HttpResponse) {
-							return resp, "NotFound", nil
-						}
-						return resp, "Error", err
-					}
-					return resp, "Found", nil
-				},
-				MinTimeout:                5 * time.Second,
-				ContinuousTargetOccurence: 3,
-				Timeout:                   time.Until(deadline),
-			}
-			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-				return fmt.Errorf("waiting for %s to become available: %+v", id, err)
-			}
-
 			metadata.SetID(id)
 			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
 				return err
