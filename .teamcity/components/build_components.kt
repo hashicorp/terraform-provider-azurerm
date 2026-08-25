@@ -30,10 +30,40 @@ fun BuildFeatures.BuildCacheFeature() {
         })
 }
 
+// Ensure that daysOfWeek constraints in the overrides are honoured.
+fun BuildSteps.CheckScheduleConstraints() {
+    step(ScriptBuildStep {
+        name = "Check Schedule Constraints"
+        scriptContent = """
+            #!/bin/bash
+            # TeamCity days: 1=Sun, 2=Mon, 3=Tue, 4=Wed, 5=Thu, 6=Fri, 7=Sat
+            DAY_NUM=${'$'}(( ${'$'}(date +%w) + 1 ))
+
+            # manual/gh trigger should bypass the daysOfWeek overrides.
+            if [[ "%env.IS_NIGHTLY_RUN%" == "true" ]]; then
+                if [[ ! ",%DAYS_OF_WEEK%," =~ ",${'$'}{DAY_NUM}," && "%DAYS_OF_WEEK%" != "*" ]]; then
+                    echo "Today is day ${'$'}{DAY_NUM}. This job is constrained to run only on days: %DAYS_OF_WEEK%."
+                    echo "Skipping test execution for this service."
+                    # Tell TeamCity to skip subsequent steps using a service message
+                    echo "##teamcity[setParameter name='env.SCHEDULE_MATCHES' value='false']"
+                else
+                    echo "Schedule matches. Proceeding with tests."
+                fi
+            else
+                echo "This is not a scheduled nightly run (likely triggered manually or via PR chat-ops)."
+                echo "Bypassing schedule constraints."
+            fi
+        """.trimIndent()
+    })
+}
+
 fun BuildSteps.SetBuildStartTime() {
     step(ScriptBuildStep {
         name = "Set Build Start Time"
         scriptContent = File("scripts/set_build_start_time.sh").readText()
+        conditions {
+            equals("env.SCHEDULE_MATCHES", "true")
+        }
     })
 }
 
@@ -41,6 +71,9 @@ fun BuildSteps.ConfigureGoEnv() {
     step(ScriptBuildStep {
         name = "Configure Go Version"
         scriptContent = "goenv install -s \$(goenv local) && goenv rehash"
+        conditions {
+            equals("env.SCHEDULE_MATCHES", "true")
+        }
     })
 }
 
@@ -50,6 +83,9 @@ fun BuildSteps.DownloadTerraformBinary() {
     step(ScriptBuildStep {
         name = "Download Terraform Core v%env.TERRAFORM_CORE_VERSION%.."
         scriptContent = "mkdir -p tools && wget -O tf.zip %s && unzip tf.zip && mv terraform tools/".format(terraformUrl)
+        conditions {
+            equals("env.SCHEDULE_MATCHES", "true")
+        }
     })
 }
 
@@ -65,12 +101,18 @@ fun BuildSteps.RunAcceptanceTests(packageName: String) {
     step(ScriptBuildStep {
         name          = "Determine Working Directory for this Package"
         scriptContent = "if [ -d \"%s/tests\" ]; then echo \"%s\"; fi".format(packagePath, withTestsDirectoryPath)
+        conditions {
+            equals("env.SCHEDULE_MATCHES", "true")
+        }
     })
 
     if (useTeamCityGoTest) {
         step(ScriptBuildStep {
             name = "Run Tests"
             scriptContent = "go test -v \"%SERVICE_PATH%\" -timeout=\"%TIMEOUT%h\" -test.parallel=\"%PARALLELISM%\" -run=\"%TEST_PREFIX%\" -json"
+            conditions {
+                equals("env.SCHEDULE_MATCHES", "true")
+            }
         })
     } else {
         step(ScriptBuildStep {
@@ -81,6 +123,9 @@ fun BuildSteps.RunAcceptanceTests(packageName: String) {
                             go test -c -o test-binary
                             """.trimIndent()
             workingDir = "%SERVICE_PATH%"
+            conditions {
+                equals("env.SCHEDULE_MATCHES", "true")
+            }
         })
 
         step(ScriptBuildStep {
@@ -88,6 +133,9 @@ fun BuildSteps.RunAcceptanceTests(packageName: String) {
             name = "Run via jen20/teamcity-go-test"
             scriptContent = "./test-binary -test.list=\"%TEST_PREFIX%\" | teamcity-go-test -test ./test-binary -parallelism \"%PARALLELISM%\" -timeout \"%TIMEOUT%h\""
             workingDir = "%SERVICE_PATH%"
+            conditions {
+                equals("env.SCHEDULE_MATCHES", "true")
+            }
         })
     }
 }
@@ -98,17 +146,26 @@ fun BuildSteps.RunAcceptanceTestsForPullRequest(packageName: String) {
         step(ScriptBuildStep {
             name = "Run Tests"
             scriptContent = "go test -v \"$servicePath\" -timeout=\"%TIMEOUT%h\" -test.parallel=\"%PARALLELISM%\" -run=\"%TEST_PREFIX%\" -json"
+            conditions {
+                equals("env.SCHEDULE_MATCHES", "true")
+            }
         })
     } else {
         // Building a binary with teamcity-go-test doesn't work for multiple packages, so fallback to this
         step(ScriptBuildStep {
             name = "Install tombuildsstuff/teamcity-go-test-json"
             scriptContent = "wget https://github.com/tombuildsstuff/teamcity-go-test-json/releases/download/v0.2.0/teamcity-go-test-json_linux_amd64 && chmod +x teamcity-go-test-json_linux_amd64"
+            conditions {
+                equals("env.SCHEDULE_MATCHES", "true")
+            }
         })
 
         step(ScriptBuildStep {
             name = "Run Tests"
             scriptContent = "GOFLAGS=\"-mod=vendor\" ./teamcity-go-test-json_linux_amd64 -scope \"$servicePath\" -prefix \"%TEST_PREFIX%\" -count=1 -parallelism=%PARALLELISM% -timeout %TIMEOUT% | tee results.txt"
+            conditions {
+                equals("env.SCHEDULE_MATCHES", "true")
+            }
         })
     }
 }
@@ -118,6 +175,9 @@ fun BuildSteps.PostTestResultsToGitHubPullRequest() {
         name = "Post Test Results to GitHub Pull Request"
         scriptContent = File("scripts/post_github_comment.sh").readText()
         workingDir = "%SERVICE_PATH%"
+        conditions {
+            equals("env.SCHEDULE_MATCHES", "true")
+        }
     })
 }
 

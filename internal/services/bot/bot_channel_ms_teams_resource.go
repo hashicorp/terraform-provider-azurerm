@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -25,7 +24,7 @@ import (
 )
 
 func resourceBotChannelMsTeams() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceBotChannelMsTeamsCreate,
 		Read:   resourceBotChannelMsTeamsRead,
 		Delete: resourceBotChannelMsTeamsDelete,
@@ -81,24 +80,6 @@ func resourceBotChannelMsTeams() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["calling_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"enable_calling"},
-		}
-		resource.Schema["enable_calling"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"calling_enabled"},
-			Deprecated:    "The property `enable_calling` is deprecated in favour of `calling_enabled` and will be removed in version 5.0 of the AzureRM Provider.",
-		}
-	}
-
-	return resource
 }
 
 func resourceBotChannelMsTeamsCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -133,13 +114,6 @@ func resourceBotChannelMsTeamsCreate(d *pluginsdk.ResourceData, meta interface{}
 		},
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
-	}
-
-	if !features.FivePointOh() {
-		if v, ok := d.GetOk("enable_calling"); ok {
-			channel, _ := channel.Properties.AsMsTeamsChannel()
-			channel.Properties.EnableCalling = pointer.To(v.(bool))
-		}
 	}
 
 	if v, ok := d.GetOk("calling_web_hook"); ok {
@@ -186,9 +160,6 @@ func resourceBotChannelMsTeamsRead(d *pluginsdk.ResourceData, meta interface{}) 
 				d.Set("calling_web_hook", channelProps.CallingWebhook)
 				d.Set("deployment_environment", channelProps.DeploymentEnvironment)
 				d.Set("calling_enabled", channelProps.EnableCalling)
-				if !features.FivePointOh() {
-					d.Set("enable_calling", channelProps.EnableCalling)
-				}
 			}
 		}
 	}
@@ -219,13 +190,6 @@ func resourceBotChannelMsTeamsUpdate(d *pluginsdk.ResourceData, meta interface{}
 		},
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
-	}
-
-	if !features.FivePointOh() {
-		if v, ok := d.GetOk("enable_calling"); ok {
-			channel, _ := channel.Properties.AsMsTeamsChannel()
-			channel.Properties.EnableCalling = pointer.To(v.(bool))
-		}
 	}
 
 	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameMsTeamsChannel, channel); err != nil {

@@ -303,7 +303,7 @@ func ExpandElasticSANVolumeCreateSource(input []ElasticSANVolumeCreateSource) *v
 
 	return &volumes.SourceCreationData{
 		SourceId:     pointer.To(input[0].SourceId),
-		CreateSource: pointer.To(volumes.VolumeCreateOption(input[0].SourceType)),
+		CreateSource: pointer.ToEnum[volumes.VolumeCreateOption](input[0].SourceType),
 	}
 }
 

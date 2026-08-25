@@ -220,11 +220,10 @@ func (r MaintenanceDynamicScopeResource) Create() sdk.ResourceFunc {
 						tags[tag.Tag] = tag.Values
 					}
 
-					tagProperties := &configurationassignments.TagSettingsProperties{
-						FilterOperator: pointer.To(configurationassignments.TagOperators(filter.TagFilter)),
+					filterProperties.TagSettings = &configurationassignments.TagSettingsProperties{
+						FilterOperator: pointer.ToEnum[configurationassignments.TagOperators](filter.TagFilter),
 						Tags:           pointer.To(tags),
 					}
-					filterProperties.TagSettings = tagProperties
 				}
 				configurationAssignment.Properties.Filter = pointer.To(filterProperties)
 			}
@@ -351,11 +350,10 @@ func (MaintenanceDynamicScopeResource) Update() sdk.ResourceFunc {
 							tags[tag.Tag] = tag.Values
 						}
 
-						tagProperties := &configurationassignments.TagSettingsProperties{
-							FilterOperator: pointer.To(configurationassignments.TagOperators(filter.TagFilter)),
+						filterProperties.TagSettings = &configurationassignments.TagSettingsProperties{
+							FilterOperator: pointer.ToEnum[configurationassignments.TagOperators](filter.TagFilter),
 							Tags:           pointer.To(tags),
 						}
-						filterProperties.TagSettings = tagProperties
 					}
 
 					if pointer.To(filterProperties) != nil {

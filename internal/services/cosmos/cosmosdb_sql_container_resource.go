@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -21,11 +22,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceCosmosDbSQLContainer() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceCosmosDbSQLContainerCreate,
 		Read:   resourceCosmosDbSQLContainerRead,
 		Update: resourceCosmosDbSQLContainerUpdate,
@@ -156,8 +156,6 @@ func resourceCosmosDbSQLContainer() *pluginsdk.Resource {
 			}),
 		),
 	}
-
-	return resource
 }
 
 func resourceCosmosDbSQLContainerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -197,11 +195,11 @@ func resourceCosmosDbSQLContainerCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	db.Properties.Resource.PartitionKey = &cosmosdb.ContainerPartitionKey{
-		Kind: pointer.To(cosmosdb.PartitionKind(d.Get("partition_key_kind").(string))),
+		Kind: pointer.ToEnum[cosmosdb.PartitionKind](d.Get("partition_key_kind").(string)),
 	}
 
 	if v, ok := d.GetOk("partition_key_paths"); ok {
-		db.Properties.Resource.PartitionKey.Paths = utils.ExpandStringSlice(v.([]interface{}))
+		db.Properties.Resource.PartitionKey.Paths = helpers.ExpandStringSlice(v.([]interface{}))
 	}
 
 	if partitionKeyVersion, ok := d.GetOk("partition_key_version"); ok {
@@ -251,8 +249,7 @@ func resourceCosmosDbSQLContainerUpdate(d *pluginsdk.ResourceData, meta interfac
 		return err
 	}
 
-	err = common.CheckForChangeFromAutoscaleAndManualThroughput(d)
-	if err != nil {
+	if err = common.CheckForChangeFromAutoscaleAndManualThroughput(d); err != nil {
 		return fmt.Errorf("checking `autoscale_settings` and `throughput` for %s: %w", id, err)
 	}
 
@@ -272,11 +269,11 @@ func resourceCosmosDbSQLContainerUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	db.Properties.Resource.PartitionKey = &cosmosdb.ContainerPartitionKey{
-		Kind: pointer.To(cosmosdb.PartitionKind(d.Get("partition_key_kind").(string))),
+		Kind: pointer.ToEnum[cosmosdb.PartitionKind](d.Get("partition_key_kind").(string)),
 	}
 
 	if v, ok := d.GetOk("partition_key_paths"); ok {
-		db.Properties.Resource.PartitionKey.Paths = utils.ExpandStringSlice(v.([]interface{}))
+		db.Properties.Resource.PartitionKey.Paths = helpers.ExpandStringSlice(v.([]interface{}))
 	}
 
 	if partitionKeyVersion, ok := d.GetOk("partition_key_version"); ok {
@@ -297,8 +294,7 @@ func resourceCosmosDbSQLContainerUpdate(d *pluginsdk.ResourceData, meta interfac
 		db.Properties.Resource.DefaultTtl = pointer.To(int64(defaultTTL.(int)))
 	}
 
-	err = client.SqlResourcesCreateUpdateSqlContainerThenPoll(ctx, *id, db)
-	if err != nil {
+	if err = client.SqlResourcesCreateUpdateSqlContainerThenPoll(ctx, *id, db); err != nil {
 		return fmt.Errorf("updating %q: %+v", id, err)
 	}
 
@@ -342,7 +338,7 @@ func resourceCosmosDbSQLContainerRead(d *pluginsdk.ResourceData, meta interface{
 			if res := props.Resource; res != nil {
 				if pk := res.PartitionKey; pk != nil {
 					d.Set("partition_key_kind", pointer.FromEnum(pk.Kind))
-					d.Set("partition_key_paths", utils.FlattenStringSlice(pk.Paths))
+					d.Set("partition_key_paths", helpers.FlattenStringSlice(pk.Paths))
 					d.Set("partition_key_version", pk.Version)
 				}
 
@@ -398,8 +394,7 @@ func resourceCosmosDbSQLContainerDelete(d *pluginsdk.ResourceData, meta interfac
 		return err
 	}
 
-	err = client.SqlResourcesDeleteSqlContainerThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.SqlResourcesDeleteSqlContainerThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
@@ -422,7 +417,7 @@ func expandCosmosSQLContainerUniqueKeys(s *pluginsdk.Set) *[]cosmosdb.UniqueKey 
 		}
 
 		keys = append(keys, cosmosdb.UniqueKey{
-			Paths: utils.ExpandStringSlice(paths),
+			Paths: helpers.ExpandStringSlice(paths),
 		})
 	}
 

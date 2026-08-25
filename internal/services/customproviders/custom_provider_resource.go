@@ -253,7 +253,7 @@ func expandCustomProviderResourceType(input []interface{}) *[]customresourceprov
 
 		attrs := v.(map[string]interface{})
 		definitions = append(definitions, customresourceprovider.CustomRPResourceTypeRouteDefinition{
-			RoutingType: pointer.To(customresourceprovider.ResourceTypeRouting(attrs["routing_type"].(string))),
+			RoutingType: pointer.ToEnum[customresourceprovider.ResourceTypeRouting](attrs["routing_type"].(string)),
 			Name:        attrs["name"].(string),
 			Endpoint:    attrs["endpoint"].(string),
 		})

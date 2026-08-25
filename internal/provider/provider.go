@@ -16,10 +16,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func AzureProvider() *schema.Provider {
@@ -36,6 +36,7 @@ func AzureProviderWithTestName(testName string) *schema.Provider {
 	return azureProvider(false, testName)
 }
 
+// lintignore:V013 // false positive - this validates a UUID with an optional pid- prefix/suffix; the string comparison checks for empty values
 func ValidatePartnerID(i interface{}, k string) ([]string, []error) {
 	// ValidatePartnerID checks if partner_id is any of the following:
 	//  * a valid UUID - will add "pid-" prefix to the ID if it is not already present
@@ -397,7 +398,7 @@ func providerConfigure(p *schema.Provider, testName string) schema.ConfigureCont
 
 		var auxTenants []string
 		if v, ok := d.Get("auxiliary_tenant_ids").([]interface{}); ok && len(v) > 0 {
-			auxTenants = *utils.ExpandStringSlice(v)
+			auxTenants = *helpers.ExpandStringSlice(v)
 		} else if v := os.Getenv("ARM_AUXILIARY_TENANT_IDS"); v != "" {
 			auxTenants = strings.Split(v, ";")
 		}

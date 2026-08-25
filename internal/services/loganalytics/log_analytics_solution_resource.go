@@ -273,8 +273,7 @@ func (s LogAnalyticsSolutionResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			err = client.DeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
@@ -325,14 +324,12 @@ func expandAzureRmLogAnalyticsSolutionPlan(plans []SolutionPlanModel) solution.S
 	promotionCode := plan.PromotionCode
 	product := plan.Product
 
-	expandedPlan := solution.SolutionPlan{
+	return solution.SolutionPlan{
 		Name:          pointer.To(name),
 		PromotionCode: pointer.To(promotionCode),
 		Publisher:     pointer.To(publisher),
 		Product:       pointer.To(product),
 	}
-
-	return expandedPlan
 }
 
 func flattenAzureRmLogAnalyticsSolutionPlan(input *solution.SolutionPlan) []SolutionPlanModel {

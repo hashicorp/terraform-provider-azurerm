@@ -253,19 +253,9 @@ func flattenFacebookPage(input *[]botservice.FacebookPage) []interface{} {
 	}
 
 	for _, item := range *input {
-		var id string
-		if item.ID != nil {
-			id = *item.ID
-		}
-
-		var accessToken string
-		if item.AccessToken != nil {
-			accessToken = *item.AccessToken
-		}
-
 		results = append(results, map[string]interface{}{
-			"id":           id,
-			"access_token": accessToken,
+			"id":           pointer.From(item.ID),
+			"access_token": pointer.From(item.AccessToken),
 		})
 	}
 
