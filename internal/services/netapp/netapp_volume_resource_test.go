@@ -33,6 +33,13 @@ func getOverriddenTestLocations() struct {
 	}
 }
 
+// getBreakthroughModeTestLocation returns the region used by the Breakthrough Mode tests. Breakthrough Mode volumes
+// are placed on dedicated capacity that is only onboarded in specific regions, so these tests cannot share the
+// regions used by the remaining NetApp Volume tests.
+func getBreakthroughModeTestLocation() string {
+	return "swedencentral"
+}
+
 type NetAppVolumeResource struct{}
 
 func TestAccNetAppVolume_basic(t *testing.T) {
@@ -1588,7 +1595,7 @@ resource "azurerm_netapp_volume" "test" {
   breakthrough_mode_enabled = true
   throughput_in_mibps       = 38.4
 }
-`, r.template(data), data.RandomInteger)
+`, r.templateBreakthroughMode(data), data.RandomInteger)
 }
 
 func (r NetAppVolumeResource) breakthroughModeResized(data acceptance.TestData) string {
@@ -1610,7 +1617,7 @@ resource "azurerm_netapp_volume" "test" {
   breakthrough_mode_enabled = true
   throughput_in_mibps       = 48
 }
-`, r.template(data), data.RandomInteger)
+`, r.templateBreakthroughMode(data), data.RandomInteger)
 }
 
 func (r NetAppVolumeResource) breakthroughModeWithoutLargeVolume(data acceptance.TestData) string {
@@ -1632,7 +1639,7 @@ resource "azurerm_netapp_volume" "test" {
   breakthrough_mode_enabled = true
   throughput_in_mibps       = 38.4
 }
-`, r.template(data), data.RandomInteger)
+`, r.templateBreakthroughMode(data), data.RandomInteger)
 }
 
 func (r NetAppVolumeResource) breakthroughModeBelowMinimumSize(data acceptance.TestData) string {
@@ -1654,7 +1661,7 @@ resource "azurerm_netapp_volume" "test" {
   breakthrough_mode_enabled = true
   throughput_in_mibps       = 32
 }
-`, r.template(data), data.RandomInteger)
+`, r.templateBreakthroughMode(data), data.RandomInteger)
 }
 
 func (r NetAppVolumeResource) breakthroughModeWithCoolAccess(data acceptance.TestData) string {
@@ -1682,7 +1689,150 @@ resource "azurerm_netapp_volume" "test" {
     coolness_period_in_days = 30
   }
 }
-`, r.templateCoolAccess(data), data.RandomInteger)
+`, r.templateBreakthroughModeCoolAccess(data), data.RandomInteger)
+}
+
+func (r NetAppVolumeResource) templateBreakthroughMode(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-netapp-%[2]d"
+  location = "%[3]s"
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
+    "SkipASMAzSecPack" = "true",
+    "SkipNRMSNSG"      = "true"
+  }
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest-VirtualNetwork-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.88.0.0/16"]
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctest-Subnet-%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.88.2.0/24"]
+
+  delegation {
+    name = "testdelegation"
+
+    service_delegation {
+      name    = "Microsoft.Netapp/volumes"
+      actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
+    }
+  }
+}
+
+resource "azurerm_netapp_account" "test" {
+  name                = "acctest-NetAppAccount-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+
+resource "azurerm_netapp_pool" "test" {
+  name                = "acctest-NetAppPool-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  service_level       = "Standard"
+  size_in_tb          = 4
+  qos_type            = "Manual"
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+`, r.templateProviderFeatureFlags(), data.RandomInteger, getBreakthroughModeTestLocation())
+}
+
+func (r NetAppVolumeResource) templateBreakthroughModeCoolAccess(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-netapp-%[2]d"
+  location = "%[3]s"
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
+    "SkipASMAzSecPack" = "true",
+    "SkipNRMSNSG"      = "true"
+  }
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest-VirtualNetwork-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.88.0.0/16"]
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctest-Subnet-%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.88.2.0/24"]
+
+  delegation {
+    name = "testdelegation"
+
+    service_delegation {
+      name    = "Microsoft.Netapp/volumes"
+      actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
+    }
+  }
+}
+
+resource "azurerm_netapp_account" "test" {
+  name                = "acctest-NetAppAccount-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+
+resource "azurerm_netapp_pool" "test" {
+  name                = "acctest-NetAppPool-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  service_level       = "Standard"
+  size_in_tb          = 4
+  qos_type            = "Manual"
+  cool_access_enabled = true
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+`, r.templateProviderFeatureFlags(), data.RandomInteger, getBreakthroughModeTestLocation())
 }
 
 func (r NetAppVolumeResource) templateLargePool(data acceptance.TestData) string {
