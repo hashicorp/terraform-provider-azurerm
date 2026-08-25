@@ -14,9 +14,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2023-01-01/pricings"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -179,21 +181,23 @@ func resourceSecurityCenterSubscriptionPricingCreate(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("extensions cannot be enabled when using free tier")
 	}
 
-	updateResponse, updateErr := client.Update(ctx, id, pricing)
-	if updateErr != nil {
-		return fmt.Errorf("setting %s: %+v", id, updateErr)
+	pollerType := custompollers.NewSubscriptionPricingUpdatePoller(client, id, pricing)
+	poller := pollers.NewPoller(pollerType, 5*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+	if err := poller.PollUntilDone(ctx); err != nil {
+		return fmt.Errorf("setting %s: %+v", id, err)
 	}
 
 	// the extensions from backend might vary after pricing tier changed.
+	updateResponse := pollerType.Response
 	if updateResponse.Model != nil && updateResponse.Model.Properties != nil && updateResponse.Model.Properties.Extensions != nil {
 		extensionsStatusFromBackend = *updateResponse.Model.Properties.Extensions
 	}
 
 	pricing.Properties.Extensions = expandSecurityCenterSubscriptionPricingExtensions(realCfgExtensions, &extensionsStatusFromBackend)
 
-	_, updateErr = client.Update(ctx, id, pricing)
-	if updateErr != nil {
-		return fmt.Errorf("updating %s: %+v", id, updateErr)
+	poller = pollers.NewPoller(custompollers.NewSubscriptionPricingUpdatePoller(client, id, pricing), 5*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+	if err := poller.PollUntilDone(ctx); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -260,12 +264,14 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 		requiredAdditionalUpdate = currentlyFreeTier
 	}
 
-	updateResponse, err := client.Update(ctx, *id, update)
-	if err != nil {
+	pollerType := custompollers.NewSubscriptionPricingUpdatePoller(client, *id, update)
+	poller := pollers.NewPoller(pollerType, 5*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("setting %s: %+v", id, err)
 	}
 
 	// The extensions list from backend might vary after `tier` changed, thus we need to retrieve it again.
+	updateResponse := pollerType.Response
 	if updateResponse.Model != nil && updateResponse.Model.Properties != nil {
 		if updateResponse.Model.Properties.Extensions != nil {
 			extensionsStatusFromBackend = *updateResponse.Model.Properties.Extensions
@@ -274,7 +280,8 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 
 	if requiredAdditionalUpdate {
 		update.Properties.Extensions = expandSecurityCenterSubscriptionPricingExtensions(realCfgExtensions, &extensionsStatusFromBackend)
-		if _, err := client.Update(ctx, *id, update); err != nil {
+		poller = pollers.NewPoller(custompollers.NewSubscriptionPricingUpdatePoller(client, *id, update), 5*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+		if err := poller.PollUntilDone(ctx); err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
 		}
 	}
@@ -339,7 +346,8 @@ func resourceSecurityCenterSubscriptionPricingDelete(d *pluginsdk.ResourceData, 
 		},
 	}
 
-	if _, err := client.Update(ctx, *id, pricing); err != nil {
+	poller := pollers.NewPoller(custompollers.NewSubscriptionPricingUpdatePoller(client, *id, pricing), 5*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("setting %s: %+v", id, err)
 	}
 
