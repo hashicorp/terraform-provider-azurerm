@@ -275,29 +275,13 @@ func (r OutputPowerBIResource) Read() sdk.ResourceFunc {
 						StreamAnalyticsJob: streamingJobId.ID(),
 					}
 
-					dataset := ""
-					if v := output.Properties.Dataset; v != nil {
-						dataset = *v
-					}
-					state.DataSet = dataset
+					state.DataSet = pointer.From(output.Properties.Dataset)
 
-					table := ""
-					if v := output.Properties.Table; v != nil {
-						table = *v
-					}
-					state.Table = table
+					state.Table = pointer.From(output.Properties.Table)
 
-					groupId := ""
-					if v := output.Properties.GroupId; v != nil {
-						groupId = *v
-					}
-					state.GroupID = groupId
+					state.GroupID = pointer.From(output.Properties.GroupId)
 
-					groupName := ""
-					if v := output.Properties.GroupName; v != nil {
-						groupName = *v
-					}
-					state.GroupName = groupName
+					state.GroupName = pointer.From(output.Properties.GroupName)
 
 					state.TokenUserDisplayName = metadata.ResourceData.Get("token_user_display_name").(string)
 					state.TokenUserPrincipalName = metadata.ResourceData.Get("token_user_principal_name").(string)

@@ -355,11 +355,7 @@ func (r MachineLearningDataStoreDataLakeGen2) Read() sdk.ResourceFunc {
 				}
 			}
 
-			desc := ""
-			if v := data.Description; v != nil {
-				desc = *v
-			}
-			model.Description = desc
+			model.Description = pointer.From(data.Description)
 
 			if data.Tags != nil {
 				model.Tags = *data.Tags

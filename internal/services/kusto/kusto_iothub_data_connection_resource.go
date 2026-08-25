@@ -270,8 +270,7 @@ func resourceKustoIotHubDataConnectionUpdate(d *pluginsdk.ResourceData, meta int
 		Properties: props,
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, *id, dataConnection)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, *id, dataConnection); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -288,8 +287,7 @@ func resourceKustoIotHubDataConnectionDelete(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 

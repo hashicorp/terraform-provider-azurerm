@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -208,11 +209,7 @@ func (r IotHubDeviceUpdateInstanceResource) Read() sdk.ResourceFunc {
 
 			state.DiagnosticStorageAccount = flattenDiagnosticStorageAccount(properties.DiagnosticStorageProperties, metadata)
 
-			diagnosticEnabled := false
-			if properties.EnableDiagnostics != nil {
-				diagnosticEnabled = *properties.EnableDiagnostics
-			}
-			state.DiagnosticEnabled = diagnosticEnabled
+			state.DiagnosticEnabled = pointer.From(properties.EnableDiagnostics)
 
 			if model.Tags != nil {
 				state.Tags = *model.Tags

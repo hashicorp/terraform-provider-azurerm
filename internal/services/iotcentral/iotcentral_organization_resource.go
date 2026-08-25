@@ -128,9 +128,6 @@ func (r IotCentralOrganizationResource) Read() sdk.ResourceFunc {
 			}
 
 			appId := apps.NewIotAppID(id.SubscriptionId, id.ResourceGroup, id.IotAppName)
-			if err != nil {
-				return err
-			}
 
 			app, err := client.AppsClient.Get(ctx, appId)
 			if err != nil || app.Model == nil {
@@ -182,9 +179,6 @@ func (r IotCentralOrganizationResource) Update() sdk.ResourceFunc {
 			}
 
 			appId := apps.NewIotAppID(id.SubscriptionId, id.ResourceGroup, id.IotAppName)
-			if err != nil {
-				return err
-			}
 
 			app, err := client.AppsClient.Get(ctx, appId)
 			if err != nil || app.Model == nil {
@@ -234,9 +228,6 @@ func (r IotCentralOrganizationResource) Delete() sdk.ResourceFunc {
 			}
 
 			appId := apps.NewIotAppID(id.SubscriptionId, id.ResourceGroup, id.IotAppName)
-			if err != nil {
-				return err
-			}
 
 			app, err := client.AppsClient.Get(ctx, appId)
 			if err != nil || app.Model == nil {

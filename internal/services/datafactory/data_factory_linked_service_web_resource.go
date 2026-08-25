@@ -157,11 +157,10 @@ func resourceDataFactoryLinkedServiceWebCreateUpdate(d *pluginsdk.ResourceData, 
 	authenticationType := d.Get("authentication_type").(string)
 
 	if authenticationType == "Anonymous" {
-		anonAuthProperties := &datafactory.WebAnonymousAuthentication{
+		webLinkedService.TypeProperties = &datafactory.WebAnonymousAuthentication{
 			AuthenticationType: datafactory.AuthenticationType(authenticationType),
 			URL:                pointer.To(url),
 		}
-		webLinkedService.TypeProperties = anonAuthProperties
 	}
 
 	if authenticationType == "Basic" {
@@ -171,13 +170,12 @@ func resourceDataFactoryLinkedServiceWebCreateUpdate(d *pluginsdk.ResourceData, 
 			Value: &password,
 			Type:  datafactory.TypeSecureString,
 		}
-		basicAuthProperties := &datafactory.WebBasicAuthentication{
+		webLinkedService.TypeProperties = &datafactory.WebBasicAuthentication{
 			AuthenticationType: datafactory.AuthenticationType(authenticationType),
 			URL:                pointer.To(url),
 			Username:           username,
 			Password:           passwordSecureString,
 		}
-		webLinkedService.TypeProperties = basicAuthProperties
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {

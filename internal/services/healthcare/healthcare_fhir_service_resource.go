@@ -285,13 +285,11 @@ func resourceHealthcareApisFhirServiceCreate(d *pluginsdk.ResourceData, meta int
 	acrConfig := fhirservices.FhirServiceAcrConfiguration{}
 	ociArtifactsRaw, hasValues := d.GetOk("oci_artifact")
 	if hasValues {
-		ociArtifacts := expandOciArtifacts(ociArtifactsRaw.([]interface{}))
-		acrConfig.OciArtifacts = ociArtifacts
+		acrConfig.OciArtifacts = expandOciArtifacts(ociArtifactsRaw.([]interface{}))
 	}
 	loginServersRaw, hasValues := d.GetOk("container_registry_login_server_url")
 	if hasValues {
-		loginServers := expandFhirAcrLoginServer(loginServersRaw.(*pluginsdk.Set).List())
-		acrConfig.LoginServers = loginServers
+		acrConfig.LoginServers = expandFhirAcrLoginServer(loginServersRaw.(*pluginsdk.Set).List())
 	}
 	parameters.Properties.AcrConfiguration = &acrConfig
 
@@ -427,18 +425,15 @@ func resourceHealthcareApisFhirServiceUpdate(d *pluginsdk.ResourceData, meta int
 	acrConfig := fhirservices.FhirServiceAcrConfiguration{}
 	ociArtifactsRaw, hasValues := d.GetOk("oci_artifact")
 	if hasValues {
-		ociArtifacts := expandOciArtifacts(ociArtifactsRaw.([]interface{}))
-		acrConfig.OciArtifacts = ociArtifacts
+		acrConfig.OciArtifacts = expandOciArtifacts(ociArtifactsRaw.([]interface{}))
 	}
 	loginServersRaw, hasValues := d.GetOk("container_registry_login_server_url")
 	if hasValues {
-		loginServers := expandFhirAcrLoginServer(loginServersRaw.(*pluginsdk.Set).List())
-		acrConfig.LoginServers = loginServers
+		acrConfig.LoginServers = expandFhirAcrLoginServer(loginServersRaw.(*pluginsdk.Set).List())
 	}
 	parameters.Properties.AcrConfiguration = &acrConfig
 
-	err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -456,8 +451,7 @@ func resourceHealthcareApisFhirServiceDelete(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
@@ -497,13 +491,11 @@ func expandFhirAuthentication(input []interface{}) *fhirservices.FhirServiceAuth
 	audience := authConfig["audience"].(string)
 	smartProxyEnabled := authConfig["smart_proxy_enabled"].(bool)
 
-	auth := &fhirservices.FhirServiceAuthenticationConfiguration{
+	return &fhirservices.FhirServiceAuthenticationConfiguration{
 		Authority:         pointer.To(authority),
 		Audience:          pointer.To(audience),
 		SmartProxyEnabled: pointer.To(smartProxyEnabled),
 	}
-
-	return auth
 }
 
 func expandAccessPolicy(input []interface{}) *[]fhirservices.FhirServiceAccessPolicyEntry {
@@ -633,14 +625,9 @@ func flattenFhirCorsConfiguration(corsConfig *fhirservices.FhirServiceCorsConfig
 		maxAge = int(*corsConfig.MaxAge)
 	}
 
-	allowCredentials := false
-	if corsConfig.AllowCredentials != nil {
-		allowCredentials = *corsConfig.AllowCredentials
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"credentials_allowed": allowCredentials,
+			"credentials_allowed": pointer.From(corsConfig.AllowCredentials),
 			"allowed_headers":     helpers.FlattenStringSlice(corsConfig.Headers),
 			"allowed_methods":     helpers.FlattenStringSlice(corsConfig.Methods),
 			"allowed_origins":     helpers.FlattenStringSlice(corsConfig.Origins),
@@ -654,26 +641,11 @@ func flattenFhirAuthentication(authConfig *fhirservices.FhirServiceAuthenticatio
 		return []interface{}{}
 	}
 
-	authority := ""
-	if authConfig.Authority != nil {
-		authority = *authConfig.Authority
-	}
-
-	audience := ""
-	if authConfig.Audience != nil {
-		audience = *authConfig.Audience
-	}
-
-	smartProxyEnabled := false
-	if authConfig.SmartProxyEnabled != nil {
-		smartProxyEnabled = *authConfig.SmartProxyEnabled
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"audience":            audience,
-			"authority":           authority,
-			"smart_proxy_enabled": smartProxyEnabled,
+			"audience":            pointer.From(authConfig.Audience),
+			"authority":           pointer.From(authConfig.Authority),
+			"smart_proxy_enabled": pointer.From(authConfig.SmartProxyEnabled),
 		},
 	}
 }

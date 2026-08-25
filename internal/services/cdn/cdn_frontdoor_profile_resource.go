@@ -256,8 +256,7 @@ func resourceCdnFrontDoorProfileUpdate(d *pluginsdk.ResourceData, meta interface
 		props.Identity = i
 	}
 
-	err = client.UpdateThenPoll(ctx, pointer.From(id), props)
-	if err != nil {
+	if err = client.UpdateThenPoll(ctx, pointer.From(id), props); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 

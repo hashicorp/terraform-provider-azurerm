@@ -14,14 +14,13 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/privatelinkservices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func dataSourcePrivateLinkService() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Read: dataSourcePrivateLinkServiceRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -99,16 +98,6 @@ func dataSourcePrivateLinkService() *pluginsdk.Resource {
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["enable_proxy_protocol"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Computed:   true,
-			Deprecated: "the `enable_proxy_protocol` property has been deprecated in favour of the `proxy_protocol_enabled` property and will be removed in v5.0 of the AzureRM Provider",
-		}
-	}
-
-	return resource
 }
 
 func dataSourcePrivateLinkServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -137,9 +126,6 @@ func dataSourcePrivateLinkServiceRead(d *pluginsdk.ResourceData, meta interface{
 			d.Set("alias", props.Alias)
 
 			d.Set("proxy_protocol_enabled", props.EnableProxyProtocol)
-			if !features.FivePointOh() {
-				d.Set("enable_proxy_protocol", props.EnableProxyProtocol)
-			}
 
 			if autoApproval := props.AutoApproval; autoApproval != nil {
 				if err := d.Set("auto_approval_subscription_ids", helpers.FlattenStringSlice(autoApproval.Subscriptions)); err != nil {

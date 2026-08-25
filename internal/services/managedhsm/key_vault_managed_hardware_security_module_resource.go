@@ -346,11 +346,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleRead(d *pluginsdk.ResourceD
 		d.Set("location", location.NormalizeNilable(model.Location))
 
 		if props := model.Properties; props != nil {
-			tenantId := ""
-			if props.TenantId != nil {
-				tenantId = *props.TenantId
-			}
-			d.Set("tenant_id", tenantId)
+			d.Set("tenant_id", pointer.From(props.TenantId))
 			d.Set("admin_object_ids", helpers.FlattenStringSlice(props.InitialAdminObjectIds))
 			d.Set("hsm_uri", props.HsmUri)
 			d.Set("soft_delete_retention_days", props.SoftDeleteRetentionInDays)
@@ -441,12 +437,10 @@ func expandMHSMNetworkAcls(input []interface{}) *managedhsms.MHSMNetworkRuleSet 
 		return nil
 	}
 	v := input[0].(map[string]interface{})
-	res := &managedhsms.MHSMNetworkRuleSet{
+	return &managedhsms.MHSMNetworkRuleSet{
 		Bypass:        pointer.ToEnum[managedhsms.NetworkRuleBypassOptions](v["bypass"].(string)),
 		DefaultAction: pointer.ToEnum[managedhsms.NetworkRuleAction](v["default_action"].(string)),
 	}
-
-	return res
 }
 
 func flattenMHSMNetworkAcls(acl *managedhsms.MHSMNetworkRuleSet) []interface{} {
@@ -528,8 +522,7 @@ func securityDomainDownload(ctx context.Context, sdClient *kv74.HSMSecurityDomai
 		Value string `json:"value"`
 	}
 
-	err = json.Unmarshal(data, &encData)
-	if err != nil {
+	if err = json.Unmarshal(data, &encData); err != nil {
 		return "", fmt.Errorf("unmarshal EncData: %v", err)
 	}
 

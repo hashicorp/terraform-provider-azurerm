@@ -495,14 +495,8 @@ func flattenArmSparkPoolAutoPauseProperties(input *synapse.AutoPauseProperties) 
 		return make([]interface{}, 0)
 	}
 
-	var delayInMinutes int32
-	if input.DelayInMinutes != nil {
-		delayInMinutes = *input.DelayInMinutes
-	}
-	var enabled bool
-	if input.Enabled != nil {
-		enabled = *input.Enabled
-	}
+	delayInMinutes := pointer.From(input.DelayInMinutes)
+	enabled := pointer.From(input.Enabled)
 
 	if !enabled {
 		return make([]interface{}, 0)
@@ -520,23 +514,14 @@ func flattenArmSparkPoolAutoScaleProperties(input *synapse.AutoScaleProperties) 
 		return make([]interface{}, 0)
 	}
 
-	var enabled bool
-	if input.Enabled != nil {
-		enabled = *input.Enabled
-	}
+	enabled := pointer.From(input.Enabled)
 
 	if !enabled {
 		return make([]interface{}, 0)
 	}
 
-	var maxNodeCount int32
-	if input.MaxNodeCount != nil {
-		maxNodeCount = *input.MaxNodeCount
-	}
-	var minNodeCount int32
-	if input.MinNodeCount != nil {
-		minNodeCount = *input.MinNodeCount
-	}
+	maxNodeCount := pointer.From(input.MaxNodeCount)
+	minNodeCount := pointer.From(input.MinNodeCount)
 	return []interface{}{
 		map[string]interface{}{
 			"max_node_count": maxNodeCount,
@@ -550,14 +535,8 @@ func flattenArmSparkPoolLibraryRequirements(input *synapse.LibraryRequirements) 
 		return make([]interface{}, 0)
 	}
 
-	var content string
-	if input.Content != nil {
-		content = *input.Content
-	}
-	var filename string
-	if input.Filename != nil {
-		filename = *input.Filename
-	}
+	content := pointer.From(input.Content)
+	filename := pointer.From(input.Filename)
 	return []interface{}{
 		map[string]interface{}{
 			"content":  content,
@@ -571,14 +550,8 @@ func flattenSparkPoolSparkConfig(input *synapse.SparkConfigProperties) []interfa
 		return make([]interface{}, 0)
 	}
 
-	var content string
-	if input.Content != nil {
-		content = *input.Content
-	}
-	var filename string
-	if input.Filename != nil {
-		filename = *input.Filename
-	}
+	content := pointer.From(input.Content)
+	filename := pointer.From(input.Filename)
 	return []interface{}{
 		map[string]interface{}{
 			"content":  content,

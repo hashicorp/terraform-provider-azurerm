@@ -2013,8 +2013,7 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("global") {
-		globalConfiguration := expandApplicationGatewayGlobalConfiguration(d.Get("global").([]interface{}))
-		payload.Properties.GlobalConfiguration = globalConfiguration
+		payload.Properties.GlobalConfiguration = expandApplicationGatewayGlobalConfiguration(d.Get("global").([]interface{}))
 	}
 
 	if d.HasChange("http_listener") {
@@ -2072,9 +2071,7 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("probe") {
-		probes := expandApplicationGatewayProbes(d.Get("probe").(*schema.Set).List())
-
-		payload.Properties.Probes = probes
+		payload.Properties.Probes = expandApplicationGatewayProbes(d.Get("probe").(*schema.Set).List())
 	}
 
 	if d.HasChange("sku") {
@@ -4157,15 +4154,9 @@ func flattenApplicationGatewayRewriteRuleSets(input *[]applicationgateways.Appli
 							config := *actionSet.UrlConfiguration
 							components := ""
 
-							path := ""
-							if config.ModifiedPath != nil {
-								path = *config.ModifiedPath
-							}
+							path := pointer.From(config.ModifiedPath)
 
-							queryString := ""
-							if config.ModifiedQueryString != nil {
-								queryString = *config.ModifiedQueryString
-							}
+							queryString := pointer.From(config.ModifiedQueryString)
 
 							// `components` doesn't exist in the API - it appears to be purely a UI state in the Portal
 							// as such we should consider removing this field in the future.
@@ -4180,16 +4171,11 @@ func flattenApplicationGatewayRewriteRuleSets(input *[]applicationgateways.Appli
 								components = "path_only"
 							}
 
-							reroute := false
-							if config.Reroute != nil {
-								reroute = *config.Reroute
-							}
-
 							urlConfigs = append(urlConfigs, map[string]interface{}{
 								"components":   components,
 								"query_string": queryString,
 								"path":         path,
-								"reroute":      reroute,
+								"reroute":      pointer.From(config.Reroute),
 							})
 						}
 					}
@@ -4457,8 +4443,7 @@ func flattenApplicationGatewaySslCertificates(input *[]applicationgateways.Appli
 
 				if name == existingName {
 					if data := existingCerts["data"]; data != nil {
-						v := helpers.Base64EncodeIfNot(data.(string))
-						output["data"] = v
+						output["data"] = helpers.Base64EncodeIfNot(data.(string))
 					}
 
 					if password := existingCerts["password"]; password != nil {
@@ -5157,8 +5142,7 @@ func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceD
 	tier := d.Get("sku.0.tier").(string)
 
 	if tier == string(applicationgateways.ApplicationGatewaySkuNameBasic) {
-		err := checkBasicSkuFeatures(d)
-		if err != nil {
+		if err := checkBasicSkuFeatures(d); err != nil {
 			return err
 		}
 	} else if !hasAutoscaleConfig && !hasCapacity {

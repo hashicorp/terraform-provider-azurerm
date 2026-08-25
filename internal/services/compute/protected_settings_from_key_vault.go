@@ -89,10 +89,7 @@ func flattenProtectedSettingsFromKeyVault(input *virtualmachineextensions.KeyVau
 		return []interface{}{}
 	}
 
-	sourceVaultId := ""
-	if input.SourceVault.Id != nil {
-		sourceVaultId = *input.SourceVault.Id
-	}
+	sourceVaultId := pointer.From(input.SourceVault.Id)
 
 	return []interface{}{
 		map[string]interface{}{
@@ -107,10 +104,7 @@ func flattenProtectedSettingsFromKeyVaultVMSS(input *virtualmachinescalesets.Key
 		return []interface{}{}
 	}
 
-	sourceVaultId := ""
-	if input.SourceVault.Id != nil {
-		sourceVaultId = *input.SourceVault.Id
-	}
+	sourceVaultId := pointer.From(input.SourceVault.Id)
 
 	return []interface{}{
 		map[string]interface{}{
@@ -125,10 +119,7 @@ func flattenProtectedSettingsFromKeyVaultOldVMSSExtension(input *virtualmachines
 		return nil
 	}
 
-	sourceVaultId := ""
-	if input.SourceVault.Id != nil {
-		sourceVaultId = *input.SourceVault.Id
-	}
+	sourceVaultId := pointer.From(input.SourceVault.Id)
 
 	return []interface{}{
 		map[string]interface{}{

@@ -294,8 +294,7 @@ func (r MsSqlManagedDatabaseResource) Update() sdk.ResourceFunc {
 					Tags:     pointer.To(model.Tags),
 				}
 
-				err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
-				if err != nil {
+				if err = client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 					return fmt.Errorf("updating %s: %+v", id, err)
 				}
 			}
@@ -405,8 +404,7 @@ func (r MsSqlManagedDatabaseResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			err = client.DeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
@@ -426,14 +424,12 @@ func expandLongTermRetentionPolicy(ltrPolicy []LongTermRetentionPolicy) *managed
 		weekOfYear = ltrPolicy[0].WeekOfYear
 	}
 
-	result := &managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicyProperties{
+	return &managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicyProperties{
 		WeeklyRetention:  &ltrPolicy[0].WeeklyRetention,
 		MonthlyRetention: &ltrPolicy[0].MonthlyRetention,
 		YearlyRetention:  &ltrPolicy[0].YearlyRetention,
 		WeekOfYear:       &weekOfYear,
 	}
-
-	return result
 }
 
 func flattenLongTermRetentionPolicy(ltrPolicy managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicyProperties) []LongTermRetentionPolicy {

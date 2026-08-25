@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -149,11 +150,7 @@ func resourceLogAnalyticsLinkedStorageAccountRead(d *pluginsdk.ResourceData, met
 
 	if model := resp.Model; model != nil {
 		props := model.Properties
-		var storageAccountIds []string
-		if props.StorageAccountIds != nil {
-			storageAccountIds = *props.StorageAccountIds
-		}
-		d.Set("storage_account_ids", storageAccountIds)
+		d.Set("storage_account_ids", pointer.From(props.StorageAccountIds))
 	}
 
 	return nil

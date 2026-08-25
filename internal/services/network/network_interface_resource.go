@@ -299,8 +299,7 @@ func resourceNetworkInterfaceCreate(d *pluginsdk.ResourceData, meta interface{})
 		Tags:             tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	err = client.CreateOrUpdateCallbackThenPoll(ctx, id, iface, sdk.SetIDAndIdentityCallback(meta, &id, d))
-	if err != nil {
+	if err = client.CreateOrUpdateCallbackThenPoll(ctx, id, iface, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -418,8 +417,7 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if propsOtherThanTagsUpdated || !attachedToPrivateEndpoint {
-		err = client.CreateOrUpdateThenPoll(ctx, *id, *payload)
-		if err != nil {
+		if err = client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 			return fmt.Errorf("updating %s: %+v", *id, err)
 		}
 	}
@@ -576,8 +574,7 @@ func resourceNetworkInterfaceDelete(d *pluginsdk.ResourceData, meta interface{})
 	lockingDetails.lock()
 	defer lockingDetails.unlock()
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
@@ -662,19 +659,9 @@ func flattenNetworkInterfaceIPConfigurations(input *[]networkinterfaces.NetworkI
 	for _, ipConfig := range *input {
 		props := ipConfig.Properties
 
-		name := ""
-		if ipConfig.Name != nil {
-			name = *ipConfig.Name
-		}
-
 		subnetId := ""
 		if props.Subnet != nil && props.Subnet.Id != nil {
 			subnetId = *props.Subnet.Id
-		}
-
-		privateIPAddress := ""
-		if props.PrivateIPAddress != nil {
-			privateIPAddress = *props.PrivateIPAddress
 		}
 
 		privateIPAllocationMethod := ""
@@ -692,20 +679,15 @@ func flattenNetworkInterfaceIPConfigurations(input *[]networkinterfaces.NetworkI
 			publicIPAddressId = *props.PublicIPAddress.Id
 		}
 
-		primary := false
-		if props.Primary != nil {
-			primary = *props.Primary
-		}
-
 		gatewayLBFrontendIPConfigId := ""
 		if props.GatewayLoadBalancer != nil && props.GatewayLoadBalancer.Id != nil {
 			gatewayLBFrontendIPConfigId = *props.GatewayLoadBalancer.Id
 		}
 
 		result = append(result, map[string]interface{}{
-			"name":                          name,
-			"primary":                       primary,
-			"private_ip_address":            privateIPAddress,
+			"name":                          pointer.From(ipConfig.Name),
+			"primary":                       pointer.From(props.Primary),
+			"private_ip_address":            pointer.From(props.PrivateIPAddress),
 			"private_ip_address_allocation": privateIPAllocationMethod,
 			"private_ip_address_version":    privateIPAddressVersion,
 			"public_ip_address_id":          publicIPAddressId,

@@ -725,7 +725,7 @@ func expandFirewallPrivateIpRange(input []interface{}) map[string]string {
 }
 
 func flattenFirewallPrivateIpRange(input *map[string]string) []interface{} {
-	if input == nil && len(*input) == 0 {
+	if input == nil || len(*input) == 0 {
 		return nil
 	}
 
@@ -791,11 +791,6 @@ func flattenFirewallVirtualHubSetting(props *azurefirewalls.AzureFirewallPropert
 		return nil
 	}
 
-	var vhubId string
-	if props.VirtualHub.Id != nil {
-		vhubId = *props.VirtualHub.Id
-	}
-
 	var (
 		publicIpCount int
 		publicIps     []string
@@ -821,7 +816,7 @@ func flattenFirewallVirtualHubSetting(props *azurefirewalls.AzureFirewallPropert
 
 	return []interface{}{
 		map[string]interface{}{
-			"virtual_hub_id":      vhubId,
+			"virtual_hub_id":      pointer.From(props.VirtualHub.Id),
 			"public_ip_count":     publicIpCount,
 			"public_ip_addresses": publicIps,
 			"private_ip_address":  privateIp,

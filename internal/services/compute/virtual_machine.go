@@ -68,21 +68,10 @@ func flattenVirtualMachineAdditionalCapabilities(input *virtualmachines.Addition
 		return []interface{}{}
 	}
 
-	ultraSsdEnabled := false
-
-	if input.UltraSSDEnabled != nil {
-		ultraSsdEnabled = *input.UltraSSDEnabled
-	}
-
-	hibernationEnabled := false
-	if input.HibernationEnabled != nil {
-		hibernationEnabled = *input.HibernationEnabled
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"ultra_ssd_enabled":   ultraSsdEnabled,
-			"hibernation_enabled": hibernationEnabled,
+			"ultra_ssd_enabled":   pointer.From(input.UltraSSDEnabled),
+			"hibernation_enabled": pointer.From(input.HibernationEnabled),
 		},
 	}
 }
@@ -345,10 +334,7 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *disks.DisksCl
 		diskSizeGb = int(*input.DiskSizeGB)
 	}
 
-	var name string
-	if input.Name != nil {
-		name = *input.Name
-	}
+	name := pointer.From(input.Name)
 
 	diskEncryptionSetId := ""
 	storageAccountType := ""
@@ -405,10 +391,7 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *disks.DisksCl
 		}
 	}
 
-	writeAcceleratorEnabled := false
-	if input.WriteAcceleratorEnabled != nil {
-		writeAcceleratorEnabled = *input.WriteAcceleratorEnabled
-	}
+	writeAcceleratorEnabled := pointer.From(input.WriteAcceleratorEnabled)
 	return []interface{}{
 		map[string]interface{}{
 			"caching":                          string(pointer.From(input.Caching)),

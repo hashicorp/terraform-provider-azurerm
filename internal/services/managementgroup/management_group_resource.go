@@ -347,10 +347,9 @@ func resourceManagementGroupDelete(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
-	err = client.DeleteThenPoll(ctx, *id, managementgroups.DeleteOperationOptions{
+	if err = client.DeleteThenPoll(ctx, *id, managementgroups.DeleteOperationOptions{
 		CacheControl: &managementGroupCacheControl,
-	})
-	if err != nil {
+	}); err != nil {
 		return fmt.Errorf("unable to delete Management Group %q: %+v", id.GroupId, err)
 	}
 

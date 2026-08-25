@@ -322,8 +322,7 @@ func (r AIFoundry) Create() sdk.ResourceFunc {
 			}
 
 			if len(model.Encryption) > 0 {
-				encryption := expandEncryption(model.Encryption)
-				payload.Properties.Encryption = encryption
+				payload.Properties.Encryption = expandEncryption(model.Encryption)
 			}
 
 			if len(model.ManagedNetwork) > 0 {

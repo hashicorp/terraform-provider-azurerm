@@ -1028,16 +1028,11 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 							return fmt.Errorf("setting `additional_unattend_content`: %+v", err)
 						}
 
-						enableAutomaticUpdates := false
-						if windows.EnableAutomaticUpdates != nil {
-							enableAutomaticUpdates = *windows.EnableAutomaticUpdates
-						}
-
 						// the API requires this is set to 'true' on submission (since it's now required for Windows VMSS's with
 						// an Automatic Upgrade Mode configured) however it actually returns false from the API..
 						// after a bunch of testing the least bad option appears to be not to set this if it's an Automatic Upgrade Mode
 						if upgradeMode != virtualmachinescalesets.UpgradeModeAutomatic {
-							d.Set("automatic_updates_enabled", enableAutomaticUpdates)
+							d.Set("automatic_updates_enabled", pointer.From(windows.EnableAutomaticUpdates))
 						}
 
 						d.Set("provision_vm_agent", windows.ProvisionVMAgent)
