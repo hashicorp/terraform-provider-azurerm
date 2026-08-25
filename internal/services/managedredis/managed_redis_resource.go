@@ -552,9 +552,13 @@ func (r ManagedRedisResource) Update() sdk.ResourceFunc {
 						return fmt.Errorf("creating %s: %+v", dbId, err)
 					}
 				default:
+					oldClusteringPolicyValue, newClusteringPolicyValue := metadata.ResourceData.GetChange("default_database.0.clustering_policy")
+					oldClusteringPolicy, oldClusteringPolicyOk := oldClusteringPolicyValue.(string)
+					newClusteringPolicy, newClusteringPolicyOk := newClusteringPolicyValue.(string)
+					clusteringPolicyRequiresRecreation := oldClusteringPolicyOk && newClusteringPolicyOk && clusteringPolicyRequiresDatabaseRecreation(oldClusteringPolicy, newClusteringPolicy)
+
 					// lintignore:R019 // deliberate subsets: the first branch lists fields requiring database re-creation, the second lists fields updatable in place
-					if metadata.ResourceData.HasChanges(
-						"default_database.0.clustering_policy",
+					if clusteringPolicyRequiresRecreation || metadata.ResourceData.HasChanges(
 						"default_database.0.geo_replication_group_name",
 						"default_database.0.module",
 					) {
@@ -567,22 +571,13 @@ func (r ManagedRedisResource) Update() sdk.ResourceFunc {
 					} else if metadata.ResourceData.HasChanges(
 						"default_database.0.access_keys_authentication_enabled",
 						"default_database.0.client_protocol",
+						"default_database.0.clustering_policy",
 						"default_database.0.eviction_policy",
 						"default_database.0.persistence_append_only_file_backup_frequency",
 						"default_database.0.persistence_redis_database_backup_frequency",
 					) {
-						existingDb, err := dbClient.Get(ctx, dbId)
-						if err != nil {
-							return fmt.Errorf("retrieving existing %s: %+v", dbId, err)
-						}
-
-						dbParams := existingDb.Model
-
-						if dbParams == nil {
-							return fmt.Errorf("retrieving existing %s: `model` was nil", dbId)
-						}
-						if dbParams.Properties == nil {
-							return fmt.Errorf("retrieving existing %s: `properties` was nil", dbId)
+						dbParams := databases.DatabaseUpdate{
+							Properties: &databases.DatabaseUpdateProperties{},
 						}
 
 						if metadata.ResourceData.HasChange("default_database.0.access_keys_authentication_enabled") {
@@ -590,6 +585,9 @@ func (r ManagedRedisResource) Update() sdk.ResourceFunc {
 						}
 						if metadata.ResourceData.HasChange("default_database.0.client_protocol") {
 							dbParams.Properties.ClientProtocol = pointer.ToEnum[databases.Protocol](state.DefaultDatabase[0].ClientProtocol)
+						}
+						if metadata.ResourceData.HasChange("default_database.0.clustering_policy") {
+							dbParams.Properties.ClusteringPolicy = pointer.ToEnum[databases.ClusteringPolicy](state.DefaultDatabase[0].ClusteringPolicy)
 						}
 						if metadata.ResourceData.HasChange("default_database.0.eviction_policy") {
 							dbParams.Properties.EvictionPolicy = pointer.ToEnum[databases.EvictionPolicy](state.DefaultDatabase[0].EvictionPolicy)
@@ -604,9 +602,7 @@ func (r ManagedRedisResource) Update() sdk.ResourceFunc {
 							)
 						}
 
-						// Despite the method name, Create uses PUT (create-or-update behaviour), which is preferred to Update (PATCH)
-						// to simplify 'omitempty' / empty values handling on expand functions
-						if err := dbClient.CreateThenPoll(ctx, dbId, *dbParams); err != nil {
+						if err := dbClient.UpdateThenPoll(ctx, dbId, dbParams); err != nil {
 							return fmt.Errorf("updating %s: %+v", dbId, err)
 						}
 
@@ -735,6 +731,10 @@ func (r ManagedRedisResource) CustomizeDiff() sdk.ResourceFunc {
 			return nil
 		},
 	}
+}
+
+func clusteringPolicyRequiresDatabaseRecreation(oldPolicy, newPolicy string) bool {
+	return oldPolicy != newPolicy && oldPolicy != string(redisenterprise.ClusteringPolicyNoCluster)
 }
 
 func createDb(ctx context.Context, dbClient *databases.DatabasesClient, dbId databases.DatabaseId, dbModel DefaultDatabaseModel) error {
