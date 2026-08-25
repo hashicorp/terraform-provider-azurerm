@@ -1590,10 +1590,20 @@ resource "azurerm_netapp_volume" "test" {
   service_level             = "Standard"
   subnet_id                 = azurerm_subnet.test.id
   protocols                 = ["NFSv4.1"]
+  security_style            = "unix"
   storage_quota_in_gb       = 2400
   large_volume_enabled      = true
   breakthrough_mode_enabled = true
   throughput_in_mibps       = 38.4
+
+  export_policy_rule {
+    rule_index          = 1
+    allowed_clients     = ["0.0.0.0/0"]
+    protocol            = ["NFSv4.1"]
+    unix_read_only      = false
+    unix_read_write     = true
+    root_access_enabled = true
+  }
 }
 `, r.templateBreakthroughMode(data), data.RandomInteger)
 }
@@ -1612,10 +1622,20 @@ resource "azurerm_netapp_volume" "test" {
   service_level             = "Standard"
   subnet_id                 = azurerm_subnet.test.id
   protocols                 = ["NFSv4.1"]
+  security_style            = "unix"
   storage_quota_in_gb       = 3000
   large_volume_enabled      = true
   breakthrough_mode_enabled = true
   throughput_in_mibps       = 48
+
+  export_policy_rule {
+    rule_index          = 1
+    allowed_clients     = ["0.0.0.0/0"]
+    protocol            = ["NFSv4.1"]
+    unix_read_only      = false
+    unix_read_write     = true
+    root_access_enabled = true
+  }
 }
 `, r.templateBreakthroughMode(data), data.RandomInteger)
 }
@@ -1634,10 +1654,20 @@ resource "azurerm_netapp_volume" "test" {
   service_level             = "Standard"
   subnet_id                 = azurerm_subnet.test.id
   protocols                 = ["NFSv4.1"]
+  security_style            = "unix"
   storage_quota_in_gb       = 2400
   large_volume_enabled      = false
   breakthrough_mode_enabled = true
   throughput_in_mibps       = 38.4
+
+  export_policy_rule {
+    rule_index          = 1
+    allowed_clients     = ["0.0.0.0/0"]
+    protocol            = ["NFSv4.1"]
+    unix_read_only      = false
+    unix_read_write     = true
+    root_access_enabled = true
+  }
 }
 `, r.templateBreakthroughMode(data), data.RandomInteger)
 }
@@ -1656,10 +1686,20 @@ resource "azurerm_netapp_volume" "test" {
   service_level             = "Standard"
   subnet_id                 = azurerm_subnet.test.id
   protocols                 = ["NFSv4.1"]
+  security_style            = "unix"
   storage_quota_in_gb       = 2000
   large_volume_enabled      = true
   breakthrough_mode_enabled = true
   throughput_in_mibps       = 32
+
+  export_policy_rule {
+    rule_index          = 1
+    allowed_clients     = ["0.0.0.0/0"]
+    protocol            = ["NFSv4.1"]
+    unix_read_only      = false
+    unix_read_write     = true
+    root_access_enabled = true
+  }
 }
 `, r.templateBreakthroughMode(data), data.RandomInteger)
 }
@@ -1678,10 +1718,20 @@ resource "azurerm_netapp_volume" "test" {
   service_level             = "Standard"
   subnet_id                 = azurerm_subnet.test.id
   protocols                 = ["NFSv4.1"]
+  security_style            = "unix"
   storage_quota_in_gb       = 2400
   large_volume_enabled      = true
   breakthrough_mode_enabled = true
   throughput_in_mibps       = 38.4
+
+  export_policy_rule {
+    rule_index          = 1
+    allowed_clients     = ["0.0.0.0/0"]
+    protocol            = ["NFSv4.1"]
+    unix_read_only      = false
+    unix_read_write     = true
+    root_access_enabled = true
+  }
 
   cool_access {
     retrieval_policy        = "Default"
