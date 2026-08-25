@@ -55,9 +55,9 @@ resource "azurerm_automation_account" "test" {
     type = "SystemAssigned"
   }
 
-tags = {
-  "Hello" = "World"
-}
+  tags = {
+    "Hello" = "World"
+  }
 }
 
 data "azurerm_automation_account" "test" {
@@ -89,9 +89,9 @@ func (AutomationAccountDataSource) encryption(data acceptance.TestData) string {
 	return fmt.Sprintf(`
   %s
 
-  data "azurerm_automation_account" "test" {
-    resource_group_name = azurerm_resource_group.test.name
-    name                = azurerm_automation_account.test.name
-  }
+data "azurerm_automation_account" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  name                = azurerm_automation_account.test.name
+}
     `, AutomationAccountResource{}.encryption_userIdentity(data))
 }
