@@ -81,22 +81,15 @@ func (r ManagementGroupConsumptionBudget) Arguments() map[string]*pluginsdk.Sche
 						ValidateFunc: validation.IntBetween(0, 1000),
 					},
 					"threshold_type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  string(budgets.ThresholdTypeActual),
-						ValidateFunc: validation.StringInSlice([]string{
-							string(budgets.ThresholdTypeActual),
-							"Forecasted",
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      string(budgets.ThresholdTypeActual),
+						ValidateFunc: validation.StringInSlice(budgets.PossibleValuesForThresholdType(), false),
 					},
 					"operator": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(budgets.OperatorTypeEqualTo),
-							string(budgets.OperatorTypeGreaterThan),
-							string(budgets.OperatorTypeGreaterThanOrEqualTo),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(budgets.PossibleValuesForOperatorType(), false),
 					},
 
 					"contact_emails": {

@@ -215,11 +215,9 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 
 			// resource fields
 			"offer_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cosmosdb.DatabaseAccountOfferTypeStandard),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForDatabaseAccountOfferType(), false),
 			},
 
 			"analytical_storage": {
@@ -230,12 +228,9 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"schema_type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(cosmosdb.AnalyticalStorageSchemaTypeWellDefined),
-								string(cosmosdb.AnalyticalStorageSchemaTypeFullFidelity),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForAnalyticalStorageSchemaType(), false),
 						},
 					},
 				},
@@ -268,14 +263,11 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			},
 
 			"create_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cosmosdb.CreateModeDefault),
-					string(cosmosdb.CreateModeRestore),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForCreateMode(), false),
 			},
 
 			// Per Documentation: "The default identity needs to be explicitly set by the users." This should not be optional without a default anymore.
@@ -294,15 +286,11 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			},
 
 			"kind": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(cosmosdb.DatabaseAccountKindGlobalDocumentDB),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cosmosdb.DatabaseAccountKindGlobalDocumentDB),
-					string(cosmosdb.DatabaseAccountKindMongoDB),
-					string(cosmosdb.DatabaseAccountKindParse),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(cosmosdb.DatabaseAccountKindGlobalDocumentDB),
+				ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForDatabaseAccountKind(), false),
 			},
 
 			"ip_range_filter": {
@@ -353,15 +341,9 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"consistency_level": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(cosmosdb.DefaultConsistencyLevelBoundedStaleness),
-								string(cosmosdb.DefaultConsistencyLevelConsistentPrefix),
-								string(cosmosdb.DefaultConsistencyLevelEventual),
-								string(cosmosdb.DefaultConsistencyLevelSession),
-								string(cosmosdb.DefaultConsistencyLevelStrong),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForDefaultConsistencyLevel(), false),
 						},
 
 						// This value can only change if the 'consistency_level' is set to 'BoundedStaleness'
@@ -535,12 +517,9 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(cosmosdb.BackupPolicyTypeContinuous),
-								string(cosmosdb.BackupPolicyTypePeriodic),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForBackupPolicyType(), false),
 						},
 
 						// Though `tier` has the default value `Continuous30Days` but `tier` is only for the backup type `Continuous`. So the default value isn't added in the property schema.
@@ -566,14 +545,10 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 						},
 
 						"storage_redundancy": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Computed: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(cosmosdb.BackupStorageRedundancyGeo),
-								string(cosmosdb.BackupStorageRedundancyLocal),
-								string(cosmosdb.BackupStorageRedundancyZone),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForBackupStorageRedundancy(), false),
 						},
 					},
 				},

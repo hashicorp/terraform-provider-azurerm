@@ -184,22 +184,15 @@ func (br consumptionBudgetBaseResource) arguments(fields map[string]*pluginsdk.S
 						ValidateFunc: validation.IntBetween(0, 1000),
 					},
 					"threshold_type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  string(budgets.ThresholdTypeActual),
-						ValidateFunc: validation.StringInSlice([]string{
-							string(budgets.ThresholdTypeActual),
-							"Forecasted",
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      string(budgets.ThresholdTypeActual),
+						ValidateFunc: validation.StringInSlice(budgets.PossibleValuesForThresholdType(), false),
 					},
 					"operator": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(budgets.OperatorTypeEqualTo),
-							string(budgets.OperatorTypeGreaterThan),
-							string(budgets.OperatorTypeGreaterThanOrEqualTo),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(budgets.PossibleValuesForOperatorType(), false),
 					},
 
 					"contact_emails": {
@@ -233,18 +226,11 @@ func (br consumptionBudgetBaseResource) arguments(fields map[string]*pluginsdk.S
 		},
 
 		"time_grain": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(budgets.TimeGrainTypeMonthly),
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(budgets.TimeGrainTypeBillingAnnual),
-				string(budgets.TimeGrainTypeBillingMonth),
-				string(budgets.TimeGrainTypeBillingQuarter),
-				string(budgets.TimeGrainTypeAnnually),
-				string(budgets.TimeGrainTypeMonthly),
-				string(budgets.TimeGrainTypeQuarterly),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(budgets.TimeGrainTypeMonthly),
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(budgets.PossibleValuesForTimeGrainType(), false),
 		},
 
 		"time_period": {

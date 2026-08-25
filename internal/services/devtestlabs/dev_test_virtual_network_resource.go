@@ -118,12 +118,9 @@ func resourceArmDevTestVirtualNetwork() *pluginsdk.Resource {
 												},
 
 												"transport_protocol": {
-													Type:     pluginsdk.TypeString,
-													Optional: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(virtualnetworks.TransportProtocolTcp),
-														string(virtualnetworks.TransportProtocolUdp),
-													}, false),
+													Type:         pluginsdk.TypeString,
+													Optional:     true,
+													ValidateFunc: validation.StringInSlice(virtualnetworks.PossibleValuesForTransportProtocol(), false),
 												},
 											},
 										},

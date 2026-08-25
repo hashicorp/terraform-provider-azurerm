@@ -65,12 +65,9 @@ func resourceFirewallNetworkRuleCollection() *pluginsdk.Resource {
 			},
 
 			"action": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(azurefirewalls.AzureFirewallRCActionTypeAllow),
-					string(azurefirewalls.AzureFirewallRCActionTypeDeny),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(azurefirewalls.PossibleValuesForAzureFirewallRCActionType(), false),
 			},
 
 			"rule": {
@@ -122,13 +119,8 @@ func resourceFirewallNetworkRuleCollection() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeList,
 							Required: true,
 							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(azurefirewalls.AzureFirewallNetworkRuleProtocolAny),
-									string(azurefirewalls.AzureFirewallNetworkRuleProtocolICMP),
-									string(azurefirewalls.AzureFirewallNetworkRuleProtocolTCP),
-									string(azurefirewalls.AzureFirewallNetworkRuleProtocolUDP),
-								}, false),
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice(azurefirewalls.PossibleValuesForAzureFirewallNetworkRuleProtocol(), false),
 							},
 						},
 					},

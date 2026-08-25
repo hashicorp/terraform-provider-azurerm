@@ -39,14 +39,9 @@ func (br costManagementExportBaseResource) arguments(fields map[string]*pluginsd
 		},
 
 		"recurrence_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(exports.RecurrenceTypeDaily),
-				string(exports.RecurrenceTypeWeekly),
-				string(exports.RecurrenceTypeMonthly),
-				string(exports.RecurrenceTypeAnnually),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(exports.PossibleValuesForRecurrenceType(), false),
 		},
 
 		"recurrence_period_start_date": {
@@ -62,13 +57,10 @@ func (br costManagementExportBaseResource) arguments(fields map[string]*pluginsd
 		},
 
 		"file_format": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(exports.FormatTypeCsv),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(exports.FormatTypeCsv),
-				// TODO add support for Parquet once added to the SDK
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(exports.FormatTypeCsv),
+			ValidateFunc: validation.StringInSlice(exports.PossibleValuesForFormatType(), false),
 		},
 
 		"export_data_storage_location": {
@@ -100,28 +92,15 @@ func (br costManagementExportBaseResource) arguments(fields map[string]*pluginsd
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(exports.ExportTypeActualCost),
-							string(exports.ExportTypeAmortizedCost),
-							string(exports.ExportTypeUsage),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(exports.PossibleValuesForExportType(), false),
 					},
 
 					"time_frame": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(exports.TimeframeTypeCustom),
-							string(exports.TimeframeTypeBillingMonthToDate),
-							string(exports.TimeframeTypeTheLastBillingMonth),
-							string(exports.TimeframeTypeTheLastMonth),
-							string(exports.TimeframeTypeWeekToDate),
-							string(exports.TimeframeTypeMonthToDate),
-							// TODO Use value from SDK after https://github.com/Azure/azure-rest-api-specs/issues/23707 is fixed
-							"TheLast7Days",
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(exports.PossibleValuesForTimeframeType(), false),
 					},
 				},
 			},

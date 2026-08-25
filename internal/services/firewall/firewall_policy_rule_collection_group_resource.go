@@ -86,12 +86,9 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 							ValidateFunc: validation.IntBetween(100, 65000),
 						},
 						"action": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(firewallpolicyrulecollectiongroups.FirewallPolicyFilterRuleCollectionActionTypeAllow),
-								string(firewallpolicyrulecollectiongroups.FirewallPolicyFilterRuleCollectionActionTypeDeny),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(firewallpolicyrulecollectiongroups.PossibleValuesForFirewallPolicyFilterRuleCollectionActionType(), false),
 						},
 						"rule": {
 							Type:     pluginsdk.TypeList,
@@ -115,13 +112,9 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
 												"type": {
-													Type:     pluginsdk.TypeString,
-													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(firewallpolicyrulecollectiongroups.FirewallPolicyRuleApplicationProtocolTypeHTTP),
-														string(firewallpolicyrulecollectiongroups.FirewallPolicyRuleApplicationProtocolTypeHTTPS),
-														"Mssql",
-													}, false),
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice(firewallpolicyrulecollectiongroups.PossibleValuesForFirewallPolicyRuleApplicationProtocolType(), false),
 												},
 												"port": {
 													Type:         pluginsdk.TypeInt,
@@ -243,12 +236,9 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 							ValidateFunc: validation.IntBetween(100, 65000),
 						},
 						"action": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(firewallpolicyrulecollectiongroups.FirewallPolicyFilterRuleCollectionActionTypeAllow),
-								string(firewallpolicyrulecollectiongroups.FirewallPolicyFilterRuleCollectionActionTypeDeny),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(firewallpolicyrulecollectiongroups.PossibleValuesForFirewallPolicyFilterRuleCollectionActionType(), false),
 						},
 						"rule": {
 							Type:     pluginsdk.TypeList,
@@ -270,13 +260,8 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeList,
 										Required: true,
 										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-											ValidateFunc: validation.StringInSlice([]string{
-												string(firewallpolicyrulecollectiongroups.FirewallPolicyRuleNetworkProtocolAny),
-												string(firewallpolicyrulecollectiongroups.FirewallPolicyRuleNetworkProtocolTCP),
-												string(firewallpolicyrulecollectiongroups.FirewallPolicyRuleNetworkProtocolUDP),
-												string(firewallpolicyrulecollectiongroups.FirewallPolicyRuleNetworkProtocolICMP),
-											}, false),
+											Type:         pluginsdk.TypeString,
+											ValidateFunc: validation.StringInSlice(firewallpolicyrulecollectiongroups.PossibleValuesForFirewallPolicyRuleNetworkProtocol(), false),
 										},
 									},
 									"source_addresses": {
