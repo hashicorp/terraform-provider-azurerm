@@ -77,10 +77,6 @@ The following arguments are supported:
 
 * `site_config` - (Required) A `site_config` block as defined below.
 
-* `site_update_strategy` - (Optional) The strategy used to apply site updates to the Function App. Possible values are `Recreate` and `RollingUpdate`. Defaults to `Recreate`.
-
-~> **Note:** `RollingUpdate` will create a temporary deployment slot, apply the configuration changes to the slot, and then swap it with the production slot. This allows for zero downtime updates but may cause issues with certain configuration changes while `Recreate` which applies the configuration changes directly to the production slot and may cause downtime.
-
 * `storage_container_type` - (Required) The storage container type used for the Function App. The current supported type is `blobContainer`.
 
 * `storage_container_endpoint` - (Required) The backend storage container endpoint which will be used by this Function App.
@@ -126,6 +122,10 @@ The following arguments are supported:
 * `https_only` - (Optional) Is Https Connection enforced to the function app. Defaults to `false`
 
 * `identity` - (Optional) A `identity` block as defined below.
+
+* `site_update_strategy` - (Optional) The strategy used to apply site updates to the Function App. Possible values are `Recreate` and `RollingUpdate`. Defaults to `Recreate`.
+
+~> **Note:** `RollingUpdate` creates a temporary deployment slot, applies the configuration changes to it, and then swaps it with production. This allows zero-downtime updates but may cause issues with certain configuration changes. `Recreate` applies changes directly to production and may cause downtime.
 
 * `sticky_settings` - (Optional) A `sticky_settings` block as defined below.
 

@@ -827,7 +827,6 @@ func (s *SiteConfigLinux) ExpandForCreate(appSettings map[string]string) (*webap
 	expanded.ScmMinTlsVersion = pointer.ToEnum[webapps.SupportedTlsVersions](s.ScmMinTlsVersion)
 	expanded.AutoHealEnabled = pointer.To(false)
 	expanded.MinTlsCipherSuite = pointer.ToEnum[webapps.TlsCipherSuites](s.MinTlsCipherSuite)
-	expanded.VnetRouteAllEnabled = pointer.To(s.VnetRouteAllEnabled)
 	expanded.IPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](s.IpRestrictionDefaultAction)
 	expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](s.ScmIpRestrictionDefaultAction)
 

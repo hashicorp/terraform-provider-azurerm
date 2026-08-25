@@ -489,11 +489,17 @@ func (r LogicAppResource) Create() sdk.ResourceFunc {
 
 			siteConfig.AppSettings = pointer.To(appSettings)
 
+			vNetSettings := &webapps.OutboundVnetRouting{
+				ContentShareTraffic: pointer.To(data.VNETContentShareEnabled),
+				ApplicationTraffic:  pointer.To(data.VNETApplicationTrafficEnabled),
+			}
+
 			if v, ok := data.AppSettings["WEBSITE_VNET_ROUTE_ALL"]; ok && !features.SixPointOh() {
 				// For compatibility between app_settings and site_config, we need to set the API property based on the presence of the app_setting map value if present.
 				// a replacement of this resource should consider deprecating support for this.
 				vnetRouteAll, _ := strconv.ParseBool(v)
 				siteConfig.VnetRouteAllEnabled = pointer.To(vnetRouteAll)
+				vNetSettings.ApplicationTraffic = pointer.To(vnetRouteAll)
 			}
 
 			expandedIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(data.Identity)
@@ -512,11 +518,8 @@ func (r LogicAppResource) Create() sdk.ResourceFunc {
 					ClientCertEnabled:     pointer.To(data.ClientCertificateMode != ""),
 					HTTPSOnly:             pointer.To(data.HTTPSOnly),
 					SiteConfig:            siteConfig,
-					OutboundVnetRouting: &webapps.OutboundVnetRouting{
-						ContentShareTraffic: pointer.To(data.VNETContentShareEnabled),
-						ApplicationTraffic:  pointer.To(data.VNETApplicationTrafficEnabled),
-					},
-					PublicNetworkAccess: pointer.To(data.PublicNetworkAccess),
+					OutboundVnetRouting:   vNetSettings,
+					PublicNetworkAccess:   pointer.To(data.PublicNetworkAccess),
 				},
 				Tags: pointer.To(data.Tags),
 			}
@@ -631,14 +634,6 @@ func (r LogicAppResource) Read() sdk.ResourceFunc {
 						if outboundVnet.ApplicationTraffic != nil {
 							state.VNETApplicationTrafficEnabled = pointer.From(outboundVnet.ApplicationTraffic)
 						}
-					}
-					// Note this is a bug - the Service defaults to `Required` regardless of the Enabled value
-					if !features.SixPointOh() {
-						if pointer.From(props.ClientCertEnabled) {
-							state.ClientCertificateMode = pointer.FromEnum(props.ClientCertMode)
-						}
-					} else {
-						state.ClientCertificateMode = pointer.FromEnum(props.ClientCertMode)
 					}
 					state.ClientCertificateMode = pointer.FromEnum(props.ClientCertMode)
 				}

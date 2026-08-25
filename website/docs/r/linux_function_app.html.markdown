@@ -151,7 +151,7 @@ The following arguments are supported:
 
 ~> **Note:** The feature can also be enabled via the app setting `WEBSITE_PULL_IMAGE_OVER_VNET`. Must be set to `true` when running in an App Service Environment.
 
-* `virtual_network_application_traffic_enabled` - (Optional) Should the traffic for the application be routed over virtual network enabled. Defaults to `false`.
+* `virtual_network_application_traffic_enabled` - (Optional) Whether application traffic is routed through the virtual network. Defaults to `false`.
 
 * `webdeploy_publish_basic_authentication_enabled` - (Optional) Should the default WebDeploy Basic Authentication publishing credentials enabled. Defaults to `true`.
 

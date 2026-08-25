@@ -104,7 +104,7 @@ The following arguments are supported:
 
 ~> **Note:** `virtual_network_image_pull_enabled` must be set to `true` when running in an App Service Environment.
 
-* `virtual_network_application_traffic_enabled` - (Optional) Should the traffic for the application be routed over virtual network enabled. Defaults to `false`.
+* `virtual_network_application_traffic_enabled` - (Optional) Whether application traffic is routed through the virtual network. Defaults to `false`.
 
 * `virtual_network_subnet_id` - (Optional) The subnet id which will be used by this Web App for [regional virtual network integration](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).
 
