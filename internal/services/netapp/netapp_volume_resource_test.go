@@ -1604,6 +1604,11 @@ resource "azurerm_netapp_volume" "test" {
     unix_read_write     = true
     root_access_enabled = true
   }
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
+    "SkipASMAzSecPack" = "true"
+  }
 }
 `, r.templateBreakthroughMode(data), data.RandomInteger)
 }
@@ -1635,6 +1640,11 @@ resource "azurerm_netapp_volume" "test" {
     unix_read_only      = false
     unix_read_write     = true
     root_access_enabled = true
+  }
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
+    "SkipASMAzSecPack" = "true"
   }
 }
 `, r.templateBreakthroughMode(data), data.RandomInteger)
@@ -1668,6 +1678,11 @@ resource "azurerm_netapp_volume" "test" {
     unix_read_write     = true
     root_access_enabled = true
   }
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
+    "SkipASMAzSecPack" = "true"
+  }
 }
 `, r.templateBreakthroughMode(data), data.RandomInteger)
 }
@@ -1699,6 +1714,11 @@ resource "azurerm_netapp_volume" "test" {
     unix_read_only      = false
     unix_read_write     = true
     root_access_enabled = true
+  }
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
+    "SkipASMAzSecPack" = "true"
   }
 }
 `, r.templateBreakthroughMode(data), data.RandomInteger)
@@ -1737,6 +1757,11 @@ resource "azurerm_netapp_volume" "test" {
     retrieval_policy        = "Default"
     tiering_policy          = "Auto"
     coolness_period_in_days = 30
+  }
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
+    "SkipASMAzSecPack" = "true"
   }
 }
 `, r.templateBreakthroughModeCoolAccess(data), data.RandomInteger)
