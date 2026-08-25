@@ -544,7 +544,7 @@ func resourceWebApplicationFirewallPolicyCustomizeDiff(_ context.Context, d *plu
 
 				for _, rule := range rules.AsValueSlice() {
 					if !rule.GetAttr("sensitivity_level").IsNull() {
-						return fmt.Errorf("`sensitivity_level` can only be set when `type` of the `managed_rule_set` is `Microsoft_HTTPDDoSRuleSet`")
+						return errors.New("`sensitivity_level` can only be set when `type` of the `managed_rule_set` is `Microsoft_HTTPDDoSRuleSet`")
 					}
 				}
 			}
@@ -1004,7 +1004,7 @@ func expandWebApplicationFirewallPolicyOverrideRules(input []interface{}) *[]web
 
 		sensitivityLevel := v["sensitivity_level"].(string)
 		if sensitivityLevel != "" {
-			result.Sensitivity = pointer.To(webapplicationfirewallpolicies.SensitivityType(sensitivityLevel))
+			result.Sensitivity = pointer.ToEnum[webapplicationfirewallpolicies.SensitivityType](sensitivityLevel)
 		}
 
 		results = append(results, result)

@@ -14,7 +14,7 @@ Manages a Azure Web Application Firewall Policy instance.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example-rg"
+  name     = "example227-rg"
   location = "West Europe"
 }
 
@@ -226,7 +226,7 @@ The `excluded_rule_set` block supports the following:
 
 * `type` - (Optional) The rule set type. Possible values are `Microsoft_DefaultRuleSet`, `Microsoft_BotManagerRuleSet`, `Microsoft_HTTPDDoSRuleSet` and `OWASP`. Defaults to `OWASP`.
 
-* `version` - (Optional) The rule set version. Possible values are `1.0`, `1.1` (for rule set type `Microsoft_BotManagerRuleSet`), `2.1`, `2.2` (for rule set type `Microsoft_DefaultRuleSet`) and `3.2` (for rule set type `OWASP`). Defaults to `3.2`.
+* `version` - (Optional) The rule set version. Possible values are `1.0` (for rule set types `Microsoft_BotManagerRuleSet` and `Microsoft_HTTPDDoSRuleSet`), `1.1` (for rule set type `Microsoft_BotManagerRuleSet`), `2.1`, `2.2` (for rule set type `Microsoft_DefaultRuleSet`), and `3.2` (for rule set type `OWASP`). Defaults to `OWASP` `3.2`.
 
 * `rule_group` - (Optional) One or more `rule_group` block defined below.
 
