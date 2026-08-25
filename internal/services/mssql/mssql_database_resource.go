@@ -1560,8 +1560,10 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 					"storage_key_type": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
-						ValidateFunc: validation.StringInSlice(databases.PossibleValuesForStorageKeyType(),
-							false),
+						ValidateFunc: validation.StringInSlice([]string{
+							string(databases.StorageKeyTypeSharedAccessKey),
+							string(databases.StorageKeyTypeStorageAccessKey),
+						}, false),
 					},
 					"administrator_login": {
 						Type:     pluginsdk.TypeString,

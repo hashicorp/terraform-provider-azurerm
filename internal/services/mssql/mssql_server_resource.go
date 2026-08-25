@@ -672,7 +672,7 @@ func expandMsSqlServerAdministrator(input []interface{}) *serverazureadadministr
 
 	adminProps := serverazureadadministrators.ServerAzureADAdministrator{
 		Properties: &serverazureadadministrators.AdministratorProperties{
-			AdministratorType: pointer.ToEnum[serverazureadadministrators.AdministratorType](string(servers.AdministratorTypeActiveDirectory)),
+			AdministratorType: pointer.To(serverazureadadministrators.AdministratorTypeActiveDirectory),
 			Login:             v["login_username"].(string),
 			Sid:               v["object_id"].(string),
 		},
