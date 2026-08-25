@@ -1,3 +1,29 @@
+## 5.2.0 (August 20, 2026)
+
+FEATURES:
+
+* **New List Resource**: `azurerm_user_assigned_identity` ([#32667](https://github.com/hashicorp/terraform-provider-azurerm/issues/32667))
+
+ENHANCEMENTS:
+
+* dependencies: `go` - update to `1.26.6` ([#33141](https://github.com/hashicorp/terraform-provider-azurerm/issues/33141))
+* dependencies: `go-azure-sdk` - update to `v0.20260811.1225050` ([#33079](https://github.com/hashicorp/terraform-provider-azurerm/issues/33079))
+* `azurerm_cdn_frontdoor_batch_rule_set` - allow `/` as an input to `rule.conditions.request_path.values` ([#33023](https://github.com/hashicorp/terraform-provider-azurerm/issues/33023))
+* `azurerm_databricks_workspace` - remove a redundant key vault existence check ([#33136](https://github.com/hashicorp/terraform-provider-azurerm/issues/33136))
+* `azurerm_databricks_workspace_root_dbfs_customer_managed_key` - remove a redundant key vault existence check ([#33136](https://github.com/hashicorp/terraform-provider-azurerm/issues/33136))
+* `azurerm_logic_app_standard` - add support for `v10.0` to `site_config.dotnet_framework_version` ([#33116](https://github.com/hashicorp/terraform-provider-azurerm/issues/33116))
+* `azurerm_mongo_cluster` - `administrator_password` is no longer required when `create_mode` is `Default` to support Entra ID-only authentication ([#32092](https://github.com/hashicorp/terraform-provider-azurerm/issues/32092))
+* `azurerm_redhat_openshift_cluster` - add support for the `network_profile.load_balancer_profile` block ([#32473](https://github.com/hashicorp/terraform-provider-azurerm/issues/32473))
+* `azurerm_redhat_openshift_cluster` - add support for the `platform_workload_identity_profile` block ([#32473](https://github.com/hashicorp/terraform-provider-azurerm/issues/32473))
+* `azurerm_role_assignment` - the `condition`, `condition_version`, and `description` properties can now be updated in-place ([#32714](https://github.com/hashicorp/terraform-provider-azurerm/issues/32714))
+* `azurerm_snapshot` - `create_option` now supports `CopyStart` ([#32834](https://github.com/hashicorp/terraform-provider-azurerm/issues/32834))
+
+BUG FIXES:
+
+* `azurerm_cognitive_account_project` - added create/update/delete lock on parent AccountID to make sure operations on parent account are processed in serial (required by Cognitive service) ([#33151](https://github.com/hashicorp/terraform-provider-azurerm/issues/33151))
+* `azurerm_databricks_workspace` - fix a persistent diff on removal of `managed_disk_cmk_key_vault_key_id` or `managed_services_cmk_key_vault_key_id` ([#33136](https://github.com/hashicorp/terraform-provider-azurerm/issues/33136))
+* `azurerm_oracle_exadata_infrastructure` - fix an issue that prevented users from deploying with no `zones` set ([#33011](https://github.com/hashicorp/terraform-provider-azurerm/issues/33011))
+
 ## 5.1.0 (August 13, 2026)
 
 ENHANCEMENTS:
