@@ -87,14 +87,10 @@ func resourceBlueprintAssignment() *pluginsdk.Resource {
 			},
 
 			"lock_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(assignment.AssignmentLockModeNone),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(assignment.AssignmentLockModeNone),
-					string(assignment.AssignmentLockModeAllResourcesReadOnly),
-					string(assignment.AssignmentLockModeAllResourcesDoNotDelete),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(assignment.AssignmentLockModeNone),
+				ValidateFunc: validation.StringInSlice(assignment.PossibleValuesForAssignmentLockMode(), false),
 				// The first character of value returned by the service is always in lower case.
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
