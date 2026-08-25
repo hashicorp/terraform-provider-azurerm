@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobagents"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/jobagents"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -117,7 +117,7 @@ func resourceMsSqlJobAgentCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	expandedIdentity, err := identity.ExpandUserAssignedMap(d.Get("identity").([]interface{}))
+	expandedIdentity, err := expandJobAgentIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -157,7 +157,7 @@ func resourceMsSqlJobAgentUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	params := existing.Model
 
 	if d.HasChanges("identity") {
-		expandedIdentity, err := identity.ExpandUserAssignedMap(d.Get("identity").([]interface{}))
+		expandedIdentity, err := expandJobAgentIdentity(d.Get("identity").([]interface{}))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -212,7 +212,7 @@ func resourceMssqlJobAgentSetFlatten(d *pluginsdk.ResourceData, id *jobagents.Jo
 			d.Set("database_id", props.DatabaseId)
 		}
 
-		flattenedIdentity, err := identity.FlattenUserAssignedMap(model.Identity)
+		flattenedIdentity, err := flattenJobAgentIdentity(model.Identity)
 		if err != nil {
 			return fmt.Errorf("flattening `identity`: %+v", err)
 		}
@@ -244,4 +244,54 @@ func resourceMsSqlJobAgentDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	return nil
+}
+
+func expandJobAgentIdentity(input []interface{}) (*jobagents.JobAgentIdentity, error) {
+	expanded, err := identity.ExpandUserAssignedMap(input)
+	if err != nil {
+		return nil, err
+	}
+	if expanded == nil || expanded.Type == identity.TypeNone {
+		return nil, nil
+	}
+
+	result := &jobagents.JobAgentIdentity{
+		Type: jobagents.JobAgentIdentityType(string(expanded.Type)),
+	}
+
+	if len(expanded.IdentityIds) > 0 {
+		uai := make(map[string]jobagents.JobAgentUserAssignedIdentity, len(expanded.IdentityIds))
+		for id := range expanded.IdentityIds {
+			uai[id] = jobagents.JobAgentUserAssignedIdentity{}
+		}
+		result.UserAssignedIdentities = &uai
+	}
+
+	return result, nil
+}
+
+func flattenJobAgentIdentity(input *jobagents.JobAgentIdentity) ([]interface{}, error) {
+	if input == nil {
+		result, err := identity.FlattenUserAssignedMap(&identity.UserAssignedMap{Type: identity.TypeNone})
+		if err != nil {
+			return nil, err
+		}
+		return *result, nil
+	}
+
+	identityIds := make(map[string]identity.UserAssignedIdentityDetails)
+	if input.UserAssignedIdentities != nil {
+		for id := range *input.UserAssignedIdentities {
+			identityIds[id] = identity.UserAssignedIdentityDetails{}
+		}
+	}
+
+	result, err := identity.FlattenUserAssignedMap(&identity.UserAssignedMap{
+		Type:        identity.Type(string(input.Type)),
+		IdentityIds: identityIds,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return *result, nil
 }
