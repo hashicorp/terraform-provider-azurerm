@@ -56,12 +56,8 @@ func resourceVPNServerConfiguration() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Required: true,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(virtualwans.VpnAuthenticationTypeAAD),
-						string(virtualwans.VpnAuthenticationTypeCertificate),
-						string(virtualwans.VpnAuthenticationTypeRadius),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice(virtualwans.PossibleValuesForVpnAuthenticationType(), false),
 				},
 			},
 

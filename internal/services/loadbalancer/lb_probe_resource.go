@@ -61,14 +61,10 @@ func resourceArmLoadBalancerProbe() *pluginsdk.Resource {
 			},
 
 			"protocol": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(loadbalancers.ProbeProtocolTcp),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(loadbalancers.ProbeProtocolHTTP),
-					string(loadbalancers.ProbeProtocolHTTPS),
-					string(loadbalancers.ProbeProtocolTcp),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(loadbalancers.ProbeProtocolTcp),
+				ValidateFunc: validation.StringInSlice(loadbalancers.PossibleValuesForProbeProtocol(), false),
 			},
 
 			"port": {

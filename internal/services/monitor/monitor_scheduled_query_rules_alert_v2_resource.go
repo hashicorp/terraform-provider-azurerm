@@ -139,15 +139,9 @@ func (r ScheduledQueryRulesAlertV2Resource) Arguments() map[string]*pluginsdk.Sc
 					},
 
 					"time_aggregation_method": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(scheduledqueryrules.TimeAggregationCount),
-							string(scheduledqueryrules.TimeAggregationAverage),
-							string(scheduledqueryrules.TimeAggregationMinimum),
-							string(scheduledqueryrules.TimeAggregationMaximum),
-							string(scheduledqueryrules.TimeAggregationTotal),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(scheduledqueryrules.PossibleValuesForTimeAggregation(), false),
 					},
 
 					"threshold": {
@@ -167,12 +161,9 @@ func (r ScheduledQueryRulesAlertV2Resource) Arguments() map[string]*pluginsdk.Sc
 								},
 
 								"operator": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										string(scheduledqueryrules.DimensionOperatorInclude),
-										string(scheduledqueryrules.DimensionOperatorExclude),
-									}, false),
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(scheduledqueryrules.PossibleValuesForDimensionOperator(), false),
 								},
 
 								"values": {
