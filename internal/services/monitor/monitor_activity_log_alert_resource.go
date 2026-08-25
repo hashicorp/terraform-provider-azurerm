@@ -62,9 +62,20 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
-
+	
 			"location": commonschema.Location(),
-
+	
+			"subscription_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IsUUID,
+				Description: "The ID of the Subscription in which to create this Activity Log Alert. " +
+					"Defaults to the subscription of the current provider configuration. " +
+					"Changing this forces a new resource to be created.",
+			},
+	
 			"scopes": {
 				Type:     pluginsdk.TypeSet,
 				Required: true,
@@ -434,6 +445,9 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 func resourceMonitorActivityLogAlertCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ActivityLogAlertsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	if v, ok := d.GetOk("subscription_id"); ok {
+		subscriptionId = v.(string)
+	}
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -512,6 +526,7 @@ func resourceMonitorActivityLogAlertRead(d *pluginsdk.ResourceData, meta interfa
 func resourceMonitorActivityLogAlertFlatten(d *pluginsdk.ResourceData, id *activitylogalertsapis.ActivityLogAlertId, model *activitylogalertsapis.ActivityLogAlertResource) error {
 	d.Set("name", id.ActivityLogAlertName)
 	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("subscription_id", id.SubscriptionId)
 
 	if model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))

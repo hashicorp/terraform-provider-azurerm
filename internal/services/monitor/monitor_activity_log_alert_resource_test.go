@@ -1073,3 +1073,48 @@ resource "azurerm_monitor_activity_log_alert" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
+
+func TestAccMonitorActivityLogAlert_subscriptionId(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
+	r := MonitorActivityLogAlertResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.subscriptionId(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("subscription_id").IsSet(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (r MonitorActivityLogAlertResource) subscriptionId(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_subscription" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-monitor-%d"
+  location = "%s"
+}
+
+resource "azurerm_monitor_activity_log_alert" "test" {
+  name                = "acctestActivityLogAlert-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = "global"
+  subscription_id     = data.azurerm_subscription.current.subscription_id
+
+  scopes = [data.azurerm_subscription.current.id]
+
+  criteria {
+    category = "ServiceHealth"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+

@@ -60,6 +60,42 @@ resource "azurerm_monitor_activity_log_alert" "main" {
 }
 ```
 
+## Example Usage (Specific Subscription)
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_monitor_action_group" "main" {
+  name                = "example-actiongroup"
+  resource_group_name = azurerm_resource_group.example.name
+  short_name          = "p0action"
+}
+
+resource "azurerm_monitor_activity_log_alert" "sub_alert" {
+  name                = "example-sub-alert"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = "global"
+
+  # Deploy this alert into a specific subscription without needing a provider alias.
+  # The service principal must have Contributor (or equivalent) on this subscription.
+  subscription_id = "00000000-0000-0000-0000-000000000000"
+
+  # All scopes must belong to the same subscription as the alert resource.
+  scopes = ["/subscriptions/00000000-0000-0000-0000-000000000000"]
+
+  criteria {
+    category = "ServiceHealth"
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.main.id
+  }
+}
+```
+
 ## Arguments Reference
 
 The following arguments are supported:
@@ -72,6 +108,7 @@ The following arguments are supported:
 * `action` - (Optional) One or more `action` blocks as defined below.
 * `enabled` - (Optional) Should this Activity Log Alert be enabled? Defaults to `true`.
 * `description` - (Optional) The description of this activity log alert.
+* `subscription_id` - (Optional) The ID of the Subscription in which to create this Activity Log Alert. Defaults to the subscription of the current provider configuration. Changing this forces a new resource to be created.
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
