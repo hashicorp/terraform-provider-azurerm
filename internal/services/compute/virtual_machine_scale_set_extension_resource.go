@@ -159,8 +159,7 @@ func resourceVirtualMachineScaleSetExtensionCreate(d *pluginsdk.ResourceData, me
 	var settings *interface{}
 	if settingsString := d.Get("settings").(string); settingsString != "" {
 		var result interface{}
-		err := json.Unmarshal([]byte(settingsString), &result)
-		if err != nil {
+		if err := json.Unmarshal([]byte(settingsString), &result); err != nil {
 			return fmt.Errorf("unmarshaling `settings`: %+v", err)
 		}
 		settings = pointer.To(result)
@@ -189,8 +188,7 @@ func resourceVirtualMachineScaleSetExtensionCreate(d *pluginsdk.ResourceData, me
 
 	if protectedSettingsString := d.Get("protected_settings").(string); protectedSettingsString != "" {
 		var result interface{}
-		err := json.Unmarshal([]byte(protectedSettingsString), &result)
-		if err != nil {
+		if err := json.Unmarshal([]byte(protectedSettingsString), &result); err != nil {
 			return fmt.Errorf("unmarshaling `protected_settings`: %+v", err)
 		}
 		props.Properties.ProtectedSettings = pointer.To(result)
@@ -233,8 +231,7 @@ func resourceVirtualMachineScaleSetExtensionUpdate(d *pluginsdk.ResourceData, me
 		var protectedSettings interface{}
 		if protectedSettingsString := d.Get("protected_settings").(string); protectedSettingsString != "" {
 			var result interface{}
-			err := json.Unmarshal([]byte(protectedSettingsString), &result)
-			if err != nil {
+			if err := json.Unmarshal([]byte(protectedSettingsString), &result); err != nil {
 				return fmt.Errorf("unmarshaling `protected_settings`: %+v", err)
 			}
 
@@ -260,8 +257,7 @@ func resourceVirtualMachineScaleSetExtensionUpdate(d *pluginsdk.ResourceData, me
 		var settings interface{}
 		if settingsString := d.Get("settings").(string); settingsString != "" {
 			var result interface{}
-			err := json.Unmarshal([]byte(settingsString), &result)
-			if err != nil {
+			if err := json.Unmarshal([]byte(settingsString), &result); err != nil {
 				return fmt.Errorf("unmarshaling `settings`: %+v", err)
 			}
 			settings = result
@@ -338,11 +334,7 @@ func resourceVirtualMachineScaleSetExtensionRead(d *pluginsdk.ResourceData, meta
 			d.Set("type", props.Type)
 			d.Set("type_handler_version", props.TypeHandlerVersion)
 
-			suppressFailure := false
-			if props.SuppressFailures != nil {
-				suppressFailure = *props.SuppressFailures
-			}
-			d.Set("failure_suppression_enabled", suppressFailure)
+			d.Set("failure_suppression_enabled", pointer.From(props.SuppressFailures))
 
 			settings := ""
 			if props.Settings != nil {

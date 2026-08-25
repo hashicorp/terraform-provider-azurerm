@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -15,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -23,7 +23,7 @@ import (
 )
 
 func resourceLogAnalyticsLinkedStorageAccount() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceLogAnalyticsLinkedStorageAccountCreateUpdate,
 		Read:   resourceLogAnalyticsLinkedStorageAccountRead,
 		Update: resourceLogAnalyticsLinkedStorageAccountCreateUpdate,
@@ -80,27 +80,6 @@ func resourceLogAnalyticsLinkedStorageAccount() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["workspace_id"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ForceNew:     true,
-			ExactlyOneOf: []string{"workspace_id", "workspace_resource_id"},
-			ValidateFunc: linkedstorageaccounts.ValidateWorkspaceID,
-		}
-		resource.Schema["workspace_resource_id"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ForceNew:     true,
-			ExactlyOneOf: []string{"workspace_id", "workspace_resource_id"},
-			ValidateFunc: linkedstorageaccounts.ValidateWorkspaceID,
-		}
-	}
-
-	return resource
 }
 
 func resourceLogAnalyticsLinkedStorageAccountCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -109,11 +88,6 @@ func resourceLogAnalyticsLinkedStorageAccountCreateUpdate(d *pluginsdk.ResourceD
 	defer cancel()
 
 	workspaceId := d.Get("workspace_id").(string)
-	if !features.FivePointOh() {
-		if v, ok := d.GetOk("workspace_resource_id"); ok {
-			workspaceId = v.(string)
-		}
-	}
 	workspace, err := linkedstorageaccounts.ParseWorkspaceID(workspaceId)
 	if err != nil {
 		return fmt.Errorf("%v", err)
@@ -172,18 +146,11 @@ func resourceLogAnalyticsLinkedStorageAccountRead(d *pluginsdk.ResourceData, met
 
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("workspace_id", linkedstorageaccounts.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName).ID())
-	if !features.FivePointOh() {
-		d.Set("workspace_resource_id", linkedstorageaccounts.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName).ID())
-	}
 	d.Set("data_source_type", string(id.DataSourceType))
 
 	if model := resp.Model; model != nil {
 		props := model.Properties
-		var storageAccountIds []string
-		if props.StorageAccountIds != nil {
-			storageAccountIds = *props.StorageAccountIds
-		}
-		d.Set("storage_account_ids", storageAccountIds)
+		d.Set("storage_account_ids", pointer.From(props.StorageAccountIds))
 	}
 
 	return nil

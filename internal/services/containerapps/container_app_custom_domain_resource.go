@@ -170,7 +170,7 @@ func (a ContainerAppCustomDomainResource) Create() sdk.ResourceFunc {
 
 			if certificateId != nil {
 				customDomain.CertificateId = pointer.To(certificateId.ID())
-				customDomain.BindingType = pointer.To(containerapps.BindingType(model.BindingType))
+				customDomain.BindingType = pointer.ToEnum[containerapps.BindingType](model.BindingType)
 			}
 
 			if !exists {

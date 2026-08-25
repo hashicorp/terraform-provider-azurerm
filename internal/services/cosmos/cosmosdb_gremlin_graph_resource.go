@@ -283,8 +283,7 @@ func resourceCosmosDbGremlinGraphUpdate(d *pluginsdk.ResourceData, meta interfac
 		return err
 	}
 
-	err = common.CheckForChangeFromAutoscaleAndManualThroughput(d)
-	if err != nil {
+	if err = common.CheckForChangeFromAutoscaleAndManualThroughput(d); err != nil {
 		return fmt.Errorf("checking `autoscale_settings` and `throughput` for %s: %w", id, err)
 	}
 
@@ -326,8 +325,7 @@ func resourceCosmosDbGremlinGraphUpdate(d *pluginsdk.ResourceData, meta interfac
 		db.Properties.Resource.DefaultTtl = pointer.To(int64(defaultTTL.(int)))
 	}
 
-	err = client.GremlinResourcesCreateUpdateGremlinGraphThenPoll(ctx, *id, db)
-	if err != nil {
+	if err = client.GremlinResourcesCreateUpdateGremlinGraphThenPoll(ctx, *id, db); err != nil {
 		return fmt.Errorf("updating %q: %+v", id, err)
 	}
 
@@ -443,8 +441,7 @@ func resourceCosmosDbGremlinGraphDelete(d *pluginsdk.ResourceData, meta interfac
 		return err
 	}
 
-	err = client.GremlinResourcesDeleteGremlinGraphThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.GremlinResourcesDeleteGremlinGraphThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
@@ -483,10 +480,9 @@ func expandAzureRmCosmosDbGremlinGraphIncludedPath(input map[string]interface{})
 
 	for i, pathConfig := range includedPath {
 		attrs := pathConfig.(string)
-		path := cosmosdb.IncludedPath{
+		paths[i] = cosmosdb.IncludedPath{
 			Path: pointer.To(attrs),
 		}
-		paths[i] = path
 	}
 
 	return &paths
@@ -498,10 +494,9 @@ func expandAzureRmCosmosDbGremlinGraphExcludedPath(input map[string]interface{})
 
 	for i, pathConfig := range excludedPath {
 		attrs := pathConfig.(string)
-		path := cosmosdb.ExcludedPath{
+		paths[i] = cosmosdb.ExcludedPath{
 			Path: pointer.To(attrs),
 		}
-		paths[i] = path
 	}
 
 	return &paths

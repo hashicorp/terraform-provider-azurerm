@@ -687,7 +687,7 @@ func resourceCdnFrontDoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 	payload := waf.WebApplicationFirewallPolicy{
 		Location: pointer.To(location.Normalize("Global")),
 		Sku: &waf.Sku{
-			Name: pointer.To(waf.SkuName(sku)),
+			Name: pointer.ToEnum[waf.SkuName](sku),
 		},
 		Properties: &waf.WebApplicationFirewallPolicyProperties{
 			PolicySettings: &waf.PolicySettings{
@@ -799,7 +799,7 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 
 		props.PolicySettings = &waf.PolicySettings{
 			EnabledState:     pointer.To(enabled),
-			Mode:             pointer.To(waf.PolicyMode(d.Get("mode").(string))),
+			Mode:             pointer.ToEnum[waf.PolicyMode](d.Get("mode").(string)),
 			RequestBodyCheck: pointer.To(requestBodyCheck),
 		}
 
@@ -875,8 +875,7 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 
 	model.Properties = pointer.To(props)
 
-	err = client.PoliciesCreateOrUpdateThenPoll(ctx, *id, *model)
-	if err != nil {
+	if err = client.PoliciesCreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
@@ -966,8 +965,7 @@ func resourceCdnFrontDoorFirewallPolicyDelete(d *pluginsdk.ResourceData, meta in
 		return err
 	}
 
-	err = client.PoliciesDeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.PoliciesDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
@@ -1105,7 +1103,7 @@ func expandCdnFrontDoorFirewallManagedRules(input []interface{}) (*waf.ManagedRu
 		}
 
 		if action != "" {
-			managedRuleSet.RuleSetAction = pointer.To(waf.ManagedRuleSetActionType(action))
+			managedRuleSet.RuleSetAction = pointer.ToEnum[waf.ManagedRuleSetActionType](action)
 		}
 
 		result = append(result, managedRuleSet)
@@ -1298,11 +1296,6 @@ func flattenCdnFrontDoorFirewallCustomRules(input *waf.CustomRuleList) []interfa
 			enabled = pointer.From(v.EnabledState) == waf.CustomRuleEnabledStateEnabled
 		}
 
-		name := ""
-		if v.Name != nil {
-			name = *v.Name
-		}
-
 		rateLimitDurationInMinutes := 0
 		if v.RateLimitDurationInMinutes != nil {
 			rateLimitDurationInMinutes = int(*v.RateLimitDurationInMinutes)
@@ -1320,7 +1313,7 @@ func flattenCdnFrontDoorFirewallCustomRules(input *waf.CustomRuleList) []interfa
 			"rate_limit_duration_in_minutes": rateLimitDurationInMinutes,
 			"rate_limit_threshold":           rateLimitThreshold,
 			"priority":                       priority,
-			"name":                           name,
+			"name":                           pointer.From(v.Name),
 			"type":                           ruleType,
 		})
 	}
@@ -1335,22 +1328,12 @@ func flattenCdnFrontDoorFirewallMatchConditions(input []waf.MatchCondition) []in
 
 	results := make([]interface{}, 0)
 	for _, v := range input {
-		selector := ""
-		if v.Selector != nil {
-			selector = *v.Selector
-		}
-
-		negateCondition := false
-		if v.NegateCondition != nil {
-			negateCondition = *v.NegateCondition
-		}
-
 		results = append(results, map[string]interface{}{
 			"match_variable":     string(v.MatchVariable),
 			"match_values":       v.MatchValue,
-			"negation_condition": negateCondition,
+			"negation_condition": pointer.From(v.NegateCondition),
 			"operator":           string(v.Operator),
-			"selector":           selector,
+			"selector":           pointer.From(v.Selector),
 			"transforms":         flattenTransformSlice(v.Transforms),
 		})
 	}

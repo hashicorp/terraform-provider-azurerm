@@ -179,7 +179,7 @@ func resourceFirewallNatRuleCollectionCreateUpdate(d *pluginsdk.ResourceData, me
 		Name: pointer.To(name),
 		Properties: &azurefirewalls.AzureFirewallNatRuleCollectionProperties{
 			Action: &azurefirewalls.AzureFirewallNatRCAction{
-				Type: pointer.To(azurefirewalls.AzureFirewallNatRCActionType(d.Get("action").(string))),
+				Type: pointer.ToEnum[azurefirewalls.AzureFirewallNatRCActionType](d.Get("action").(string)),
 			},
 			Priority: pointer.To(int64(priority)),
 			Rules:    natRules,

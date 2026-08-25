@@ -417,7 +417,7 @@ func expandArmCdnEndpointCustomDomainCdnManagedHttpsSettings(input []interface{}
 	}
 
 	raw := input[0].(map[string]interface{})
-	output := &cdn.ManagedHTTPSParameters{
+	return &cdn.ManagedHTTPSParameters{
 		CertificateSourceParameters: &cdn.CertificateSourceParameters{
 			OdataType:       pointer.To("#Microsoft.Azure.Cdn.Models.CdnCertificateSourceParameters"),
 			CertificateType: cdn.CertificateType(raw["certificate_type"].(string)),
@@ -426,8 +426,6 @@ func expandArmCdnEndpointCustomDomainCdnManagedHttpsSettings(input []interface{}
 		ProtocolType:      cdn.ProtocolType(raw["protocol_type"].(string)),
 		MinimumTLSVersion: cdn.MinimumTLSVersion(raw["tls_version"].(string)),
 	}
-
-	return output
 }
 
 func expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx context.Context, input []interface{}, clients *clients.Client) (cdn.BasicCustomDomainHTTPSParameters, error) {
@@ -523,10 +521,7 @@ func flattenArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx context.Conte
 	}
 	secretName := *params.SecretName
 
-	var secretVersion string
-	if params.SecretVersion != nil {
-		secretVersion = *params.SecretVersion
-	}
+	secretVersion := pointer.From(params.SecretVersion)
 
 	keyVaultId := commonids.NewKeyVaultID(subscriptionId, resourceGroupName, vaultName)
 	keyVaultBaseUrl, err := keyVaultsClient.BaseUriForKeyVault(ctx, keyVaultId)

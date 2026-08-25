@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
@@ -379,13 +380,9 @@ func flattenKeyVaultCertificatePolicyForDataSource(input *kv.CertificatePolicy) 
 	policy := make(map[string]interface{})
 
 	if params := input.IssuerParameters; params != nil {
-		var name string
-		if params.Name != nil {
-			name = *params.Name
-		}
 		policy["issuer_parameters"] = []interface{}{
 			map[string]interface{}{
-				"name": name,
+				"name": pointer.From(params.Name),
 			},
 		}
 	}
@@ -450,13 +447,9 @@ func flattenKeyVaultCertificatePolicyForDataSource(input *kv.CertificatePolicy) 
 
 	// secret properties
 	if props := input.SecretProperties; props != nil {
-		var contentType string
-		if props.ContentType != nil {
-			contentType = *props.ContentType
-		}
 		policy["secret_properties"] = []interface{}{
 			map[string]interface{}{
-				"content_type": contentType,
+				"content_type": pointer.From(props.ContentType),
 			},
 		}
 	}

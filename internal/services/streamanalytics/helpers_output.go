@@ -99,7 +99,7 @@ func expandStreamAnalyticsOutputSerialization(input []interface{}) (outputs.Seri
 		}
 		return outputs.CsvSerialization{
 			Properties: &outputs.CsvSerializationProperties{
-				Encoding:       pointer.To(outputs.Encoding(encoding)),
+				Encoding:       pointer.ToEnum[outputs.Encoding](encoding),
 				FieldDelimiter: pointer.To(fieldDelimiter),
 			},
 		}, nil
@@ -117,8 +117,8 @@ func expandStreamAnalyticsOutputSerialization(input []interface{}) (outputs.Seri
 
 		return outputs.JsonSerialization{
 			Properties: &outputs.JsonSerializationProperties{
-				Encoding: pointer.To(outputs.Encoding(encoding)),
-				Format:   pointer.To(outputs.JsonOutputSerializationFormat(format)),
+				Encoding: pointer.ToEnum[outputs.Encoding](encoding),
+				Format:   pointer.ToEnum[outputs.JsonOutputSerializationFormat](format),
 			},
 		}, nil
 

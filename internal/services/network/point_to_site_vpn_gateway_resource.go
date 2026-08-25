@@ -342,11 +342,7 @@ func resourcePointToSiteVPNGatewayRead(d *pluginsdk.ResourceData, meta interface
 			}
 			d.Set("vpn_server_configuration_id", vpnServerConfigurationId)
 
-			routingPreferenceInternetEnabled := false
-			if props.IsRoutingPreferenceInternet != nil {
-				routingPreferenceInternetEnabled = *props.IsRoutingPreferenceInternet
-			}
-			d.Set("routing_preference_internet_enabled", routingPreferenceInternetEnabled)
+			d.Set("routing_preference_internet_enabled", pointer.From(props.IsRoutingPreferenceInternet))
 		}
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
@@ -461,11 +457,6 @@ func flattenPointToSiteVPNGatewayConnectionConfiguration(input *[]virtualwans.P2
 	output := make([]interface{}, 0)
 
 	for _, v := range *input {
-		name := ""
-		if v.Name != nil {
-			name = *v.Name
-		}
-
 		route := make([]interface{}, 0)
 		addressPrefixes := make([]interface{}, 0)
 		enableInternetSecurity := false
@@ -490,7 +481,7 @@ func flattenPointToSiteVPNGatewayConnectionConfiguration(input *[]virtualwans.P2
 		}
 
 		output = append(output, map[string]interface{}{
-			"name": name,
+			"name": pointer.From(v.Name),
 			"vpn_client_address_pool": []interface{}{
 				map[string]interface{}{
 					"address_prefixes": addressPrefixes,
