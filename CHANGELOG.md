@@ -1,6 +1,7 @@
 ## 5.3.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_search_service` - allow in-place downgrades of the `sku` property between Basic and Standard tiers [GH-33069]
 * `azurerm_managed_application` - add support for the `identity` block [GH-30725]
 * `azurerm_private_endpoint` - extend validation for the `private_service_connection.subresource_names` property to allow names containing spaces [GH-32887]
 * `azurerm_cognitive_deployment` - add Resource Identity support [GH-33149]
