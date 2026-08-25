@@ -54,7 +54,7 @@ func TestAccSecurityCenterSubscriptionPricing_update(t *testing.T) {
 }
 
 func TestAccSecurityCenterSubscriptionPricing_multiplePricingResources(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test_storage_accounts")
+	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test_sql_servers")
 	r := SecurityCenterSubscriptionPricingResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
@@ -63,9 +63,11 @@ func TestAccSecurityCenterSubscriptionPricing_multiplePricingResources(t *testin
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tier").HasValue("Standard"),
-				check.That(data.ResourceName).Key("resource_type").HasValue("StorageAccounts"),
+				check.That(data.ResourceName).Key("resource_type").HasValue("SqlServers"),
 				acceptance.TestCheckResourceAttr("azurerm_security_center_subscription_pricing.test_key_vaults", "tier", "Standard"),
 				acceptance.TestCheckResourceAttr("azurerm_security_center_subscription_pricing.test_key_vaults", "resource_type", "KeyVaults"),
+				acceptance.TestCheckResourceAttr("azurerm_security_center_subscription_pricing.test_open_source_relational_databases", "tier", "Standard"),
+				acceptance.TestCheckResourceAttr("azurerm_security_center_subscription_pricing.test_open_source_relational_databases", "resource_type", "OpenSourceRelationalDatabases"),
 			),
 		},
 	})
@@ -319,35 +321,27 @@ resource "azurerm_security_center_subscription_pricing" "test" {
 `
 }
 
+// the plans used here are deliberately not managed by any other test in this file, since pricing is a subscription level singleton
 func (SecurityCenterSubscriptionPricingResource) multiplePricingResources() string {
 	return `
 provider "azurerm" {
   features {}
 }
 
-resource "azurerm_security_center_subscription_pricing" "test_storage_accounts" {
+resource "azurerm_security_center_subscription_pricing" "test_sql_servers" {
   tier          = "Standard"
-  resource_type = "StorageAccounts"
-  subplan       = "DefenderForStorageV2"
-
-  extension {
-    additional_extension_properties = {
-      CapGBPerMonthPerStorageAccount = "5000"
-      AutomatedResponse              = "None"
-      BlobScanResultsOptions         = "BlobIndexTags"
-    }
-    name = "OnUploadMalwareScanning"
-  }
-
-  extension {
-    name = "SensitiveDataDiscovery"
-  }
+  resource_type = "SqlServers"
 }
 
 resource "azurerm_security_center_subscription_pricing" "test_key_vaults" {
   tier          = "Standard"
   resource_type = "KeyVaults"
   subplan       = "PerKeyVault"
+}
+
+resource "azurerm_security_center_subscription_pricing" "test_open_source_relational_databases" {
+  tier          = "Standard"
+  resource_type = "OpenSourceRelationalDatabases"
 }
 `
 }
