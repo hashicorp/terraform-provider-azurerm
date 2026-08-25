@@ -9,10 +9,10 @@ import (
 )
 
 type networkInterfaceUpdateInformation struct {
-	applicationGatewayBackendAddressPoolIDs []string
+	applicationGatewayBackendAddressPoolIDs map[string]string
 	applicationSecurityGroupIDs             []string
 	loadBalancerBackendAddressPoolIDs       map[string]string
-	loadBalancerInboundNatRuleIDs           []string
+	loadBalancerInboundNatRuleIDs           map[string]string
 	networkSecurityGroupID                  string
 }
 
@@ -33,9 +33,9 @@ func parseFieldsFromNetworkInterface(input networkinterfaces.NetworkInterfacePro
 	}
 
 	applicationSecurityGroupIds := make(map[string]struct{})
-	applicationGatewayBackendAddressPoolIds := make(map[string]struct{})
+	applicationGatewayBackendAddressPoolIds := make(map[string]string)
 	loadBalancerBackendAddressPoolIds := make(map[string]string)
-	loadBalancerInboundNatRuleIds := make(map[string]struct{})
+	loadBalancerInboundNatRuleIds := make(map[string]string)
 
 	if input.IPConfigurations != nil {
 		for _, v := range *input.IPConfigurations {
@@ -52,17 +52,21 @@ func parseFieldsFromNetworkInterface(input networkinterfaces.NetworkInterfacePro
 				}
 			}
 
+			if v.Name == nil {
+				continue
+			}
+
 			if props.ApplicationGatewayBackendAddressPools != nil {
 				for _, pool := range *props.ApplicationGatewayBackendAddressPools {
 					if pool.Id != nil {
-						applicationGatewayBackendAddressPoolIds[*pool.Id] = struct{}{}
+						applicationGatewayBackendAddressPoolIds[*pool.Id] = *v.Name
 					}
 				}
 			}
 
 			if props.LoadBalancerBackendAddressPools != nil {
 				for _, pool := range *props.LoadBalancerBackendAddressPools {
-					if v.Name != nil && pool.Id != nil {
+					if pool.Id != nil {
 						loadBalancerBackendAddressPoolIds[*pool.Id] = *v.Name
 					}
 				}
@@ -71,7 +75,7 @@ func parseFieldsFromNetworkInterface(input networkinterfaces.NetworkInterfacePro
 			if props.LoadBalancerInboundNatRules != nil {
 				for _, rule := range *props.LoadBalancerInboundNatRules {
 					if rule.Id != nil {
-						loadBalancerInboundNatRuleIds[*rule.Id] = struct{}{}
+						loadBalancerInboundNatRuleIds[*rule.Id] = *v.Name
 					}
 				}
 			}
@@ -79,10 +83,10 @@ func parseFieldsFromNetworkInterface(input networkinterfaces.NetworkInterfacePro
 	}
 
 	return networkInterfaceUpdateInformation{
-		applicationGatewayBackendAddressPoolIDs: mapToSlice(applicationGatewayBackendAddressPoolIds),
+		applicationGatewayBackendAddressPoolIDs: applicationGatewayBackendAddressPoolIds,
 		applicationSecurityGroupIDs:             mapToSlice(applicationSecurityGroupIds),
 		loadBalancerBackendAddressPoolIDs:       loadBalancerBackendAddressPoolIds,
-		loadBalancerInboundNatRuleIDs:           mapToSlice(loadBalancerInboundNatRuleIds),
+		loadBalancerInboundNatRuleIDs:           loadBalancerInboundNatRuleIds,
 		networkSecurityGroupID:                  networkSecurityGroupId,
 	}
 }
@@ -97,30 +101,12 @@ func mapFieldsToNetworkInterface(input *[]networkinterfaces.NetworkInterfaceIPCo
 		})
 	}
 
-	applicationGatewayBackendAddressPools := make([]networkinterfaces.ApplicationGatewayBackendAddressPool, 0)
-	for _, id := range info.applicationGatewayBackendAddressPoolIDs {
-		applicationGatewayBackendAddressPools = append(applicationGatewayBackendAddressPools, networkinterfaces.ApplicationGatewayBackendAddressPool{
-			Id: pointer.To(id),
-		})
-	}
-
-	loadBalancerInboundNatRules := make([]networkinterfaces.InboundNatRule, 0)
-	for _, id := range info.loadBalancerInboundNatRuleIDs {
-		loadBalancerInboundNatRules = append(loadBalancerInboundNatRules, networkinterfaces.InboundNatRule{
-			Id: pointer.To(id),
-		})
-	}
-
 	for _, config := range *output {
 		if config.Properties == nil {
 			continue
 		}
 
 		config.Properties.ApplicationSecurityGroups = &applicationSecurityGroups
-
-		if config.Properties.PrivateIPAddressVersion == nil || *config.Properties.PrivateIPAddressVersion != networkinterfaces.IPVersionIPvFour {
-			continue
-		}
 
 		loadBalancerBackendAddressPools := make([]networkinterfaces.BackendAddressPool, 0)
 		for id, name := range info.loadBalancerBackendAddressPoolIDs {
@@ -129,12 +115,28 @@ func mapFieldsToNetworkInterface(input *[]networkinterfaces.NetworkInterfaceIPCo
 					Id: pointer.To(id),
 				})
 			}
-
-			config.Properties.LoadBalancerBackendAddressPools = &loadBalancerBackendAddressPools
 		}
+		config.Properties.LoadBalancerBackendAddressPools = &loadBalancerBackendAddressPools
 
-		config.Properties.ApplicationGatewayBackendAddressPools = &applicationGatewayBackendAddressPools
+		loadBalancerInboundNatRules := make([]networkinterfaces.InboundNatRule, 0)
+		for id, name := range info.loadBalancerInboundNatRuleIDs {
+			if config.Name != nil && *config.Name == name {
+				loadBalancerInboundNatRules = append(loadBalancerInboundNatRules, networkinterfaces.InboundNatRule{
+					Id: pointer.To(id),
+				})
+			}
+		}
 		config.Properties.LoadBalancerInboundNatRules = &loadBalancerInboundNatRules
+
+		applicationGatewayBackendAddressPools := make([]networkinterfaces.ApplicationGatewayBackendAddressPool, 0)
+		for id, name := range info.applicationGatewayBackendAddressPoolIDs {
+			if config.Name != nil && *config.Name == name {
+				applicationGatewayBackendAddressPools = append(applicationGatewayBackendAddressPools, networkinterfaces.ApplicationGatewayBackendAddressPool{
+					Id: pointer.To(id),
+				})
+			}
+		}
+		config.Properties.ApplicationGatewayBackendAddressPools = &applicationGatewayBackendAddressPools
 	}
 
 	return output
