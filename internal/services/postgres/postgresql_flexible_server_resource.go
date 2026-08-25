@@ -841,7 +841,9 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 			}
 
 			createMode := d.Get("create_mode").(string)
-			if createMode == "" || servers.CreateMode(createMode) == servers.CreateModeDefault {
+isDefaultCreateMode := createMode == "" || servers.CreateMode(createMode) == servers.CreateModeDefault
+			isReplica := pointer.From(props.SourceServerResourceId) != ""
+			if isDefaultCreateMode && !isReplica {
 				if err := d.Set("cluster", flattenFlexibleServerCluster(props.Cluster)); err != nil {
 					return fmt.Errorf("setting `cluster`: %+v", err)
 				}
