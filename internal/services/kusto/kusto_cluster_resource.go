@@ -4,6 +4,7 @@
 package kusto
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -222,6 +223,34 @@ func resourceKustoCluster() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+			// `trusted_external_tenants` is semantically an unordered set of tenant IDs, but it is modelled
+			// as a `TypeList` and the Azure Data Explorer API returns the tenants in its own canonical
+			// order, which frequently differs from the configured order. That reordering surfaces as a
+			// permanent no-op diff, so suppress it when the configured set matches what is already in
+			// state; a genuine add/removal changes the set and still applies.
+			//
+			// Only compare when the configured collection and all its elements are known. `GetChange`
+			// can expose an unknown (known-after-apply) list as its zero value (`[]interface{}{}`); if
+			// state is also empty the sets would compare equal and `SetNew` would incorrectly replace
+			// the unknown planned value with the old state, suppressing a legitimate change.
+			rawTrustedExternalTenants, diags := d.GetRawConfigAt(sdk.ConstructCtyPath("trusted_external_tenants"))
+			if !diags.HasError() && rawTrustedExternalTenants.IsWhollyKnown() {
+				oldTenants, newTenants := d.GetChange("trusted_external_tenants")
+				if oldList, ok := oldTenants.([]interface{}); ok {
+					if newList, ok := newTenants.([]interface{}); ok {
+						if trustedExternalTenantsEqual(oldList, newList) {
+							if err := d.SetNew("trusted_external_tenants", oldList); err != nil {
+								return err
+							}
+						}
+					}
+				}
+			}
+
+			return nil
+		}),
 	}
 }
 
