@@ -306,7 +306,7 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		// API & RBAC Mode..
 		authenticationOptions = pointer.To(services.DataPlaneAuthOptions{
 			AadOrApiKey: pointer.To(services.DataPlaneAadOrApiKeyAuthOption{
-				AadAuthFailureMode: pointer.To(services.AadAuthFailureMode(authenticationFailureMode)),
+				AadAuthFailureMode: pointer.ToEnum[services.AadAuthFailureMode](authenticationFailureMode),
 			}),
 		})
 	}
@@ -352,8 +352,7 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		payload.Identity = expandedIdentity
 	}
 
-	err = client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, services.CreateOrUpdateOperationOptions{}, sdk.SetIDCallback(meta, &id, d))
-	if err != nil {
+	if err = client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, services.CreateOrUpdateOperationOptions{}, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 	d.SetId(id.ID())
@@ -735,11 +734,11 @@ func validateSearchServiceSKUUpdate(ctx context.Context, diff *pluginsdk.Resourc
 		// Free and Storage optimized SKUs are not included as they're not part of the Basic->Standard upgrade path
 	}
 
-	oldLevel, oldExists := skuHierarchy[oldSku]
-	newLevel, newExists := skuHierarchy[newSku]
+	_, oldExists := skuHierarchy[oldSku]
+	_, newExists := skuHierarchy[newSku]
 
-	// If it's not a valid upgrade, force recreation instead of blocking the change
-	if !oldExists || !newExists || newLevel <= oldLevel {
+	// If it's not a valid upgrade (upgrades between basic and standard skus), force recreation instead of blocking the change
+	if !oldExists || !newExists {
 		return diff.ForceNew("sku")
 	}
 

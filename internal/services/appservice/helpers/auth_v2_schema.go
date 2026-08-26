@@ -518,7 +518,7 @@ func expandAuthV2LoginSettings(input []AuthV2Login) *webapps.Login {
 			NonceExpirationInterval: pointer.To(login.NonceExpirationTime),
 		},
 		CookieExpiration: &webapps.CookieExpiration{
-			Convention:       pointer.To(webapps.CookieExpirationConvention(login.CookieExpirationConvention)),
+			Convention:       pointer.ToEnum[webapps.CookieExpirationConvention](login.CookieExpirationConvention),
 			TimeToExpiration: pointer.To(login.CookieExpirationTime),
 		},
 	}
@@ -1158,9 +1158,9 @@ func flattenStaticWebAppAuthV2Settings(input *webapps.AzureStaticWebApps) []Stat
 
 	result := StaticWebAppAuthV2Settings{}
 
-	if props := input; props != nil && pointer.From(props.Enabled) {
-		if props.Registration != nil {
-			result.ClientId = pointer.From(props.Registration.ClientId)
+	if pointer.From(input.Enabled) {
+		if input.Registration != nil {
+			result.ClientId = pointer.From(input.Registration.ClientId)
 		}
 	}
 
@@ -1654,7 +1654,7 @@ func GithubAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 func expandGitHubAuthV2Settings(input []GithubAuthV2Settings) *webapps.GitHub {
 	if len(input) == 1 {
 		github := input[0]
-		result := &webapps.GitHub{
+		return &webapps.GitHub{
 			Enabled: pointer.To(true),
 			Registration: &webapps.ClientRegistration{
 				ClientId:                pointer.To(github.ClientId),
@@ -1664,8 +1664,6 @@ func expandGitHubAuthV2Settings(input []GithubAuthV2Settings) *webapps.GitHub {
 				Scopes: pointer.To(github.LoginScopes),
 			},
 		}
-
-		return result
 	}
 
 	return &webapps.GitHub{
@@ -2048,15 +2046,13 @@ func TwitterAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 func expandTwitterAuthV2Settings(input []TwitterAuthV2Settings) *webapps.Twitter {
 	if len(input) == 1 {
 		twitter := input[0]
-		result := &webapps.Twitter{
+		return &webapps.Twitter{
 			Enabled: pointer.To(true),
 			Registration: &webapps.TwitterRegistration{
 				ConsumerKey:               pointer.To(twitter.ConsumerKey),
 				ConsumerSecretSettingName: pointer.To(twitter.ConsumerSecretSettingName),
 			},
 		}
-
-		return result
 	}
 
 	return &webapps.Twitter{
@@ -2096,7 +2092,7 @@ func ExpandAuthV2Settings(input []AuthV2Settings) *webapps.SiteAuthSettingsV2 {
 		},
 		GlobalValidation: &webapps.GlobalValidation{
 			RequireAuthentication:       pointer.To(settings.RequireAuth),
-			UnauthenticatedClientAction: pointer.To(webapps.UnauthenticatedClientActionV2(settings.UnauthenticatedAction)),
+			UnauthenticatedClientAction: pointer.ToEnum[webapps.UnauthenticatedClientActionV2](settings.UnauthenticatedAction),
 			ExcludedPaths:               pointer.To(settings.ExcludedPaths),
 		},
 		IdentityProviders: &webapps.IdentityProviders{
@@ -2117,7 +2113,7 @@ func ExpandAuthV2Settings(input []AuthV2Settings) *webapps.SiteAuthSettingsV2 {
 				ApiPrefix: pointer.To(settings.HttpRoutesAPIPrefix),
 			},
 			ForwardProxy: &webapps.ForwardProxy{
-				Convention: pointer.To(webapps.ForwardProxyConvention(settings.ForwardProxyConvention)),
+				Convention: pointer.ToEnum[webapps.ForwardProxyConvention](settings.ForwardProxyConvention),
 			},
 		},
 	}

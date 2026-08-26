@@ -20,6 +20,7 @@ import (
 	webtests "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-03-01/metricalerts"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -27,7 +28,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity
@@ -462,7 +462,7 @@ func resourceMonitorMetricAlertCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			TargetResourceType:   pointer.To(targetResourceType),
 			TargetResourceRegion: pointer.To(targetResourceLocation),
 		},
-		Tags: utils.ExpandPtrMapStringString(t),
+		Tags: helpers.ExpandPtrMapStringString(t),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
@@ -576,7 +576,7 @@ func resourceMonitorMetricAlertFlatten(d *pluginsdk.ResourceData, id *metricaler
 		d.Set("target_resource_type", props.TargetResourceType)
 		d.Set("target_resource_location", props.TargetResourceRegion)
 
-		if err := d.Set("tags", utils.FlattenPtrMapStringString(model.Tags)); err != nil {
+		if err := d.Set("tags", helpers.FlattenPtrMapStringString(model.Tags)); err != nil {
 			return err
 		}
 	}
@@ -779,10 +779,7 @@ func flattenMonitorMetricAlertSingleResourceMultiMetricCriteria(input *[]metrica
 	operator := string(criteria.Operator)
 	threshold := criteria.Threshold
 
-	var skipMetricValidation bool
-	if criteria.SkipMetricValidation != nil {
-		skipMetricValidation = *criteria.SkipMetricValidation
-	}
+	skipMetricValidation := pointer.From(criteria.SkipMetricValidation)
 
 	return []interface{}{
 		map[string]interface{}{
@@ -851,11 +848,7 @@ func flattenMonitorMetricAlertMultiResourceMultiMetricCriteria(input *[]metrical
 			v["evaluation_total_count"] = int(criteria.FailingPeriods.NumberOfEvaluationPeriods)
 			v["evaluation_failure_count"] = int(criteria.FailingPeriods.MinFailingPeriodsToAlert)
 
-			ignoreDataBefore := ""
-			if criteria.IgnoreDataBefore != nil {
-				ignoreDataBefore = *criteria.IgnoreDataBefore
-			}
-			v["ignore_data_before"] = ignoreDataBefore
+			v["ignore_data_before"] = pointer.From(criteria.IgnoreDataBefore)
 		}
 
 		// Common properties

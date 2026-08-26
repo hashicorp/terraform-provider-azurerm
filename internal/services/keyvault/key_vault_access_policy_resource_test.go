@@ -145,10 +145,7 @@ func (t KeyVaultAccessPolicyResource) Exists(ctx context.Context, clients *clien
 	if model := resp.Model; model != nil && model.Properties.AccessPolicies != nil {
 		for _, policy := range *model.Properties.AccessPolicies {
 			if strings.EqualFold(policy.ObjectId, id.ObjectID()) {
-				aid := ""
-				if policy.ApplicationId != nil {
-					aid = *policy.ApplicationId
-				}
+				aid := pointer.From(policy.ApplicationId)
 
 				if strings.EqualFold(aid, id.ApplicationId()) {
 					found = true

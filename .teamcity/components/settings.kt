@@ -13,7 +13,7 @@ var defaultParallelism = 20
 var defaultTimeout = 12
 
 // specifies the default version of Terraform Core which should be used for testing
-var defaultTerraformCoreVersion = "1.14.3"
+var defaultTerraformCoreVersion = "1.15.8"
 
 // This represents a cron view of days of the week, Monday - Friday.
 const val defaultDaysOfWeek = "2,3,4,5,6"
@@ -121,6 +121,9 @@ var serviceTestConfigurationOverrides = mapOf(
 
         // load balancer global tire Public IP is only available in
         "loadbalancer" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus2", "westus", false)),
+
+        // Playwright workspace is only available in certain locations, parallelism set to 1 as its default quota is 2
+        "loadtestservice" to testConfiguration(parallelism = 1, locationOverride = LocationConfiguration("westeurope", "eastus", "westus3", false)),
 
         // Log Analytics Clusters have a max deployments of 2 - parallelism set to 1 or `importTest` fails
         "loganalytics" to testConfiguration(parallelism = 1),

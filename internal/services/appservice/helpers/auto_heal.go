@@ -530,7 +530,7 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 
 	if len(autoHeal.Actions) > 0 {
 		action := autoHeal.Actions[0]
-		result.Actions.ActionType = pointer.To(webapps.AutoHealActionType(action.ActionType))
+		result.Actions.ActionType = pointer.ToEnum[webapps.AutoHealActionType](action.ActionType)
 		result.Actions.MinProcessExecutionTime = pointer.To(action.MinimumProcessTime)
 		if len(action.CustomAction) != 0 {
 			customAction := action.CustomAction[0]
