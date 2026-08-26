@@ -7,7 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strconv"
+	"net/http"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" // nolint: staticcheck
@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	mgmtGrpParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -160,21 +161,15 @@ func resourceArmPolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	// Policy Definitions are eventually consistent; wait for them to stabilize
 	log.Printf("[DEBUG] Waiting for Policy Definition %q to become available", name)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"404"},
-		Target:                    []string{"200"},
-		Refresh:                   policyDefinitionRefreshFunc(ctx, client, name, managementGroupName),
-		MinTimeout:                10 * time.Second,
-		ContinuousTargetOccurence: 10,
-	}
-
-	if d.IsNewResource() {
-		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
-	} else {
-		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
-	}
-
-	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+	poller := custompollers.NewEventualConsistencyPoller(10, func(pollerCtx context.Context) (*http.Response, error) {
+		res, err := getPolicyDefinitionByName(pollerCtx, client, name, managementGroupName)
+		return res.Response.Response, err
+	}, &custompollers.EventualConsistencyPollerOptions{
+		Interval:              10 * time.Second,
+		TargetStatusCode:      pointer.To(http.StatusOK),
+		RetryErrorStatusCodes: []int{http.StatusNotFound},
+	})
+	if err = poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for Policy Definition %q to become available: %+v", name, err)
 	}
 
@@ -289,17 +284,6 @@ func resourceArmPolicyDefinitionDelete(d *pluginsdk.ResourceData, meta interface
 	}
 
 	return nil
-}
-
-func policyDefinitionRefreshFunc(ctx context.Context, client *policy.DefinitionsClient, name, managementGroupID string) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := getPolicyDefinitionByName(ctx, client, name, managementGroupID)
-		if err != nil {
-			return nil, strconv.Itoa(res.StatusCode), fmt.Errorf("issuing read request in policyAssignmentRefreshFunc for Policy Assignment %q: %+v", name, err)
-		}
-
-		return res, strconv.Itoa(res.StatusCode), nil
-	}
 }
 
 func flattenJSON(stringMap interface{}) string {
