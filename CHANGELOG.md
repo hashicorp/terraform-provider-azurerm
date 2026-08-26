@@ -7,6 +7,8 @@ ENHANCEMENTS:
 * `azurerm_private_endpoint` - extend validation for the `private_service_connection.subresource_names` property to allow names containing spaces [GH-32887]
 * `azurerm_cognitive_deployment` - add Resource Identity support [GH-33149]
 * Data Source: `azurerm_role_definition` - export the `role_definition_resource_id` property [GH-33126]
+* `azurerm_user_assigned_identity` - add additional polling to account for Azure's eventual consistency [GH-33142]
+* `azurerm_federated_identity_credential` - add additional polling to account for Azure's eventual consistency [GH-32935]
 
 FEATURES:
 * **New Resource**: `azurerm_playwright_workspace` [GH-31954]
