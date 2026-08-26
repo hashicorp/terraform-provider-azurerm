@@ -8,6 +8,7 @@ package signalr
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -16,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2024-03-01/webpubsub"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -207,20 +209,11 @@ func (r CustomCertWebPubsubResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
-			deadline, ok := ctx.Deadline()
-			if !ok {
-				return fmt.Errorf("internal-error: context had no deadline")
-			}
-			stateConf := &pluginsdk.StateChangeConf{
-				Pending:                   []string{"Exists"},
-				Target:                    []string{"NotFound"},
-				Refresh:                   webPubsubCustomCertificateDeleteRefreshFunc(ctx, client, *id),
-				Timeout:                   time.Until(deadline),
-				PollInterval:              10 * time.Second,
-				ContinuousTargetOccurence: 20,
-			}
-
-			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+			poller := custompollers.NewEventualConsistencyPoller(20, func(pollerCtx context.Context) (*http.Response, error) {
+				resp, err := client.CustomCertificatesGet(pollerCtx, *id)
+				return resp.HttpResponse, err
+			}, custompollers.DefaultDeletionEventualConsistencyPollerOptions())
+			if err := poller.PollUntilDone(ctx); err != nil {
 				return fmt.Errorf("waiting for %s to be fully deleted: %+v", *id, err)
 			}
 			return nil
@@ -230,21 +223,6 @@ func (r CustomCertWebPubsubResource) Delete() sdk.ResourceFunc {
 
 func (r CustomCertWebPubsubResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return webpubsub.ValidateCustomCertificateID
-}
-
-func webPubsubCustomCertificateDeleteRefreshFunc(ctx context.Context, client *webpubsub.WebPubSubClient, id webpubsub.CustomCertificateId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.CustomCertificatesGet(ctx, id)
-		if err != nil {
-			if response.WasNotFound(res.HttpResponse) {
-				return "NotFound", "NotFound", nil
-			}
-
-			return nil, "", fmt.Errorf("checking if %s has been deleted: %+v", id, err)
-		}
-
-		return res, "Exists", nil
-	}
 }
 
 func (r CustomCertWebPubsubResource) flatten(metadata sdk.ResourceMetaData, id *webpubsub.CustomCertificateId, model *webpubsub.CustomCertificate) error {

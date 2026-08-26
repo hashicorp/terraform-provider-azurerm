@@ -8,12 +8,14 @@ package signalr
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2024-03-01/signalr"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -181,20 +183,11 @@ func (r CustomDomainSignalrServiceResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
-			deadline, ok := ctx.Deadline()
-			if !ok {
-				return fmt.Errorf("internal-error: context had no deadline")
-			}
-			stateConf := &pluginsdk.StateChangeConf{
-				Pending:                   []string{"Exists"},
-				Target:                    []string{"NotFound"},
-				Refresh:                   signalrServiceCustomDomainDeleteRefreshFunc(ctx, client, *id),
-				Timeout:                   time.Until(deadline),
-				PollInterval:              10 * time.Second,
-				ContinuousTargetOccurence: 20,
-			}
-
-			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+			poller := custompollers.NewEventualConsistencyPoller(20, func(pollerCtx context.Context) (*http.Response, error) {
+				resp, err := client.CustomDomainsGet(pollerCtx, *id)
+				return resp.HttpResponse, err
+			}, custompollers.DefaultDeletionEventualConsistencyPollerOptions())
+			if err := poller.PollUntilDone(ctx); err != nil {
 				return fmt.Errorf("waiting for %s to be fully deleted: %+v", *id, err)
 			}
 
@@ -205,21 +198,6 @@ func (r CustomDomainSignalrServiceResource) Delete() sdk.ResourceFunc {
 
 func (r CustomDomainSignalrServiceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return signalr.ValidateCustomDomainID
-}
-
-func signalrServiceCustomDomainDeleteRefreshFunc(ctx context.Context, client *signalr.SignalRClient, id signalr.CustomDomainId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.CustomDomainsGet(ctx, id)
-		if err != nil {
-			if response.WasNotFound(res.HttpResponse) {
-				return "NotFound", "NotFound", nil
-			}
-
-			return nil, "", fmt.Errorf("checking if %s has been deleted: %+v", id, err)
-		}
-
-		return res, "Exists", nil
-	}
 }
 
 func (r CustomDomainSignalrServiceResource) flatten(metadata sdk.ResourceMetaData, id *signalr.CustomDomainId, model *signalr.CustomDomain) error {
