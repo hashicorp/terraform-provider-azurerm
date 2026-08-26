@@ -807,6 +807,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   oms_agent {
     log_analytics_workspace_id      = azurerm_log_analytics_workspace.test.id
     msi_auth_for_monitoring_enabled = true
