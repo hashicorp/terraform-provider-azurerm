@@ -494,6 +494,7 @@ func TestAccBatchAccountDataSource_networkProfile(t *testing.T) {
 		},
 	})
 }
+
 func TestAccBatchAccountDataSource_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_batch_account", "test")
 	r := BatchAccountDataSource{}
@@ -529,6 +530,7 @@ data "azurerm_batch_account" "test" {
 }
 `, BatchAccountResource{}.basicWithNetworkProfile(data))
 }
+
 func (BatchAccountDataSource) identity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
