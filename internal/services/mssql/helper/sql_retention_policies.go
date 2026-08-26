@@ -60,18 +60,11 @@ func LongTermRetentionPolicySchema() *pluginsdk.Schema {
 					AtLeastOneOf: atLeastOneOf,
 				},
 
-				"immutable_backups_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
-				},
-
 				"immutability_mode": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Computed:     true,
 					ValidateFunc: validation.StringInSlice(longtermretentionpolicies.PossibleValuesForTimeBasedImmutabilityMode(), false),
-					RequiredWith: []string{"long_term_retention_policy.0.immutable_backups_enabled"},
 				},
 			},
 		},
@@ -132,20 +125,11 @@ func ExpandLongTermRetentionPolicy(input []interface{}) *longtermretentionpolici
 		output.WeekOfYear = pointer.To(int64(v))
 	}
 
-	if v, ok := policy["immutable_backups_enabled"].(bool); ok {
-		immutability := longtermretentionpolicies.TimeBasedImmutabilityDisabled
-		if v {
-			immutability = longtermretentionpolicies.TimeBasedImmutabilityEnabled
-		}
-		output.TimeBasedImmutability = pointer.To(immutability)
-
-		// The API rejects setting the immutability mode when backup immutability is not enabled, so
-		// only send it when `immutable_backups_enabled` is `true`.
-		if v {
-			if mode, ok := policy["immutability_mode"].(string); ok && mode != "" {
-				output.TimeBasedImmutabilityMode = pointer.To(longtermretentionpolicies.TimeBasedImmutabilityMode(mode))
-			}
-		}
+	if mode, ok := policy["immutability_mode"].(string); ok && mode != "" {
+		output.TimeBasedImmutability = pointer.To(longtermretentionpolicies.TimeBasedImmutabilityEnabled)
+		output.TimeBasedImmutabilityMode = pointer.To(longtermretentionpolicies.TimeBasedImmutabilityMode(mode))
+	} else {
+		output.TimeBasedImmutability = pointer.To(longtermretentionpolicies.TimeBasedImmutabilityDisabled)
 	}
 	return pointer.To(output)
 }
@@ -172,27 +156,18 @@ func FlattenLongTermRetentionPolicy(input *longtermretentionpolicies.LongTermRet
 
 	yearlyRetention := "PT0S"
 	if input.Properties.YearlyRetention != nil {
-		yearlyRetention = *input.Properties.YearlyRetention
+		yearlyRetention = pointer.From(input.Properties.YearlyRetention)
 	}
 
-	immutableBackupsEnabled := false
-	if input.Properties.TimeBasedImmutability != nil {
-		immutableBackupsEnabled = *input.Properties.TimeBasedImmutability == longtermretentionpolicies.TimeBasedImmutabilityEnabled
-	}
-
-	immutabilityMode := ""
-	if input.Properties.TimeBasedImmutabilityMode != nil {
-		immutabilityMode = string(*input.Properties.TimeBasedImmutabilityMode)
-	}
+	immutabilityMode := string(pointer.From(input.Properties.TimeBasedImmutabilityMode))
 
 	return []interface{}{
 		map[string]interface{}{
-			"monthly_retention":         monthlyRetention,
-			"weekly_retention":          weeklyRetention,
-			"week_of_year":              weekOfYear,
-			"yearly_retention":          yearlyRetention,
-			"immutable_backups_enabled": immutableBackupsEnabled,
-			"immutability_mode":         immutabilityMode,
+			"monthly_retention": monthlyRetention,
+			"weekly_retention":  weeklyRetention,
+			"week_of_year":      weekOfYear,
+			"yearly_retention":  yearlyRetention,
+			"immutability_mode": immutabilityMode,
 		},
 	}
 }
