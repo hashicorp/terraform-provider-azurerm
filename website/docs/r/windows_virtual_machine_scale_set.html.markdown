@@ -137,7 +137,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "example" {
 
 * `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Windows Virtual Machine Scale Set should exist. Changing this forces a new Windows Virtual Machine Scale Set to be created.
 
-* `enable_automatic_updates` - (Optional) Are automatic updates enabled for this Virtual Machine? Defaults to `true`.
+* `automatic_updates_enabled` - (Optional) (Optional) Whether to enable automatic update for this Virtual Machine. Defaults to `true`.
 
 * `encryption_at_host_enabled` - (Optional) Should all of the disks (including the temp disk) attached to this Virtual Machine be encrypted by enabling Encryption at Host?
 
@@ -191,7 +191,9 @@ resource "azurerm_windows_virtual_machine_scale_set" "example" {
 
 -> **Note:** `resilient_vm_deletion_enabled` is currently not supported in the `austriaeast`, `belgiumcentral`, `centraluseuap`, `chilecentral`, `indonesiacentral`, `israelnorthwest`, `malaysiawest`, `mexicocentral`, `newzealandnorth`, `southcentralus2`, `southindia`, `southeastus3`, `southwestus`, `eastasia`, `eastus`, `southcentralus`, `southeastasia`, and `westeurope` regions.
 
-* `rolling_upgrade_policy` - (Optional) A `rolling_upgrade_policy` block as defined below. This is Required and can only be specified when `upgrade_mode` is set to `Automatic` or `Rolling`. Changing this forces a new resource to be created.
+* `rolling_upgrade_policy` - (Optional) A `rolling_upgrade_policy` block as defined below. Changing this forces a new resource to be created.
+
+~> **Note:** `rolling_upgrade_policy` is required for `Rolling`, optional for `Automatic`, and cannot be specified for `Manual`. When omitted with `Automatic`, Azure sets this block to its default values.
 
 * `scale_in` - (Optional) A `scale_in` block as defined below.
 
@@ -253,9 +255,9 @@ An `additional_unattend_content` block supports the following:
 
 An `automatic_os_upgrade_policy` block supports the following:
 
-* `disable_automatic_rollback` - (Required) Should automatic rollbacks be disabled?
+* `automatic_rollback_enabled` - (Required) Should automatic rollbacks be enabled?
 
-* `enable_automatic_os_upgrade` - (Required) Should OS Upgrades automatically be applied to Scale Set instances in a rolling fashion when a newer version of the OS Image becomes available?
+* `automatic_os_upgrade_enabled` - (Required) Should OS Upgrades automatically be applied to Scale Set instances in a rolling fashion when a newer version of the OS Image becomes available?
 
 ---
 
@@ -447,9 +449,9 @@ A `network_interface` block supports the following:
 
 * `dns_servers` - (Optional) A list of IP Addresses of DNS Servers which should be assigned to the Network Interface.
 
-* `enable_accelerated_networking` - (Optional) Does this Network Interface support Accelerated Networking? Defaults to `false`.
+* `accelerated_networking_enabled` - (Optional) Does this Network Interface support Accelerated Networking? Defaults to `false`.
 
-* `enable_ip_forwarding` - (Optional) Does this Network Interface support IP Forwarding? Defaults to `false`.
+* `ip_forwarding_enabled` - (Optional) Does this Network Interface support IP Forwarding? Defaults to `false`.
 
 * `network_security_group_id` - (Optional) The ID of a Network Security Group which should be assigned to this Network Interface.
 
@@ -484,8 +486,6 @@ An `os_disk` block supports the following:
 * `security_encryption_type` - (Optional) Encryption Type when the Virtual Machine Scale Set is Confidential VMSS. Possible values are `VMGuestStateOnly` and `DiskWithVMGuestState`. Changing this forces a new resource to be created.
 
 -> **Note:** `vtpm_enabled` must be set to `true` when `security_encryption_type` is specified.
-
--> **Note:** `encryption_at_host_enabled` cannot be set to `true` when `security_encryption_type` is set to `DiskWithVMGuestState`.
 
 * `write_accelerator_enabled` - (Optional) Should Write Accelerator be Enabled for this OS Disk? Defaults to `false`.
 

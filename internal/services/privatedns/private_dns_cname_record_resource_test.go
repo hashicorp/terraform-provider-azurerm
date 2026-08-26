@@ -103,7 +103,7 @@ func TestAccPrivateDnsCNameRecord_withTags(t *testing.T) {
 	})
 }
 
-func (t PrivateDnsCnameRecordResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r PrivateDnsCnameRecordResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := privatedns.ParseRecordTypeID(state.ID)
 	if err != nil {
 		return nil, err
@@ -124,33 +124,31 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_private_dns_zone" "test" {
-  name                = "acctestzone%d.com"
+  name                = "acctestzone%[1]d.com"
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_private_dns_cname_record" "test" {
-  name                = "acctestcname%d"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
+  name                = "acctestcname%[1]d"
+  private_dns_zone_id = azurerm_private_dns_zone.test.id
   ttl                 = 300
   record              = "contoso.com"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r PrivateDnsCnameRecordResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_private_dns_cname_record" "import" {
   name                = azurerm_private_dns_cname_record.test.name
-  resource_group_name = azurerm_private_dns_cname_record.test.resource_group_name
-  zone_name           = azurerm_private_dns_cname_record.test.zone_name
+  private_dns_zone_id = azurerm_private_dns_cname_record.test.private_dns_zone_id
   ttl                 = 300
   record              = "contoso.com"
 }
@@ -164,23 +162,22 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_private_dns_zone" "test" {
-  name                = "acctestzone%d.com"
+  name                = "acctestzone%[1]d.com"
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_private_dns_cname_record" "test" {
-  name                = "acctestcname%d"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
+  name                = "acctestcname%[1]d"
+  private_dns_zone_id = azurerm_private_dns_zone.test.id
   ttl                 = 0
   record              = "test.contoso.com"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (PrivateDnsCnameRecordResource) updateRecords(data acceptance.TestData) string {
@@ -190,23 +187,22 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_private_dns_zone" "test" {
-  name                = "acctestzone%d.com"
+  name                = "acctestzone%[1]d.com"
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_private_dns_cname_record" "test" {
-  name                = "acctestcname%d"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
+  name                = "acctestcname%[1]d"
+  private_dns_zone_id = azurerm_private_dns_zone.test.id
   ttl                 = 300
   record              = "contoso.com"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (PrivateDnsCnameRecordResource) withTags(data acceptance.TestData) string {
@@ -216,19 +212,18 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_private_dns_zone" "test" {
-  name                = "acctestzone%d.com"
+  name                = "acctestzone%[1]d.com"
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_private_dns_cname_record" "test" {
-  name                = "acctestcname%d"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
+  name                = "acctestcname%[1]d"
+  private_dns_zone_id = azurerm_private_dns_zone.test.id
   ttl                 = 300
   record              = "contoso.com"
 
@@ -237,7 +232,7 @@ resource "azurerm_private_dns_cname_record" "test" {
     cost_center = "MSFT"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (PrivateDnsCnameRecordResource) withTagsUpdate(data acceptance.TestData) string {
@@ -247,19 +242,18 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_private_dns_zone" "test" {
-  name                = "acctestzone%d.com"
+  name                = "acctestzone%[1]d.com"
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_private_dns_cname_record" "test" {
-  name                = "acctestcname%d"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
+  name                = "acctestcname%[1]d"
+  private_dns_zone_id = azurerm_private_dns_zone.test.id
   ttl                 = 300
   record              = "contoso.com"
 
@@ -267,5 +261,5 @@ resource "azurerm_private_dns_cname_record" "test" {
     environment = "staging"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }

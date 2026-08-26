@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -36,7 +35,7 @@ func (r ServiceConnectorSpringCloudResource) Exists(ctx context.Context, client 
 	return pointer.To(true), nil
 }
 
-func TestAccServiceConnectorSpringCloudCosmosdb_basic(t *testing.T) {
+func TestAccServiceConnectorSpringCloud_cosmosdbBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_connection", "test")
 	r := ServiceConnectorSpringCloudResource{}
 
@@ -51,7 +50,7 @@ func TestAccServiceConnectorSpringCloudCosmosdb_basic(t *testing.T) {
 	})
 }
 
-func TestAccServiceConnectorSpringCloudCosmosdb_secretAuth(t *testing.T) {
+func TestAccServiceConnectorSpringCloud_cosmosdbSecretAuth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_connection", "test")
 	r := ServiceConnectorSpringCloudResource{}
 
@@ -66,7 +65,7 @@ func TestAccServiceConnectorSpringCloudCosmosdb_secretAuth(t *testing.T) {
 	})
 }
 
-func TestAccServiceConnectorSpringCloudCosmosdb_servicePrincipalSecretAuth(t *testing.T) {
+func TestAccServiceConnectorSpringCloud_cosmosdbServicePrincipalSecretAuth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_connection", "test")
 	r := ServiceConnectorSpringCloudResource{}
 
@@ -81,7 +80,7 @@ func TestAccServiceConnectorSpringCloudCosmosdb_servicePrincipalSecretAuth(t *te
 	})
 }
 
-func TestAccServiceConnectorSpringCloudCosmosdb_userAssignedIdentity(t *testing.T) {
+func TestAccServiceConnectorSpringCloud_cosmosdbUserAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_connection", "test")
 	r := ServiceConnectorSpringCloudResource{}
 
@@ -96,7 +95,7 @@ func TestAccServiceConnectorSpringCloudCosmosdb_userAssignedIdentity(t *testing.
 	})
 }
 
-func TestAccServiceConnectorSpringCloudStorageBlob_basic(t *testing.T) {
+func TestAccServiceConnectorSpringCloud_storageBlobBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_connection", "test")
 	r := ServiceConnectorSpringCloudResource{}
 
@@ -111,7 +110,7 @@ func TestAccServiceConnectorSpringCloudStorageBlob_basic(t *testing.T) {
 	})
 }
 
-func TestAccServiceConnectorSpringCloudStorageBlob_secretStore(t *testing.T) {
+func TestAccServiceConnectorSpringCloud_storageBlobSecretStore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_connection", "test")
 	r := ServiceConnectorSpringCloudResource{}
 
@@ -133,24 +132,6 @@ func TestAccServiceConnectorSpringCloud_complete(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccServiceConnectorSpringCloud_clientTypeNone(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip("Skipping as `client_type` no longer accepts `none` in 5.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_connection", "test")
-	r := ServiceConnectorSpringCloudResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.clientTypeNone(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -446,22 +427,6 @@ resource "azurerm_spring_cloud_connection" "test" {
   }
 }
 `, template, data.RandomInteger)
-}
-
-func (r ServiceConnectorSpringCloudResource) clientTypeNone(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_spring_cloud_connection" "test" {
-  name               = "acctestserviceconnector%[2]d"
-  spring_cloud_id    = azurerm_spring_cloud_java_deployment.test.id
-  target_resource_id = azurerm_cosmosdb_sql_database.test.id
-  client_type        = "none"
-  authentication {
-    type = "systemAssignedIdentity"
-  }
-}
-`, r.template(data), data.RandomInteger)
 }
 
 func (r ServiceConnectorSpringCloudResource) template(data acceptance.TestData) string {

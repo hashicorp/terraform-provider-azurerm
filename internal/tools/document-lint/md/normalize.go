@@ -177,8 +177,7 @@ func FixFileNormalize(file string) {
 			}
 		} else if strings.HasPrefix(line, "*") {
 			// need a dash(-) after property name
-			line2 := tryFixProp(line)
-			line = line2
+			line = tryFixProp(line)
 			for k, v := range orderFixMap {
 				if strings.Contains(line, k) && !strings.Contains(line, v) {
 					line = strings.Replace(line, k, v, 1)

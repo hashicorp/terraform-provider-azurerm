@@ -30,7 +30,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name shared_image -service-package-name compute -properties "name,resource_group_name,gallery_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceSharedImage() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -321,9 +321,9 @@ func resourceSharedImageCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 			Identifier:          expandGalleryImageIdentifier(d),
 			PrivacyStatementUri: pointer.To(d.Get("privacy_statement_uri").(string)),
 			ReleaseNoteUri:      pointer.To(d.Get("release_note_uri").(string)),
-			Architecture:        pointer.To(galleryimages.Architecture(d.Get("architecture").(string))),
+			Architecture:        pointer.ToEnum[galleryimages.Architecture](d.Get("architecture").(string)),
 			OsType:              galleryimages.OperatingSystemTypes(d.Get("os_type").(string)),
-			HyperVGeneration:    pointer.To(galleryimages.HyperVGeneration(d.Get("hyper_v_generation").(string))),
+			HyperVGeneration:    pointer.ToEnum[galleryimages.HyperVGeneration](d.Get("hyper_v_generation").(string)),
 			PurchasePlan:        expandGalleryImagePurchasePlan(d.Get("purchase_plan").([]interface{})),
 			Features:            expandSharedImageFeatures(d),
 			Recommended:         recommended,
@@ -414,7 +414,12 @@ func resourceSharedImageUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		payload.Properties.ReleaseNoteUri = pointer.To(d.Get("release_note_uri").(string))
 	}
 
-	if d.HasChanges("max_recommended_vcpu_count", "min_recommended_vcpu_count", "max_recommended_memory_in_gb", "min_recommended_memory_in_gb") {
+	if d.HasChanges(
+		"max_recommended_vcpu_count",
+		"min_recommended_vcpu_count",
+		"max_recommended_memory_in_gb",
+		"min_recommended_memory_in_gb",
+	) {
 		recommended, err := expandGalleryImageRecommended(d)
 		if err != nil {
 			return err
@@ -688,26 +693,11 @@ func flattenGalleryImagePurchasePlan(input *galleryimages.ImagePurchasePlan) []i
 		return []interface{}{}
 	}
 
-	name := ""
-	if input.Name != nil {
-		name = *input.Name
-	}
-
-	publisher := ""
-	if input.Publisher != nil {
-		publisher = *input.Publisher
-	}
-
-	product := ""
-	if input.Product != nil {
-		product = *input.Product
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"name":      name,
-			"publisher": publisher,
-			"product":   product,
+			"name":      pointer.From(input.Name),
+			"publisher": pointer.From(input.Publisher),
+			"product":   pointer.From(input.Product),
 		},
 	}
 }

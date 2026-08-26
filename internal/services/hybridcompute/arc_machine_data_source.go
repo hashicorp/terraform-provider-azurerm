@@ -534,9 +534,7 @@ func (a ArcMachineDataSource) Read() sdk.ResourceFunc {
 					state.ClientPublicKey = *properties.ClientPublicKey
 				}
 
-				cloudMetadataValue := flattenCloudMetadataModel(properties.CloudMetadata)
-
-				state.CloudMetadata = cloudMetadataValue
+				state.CloudMetadata = flattenCloudMetadataModel(properties.CloudMetadata)
 
 				if properties.DetectedProperties != nil {
 					state.DetectedProperties = *properties.DetectedProperties
@@ -564,9 +562,7 @@ func (a ArcMachineDataSource) Read() sdk.ResourceFunc {
 					state.LastStatusChange = *properties.LastStatusChange
 				}
 
-				locationDataValue := flattenLocationDataModel(properties.LocationData)
-
-				state.LocationData = locationDataValue
+				state.LocationData = flattenLocationDataModel(properties.LocationData)
 
 				if properties.MachineFqdn != nil {
 					state.MachineFqdn = *properties.MachineFqdn
@@ -583,9 +579,7 @@ func (a ArcMachineDataSource) Read() sdk.ResourceFunc {
 					state.OsName = *properties.OsName
 				}
 
-				osProfileValue := flattenOSProfileModel(properties.OsProfile)
-
-				state.OsProfile = osProfileValue
+				state.OsProfile = flattenOSProfileModel(properties.OsProfile)
 
 				if properties.OsSku != nil {
 					state.OsSku = *properties.OsSku
@@ -607,9 +601,7 @@ func (a ArcMachineDataSource) Read() sdk.ResourceFunc {
 					state.PrivateLinkScopeResourceId = *properties.PrivateLinkScopeResourceId
 				}
 
-				serviceStatusesValue := flattenServiceStatusesModel(properties.ServiceStatuses)
-
-				state.ServiceStatuses = serviceStatusesValue
+				state.ServiceStatuses = flattenServiceStatusesModel(properties.ServiceStatuses)
 
 				if properties.Status != nil {
 					state.Status = *properties.Status
@@ -641,13 +633,9 @@ func flattenAgentConfigurationModel(input *machines.AgentConfiguration) ([]Agent
 
 	output := AgentConfigurationModel{}
 
-	extensionsAllowListValue := flattenConfigurationExtensionModel(input.ExtensionsAllowList)
+	output.ExtensionsAllowList = flattenConfigurationExtensionModel(input.ExtensionsAllowList)
 
-	output.ExtensionsAllowList = extensionsAllowListValue
-
-	extensionsBlockListValue := flattenConfigurationExtensionModel(input.ExtensionsBlockList)
-
-	output.ExtensionsBlockList = extensionsBlockListValue
+	output.ExtensionsBlockList = flattenConfigurationExtensionModel(input.ExtensionsBlockList)
 
 	if input.ExtensionsEnabled != nil {
 		parsedBool, err := strconv.ParseBool(*input.ExtensionsEnabled)
@@ -755,12 +743,9 @@ func flattenOSProfileModel(input *machines.OSProfile) []OSProfileModel {
 		output.ComputerName = *input.ComputerName
 	}
 
-	linuxConfigurationValue := flattenOSProfileLinuxConfigurationModel(input.LinuxConfiguration)
+	output.LinuxConfiguration = flattenOSProfileLinuxConfigurationModel(input.LinuxConfiguration)
 
-	output.LinuxConfiguration = linuxConfigurationValue
-
-	windowsConfigurationValue := flattenOSProfileWindowsConfigurationModel(input.WindowsConfiguration)
-	output.WindowsConfiguration = windowsConfigurationValue
+	output.WindowsConfiguration = flattenOSProfileWindowsConfigurationModel(input.WindowsConfiguration)
 
 	return append(outputList, output)
 }
@@ -773,9 +758,7 @@ func flattenOSProfileLinuxConfigurationModel(input *machines.OSProfileLinuxConfi
 
 	output := OSProfileLinuxConfigurationModel{}
 
-	patchSettingsValue := flattenPatchSettingsModel(input.PatchSettings)
-
-	output.PatchSettings = patchSettingsValue
+	output.PatchSettings = flattenPatchSettingsModel(input.PatchSettings)
 
 	return append(outputList, output)
 }
@@ -806,8 +789,7 @@ func flattenOSProfileWindowsConfigurationModel(input *machines.OSProfileWindowsC
 	}
 
 	output := OSProfileWindowsConfigurationModel{}
-	patchSettingsValue := flattenPatchSettingsModel(input.PatchSettings)
-	output.PatchSettings = patchSettingsValue
+	output.PatchSettings = flattenPatchSettingsModel(input.PatchSettings)
 
 	return append(outputList, output)
 }
@@ -820,11 +802,9 @@ func flattenServiceStatusesModel(input *machines.ServiceStatuses) []ServiceStatu
 
 	output := ServiceStatusesModel{}
 
-	extensionServiceValue := flattenServiceStatusModel(input.ExtensionService)
-	output.ExtensionService = extensionServiceValue
+	output.ExtensionService = flattenServiceStatusModel(input.ExtensionService)
 
-	guestConfigurationServiceValue := flattenServiceStatusModel(input.GuestConfigurationService)
-	output.GuestConfigurationService = guestConfigurationServiceValue
+	output.GuestConfigurationService = flattenServiceStatusModel(input.GuestConfigurationService)
 
 	return append(outputList, output)
 }

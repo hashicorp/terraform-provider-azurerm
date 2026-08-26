@@ -11,9 +11,9 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var _ pluginsdk.StateUpgrade = LegacyVMSSV0ToV1{}
@@ -253,7 +253,6 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 					},
-					// TODO 4.0: change this from enable_* to *_enabled
 					"enable_automatic_upgrades": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
@@ -515,10 +514,9 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 
 					"managed_disk_type": {
-						Type:          pluginsdk.TypeString,
-						Optional:      true,
-						Computed:      true,
-						ConflictsWith: []string{"storage_profile_os_disk.vhd_containers"},
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Computed: true,
 					},
 
 					"caching": {
@@ -723,7 +721,7 @@ func (LegacyVMSSV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 func userDataStateFunc(v interface{}) string {
 	switch s := v.(type) {
 	case string:
-		s = utils.Base64EncodeIfNot(s)
+		s = helpers.Base64EncodeIfNot(s)
 		hash := sha1.Sum([]byte(s))
 		return hex.EncodeToString(hash[:])
 	default:
