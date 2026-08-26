@@ -106,6 +106,7 @@ func mapFieldsToNetworkInterface(input *[]networkinterfaces.NetworkInterfaceIPCo
 			continue
 		}
 
+		// ASG associations apply to the network interface, so propagate them to every IP configuration.
 		config.Properties.ApplicationSecurityGroups = &applicationSecurityGroups
 
 		loadBalancerBackendAddressPools := make([]networkinterfaces.BackendAddressPool, 0)
