@@ -2042,7 +2042,7 @@ func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 			return fmt.Errorf("retrieving share properties for %s: %+v", id, err)
 		}
 
-		shareProperties = flattenAccountShareProperties(shareProps.Model)
+		shareProperties = flattenAccountShareProperties(shareProps.Model, d)
 	}
 	if err := d.Set("share_properties", shareProperties); err != nil {
 		return fmt.Errorf("setting `share_properties` for %s: %+v", id, err)
@@ -2773,7 +2773,7 @@ func expandAccountShareProperties(input []interface{}, accountTier storageaccoun
 	return props
 }
 
-func flattenAccountShareProperties(input *fileservices.FileServiceProperties) []interface{} {
+func flattenAccountShareProperties(input *fileservices.FileServiceProperties, d *pluginsdk.ResourceData) []interface{} {
 	output := make([]interface{}, 0)
 
 	if input != nil {
@@ -2782,7 +2782,7 @@ func flattenAccountShareProperties(input *fileservices.FileServiceProperties) []
 				"cors_rule":                         flattenAccountSharePropertiesCorsRule(props.Cors),
 				"nfs_encryption_in_transit_enabled": flattenAccountSharePropertiesNfsEncryptionInTransitEnabled(props.ProtocolSettings),
 				"retention_policy":                  flattenAccountShareDeleteRetentionPolicy(props.ShareDeleteRetentionPolicy),
-				"smb":                               flattenAccountSharePropertiesSMB(props.ProtocolSettings),
+				"smb":                               flattenAccountSharePropertiesSMB(props.ProtocolSettings, d),
 			})
 		}
 	}
@@ -2881,8 +2881,11 @@ func flattenAccountShareDeleteRetentionPolicy(input *fileservices.DeleteRetentio
 func expandAccountSharePropertiesSMB(input []interface{}) *fileservices.SmbSetting {
 	if len(input) == 0 || input[0] == nil {
 		return &fileservices.SmbSetting{
-			AuthenticationMethods:    pointer.To(""),
-			ChannelEncryption:        pointer.To(""),
+			AuthenticationMethods: pointer.To(""),
+			ChannelEncryption:     pointer.To(""),
+			EncryptionInTransit: &fileservices.EncryptionInTransit{
+				Required: pointer.To(false),
+			},
 			KerberosTicketEncryption: pointer.To(""),
 			Versions:                 pointer.To(""),
 			Multichannel:             nil,
@@ -2905,7 +2908,7 @@ func expandAccountSharePropertiesSMB(input []interface{}) *fileservices.SmbSetti
 	}
 }
 
-func flattenAccountSharePropertiesSMB(input *fileservices.ProtocolSettings) []interface{} {
+func flattenAccountSharePropertiesSMB(input *fileservices.ProtocolSettings, d *pluginsdk.ResourceData) []interface{} {
 	if input == nil || input.Smb == nil {
 		return []interface{}{}
 	}
@@ -2940,7 +2943,8 @@ func flattenAccountSharePropertiesSMB(input *fileservices.ProtocolSettings) []in
 		encryptionInTransitEnabled = pointer.From(input.Smb.EncryptionInTransit.Required)
 	}
 
-	if len(versions) == 0 && len(authenticationMethods) == 0 && len(kerberosTicketEncryption) == 0 && len(channelEncryption) == 0 && (input.Smb.Multichannel == nil || input.Smb.Multichannel.Enabled == nil) && (input.Smb.EncryptionInTransit == nil || input.Smb.EncryptionInTransit.Required == nil) {
+	_, smbOk := d.GetOk("share_properties.0.smb")
+	if len(versions) == 0 && len(authenticationMethods) == 0 && len(kerberosTicketEncryption) == 0 && len(channelEncryption) == 0 && (input.Smb.Multichannel == nil || input.Smb.Multichannel.Enabled == nil) && (input.Smb.EncryptionInTransit == nil || input.Smb.EncryptionInTransit.Required == nil || (pointer.From(input.Smb.EncryptionInTransit.Required) == false && !smbOk)) {
 		return []interface{}{}
 	}
 
