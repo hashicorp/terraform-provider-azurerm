@@ -7,9 +7,12 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -601,41 +604,16 @@ func resourceSharedImageDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
-	log.Printf("[DEBUG] Waiting for %s to be eventually deleted", *id)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"Exists"},
-		Target:                    []string{"NotFound"},
-		Refresh:                   sharedImageDeleteStateRefreshFunc(ctx, client, *id),
-		MinTimeout:                10 * time.Second,
-		ContinuousTargetOccurence: 10,
-		Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for %s to be deleted: %+v", *id, err)
+	// Deletion is eventually consistent, https://github.com/Azure/azure-sdk-for-go/issues/8314
+	poller := custompollers.NewEventualConsistencyPoller(10, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.Get(pollerCtx, *id)
+		return resp.HttpResponse, err
+	}, custompollers.DefaultDeletionEventualConsistencyPollerOptions())
+	if err := poller.PollUntilDone(ctx); err != nil {
+		return fmt.Errorf("polling for deletion of %s: %+v", id, err)
 	}
 
 	return nil
-}
-
-func sharedImageDeleteStateRefreshFunc(ctx context.Context, client *galleryimages.GalleryImagesClient, id galleryimages.GalleryImageId) pluginsdk.StateRefreshFunc {
-	// The resource Shared Image depends on the resource Shared Image Gallery.
-	// Although the delete API returns 404 which means the Shared Image resource has been deleted.
-	// Then it tries to immediately delete Shared Image Gallery but it still throws error `Can not delete resource before nested resources are deleted.`
-	// In this case we're going to try triggering the Deletion again, in-case it didn't work prior to this attempt.
-	// For more details, see related Bug: https://github.com/Azure/azure-sdk-for-go/issues/8314
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id)
-		if err != nil {
-			if response.WasNotFound(res.HttpResponse) {
-				return "NotFound", "NotFound", nil
-			}
-
-			return nil, "", fmt.Errorf("failed to poll to check if the Shared Image has been deleted: %+v", err)
-		}
-
-		return res, "Exists", nil
-	}
 }
 
 func expandGalleryImageIdentifier(d *pluginsdk.ResourceData) galleryimages.GalleryImageIdentifier {
