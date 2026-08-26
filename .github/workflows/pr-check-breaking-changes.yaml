@@ -12,7 +12,7 @@ permissions:
 
 on:
   pull_request:
-    types: ['opened', 'synchronize']
+    types: ['opened', 'synchronize', 'labeled'] # labeled event for ci-refresh
     paths:
       - '.github/workflows/pr-check-breaking-changes.yaml'
       - 'vendor/**'
@@ -24,6 +24,7 @@ concurrency:
 
 jobs:
   detect:
+    if: github.event.action != 'labeled' || github.event.label.name == 'ci-refresh' # retrigger on ci-refresh label with a new merge sha
     runs-on: custom-linux-small
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6

@@ -8,7 +8,7 @@ name: Provider Tests
 
 on:
   pull_request:
-    types: ["opened", "synchronize"]
+    types: ["opened", "synchronize", "labeled"] # labeled event for ci-refresh
     paths:
       - '.github/workflows/pr-check-provider-tests.yaml'
       - 'internal/**.go'
@@ -23,6 +23,7 @@ permissions:
 
 jobs:
   secrets-check:
+    if: github.event.action != 'labeled' || github.event.label.name == 'ci-refresh' # retrigger on ci-refresh label with a new merge sha
     runs-on: ubuntu-latest
     outputs:
       available: "${{ steps.check-secrets.outputs.available }}"
