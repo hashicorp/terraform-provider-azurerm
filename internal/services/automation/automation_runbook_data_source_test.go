@@ -42,3 +42,57 @@ data "azurerm_automation_runbook" "test" {
 }
 `, template)
 }
+
+func TestAccAutomationRunbookDataSource_withJobSchedule(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_automation_runbook", "test")
+	resource := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
+	r := AutomationRunbookDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.withJobSchedule(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("job_schedule.#").MatchesOtherKey(check.That(resource.ResourceName).Key("job_schedule.#")),
+			),
+		},
+	})
+}
+
+func (AutomationRunbookDataSource) withJobSchedule(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_automation_runbook" "test" {
+  name                    = azurerm_automation_runbook.test.name
+  automation_account_name = azurerm_automation_account.test.name
+  resource_group_name     = azurerm_resource_group.test.name
+}
+`, AutomationRunbookResource{}.withJobSchedule(data))
+}
+
+func TestAccAutomationRunbookDataSource_runtimeEnvironment(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_automation_runbook", "test")
+	resource := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
+	r := AutomationRunbookDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.runtimeEnvironment(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("runtime_environment_name").MatchesOtherKey(check.That(resource.ResourceName).Key("runtime_environment_name")),
+			),
+		},
+	})
+}
+
+func (AutomationRunbookDataSource) runtimeEnvironment(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_automation_runbook" "test" {
+  name                    = azurerm_automation_runbook.test.name
+  automation_account_name = azurerm_automation_account.test.name
+  resource_group_name     = azurerm_resource_group.test.name
+}
+`, AutomationRunbookResource{}.RuntimeEnvironment(data))
+}
