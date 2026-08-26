@@ -11,12 +11,12 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -28,7 +28,7 @@ import (
 )
 
 func resourceBotChannelsRegistration() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceBotChannelsRegistrationCreate,
 		Read:   resourceBotChannelsRegistrationRead,
 		Delete: resourceBotChannelsRegistrationDelete,
@@ -96,6 +96,31 @@ func resourceBotChannelsRegistration() *pluginsdk.Resource {
 				ValidateFunc: validation.IsUUID,
 			},
 
+			"microsoft_app_type": {
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(botservice.MsaAppTypeMultiTenant),
+					string(botservice.MsaAppTypeSingleTenant),
+					string(botservice.MsaAppTypeUserAssignedMSI),
+				}, false),
+			},
+
+			"microsoft_app_tenant_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IsUUID,
+			},
+
+			"microsoft_app_user_assigned_identity_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+			},
+
 			"cmk_key_vault_url": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -105,7 +130,7 @@ func resourceBotChannelsRegistration() *pluginsdk.Resource {
 			"description": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.BotChannelRegistrationDescription,
+				ValidateFunc: validation.StringLenBetween(0, 512),
 			},
 
 			"display_name": {
@@ -161,12 +186,6 @@ func resourceBotChannelsRegistration() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["cmk_key_vault_url"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
-	}
-
-	return resource
 }
 
 func resourceBotChannelsRegistrationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -176,7 +195,8 @@ func resourceBotChannelsRegistrationCreate(d *pluginsdk.ResourceData, meta inter
 	defer cancel()
 
 	resourceId := parse.NewBotServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -197,6 +217,7 @@ func resourceBotChannelsRegistrationCreate(d *pluginsdk.ResourceData, meta inter
 		Properties: &botservice.BotProperties{
 			DisplayName:                       pointer.To(displayName),
 			Endpoint:                          pointer.To(d.Get("endpoint").(string)),
+			MsaAppType:                        botservice.MsaAppType(d.Get("microsoft_app_type").(string)),
 			MsaAppID:                          pointer.To(d.Get("microsoft_app_id").(string)),
 			CmekKeyVaultURL:                   pointer.To(d.Get("cmk_key_vault_url").(string)),
 			Description:                       pointer.To(d.Get("description").(string)),
@@ -217,6 +238,14 @@ func resourceBotChannelsRegistrationCreate(d *pluginsdk.ResourceData, meta inter
 
 	if _, ok := d.GetOk("cmk_key_vault_url"); ok {
 		bot.Properties.IsCmekEnabled = pointer.To(true)
+	}
+
+	if v, ok := d.GetOk("microsoft_app_tenant_id"); ok {
+		bot.Properties.MsaAppTenantID = pointer.To(v.(string))
+	}
+
+	if v, ok := d.GetOk("microsoft_app_user_assigned_identity_id"); ok {
+		bot.Properties.MsaAppMSIResourceID = pointer.To(v.(string))
 	}
 
 	if _, err := client.Create(ctx, resourceId.ResourceGroup, resourceId.Name, bot); err != nil {
@@ -266,6 +295,9 @@ func resourceBotChannelsRegistrationRead(d *pluginsdk.ResourceData, meta interfa
 	if props := resp.Properties; props != nil {
 		d.Set("cmk_key_vault_url", props.CmekKeyVaultURL)
 		d.Set("microsoft_app_id", props.MsaAppID)
+		d.Set("microsoft_app_type", string(props.MsaAppType))
+		d.Set("microsoft_app_tenant_id", pointer.From(props.MsaAppTenantID))
+		d.Set("microsoft_app_user_assigned_identity_id", pointer.From(props.MsaAppMSIResourceID))
 		d.Set("endpoint", props.Endpoint)
 		d.Set("description", props.Description)
 		d.Set("display_name", props.DisplayName)
@@ -304,6 +336,7 @@ func resourceBotChannelsRegistrationUpdate(d *pluginsdk.ResourceData, meta inter
 			DisplayName:                       pointer.To(displayName),
 			Endpoint:                          pointer.To(d.Get("endpoint").(string)),
 			MsaAppID:                          pointer.To(d.Get("microsoft_app_id").(string)),
+			MsaAppType:                        botservice.MsaAppType(d.Get("microsoft_app_type").(string)),
 			CmekKeyVaultURL:                   pointer.To(d.Get("cmk_key_vault_url").(string)),
 			Description:                       pointer.To(d.Get("description").(string)),
 			DeveloperAppInsightKey:            pointer.To(d.Get("developer_app_insights_key").(string)),
@@ -323,6 +356,14 @@ func resourceBotChannelsRegistrationUpdate(d *pluginsdk.ResourceData, meta inter
 
 	if _, ok := d.GetOk("cmk_key_vault_url"); ok {
 		bot.Properties.IsCmekEnabled = pointer.To(true)
+	}
+
+	if v, ok := d.GetOk("microsoft_app_tenant_id"); ok {
+		bot.Properties.MsaAppTenantID = pointer.To(v.(string))
+	}
+
+	if v, ok := d.GetOk("microsoft_app_user_assigned_identity_id"); ok {
+		bot.Properties.MsaAppMSIResourceID = pointer.To(v.(string))
 	}
 
 	// d.GetOk cannot identify whether user sets the property that is bool type and `public_network_access_enabled` is set as `false`. So it has to identify it using `d.GetRawConfig()`

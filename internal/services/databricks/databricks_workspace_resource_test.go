@@ -13,9 +13,11 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/workspaces"
+	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -32,7 +34,7 @@ func TestAccDatabricksWorkspace_basic(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, "standard"),
+			Config: r.basic(data, "premium"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -63,13 +65,41 @@ func TestAccDatabricksWorkspace_defaultStorageFirewall(t *testing.T) {
 	})
 }
 
+func TestAccDatabricksWorkspace_defaultStorageFirewallUpdateAccessConnector(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
+	r := DatabricksWorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.defaultStorageFirewallFirstConnector(data, "premium"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("access_connector_id").MatchesOtherKey(
+					check.That("azurerm_databricks_access_connector.test").Key("id"),
+				),
+			),
+		},
+		data.ImportStep("custom_parameters.0.public_subnet_network_security_group_association_id", "custom_parameters.0.private_subnet_network_security_group_association_id"),
+		{
+			Config: r.defaultStorageFirewallSecondConnector(data, "premium"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("access_connector_id").MatchesOtherKey(
+					check.That("azurerm_databricks_access_connector.test2").Key("id"),
+				),
+			),
+		},
+		data.ImportStep("custom_parameters.0.public_subnet_network_security_group_association_id", "custom_parameters.0.private_subnet_network_security_group_association_id"),
+	})
+}
+
 func TestAccDatabricksWorkspace_sameName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 	r := DatabricksWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.sameName(data, "standard"),
+			Config: r.sameName(data, "premium"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -84,7 +114,7 @@ func TestAccDatabricksWorkspace_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, "standard"),
+			Config: r.basic(data, "premium"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -99,7 +129,7 @@ func TestAccDatabricksWorkspace_machineLearning(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.machineLearning(data, "standard"),
+			Config: r.machineLearning(data, "premium"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -264,7 +294,7 @@ func TestAccDatabricksWorkspace_updateSKU(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data, "standard"),
+			Config: r.basic(data, "premium"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -371,6 +401,11 @@ func TestAccDatabricksWorkspace_altSubscriptionCmkComplete(t *testing.T) {
 	databricksPrincipalID := getDatabricksPrincipalId(data.Client().SubscriptionID)
 	r := DatabricksWorkspaceResource{}
 
+	ignore := ([]string)(nil)
+	if !features.SixPointOh() {
+		ignore = []string{"managed_services_cmk_key_vault_id", "managed_disk_cmk_key_vault_id"}
+	}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.altSubscriptionCmkComplete(data, databricksPrincipalID, altSubscription),
@@ -378,7 +413,7 @@ func TestAccDatabricksWorkspace_altSubscriptionCmkComplete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("managed_services_cmk_key_vault_id", "managed_disk_cmk_key_vault_id"),
+		data.ImportStep(ignore...),
 	})
 }
 
@@ -400,7 +435,7 @@ func TestAccDatabricksWorkspace_altSubscriptionCmkKeysInDifferentKeyVaultsAcross
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("managed_services_cmk_key_vault_id", "managed_disk_cmk_key_vault_id"),
+		data.ImportStep(),
 	})
 }
 
@@ -422,7 +457,7 @@ func TestAccDatabricksWorkspace_altSubscriptionCmkServicesOnly(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("managed_services_cmk_key_vault_id"),
+		data.ImportStep(),
 	})
 }
 
@@ -444,7 +479,7 @@ func TestAccDatabricksWorkspace_altSubscriptionCmkDiskOnly(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("managed_disk_cmk_key_vault_id"),
+		data.ImportStep(),
 	})
 }
 
@@ -454,7 +489,7 @@ func TestAccDatabricksWorkspace_enhancedComplianceSecurity(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.enhancedSecurityCompliance(data, "premium", true, true, []string{"PCI_DSS", "HIPAA"}, true),
+			Config: r.enhancedSecurityCompliance(data, "premium", true, true, []string{"PCI_DSS", "HIPAA", "HITRUST", "GERMANY_C5", "GERMANY_TISAX"}, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -583,6 +618,24 @@ func TestAccDatabricksWorkspace_withForceDeleteSetToFalse(t *testing.T) {
 	})
 }
 
+func TestAccDatabricksWorkspace_managedServicesAndDiskCMKManagedHSM(t *testing.T) {
+	if os.Getenv("ARM_TEST_HSM_KEY") == "" {
+		t.Skip("Skipping as ARM_TEST_HSM_KEY is not specified")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
+	r := DatabricksWorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.managedServicesAndDiskCMKManagedHSM(data, getDatabricksPrincipalId(data.Client().SubscriptionID)),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func getDatabricksPrincipalId(subscriptionId string) string {
 	if id := os.Getenv("ARM_DATABRICKS_APP_PRINCIPAL_ID"); id != "" {
 		return id
@@ -623,118 +676,33 @@ func (DatabricksWorkspaceResource) Exists(ctx context.Context, clients *clients.
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (DatabricksWorkspaceResource) basic(data acceptance.TestData, sku string) string {
+func (r DatabricksWorkspaceResource) basic(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-databricks-%d"
-  location = "%s"
-}
+%[1]s
 
 resource "azurerm_databricks_workspace" "test" {
-  name                = "acctestDBW-%d"
+  name                = "acctestDBW-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "%s"
+  sku                 = "%[3]s"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku)
-}
-
-func (DatabricksWorkspaceResource) basicForResourceIdentity(data acceptance.TestData) string {
-	return DatabricksWorkspaceResource{}.basic(data, "standard")
+`, r.template(data), data.RandomInteger, sku)
 }
 
-func (DatabricksWorkspaceResource) defaultStorageFirewall(data acceptance.TestData, sku string) string {
+func (r DatabricksWorkspaceResource) defaultStorageFirewall(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-databricks-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctest-vnet-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.0.0.0/16"]
-}
-
-resource "azurerm_subnet" "public" {
-  name                 = "acctest-sn-public-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.0/24"]
-
-  delegation {
-    name = "acctest"
-
-    service_delegation {
-      name = "Microsoft.Databricks/workspaces"
-
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
-        "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
-      ]
-    }
-  }
-}
-
-resource "azurerm_subnet" "private" {
-  name                 = "acctest-sn-private-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-
-  delegation {
-    name = "acctest"
-
-    service_delegation {
-      name = "Microsoft.Databricks/workspaces"
-
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
-        "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
-      ]
-    }
-  }
-}
-
-resource "azurerm_network_security_group" "nsg" {
-  name                = "acctest-nsg-private-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet_network_security_group_association" "public" {
-  subnet_id                 = azurerm_subnet.public.id
-  network_security_group_id = azurerm_network_security_group.nsg.id
-}
-
-resource "azurerm_subnet_network_security_group_association" "private" {
-  subnet_id                 = azurerm_subnet.private.id
-  network_security_group_id = azurerm_network_security_group.nsg.id
-}
-
-resource "azurerm_databricks_access_connector" "test" {
-  name                = "acctestDBWACC%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
+%[1]s
 
 resource "azurerm_databricks_workspace" "test" {
-  name                = "acctestDBW-%[1]d"
+  name                = "acctestDBW-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "%[3]s"
@@ -753,97 +721,19 @@ resource "azurerm_databricks_workspace" "test" {
   default_storage_firewall_enabled = true
 
 }
-`, data.RandomInteger, data.Locations.Primary, sku)
+`, r.templateVnetWithAccessConnectors(data), data.RandomInteger, sku)
 }
 
-func (DatabricksWorkspaceResource) defaultStorageFirewallUpdateToDisabled(data acceptance.TestData, sku string) string {
+func (r DatabricksWorkspaceResource) defaultStorageFirewallUpdateToDisabled(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-databricks-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctest-vnet-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.0.0.0/16"]
-}
-
-resource "azurerm_subnet" "public" {
-  name                 = "acctest-sn-public-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.0/24"]
-
-  delegation {
-    name = "acctest"
-
-    service_delegation {
-      name = "Microsoft.Databricks/workspaces"
-
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
-        "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
-      ]
-    }
-  }
-}
-
-resource "azurerm_subnet" "private" {
-  name                 = "acctest-sn-private-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-
-  delegation {
-    name = "acctest"
-
-    service_delegation {
-      name = "Microsoft.Databricks/workspaces"
-
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
-        "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
-      ]
-    }
-  }
-}
-
-resource "azurerm_network_security_group" "nsg" {
-  name                = "acctest-nsg-private-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet_network_security_group_association" "public" {
-  subnet_id                 = azurerm_subnet.public.id
-  network_security_group_id = azurerm_network_security_group.nsg.id
-}
-
-resource "azurerm_subnet_network_security_group_association" "private" {
-  subnet_id                 = azurerm_subnet.private.id
-  network_security_group_id = azurerm_network_security_group.nsg.id
-}
-
-resource "azurerm_databricks_access_connector" "test" {
-  name                = "acctestDBWACC%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
+%[1]s
 
 resource "azurerm_databricks_workspace" "test" {
-  name                = "acctestDBW-%[1]d"
+  name                = "acctestDBW-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "%[3]s"
@@ -862,33 +752,89 @@ resource "azurerm_databricks_workspace" "test" {
   default_storage_firewall_enabled = false
 
 }
-`, data.RandomInteger, data.Locations.Primary, sku)
+`, r.templateVnetWithAccessConnectors(data), data.RandomInteger, sku)
 }
 
-func (DatabricksWorkspaceResource) sameName(data acceptance.TestData, sku string) string {
+func (r DatabricksWorkspaceResource) defaultStorageFirewallFirstConnector(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-databricks-%d"
-  location = "%s"
-}
+%[1]s
 
 resource "azurerm_databricks_workspace" "test" {
-  name                = "acctestDBW-%d"
+  name                = "acctestDBW-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "%s"
+  sku                 = "%[3]s"
 
-  managed_resource_group_name = "acctestDBW-%d"
+  custom_parameters {
+    no_public_ip        = false
+    public_subnet_name  = azurerm_subnet.public.name
+    private_subnet_name = azurerm_subnet.private.name
+    virtual_network_id  = azurerm_virtual_network.test.id
+
+    public_subnet_network_security_group_association_id  = azurerm_subnet_network_security_group_association.public.id
+    private_subnet_network_security_group_association_id = azurerm_subnet_network_security_group_association.private.id
+  }
+
+  access_connector_id              = azurerm_databricks_access_connector.test.id
+  default_storage_firewall_enabled = true
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku, data.RandomInteger)
+`, r.templateVnetWithAccessConnectors(data), data.RandomInteger, sku)
 }
 
-func (DatabricksWorkspaceResource) requiresImport(data acceptance.TestData) string {
-	template := DatabricksWorkspaceResource{}.basic(data, "standard")
+func (r DatabricksWorkspaceResource) defaultStorageFirewallSecondConnector(data acceptance.TestData, sku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_databricks_workspace" "test" {
+  name                = "acctestDBW-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "%[3]s"
+
+  custom_parameters {
+    no_public_ip        = false
+    public_subnet_name  = azurerm_subnet.public.name
+    private_subnet_name = azurerm_subnet.private.name
+    virtual_network_id  = azurerm_virtual_network.test.id
+
+    public_subnet_network_security_group_association_id  = azurerm_subnet_network_security_group_association.public.id
+    private_subnet_network_security_group_association_id = azurerm_subnet_network_security_group_association.private.id
+  }
+
+  access_connector_id              = azurerm_databricks_access_connector.test2.id
+  default_storage_firewall_enabled = true
+}
+`, r.templateVnetWithAccessConnectors(data), data.RandomInteger, sku)
+}
+
+func (r DatabricksWorkspaceResource) sameName(data acceptance.TestData, sku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_databricks_workspace" "test" {
+  name                = "acctestDBW-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "%[3]s"
+
+  managed_resource_group_name = "acctestDBW-%[2]d"
+}
+`, r.template(data), data.RandomInteger, sku)
+}
+
+func (r DatabricksWorkspaceResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -898,91 +844,23 @@ resource "azurerm_databricks_workspace" "import" {
   location            = azurerm_databricks_workspace.test.location
   sku                 = azurerm_databricks_workspace.test.sku
 }
-`, template)
+`, r.basic(data, "premium"))
 }
 
-func (DatabricksWorkspaceResource) complete(data acceptance.TestData) string {
+func (r DatabricksWorkspaceResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-databricks-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctest-vnet-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.0.0.0/16"]
-}
-
-resource "azurerm_subnet" "public" {
-  name                 = "acctest-sn-public-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.0/24"]
-
-  delegation {
-    name = "acctest"
-
-    service_delegation {
-      name = "Microsoft.Databricks/workspaces"
-
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
-        "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
-      ]
-    }
-  }
-}
-
-resource "azurerm_subnet" "private" {
-  name                 = "acctest-sn-private-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-
-  delegation {
-    name = "acctest"
-
-    service_delegation {
-      name = "Microsoft.Databricks/workspaces"
-
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
-        "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
-      ]
-    }
-  }
-}
-
-resource "azurerm_network_security_group" "nsg" {
-  name                = "acctest-nsg-private-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet_network_security_group_association" "public" {
-  subnet_id                 = azurerm_subnet.public.id
-  network_security_group_id = azurerm_network_security_group.nsg.id
-}
-
-resource "azurerm_subnet_network_security_group_association" "private" {
-  subnet_id                 = azurerm_subnet.private.id
-  network_security_group_id = azurerm_network_security_group.nsg.id
-}
+%[1]s
 
 resource "azurerm_databricks_workspace" "test" {
-  name                        = "acctestDBW-%[1]d"
+  name                        = "acctestDBW-%[2]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
-  sku                         = "standard"
-  managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
+  sku                         = "premium"
+  managed_resource_group_name = "acctestRG-DBW-%[2]d-managed"
 
   custom_parameters {
     no_public_ip        = false
@@ -996,10 +874,10 @@ resource "azurerm_databricks_workspace" "test" {
 
   tags = {
     Environment = "Production"
-    Pricing     = "Standard"
+    Pricing     = "Premium"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, r.templateVnet(data), data.RandomInteger)
 }
 
 func (DatabricksWorkspaceResource) completeMissingPublicSubnetDelegation(data acceptance.TestData) string {
@@ -1068,7 +946,7 @@ resource "azurerm_databricks_workspace" "test" {
   name                        = "acctestDBW-%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
-  sku                         = "standard"
+  sku                         = "premium"
   managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
 
   custom_parameters {
@@ -1083,7 +961,7 @@ resource "azurerm_databricks_workspace" "test" {
 
   tags = {
     Environment = "Production"
-    Pricing     = "Standard"
+    Pricing     = "Premium"
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -1155,7 +1033,7 @@ resource "azurerm_databricks_workspace" "test" {
   name                        = "acctestDBW-%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
-  sku                         = "standard"
+  sku                         = "premium"
   managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
 
   custom_parameters {
@@ -1170,94 +1048,26 @@ resource "azurerm_databricks_workspace" "test" {
 
   tags = {
     Environment = "Production"
-    Pricing     = "Standard"
+    Pricing     = "Premium"
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (DatabricksWorkspaceResource) extendedUpdateCreate(data acceptance.TestData) string {
+func (r DatabricksWorkspaceResource) extendedUpdateCreate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-databricks-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctest-vnet-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.0.0.0/16"]
-}
-
-resource "azurerm_subnet" "public" {
-  name                 = "acctest-sn-public-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.0/24"]
-
-  delegation {
-    name = "acctest"
-
-    service_delegation {
-      name = "Microsoft.Databricks/workspaces"
-
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
-        "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
-      ]
-    }
-  }
-}
-
-resource "azurerm_subnet" "private" {
-  name                 = "acctest-sn-private-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-
-  delegation {
-    name = "acctest"
-
-    service_delegation {
-      name = "Microsoft.Databricks/workspaces"
-
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
-        "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
-      ]
-    }
-  }
-}
-
-resource "azurerm_network_security_group" "nsg" {
-  name                = "acctest-nsg-private-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet_network_security_group_association" "public" {
-  subnet_id                 = azurerm_subnet.public.id
-  network_security_group_id = azurerm_network_security_group.nsg.id
-}
-
-resource "azurerm_subnet_network_security_group_association" "private" {
-  subnet_id                 = azurerm_subnet.private.id
-  network_security_group_id = azurerm_network_security_group.nsg.id
-}
+%[1]s
 
 resource "azurerm_databricks_workspace" "test" {
-  name                          = "acctestDBW-%[1]d"
+  name                          = "acctestDBW-%[2]d"
   resource_group_name           = azurerm_resource_group.test.name
   location                      = azurerm_resource_group.test.location
   sku                           = "premium"
-  managed_resource_group_name   = "acctestRG-DBW-%[1]d-managed"
+  managed_resource_group_name   = "acctestRG-DBW-%[2]d-managed"
   public_network_access_enabled = true
   customer_managed_key_enabled  = true
 
@@ -1273,94 +1083,26 @@ resource "azurerm_databricks_workspace" "test" {
 
   tags = {
     Environment = "Production"
-    Pricing     = "Standard"
+    Pricing     = "Premium"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, r.templateVnet(data), data.RandomInteger)
 }
 
-func (DatabricksWorkspaceResource) extendedUpdateUpdate(data acceptance.TestData) string {
+func (r DatabricksWorkspaceResource) extendedUpdateUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-databricks-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctest-vnet-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.0.0.0/16"]
-}
-
-resource "azurerm_subnet" "public" {
-  name                 = "acctest-sn-public-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.0/24"]
-
-  delegation {
-    name = "acctest"
-
-    service_delegation {
-      name = "Microsoft.Databricks/workspaces"
-
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
-        "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
-      ]
-    }
-  }
-}
-
-resource "azurerm_subnet" "private" {
-  name                 = "acctest-sn-private-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-
-  delegation {
-    name = "acctest"
-
-    service_delegation {
-      name = "Microsoft.Databricks/workspaces"
-
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
-        "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
-      ]
-    }
-  }
-}
-
-resource "azurerm_network_security_group" "nsg" {
-  name                = "acctest-nsg-private-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet_network_security_group_association" "public" {
-  subnet_id                 = azurerm_subnet.public.id
-  network_security_group_id = azurerm_network_security_group.nsg.id
-}
-
-resource "azurerm_subnet_network_security_group_association" "private" {
-  subnet_id                 = azurerm_subnet.private.id
-  network_security_group_id = azurerm_network_security_group.nsg.id
-}
+%[1]s
 
 resource "azurerm_databricks_workspace" "test" {
-  name                                  = "acctestDBW-%[1]d"
+  name                                  = "acctestDBW-%[2]d"
   resource_group_name                   = azurerm_resource_group.test.name
   location                              = azurerm_resource_group.test.location
   sku                                   = "premium"
-  managed_resource_group_name           = "acctestRG-DBW-%[1]d-managed"
+  managed_resource_group_name           = "acctestRG-DBW-%[2]d-managed"
   public_network_access_enabled         = false
   network_security_group_rules_required = "NoAzureDatabricksRules"
   customer_managed_key_enabled          = false
@@ -1377,96 +1119,28 @@ resource "azurerm_databricks_workspace" "test" {
 
   tags = {
     Environment = "Production"
-    Pricing     = "Standard"
+    Pricing     = "Premium"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, r.templateVnet(data), data.RandomInteger)
 }
 
-func (DatabricksWorkspaceResource) completeUpdate(data acceptance.TestData) string {
+func (r DatabricksWorkspaceResource) completeUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-databricks-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctest-vnet-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.0.0.0/16"]
-}
-
-resource "azurerm_subnet" "public" {
-  name                 = "acctest-sn-public-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.0/24"]
-
-  delegation {
-    name = "acctest"
-
-    service_delegation {
-      name = "Microsoft.Databricks/workspaces"
-
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
-        "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
-      ]
-    }
-  }
-}
-
-resource "azurerm_subnet" "private" {
-  name                 = "acctest-sn-private-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-
-  delegation {
-    name = "acctest"
-
-    service_delegation {
-      name = "Microsoft.Databricks/workspaces"
-
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
-        "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
-      ]
-    }
-  }
-}
-
-resource "azurerm_network_security_group" "nsg" {
-  name                = "acctest-nsg-private-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet_network_security_group_association" "public" {
-  subnet_id                 = azurerm_subnet.public.id
-  network_security_group_id = azurerm_network_security_group.nsg.id
-}
-
-resource "azurerm_subnet_network_security_group_association" "private" {
-  subnet_id                 = azurerm_subnet.private.id
-  network_security_group_id = azurerm_network_security_group.nsg.id
-}
+%[1]s
 
 resource "azurerm_databricks_workspace" "test" {
   depends_on = [azurerm_subnet_network_security_group_association.public, azurerm_subnet_network_security_group_association.private]
 
-  name                        = "acctestDBW-%[1]d"
+  name                        = "acctestDBW-%[2]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
-  sku                         = "standard"
-  managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
+  sku                         = "premium"
+  managed_resource_group_name = "acctestRG-DBW-%[2]d-managed"
 
   custom_parameters {
     no_public_ip        = true
@@ -1479,10 +1153,10 @@ resource "azurerm_databricks_workspace" "test" {
   }
 
   tags = {
-    Pricing = "Standard"
+    Pricing = "Premium"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, r.templateVnet(data), data.RandomInteger)
 }
 
 func (DatabricksWorkspaceResource) machineLearning(data acceptance.TestData, sku string) string {
@@ -1510,11 +1184,12 @@ resource "azurerm_application_insights" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest-kv-%[4]s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "premium"
+  name                       = "acctest-kv-%[4]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
 
   purge_protection_enabled   = true
   soft_delete_retention_days = 7
@@ -1526,11 +1201,12 @@ resource "azurerm_storage_account" "test" {
   resource_group_name      = azurerm_resource_group.test.name
   account_tier             = "Standard"
   account_replication_type = "LRS"
+}
 
-  static_website {
-    error_404_document = "error.html"
-    index_document     = "index.html"
-  }
+resource "azurerm_storage_account_static_website" "test" {
+  storage_account_id = azurerm_storage_account.test.id
+  error_404_document = "error.html"
+  index_document     = "index.html"
 }
 
 resource "azurerm_machine_learning_workspace" "test" {
@@ -1560,68 +1236,16 @@ resource "azurerm_databricks_workspace" "test" {
 `, data.RandomInteger, data.Locations.Secondary, sku, data.RandomString)
 }
 
-func (DatabricksWorkspaceResource) privateLink(data acceptance.TestData) string {
+func (r DatabricksWorkspaceResource) privateLink(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-databricks-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctest-vnet-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.0.0.0/16"]
-}
-
-resource "azurerm_subnet" "public" {
-  name                 = "acctest-sn-public-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.0/24"]
-
-  delegation {
-    name = "acctest"
-
-    service_delegation {
-      name = "Microsoft.Databricks/workspaces"
-
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
-        "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
-      ]
-    }
-  }
-}
-
-resource "azurerm_subnet" "private" {
-  name                 = "acctest-sn-private-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-
-  delegation {
-    name = "acctest"
-
-    service_delegation {
-      name = "Microsoft.Databricks/workspaces"
-
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
-        "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
-      ]
-    }
-  }
-}
+%[1]s
 
 resource "azurerm_subnet" "privatelink" {
-  name                 = "acctest-snpl-%[1]d"
+  name                 = "acctest-snpl-%[2]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.3.0/24"]
@@ -1629,28 +1253,12 @@ resource "azurerm_subnet" "privatelink" {
   private_endpoint_network_policies = "Enabled"
 }
 
-resource "azurerm_network_security_group" "nsg" {
-  name                = "acctest-nsg-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet_network_security_group_association" "public" {
-  subnet_id                 = azurerm_subnet.public.id
-  network_security_group_id = azurerm_network_security_group.nsg.id
-}
-
-resource "azurerm_subnet_network_security_group_association" "private" {
-  subnet_id                 = azurerm_subnet.private.id
-  network_security_group_id = azurerm_network_security_group.nsg.id
-}
-
 resource "azurerm_databricks_workspace" "test" {
-  name                        = "acctestDBW-%[1]d"
+  name                        = "acctestDBW-%[2]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   sku                         = "premium"
-  managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
+  managed_resource_group_name = "acctestRG-DBW-%[2]d-managed"
 
   public_network_access_enabled         = false
   network_security_group_rules_required = "NoAzureDatabricksRules"
@@ -1672,13 +1280,13 @@ resource "azurerm_databricks_workspace" "test" {
 }
 
 resource "azurerm_private_endpoint" "databricks" {
-  name                = "acctest-endpoint-%[1]d"
+  name                = "acctest-endpoint-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   subnet_id           = azurerm_subnet.privatelink.id
 
   private_service_connection {
-    name                           = "acctest-psc-%[1]d"
+    name                           = "acctest-psc-%[2]d"
     is_manual_connection           = false
     private_connection_resource_id = azurerm_databricks_workspace.test.id
     subresource_names              = ["databricks_ui_api"]
@@ -1694,96 +1302,27 @@ resource "azurerm_private_dns_zone" "test" {
 
 resource "azurerm_private_dns_cname_record" "test" {
   name                = azurerm_databricks_workspace.test.workspace_url
-  zone_name           = azurerm_private_dns_zone.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  private_dns_zone_id = azurerm_private_dns_zone.test.id
   ttl                 = 300
   record              = "eastus2-c2.azuredatabricks.net"
 }
-`, data.RandomInteger, data.Locations.Secondary)
+`, r.templateVnet(data), data.RandomInteger)
 }
 
-func (DatabricksWorkspaceResource) secureClusterConnectivity(data acceptance.TestData) string {
+func (r DatabricksWorkspaceResource) secureClusterConnectivity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-databricks-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctest-vnet-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.0.0.0/16"]
-}
-
-resource "azurerm_subnet" "public" {
-  name                 = "acctest-sn-public-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.0/24"]
-
-  delegation {
-    name = "acctest"
-
-    service_delegation {
-      name = "Microsoft.Databricks/workspaces"
-
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
-        "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
-      ]
-    }
-  }
-}
-
-resource "azurerm_subnet" "private" {
-  name                 = "acctest-sn-private-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-
-  delegation {
-    name = "acctest"
-
-    service_delegation {
-      name = "Microsoft.Databricks/workspaces"
-
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
-        "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
-      ]
-    }
-  }
-}
-
-resource "azurerm_network_security_group" "nsg" {
-  name                = "acctest-nsg-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet_network_security_group_association" "public" {
-  subnet_id                 = azurerm_subnet.public.id
-  network_security_group_id = azurerm_network_security_group.nsg.id
-}
-
-resource "azurerm_subnet_network_security_group_association" "private" {
-  subnet_id                 = azurerm_subnet.private.id
-  network_security_group_id = azurerm_network_security_group.nsg.id
-}
+%[1]s
 
 resource "azurerm_databricks_workspace" "test" {
-  name                        = "acctestDBW-%[1]d"
+  name                        = "acctestDBW-%[2]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   sku                         = "premium"
-  managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
+  managed_resource_group_name = "acctestRG-DBW-%[2]d-managed"
 
   public_network_access_enabled = true
 
@@ -1802,91 +1341,23 @@ resource "azurerm_databricks_workspace" "test" {
     Pricing     = "Premium"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, r.templateVnet(data), data.RandomInteger)
 }
 
-func (DatabricksWorkspaceResource) loadBalancerSecureClusterConnectivity(data acceptance.TestData) string {
+func (r DatabricksWorkspaceResource) loadBalancerSecureClusterConnectivity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-databricks-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctest-vnet-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.0.0.0/16"]
-}
-
-resource "azurerm_subnet" "public" {
-  name                 = "acctest-sn-public-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.0/24"]
-
-  delegation {
-    name = "acctest"
-
-    service_delegation {
-      name = "Microsoft.Databricks/workspaces"
-
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
-        "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
-      ]
-    }
-  }
-}
-
-resource "azurerm_subnet" "private" {
-  name                 = "acctest-sn-private-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-
-  delegation {
-    name = "acctest"
-
-    service_delegation {
-      name = "Microsoft.Databricks/workspaces"
-
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
-        "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
-      ]
-    }
-  }
-}
-
-resource "azurerm_network_security_group" "nsg" {
-  name                = "acctest-nsg-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet_network_security_group_association" "public" {
-  subnet_id                 = azurerm_subnet.public.id
-  network_security_group_id = azurerm_network_security_group.nsg.id
-}
-
-resource "azurerm_subnet_network_security_group_association" "private" {
-  subnet_id                 = azurerm_subnet.private.id
-  network_security_group_id = azurerm_network_security_group.nsg.id
-}
+%[1]s
 
 resource "azurerm_databricks_workspace" "test" {
-  name                        = "acctestDBW-%[1]d"
+  name                        = "acctestDBW-%[2]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   sku                         = "premium"
-  managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
+  managed_resource_group_name = "acctestRG-DBW-%[2]d-managed"
 
   public_network_access_enabled         = true
   load_balancer_backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
@@ -1908,7 +1379,7 @@ resource "azurerm_databricks_workspace" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                    = "acctestpublicip-%[1]d"
+  name                    = "acctestpublicip-%[2]d"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   idle_timeout_in_minutes = 4
@@ -1918,23 +1389,23 @@ resource "azurerm_public_ip" "test" {
 }
 
 resource "azurerm_lb" "test" {
-  name                = "acctest-loadbalancer-%[1]d"
+  name                = "acctest-loadbalancer-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
   sku = "Standard"
 
   frontend_ip_configuration {
-    name                 = "acctest-PIP-%[1]d"
+    name                 = "acctest-PIP-%[2]d"
     public_ip_address_id = azurerm_public_ip.test.id
   }
 }
 
 resource "azurerm_lb_outbound_rule" "test" {
-  name                     = "OutboundRule-%[1]d"
+  name                     = "OutboundRule-%[2]d"
   loadbalancer_id          = azurerm_lb.test.id
   protocol                 = "All"
-  enable_tcp_reset         = true
+  tcp_reset_enabled        = true
   allocated_outbound_ports = 1024
   idle_timeout_in_minutes  = 4
 
@@ -1947,54 +1418,48 @@ resource "azurerm_lb_outbound_rule" "test" {
 
 resource "azurerm_lb_backend_address_pool" "test" {
   loadbalancer_id = azurerm_lb.test.id
-  name            = "be-%[1]d"
+  name            = "be-%[2]d"
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, r.templateVnet(data), data.RandomInteger)
 }
 
-func (DatabricksWorkspaceResource) infrastructureEncryption(data acceptance.TestData, sku string) string {
+func (r DatabricksWorkspaceResource) infrastructureEncryption(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-databricks-%[1]d"
-  location = "%[2]s"
-}
+%[1]s
 
 resource "azurerm_databricks_workspace" "test" {
-  name                = "acctestDBW-%[1]d"
+  name                = "acctestDBW-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "%[3]s"
 
   infrastructure_encryption_enabled = true
 }
-`, data.RandomInteger, data.Locations.Primary, sku, data.RandomString)
+`, r.template(data), data.RandomInteger, sku)
 }
 
-func (DatabricksWorkspaceResource) managedServices(data acceptance.TestData, databricksPrincipalID string) string {
+func (r DatabricksWorkspaceResource) managedServices(data acceptance.TestData, databricksPrincipalID string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-data "azurerm_client_config" "current" {}
+%[1]s
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-databricks-%[1]d"
-  location = "%[2]s"
-}
+%[2]s
 
 resource "azurerm_databricks_workspace" "test" {
   depends_on = [azurerm_key_vault_access_policy.managed]
 
-  name                        = "acctestDBW-%[1]d"
+  name                        = "acctestDBW-%[3]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   sku                         = "premium"
-  managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
+  managed_resource_group_name = "acctestRG-DBW-%[3]d-managed"
 
   managed_services_cmk_key_vault_key_id = azurerm_key_vault_key.test.id
 
@@ -2002,58 +1467,6 @@ resource "azurerm_databricks_workspace" "test" {
     Environment = "Production"
     Pricing     = "Premium"
   }
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "acctest-kv-%[3]s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "premium"
-
-  soft_delete_retention_days = 7
-}
-
-resource "azurerm_key_vault_key" "test" {
-  depends_on = [azurerm_key_vault_access_policy.terraform]
-
-  name         = "acctest-certificate"
-  key_vault_id = azurerm_key_vault.test.id
-  key_type     = "RSA"
-  key_size     = 2048
-
-  key_opts = [
-    "decrypt",
-    "encrypt",
-    "sign",
-    "unwrapKey",
-    "verify",
-    "wrapKey",
-  ]
-}
-
-resource "azurerm_key_vault_access_policy" "terraform" {
-  key_vault_id = azurerm_key_vault.test.id
-  tenant_id    = azurerm_key_vault.test.tenant_id
-  object_id    = data.azurerm_client_config.current.object_id
-
-  key_permissions = [
-    "Get",
-    "List",
-    "Create",
-    "Decrypt",
-    "Encrypt",
-    "GetRotationPolicy",
-    "Sign",
-    "UnwrapKey",
-    "Verify",
-    "WrapKey",
-    "Delete",
-    "Restore",
-    "Recover",
-    "Update",
-    "Purge",
-  ]
 }
 
 resource "azurerm_key_vault_access_policy" "managed" {
@@ -2068,30 +1481,27 @@ resource "azurerm_key_vault_access_policy" "managed" {
     "WrapKey",
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, databricksPrincipalID)
+`, r.template(data), r.templateCMK(data), data.RandomInteger, databricksPrincipalID)
 }
 
-func (DatabricksWorkspaceResource) managedServicesAndRootDbfsCMK(data acceptance.TestData, databricksPrincipalID string) string {
+func (r DatabricksWorkspaceResource) managedServicesAndRootDbfsCMK(data acceptance.TestData, databricksPrincipalID string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-data "azurerm_client_config" "current" {}
+%[1]s
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-databricks-%[1]d"
-  location = "%[2]s"
-}
+%[2]s
 
 resource "azurerm_databricks_workspace" "test" {
   depends_on = [azurerm_key_vault_access_policy.managed]
 
-  name                        = "acctestDBW-%[1]d"
+  name                        = "acctestDBW-%[3]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   sku                         = "premium"
-  managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
+  managed_resource_group_name = "acctestRG-DBW-%[3]d-managed"
 
   customer_managed_key_enabled          = true
   managed_services_cmk_key_vault_key_id = azurerm_key_vault_key.test.id
@@ -2107,58 +1517,6 @@ resource "azurerm_databricks_workspace_root_dbfs_customer_managed_key" "test" {
 
   workspace_id     = azurerm_databricks_workspace.test.id
   key_vault_key_id = azurerm_key_vault_key.test.id
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "acctest-kv-%[3]s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "premium"
-
-  soft_delete_retention_days = 7
-}
-
-resource "azurerm_key_vault_key" "test" {
-  depends_on = [azurerm_key_vault_access_policy.terraform]
-
-  name         = "acctest-certificate"
-  key_vault_id = azurerm_key_vault.test.id
-  key_type     = "RSA"
-  key_size     = 2048
-
-  key_opts = [
-    "decrypt",
-    "encrypt",
-    "sign",
-    "unwrapKey",
-    "verify",
-    "wrapKey",
-  ]
-}
-
-resource "azurerm_key_vault_access_policy" "terraform" {
-  key_vault_id = azurerm_key_vault.test.id
-  tenant_id    = azurerm_key_vault.test.tenant_id
-  object_id    = data.azurerm_client_config.current.object_id
-
-  key_permissions = [
-    "Get",
-    "List",
-    "Create",
-    "Decrypt",
-    "Encrypt",
-    "GetRotationPolicy",
-    "Sign",
-    "UnwrapKey",
-    "Verify",
-    "WrapKey",
-    "Delete",
-    "Restore",
-    "Recover",
-    "Update",
-    "Purge",
-  ]
 }
 
 resource "azurerm_key_vault_access_policy" "managed" {
@@ -2188,30 +1546,27 @@ resource "azurerm_key_vault_access_policy" "databricks" {
     "WrapKey",
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, databricksPrincipalID)
+`, r.template(data), r.templateCMK(data), data.RandomInteger, databricksPrincipalID)
 }
 
-func (DatabricksWorkspaceResource) managedDiskCMK(data acceptance.TestData, databricksPrincipalID string) string {
+func (r DatabricksWorkspaceResource) managedDiskCMK(data acceptance.TestData, databricksPrincipalID string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-data "azurerm_client_config" "current" {}
+%[1]s
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-databricks-%[1]d"
-  location = "%[2]s"
-}
+%[2]s
 
 resource "azurerm_databricks_workspace" "test" {
   depends_on = [azurerm_key_vault_access_policy.managed]
 
-  name                        = "acctestDBW-%[1]d"
+  name                        = "acctestDBW-%[3]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   sku                         = "premium"
-  managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
+  managed_resource_group_name = "acctestRG-DBW-%[3]d-managed"
 
   customer_managed_key_enabled      = true
   managed_disk_cmk_key_vault_key_id = azurerm_key_vault_key.test.id
@@ -2220,58 +1575,6 @@ resource "azurerm_databricks_workspace" "test" {
     Environment = "Production"
     Pricing     = "Premium"
   }
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "acctest-kv-%[3]s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "premium"
-
-  soft_delete_retention_days = 7
-}
-
-resource "azurerm_key_vault_key" "test" {
-  depends_on = [azurerm_key_vault_access_policy.terraform]
-
-  name         = "acctest-certificate"
-  key_vault_id = azurerm_key_vault.test.id
-  key_type     = "RSA"
-  key_size     = 2048
-
-  key_opts = [
-    "decrypt",
-    "encrypt",
-    "sign",
-    "unwrapKey",
-    "verify",
-    "wrapKey",
-  ]
-}
-
-resource "azurerm_key_vault_access_policy" "terraform" {
-  key_vault_id = azurerm_key_vault.test.id
-  tenant_id    = azurerm_key_vault.test.tenant_id
-  object_id    = data.azurerm_client_config.current.object_id
-
-  key_permissions = [
-    "Get",
-    "List",
-    "Create",
-    "Decrypt",
-    "Encrypt",
-    "GetRotationPolicy",
-    "Sign",
-    "UnwrapKey",
-    "Verify",
-    "WrapKey",
-    "Delete",
-    "Restore",
-    "Recover",
-    "Update",
-    "Purge",
-  ]
 }
 
 resource "azurerm_key_vault_access_policy" "managed" {
@@ -2304,56 +1607,48 @@ resource "azurerm_key_vault_access_policy" "databricks" {
     "WrapKey",
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, databricksPrincipalID)
+`, r.template(data), r.templateCMK(data), data.RandomInteger, databricksPrincipalID)
 }
 
-func (DatabricksWorkspaceResource) managedDiskCMKRotationDisabled(data acceptance.TestData) string {
+func (r DatabricksWorkspaceResource) managedDiskCMKRotationDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-data "azurerm_client_config" "current" {}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-databricks-%[1]d"
-  location = "%[2]s"
-}
+%[1]s
 
 resource "azurerm_databricks_workspace" "test" {
-  name                        = "acctestDBW-%[1]d"
+  name                        = "acctestDBW-%[2]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   sku                         = "premium"
-  managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
+  managed_resource_group_name = "acctestRG-DBW-%[2]d-managed"
   tags = {
     State = "CMKDisabled"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, r.template(data), data.RandomInteger)
 }
 
-func (DatabricksWorkspaceResource) managedDiskCMKRotationEnabled(data acceptance.TestData, databricksPrincipalID string) string {
+func (r DatabricksWorkspaceResource) managedDiskCMKRotationEnabled(data acceptance.TestData, databricksPrincipalID string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-data "azurerm_client_config" "current" {}
+%[1]s
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-databricks-%[1]d"
-  location = "%[2]s"
-}
+%[2]s
 
 resource "azurerm_databricks_workspace" "test" {
   depends_on = [azurerm_key_vault_access_policy.databricks]
 
-  name                        = "acctestDBW-%[1]d"
+  name                        = "acctestDBW-%[3]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   sku                         = "premium"
-  managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
+  managed_resource_group_name = "acctestRG-DBW-%[3]d-managed"
 
   customer_managed_key_enabled                        = true
   managed_disk_cmk_key_vault_key_id                   = azurerm_key_vault_key.test.id
@@ -2362,58 +1657,6 @@ resource "azurerm_databricks_workspace" "test" {
   tags = {
     State = "CMKEnabled"
   }
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "acctest-kv-%[3]s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "premium"
-
-  soft_delete_retention_days = 7
-}
-
-resource "azurerm_key_vault_key" "test" {
-  depends_on = [azurerm_key_vault_access_policy.terraform]
-
-  name         = "acctest-certificate"
-  key_vault_id = azurerm_key_vault.test.id
-  key_type     = "RSA"
-  key_size     = 2048
-
-  key_opts = [
-    "decrypt",
-    "encrypt",
-    "sign",
-    "unwrapKey",
-    "verify",
-    "wrapKey",
-  ]
-}
-
-resource "azurerm_key_vault_access_policy" "terraform" {
-  key_vault_id = azurerm_key_vault.test.id
-  tenant_id    = azurerm_key_vault.test.tenant_id
-  object_id    = data.azurerm_client_config.current.object_id
-
-  key_permissions = [
-    "Get",
-    "List",
-    "Create",
-    "Decrypt",
-    "Encrypt",
-    "GetRotationPolicy",
-    "Sign",
-    "UnwrapKey",
-    "Verify",
-    "WrapKey",
-    "Delete",
-    "Restore",
-    "Recover",
-    "Update",
-    "Purge",
-  ]
 }
 
 resource "azurerm_key_vault_access_policy" "databricks" {
@@ -2449,73 +1692,21 @@ resource "azurerm_key_vault_access_policy" "diskencryption" {
     "WrapKey",
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, databricksPrincipalID)
+`, r.template(data), r.templateCMK(data), data.RandomInteger, databricksPrincipalID)
 }
 
-func (DatabricksWorkspaceResource) managedServicesRootDbfsCMKAndPrivateLink(data acceptance.TestData, databricksPrincipalID string) string {
+func (r DatabricksWorkspaceResource) managedServicesRootDbfsCMKAndPrivateLink(data acceptance.TestData, databricksPrincipalID string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-data "azurerm_client_config" "current" {}
+%[1]s
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-databricks-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctest-vnet-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.0.0.0/16"]
-}
-
-resource "azurerm_subnet" "public" {
-  name                 = "acctest-sn-public-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.0/24"]
-
-  delegation {
-    name = "acctest"
-
-    service_delegation {
-      name = "Microsoft.Databricks/workspaces"
-
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
-        "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
-      ]
-    }
-  }
-}
-
-resource "azurerm_subnet" "private" {
-  name                 = "acctest-sn-private-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-
-  delegation {
-    name = "acctest"
-
-    service_delegation {
-      name = "Microsoft.Databricks/workspaces"
-
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
-        "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
-      ]
-    }
-  }
-}
+%[2]s
 
 resource "azurerm_subnet" "privatelink" {
-  name                 = "acctest-snpl-%[1]d"
+  name                 = "acctest-snpl-%[3]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.3.0/24"]
@@ -2523,30 +1714,14 @@ resource "azurerm_subnet" "privatelink" {
   private_endpoint_network_policies = "Enabled"
 }
 
-resource "azurerm_network_security_group" "nsg" {
-  name                = "acctest-nsg-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet_network_security_group_association" "public" {
-  subnet_id                 = azurerm_subnet.public.id
-  network_security_group_id = azurerm_network_security_group.nsg.id
-}
-
-resource "azurerm_subnet_network_security_group_association" "private" {
-  subnet_id                 = azurerm_subnet.private.id
-  network_security_group_id = azurerm_network_security_group.nsg.id
-}
-
 resource "azurerm_databricks_workspace" "test" {
   depends_on = [azurerm_key_vault_access_policy.managed]
 
-  name                        = "acctestDBW-%[1]d"
+  name                        = "acctestDBW-%[3]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   sku                         = "premium"
-  managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
+  managed_resource_group_name = "acctestRG-DBW-%[3]d-managed"
 
   customer_managed_key_enabled          = true
   managed_services_cmk_key_vault_key_id = azurerm_key_vault_key.test.id
@@ -2574,58 +1749,6 @@ resource "azurerm_databricks_workspace_root_dbfs_customer_managed_key" "test" {
 
   workspace_id     = azurerm_databricks_workspace.test.id
   key_vault_key_id = azurerm_key_vault_key.test.id
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "acctest-kv-%[3]s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "premium"
-
-  soft_delete_retention_days = 7
-}
-
-resource "azurerm_key_vault_key" "test" {
-  depends_on = [azurerm_key_vault_access_policy.terraform]
-
-  name         = "acctest-certificate"
-  key_vault_id = azurerm_key_vault.test.id
-  key_type     = "RSA"
-  key_size     = 2048
-
-  key_opts = [
-    "decrypt",
-    "encrypt",
-    "sign",
-    "unwrapKey",
-    "verify",
-    "wrapKey",
-  ]
-}
-
-resource "azurerm_key_vault_access_policy" "terraform" {
-  key_vault_id = azurerm_key_vault.test.id
-  tenant_id    = azurerm_key_vault.test.tenant_id
-  object_id    = data.azurerm_client_config.current.object_id
-
-  key_permissions = [
-    "Get",
-    "List",
-    "Create",
-    "Decrypt",
-    "Encrypt",
-    "GetRotationPolicy",
-    "Sign",
-    "UnwrapKey",
-    "Verify",
-    "WrapKey",
-    "Delete",
-    "Restore",
-    "Recover",
-    "Update",
-    "Purge",
-  ]
 }
 
 resource "azurerm_key_vault_access_policy" "managed" {
@@ -2659,13 +1782,13 @@ resource "azurerm_key_vault_access_policy" "databricks" {
 resource "azurerm_private_endpoint" "databricks" {
   depends_on = [azurerm_databricks_workspace_root_dbfs_customer_managed_key.test]
 
-  name                = "acctest-endpoint-%[1]d"
+  name                = "acctest-endpoint-%[3]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   subnet_id           = azurerm_subnet.privatelink.id
 
   private_service_connection {
-    name                           = "acctest-psc-%[1]d"
+    name                           = "acctest-psc-%[3]d"
     is_manual_connection           = false
     private_connection_resource_id = azurerm_databricks_workspace.test.id
     subresource_names              = ["databricks_ui_api"]
@@ -2681,16 +1804,16 @@ resource "azurerm_private_dns_zone" "test" {
 
 resource "azurerm_private_dns_cname_record" "test" {
   name                = azurerm_databricks_workspace.test.workspace_url
-  zone_name           = azurerm_private_dns_zone.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  private_dns_zone_id = azurerm_private_dns_zone.test.id
   ttl                 = 300
   record              = "eastus2-c2.azuredatabricks.net"
 }
-`, data.RandomInteger, data.Locations.Secondary, data.RandomString, databricksPrincipalID)
+`, r.templateVnet(data), r.templateCMK(data), data.RandomInteger, databricksPrincipalID)
 }
 
 func (DatabricksWorkspaceResource) altSubscriptionCmkComplete(data acceptance.TestData, databricksPrincipalID string, alt *DatabricksWorkspaceAlternateSubscription) string {
-	return fmt.Sprintf(`
+	if !features.SixPointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {
     resource_group {
@@ -2745,11 +1868,157 @@ resource "azurerm_databricks_workspace" "test" {
 resource "azurerm_key_vault" "keyVault" {
   provider = azurerm-alt
 
-  name                = "kv-altsub-%[3]s"
-  resource_group_name = azurerm_resource_group.keyVault.name
-  location            = azurerm_resource_group.keyVault.location
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "premium"
+  name                       = "kv-altsub-%[3]s"
+  resource_group_name        = azurerm_resource_group.keyVault.name
+  rbac_authorization_enabled = false
+  location                   = azurerm_resource_group.keyVault.location
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
+
+  soft_delete_retention_days = 7
+}
+
+resource "azurerm_key_vault_key" "services" {
+  provider   = azurerm-alt
+  depends_on = [azurerm_key_vault_access_policy.terraform]
+
+  name         = "acctest-services-certificate"
+  key_vault_id = azurerm_key_vault.keyVault.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+}
+
+resource "azurerm_key_vault_key" "disk" {
+  provider   = azurerm-alt
+  depends_on = [azurerm_key_vault_access_policy.terraform]
+
+  name         = "acctest-disk-certificate"
+  key_vault_id = azurerm_key_vault.keyVault.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+}
+
+resource "azurerm_key_vault_access_policy" "terraform" {
+  provider = azurerm-alt
+
+  key_vault_id = azurerm_key_vault.keyVault.id
+  tenant_id    = azurerm_key_vault.keyVault.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  key_permissions = [
+    "Get",
+    "List",
+    "Create",
+    "Decrypt",
+    "Encrypt",
+    "Sign",
+    "UnwrapKey",
+    "Verify",
+    "WrapKey",
+    "Delete",
+    "Restore",
+    "Recover",
+    "Update",
+    "Purge",
+    "GetRotationPolicy",
+    "SetRotationPolicy",
+  ]
+}
+
+resource "azurerm_key_vault_access_policy" "managed" {
+  provider = azurerm-alt
+
+  key_vault_id = azurerm_key_vault.keyVault.id
+  tenant_id    = azurerm_key_vault.keyVault.tenant_id
+  object_id    = "%[4]s"
+
+  key_permissions = [
+    "Get",
+    "UnwrapKey",
+    "WrapKey",
+    "GetRotationPolicy",
+    "SetRotationPolicy",
+  ]
+}
+`, data.RandomInteger, data.Locations.Secondary, data.RandomString, databricksPrincipalID, alt.tenantID, alt.subscriptionID)
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+provider "azurerm-alt" {
+  features {}
+
+  tenant_id       = "%[5]s"
+  subscription_id = "%[6]s"
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-databricks-pri-sub-complete-%[1]d"
+  location = "West Europe"
+}
+
+resource "azurerm_resource_group" "keyVault" {
+  provider = azurerm-alt
+
+  name     = "acctestRG-databricks-alt-sub-complete-%[1]d"
+  location = "West Europe"
+}
+
+resource "azurerm_databricks_workspace" "test" {
+  depends_on = [azurerm_key_vault_access_policy.managed]
+
+  name                        = "acctest-databricks-pri-sub-%[1]d"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  sku                         = "premium"
+  managed_resource_group_name = "databricks-pri-sub-managed-rg-%[1]d"
+
+  managed_services_cmk_key_vault_key_id = azurerm_key_vault_key.services.id
+  managed_disk_cmk_key_vault_key_id     = azurerm_key_vault_key.disk.id
+
+  tags = {
+    Environment = "Sandbox"
+    Pricing     = "Premium"
+  }
+}
+
+# Create this in a different subscription...
+resource "azurerm_key_vault" "keyVault" {
+  provider = azurerm-alt
+
+  name                       = "kv-altsub-%[3]s"
+  resource_group_name        = azurerm_resource_group.keyVault.name
+  rbac_authorization_enabled = false
+  location                   = azurerm_resource_group.keyVault.location
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
 
   soft_delete_retention_days = 7
 }
@@ -2882,11 +2151,8 @@ resource "azurerm_databricks_workspace" "test" {
   sku                         = "premium"
   managed_resource_group_name = "databricks-pri-sub-managed-rg-%[1]d"
 
-  managed_services_cmk_key_vault_id     = azurerm_key_vault.keyVaultAlt.id
   managed_services_cmk_key_vault_key_id = azurerm_key_vault_key.servicesAlt.id
-
-  managed_disk_cmk_key_vault_id     = azurerm_key_vault.keyVault.id
-  managed_disk_cmk_key_vault_key_id = azurerm_key_vault_key.disk.id
+  managed_disk_cmk_key_vault_key_id     = azurerm_key_vault_key.disk.id
 
   tags = {
     Environment = "Sandbox"
@@ -2895,11 +2161,12 @@ resource "azurerm_databricks_workspace" "test" {
 }
 
 resource "azurerm_key_vault" "keyVault" {
-  name                = "kv-prisub-%[3]s"
-  resource_group_name = azurerm_resource_group.keyVault.name
-  location            = azurerm_resource_group.keyVault.location
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "premium"
+  name                       = "kv-prisub-%[3]s"
+  resource_group_name        = azurerm_resource_group.keyVault.name
+  rbac_authorization_enabled = false
+  location                   = azurerm_resource_group.keyVault.location
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
 
   soft_delete_retention_days = 7
 }
@@ -2908,11 +2175,12 @@ resource "azurerm_key_vault" "keyVault" {
 resource "azurerm_key_vault" "keyVaultAlt" {
   provider = azurerm-alt
 
-  name                = "kv-altsub-%[3]s"
-  resource_group_name = azurerm_resource_group.keyVaultAlt.name
-  location            = azurerm_resource_group.keyVaultAlt.location
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "premium"
+  name                       = "kv-altsub-%[3]s"
+  resource_group_name        = azurerm_resource_group.keyVaultAlt.name
+  rbac_authorization_enabled = false
+  location                   = azurerm_resource_group.keyVaultAlt.location
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
 
   soft_delete_retention_days = 7
 }
@@ -3078,7 +2346,6 @@ resource "azurerm_databricks_workspace" "test" {
   sku                         = "premium"
   managed_resource_group_name = "databricks-pri-sub-managed-rg-%[1]d"
 
-  managed_services_cmk_key_vault_id     = azurerm_key_vault.keyVault.id
   managed_services_cmk_key_vault_key_id = azurerm_key_vault_key.services.id
 
   tags = {
@@ -3091,11 +2358,12 @@ resource "azurerm_databricks_workspace" "test" {
 resource "azurerm_key_vault" "keyVault" {
   provider = azurerm-alt
 
-  name                = "kv-altsub-%[3]s"
-  location            = azurerm_resource_group.keyVault.location
-  resource_group_name = azurerm_resource_group.keyVault.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "premium"
+  name                       = "kv-altsub-%[3]s"
+  location                   = azurerm_resource_group.keyVault.location
+  resource_group_name        = azurerm_resource_group.keyVault.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
 
   soft_delete_retention_days = 7
 }
@@ -3204,7 +2472,6 @@ resource "azurerm_databricks_workspace" "test" {
   sku                         = "premium"
   managed_resource_group_name = "databricks-pri-sub-managed-rg-%[1]d"
 
-  managed_disk_cmk_key_vault_id     = azurerm_key_vault.keyVault.id
   managed_disk_cmk_key_vault_key_id = azurerm_key_vault_key.disk.id
 
   tags = {
@@ -3217,11 +2484,12 @@ resource "azurerm_databricks_workspace" "test" {
 resource "azurerm_key_vault" "keyVault" {
   provider = azurerm-alt
 
-  name                = "kv-altsub-%[3]s"
-  location            = azurerm_resource_group.keyVault.location
-  resource_group_name = azurerm_resource_group.keyVault.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "premium"
+  name                       = "kv-altsub-%[3]s"
+  location                   = azurerm_resource_group.keyVault.location
+  resource_group_name        = azurerm_resource_group.keyVault.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
 
   soft_delete_retention_days = 7
 }
@@ -3290,7 +2558,7 @@ resource "azurerm_key_vault_access_policy" "managed" {
 `, data.RandomInteger, data.Locations.Secondary, data.RandomString, databricksPrincipalID, alt.tenantID, alt.subscriptionID)
 }
 
-func (DatabricksWorkspaceResource) enhancedSecurityCompliance(data acceptance.TestData, sku string, automaticClusterUpdateEnabled bool, complianceSecurityProfileEnabled bool, complianceSecurityProfileStandards []string, enhancedSecurityMonitoringEnabled bool) string {
+func (r DatabricksWorkspaceResource) enhancedSecurityCompliance(data acceptance.TestData, sku string, automaticClusterUpdateEnabled bool, complianceSecurityProfileEnabled bool, complianceSecurityProfileStandards []string, enhancedSecurityMonitoringEnabled bool) string {
 	complianceSecurityProfileStandardsStr := ""
 	if len(complianceSecurityProfileStandards) > 0 {
 		complianceSecurityProfileStandardsStr = fmt.Sprintf(`"%s"`, strings.Join(complianceSecurityProfileStandards, `", "`))
@@ -3301,47 +2569,388 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-databricks-%d"
-  location = "%s"
-}
+%[1]s
 
 resource "azurerm_databricks_workspace" "test" {
-  name                = "acctestDBW-%d"
+  name                = "acctestDBW-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "%s"
+  sku                 = "%[3]s"
 
   enhanced_security_compliance {
-    automatic_cluster_update_enabled      = %t
-    compliance_security_profile_enabled   = %t
-    compliance_security_profile_standards = [%s]
-    enhanced_security_monitoring_enabled  = %t
+    automatic_cluster_update_enabled      = %[4]t
+    compliance_security_profile_enabled   = %[5]t
+    compliance_security_profile_standards = [%[6]s]
+    enhanced_security_monitoring_enabled  = %[7]t
   }
 }
-  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku, automaticClusterUpdateEnabled, complianceSecurityProfileEnabled, complianceSecurityProfileStandardsStr, enhancedSecurityMonitoringEnabled)
+  `, r.template(data), data.RandomInteger, sku, automaticClusterUpdateEnabled, complianceSecurityProfileEnabled, complianceSecurityProfileStandardsStr, enhancedSecurityMonitoringEnabled)
 }
 
-func (DatabricksWorkspaceResource) workspaceForceDelete(data acceptance.TestData, forceDelete bool) string {
+func (r DatabricksWorkspaceResource) workspaceForceDelete(data acceptance.TestData, forceDelete bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
     databricks_workspace {
-      force_delete = %t
+      force_delete = %[2]t
     }
   }
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-databricks-%d"
-  location = "%s"
-}
+%[1]s
 
 resource "azurerm_databricks_workspace" "test" {
-  name                = "acctestDBW-%d"
+  name                = "acctestDBW-%[3]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "premium"
 }
-  `, forceDelete, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+  `, r.template(data), forceDelete, data.RandomInteger)
+}
+
+func (r DatabricksWorkspaceResource) managedServicesAndDiskCMKManagedHSM(data acceptance.TestData, databricksPrincipalID string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_databricks_workspace" "test" {
+  depends_on = [azurerm_key_vault_managed_hardware_security_module_role_assignment.workspace]
+
+  name                = "acctestDBW-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "premium"
+
+  managed_services_cmk_key_vault_key_id = azurerm_key_vault_managed_hardware_security_module_key.test.versioned_id
+  managed_disk_cmk_key_vault_key_id     = azurerm_key_vault_managed_hardware_security_module_key.test.versioned_id
+}
+`, r.templateCMKManagedHSM(data, databricksPrincipalID), data.RandomInteger)
+}
+
+func (DatabricksWorkspaceResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-databricks-%[1]d"
+  location = "%[2]s"
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r DatabricksWorkspaceResource) templateVnet(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest-vnet-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "public" {
+  name                 = "acctest-sn-public-%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+
+  delegation {
+    name = "acctest"
+
+    service_delegation {
+      name = "Microsoft.Databricks/workspaces"
+
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
+        "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
+      ]
+    }
+  }
+}
+
+resource "azurerm_subnet" "private" {
+  name                 = "acctest-sn-private-%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+
+  delegation {
+    name = "acctest"
+
+    service_delegation {
+      name = "Microsoft.Databricks/workspaces"
+
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
+        "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
+      ]
+    }
+  }
+}
+
+resource "azurerm_network_security_group" "nsg" {
+  name                = "acctest-nsg-private-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet_network_security_group_association" "public" {
+  subnet_id                 = azurerm_subnet.public.id
+  network_security_group_id = azurerm_network_security_group.nsg.id
+}
+
+resource "azurerm_subnet_network_security_group_association" "private" {
+  subnet_id                 = azurerm_subnet.private.id
+  network_security_group_id = azurerm_network_security_group.nsg.id
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r DatabricksWorkspaceResource) templateVnetWithAccessConnectors(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_databricks_access_connector" "test" {
+  name                = "acctestDBWACC%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_databricks_access_connector" "test2" {
+  name                = "acctestDBWACC2-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, r.templateVnet(data), data.RandomInteger)
+}
+
+func (r DatabricksWorkspaceResource) templateCMK(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "acctest-kv-%[1]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
+
+  soft_delete_retention_days = 7
+}
+
+resource "azurerm_key_vault_key" "test" {
+  depends_on = [azurerm_key_vault_access_policy.terraform]
+
+  name         = "acctest-certificate"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+}
+
+resource "azurerm_key_vault_access_policy" "terraform" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = azurerm_key_vault.test.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  key_permissions = [
+    "Get",
+    "List",
+    "Create",
+    "Decrypt",
+    "Encrypt",
+    "GetRotationPolicy",
+    "Sign",
+    "UnwrapKey",
+    "Verify",
+    "WrapKey",
+    "Delete",
+    "Restore",
+    "Recover",
+    "Update",
+    "Purge",
+  ]
+}
+`, data.RandomString)
+}
+
+func (r DatabricksWorkspaceResource) templateCMKManagedHSM(data acceptance.TestData, databricksPrincipalID string) string {
+	roleAssignmentName1, _ := uuid.GenerateUUID()
+	roleAssignmentName2, _ := uuid.GenerateUUID()
+	roleAssignmentName3, _ := uuid.GenerateUUID()
+
+	return fmt.Sprintf(`
+%[1]s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "acctest%[2]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+    key_permissions = [
+      "Create",
+      "Delete",
+      "Get",
+      "Purge",
+      "Recover",
+      "Update",
+      "GetRotationPolicy",
+    ]
+    secret_permissions = [
+      "Delete",
+      "Get",
+      "Set",
+    ]
+    certificate_permissions = [
+      "Create",
+      "Delete",
+      "DeleteIssuers",
+      "Get",
+      "Purge",
+      "Update"
+    ]
+  }
+  tags = {
+    environment = "Production"
+  }
+}
+
+resource "azurerm_key_vault_certificate" "cert" {
+  count        = 3
+  name         = "acctesthsmcert${count.index}"
+  key_vault_id = azurerm_key_vault.test.id
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+    key_properties {
+      exportable = true
+      key_size   = 2048
+      key_type   = "RSA"
+      reuse_key  = true
+    }
+    lifetime_action {
+      action {
+        action_type = "AutoRenew"
+      }
+      trigger {
+        days_before_expiry = 30
+      }
+    }
+    secret_properties {
+      content_type = "application/x-pkcs12"
+    }
+    x509_certificate_properties {
+      extended_key_usage = []
+      key_usage = [
+        "cRLSign",
+        "dataEncipherment",
+        "digitalSignature",
+        "keyAgreement",
+        "keyCertSign",
+        "keyEncipherment",
+      ]
+      subject            = "CN=hello-world"
+      validity_in_months = 12
+    }
+  }
+}
+
+resource "azurerm_key_vault_managed_hardware_security_module" "test" {
+  name                                      = "acctestkvHsm%[2]s"
+  resource_group_name                       = azurerm_resource_group.test.name
+  location                                  = azurerm_resource_group.test.location
+  sku_name                                  = "Standard_B1"
+  tenant_id                                 = data.azurerm_client_config.current.tenant_id
+  admin_object_ids                          = [data.azurerm_client_config.current.object_id]
+  purge_protection_enabled                  = true
+  soft_delete_retention_days                = 7
+  security_domain_key_vault_certificate_ids = [for cert in azurerm_key_vault_certificate.cert : cert.id]
+  security_domain_quorum                    = 3
+}
+
+data "azurerm_key_vault_managed_hardware_security_module_role_definition" "crypto-officer" {
+  name           = "515eb02d-2335-4d2d-92f2-b1cbdf9c3778"
+  managed_hsm_id = azurerm_key_vault_managed_hardware_security_module.test.id
+}
+
+data "azurerm_key_vault_managed_hardware_security_module_role_definition" "crypto-user" {
+  name           = "21dbd100-6940-42c2-9190-5d6cb909625b"
+  managed_hsm_id = azurerm_key_vault_managed_hardware_security_module.test.id
+}
+
+data "azurerm_key_vault_managed_hardware_security_module_role_definition" "encrypt-user" {
+  name           = "33413926-3206-4cdd-b39a-83574fe37a17"
+  managed_hsm_id = azurerm_key_vault_managed_hardware_security_module.test.id
+}
+
+resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "test" {
+  managed_hsm_id     = azurerm_key_vault_managed_hardware_security_module.test.id
+  name               = "%[3]s"
+  scope              = "/keys"
+  role_definition_id = data.azurerm_key_vault_managed_hardware_security_module_role_definition.crypto-officer.resource_manager_id
+  principal_id       = data.azurerm_client_config.current.object_id
+}
+
+resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "test1" {
+  managed_hsm_id     = azurerm_key_vault_managed_hardware_security_module.test.id
+  name               = "%[4]s"
+  scope              = "/keys"
+  role_definition_id = data.azurerm_key_vault_managed_hardware_security_module_role_definition.crypto-user.resource_manager_id
+  principal_id       = data.azurerm_client_config.current.object_id
+
+  depends_on = [azurerm_key_vault_managed_hardware_security_module_role_assignment.test]
+}
+
+resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "workspace" {
+  managed_hsm_id     = azurerm_key_vault_managed_hardware_security_module.test.id
+  name               = "%[5]s"
+  scope              = "/keys"
+  role_definition_id = data.azurerm_key_vault_managed_hardware_security_module_role_definition.crypto-user.resource_manager_id
+  principal_id       = "%[6]s"
+
+  depends_on = [azurerm_key_vault_managed_hardware_security_module_role_assignment.test1]
+}
+
+resource "azurerm_key_vault_managed_hardware_security_module_key" "test" {
+  name           = "acctestHSMK-%[2]s"
+  managed_hsm_id = azurerm_key_vault_managed_hardware_security_module.test.id
+  key_type       = "RSA-HSM"
+  key_size       = 2048
+  key_opts       = ["unwrapKey", "wrapKey"]
+
+  depends_on = [
+    azurerm_key_vault_managed_hardware_security_module_role_assignment.test,
+    azurerm_key_vault_managed_hardware_security_module_role_assignment.test1
+  ]
+}`, r.template(data), data.RandomString, roleAssignmentName1, roleAssignmentName2, roleAssignmentName3, databricksPrincipalID)
 }

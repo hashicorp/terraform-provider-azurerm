@@ -57,9 +57,20 @@ func (c DevicesClient) ScanForUpdates(ctx context.Context, id DataBoxEdgeDeviceI
 
 // ScanForUpdatesThenPoll performs ScanForUpdates then polls until it's completed
 func (c DevicesClient) ScanForUpdatesThenPoll(ctx context.Context, id DataBoxEdgeDeviceId) error {
+	return c.ScanForUpdatesCallbackThenPoll(ctx, id, nil)
+}
+
+// ScanForUpdatesCallbackThenPoll performs ScanForUpdates, runs the optional callback function, then polls until it's completed
+func (c DevicesClient) ScanForUpdatesCallbackThenPoll(ctx context.Context, id DataBoxEdgeDeviceId, callback func() error) error {
 	result, err := c.ScanForUpdates(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ScanForUpdates: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

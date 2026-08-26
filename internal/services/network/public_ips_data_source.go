@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/publicipaddresses"
@@ -160,16 +161,6 @@ func flattenDataSourcePublicIPs(input []publicipaddresses.PublicIPAddress) []int
 }
 
 func flattenDataSourcePublicIP(input publicipaddresses.PublicIPAddress) map[string]string {
-	id := ""
-	if input.Id != nil {
-		id = *input.Id
-	}
-
-	name := ""
-	if input.Name != nil {
-		name = *input.Name
-	}
-
 	domainNameLabel := ""
 	fqdn := ""
 	ipAddress := ""
@@ -190,8 +181,8 @@ func flattenDataSourcePublicIP(input publicipaddresses.PublicIPAddress) map[stri
 	}
 
 	return map[string]string{
-		"id":                id,
-		"name":              name,
+		"id":                pointer.From(input.Id),
+		"name":              pointer.From(input.Name),
 		"domain_name_label": domainNameLabel,
 		"fqdn":              fqdn,
 		"ip_address":        ipAddress,

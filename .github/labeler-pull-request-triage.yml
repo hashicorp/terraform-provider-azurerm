@@ -354,6 +354,11 @@ service/managed-apps:
   - any-glob-to-any-file:
     - internal/services/managedapplications/**/*
 
+service/managed-devops-pools:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/manageddevopspools/**/*
+
 service/managed-hsm:
 - changed-files:
   - any-glob-to-any-file:
@@ -419,10 +424,10 @@ service/notifications:
   - any-glob-to-any-file:
     - internal/services/notificationhub/**/*
 
-service/orbital:
+service/oracle:
 - changed-files:
   - any-glob-to-any-file:
-    - internal/services/orbital/**/*
+    - internal/services/oracle/**/*
 
 service/paloalto:
 - changed-files:
@@ -479,7 +484,6 @@ service/redis:
   - any-glob-to-any-file:
     - internal/services/managedredis/**/*
     - internal/services/redis/**/*
-    - internal/services/redisenterprise/**/*
 
 service/relay:
 - changed-files:

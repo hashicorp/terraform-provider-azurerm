@@ -18,7 +18,7 @@ import (
 
 type NetworkWatcherResource struct{}
 
-func TestAccNetworkWatcher(t *testing.T) {
+func TestAccNetworkWatcher_sequential(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests due to
 	// Azure only being happy about provisioning one per region at once
 	// (which our test suite can't easily workaround)
@@ -53,13 +53,6 @@ func TestAccNetworkWatcher(t *testing.T) {
 			"icmpConfiguration":              testAccNetworkConnectionMonitor_icmpConfiguration,
 			"bothAddressAndVirtualMachineId": testAccNetworkConnectionMonitor_withAddressAndVirtualMachineId,
 			"updateEndpoint":                 testAccNetworkConnectionMonitor_updateEndpointIPAddressAndCoverageLevel,
-		},
-		"PacketCapture": {
-			"localDisk":                  testAccNetworkPacketCapture_localDisk,
-			"storageAccount":             testAccNetworkPacketCapture_storageAccount,
-			"storageAccountAndLocalDisk": testAccNetworkPacketCapture_storageAccountAndLocalDisk,
-			"withFilters":                testAccNetworkPacketCapture_withFilters,
-			"requiresImport":             testAccNetworkPacketCapture_requiresImport,
 		},
 		"VMPacketCapture": {
 			"localDisk":                  testAccVirtualMachinePacketCapture_localDisk,

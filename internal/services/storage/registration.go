@@ -88,6 +88,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		AccountQueuePropertiesResource{},
+		AccountTablePropertiesResource{},
 		AccountStaticWebsiteResource{},
 		LocalUserResource{},
 		StorageContainerImmutabilityPolicyResource{},
@@ -115,5 +116,7 @@ func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
 		StorageAccountCustomerManagedKeyListResource{},
 		StorageAccountListResource{},
+		StorageSyncListResource{},
+		SyncServerEndpointListResource{},
 	}
 }

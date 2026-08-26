@@ -17,7 +17,7 @@ import (
 )
 
 func dataSourceMonitorDiagnosticCategories() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Read: dataSourceMonitorDiagnosticCategoriesRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -53,8 +53,6 @@ func dataSourceMonitorDiagnosticCategories() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	return resource
 }
 
 func dataSourceMonitorDiagnosticCategoriesRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -71,23 +69,18 @@ func dataSourceMonitorDiagnosticCategoriesRead(d *pluginsdk.ResourceData, meta i
 	}
 
 	// then retrieve the possible Diagnostics Categories for this Resource
-	categories, err := categoriesClient.DiagnosticSettingsCategoryList(ctx, *resourceIdToList)
+	categories, err := categoriesClient.DiagnosticSettingsCategoryListComplete(ctx, *resourceIdToList)
 	if err != nil {
 		return fmt.Errorf("retrieving Diagnostics Categories for Resource %q: %+v", actualResourceId, err)
 	}
 
-	if categories.Model == nil && categories.Model.Value == nil {
-		return fmt.Errorf("retrieving Diagnostics Categories for Resource %q: `categories.Value` was nil", actualResourceId)
-	}
-
 	d.SetId(actualResourceId.ID())
-	val := *categories.Model.Value
 
 	metrics := make([]string, 0)
 	logs := make([]string, 0)
 	categoryGroups := make([]string, 0)
 
-	for _, v := range val {
+	for _, v := range categories.Items {
 		if v.Name == nil {
 			continue
 		}

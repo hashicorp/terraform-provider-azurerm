@@ -137,14 +137,16 @@ func resourcePolicyVirtualMachineConfigurationAssignmentCreateUpdate(d *pluginsd
 	id := guestconfigurationassignments.NewVirtualMachineProviders2GuestConfigurationAssignmentID(subscriptionId, vmId.ResourceGroupName, vmId.VirtualMachineName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for present of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for present of existing %s: %+v", id, err)
+				}
 			}
-		}
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_policy_virtual_machine_configuration_assignment", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_policy_virtual_machine_configuration_assignment", id.ID())
+			}
 		}
 	}
 	guestConfiguration := expandGuestConfigurationAssignment(d.Get("configuration").([]interface{}), id.GuestConfigurationAssignmentName)
@@ -172,7 +174,9 @@ func resourcePolicyVirtualMachineConfigurationAssignmentCreateUpdate(d *pluginsd
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
 
 	return resourcePolicyVirtualMachineConfigurationAssignmentRead(d, meta)
 }
@@ -244,7 +248,7 @@ func expandGuestConfigurationAssignment(input []interface{}, name string) *guest
 	}
 
 	if v, ok := v["assignment_type"]; ok {
-		result.AssignmentType = pointer.To(guestconfigurationassignments.AssignmentType(v.(string)))
+		result.AssignmentType = pointer.ToEnum[guestconfigurationassignments.AssignmentType](v.(string))
 	}
 
 	if v, ok := v["content_hash"]; ok {
@@ -275,22 +279,10 @@ func flattenGuestConfigurationAssignment(input *guestconfigurationassignments.Gu
 		return make([]interface{}, 0)
 	}
 
-	var version string
-	if input.Version != nil {
-		version = *input.Version
-	}
-	var assignmentType guestconfigurationassignments.AssignmentType
-	if input.AssignmentType != nil {
-		assignmentType = *input.AssignmentType
-	}
-	var contentHash string
-	if input.ContentHash != nil {
-		contentHash = *input.ContentHash
-	}
-	var contentUri string
-	if input.ContentUri != nil {
-		contentUri = *input.ContentUri
-	}
+	version := pointer.From(input.Version)
+	assignmentType := pointer.From(input.AssignmentType)
+	contentHash := pointer.From(input.ContentHash)
+	contentUri := pointer.From(input.ContentUri)
 	return []interface{}{
 		map[string]interface{}{
 			"assignment_type": string(assignmentType),
@@ -309,14 +301,8 @@ func flattenGuestConfigurationAssignmentConfigurationParameters(input *[]guestco
 	}
 
 	for _, item := range *input {
-		var name string
-		if item.Name != nil {
-			name = *item.Name
-		}
-		var value string
-		if item.Value != nil {
-			value = *item.Value
-		}
+		name := pointer.From(item.Name)
+		value := pointer.From(item.Value)
 		results = append(results, map[string]interface{}{
 			"name":  name,
 			"value": value,

@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roleassignments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-05-01-preview/roledefinitions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/applicationgroup"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/applicationgroup"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-12-01/subscriptions"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -37,6 +37,7 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceArmRoleAssignmentCreate,
 		Read:   resourceArmRoleAssignmentRead,
+		Update: resourceArmRoleAssignmentUpdate,
 		Delete: resourceArmRoleAssignmentDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -47,6 +48,7 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
@@ -132,21 +134,18 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 			"description": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"condition": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"condition_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				ForceNew: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"1.0",
@@ -219,13 +218,15 @@ func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}
 		options.TenantId = pointer.To(tenantId)
 	}
 
-	existing, err := roleAssignmentsClient.Get(ctx, id.ScopedId, options)
-	if err != nil && !response.WasNotFound(existing.HttpResponse) {
-		return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-	}
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := roleAssignmentsClient.Get(ctx, id.ScopedId, options)
+		if err != nil && !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_role_assignment", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_role_assignment", id.ID())
+		}
 	}
 
 	params := roleassignments.RoleAssignmentCreateParameters{
@@ -261,7 +262,7 @@ func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if principalType := d.Get("principal_type").(string); principalType != "" {
-		props.PrincipalType = pointer.To(roleassignments.PrincipalType(principalType))
+		props.PrincipalType = pointer.ToEnum[roleassignments.PrincipalType](principalType)
 	}
 
 	// LinkedAuthorizationFailed may occur in cross tenant setup because of replication lag.
@@ -272,6 +273,72 @@ func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	d.SetId(id.ID())
+
+	return resourceArmRoleAssignmentRead(d, meta)
+}
+
+func resourceArmRoleAssignmentUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Authorization.ScopedRoleAssignmentsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.ScopedRoleAssignmentID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	options := roleassignments.DefaultGetOperationOptions()
+	if id.TenantId != "" {
+		options.TenantId = pointer.To(id.TenantId)
+	}
+
+	existing, err := client.Get(ctx, id.ScopedId, options)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+	if existing.Model == nil || existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `model.properties` was nil", *id)
+	}
+
+	props := *existing.Model.Properties
+
+	if d.HasChange("description") {
+		props.Description = nil
+		if v := d.Get("description").(string); v != "" {
+			props.Description = &v
+		}
+	}
+
+	// Order matters here that "condition_version" shall be handled prior to "condition".
+	if d.HasChange("condition_version") {
+		props.ConditionVersion = nil
+		if v := d.Get("condition_version").(string); v != "" {
+			props.ConditionVersion = &v
+		}
+	}
+	if d.HasChange("condition") {
+		props.Condition = nil
+		if v := d.Get("condition").(string); v != "" {
+			props.Condition = &v
+		}
+
+		// Implicitly setting the condition_version in case it is not specified in config (as how Create() has been implemented).
+		if d.GetRawConfig().AsValueMap()["condition_version"].IsNull() {
+			if props.Condition == nil {
+				props.ConditionVersion = nil
+			} else {
+				props.ConditionVersion = pointer.To("2.0")
+			}
+		}
+	}
+
+	params := roleassignments.RoleAssignmentCreateParameters{
+		Properties: props,
+	}
+
+	if _, err := client.Create(ctx, id.ScopedId, params); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
 
 	return resourceArmRoleAssignmentRead(d, meta)
 }

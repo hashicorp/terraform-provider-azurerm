@@ -175,15 +175,17 @@ func (r MaintenanceDynamicScopeResource) Create() sdk.ResourceFunc {
 
 			id := configurationassignments.NewConfigurationAssignmentID(metadata.Client.Account.SubscriptionId, model.Name)
 
-			existing, err := client.ForSubscriptionsGet(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.ForSubscriptionsGet(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			configurationAssignment := configurationassignments.ConfigurationAssignment{
@@ -218,11 +220,10 @@ func (r MaintenanceDynamicScopeResource) Create() sdk.ResourceFunc {
 						tags[tag.Tag] = tag.Values
 					}
 
-					tagProperties := &configurationassignments.TagSettingsProperties{
-						FilterOperator: pointer.To(configurationassignments.TagOperators(filter.TagFilter)),
+					filterProperties.TagSettings = &configurationassignments.TagSettingsProperties{
+						FilterOperator: pointer.ToEnum[configurationassignments.TagOperators](filter.TagFilter),
 						Tags:           pointer.To(tags),
 					}
-					filterProperties.TagSettings = tagProperties
 				}
 				configurationAssignment.Properties.Filter = pointer.To(filterProperties)
 			}
@@ -349,11 +350,10 @@ func (MaintenanceDynamicScopeResource) Update() sdk.ResourceFunc {
 							tags[tag.Tag] = tag.Values
 						}
 
-						tagProperties := &configurationassignments.TagSettingsProperties{
-							FilterOperator: pointer.To(configurationassignments.TagOperators(filter.TagFilter)),
+						filterProperties.TagSettings = &configurationassignments.TagSettingsProperties{
+							FilterOperator: pointer.ToEnum[configurationassignments.TagOperators](filter.TagFilter),
 							Tags:           pointer.To(tags),
 						}
-						filterProperties.TagSettings = tagProperties
 					}
 
 					if pointer.To(filterProperties) != nil {

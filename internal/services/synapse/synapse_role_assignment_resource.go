@@ -153,11 +153,13 @@ func resourceSynapseRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 	// TODO: unpick this/refactor to use ID Formatters
-	if listResp.Value != nil && len(*listResp.Value) != 0 {
-		existing := (*listResp.Value)[0]
-		if !utils.ResponseWasNotFound(existing.Response) {
-			resourceId := parse.NewRoleAssignmentId(synapseScope, *existing.ID).ID()
-			return tf.ImportAsExistsError("azurerm_synapse_role_assignment", resourceId)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		if listResp.Value != nil && len(*listResp.Value) != 0 {
+			existing := (*listResp.Value)[0]
+			if !utils.ResponseWasNotFound(existing.Response) {
+				resourceId := parse.NewRoleAssignmentId(synapseScope, *existing.ID).ID()
+				return tf.ImportAsExistsError("azurerm_synapse_role_assignment", resourceId)
+			}
 		}
 	}
 
@@ -243,11 +245,7 @@ func resourceSynapseRoleAssignmentRead(d *pluginsdk.ResourceData, meta interface
 	}
 	d.Set("principal_id", principalID)
 
-	principalType := ""
-	if resp.PrincipalType != nil {
-		principalType = *resp.PrincipalType
-	}
-	d.Set("principal_type", principalType)
+	d.Set("principal_type", pointer.From(resp.PrincipalType))
 
 	synapseWorkspaceId := ""
 	synapseSparkPoolId := ""

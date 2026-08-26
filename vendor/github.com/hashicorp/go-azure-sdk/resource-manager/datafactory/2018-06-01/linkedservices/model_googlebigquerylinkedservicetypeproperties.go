@@ -18,9 +18,9 @@ type GoogleBigQueryLinkedServiceTypeProperties struct {
 	KeyFilePath             *interface{}                     `json:"keyFilePath,omitempty"`
 	Project                 interface{}                      `json:"project"`
 	RefreshToken            SecretBase                       `json:"refreshToken"`
-	RequestGoogleDriveScope *bool                            `json:"requestGoogleDriveScope,omitempty"`
+	RequestGoogleDriveScope *interface{}                     `json:"requestGoogleDriveScope,omitempty"`
 	TrustedCertPath         *interface{}                     `json:"trustedCertPath,omitempty"`
-	UseSystemTrustStore     *bool                            `json:"useSystemTrustStore,omitempty"`
+	UseSystemTrustStore     *interface{}                     `json:"useSystemTrustStore,omitempty"`
 }
 
 var _ json.Unmarshaler = &GoogleBigQueryLinkedServiceTypeProperties{}
@@ -34,9 +34,9 @@ func (s *GoogleBigQueryLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) 
 		EncryptedCredential     *string                          `json:"encryptedCredential,omitempty"`
 		KeyFilePath             *interface{}                     `json:"keyFilePath,omitempty"`
 		Project                 interface{}                      `json:"project"`
-		RequestGoogleDriveScope *bool                            `json:"requestGoogleDriveScope,omitempty"`
+		RequestGoogleDriveScope *interface{}                     `json:"requestGoogleDriveScope,omitempty"`
 		TrustedCertPath         *interface{}                     `json:"trustedCertPath,omitempty"`
-		UseSystemTrustStore     *bool                            `json:"useSystemTrustStore,omitempty"`
+		UseSystemTrustStore     *interface{}                     `json:"useSystemTrustStore,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

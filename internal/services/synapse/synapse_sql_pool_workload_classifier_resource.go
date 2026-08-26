@@ -118,14 +118,16 @@ func resourceSynapseSQLPoolWorkloadClassifierCreateUpdate(d *pluginsdk.ResourceD
 	id := parse.NewSqlPoolWorkloadClassifierID(workloadGroupId.SubscriptionId, workloadGroupId.ResourceGroup, workloadGroupId.WorkspaceName, workloadGroupId.SqlPoolName, workloadGroupId.WorkloadGroupName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.SqlPoolName, id.WorkloadGroupName, id.WorkloadClassifierName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing %q: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.SqlPoolName, id.WorkloadGroupName, id.WorkloadClassifierName)
+			if err != nil {
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("checking for existing %q: %+v", id, err)
+				}
 			}
-		}
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_synapse_sql_pool_workload_classifier", id.ID())
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return tf.ImportAsExistsError("azurerm_synapse_sql_pool_workload_classifier", id.ID())
+			}
 		}
 	}
 
@@ -144,11 +146,14 @@ func resourceSynapseSQLPoolWorkloadClassifierCreateUpdate(d *pluginsdk.ResourceD
 		return fmt.Errorf("creating/updating %q: %+v", id, err)
 	}
 
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
+
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
 	return resourceSynapseSQLPoolWorkloadClassifierRead(d, meta)
 }
 

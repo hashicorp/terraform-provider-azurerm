@@ -5,6 +5,7 @@ package validation
 
 import (
 	"fmt"
+	"net/mail"
 	"net/url"
 	"regexp"
 	"strings"
@@ -100,17 +101,10 @@ func IntInSlice(valid []int) func(interface{}, string) ([]string, []error) {
 	return validation.IntInSlice(valid)
 }
 
-func IntPositive(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(int)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be int", i))
-		return
-	}
-	if v <= 0 {
-		errors = append(errors, fmt.Errorf("expected %s to be positive, got %d", k, v))
-		return
-	}
-	return
+// IntPositive is a SchemaValidateFunc which tests if the provided value
+// is of type int and is positive
+func IntPositive(i interface{}, k string) ([]string, []error) {
+	return validation.IntAtLeast(1)(i, k)
 }
 
 // IsCIDR is a SchemaValidateFunc which tests if the provided value is of type string and a valid CIDR
@@ -121,6 +115,20 @@ func IsCIDR(i interface{}, k string) ([]string, []error) {
 // IsDayOfTheWeek id a SchemaValidateFunc which tests if the provided value is of type string and a valid english day of the week
 func IsDayOfTheWeek(ignoreCase bool) func(interface{}, string) ([]string, []error) {
 	return validation.IsDayOfTheWeek(ignoreCase)
+}
+
+// IsEmailAddress is a SchemaValidateFunc which tests if the provided value is of type string and a valid email address
+func IsEmailAddress(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		return []string{}, append(errors, fmt.Errorf("expected type of %s to be string", k))
+	}
+
+	if _, err := mail.ParseAddress(v); err != nil {
+		return []string{}, append(errors, fmt.Errorf("%v must be a valid email address", k))
+	}
+
+	return
 }
 
 // IsIPAddress is a SchemaValidateFunc which tests if the provided value is of type string and is a single IP (v4 or v6)
@@ -174,6 +182,7 @@ func IsURLWithScheme(validSchemes []string) func(interface{}, string) ([]string,
 }
 
 // IsURLWithPath is a SchemaValidateFunc that tests if the provided value is of type string and a valid URL with a path
+// lintignore:V013 // false positive - this validates a URL; the string comparisons check for empty values
 func IsURLWithPath(i interface{}, k string) (_ []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
@@ -232,6 +241,13 @@ func NoZeroValues(i interface{}, k string) ([]string, []error) {
 // provided value does not contain any of the specified Unicode code points in chars.
 func StringDoesNotContainAny(chars string) func(interface{}, string) ([]string, []error) {
 	return validation.StringDoesNotContainAny(chars)
+}
+
+// StringDoesNotMatch returns a SchemaValidateFunc which tests if the provided value
+// does not match a given regexp. Optionally an error message can be provided to
+// return something friendlier than "must not match some globby regexp".
+func StringDoesNotMatch(r *regexp.Regexp, message string) func(interface{}, string) ([]string, []error) {
+	return validation.StringDoesNotMatch(r, message)
 }
 
 // StringInSlice returns a SchemaValidateFunc which tests if the provided value
@@ -306,6 +322,24 @@ func StringStartsWithOneOf(prefixs ...string) func(interface{}, string) ([]strin
 			}
 		}
 		errors = append(errors, fmt.Errorf("expect %s to start with one of %s, got %q", k, strings.Join(prefixs, ", "), v))
+		return warnings, errors
+	}
+}
+
+func StringDoesNotStartWithOneOf(prefixes ...string) func(interface{}, string) ([]string, []error) {
+	return func(i interface{}, k string) (warnings []string, errors []error) {
+		v, ok := i.(string)
+		if !ok {
+			errors = append(errors, fmt.Errorf("expected type of `%s` to be string", k))
+			return warnings, errors
+		}
+
+		for _, val := range prefixes {
+			if strings.HasPrefix(v, val) {
+				errors = append(errors, fmt.Errorf("expected `%s` to not start with one of %s, got `%s`", k, strings.Join(prefixes, ", "), v))
+				return warnings, errors
+			}
+		}
 		return warnings, errors
 	}
 }

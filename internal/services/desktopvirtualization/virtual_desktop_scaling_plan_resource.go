@@ -16,8 +16,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/hostpool"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/scalingplan"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/hostpool"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/scalingplan"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -98,13 +98,13 @@ func resourceVirtualDesktopScalingPlan() *pluginsdk.Resource {
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
-									string(scalingplan.DaysOfWeekMonday),
-									string(scalingplan.DaysOfWeekTuesday),
-									string(scalingplan.DaysOfWeekWednesday),
-									string(scalingplan.DaysOfWeekThursday),
-									string(scalingplan.DaysOfWeekFriday),
-									string(scalingplan.DaysOfWeekSaturday),
-									string(scalingplan.DaysOfWeekSunday),
+									string(scalingplan.DayOfWeekMonday),
+									string(scalingplan.DayOfWeekTuesday),
+									string(scalingplan.DayOfWeekWednesday),
+									string(scalingplan.DayOfWeekThursday),
+									string(scalingplan.DayOfWeekFriday),
+									string(scalingplan.DayOfWeekSaturday),
+									string(scalingplan.DayOfWeekSunday),
 								}, false),
 							},
 						},
@@ -254,10 +254,8 @@ func resourceVirtualDesktopScalingPlanCreate(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Virtual Desktop Scaling Plan create")
-
 	id := scalingplan.NewScalingPlanID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -302,8 +300,6 @@ func resourceVirtualDesktopScalingPlanUpdate(d *pluginsdk.ResourceData, meta int
 	client := meta.(*clients.Client).DesktopVirtualization.ScalingPlansClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Virtual Desktop Scaling Plan update")
 
 	id, err := scalingplan.ParseScalingPlanID(d.Id())
 	if err != nil {
@@ -402,9 +398,9 @@ func expandScalingPlanSchedule(input []interface{}) *[]scalingplan.ScalingSchedu
 		v := item.(map[string]interface{})
 		name := v["name"].(string)
 		daysOfWeekRaw := v["days_of_week"].(*pluginsdk.Set).List()
-		daysOfWeek := make([]scalingplan.DaysOfWeek, 0)
+		daysOfWeek := make([]scalingplan.DayOfWeek, 0)
 		for _, weekday := range daysOfWeekRaw {
-			daysOfWeek = append(daysOfWeek, scalingplan.DaysOfWeek(weekday.(string)))
+			daysOfWeek = append(daysOfWeek, scalingplan.DayOfWeek(weekday.(string)))
 		}
 
 		rampUpStartTime := v["ramp_up_start_time"].(string)
@@ -494,21 +490,9 @@ func flattenScalingPlanSchedule(input *[]scalingplan.ScalingSchedule) []interfac
 	}
 
 	for _, item := range *input {
-		name := ""
-		if item.Name != nil {
-			name = *item.Name
-		}
 		rampUpStartTime := ""
 		if item.RampUpStartTime != nil {
 			rampUpStartTime = fmt.Sprintf("%02d:%02d", item.RampUpStartTime.Hour, item.RampUpStartTime.Minute)
-		}
-		rampUpMinimumHostsPct := int64(0)
-		if item.RampUpMinimumHostsPct != nil {
-			rampUpMinimumHostsPct = *item.RampUpMinimumHostsPct
-		}
-		rampUpCapacityThresholdPct := int64(0)
-		if item.RampUpCapacityThresholdPct != nil {
-			rampUpCapacityThresholdPct = *item.RampUpCapacityThresholdPct
 		}
 		peakStartTime := ""
 		if item.PeakStartTime != nil {
@@ -517,26 +501,6 @@ func flattenScalingPlanSchedule(input *[]scalingplan.ScalingSchedule) []interfac
 		rampDownStartTime := ""
 		if item.RampDownStartTime != nil {
 			rampDownStartTime = fmt.Sprintf("%02d:%02d", item.RampDownStartTime.Hour, item.RampDownStartTime.Minute)
-		}
-		rampDownMinimumHostsPct := int64(0)
-		if item.RampDownMinimumHostsPct != nil {
-			rampDownMinimumHostsPct = *item.RampDownMinimumHostsPct
-		}
-		rampDownCapacityThresholdPct := int64(0)
-		if item.RampDownCapacityThresholdPct != nil {
-			rampDownCapacityThresholdPct = *item.RampDownCapacityThresholdPct
-		}
-		rampDownForceLogoffUsers := false
-		if item.RampDownForceLogoffUsers != nil {
-			rampDownForceLogoffUsers = *item.RampDownForceLogoffUsers
-		}
-		rampDownWaitTimeMinutes := int64(0)
-		if item.RampDownWaitTimeMinutes != nil {
-			rampDownWaitTimeMinutes = *item.RampDownWaitTimeMinutes
-		}
-		rampDownNotificationMessage := ""
-		if item.RampDownNotificationMessage != nil {
-			rampDownNotificationMessage = *item.RampDownNotificationMessage
 		}
 		offPeakStartTime := ""
 		if item.OffPeakStartTime != nil {
@@ -550,22 +514,22 @@ func flattenScalingPlanSchedule(input *[]scalingplan.ScalingSchedule) []interfac
 		}
 
 		results = append(results, map[string]interface{}{
-			"name":                                 name,
+			"name":                                 pointer.From(item.Name),
 			"days_of_week":                         daysOfWeek,
 			"ramp_up_start_time":                   rampUpStartTime,
 			"ramp_up_load_balancing_algorithm":     item.RampUpLoadBalancingAlgorithm,
-			"ramp_up_minimum_hosts_percent":        rampUpMinimumHostsPct,
-			"ramp_up_capacity_threshold_percent":   rampUpCapacityThresholdPct,
+			"ramp_up_minimum_hosts_percent":        pointer.From(item.RampUpMinimumHostsPct),
+			"ramp_up_capacity_threshold_percent":   pointer.From(item.RampUpCapacityThresholdPct),
 			"peak_start_time":                      peakStartTime,
 			"peak_load_balancing_algorithm":        item.PeakLoadBalancingAlgorithm,
 			"ramp_down_start_time":                 rampDownStartTime,
 			"ramp_down_load_balancing_algorithm":   item.RampDownLoadBalancingAlgorithm,
-			"ramp_down_minimum_hosts_percent":      rampDownMinimumHostsPct,
-			"ramp_down_capacity_threshold_percent": rampDownCapacityThresholdPct,
-			"ramp_down_force_logoff_users":         rampDownForceLogoffUsers,
+			"ramp_down_minimum_hosts_percent":      pointer.From(item.RampDownMinimumHostsPct),
+			"ramp_down_capacity_threshold_percent": pointer.From(item.RampDownCapacityThresholdPct),
+			"ramp_down_force_logoff_users":         pointer.From(item.RampDownForceLogoffUsers),
 			"ramp_down_stop_hosts_when":            item.RampDownStopHostsWhen,
-			"ramp_down_wait_time_minutes":          rampDownWaitTimeMinutes,
-			"ramp_down_notification_message":       rampDownNotificationMessage,
+			"ramp_down_wait_time_minutes":          pointer.From(item.RampDownWaitTimeMinutes),
+			"ramp_down_notification_message":       pointer.From(item.RampDownNotificationMessage),
 			"off_peak_start_time":                  offPeakStartTime,
 			"off_peak_load_balancing_algorithm":    item.OffPeakLoadBalancingAlgorithm,
 		})
@@ -580,17 +544,9 @@ func flattenScalingHostpoolReference(input *[]scalingplan.ScalingHostPoolReferen
 	}
 
 	for _, item := range *input {
-		hostPoolArmPath := ""
-		if item.HostPoolArmPath != nil {
-			hostPoolArmPath = *item.HostPoolArmPath
-		}
-		scalingPlanEnabled := false
-		if item.ScalingPlanEnabled != nil {
-			scalingPlanEnabled = *item.ScalingPlanEnabled
-		}
 		results = append(results, map[string]interface{}{
-			"hostpool_id":          hostPoolArmPath,
-			"scaling_plan_enabled": scalingPlanEnabled,
+			"hostpool_id":          pointer.From(item.HostPoolArmPath),
+			"scaling_plan_enabled": pointer.From(item.ScalingPlanEnabled),
 		})
 	}
 	return results

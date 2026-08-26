@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -100,17 +99,17 @@ func TestAccCosmosDbMongoDatabase_serverless(t *testing.T) {
 }
 
 func (t CosmosMongoDatabaseResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.MongodbDatabaseID(state.ID)
+	id, err := cosmosdb.ParseMongodbDatabaseID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Cosmos.MongoDbClient.GetMongoDBDatabase(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name)
+	resp, err := clients.Cosmos.CosmosDBClient.MongoDBResourcesGetMongoDBDatabase(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Cosmos Mongo Database (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return pointer.To(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (CosmosMongoDatabaseResource) basic(data acceptance.TestData) string {

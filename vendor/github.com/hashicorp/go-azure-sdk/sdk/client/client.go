@@ -17,6 +17,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"regexp"
 	"runtime"
 	"strconv"
@@ -27,6 +28,12 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/internal/accept"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 	"github.com/hashicorp/go-retryablehttp"
+)
+
+const (
+	// SkipPollingDelayHeader is the HTTP header used to instruct the poller to skip its standard delay wait time.
+	// This is typically injected via a ResponseMiddleware when running tests in a VCR replay mode.
+	SkipPollingDelayHeader = "X-Go-Azure-Sdk-Skip-Polling-Delay"
 )
 
 // RetryOn404ConsistencyFailureFunc can be used to retry a request when a 404 response is received
@@ -290,6 +297,8 @@ func (r *Response) Unmarshal(model interface{}) error {
 	return fmt.Errorf("internal-error: unimplemented unmarshal function for content type %q", contentType)
 }
 
+var _ BaseClient = &Client{}
+
 // Client is a base client to be used by API-specific clients. It satisfies the BaseClient interface.
 type Client struct {
 	// BaseUri is the base endpoint for this API.
@@ -318,6 +327,10 @@ type Client struct {
 
 	// ResponseMiddlewares is a slice of functions that are called in order before a response is parsed and returned
 	ResponseMiddlewares *[]ResponseMiddleware
+
+	// Transport allows overriding the http.RoundTripper used by the client.
+	// When nil, a default transport will be used.
+	Transport http.RoundTripper
 }
 
 // NewClient returns a new Client configured with sensible defaults
@@ -330,6 +343,11 @@ func NewClient(baseUri string, serviceName, apiVersion string) *Client {
 		BaseUri:   baseUri,
 		UserAgent: fmt.Sprintf("HashiCorp/go-azure-sdk (%s)", strings.Join(segments, " ")),
 	}
+}
+
+// SetTransport configures the transport to be used by the client
+func (c *Client) SetTransport(transport http.RoundTripper) {
+	c.Transport = transport
 }
 
 // SetAuthorizer configures the request authorizer for the client
@@ -469,7 +487,8 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 		}
 
 		// Check for failed connections etc and decide if retries are appropriate
-		if r == nil {
+		// TODO this workaround is no longer required in 5.0 and later of AzureRM, and should be removed after it ships.
+		if r == nil && os.Getenv("ARM_FIVEPOINTZERO_BETA") != "true" {
 			if req.IsIdempotent() {
 				if !isResourceManagerHost(req) {
 					return extendedRetryPolicy(r, err)
@@ -723,24 +742,30 @@ func (c *Client) retryableClient(ctx context.Context, checkRetry retryablehttp.C
 		r.RetryMax = safeRetryNumber(time.Until(deadline))
 	}
 
-	tlsConfig := tls.Config{
-		MinVersion: tls.VersionTLS12,
-	}
-	r.HTTPClient = &http.Client{
-		Transport: &http.Transport{
+	var transport http.RoundTripper
+	if c.Transport != nil {
+		transport = c.Transport
+	} else {
+		transport = &http.Transport{
 			Proxy: http.ProxyFromEnvironment,
 			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
 				d := &net.Dialer{Resolver: &net.Resolver{}}
 				return d.DialContext(ctx, network, addr)
 			},
-			TLSClientConfig:       &tlsConfig,
+			TLSClientConfig: &tls.Config{
+				MinVersion: tls.VersionTLS12,
+			},
 			MaxIdleConns:          100,
 			IdleConnTimeout:       90 * time.Second,
 			TLSHandshakeTimeout:   10 * time.Second,
 			ExpectContinueTimeout: 1 * time.Second,
 			ForceAttemptHTTP2:     true,
 			MaxIdleConnsPerHost:   runtime.GOMAXPROCS(0) + 1,
-		},
+		}
+	}
+
+	r.HTTPClient = &http.Client{
+		Transport: transport,
 	}
 
 	return

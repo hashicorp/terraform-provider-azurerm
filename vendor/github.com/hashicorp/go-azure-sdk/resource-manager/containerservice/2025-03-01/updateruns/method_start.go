@@ -87,9 +87,20 @@ func (c UpdateRunsClient) Start(ctx context.Context, id UpdateRunId, options Sta
 
 // StartThenPoll performs Start then polls until it's completed
 func (c UpdateRunsClient) StartThenPoll(ctx context.Context, id UpdateRunId, options StartOperationOptions) error {
+	return c.StartCallbackThenPoll(ctx, id, options, nil)
+}
+
+// StartCallbackThenPoll performs Start, runs the optional callback function, then polls until it's completed
+func (c UpdateRunsClient) StartCallbackThenPoll(ctx context.Context, id UpdateRunId, options StartOperationOptions, callback func() error) error {
 	result, err := c.Start(ctx, id, options)
 	if err != nil {
 		return fmt.Errorf("performing Start: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

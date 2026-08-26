@@ -109,27 +109,29 @@ func (r AutonomousDatabaseBackupResource) Create() sdk.ResourceFunc {
 				model.Name,
 			)
 
-			existingBackup, err := getBackupFromOCI(ctx, client, dbId, id)
-			if err != nil {
-				return fmt.Errorf("checking for existing backup: %+v", err)
-			}
-			if existingBackup != nil {
-				return metadata.ResourceRequiresImport(r.ResourceType(), &id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existingBackup, err := getBackupFromOCI(ctx, client, dbId, id)
+				if err != nil {
+					return fmt.Errorf("checking for existing backup: %+v", err)
+				}
+				if existingBackup != nil {
+					return metadata.ResourceRequiresImport(r.ResourceType(), &id)
+				}
 			}
 
 			param := autonomousdatabasebackups.AutonomousDatabaseBackup{
 				Name: pointer.To(model.Name),
 				Properties: &autonomousdatabasebackups.AutonomousDatabaseBackupProperties{
 					RetentionPeriodInDays: pointer.To(model.RetentionPeriodInDays),
-					BackupType:            pointer.To(autonomousdatabasebackups.AutonomousDatabaseBackupType(model.Type)),
+					BackupType:            pointer.ToEnum[autonomousdatabasebackups.AutonomousDatabaseBackupType](model.Type),
 				},
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, param, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}
@@ -159,8 +161,7 @@ func (r AutonomousDatabaseBackupResource) Read() sdk.ResourceFunc {
 			}
 
 			if backup == nil {
-				err := metadata.MarkAsGone(id)
-				if err != nil {
+				if err := metadata.MarkAsGone(id); err != nil {
 					return err
 				}
 				return nil

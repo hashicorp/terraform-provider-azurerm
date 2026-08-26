@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -92,17 +91,19 @@ func (r ApiManagementNotificationRecipientUserResource) Create() sdk.ResourceFun
 
 			id := notificationrecipientuser.NewRecipientUserID(subscriptionId, apiManagementId.ResourceGroupName, apiManagementId.ServiceName, notificationrecipientuser.NotificationName(model.NotificationName), model.UserId)
 
-			// CheckEntityExists can not be used, it returns autorest error
-			notificationId := notificationrecipientuser.NewNotificationID(subscriptionId, apiManagementId.ResourceGroupName, apiManagementId.ServiceName, notificationrecipientuser.NotificationName(model.NotificationName))
-			users, err := client.ListByNotificationComplete(ctx, notificationId)
-			if err != nil {
-				if !response.WasNotFound(users.LatestHttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				// CheckEntityExists can not be used, it returns autorest error
+				notificationId := notificationrecipientuser.NewNotificationID(subscriptionId, apiManagementId.ResourceGroupName, apiManagementId.ServiceName, notificationrecipientuser.NotificationName(model.NotificationName))
+				users, err := client.ListByNotificationComplete(ctx, notificationId)
+				if err != nil {
+					if !response.WasNotFound(users.LatestHttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			for _, existing := range users.Items {
-				if existing.Name != nil && *existing.Name == model.UserId {
-					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				for _, existing := range users.Items {
+					if existing.Name != nil && *existing.Name == model.UserId {
+						return metadata.ResourceRequiresImport(r.ResourceType(), id)
+					}
 				}
 			}
 
@@ -180,5 +181,5 @@ func (r ApiManagementNotificationRecipientUserResource) Delete() sdk.ResourceFun
 }
 
 func (r ApiManagementNotificationRecipientUserResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.NotificationRecipientUserID
+	return notificationrecipientuser.ValidateRecipientUserID
 }

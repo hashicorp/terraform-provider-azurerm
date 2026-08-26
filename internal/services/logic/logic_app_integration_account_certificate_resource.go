@@ -108,14 +108,16 @@ func resourceLogicAppIntegrationAccountCertificateCreateUpdate(d *pluginsdk.Reso
 	id := integrationaccountcertificates.NewCertificateID(subscriptionId, d.Get("resource_group_name").(string), d.Get("integration_account_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_logic_app_integration_account_certificate", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_logic_app_integration_account_certificate", id.ID())
+			}
 		}
 	}
 
@@ -226,21 +228,11 @@ func flattenIntegrationAccountCertificateKeyVaultKey(input *integrationaccountce
 		return make([]interface{}, 0)
 	}
 
-	var keyVaultId string
-	if input.KeyVault.Id != nil {
-		keyVaultId = *input.KeyVault.Id
-	}
-
-	var keyVersion string
-	if input.KeyVersion != nil {
-		keyVersion = *input.KeyVersion
-	}
-
 	return []interface{}{
 		map[string]interface{}{
 			"key_name":     input.KeyName,
-			"key_vault_id": keyVaultId,
-			"key_version":  keyVersion,
+			"key_vault_id": pointer.From(input.KeyVault.Id),
+			"key_version":  pointer.From(input.KeyVersion),
 		},
 	}
 }
