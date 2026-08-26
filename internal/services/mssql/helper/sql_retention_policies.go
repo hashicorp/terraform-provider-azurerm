@@ -127,7 +127,7 @@ func ExpandLongTermRetentionPolicy(input []interface{}) *longtermretentionpolici
 
 	if mode, ok := policy["immutability_mode"].(string); ok && mode != "" {
 		output.TimeBasedImmutability = pointer.To(longtermretentionpolicies.TimeBasedImmutabilityEnabled)
-		output.TimeBasedImmutabilityMode = pointer.To(longtermretentionpolicies.TimeBasedImmutabilityMode(mode))
+		output.TimeBasedImmutabilityMode = pointer.ToEnum[longtermretentionpolicies.TimeBasedImmutabilityMode](mode)
 	} else {
 		output.TimeBasedImmutability = pointer.To(longtermretentionpolicies.TimeBasedImmutabilityDisabled)
 	}
