@@ -1,18 +1,18 @@
 ---
-subcategory: "Orbital Planetary Computer"
+subcategory: "Planetary Computer"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_geo_catalog"
 description: |-
-    Lists GeoCatalog resources.
+    Lists Microsoft Planetary Computer Pro GeoCatalog resources.
 ---
 
 # List resource: azurerm_geo_catalog
 
-Lists GeoCatalog resources.
+Lists Microsoft Planetary Computer Pro GeoCatalog resources.
 
 ## Example Usage
 
-### List all GeoCatalogs in the subscription
+### List all Microsoft Planetary Computer Pro GeoCatalogs in the subscription
 
 ```hcl
 list "azurerm_geo_catalog" "example" {
@@ -22,7 +22,7 @@ list "azurerm_geo_catalog" "example" {
 }
 ```
 
-### List all GeoCatalogs in a Resource Group
+### List all Microsoft Planetary Computer Pro GeoCatalogs in a Resource Group
 
 ```hcl
 list "azurerm_geo_catalog" "example" {
