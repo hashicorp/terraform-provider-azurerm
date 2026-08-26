@@ -718,11 +718,10 @@ func flattenContainerJobVolumeMounts(input *[]jobs.VolumeMount) []ContainerVolum
 func flattenContainerAppJobLivenessProbe(input jobs.ContainerAppProbe) []ContainerAppLivenessProbe {
 	result := make([]ContainerAppLivenessProbe, 0)
 	probe := ContainerAppLivenessProbe{
-		InitialDelay:           pointer.From(input.InitialDelaySeconds),
-		Interval:               pointer.From(input.PeriodSeconds),
-		Timeout:                pointer.From(input.TimeoutSeconds),
-		FailureThreshold:       pointer.From(input.FailureThreshold),
-		TerminationGracePeriod: pointer.From(input.TerminationGracePeriodSeconds),
+		InitialDelay:     pointer.From(input.InitialDelaySeconds),
+		Interval:         pointer.From(input.PeriodSeconds),
+		Timeout:          pointer.From(input.TimeoutSeconds),
+		FailureThreshold: pointer.From(input.FailureThreshold),
 	}
 	if httpGet := input.HTTPGet; httpGet != nil {
 		if httpGet.Scheme != nil {
@@ -799,11 +798,10 @@ func flattenContainerAppJobReadinessProbe(input jobs.ContainerAppProbe) []Contai
 func flattenContainerAppJobStartupProbe(input jobs.ContainerAppProbe) []ContainerAppStartupProbe {
 	result := make([]ContainerAppStartupProbe, 0)
 	probe := ContainerAppStartupProbe{
-		InitialDelay:           pointer.From(input.InitialDelaySeconds),
-		Interval:               pointer.From(input.PeriodSeconds),
-		Timeout:                pointer.From(input.TimeoutSeconds),
-		FailureThreshold:       pointer.From(input.FailureThreshold),
-		TerminationGracePeriod: pointer.From(input.TerminationGracePeriodSeconds),
+		InitialDelay:     pointer.From(input.InitialDelaySeconds),
+		Interval:         pointer.From(input.PeriodSeconds),
+		Timeout:          pointer.From(input.TimeoutSeconds),
+		FailureThreshold: pointer.From(input.FailureThreshold),
 	}
 
 	if httpGet := input.HTTPGet; httpGet != nil {

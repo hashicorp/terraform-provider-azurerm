@@ -3,6 +3,7 @@ package cdn
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -304,26 +305,13 @@ func validateCdnFrontDoorRuleModifyHeaderAction(blockName, headerAction, value s
 }
 
 func validateCdnFrontDoorUrlRedirectActionQueryString(i interface{}, k string) (_ []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		return nil, []error{fmt.Errorf("%q is invalid: expected type of %q to be string", "url_redirect_action", k)}
-	}
-
-	if v == "" {
-		return nil, []error{fmt.Errorf(`%q must not be empty`, k)}
-	}
-
 	// Query string must be in <key>=<value> format. ? and & will be added automatically so do not include them.
-	if strings.HasPrefix(v, "?") {
-		return nil, []error{fmt.Errorf("'url_redirect_action' is invalid: %q must not start with the '?' character in the 'query_string' field. It will be automatically added by Frontdoor, got %q", k, v)}
-	}
-
-	// NOTE: This matches the service code validation logic for this field
-	if len(v) > 2048 {
-		return nil, []error{fmt.Errorf("'url_redirect_action' is invalid: %q cannot be longer than 2048 characters in length, got %d", k, len(v))}
-	}
-
-	return nil, nil
+	// NOTE: the 2048 character limit matches the service code validation logic for this field
+	return validation.All(
+		validation.StringIsNotEmpty,
+		validation.StringDoesNotMatch(regexp.MustCompile(`^\?`), "must not start with the '?' character, it will be automatically added by Frontdoor"),
+		validation.StringLenBetween(1, 2048),
+	)(i, k)
 }
 
 func validateCdnFrontDoorCacheDuration(i interface{}, k string) (_ []string, errors []error) {

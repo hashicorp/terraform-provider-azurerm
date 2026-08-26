@@ -734,11 +734,11 @@ func validateSearchServiceSKUUpdate(ctx context.Context, diff *pluginsdk.Resourc
 		// Free and Storage optimized SKUs are not included as they're not part of the Basic->Standard upgrade path
 	}
 
-	oldLevel, oldExists := skuHierarchy[oldSku]
-	newLevel, newExists := skuHierarchy[newSku]
+	_, oldExists := skuHierarchy[oldSku]
+	_, newExists := skuHierarchy[newSku]
 
-	// If it's not a valid upgrade, force recreation instead of blocking the change
-	if !oldExists || !newExists || newLevel <= oldLevel {
+	// If it's not a valid upgrade (upgrades between basic and standard skus), force recreation instead of blocking the change
+	if !oldExists || !newExists {
 		return diff.ForceNew("sku")
 	}
 

@@ -17,6 +17,16 @@ LABEL_OUTDATED="%env.LABEL_OUTDATED%"
 LABEL_NEW_FAILURE="%env.LABEL_NEW_FAILURE%"
 APPLY_TESTING_LABELS_ENABLED="%env.APPLY_TESTING_LABELS_ENABLED%"
 TRACKING_ID="%TRACKING_ID%"
+BUILD_VCS_NUMBER="%build.vcs.number%"
+
+# Builds triggered outside of /test (TeamCity UI, tctest without --properties) have no
+# TRACKING_ID and inherit the "0" default. Since one test run is now split into several
+# per-service builds, a zero tracking id would make each build's comment minimize its
+# sibling builds' still-valid comments. Fall back to the VCS revision so builds of the
+# same revision share a tracking id and never minimize each other.
+if [ "$TRACKING_ID" = "0" ] || [ -z "$TRACKING_ID" ]; then
+  TRACKING_ID="$BUILD_VCS_NUMBER"
+fi
 
 if [ "$POST_GITHUB_COMMENT" != "true" ]; then
   echo "GitHub commenting disabled — skipping."
@@ -381,13 +391,19 @@ echo "Fetching existing comments..."
 COMMENTS_JSON=$(github_api_request "/issues/${PR_NUMBER}/comments")
 
 # Filter comments that should be minimized (teamcity-test-results or /test comments)
-# but exclude those with the current tracking ID
+# but exclude those with the current tracking ID. Without a usable tracking id we
+# cannot tell sibling builds of the current run from stale ones, so minimize nothing.
+COMMENT_IDS=""
+if [ -n "$TRACKING_ID" ] && [ "$TRACKING_ID" != "0" ]; then
 COMMENT_IDS=$(echo "$COMMENTS_JSON" | jq -r --arg tracking_id "$TRACKING_ID" '
   .[] |
   select(.body | type == "string" and (contains("<!-- teamcity-test-results -->") or startswith("/test"))) |
   select(.body | contains("tracking-id:" + $tracking_id) | not) |
   .node_id
 ' 2>&1 | grep -v "^jq:")
+else
+  echo "No usable tracking id; skipping minimization of previous comments"
+fi
 
 if [ -n "$COMMENT_IDS" ]; then
   echo "Found previous comments to minimize"

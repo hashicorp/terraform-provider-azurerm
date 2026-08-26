@@ -13,6 +13,16 @@ import (
 
 type ResourceGroupTemplateDeploymentDataSource struct{}
 
+func TestAccDataSourceResourceGroupTemplateDeployment_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_resource_group_template_deployment", "test")
+	r := ResourceGroupTemplateDeploymentDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.withDataSource(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceResourceGroupTemplateDeployment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_resource_group_template_deployment", "test")
 	r := ResourceGroupTemplateDeploymentDataSource{}

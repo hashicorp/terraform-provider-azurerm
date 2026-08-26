@@ -56,7 +56,7 @@ func resourceManagedApplicationDefinition() *pluginsdk.Resource {
 			"display_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validate.ApplicationDefinitionDisplayName,
+				ValidateFunc: validation.StringLenBetween(4, 60),
 			},
 
 			"lock_level": {
@@ -102,7 +102,7 @@ func resourceManagedApplicationDefinition() *pluginsdk.Resource {
 			"description": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.ApplicationDefinitionDescription,
+				ValidateFunc: validation.StringLenBetween(0, 200),
 			},
 
 			"main_template": {

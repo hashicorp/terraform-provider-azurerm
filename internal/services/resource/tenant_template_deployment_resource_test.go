@@ -18,6 +18,16 @@ import (
 
 type TenantTemplateDeploymentResource struct{}
 
+func TestAccTenantTemplateDeployment_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_tenant_template_deployment", "test")
+	r := TenantTemplateDeploymentResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.emptyConfig(data),
+		},
+	}, "")
+}
+
 func TestAccTenantTemplateDeployment_empty(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_tenant_template_deployment", "test")
 	if data.Client().IsServicePrincipal {

@@ -5,40 +5,19 @@ package validate
 
 import (
 	"fmt"
-	"strings"
+	"regexp"
 
-	helperValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-// lintignore:V014 // false positive: this validates FQDN label strings, not membership of an integer set
 func FrontDoorCustomDomainHostName(i interface{}, k string) (_ []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
-	}
+	// an FQDN of at least two labels, where the first label may be the wildcard `*` and every
+	// label is alphanumeric plus non-leading/non-trailing hyphens, at most 63 characters each
+	label := `[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?`
+	fqdn := fmt.Sprintf(`^(?:\*|%[1]s)(?:\.%[1]s)+$`, label)
 
-	if len(v) > 253 {
-		return nil, []error{fmt.Errorf("%q must be a valid fully qualified domain name, got %q", k, v)}
-	}
-
-	labels := strings.Split(v, ".")
-	if len(labels) < 2 {
-		return nil, []error{fmt.Errorf("%q must be a valid fully qualified domain name, got %q", k, v)}
-	}
-
-	for index, label := range labels {
-		if label == "" || len(label) > 63 {
-			return nil, []error{fmt.Errorf("%q must be a valid fully qualified domain name, got %q", k, v)}
-		}
-
-		if index == 0 && label == "*" {
-			continue
-		}
-
-		if m, _ := helperValidate.RegExHelper(label, k, `^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$`); !m {
-			return nil, []error{fmt.Errorf("%q must be a valid fully qualified domain name, got %q", k, v)}
-		}
-	}
-
-	return nil, nil
+	return validation.All(
+		validation.StringLenBetween(1, 253),
+		validation.StringMatch(regexp.MustCompile(fqdn), "must be a valid fully qualified domain name"),
+	)(i, k)
 }

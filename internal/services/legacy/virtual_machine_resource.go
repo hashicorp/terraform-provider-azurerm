@@ -281,7 +281,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: validate.DiskSizeGB,
+							ValidateFunc: validation.IntBetween(0, 32767),
 						},
 
 						"write_accelerator_enabled": {
@@ -350,7 +350,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: validate.DiskSizeGB,
+							ValidateFunc: validation.IntBetween(0, 32767),
 						},
 
 						"lun": {

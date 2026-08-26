@@ -578,11 +578,7 @@ func flattenBastionHostIPConfiguration(ipConfigs *[]bastionhosts.BastionHostIPCo
 		}
 
 		if props := config.Properties; props != nil {
-			subnetId := ""
-			if subnet := props.Subnet; subnet.Id != nil {
-				subnetId = *subnet.Id
-			}
-			ipConfig["subnet_id"] = subnetId
+			ipConfig["subnet_id"] = pointer.From(props.Subnet.Id)
 
 			publicIpId := ""
 			if pip := props.PublicIPAddress; pip != nil && pip.Id != nil {

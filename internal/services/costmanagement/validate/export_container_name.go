@@ -4,24 +4,15 @@
 package validate
 
 import (
-	"fmt"
 	"regexp"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func ExportContainerName(v interface{}, k string) (warnings []string, errors []error) {
-	name := v.(string)
-
-	if regexp.MustCompile(`^[\s]+$`).MatchString(name) {
-		errors = append(errors, fmt.Errorf("%q must not consist of whitespace", k))
-	}
-
-	if !regexp.MustCompile(`^[a-z0-9]+$`).MatchString(name) {
-		errors = append(errors, fmt.Errorf("%q may only contain letters and digits: %q", k, name))
-	}
-
-	if len(name) < 3 || len(name) > 63 {
-		errors = append(errors, fmt.Errorf("%q must be (inclusive) between 3 and 24 characters long but is %d", k, len(name)))
-	}
-
-	return warnings, errors
+func ExportContainerName(v interface{}, k string) ([]string, []error) {
+	return validation.All(
+		validation.StringDoesNotMatch(regexp.MustCompile(`^[\s]+$`), "must not consist of whitespace"),
+		validation.StringMatch(regexp.MustCompile(`^[a-z0-9]+$`), "may only contain letters and digits"),
+		validation.StringLenBetween(3, 63),
+	)(v, k)
 }

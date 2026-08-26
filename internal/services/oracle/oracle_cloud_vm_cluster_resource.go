@@ -91,7 +91,7 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.CpuCoreCount,
+			ValidateFunc: validation.IntAtLeast(2),
 		},
 
 		"data_storage_size_in_tbs": {

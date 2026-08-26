@@ -18,6 +18,16 @@ import (
 
 type ResourceGroupTemplateDeploymentResource struct{}
 
+func TestAccResourceGroupTemplateDeployment_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
+	r := ResourceGroupTemplateDeploymentResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.emptyConfig(data, "Complete"),
+		},
+	}, "")
+}
+
 func TestAccResourceGroupTemplateDeployment_empty(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
 	r := ResourceGroupTemplateDeploymentResource{}

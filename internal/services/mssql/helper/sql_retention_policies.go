@@ -5,8 +5,8 @@ package helper
 
 import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/backupshorttermretentionpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/longtermretentionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/backupshorttermretentionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/longtermretentionpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -88,14 +88,14 @@ func ShortTermRetentionPolicySchema() *pluginsdk.Schema {
 	}
 }
 
-func ExpandLongTermRetentionPolicy(input []interface{}) *longtermretentionpolicies.BaseLongTermRetentionPolicyProperties {
+func ExpandLongTermRetentionPolicy(input []interface{}) *longtermretentionpolicies.LongTermRetentionPolicyProperties {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
 	policy := input[0].(map[string]interface{})
 
-	output := longtermretentionpolicies.BaseLongTermRetentionPolicyProperties{
+	output := longtermretentionpolicies.LongTermRetentionPolicyProperties{
 		WeeklyRetention:  pointer.To("PT0S"),
 		MonthlyRetention: pointer.To("PT0S"),
 		YearlyRetention:  pointer.To("PT0S"),
