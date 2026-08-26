@@ -10,6 +10,7 @@ import (
 	"strings"
 )
 
+// lintignore:V013,V001 // false positive - this validates a CIDR; the string comparisons check for private IP ranges
 func StorageAccountIpRule(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
