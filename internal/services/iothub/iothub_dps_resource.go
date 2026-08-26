@@ -388,10 +388,10 @@ func resourceIotHubDPSDelete(d *pluginsdk.ResourceData, meta interface{}) error 
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
-	return waitForIotHubDPSToBeDeleted(ctx, client, *id, d)
+	return waitForIotHubDPSToBeDeleted(ctx, client, *id)
 }
 
-func waitForIotHubDPSToBeDeleted(ctx context.Context, client *iotdpsresource.IotDpsResourceClient, id commonids.ProvisioningServiceId, d *pluginsdk.ResourceData) error {
+func waitForIotHubDPSToBeDeleted(ctx context.Context, client *iotdpsresource.IotDpsResourceClient, id commonids.ProvisioningServiceId) error {
 	log.Printf("[DEBUG] Waiting for IoT Device Provisioning Service %q to be deleted", id)
 	poller := custompollers.NewEventualConsistencyPoller(1, func(pollerCtx context.Context) (*http.Response, error) {
 		resp, err := client.Get(pollerCtx, id)
