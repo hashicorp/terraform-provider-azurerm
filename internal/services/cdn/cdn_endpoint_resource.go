@@ -273,8 +273,7 @@ func resourceCdnEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if _, ok := d.GetOk("geo_filter"); ok {
-		geoFilters := expandCdnEndpointGeoFilters(d)
-		endpoint.GeoFilters = geoFilters
+		endpoint.GeoFilters = expandCdnEndpointGeoFilters(d)
 	}
 
 	if v, ok := d.GetOk("is_compression_enabled"); ok {
@@ -403,8 +402,7 @@ func resourceCdnEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 
 		if _, ok := d.GetOk("geo_filter"); ok {
-			geoFilters := expandCdnEndpointGeoFilters(d)
-			endpoint.GeoFilters = geoFilters
+			endpoint.GeoFilters = expandCdnEndpointGeoFilters(d)
 		}
 
 		if v, ok := d.GetOk("is_compression_enabled"); ok {

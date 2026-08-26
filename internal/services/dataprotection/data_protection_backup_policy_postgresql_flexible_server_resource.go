@@ -80,7 +80,7 @@ func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) IDValidation
 }
 
 func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) Arguments() map[string]*pluginsdk.Schema {
-	arguments := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -255,7 +255,6 @@ func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) Arguments() 
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
-	return arguments
 }
 
 func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) Attributes() map[string]*pluginsdk.Schema {

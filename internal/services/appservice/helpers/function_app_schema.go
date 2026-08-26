@@ -2047,8 +2047,7 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.cors") {
-		cors := ExpandCorsSettings(linuxSiteConfig.Cors)
-		expanded.Cors = cors
+		expanded.Cors = ExpandCorsSettings(linuxSiteConfig.Cors)
 	}
 
 	// the value 0 cannot be detected as a valid change during the creation.
@@ -2214,8 +2213,7 @@ func ExpandSiteConfigFunctionFlexConsumptionApp(siteConfigFlexConsumption []Site
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.cors") {
-		cors := ExpandCorsSettings(FlexConsumptionSiteConfig.Cors)
-		expanded.Cors = cors
+		expanded.Cors = ExpandCorsSettings(FlexConsumptionSiteConfig.Cors)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.elastic_instance_minimum") {
@@ -2450,8 +2448,7 @@ func ExpandSiteConfigWindowsFunctionApp(siteConfig []SiteConfigWindowsFunctionAp
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.cors") {
-		cors := ExpandCorsSettings(windowsSiteConfig.Cors)
-		expanded.Cors = cors
+		expanded.Cors = ExpandCorsSettings(windowsSiteConfig.Cors)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.pre_warmed_instance_count") || existing == nil {

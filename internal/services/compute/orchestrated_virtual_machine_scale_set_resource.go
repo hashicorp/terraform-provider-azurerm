@@ -600,8 +600,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
 	sourceImageId := d.Get("source_image_id").(string)
 	if len(sourceImageReferenceRaw) != 0 || sourceImageId != "" {
-		sourceImageReference := expandSourceImageReferenceVMSS(sourceImageReferenceRaw, sourceImageId)
-		virtualMachineProfile.StorageProfile.ImageReference = sourceImageReference
+		virtualMachineProfile.StorageProfile.ImageReference = expandSourceImageReferenceVMSS(sourceImageReferenceRaw, sourceImageId)
 	}
 
 	if userData, ok := d.GetOk("user_data_base64"); ok {
@@ -755,8 +754,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	}
 
 	additionalCapabilitiesRaw := d.Get("additional_capabilities").([]interface{})
-	additionalCapabilities := ExpandOrchestratedVirtualMachineScaleSetAdditionalCapabilities(additionalCapabilitiesRaw)
-	props.Properties.AdditionalCapabilities = additionalCapabilities
+	props.Properties.AdditionalCapabilities = ExpandOrchestratedVirtualMachineScaleSetAdditionalCapabilities(additionalCapabilitiesRaw)
 
 	if v, ok := d.GetOk("data_disk"); ok {
 		ultraSSDEnabled := d.Get("additional_capabilities.0.ultra_ssd_enabled").(bool)
@@ -1139,8 +1137,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 				sourceImageId := d.Get("source_image_id").(string)
 
 				if len(sourceImageReferenceRaw) != 0 || sourceImageId != "" {
-					sourceImageReference := expandSourceImageReferenceVMSS(sourceImageReferenceRaw, sourceImageId)
-					updateProps.VirtualMachineProfile.StorageProfile.ImageReference = sourceImageReference
+					updateProps.VirtualMachineProfile.StorageProfile.ImageReference = expandSourceImageReferenceVMSS(sourceImageReferenceRaw, sourceImageId)
 				}
 
 				// Must include all storage profile properties when updating disk image.  See: https://github.com/hashicorp/terraform-provider-azurerm/issues/8273

@@ -72,7 +72,7 @@ func resourceAttestationProvider() *pluginsdk.Resource {
 		},
 
 		Schema: func() map[string]*pluginsdk.Schema {
-			s := map[string]*pluginsdk.Schema{
+			return map[string]*pluginsdk.Schema{
 				"name": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
@@ -127,8 +127,6 @@ func resourceAttestationProvider() *pluginsdk.Resource {
 					ValidateFunc: validate.ContainsABase64UriEncodedJWTOfAStoredAttestationPolicy,
 				},
 			}
-
-			return s
 		}(),
 	}
 }
