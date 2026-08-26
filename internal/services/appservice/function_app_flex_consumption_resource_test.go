@@ -3632,14 +3632,19 @@ resource "azurerm_function_app_flex_consumption" "test2" {
   service_plan_id           = azurerm_service_plan.test2.id
   virtual_network_subnet_id = azurerm_subnet.test1.id
 
-  storage_container_type      = "blobContainer"
-  storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-  storage_authentication_type = "StorageAccountConnectionString"
-  storage_access_key          = azurerm_storage_account.test.primary_access_key
-  runtime_name                = "node"
-  runtime_version             = "22"
-  maximum_instance_count      = 100
-  instance_memory_in_mb       = 2048
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
+
+  deployment_storage {
+    container_endpoint = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
+    access_key         = azurerm_storage_account.test.primary_access_key
+  }
+  runtime_name           = "node"
+  runtime_version        = "22"
+  maximum_instance_count = 100
+  instance_memory_in_mb  = 2048
 
   site_config {
     vnet_route_all_enabled = true
