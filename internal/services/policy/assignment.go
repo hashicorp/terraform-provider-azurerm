@@ -10,9 +10,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
-
 	assignments "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 )
 
 func convertEnforcementMode(mode bool) *assignments.EnforcementMode {
