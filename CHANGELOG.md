@@ -12,6 +12,7 @@ ENHANCEMENTS:
 * `azurerm_federated_identity_credential` - add additional polling to account for Azure's eventual consistency [GH-32935]
 
 FEATURES:
+* `azurerm_site_recovery_replicated_vm` - add update support for `managed_disk` block without requirement of new resource  [GH-33140]
 * **New Resource**: `azurerm_playwright_workspace` [GH-31954]
 * **New Data Source**: `azurerm_playwright_workspace` [GH-31954]
 * **New List Resource**: `azurerm_playwright_workspace` [GH-31954]
