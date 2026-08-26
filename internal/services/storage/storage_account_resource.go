@@ -2944,7 +2944,7 @@ func flattenAccountSharePropertiesSMB(input *fileservices.ProtocolSettings, d *p
 	}
 
 	_, smbOk := d.GetOk("share_properties.0.smb")
-	if len(versions) == 0 && len(authenticationMethods) == 0 && len(kerberosTicketEncryption) == 0 && len(channelEncryption) == 0 && (input.Smb.Multichannel == nil || input.Smb.Multichannel.Enabled == nil) && (input.Smb.EncryptionInTransit == nil || input.Smb.EncryptionInTransit.Required == nil || (pointer.From(input.Smb.EncryptionInTransit.Required) == false && !smbOk)) {
+	if len(versions) == 0 && len(authenticationMethods) == 0 && len(kerberosTicketEncryption) == 0 && len(channelEncryption) == 0 && (input.Smb.Multichannel == nil || input.Smb.Multichannel.Enabled == nil) && (input.Smb.EncryptionInTransit == nil || input.Smb.EncryptionInTransit.Required == nil || (!pointer.From(input.Smb.EncryptionInTransit.Required) && !smbOk)) {
 		return []interface{}{}
 	}
 
