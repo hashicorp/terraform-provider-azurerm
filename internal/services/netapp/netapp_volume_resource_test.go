@@ -1017,6 +1017,7 @@ resource "azurerm_netapp_volume" "test_original" {
   volume_path         = "my-unique-file-path-%[2]d"
   service_level       = "Standard"
   subnet_id           = azurerm_subnet.test.id
+  network_features    = "Standard"
   protocols           = ["NFSv3"]
   security_style      = "unix"
   storage_quota_in_gb = 100
@@ -1051,6 +1052,7 @@ resource "azurerm_netapp_volume" "test" {
   volume_path                      = "my-unique-file-path-%[2]d-test"
   service_level                    = "Standard"
   subnet_id                        = azurerm_subnet.test.id
+  network_features                 = "Standard"
   protocols                        = ["NFSv3"]
   security_style                   = "unix"
   storage_quota_in_gb              = 100
@@ -1233,6 +1235,7 @@ resource "azurerm_netapp_volume" "test" {
   volume_path         = "my-unique-file-path-%[2]d"
   service_level       = "Standard"
   subnet_id           = azurerm_subnet.test.id
+  network_features    = "Standard"
   protocols           = ["NFSv3"]
   storage_quota_in_gb = 100
   throughput_in_mibps = 1.562
@@ -1269,6 +1272,7 @@ resource "azurerm_netapp_volume" "test_snapshot_vol" {
   volume_path                      = "my-unique-file-path-snapshot-%[2]d"
   service_level                    = "Standard"
   subnet_id                        = azurerm_subnet.test.id
+  network_features                 = "Standard"
   protocols                        = ["NFSv3"]
   storage_quota_in_gb              = 200
   create_from_snapshot_resource_id = azurerm_netapp_snapshot.test.id
@@ -2479,6 +2483,7 @@ resource "azurerm_netapp_volume" "test_original" {
   volume_path         = "my-unique-file-path-original-%[2]d"
   service_level       = "Standard"
   subnet_id           = azurerm_subnet.test.id
+  network_features    = "Standard"
   protocols           = ["NFSv3"]
   security_style      = "unix"
   storage_quota_in_gb = 100
@@ -2503,6 +2508,7 @@ resource "azurerm_netapp_volume" "test" {
   volume_path                                          = "my-unique-file-path-clone-%[2]d"
   service_level                                        = "Standard"
   subnet_id                                            = azurerm_subnet.test.id
+  network_features                                     = "Standard"
   protocols                                            = ["NFSv3"]
   security_style                                       = "unix"
   storage_quota_in_gb                                  = 100
