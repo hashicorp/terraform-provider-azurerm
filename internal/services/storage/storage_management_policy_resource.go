@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -95,7 +94,7 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 												"name": {
 													Type:         pluginsdk.TypeString,
 													Required:     true,
-													ValidateFunc: validate.StorageBlobIndexTagName,
+													ValidateFunc: validation.StringLenBetween(1, 128),
 												},
 
 												"operation": {
@@ -110,7 +109,7 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 												"value": {
 													Type:         pluginsdk.TypeString,
 													Required:     true,
-													ValidateFunc: validate.StorageBlobIndexTagValue,
+													ValidateFunc: validation.StringLenBetween(0, 256),
 												},
 											},
 										},

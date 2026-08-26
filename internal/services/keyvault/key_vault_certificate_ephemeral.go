@@ -18,6 +18,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
@@ -26,7 +27,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"golang.org/x/crypto/pkcs12"
 )
 
@@ -142,9 +142,9 @@ func (e *KeyVaultCertificateEphemeralResource) Open(ctx context.Context, req eph
 		return
 	}
 
-	response, err := client.GetCertificate(ctx, *keyVaultBaseUri, data.Name.ValueString(), data.Version.ValueString())
+	certResp, err := client.GetCertificate(ctx, *keyVaultBaseUri, data.Name.ValueString(), data.Version.ValueString())
 	if err != nil {
-		if utils.ResponseWasNotFound(response.Response) {
+		if response.WasNotFound(certResp.Response.Response) {
 			sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("certificate %q does not exist in %s", data.Name.ValueString(), keyVaultID), err)
 			return
 		}
@@ -152,14 +152,14 @@ func (e *KeyVaultCertificateEphemeralResource) Open(ctx context.Context, req eph
 		return
 	}
 
-	id, err := keyvault.ParseNestedItemID(pointer.From(response.ID), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeCertificate)
+	id, err := keyvault.ParseNestedItemID(pointer.From(certResp.ID), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeCertificate)
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(resp, "", err)
 		return
 	}
 	data.Version = types.StringValue(id.Version)
 
-	if attributes := response.Attributes; attributes != nil {
+	if attributes := certResp.Attributes; attributes != nil {
 		if expires := attributes.Expires; expires != nil {
 			data.ExpirationDate = types.StringValue(time.Time(*expires).Format(time.RFC3339))
 		}
@@ -170,8 +170,8 @@ func (e *KeyVaultCertificateEphemeralResource) Open(ctx context.Context, req eph
 	}
 
 	certificateData := ""
-	if response.Cer != nil {
-		certificateData = strings.ToUpper(hex.EncodeToString(*response.Cer))
+	if certResp.Cer != nil {
+		certificateData = strings.ToUpper(hex.EncodeToString(*certResp.Cer))
 	}
 
 	data.Hex = types.StringValue(certificateData)
