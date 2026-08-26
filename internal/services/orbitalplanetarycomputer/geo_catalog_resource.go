@@ -79,7 +79,7 @@ func (r GeoCatalogResource) ResourceType() string {
 
 func (r GeoCatalogResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 90 * time.Minute,
+		Timeout: 120 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.OrbitalPlanetaryComputer.GeoCatalogsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
@@ -133,7 +133,7 @@ func (r GeoCatalogResource) Create() sdk.ResourceFunc {
 
 func (r GeoCatalogResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 90 * time.Minute,
+		Timeout: 120 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.OrbitalPlanetaryComputer.GeoCatalogsClient
 
@@ -192,7 +192,7 @@ func (r GeoCatalogResource) Read() sdk.ResourceFunc {
 
 func (r GeoCatalogResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 60 * time.Minute,
+		Timeout: 120 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.OrbitalPlanetaryComputer.GeoCatalogsClient
 
@@ -221,10 +221,10 @@ func (r GeoCatalogResource) CustomizeDiff() sdk.ResourceFunc {
 			if rawIdentityIds, ok := metadata.ResourceDiff.GetOk("identity.0.identity_ids"); ok {
 				identityIds := rawIdentityIds.(*pluginsdk.Set)
 				identityType := metadata.ResourceDiff.Get("identity.0.type").(string)
-				if identityType == string(identity.TypeSystemAssignedUserAssigned) {
-					return fmt.Errorf("%q resource identity is not supported", string(identity.TypeSystemAssignedUserAssigned))
-				} else if identityIds.Len() > 0 && identityType != string(identity.TypeUserAssigned) {
-					return fmt.Errorf("`identity_ids` can only be specified when `type` is set to %q", string(identity.TypeUserAssigned))
+				if identityType == string(identity.TypeSystemAssigned) || identityType == string(identity.TypeSystemAssignedUserAssigned) {
+					return fmt.Errorf("%q and %q resource identity is not supported", identity.TypeSystemAssigned, identity.TypeSystemAssignedUserAssigned)
+				} else if identityIds.Len() == 0 {
+					return fmt.Errorf("`identity_ids` must be specified when `type` is set to %q", string(identity.TypeUserAssigned))
 				}
 			}
 

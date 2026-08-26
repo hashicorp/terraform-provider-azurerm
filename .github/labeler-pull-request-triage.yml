@@ -434,6 +434,11 @@ service/orbital:
   - any-glob-to-any-file:
     - internal/services/orbital/**/*
 
+service/orbitalplanetarycomputer:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/orbitalplanetarycomputer/**/*
+
 service/paloalto:
 - changed-files:
   - any-glob-to-any-file:

@@ -12,9 +12,14 @@ import (
 type Registration struct{}
 
 var (
-	_ sdk.TypedServiceRegistration     = Registration{}
-	_ sdk.FrameworkServiceRegistration = Registration{}
+	_ sdk.TypedServiceRegistration                 = Registration{}
+	_ sdk.FrameworkServiceRegistration             = Registration{}
+	_ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
 )
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/orbitalplanetarycomputer"
+}
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{}
@@ -32,7 +37,7 @@ func (r Registration) Name() string {
 
 func (r Registration) WebsiteCategories() []string {
 	return []string{
-		"Orbital Planetary Computer",
+		"Planetary Computer",
 	}
 }
 

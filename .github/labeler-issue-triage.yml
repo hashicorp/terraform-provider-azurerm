@@ -257,6 +257,9 @@ service/notifications:
 service/oracle:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_oracle_((.|\n)*)###'
 
+service/orbitalplanetarycomputer:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_geo_catalog((.|\n)*)###'
+
 service/paloalto:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_palo_alto_((.|\n)*)###'
 
