@@ -31,7 +31,7 @@ type Client struct {
 	NetworkSecurityPerimetersClient            *networksecurityperimeters.NetworkSecurityPerimetersClient
 	VMSSPublicIPAddressesClient                *vmsspublicipaddresses.VMSSPublicIPAddressesClient
 	// The API issue affecting Web Application Firewall Policies is resolved in API version 2026-01-01 or later by https://github.com/Azure/azure-rest-api-specs/pull/45621.
-	WebApplicationFirewallPolicies             *webapplicationfirewallpolicies.WebApplicationFirewallPoliciesClient
+	WebApplicationFirewallPolicies *webapplicationfirewallpolicies.WebApplicationFirewallPoliciesClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
