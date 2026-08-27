@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
@@ -52,14 +54,21 @@ func TestAccWindowsVirtualMachineScaleSet_scalingCapacityReservationGroupIdZonal
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password"),
 		{
 			Config: r.scalingCapacityReservationGroupIdZonal(data, "azurerm_capacity_reservation_group.test.id"),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionUpdate),
+				},
+			},
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password"),
+		data.ImportStep(
+			"additional_unattend_content.0.content",
+			"admin_password",
+		),
 	})
 }
 
@@ -521,6 +530,12 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   single_placement_group      = false
   platform_fault_domain_count = 1
 %[3]s
+
+  additional_unattend_content {
+    setting = "AutoLogon"
+    content = "<AutoLogon><Username>myadmin</Username><Password><Value>P@ssword1234!</Value></Password><Enabled>true</Enabled><LogonCount>1</LogonCount></AutoLogon>"
+  }
+
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"

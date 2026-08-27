@@ -5,6 +5,7 @@ package compute
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -100,19 +101,20 @@ func resourceLinuxVirtualMachineScaleSet() *pluginsdk.Resource {
 					}
 				}
 
+				if diff.Get("capacity_reservation_group_id").(string) != "" {
+					if diff.Get("single_placement_group").(bool) {
+						return errors.New("`single_placement_group` must be set to `false` when `capacity_reservation_group_id` is specified")
+					}
+				}
+
 				return nil
 			}),
 
-			// Azure only allows associating (not changing/removing) a capacity reservation group in-place for zonal scale sets.
 			pluginsdk.ForceNewIf("capacity_reservation_group_id", func(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) bool {
-				if _, ok := d.GetOk("zones"); ok {
-					oldRaw, _ := d.GetChange("capacity_reservation_group_id")
-					oldCRG := oldRaw.(string)
-					if oldCRG == "" {
-						return false
-					}
-				}
-				return true
+				oldZones, _ := d.GetChange("zones")
+				oldCRG, _ := d.GetChange("capacity_reservation_group_id")
+				// in-place association is only supported when adding a CRG to an already-zonal scale set
+				return oldZones.(*schema.Set).Len() == 0 || oldCRG.(string) != ""
 			}),
 		),
 	}
@@ -271,9 +273,6 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if v, ok := d.GetOk("capacity_reservation_group_id"); ok {
-		if d.Get("single_placement_group").(bool) {
-			return fmt.Errorf("`single_placement_group` must be set to `false` when `capacity_reservation_group_id` is specified")
-		}
 		virtualMachineProfile.CapacityReservation = &virtualmachinescalesets.CapacityReservationProfile{
 			CapacityReservationGroup: &virtualmachinescalesets.SubResource{
 				Id: pointer.To(v.(string)),
@@ -787,11 +786,12 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 			if v, ok := d.GetOk("capacity_reservation_group_id"); ok {
 				capacityReservation.CapacityReservationGroup.Id = pointer.To(v.(string))
 			}
+			// capacityReservation is not exposed on the PATCH update model, so it can only be set via PUT, which preserves the write-only values omitted from the GET model
 			existing.Model.Properties.VirtualMachineProfile.CapacityReservation = capacityReservation
 		}
 
 		if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, virtualmachinescalesets.DefaultCreateOrUpdateOperationOptions()); err != nil {
-			return fmt.Errorf("updating Linux %s: %+v", id, err)
+			return fmt.Errorf("identity / capacity reservation group for Linux %s: %+v", id, err)
 		}
 	}
 
