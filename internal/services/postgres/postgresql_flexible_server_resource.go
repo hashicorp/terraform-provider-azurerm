@@ -176,6 +176,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Optional: true,
 				Default:  string(servers.StorageTypePremiumLRS),
 				ForceNew: true,
+				// NOTE: not using `servers.PossibleValuesForStorageType()` because it includes `UltraSSD_LRS`, which is not GA yet
 				ValidateFunc: validation.StringInSlice([]string{
 					string(servers.StorageTypePremiumLRS),
 					string(servers.StorageTypePremiumVTwoLRS),
@@ -906,9 +907,17 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 					d.Set("storage_tier", string(*storage.Tier))
 				}
 
-				d.Set("storage_type", pointer.FromEnum(storage.Type))
-				d.Set("storage_iops", pointer.From(storage.Iops))
-				d.Set("storage_throughput", pointer.From(storage.Throughput))
+				if storage.Type != nil {
+					d.Set("storage_type", string(*storage.Type))
+				}
+
+				if storage.Iops != nil {
+					d.Set("storage_iops", *storage.Iops)
+				}
+
+				if storage.Throughput != nil {
+					d.Set("storage_throughput", *storage.Throughput)
+				}
 			}
 
 			if backup := props.Backup; backup != nil {
