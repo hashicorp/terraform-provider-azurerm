@@ -415,7 +415,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Storage Account.
 
-* `account_replication_type_migration_in_progress` - Whether a replication tier migration is in progress.
+* `account_replication_type_migration_in_progress` - Whether a replication type migration is in progress.
 
 * `account_replication_type_migrating_to` - The `account_replication_type` that the Storage Account is migrating to.
 
