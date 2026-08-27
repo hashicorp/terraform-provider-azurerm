@@ -187,8 +187,7 @@ func checkZipDeploymentStatusRefresh(r *http.Request) pluginsdk.StateRefreshFunc
 		}
 
 		body := make(map[string]interface{})
-		err = json.Unmarshal(respBody, &body)
-		if err != nil {
+		if err = json.Unmarshal(respBody, &body); err != nil {
 			return nil, "", fmt.Errorf("could not parse status response for Zip Deploy")
 		}
 

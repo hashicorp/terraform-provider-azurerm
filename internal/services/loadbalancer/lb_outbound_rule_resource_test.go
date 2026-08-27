@@ -222,8 +222,7 @@ func (r LoadBalancerOutboundRule) Destroy(ctx context.Context, client *clients.C
 	}
 	lb.Model.Properties.OutboundRules = &outboundRules
 
-	err = client.LoadBalancers.LoadBalancersClient.CreateOrUpdateThenPoll(ctx, plbId, *lb.Model)
-	if err != nil {
+	if err = client.LoadBalancers.LoadBalancersClient.CreateOrUpdateThenPoll(ctx, plbId, *lb.Model); err != nil {
 		return nil, fmt.Errorf("updating %s: %+v", *id, err)
 	}
 

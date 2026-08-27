@@ -851,7 +851,7 @@ func resourceBatchCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		Properties: &pool.PoolProperties{
 			VMSize:                 pointer.To(d.Get("vm_size").(string)),
 			DisplayName:            pointer.To(d.Get("display_name").(string)),
-			InterNodeCommunication: pointer.To(pool.InterNodeCommunicationState(d.Get("inter_node_communication").(string))),
+			InterNodeCommunication: pointer.ToEnum[pool.InterNodeCommunicationState](d.Get("inter_node_communication").(string)),
 			TaskSlotsPerNode:       pointer.To(int64(d.Get("max_tasks_per_node").(int))),
 		},
 	}
@@ -926,7 +926,7 @@ func resourceBatchCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if v, ok := d.GetOk("target_node_communication_mode"); ok {
-		parameters.Properties.TargetNodeCommunicationMode = pointer.To(pool.NodeCommunicationMode(v.(string)))
+		parameters.Properties.TargetNodeCommunicationMode = pointer.ToEnum[pool.NodeCommunicationMode](v.(string))
 	}
 
 	if _, err = client.Create(ctx, id, parameters, pool.CreateOperationOptions{}); err != nil {
@@ -1062,7 +1062,7 @@ func resourceBatchUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	parameters.Properties.MountConfiguration = mountConfiguration
 
 	if d.HasChange("target_node_communication_mode") {
-		parameters.Properties.TargetNodeCommunicationMode = pointer.To(pool.NodeCommunicationMode(d.Get("target_node_communication_mode").(string)))
+		parameters.Properties.TargetNodeCommunicationMode = pointer.ToEnum[pool.NodeCommunicationMode](d.Get("target_node_communication_mode").(string))
 	}
 
 	result, err := client.Update(ctx, *id, parameters, pool.UpdateOperationOptions{})

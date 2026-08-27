@@ -43,8 +43,7 @@ func (r AlertProcessingRuleSuppressionResource) IDValidationFunc() pluginsdk.Sch
 }
 
 func (r AlertProcessingRuleSuppressionResource) Arguments() map[string]*pluginsdk.Schema {
-	arguments := schemaAlertProcessingRule()
-	return arguments
+	return schemaAlertProcessingRule()
 }
 
 func (r AlertProcessingRuleSuppressionResource) Attributes() map[string]*pluginsdk.Schema {
