@@ -75,8 +75,13 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				// NOTE: O+C Best Practice from MSFT is to use the latest version 1.2, but API uses 1.0 as the default
-				Computed:     true,
-				ValidateFunc: validation.StringInSlice(streamingjobs.PossibleValuesForCompatibilityLevel(), false),
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					// values found in the other API the portal uses
+					string(streamingjobs.CompatibilityLevelOnePointZero),
+					"1.1",
+					string(streamingjobs.CompatibilityLevelOnePointTwo),
+				}, false),
 			},
 
 			"data_locale": {
