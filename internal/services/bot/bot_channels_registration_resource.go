@@ -23,7 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
@@ -54,7 +53,7 @@ func resourceBotChannelsRegistration() *pluginsdk.Resource {
 
 			resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
+				if response.WasNotFound(resp.Response.Response) {
 					return nil, fmt.Errorf("the Bot Channels Registration %q was not found in Resource Group %q", id.Name, id.ResourceGroup)
 				}
 
@@ -199,11 +198,11 @@ func resourceBotChannelsRegistrationCreate(d *pluginsdk.ResourceData, meta inter
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.Name)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return fmt.Errorf("checking for presence of existing Bot Channels Registration %q (Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.Response.Response) {
 			return tf.ImportAsExistsError("azurerm_bot_channels_registration", resourceId.ID())
 		}
 	}
@@ -275,7 +274,7 @@ func resourceBotChannelsRegistrationRead(d *pluginsdk.ResourceData, meta interfa
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[INFO] Bot Channels Registration %q (Resource Group %q) was not found - removing from state", id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil

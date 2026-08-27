@@ -25,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/attestation/2022-08-01/attestation"
 )
 
@@ -244,19 +243,19 @@ func resourceAttestationProviderRead(d *pluginsdk.ResourceData, meta interface{}
 
 	// Status=400 Code="Bad request" Message="Tpm attestation is not supported in the 'UKSouth' region"
 	openEnclavePolicy, err := dataPlaneClient.Get(ctx, *dataPlaneUri, attestation.TypeOpenEnclave)
-	if err != nil && !utils.ResponseWasBadRequest(openEnclavePolicy.Response) {
+	if err != nil && !response.WasBadRequest(openEnclavePolicy.Response.Response) {
 		return fmt.Errorf("retrieving OpenEnclave Policy for %s: %+v", *id, err)
 	}
 	sgxEnclavePolicy, err := dataPlaneClient.Get(ctx, *dataPlaneUri, attestation.TypeSgxEnclave)
-	if err != nil && !utils.ResponseWasBadRequest(sgxEnclavePolicy.Response) {
+	if err != nil && !response.WasBadRequest(sgxEnclavePolicy.Response.Response) {
 		return fmt.Errorf("retrieving SgxEnclave Policy for %s: %+v", *id, err)
 	}
 	tpmPolicy, err := dataPlaneClient.Get(ctx, *dataPlaneUri, attestation.TypeTpm)
-	if err != nil && !utils.ResponseWasBadRequest(tpmPolicy.Response) {
+	if err != nil && !response.WasBadRequest(tpmPolicy.Response.Response) {
 		return fmt.Errorf("retrieving Tpm Policy for %s: %+v", *id, err)
 	}
 	sevSnpPolicy, err := dataPlaneClient.Get(ctx, *dataPlaneUri, attestation.TypeSevSnpVM)
-	if err != nil && !utils.ResponseWasBadRequest(sevSnpPolicy.Response) {
+	if err != nil && !response.WasBadRequest(sevSnpPolicy.Response.Response) {
 		return fmt.Errorf("retrieving SEV-SNP Policy for %s: %+v", *id, err)
 	}
 
