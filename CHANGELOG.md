@@ -10,9 +10,10 @@ ENHANCEMENTS:
 * Data Source: `azurerm_role_definition` - export the `role_definition_resource_id` property [GH-33126]
 * `azurerm_user_assigned_identity` - add additional polling to account for Azure's eventual consistency [GH-33142]
 * `azurerm_federated_identity_credential` - add additional polling to account for Azure's eventual consistency [GH-32935]
+* `azurerm_site_recovery_replicated_vm` - add update support to the `managed_disk` block without requiring resource recreation [GH-33140]
+* `azurerm_kubernetes_cluster` - add support for the `oms_agent.retina_flow_logs_enabled` property [GH-33222]
 
 FEATURES:
-* `azurerm_site_recovery_replicated_vm` - add update support for `managed_disk` block without requirement of new resource  [GH-33140]
 * **New Resource**: `azurerm_playwright_workspace` [GH-31954]
 * **New Data Source**: `azurerm_playwright_workspace` [GH-31954]
 * **New List Resource**: `azurerm_playwright_workspace` [GH-31954]
