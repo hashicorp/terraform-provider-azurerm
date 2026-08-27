@@ -2759,6 +2759,8 @@ resource "azurerm_netapp_volume" "test_cross_region" {
     "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
+
+  depends_on = [azurerm_netapp_volume.test_cross_zone]
 }
 `, template, data.RandomInteger, overriddenlocations.Secondary)
 }
