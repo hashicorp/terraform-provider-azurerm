@@ -240,7 +240,7 @@ func (a RoleDefinitionDataSource) Read() sdk.ResourceFunc {
 			// The sdk managed id start with two "/" when scope is tenant level (empty).
 			// So we use the id from response without parsing and reformatting it.
 			// Tracked on https://github.com/hashicorp/pandora/issues/3257
-			metadata.ResourceData.SetId(*role.Id) // azignore:AZR001
+			metadata.ResourceData.SetId(*role.Id) // azignore:AZR001 - tenant level (empty) scope IDs start with "//" which the ID parser cannot round-trip, so the raw response ID is used (hashicorp/pandora#3257)
 			return metadata.Encode(&state)
 		},
 	}
