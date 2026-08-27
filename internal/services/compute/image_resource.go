@@ -61,14 +61,11 @@ func resourceImage() *pluginsdk.Resource {
 			},
 
 			"hyper_v_generation": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(images.HyperVGenerationTypesVOne),
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(images.HyperVGenerationTypesVOne),
-					string(images.HyperVGenerationTypesVTwo),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(images.HyperVGenerationTypesVOne),
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(images.PossibleValuesForHyperVGenerationTypes(), false),
 			},
 
 			"source_virtual_machine_id": {
@@ -86,21 +83,15 @@ func resourceImage() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"os_type": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(images.OperatingSystemTypesLinux),
-								string(images.OperatingSystemTypesWindows),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(images.PossibleValuesForOperatingSystemTypes(), false),
 						},
 
 						"os_state": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(images.OperatingSystemStateTypesGeneralized),
-								string(images.OperatingSystemStateTypesSpecialized),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(images.PossibleValuesForOperatingSystemStateTypes(), false),
 						},
 
 						"managed_disk_id": {
@@ -120,14 +111,10 @@ func resourceImage() *pluginsdk.Resource {
 						},
 
 						"caching": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(images.CachingTypesNone),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(images.CachingTypesNone),
-								string(images.CachingTypesReadOnly),
-								string(images.CachingTypesReadWrite),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(images.CachingTypesNone),
+							ValidateFunc: validation.StringInSlice(images.PossibleValuesForCachingTypes(), false),
 						},
 
 						"size_gb": {
@@ -182,14 +169,10 @@ func resourceImage() *pluginsdk.Resource {
 						},
 
 						"caching": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(images.CachingTypesNone),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(images.CachingTypesNone),
-								string(images.CachingTypesReadOnly),
-								string(images.CachingTypesReadWrite),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(images.CachingTypesNone),
+							ValidateFunc: validation.StringInSlice(images.PossibleValuesForCachingTypes(), false),
 						},
 
 						"size_gb": {

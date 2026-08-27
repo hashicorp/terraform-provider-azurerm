@@ -74,24 +74,18 @@ func resourceSharedImage() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"architecture": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(galleryimages.ArchitectureXSixFour),
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(galleryimages.ArchitectureXSixFour),
-					string(galleryimages.ArchitectureArmSixFour),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(galleryimages.ArchitectureXSixFour),
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(galleryimages.PossibleValuesForArchitecture(), false),
 			},
 
 			"os_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(galleryimages.OperatingSystemTypesLinux),
-					string(galleryimages.OperatingSystemTypesWindows),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(galleryimages.PossibleValuesForOperatingSystemTypes(), false),
 			},
 
 			"disk_types_not_allowed": {
@@ -114,14 +108,11 @@ func resourceSharedImage() *pluginsdk.Resource {
 			},
 
 			"hyper_v_generation": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(galleryimages.HyperVGenerationVOne),
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(galleryimages.HyperVGenerationVOne),
-					string(galleryimages.HyperVGenerationVTwo),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(galleryimages.HyperVGenerationVOne),
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(galleryimages.PossibleValuesForHyperVGeneration(), false),
 			},
 
 			"identifier": {

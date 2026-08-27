@@ -230,13 +230,10 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			},
 
 			"disk_controller_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualmachines.DiskControllerTypesNVMe),
-					string(virtualmachines.DiskControllerTypesSCSI),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForDiskControllerTypes(), false),
 			},
 
 			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
@@ -258,13 +255,10 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 
 			"eviction_policy": {
 				// only applicable when `priority` is set to `Spot`
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualmachines.VirtualMachineEvictionPolicyTypesDeallocate),
-					string(virtualmachines.VirtualMachineEvictionPolicyTypesDelete),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForVirtualMachineEvictionPolicyTypes(), false),
 			},
 
 			"extensions_time_budget": {
@@ -303,27 +297,20 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			},
 
 			"patch_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualmachines.WindowsVMGuestPatchModeAutomaticByOS),
-					string(virtualmachines.WindowsVMGuestPatchModeAutomaticByPlatform),
-					string(virtualmachines.WindowsVMGuestPatchModeManual),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForWindowsVMGuestPatchMode(), false),
 				ConflictsWith: []string{
 					"os_managed_disk_id",
 				},
 			},
 
 			"patch_assessment_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualmachines.WindowsPatchAssessmentModeAutomaticByPlatform),
-					string(virtualmachines.WindowsPatchAssessmentModeImageDefault),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForWindowsPatchAssessmentMode(), false),
 				ConflictsWith: []string{
 					"os_managed_disk_id",
 				},

@@ -233,13 +233,10 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			},
 
 			"disk_controller_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualmachines.DiskControllerTypesNVMe),
-					string(virtualmachines.DiskControllerTypesSCSI),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForDiskControllerTypes(), false),
 			},
 
 			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
@@ -251,13 +248,10 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 
 			"eviction_policy": {
 				// only applicable when `priority` is set to `Spot`
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualmachines.VirtualMachineEvictionPolicyTypesDeallocate),
-					string(virtualmachines.VirtualMachineEvictionPolicyTypesDelete),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForVirtualMachineEvictionPolicyTypes(), false),
 			},
 
 			"extensions_time_budget": {
@@ -321,13 +315,10 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			},
 
 			"patch_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualmachines.LinuxVMGuestPatchModeAutomaticByPlatform),
-					string(virtualmachines.LinuxVMGuestPatchModeImageDefault),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForLinuxVMGuestPatchMode(), false),
 				ConflictsWith: []string{
 					"os_managed_disk_id",
 				},
@@ -335,13 +326,10 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 
 			"patch_assessment_mode": {
 				// O+C due to incompatibility between `os_managed_disk_id` and sending `OsProfile` in create/update
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualmachines.LinuxPatchAssessmentModeAutomaticByPlatform),
-					string(virtualmachines.LinuxPatchAssessmentModeImageDefault),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForLinuxPatchAssessmentMode(), false),
 				ConflictsWith: []string{
 					"os_managed_disk_id",
 				},
